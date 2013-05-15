@@ -166,11 +166,6 @@ define(function (require, exports, module) {
             })
             .on("click", "button.remove", function (e) {
                 self.model.markForRemoval($(e.target).attr("data-extension-id"), true);
-            })
-            .on("click", "a.undo-remove", function (e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                self.model.markForRemoval($(e.target).attr("data-extension-id"), false);
             });
     };
     
@@ -269,13 +264,13 @@ define(function (require, exports, module) {
     
     /**
      * Disposes the view. Must be called when the view goes away.
-     * @param {boolean} skipRemoval Whether to skip removal of marked extensions. Only for unit testing.
+     * @param {boolean} _skipRemoval Whether to skip removal of marked extensions. Only for unit testing.
      */
-    ExtensionManagerView.prototype.dispose = function (skipRemoval) {
+    ExtensionManagerView.prototype.dispose = function (_skipRemoval) {
         var self = this;
         
         // If an extension was removed, prompt the user to quit Brackets.
-        if (!skipRemoval && this.model.hasExtensionsToRemove()) {
+        if (!_skipRemoval && this.model.hasExtensionsToRemove()) {
             Dialogs.showModalDialog("remove-marked-extensions", Strings.REMOVE_AND_QUIT_TITLE,
                                     Strings.REMOVE_AND_QUIT_MESSAGE)
                 .done(function (buttonId) {

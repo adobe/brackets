@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         Commands                  = require("command/Commands"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
+        mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
         mockRegistry;
     
     describe("ExtensionManager", function () {
@@ -378,128 +379,7 @@ define(function (require, exports, module) {
                 beforeEach(function () {
                     runs(function () {
                         origExtensions = ExtensionManager.extensions;
-                        ExtensionManager._setExtensions({
-                            "/path/to/extensions/user/legacy-extension": {
-                                installInfo: {
-                                    metadata: {
-                                        title: "legacy-extension"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/user/legacy-extension",
-                                    locationType: "user"
-                                }
-                            },
-                            "registered-extension": {
-                                registryInfo: {
-                                    metadata: {
-                                        name: "registered-extension",
-                                        title: "AAA extension to sort to the beginning",
-                                        description: "An updated extension from the registry",
-                                        version: "2.0.0"
-                                    },
-                                    owner: "github:someuser",
-                                    versions: [
-                                        {
-                                            version: "1.0.0",
-                                            published: "2013-04-10T18:26:20.553Z"
-                                        },
-                                        {
-                                            version: "2.0.0",
-                                            published: "2013-04-15T12:26:20.553Z"
-                                        }
-                                    ]
-                                },
-                                installInfo: {
-                                    metadata: {
-                                        name: "registered-extension",
-                                        title: "AAA extension to sort to the beginning",
-                                        description: "An extension from the registry",
-                                        version: "1.0.0"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/user/registered-extension",
-                                    locationType: "user"
-                                }
-                            },
-                            "Z-capital-extension": {
-                                registryInfo: {
-                                    metadata: {
-                                        name: "Z-capital-extension",
-                                        description: "An extension that should sort after lowercase extensions",
-                                        version: "1.0.0"
-                                    },
-                                    owner: "github:someuser",
-                                    versions: [
-                                        {
-                                            version: "1.0.0",
-                                            published: "2013-04-10T18:26:20.553Z"
-                                        }
-                                    ]
-                                },
-                                installInfo: {
-                                    metadata: {
-                                        name: "Z-capital-extension",
-                                        description: "An extension that should sort after lowercase extensions",
-                                        version: "1.0.0"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/user/Z-capital-extension",
-                                    locationType: "user"
-                                }
-                            },
-                            "unregistered-extension": {
-                                installInfo: {
-                                    metadata: {
-                                        name: "registered-extension",
-                                        description: "An extension not from the registry",
-                                        version: "1.0.0"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/user/unregistered-extension",
-                                    locationType: "user"
-                                }
-                            },
-                            "install-later-extension": {
-                                registryInfo: {
-                                    metadata: {
-                                        name: "install-later-extension",
-                                        description: "An extension from the registry that will be installed later",
-                                        version: "1.0.0"
-                                    },
-                                    owner: "github:someuser",
-                                    versions: [
-                                        {
-                                            version: "1.0.0",
-                                            published: "2013-04-10T18:26:20.553Z"
-                                        }
-                                    ]
-                                }
-                            },
-                            "default-extension": {
-                                installInfo: {
-                                    metadata: {
-                                        name: "default-extension",
-                                        description: "An extension in the default folder",
-                                        version: "1.0.0"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/default/default-extension",
-                                    locationType: "default"
-                                }
-                            },
-                            "dev-extension": {
-                                installInfo: {
-                                    metadata: {
-                                        name: "dev-extension",
-                                        description: "An extension in the dev folder",
-                                        version: "1.0.0"
-                                    },
-                                    status: ExtensionManager.ENABLED,
-                                    path: "/path/to/extensions/dev/dev-extension",
-                                    locationType: "dev"
-                                }
-                            }
-                        });
+                        ExtensionManager._setExtensions(JSON.parse(mockExtensionList));
                         model = new ExtensionManagerViewModel();
                         waitsForDone(model.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED));
                     });
@@ -843,15 +723,26 @@ define(function (require, exports, module) {
             });
             
             describe("when showing installed extensions", function () {
-                var dialogClassShown, dialogDeferred;
+                var dialogClassShown, dialogDeferred, didQuit;
                 
                 beforeEach(function () {
+                    // Mock popping up dialogs
                     dialogClassShown = null;
                     dialogDeferred = new $.Deferred();
                     spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
                         dialogClassShown = dlgClass;
                         // The test will resolve the promise.
                         return dialogDeferred.promise();
+                    });
+                    
+                    // Mock quitting the app so we don't actually quit :)
+                    didQuit = false;
+                    spyOn(CommandManager, "execute").andCallFake(function (id) {
+                        if (id === Commands.FILE_QUIT) {
+                            didQuit = true;
+                        } else {
+                            CommandManager.execute.apply(this, arguments);
+                        }
                     });
                 });
                            
@@ -994,14 +885,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should remove extensions and quit if the user hits Remove and Quit on the removal confirmation dialog", function () {
-                    var didQuit = false, model;
-                    spyOn(CommandManager, "execute").andCallFake(function (id) {
-                        if (id === Commands.FILE_QUIT) {
-                            didQuit = true;
-                        } else {
-                            CommandManager.execute.apply(this, arguments);
-                        }
-                    });
+                    var model;
                     mockLoadExtensions(["user/mock-extension-3"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
@@ -1024,14 +908,6 @@ define(function (require, exports, module) {
                 });
                 
                 it("should not remove extensions or quit if the user hits Cancel on the removal confirmation dialog", function () {
-                    var didQuit = false;
-                    spyOn(CommandManager, "execute").andCallFake(function (id) {
-                        if (id === Commands.FILE_QUIT) {
-                            didQuit = true;
-                        } else {
-                            CommandManager.execute.apply(this, arguments);
-                        }
-                    });
                     mockLoadExtensions(["user/mock-extension-3"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
