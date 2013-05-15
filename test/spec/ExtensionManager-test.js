@@ -402,7 +402,7 @@ define(function (require, exports, module) {
                 it("should include a newly-installed extension", function () {
                     mockLoadExtensions(["user/install-later-extension"]);
                     runs(function () {
-                        expect(model.filterSet.indexOf("install-later-extension")).not.toBe(-1);
+                        expect(model.filterSet.indexOf("install-later-extension")).toBe(2);
                     });
                 });
                 
