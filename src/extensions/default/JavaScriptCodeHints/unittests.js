@@ -1061,6 +1061,29 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresentOrdered(hintObj, ["A1", "A2", "A3", "funB", "_A1"]);
             });
+
+            it("should list all properties for unknown type", function () {
+                var start = { line: 149, ch: 0 },
+                    end   = { line: 149, ch: 5 };
+
+                testDoc.replaceRange("help.", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                // check we have a properties from "Function", "Array", and "Date"
+                hintsPresentOrdered(hintObj, ["apply", "concat", "getSeconds"]);
+            });
+
+            it("should switch to guesses after typing a query that does not match any hints", function () {
+                var start = { line: 150, ch: 0 },
+                    end   = { line: 150, ch: 5 };
+
+                testDoc.replaceRange("s.shift", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                // check we have a properties that start with "shift"
+                hintsPresentOrdered(hintObj, ["shift", "shiftKey"]);
+            });
+
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {

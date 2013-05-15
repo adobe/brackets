@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
+        this.ternGuesses = null;
         this.fnType = null;
         this.builtins = null;
     }
@@ -392,8 +393,9 @@ define(function (require, exports, module) {
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
-     * @return {Array.<Object>} - the sorted list of hints for the current 
-     *      session.
+     * @returns {hints: Array.<string>, needGuesses: boolean} - array of
+     * matching hints. If needGuesses is true, then the caller needs to
+     * request guesses and call getHints again.
      */
     Session.prototype.getHints = function (query, matcher) {
 
@@ -402,8 +404,9 @@ define(function (require, exports, module) {
         }
 
         var MAX_DISPLAYED_HINTS = 500,
-            type = this.getType(),
-            builtins = this._getBuiltins(),
+            type                = this.getType(),
+            builtins            = this._getBuiltins(),
+            needGuesses         = false,
             hints;
 
         /**
@@ -461,6 +464,16 @@ define(function (require, exports, module) {
         if (type.property) {
             hints = this.ternHints || [];
             hints = filterWithQueryAndMatcher(hints, matcher);
+
+            // If there are no hints then switch over to guesses.
+            if (hints.length === 0) {
+                if (this.ternGuesses) {
+                    hints = filterWithQueryAndMatcher(this.ternGuesses, matcher);
+                } else {
+                    needGuesses = true;
+                }
+            }
+
             StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
         } else if (type.showFunctionType) {
             hints = this.getFunctionTypeHint();
@@ -476,11 +489,15 @@ define(function (require, exports, module) {
             hints = hints.slice(0, MAX_DISPLAYED_HINTS);
         }
 
-        return hints;
+        return {hints: hints, needGuesses: needGuesses};
     };
     
     Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
+    };
+
+    Session.prototype.setGuesses = function (newGuesses) {
+        this.ternGuesses = newGuesses;
     };
 
     Session.prototype.setFnType = function (newFnType) {
