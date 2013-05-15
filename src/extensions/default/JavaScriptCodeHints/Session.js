@@ -364,7 +364,28 @@ define(function (require, exports, module) {
             context: context
         };
     };
-
+    
+    // Comparison function used for sorting that does a case-insensitive string
+    // comparison on the "value" field of both objects. Unlike a normal string
+    // comparison, however, this sorts leading "_" to the bottom, given that a
+    // leading "_" usually denotes a private value.
+    function penalizeUnderscoreValueCompare(a, b) {
+        var aName = a.value.toLowerCase(), bName = b.value.toLowerCase();
+        // this sort function will cause _ to sort lower than lower case
+        // alphabetical letters
+        if (aName[0] === "_" && bName[0] !== "_") {
+            return 1;
+        } else if (bName[0] === "_" && aName[0] !== "_") {
+            return -1;
+        }
+        if (aName < bName) {
+            return -1;
+        } else if (aName > bName) {
+            return 1;
+        }
+        return 0;
+    }
+    
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
@@ -440,7 +461,7 @@ define(function (require, exports, module) {
         if (type.property) {
             hints = this.ternHints || [];
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
         } else if (type.showFunctionType) {
             hints = this.getFunctionTypeHint();
         } else {     // identifiers, literals, and keywords
@@ -448,7 +469,7 @@ define(function (require, exports, module) {
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, value: 3 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", "depth", "builtin", penalizeUnderscoreValueCompare ]);
         }
 
         if (hints.length > MAX_DISPLAYED_HINTS) {

@@ -320,8 +320,9 @@ define(function (require, exports, module) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
                         cachedType = session.getType();
-
-                        matcher = new StringMatch.StringMatcher();
+                        matcher = new StringMatch.StringMatcher({
+                            preferPrefixMatches: true
+                        });
                         cachedHints = session.getHints(query, matcher);
 
                         if ($deferredHints.state() === "pending") {
