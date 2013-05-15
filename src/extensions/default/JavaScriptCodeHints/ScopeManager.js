@@ -57,8 +57,8 @@ define(function (require, exports, module) {
         numResolvedFiles    = 0,
         numAddedFiles       = 0,
         stopAddingFiles     = false,
-        excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
-        excludedFilesRegEx  = new RegExp(excludedFilesString),
+        // exclude require and jquery since we have special knowledge of those
+        excludedFilesRegEx  = /require\.js$|jquery-[\d]\.[\d]\.js$/,
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
@@ -516,8 +516,6 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document for which scope info is 
      *      desired
-     * @param {number} offset - the offset into the document at which scope
-     *      info is desired
      * @return {jQuery.Promise} - The promise will not complete until the tern
      *      hints have completed.
      */
@@ -547,7 +545,14 @@ define(function (require, exports, module) {
 
         $.when(hintPromise, fnTypePromise).done(
             function (completions, fnType) {
-                session.setTernHints(completions);
+                if (completions.completions) {
+                    session.setTernHints(completions.completions);
+                    session.setGuesses(null);
+                } else {
+                    session.setTernHints([]);
+                    session.setGuesses(completions.properties);
+                }
+
                 session.setFnType(fnType);
                 $deferredHints.resolveWith(null);
             }
@@ -556,10 +561,43 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get a Promise for all of the known properties from TernJS, for the directory and file.
+     * The properties will be used as guesses in tern.
+     * @param {Session} session - the active hinting session
+     * @param {Document} document - the document for which scope info is
+     *      desired
+     * @return {jQuery.Promise} - The promise will not complete until the tern
+     *      request has completed.
+     */
+    function requestGuesses(session, document) {
+        var path    = document.file.fullPath,
+            text    = session.getJavascriptText(),
+            offset  = session.getOffset(),
+            $deferred = $.Deferred();
+
+        postMessage({
+            type: HintUtils.TERN_GET_GUESSES_MSG,
+            dir: "",
+            file: path,
+            offset: offset,
+            text: text
+        });
+
+        var promise = addPendingRequest(path, offset, HintUtils.TERN_GET_GUESSES_MSG);
+        promise.done(function (guesses) {
+            session.setGuesses(guesses);
+            $deferred.resolve();
+        });
+
+        return $deferred.promise();
+    }
+
+    /**
      * Handle the response from the tern web worker when
      * it responds with the list of completions
      *
-     * @param {{dir:string, file:string, offset:number, completions:Array.<string>}} response - the response from the worker
+     * @param {{dir:string, file:string, offset:number, completions:Array.<string>,
+     *          properties:Array.<string>}} response - the response from the worker
      */
     function handleTernCompletions(response) {
 
@@ -573,9 +611,9 @@ define(function (require, exports, module) {
         
         if ($deferredHints) {
             if (completions) {
-                $deferredHints.resolveWith(null, [completions]);
+                $deferredHints.resolveWith(null, [{completions: completions}]);
             } else if (properties) {
-                $deferredHints.resolveWith(null, [properties]);
+                $deferredHints.resolveWith(null, [{properties: properties}]);
             } else if (fnType) {
                 $deferredHints.resolveWith(null, [fnType]);
             }
@@ -706,6 +744,25 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handle the response from the tern web worker when
+     * it responds to the get guesses message.
+     *
+     * @param {{file:string, type: string, offset: number, properties: Array.<string>}} response -
+     *      the response from the worker contains the guesses for a
+     *      property lookup.
+     */
+    function handleGetGuesses(response) {
+        var path = response.file,
+            type = response.type,
+            offset = response.offset,
+            $deferredHints = getPendingRequest(path, offset, type);
+
+        if ($deferredHints) {
+            $deferredHints.resolveWith(null, [response.properties]);
+        }
+    }
+
+    /**
      *  We can skip tern initialization if we are opening a file that has
      *  already been added to tern.
      *
@@ -821,6 +878,8 @@ define(function (require, exports, module) {
             handleJumptoDef(response);
         } else if (type === HintUtils.TERN_PRIME_PUMP_MSG) {
             handlePrimePumpCompletion(response);
+        } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
+            handleGetGuesses(response);
         } else {
             console.log("Worker: " + (response.log || response));
         }
@@ -830,6 +889,7 @@ define(function (require, exports, module) {
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
     exports.handleEditorChange = handleEditorChange;
+    exports.requestGuesses = requestGuesses;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
 });

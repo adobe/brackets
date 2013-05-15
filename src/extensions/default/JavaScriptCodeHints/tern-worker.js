@@ -168,18 +168,19 @@ importScripts("thirdparty/requirejs/require.js");
      * @param {string} file     - the file name
      * @param {number} offset   - the offset into the file where we want completions for
      * @param {string} text     - the text of the file
+     * @param {string} type     - the type of the message to reply with.
      */
-    function getTernProperties(dir, file, offset, text) {
+    function getTernProperties(dir, file, offset, text, type) {
 
         var request = buildRequest(dir, file, "properties", undefined, text),
             i;
-        //_log("request " + request.type + dir + " " + file);
+        //_log("tern properties: request " + request.type + dir + " " + file);
         ternServer.request(request, function (error, data) {
             var properties = [];
             if (error) {
                 _log("Error returned from Tern 'properties' request: " + error);
             } else {
-                //_log("completions = " + data.completions.length);
+                //_log("tern properties: completions = " + data.completions.length);
                 for (i = 0; i < data.completions.length; ++i) {
                     var property = data.completions[i];
                     properties.push({value: property, guess: true});
@@ -187,7 +188,7 @@ importScripts("thirdparty/requirejs/require.js");
             }
 
             // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
+            self.postMessage({type: type,
                               dir: dir,
                               file: file,
                               offset: offset,
@@ -234,7 +235,7 @@ importScripts("thirdparty/requirejs/require.js");
                     });
             } else {
                 // if there are no completions, then get all the properties
-                getTernProperties(dir, file, offset, text);
+                getTernProperties(dir, file, offset, text, HintUtils.TERN_COMPLETIONS_MSG);
             }
         });
     }
@@ -338,6 +339,12 @@ importScripts("thirdparty/requirejs/require.js");
             handleAddFiles(request.files);
         } else if (type === HintUtils.TERN_PRIME_PUMP_MSG) {
             handlePrimePump(request.path, request.text);
+        } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
+            dir     = request.dir;
+            file    = request.file;
+            text    = request.text;
+            offset  = request.offset;
+            getTernProperties(dir, file, offset, text, HintUtils.TERN_GET_GUESSES_MSG);
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }
