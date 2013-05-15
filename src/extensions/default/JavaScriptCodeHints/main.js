@@ -248,6 +248,52 @@ define(function (require, exports, module) {
         return editor.getModeForSelection() === "javascript";
     }
 
+
+    /**
+     *  Common code to get the session hints. Will get guesses if there were
+     *  no completions for the query.
+     *
+     * @param {string} query - user text to search hints with
+     * @param {Object} type - the type of query, property vs. identifier
+     * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
+     * resolve (optional). If not supplied a new Deferred will be created if
+     * needed.
+     * @return {Object + jQuery.Deferred} - hint response (immediate or
+     *     deferred) as defined by the CodeHintManager API
+     */
+    function getSessionHints(query, type, $deferredHints) {
+
+        var hintResults = session.getHints(query, matcher);
+        if (hintResults.needGuesses) {
+            var guessesResponse = ScopeManager.requestGuesses(session,
+                session.editor.document);
+
+            if (!$deferredHints) {
+                $deferredHints = $.Deferred();
+            }
+
+            guessesResponse.done(function () {
+                query = session.getQuery();
+                hintResults = session.getHints(query, matcher);
+                cachedHints = hintResults.hints;
+                var hintResponse = getHintResponse(cachedHints, query, type);
+
+                $deferredHints.resolveWith(null, [hintResponse]);
+            });
+
+            return $deferredHints;
+        } else if ($deferredHints && $deferredHints.state() === "pending") {
+            cachedHints = hintResults.hints;
+            var hintResponse    = getHintResponse(cachedHints, query, type);
+
+            $deferredHints.resolveWith(null, [hintResponse]);
+            return null;
+        } else {
+            cachedHints = hintResults.hints;
+            return getHintResponse(cachedHints, query, type);
+        }
+    }
+
     /**
      * Determine whether hints are available for a given editor context
      * 
@@ -287,7 +333,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    /** 
+    /**
       * Return a list of hints, possibly deferred, for the current editor 
       * context
       * 
@@ -298,6 +344,7 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
+
         if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
             var type    = session.getType(),
                 query   = session.getQuery();
@@ -320,16 +367,11 @@ define(function (require, exports, module) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
                         cachedType = session.getType();
+                        matcher = new StringMatch.StringMatcher({
+                            preferPrefixMatches: true
+                        });
 
-                        matcher = new StringMatch.StringMatcher();
-                        cachedHints = session.getHints(query, matcher);
-
-                        if ($deferredHints.state() === "pending") {
-                            query = session.getQuery();
-                            var hintResponse    = getHintResponse(cachedHints, query, type);
-
-                            $deferredHints.resolveWith(null, [hintResponse]);
-                        }
+                        getSessionHints(session.getQuery(), type, $deferredHints);
                     }).fail(function () {
                         if ($deferredHints.state() === "pending") {
                             $deferredHints.reject();
@@ -341,8 +383,7 @@ define(function (require, exports, module) {
             }
 
             if (cachedHints) {
-                cachedHints = session.getHints(session.getQuery(), matcher);
-                return getHintResponse(cachedHints, query, type);
+                return getSessionHints(query, type);
             }
         }
 
@@ -470,12 +511,8 @@ define(function (require, exports, module) {
             cachedHints = null;
             cachedType = null;
 
-            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, true);
-                $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
-                    });
             } else {
                 session = null;
             }
@@ -556,7 +593,7 @@ define(function (require, exports, module) {
         installEditorListeners(EditorManager.getActiveEditor());
 
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID, "html"], 0);
+        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         // for unit testing
         exports.getSession = getSession;
