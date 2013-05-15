@@ -577,11 +577,11 @@ define(function (require, exports, module) {
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                     .done(function () {
-                                        session.editor.setSelection(jumpResp.start, jumpResp.start);
+                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                                     });
                             }
                         } else {
-                            session.editor.setSelection(jumpResp.start, jumpResp.start);
+                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
                     }
 
