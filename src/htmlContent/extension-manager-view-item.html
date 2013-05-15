@@ -45,7 +45,7 @@
                 {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
             {{/isMarkedForRemoval}}
             {{^isMarkedForRemoval}}
-                <button class="btn remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
                     {{Strings.REMOVE}}
                 </button>
             {{/isMarkedForRemoval}}
