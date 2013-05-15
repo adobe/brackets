@@ -84,6 +84,9 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     callback(exc);
                     callbackCalled = true;
                     readStream.destroy();
+                    fs.remove(installDirectory, function (err) {
+                        console.error("Error while removing directory after failed installation", installDirectory, err);
+                    });
                 }
             })
             .on("entry", function (entry) {
@@ -91,23 +94,11 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 if (prefixlength) {
                     installpath = installpath.substring(prefixlength + 1);
                 }
-                
                 if (entry.type === "Directory") {
                     if (installpath === "") {
                         return;
                     }
-                    extractStream.pause();
-                    fs.mkdirs(installDirectory + "/" + installpath, function (err) {
-                        if (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                            }
-                            extractStream.close();
-                            return;
-                        }
-                        extractStream.resume();
-                    });
+                    fs.mkdirsSync(installDirectory + "/" + installpath);
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
                         .on("error", function (err) {
@@ -115,6 +106,9 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                                 callback(err);
                                 callbackCalled = true;
                                 readStream.destroy();
+                                fs.remove(installDirectory, function (err) {
+                                    console.error("Error while removing directory after failed installation", installDirectory, err);
+                                });
                             }
                         });
                 }
