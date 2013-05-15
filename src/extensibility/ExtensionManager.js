@@ -21,18 +21,17 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets, semver */
 /*unittests: ExtensionManager*/
 
 /**
- * The ExtensionManager fetches/caches/filters the extension registry and provides
+ * The ExtensionManager fetches/caches the extension registry and provides
  * information about the status of installed extensions. ExtensionManager raises the 
  * following events:
- *     statusChange - indicates that the status of an extension has changed. Second 
- *          parameter is the extension's ID (or its local folder path for legacy 
- *          extensions with no package json). Third parameter is the new status, which 
- *          is one of the status constants below.
+ *     statusChange - indicates that an extension has been installed/uninstalled or
+ *         its status has otherwise changed. Second parameter is the id of the
+ *         extension.
  */
 
 define(function (require, exports, module) {
@@ -40,7 +39,10 @@ define(function (require, exports, module) {
     
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
-        ExtensionLoader  = require("utils/ExtensionLoader");
+        Package          = require("extensibility/Package"),
+        ExtensionLoader  = require("utils/ExtensionLoader"),
+        Strings          = require("strings"),
+        StringUtils      = require("utils/StringUtils");
     
     // semver isn't a proper AMD module, so it will just load into the global namespace.
     require("extensibility/node/node_modules/semver/semver");
@@ -48,57 +50,76 @@ define(function (require, exports, module) {
     /**
      * Extension status constants.
      */
-    var NOT_INSTALLED = "not_installed",
-        ENABLED       = "enabled";
+    var ENABLED       = "enabled";
     
     /**
-     * @private
-     * @type {Object}
-     * The current registry JSON downloaded from the server.
+     * Extension location constants.
      */
-    var _registry = null;
+    var LOCATION_DEFAULT = "default",
+        LOCATION_DEV     = "dev",
+        LOCATION_USER    = "user",
+        LOCATION_UNKNOWN = "unknown";
     
     /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
-     * A list of local extensions. The keys are either ids (for extensions that have package metadata) or
-     * local file paths (for legacy extensions with no package metadata). The fields of each record are:
-     *     metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension
-     *     path: the local path to the extension folder on disk
-     *     status: the current status, one of the status constants above
+     * The set of all known extensions, both from the registry and locally installed. 
+     * The keys are either ids (for extensions that have package metadata) or local file paths (for 
+     * installed legacy extensions with no package metadata). The fields of each record are:
+     *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
+     *         and versions). This will be null for legacy extensions.
+     *     installInfo: object containing the info for a locally-installed extension:
+     *         metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension.
+     *             This will be different from registryInfo.metadata if there's a newer version in the registry.
+     *         path: the local path to the extension folder on disk
+     *         locationType: general type of installation; one of the LOCATION_* constants above
+     *         status: the current status, one of the status constants above
      */
-    var _extensions = {};
+    var extensions = {};
     
+    /**
+     * @private
+     * Sets our data. For unit testing only.
+     */
+    function _setExtensions(newExtensions) {
+        exports.extensions = extensions = newExtensions;
+    }
+
     /**
      * @private
      * Clears out our existing data. For unit testing only.
      */
     function _reset() {
-        _registry = null;
-        _extensions = {};
+        exports.extensions = extensions = {};
     }
 
     /**
-     * Returns the registry of Brackets extensions and caches the result for subsequent
-     * calls.
+     * Downloads the registry of Brackets extensions and stores the information in our
+     * extension info.
      *
-     * @param {boolean} forceDownload Fetch the registry from S3 even if we have a cached copy.
      * @return {$.Promise} a promise that's resolved with the registry JSON data
      * or rejected if the server can't be reached.
      */
-    function getRegistry(forceDownload) {
-        if (!_registry || forceDownload) {
-            return $.ajax({
-                url: brackets.config.extension_registry,
-                dataType: "json",
-                cache: false
-            })
-                .done(function (data) {
-                    _registry = data;
+    function downloadRegistry() {
+        var result = new $.Deferred();
+        $.ajax({
+            url: brackets.config.extension_registry,
+            dataType: "json",
+            cache: false
+        })
+            .done(function (data) {
+                Object.keys(data).forEach(function (id) {
+                    if (!extensions[id]) {
+                        extensions[id] = {};
+                    }
+                    extensions[id].registryInfo = data[id];
                 });
-        } else {
-            return new $.Deferred().resolve(_registry).promise();
-        }
+                result.resolve();
+            })
+            .fail(function () {
+                result.reject();
+            });
+        return result.promise();
     }
     
     /**
@@ -133,12 +154,33 @@ define(function (require, exports, module) {
      */
     function _handleExtensionLoad(e, path) {
         function setData(id, metadata) {
-            _extensions[id] = {
+            var locationType,
+                userExtensionPath = ExtensionLoader.getUserExtensionPath();
+            if (path.indexOf(userExtensionPath) === 0) {
+                locationType = LOCATION_USER;
+            } else {
+                var segments = path.split("/"), parent;
+                if (segments.length > 2) {
+                    parent = segments[segments.length - 2];
+                }
+                if (parent === "dev") {
+                    locationType = LOCATION_DEV;
+                } else if (parent === "default") {
+                    locationType = LOCATION_DEFAULT;
+                } else {
+                    locationType = LOCATION_UNKNOWN;
+                }
+            }
+            if (!extensions[id]) {
+                extensions[id] = {};
+            }
+            extensions[id].installInfo = {
                 metadata: metadata,
                 path: path,
+                locationType: locationType,
                 status: ENABLED
             };
-            $(exports).triggerHandler("statusChange", [id, ENABLED]);
+            $(exports).triggerHandler("statusChange", [id]);
         }
         
         _loadPackageJson(path)
@@ -148,20 +190,14 @@ define(function (require, exports, module) {
             .fail(function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just store it by its
-                // local path and record that it's enabled.
-                setData(path, null);
+                // local path and record that it's enabled. We also create a "title" for it (which is
+                // the last segment of its pathname) that we can display and sort by.
+                var match = path.match(/\/([^\/]+)$/),
+                    metadata = { name: path, title: (match && match[1]) || path };
+                setData(path, metadata);
             });
     }
-    
-    /**
-     * Returns the status of the extension with the given id.
-     * @param {string} id The ID of the extension, or for legacy extensions, the local file path.
-     * @return {string} The extension's status; one of the constants above
-     */
-    function getStatus(id) {
-        return (_extensions[id] && _extensions[id].status) || NOT_INSTALLED;
-    }
-    
+        
     /**
      * Returns information about whether the given entry is compatible with the given Brackets API version.
      * @param {Object} entry The registry entry to check.
@@ -194,17 +230,59 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Given an extension id and version number, returns the URL for downloading that extension from
+     * the repository. Does not guarantee that the extension exists at that URL.
+     * @param {string} id The extension's name from the metadata.
+     * @param {string} version The version to download.
+     * @return {string} The URL to download the extension from.
+     */
+    function getExtensionURL(id, version) {
+        return StringUtils.format(brackets.config.extension_url, id, version);
+    }
+    
+    /**
+     * Removes the installed extension with the given id.
+     * @param {string} id The id of the extension to remove.
+     * @return {$.Promise} A promise that's resolved when the extension is removed or
+     *     rejected with an error if there's a problem with the removal.
+     */
+    function remove(id) {
+        var result = new $.Deferred();
+        if (extensions[id] && extensions[id].installInfo) {
+            Package.remove(extensions[id].installInfo.path)
+                .done(function () {
+                    extensions[id].installInfo = null;
+                    result.resolve();
+                    $(exports).triggerHandler("statusChange", [id]);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+        }
+        return result.promise();
+    }
+    
     // Listen to extension load events
     $(ExtensionLoader).on("load", _handleExtensionLoad);
 
     // Public exports
-    exports.getRegistry = getRegistry;
-    exports.getStatus = getStatus;
+    exports.downloadRegistry = downloadRegistry;
     exports.getCompatibilityInfo = getCompatibilityInfo;
+    exports.getExtensionURL = getExtensionURL;
+    exports.remove = remove;
+    exports.extensions = extensions;
     
-    exports.NOT_INSTALLED = NOT_INSTALLED;
     exports.ENABLED = ENABLED;
+    
+    exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
+    exports.LOCATION_DEV = LOCATION_DEV;
+    exports.LOCATION_USER = LOCATION_USER;
+    exports.LOCATION_UNKNOWN = LOCATION_UNKNOWN;
 
     // For unit testing only
     exports._reset = _reset;
+    exports._setExtensions = _setExtensions;
 });

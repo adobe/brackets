@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -87,6 +88,11 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
+
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "Aperçu en direct a été annulé car les outils de développeur du navigateur étaient ouverts",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "Aperçu en direct a été annulé car la page était fermée dans le navigateur",
+	"LIVE_DEV_NAVIGATED_AWAY": "Aperçu en direct a été annulé car le navigateur a accédé à une page qui ne fait pas partie du projet actuel",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "Aperçu en direct a été annulé pour une raison inconnue ({0})",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -124,13 +130,6 @@ define({
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
-    
-    // Switch language
-	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Langue :",
-	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
-	"LANGUAGE_CANCEL": "Annuler",
-	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     /**
      * ProjectManager
@@ -142,7 +141,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Maj",
 	"KEYBOARD_SPACE": "Espace",
@@ -157,7 +155,7 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "[6788843] !é={0} Line=!",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**
@@ -234,8 +232,6 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
-	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
@@ -244,20 +240,6 @@ define({
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
     
-    // Debug menu commands
-	"DEBUG_MENU": "Déboguer",
-	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
-	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
-	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
-	"CMD_JSLINT": "Activer JSLint",
-	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
-	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
-	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_SWITCH_LANGUAGE": "Changer de langue",
-	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
-	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
-	"CMD_RESTART_NODE": "Redémarrer le nœud",
-
     // Help menu commands
 	"HELP_MENU": "Aide",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
@@ -265,6 +247,7 @@ define({
 	"CMD_FORUM": "Forum {APP_NAME}",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_REPORT_AN_ISSUE": "Signaler un problème",
+	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 
@@ -285,23 +268,21 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
-	"INSTALL": "Installer",
 	"ABOUT": "A propos",
-	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
+	"ABOUT_TEXT_LINE3": "[6307069] !é=Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.=!",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo graphique Web Platform sont mis à disposition sous licence Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported.</a>.",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "[6781670] !é=Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.=!",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
+	"PROJECT_SETTING_BASE_URL_HINT": "[6499087] !é=To use a local server, enter a url like http://localhost:8000/=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
@@ -309,6 +290,9 @@ define({
 	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
     // Extension Management strings
+	"INSTALL": "Installer",
+	"REMOVE": "Supprimer",
+	"CANT_REMOVE_DEV": "[6958946] !é=Extensions in the \"dev\" folder must be manually deleted.=!",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
@@ -330,7 +314,6 @@ define({
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
-	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
 	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
 	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
 	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
@@ -353,16 +336,54 @@ define({
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
+	"EXTENSION_MANAGER_REMOVE": "[6958947] !é=Remove Extension=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "[6958948] !é=Unable to remove extension: {{0}}=!",
+	"QUIT_BRACKETS_AFTER_REMOVAL": "[6958951] !é=After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
+	"QUIT_BRACKETS": "[6958950] !é=Quit Brackets=!",
+	"EXTENSION_NOT_INSTALLED": "[6958949] !é=Couldn't remove extension {{0}} because it wasn't installed.=!",
     
-    // extensions/default/QuickView 
-	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+    /**
+     * Unit names
+     */
 
-    // extensions/default/JSLint
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
+	"UNIT_PIXELS": "pixels",
+    
+    // extensions/default/DebugCommands
+	"DEBUG_MENU": "Déboguer",
+	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
+	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
+	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
+	"CMD_SWITCH_LANGUAGE": "Changer de langue",
+	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
+	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
+	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
+	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
+	"CMD_RESTART_NODE": "Redémarrer le nœud",
+    
+	"LANGUAGE_TITLE": "Changer de langue",
+	"LANGUAGE_MESSAGE": "Langue :",
+	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
+	"LANGUAGE_CANCEL": "Annuler",
+	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "Tchèque",
+	"LOCALE_DE": "Allemand",
+	"LOCALE_EN": "Anglais",
+	"LOCALE_ES": "Espagnol",
+	"LOCALE_FR": "Français",
+	"LOCALE_IT": "Italien",
+	"LOCALE_JA": "Japonais",
+	"LOCALE_NB": "Norvégien",
+	"LOCALE_PL": "Polonais",
+	"LOCALE_PT_BR": "[6862304] !é=Portuguese, Brazil=!",
+	"LOCALE_PT_PT": "Portuguais",
+	"LOCALE_RU": "Russe",
+	"LOCALE_SV": "Suédois",
+	"LOCALE_TR": "Turc",
+	"LOCALE_ZH_CN": "[6862309] !é=Chinese, simplified=!",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
@@ -372,6 +393,21 @@ define({
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
+    
+    // extensions/default/JavaScriptCodeHints
+	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
+    
+    // extensions/default/JSLint
+	"CMD_JSLINT": "Activer JSLint",
+	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
+	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
+    
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "En savoir plus"

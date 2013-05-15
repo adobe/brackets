@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -87,6 +88,11 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "ライブプレビュー : 初期化中\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
+
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_NAVIGATED_AWAY": "ブラウザーで現在のプロジェクトに含まれないページに移動したため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "不明な原因 ({0}) によってライブプレビューはキャンセルされました",
     
 	"SAVE_CLOSE_TITLE": "変更を保存",
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
@@ -124,13 +130,6 @@ define({
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
-    
-    // Switch language
-	"LANGUAGE_TITLE": "言語を切り替える",
-	"LANGUAGE_MESSAGE": "言語 :",
-	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
-	"LANGUAGE_CANCEL": "キャンセル",
-	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
 
     /**
      * ProjectManager
@@ -142,7 +141,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
 	"KEYBOARD_SPACE": "スペース",
@@ -157,7 +155,7 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "!能=[6788843] {0} Line_=!",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
 
     /**
@@ -234,8 +232,6 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
-	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
@@ -244,20 +240,6 @@ define({
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
     
-    // Debug menu commands
-	"DEBUG_MENU": "デバッグ",
-	"CMD_REFRESH_WINDOW": "{APP_NAME} をリロード",
-	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
-	"CMD_RUN_UNIT_TESTS": "テストを実行",
-	"CMD_JSLINT": "JSLint を有効にする",
-	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
-	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
-	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
-	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
-	"CMD_ENABLE_NODE_DEBUGGER": "ノードデバッガーを有効にする",
-	"CMD_LOG_NODE_STATE": "ノードの状態をコンソールに記録",
-	"CMD_RESTART_NODE": "ノードを再起動",
-
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
 	"CMD_CHECK_FOR_UPDATE": "更新をチェックする",
@@ -265,6 +247,7 @@ define({
 	"CMD_FORUM": "{APP_NAME} フォーラム",
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_REPORT_AN_ISSUE": "問題を報告",
+	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 
@@ -285,23 +268,21 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
 	"RELAUNCH_CHROME": "Chrome を再起動",
-	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
-	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "注意 - サードパーティソフトウェアに関する契約条件は <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_jp/\">http://www.adobe.com/go/thirdparty_jp/</a> を参照してください。またリンク先の内容を本契約条件の一部と見なします。",
+	"ABOUT_TEXT_LINE3": "!能=[6307069] Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein._=!",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "!能=[6781670] Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>._=!",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "(ローカルサーバーを使用するには、URL を指定してください)",
+	"PROJECT_SETTING_BASE_URL_HINT": "!能=[6499087] To use a local server, enter a url like http://localhost:8000/_=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
@@ -309,6 +290,9 @@ define({
 	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
     // Extension Management strings
+	"INSTALL": "インストール",
+	"REMOVE": "削除",
+	"CANT_REMOVE_DEV": "!能=[6958946] Extensions in the \"dev\" folder must be manually deleted._=!",
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
@@ -330,7 +314,6 @@ define({
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
-	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
 	"DOWNLOAD_ID_IN_USE": "内部エラー : ダウンロード ID は既に使用されています。",
 	"NO_SERVER_RESPONSE": "サーバーに接続できません。",
 	"BAD_HTTP_STATUS": "ファイルがサーバー (HTTP {0}) に見つかりません。",
@@ -353,16 +336,54 @@ define({
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
 	"EXTENSION_MORE_INFO_LINK": "詳細",
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
+	"EXTENSION_MANAGER_REMOVE": "!能=[6958947] Remove Extension_=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "!能=[6958948] Unable to remove extension: {{0}}_=!",
+	"QUIT_BRACKETS_AFTER_REMOVAL": "!能=[6958951] After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
+	"QUIT_BRACKETS": "!能=[6958950] Quit Brackets_=!",
+	"EXTENSION_NOT_INSTALLED": "!能=[6958949] Couldn't remove extension {{0}} because it wasn't installed._=!",
     
-    // extensions/default/QuickView 
-	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
+    /**
+     * Unit names
+     */
 
-    // extensions/default/JSLint
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
+	"UNIT_PIXELS": "ピクセル",
+    
+    // extensions/default/DebugCommands
+	"DEBUG_MENU": "デバッグ",
+	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
+	"CMD_REFRESH_WINDOW": "{APP_NAME} をリロード",
+	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
+	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
+	"CMD_RUN_UNIT_TESTS": "テストを実行",
+	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
+	"CMD_ENABLE_NODE_DEBUGGER": "ノードデバッガーを有効にする",
+	"CMD_LOG_NODE_STATE": "ノードの状態をコンソールに記録",
+	"CMD_RESTART_NODE": "ノードを再起動",
+    
+	"LANGUAGE_TITLE": "言語を切り替える",
+	"LANGUAGE_MESSAGE": "言語 :",
+	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
+	"LANGUAGE_CANCEL": "キャンセル",
+	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "チェコ語",
+	"LOCALE_DE": "ドイツ語",
+	"LOCALE_EN": "英語",
+	"LOCALE_ES": "スペイン語",
+	"LOCALE_FR": "フランス語",
+	"LOCALE_IT": "イタリア語",
+	"LOCALE_JA": "日本語",
+	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_PL": "ポーランド語",
+	"LOCALE_PT_BR": "!能=[6862304] Portuguese, Brazil_=!",
+	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RU": "ロシア語",
+	"LOCALE_SV": "スウェーデン語",
+	"LOCALE_TR": "トルコ語",
+	"LOCALE_ZH_CN": "!能=[6862309] Chinese, simplified_=!",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
@@ -372,6 +393,21 @@ define({
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/JavaScriptCodeHints
+	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
+    
+    // extensions/default/JSLint
+	"CMD_JSLINT": "JSLint を有効にする",
+	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
+	"JSLINT_ERRORS": "JSLint エラー",
+	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
+	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
+	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
+	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
+    
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "詳細"

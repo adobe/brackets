@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -128,25 +129,16 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Sprache:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
-    "LANGUAGE_CANCEL"                   : "Abbrechen",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
 
     /**
      * ProjectManager
      */
-
     "PROJECT_LOADING" : "Lädt\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Strg",
     "KEYBOARD_SHIFT"  : "Umschalt",
     "KEYBOARD_SPACE"  : "Leer",
@@ -236,8 +228,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
-    "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
-    "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -245,20 +235,6 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
-    
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} neu laden",
-    "CMD_SHOW_DEV_TOOLS"                  : "Entwicklungswerkzeuge zeigen",
-    "CMD_RUN_UNIT_TESTS"                  : "Tests durchführen",
-    "CMD_JSLINT"                          : "JSLint aktivieren",
-    "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
-    "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Node-Debugger aktivieren",
-    "CMD_LOG_NODE_STATE"                  : "Node-Status in Konsole anzeigen",
-    "CMD_RESTART_NODE"                    : "Node neu starten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -267,6 +243,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
     "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
@@ -288,7 +265,6 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
@@ -330,7 +306,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
-    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner für deaktivierte Erweiterungen nicht existiert.",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
     "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
     "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
@@ -343,14 +318,45 @@ define({
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Brackets-Erweiterungen. Bitte später erneut probieren.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
-
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
-
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
+    "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
+    "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
+    "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
+    "CMD_SHOW_PERF_DATA"                        : "Performance-Analyse",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
+    "CMD_RESTART_NODE"                          : "Node neu starten",
+    
+    "LANGUAGE_TITLE"                            : "Sprache wechseln",
+    "LANGUAGE_MESSAGE"                          : "Sprache:",
+    "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
+    "LANGUAGE_CANCEL"                           : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                                 : "Deutsch",
+    "LOCALE_EN"                                 : "Englisch",
+    "LOCALE_FR"                                 : "Französisch",
+    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_IT"                                 : "Italienisch",
+    "LOCALE_JA"                                 : "Japanisch",
+    "LOCALE_NB"                                 : "Norwegisch",
+    "LOCALE_PL"                                 : "Polnisch",
+    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RU"                                 : "Russisch",
+    "LOCALE_SV"                                 : "Schwedisch",
+    "LOCALE_TR"                                 : "Türkisch",
+    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
@@ -359,6 +365,18 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "JSLint aktivieren",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Gehe zu erstem JSLint-Fehler",
+    "JSLINT_ERRORS"                             : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                          : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                           : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"

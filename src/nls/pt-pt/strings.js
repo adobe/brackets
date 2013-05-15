@@ -120,12 +120,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Erro ao receber as atualizações",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Houve um problema a receber a atualização mais recente a partir do servidor. Por favor, verifique se você está conectado à Internet e tente novamente.",
 
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Mudar idioma",
-    "LANGUAGE_MESSAGE"                  : "Por favor, selecione o idioma desejado na lista abaixo:",
-    "LANGUAGE_SUBMIT"                   : "Recarregar {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancelar",
-
     /**
      * ProjectManager
      */
@@ -215,21 +209,10 @@ define({
     "CMD_PREV_DOC"                        : "Ficheiro anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar na lista de pastas",
 
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Recarregar o {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostrar ferramentas de desenvolvimento",
-    "CMD_RUN_UNIT_TESTS"                  : "Executar testes",
-    "CMD_JSLINT"                          : "Activar JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostrar dados de desempenho",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nova janela do {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
-    "CMD_USE_TAB_CHARS"                   : "Usar caracteres de tabulação",
-    "CMD_SWITCH_LANGUAGE"                 : "Mudar linguagem",
-    "CMD_CHECK_FOR_UPDATE"                : "Verificar atualizações",
-
     // Help menu commands
     "HELP_MENU"                           : "Ajuda",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
+    "CMD_CHECK_FOR_UPDATE"                : "Verificar atualizações",
     "CMD_ABOUT"                           : "Sobre",
     "CMD_FORUM"                           : "Forum do {APP_NAME}",
 
@@ -239,11 +222,6 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
-    "JSLINT_ERRORS"                        : "Erros JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
-    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
-    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual",
     "SEARCH_RESULTS"                       : "Resultados da pesquisa",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Não guardar",
@@ -254,7 +232,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Fechar (Não guardar)",
     "RELAUNCH_CHROME"                      : "Re-abrir Chrome",
     "ABOUT"                                : "Sobre",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",
@@ -271,5 +248,28 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "O URL base não pode conter parametros de pesquisa como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "O URL base não pode conter cardinal como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' têm que ser %-codificados.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Erro desconhecido na análise do URL base"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Erro desconhecido na análise do URL base",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                           : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                   : "Mostrar ferramentas de desenvolvimento",
+    "CMD_REFRESH_WINDOW"                   : "Recarregar o {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Nova janela do {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                  : "Mudar linguagem",
+    "CMD_RUN_UNIT_TESTS"                   : "Executar testes",
+    "CMD_SHOW_PERF_DATA"                   : "Mostrar dados de desempenho",
+    
+    "LANGUAGE_TITLE"                       : "Mudar idioma",
+    "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
+    "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
+    "LANGUAGE_CANCEL"                      : "Cancelar",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "Activar JSLint",
+    "JSLINT_ERRORS"                        : "Erros JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
+    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
+    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual"
 });

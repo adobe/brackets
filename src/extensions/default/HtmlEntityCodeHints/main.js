@@ -246,4 +246,7 @@ define(function (require, exports, module) {
         
         CodeHintManager.registerHintProvider(specialCharHints, ["html"], 1);
     });
+    
+    //Export Hints for Unit Tests
+    exports.SpecialCharHints = SpecialCharHints;
 });

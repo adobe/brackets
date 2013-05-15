@@ -124,13 +124,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Cambiar idioma",
-    "LANGUAGE_MESSAGE"                  : "Idioma:",
-    "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancelar",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Idioma predeterminado",
 
     /**
      * ProjectManager
@@ -233,8 +226,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
     "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
-    "CMD_JUMPTO_DEFINITION"               : "Saltar a la definición",
-    "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
@@ -243,20 +234,6 @@ define({
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Desarrollo",
-    "CMD_REFRESH_WINDOW"                  : "Reiniciar {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostrar herramientas para desarrolladores",
-    "CMD_RUN_UNIT_TESTS"                  : "Ejecutar tests",
-    "CMD_JSLINT"                          : "Habilitar JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostrar información de rendimiento",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
-    "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Habilitar depuración de Node",
-    "CMD_LOG_NODE_STATE"                  : "Mostrar estado de Node en Consola",
-    "CMD_RESTART_NODE"                    : "Reiniciar Node",
-    
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
@@ -264,9 +241,11 @@ define({
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
-
+    
+    
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
@@ -285,7 +264,6 @@ define({
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
     "INSTALL"                              : "Instalar",
     "ABOUT"                                : "Acerca de\u2026",
-    "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
@@ -328,7 +306,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
-    "NO_DISABLED_DIRECTORY"                : "No se puede guardar la extensión en extensions/disabled porque la carpeta no existe.",
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
@@ -351,16 +328,30 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
+
+    /**
+     * Unit names
+     */
+
+    "UNIT_PIXELS"                          : "píxeles",
+
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Desarrollo",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
+    "CMD_REFRESH_WINDOW"                        : "Reiniciar {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nueva ventana de {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambiar idioma",
+    "CMD_RUN_UNIT_TESTS"                        : "Ejecutar tests",
+    "CMD_SHOW_PERF_DATA"                        : "Mostrar información de rendimiento",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Habilitar depuración de Node",
+    "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
+    "CMD_RESTART_NODE"                          : "Reiniciar Node",
     
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
-    
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
+    "LANGUAGE_TITLE"                            : "Cambiar idioma",
+    "LANGUAGE_MESSAGE"                          : "Idioma:",
+    "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Cancelar",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
@@ -370,6 +361,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Habilitar JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Ir al primer error de JSLint",
+    "JSLINT_ERRORS"                             : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                          : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                           : "JSLint está deshabilitado o no soporta el archivo actual",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Más"
