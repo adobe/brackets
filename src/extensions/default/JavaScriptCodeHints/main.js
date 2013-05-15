@@ -552,18 +552,17 @@ define(function (require, exports, module) {
 
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
-
                     if (jumpResp.resultFile) {
                         if (jumpResp.resultFile !== jumpResp.file) {
                             var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                     .done(function () {
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
+                                        session.editor.setSelection(jumpResp.start, jumpResp.start, true);
                                     });
                             }
                         } else {
-                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
+                            session.editor.setSelection(jumpResp.start, jumpResp.start, true);
                         }
                     }
 
@@ -573,8 +572,21 @@ define(function (require, exports, module) {
             }
         }
 
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
+
+        // Register quickEditHelper.
+        EditorManager.registerQuickEditHelper(quickEditHelper);
         
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);

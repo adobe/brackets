@@ -449,9 +449,8 @@ define(function (require, exports, module) {
         
         var $deferredJump = getPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
         
-//        pendingTernRequests[file] = null;
-        
         if ($deferredJump) {
+            response.fullPath = getResolvedPath(response.resultFile);
             $deferredJump.resolveWith(null, [response]);
         }
     }
