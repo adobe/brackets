@@ -118,10 +118,12 @@
  * The method by which a provider provides hints for the editor context
  * associated with the current session. The getHints method is called only
  * if the provider asserted its willingness to provide hints in an earlier
- * call to hasHints. The provider may return null, which indicates that
- * the manager should end the current hinting session and close the hint
- * list window. Otherwise, the provider should return a response object
- * that contains three properties: 
+ * call to hasHints. The provider may return null or false, which indicates 
+ * that the manager should end the current hinting session and close the hint
+ * list window; or true, which indicates that the manager should end the 
+ * current hinting session but immediately attempt to begin a new hinting
+ * session by querying registered providers. Otherwise, the provider should
+ * return a response object that contains three properties:
  *
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
@@ -291,6 +293,8 @@ define(function (require, exports, module) {
     function _getProvidersForLanguageId(languageId) {
         return hintProviders[languageId] || hintProviders.all;
     }
+    
+    var _beginSession;
 
     /**
      * End the current hinting session
@@ -348,23 +352,30 @@ define(function (require, exports, module) {
         if (!response) {
             // the provider wishes to close the session
             _endSession();
-        } else if (response.hasOwnProperty("hints")) { // a synchronous response
-            if (hintList.isOpen()) {
-                // the session is open 
-                hintList.update(response);
-            } else {
-                hintList.open(response);
-            }
-        } else { // response is a deferred
-            deferredHints = response;
-            response.done(function (hints) {
+        } else {
+            // if the response is true, end the session and begin another
+            if (response === true) {
+                var previousEditor = sessionEditor;
+                _endSession();
+                _beginSession(previousEditor);
+            } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open 
-                    hintList.update(hints);
+                    hintList.update(response);
                 } else {
-                    hintList.open(hints);
+                    hintList.open(response);
                 }
-            });
+            } else { // response is a deferred
+                deferredHints = response;
+                response.done(function (hints) {
+                    if (hintList.isOpen()) {
+                        // the session is open 
+                        hintList.update(hints);
+                    } else {
+                        hintList.open(hints);
+                    }
+                });
+            }
         }
     }
     
@@ -372,7 +383,7 @@ define(function (require, exports, module) {
      * Try to begin a new hinting session. 
      * @param {Editor} editor
      */
-    function _beginSession(editor) {
+    _beginSession = function (editor) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -403,7 +414,7 @@ define(function (require, exports, module) {
         } else {
             lastChar = null;
         }
-    }
+    };
     
     /**
      * Handles keys related to displaying, searching, and navigating the hint list. 
