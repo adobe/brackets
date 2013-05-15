@@ -644,7 +644,7 @@ input {
     background-color: #e5e9e9;
     text-shadow: 0 1px 0 #fff;
     color: #454545;
-    font-weight: 500;
+    font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid #9c9e9e;
     .border-radius(3px);
@@ -706,10 +706,38 @@ input {
     }
 }
 
-
 .btn-mini {
   padding: 2px 6px;
   font-size: 11px;
   font-weight: normal;
   line-height: 14px;
+}
+
+table {
+    th {
+        font-weight: @font-weight-semibold;
+    }
+    td {
+        border-top: 1px solid transparent;
+    }
+    tbody th {
+        border-top: 1px solid transparent);
+    }
+}
+
+
+// ZEBRA-STRIPING
+// --------------
+
+.zebra-striped {
+    tbody {
+        tr:nth-child(odd) td,
+        tr:nth-child(odd) th {
+            background-color: #e6e9e9; // TopCoat palette
+        }
+        tr:hover td,
+        tr:hover th {
+            background-color: @tc-highlight; // TopCoat palette
+        }
+    }
 }
