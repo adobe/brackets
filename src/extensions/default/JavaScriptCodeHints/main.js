@@ -559,11 +559,11 @@ define(function (require, exports, module) {
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                     .done(function () {
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
+                                        session.editor.setSelection(jumpResp.start, jumpResp.start);
                                     });
                             }
                         } else {
-                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
+                            session.editor.setSelection(jumpResp.start, jumpResp.start);
                         }
                     }
 
@@ -573,9 +573,22 @@ define(function (require, exports, module) {
             }
         }
 
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
+        // Register quickEditHelper.
+        EditorManager.registerQuickEditHelper(quickEditHelper);
+  
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
         if (menu) {
