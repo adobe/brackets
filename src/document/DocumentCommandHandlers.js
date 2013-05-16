@@ -844,7 +844,9 @@ define(function (require, exports, module) {
         var entry = ProjectManager.getSidebarSelectedItem();
         if (entry) {
             brackets.app.showOSFolder(entry.fullPath, function (err) {
-                console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                if (err) {
+                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                }
             });
         }
     }
