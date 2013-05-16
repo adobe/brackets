@@ -431,7 +431,7 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        var selectedEntry = ProjectManager.getSidebarSelectedItem();
+        var selectedEntry = ProjectManager.getSelectedItem();
         doFindInFiles(selectedEntry);
     }
     

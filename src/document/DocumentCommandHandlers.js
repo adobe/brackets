@@ -342,11 +342,13 @@ define(function (require, exports, module) {
         fileNewInProgress = true;
 
         // Determine the directory to put the new file
-        // If a file is currently selected, put it next to it.
-        // If a directory is currently selected, put it in it.
-        // If nothing is selected, put it at the root of the project
+        // If a file is currently selected in the tree, put it next to it.
+        // If a directory is currently selected in the tree, put it in it.
+        // If nothing is selected in the tree, put it at the root of the project
+        // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
+        // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
-            selected = ProjectManager.getTreeSelectedItem() || ProjectManager.getProjectRoot();
+            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
@@ -766,15 +768,18 @@ define(function (require, exports, module) {
         );
     }
     
-    /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
+    /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
-        // Prefer selected tree item (which could be a folder); else use current file
-        var entry = ProjectManager.getTreeSelectedItem();
+        // Prefer selected sidebar item (which could be a folder)
+        var entry = ProjectManager.getSelectedItem();
         if (!entry) {
+            // Else use current file (not selected in ProjectManager if not visible in tree or working set)
             var doc = DocumentManager.getCurrentDocument();
             entry = doc && doc.file;
         }
-        ProjectManager.renameItemInline(entry);
+        if (entry) {
+            ProjectManager.renameItemInline(entry);
+        }
     }
 
     /** Closes the window, then quits the app */
@@ -840,8 +845,9 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
+    /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
-        var entry = ProjectManager.getSidebarSelectedItem();
+        var entry = ProjectManager.getSelectedItem();
         if (entry) {
             brackets.app.showOSFolder(entry.fullPath, function (err) {
                 if (err) {

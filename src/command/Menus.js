@@ -980,7 +980,6 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // }
 
-
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;
