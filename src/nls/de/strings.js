@@ -271,7 +271,6 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
-    "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
