@@ -1,14 +1,14 @@
 <tr>
-    <td>
+    <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
-        <span class="muted ext-version">{{metadata.version}}</span><br/>
+        <span class="muted ext-version">{{metadata.version}}</span> 
         {{#authorInfo}}
-            <span class="muted ext-author">
+            &mdash; <span class="muted ext-author">
                     {{Strings.EXTENSION_AUTHOR}}: {{{authorInfo}}}
-            </span><br/>
+            </span>
         {{/authorInfo}}
         {{#hasVersionInfo}}
-            <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+            &mdash; <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
         {{/hasVersionInfo}}
     </td>
     <td class="ext-desc">
@@ -33,17 +33,22 @@
             </span>
         {{/metadata.keywords.length}}
     </td>
-    <td>
+    <td class="ext-action">
         {{#showInstallButton}}
-            <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+            <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
                 {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
             </button>
         {{/showInstallButton}}
         {{#isInstalled}}
-            <button class="btn remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
-                {{Strings.REMOVE}}
-            </button>
+            {{#isMarkedForRemoval}}
+                {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
+            {{/isMarkedForRemoval}}
+            {{^isMarkedForRemoval}}
+                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                    {{Strings.REMOVE}}
+                </button>
+            {{/isMarkedForRemoval}}
         {{/isInstalled}}
     </td>
 </tr>

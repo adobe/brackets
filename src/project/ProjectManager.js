@@ -576,7 +576,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) > -1) {
+        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
             return false;
         }
         var extension = entry.name.split('.').pop();
