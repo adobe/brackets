@@ -684,7 +684,25 @@ define(function (require, exports, module) {
                     expect(testDoc.getLine(end.line).length).toEqual(8);
                 });
             });
-            
+
+            it("should replace property hints but not following delimiters", function () {
+                var start   = { line: 6, ch: 0 },
+                    middle  = { line: 6, ch: 4 },
+                    end     = { line: 6, ch: 9 },
+                    endplus = { line: 6, ch: 10 };
+
+                testDoc.replaceRange("(A1.prop)", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
+
+                runs(function () {
+                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(testDoc.getRange(start, endplus)).toEqual("(A1.propA)");
+                    expect(testDoc.getLine(endplus.line).length).toEqual(10);
+                });
+            });
+
             it("should list hints for string, as string assigned to 's', 's' assigned to 'r' and 'r' assigned to 't'", function () {
                 var start = { line: 26, ch: 0 },
                     middle = { line: 26, ch: 2 };
@@ -961,24 +979,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should replace property hints but not following delimiters", function () {
-                var start   = { line: 6, ch: 0 },
-                    middle  = { line: 6, ch: 4 },
-                    end     = { line: 6, ch: 9 },
-                    endplus = { line: 6, ch: 10 };
-
-                testDoc.replaceRange("(A1.prop)", start, start);
-                testEditor.setCursorPos(middle);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
-                
-                runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
-                    expect(testDoc.getRange(start, endplus)).toEqual("(A1.propA)");
-                    expect(testDoc.getLine(endplus.line).length).toEqual(10);
-                });
-            });
-            
             it("should jump to var", function () {
                 var start = { line: 44, ch: 10 };
                 
