@@ -303,7 +303,7 @@ define({
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
-    "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
+    "INVALID_PACKAGE_FILE"                 : "The downloaded content is not a valid tar.gz file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
     "MISSING_PACKAGE_NAME"                 : "The package.json file doesn't specify a package name.",
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
@@ -346,7 +346,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",    
+    "UNIT_PIXELS"                          : "pixels",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",

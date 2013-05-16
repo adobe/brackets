@@ -27,7 +27,8 @@ indent: 4, maxerr: 50, regexp: true */
 
 "use strict";
 
-var unzip   = require("unzip"),
+var tar     = require("tar"),
+    zlib    = require("zlib"),
     semver  = require("semver"),
     path    = require("path"),
     http    = require("http"),
@@ -37,22 +38,22 @@ var unzip   = require("unzip"),
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where ZIP file was expected
-    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",                 // {0} is path to ZIP file
-    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",         // {0} is JSON parse error, {1} is path to ZIP file
-    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",         // {0} is path to ZIP file
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where package file was expected
+    INVALID_PACKAGE_FILE: "INVALID_PACKAGE_FILE",                 // {0} is path to ZIP file
+    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",         // {0} is JSON parse error, {1} is path to package file
+    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",         // {0} is path to package file
     BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",                 // {0} is the name
-    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",   // {0} is path to ZIP file
-    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",     // {0} is version string in JSON, {1} is path to ZIP file
-    MISSING_MAIN: "MISSING_MAIN",                         // {0} is path to ZIP file
-    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON",         // {0} is path to ZIP file
-    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION", // {0} is the version string in JSON, {1} is the path to the zip file,
-    DISALLOWED_WORDS: "DISALLOWED_WORDS"                  // {0} is the field with the word, {1} is a string list of words that were in violation, {2} is the path to the zip file
+    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",   // {0} is path to package file
+    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",     // {0} is version string in JSON, {1} is path to package file
+    MISSING_MAIN: "MISSING_MAIN",                         // {0} is path to package file
+    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON",         // {0} is path to package file
+    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION", // {0} is the version string in JSON, {1} is the path to the package file,
+    DISALLOWED_WORDS: "DISALLOWED_WORDS"                  // {0} is the field with the word, {1} is a string list of words that were in violation, {2} is the path to the package file
 };
 
 /*
  * Directories to ignore when computing the common prefix among the entries of
- * a zip file.
+ * a package file.
  */
 var ignoredPrefixes = {
     "__MACOSX": true
@@ -144,7 +145,7 @@ function containsWords(wordlist, str) {
 
 /**
  * Implements the "validate" command in the "extensions" domain.
- * Validates the zipped package at path.
+ * Validates the package at path.
  *
  * The "err" parameter of the callback is only set if there was an
  * unexpected error. Otherwise, errors are reported in the result.
@@ -155,9 +156,9 @@ function containsWords(wordlist, str) {
  * The array will be empty if there are no errors.
  *
  * The result will have a "metadata" property if the metadata was
- * read successfully from package.json in the zip file.
+ * read successfully from package.json in the package file.
  *
- * @param {string} path Absolute path to the package zip file
+ * @param {string} path Absolute path to the package file
  * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
  * @param {function} callback (err, result)
  */
@@ -177,12 +178,23 @@ function validate(path, options, callback) {
         var commonPrefix = null;
         
         var readStream = fs.createReadStream(path);
+        var gunzip = zlib.createGunzip();
         
         readStream
-            .pipe(unzip.Parse())
+            .pipe(gunzip)
             .on("error", function (exception) {
                 // General error to report for problems reading the file
-                errors.push([Errors.INVALID_ZIP_FILE, path]);
+                errors.push([Errors.INVALID_PACKAGE_FILE, path]);
+                callback(null, {
+                    errors: errors
+                });
+                callbackCalled = true;
+                readStream.destroy();
+            })
+            .pipe(tar.Parse())
+            .on("error", function (exception) {
+                // General error to report for problems reading the file
+                errors.push([Errors.INVALID_PACKAGE_FILE, path]);
                 callback(null, {
                     errors: errors
                 });
@@ -296,7 +308,7 @@ function validate(path, options, callback) {
                 }
             })
             .on("end", function () {
-                // Reached the end of the zipfile
+                // Reached the end of the package file
                 // Report results
                 
                 // generally, if we hit an exception, we've already called the callback

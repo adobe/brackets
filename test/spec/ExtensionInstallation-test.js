@@ -40,9 +40,9 @@ define(function (require, exports, module) {
     var tempDirectory = SpecRunnerUtils.getTempDirectory();
     var extensionsRoot = tempDirectory + "/extensions";
     
-    var basicValid          = testFilePath + "/basic-valid-extension.zip",
-        missingNameVersion  = testFilePath + "/missing-name-version.zip",
-        incompatibleVersion = testFilePath + "/incompatible-version.zip";
+    var basicValid          = testFilePath + "/basic-valid-extension.tgz",
+        missingNameVersion  = testFilePath + "/missing-name-version.tgz",
+        incompatibleVersion = testFilePath + "/incompatible-version.tgz";
     
     var packageData;
     
