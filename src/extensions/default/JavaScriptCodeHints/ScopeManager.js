@@ -130,6 +130,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
+//        ternEnvironment = [];
         var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
             files = builtinFiles,
             library;
@@ -147,7 +148,7 @@ define(function (require, exports, module) {
                 console.log("failed to read tern config file " + i);
             });
         });
-        ternEnvironment.push(ExtensionData.getHints());
+//        ternEnvironment.push(ExtensionData.getHints());
     }
 
     initTernEnv();
@@ -886,7 +887,8 @@ define(function (require, exports, module) {
             console.log("Worker: " + (response.log || response));
         }
     });
-
+    
+    exports.initTernEnv = initTernEnv;
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;

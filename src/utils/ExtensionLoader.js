@@ -52,6 +52,13 @@ define(function (require, exports, module) {
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
     ExtensionData._brackets.__initializeMaster();
+    ExtensionData._brackets.channels.add("brackets.extension.loaded");
+    ExtensionData._brackets.channels.add("brackets.extension.disabled");
+    var extensionLoaded = ExtensionData._brackets.channels.brackets.extension.loaded;
+    var extensionDisabled = ExtensionData._brackets.channels.brackets.extension.disabled;
+    extensionLoaded.subscribe(function (e) {
+        console.log(e.name, "is done loading");
+    });
     
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
@@ -95,7 +102,13 @@ define(function (require, exports, module) {
                     var services = ExtensionData.getServices(metadata.name);
                     services.metadata = metadata;
                     mainModule.init(services);
-                    NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services);
+                    NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services).done(function () {
+                        extensionLoaded.publish({
+                            name: name
+                        });
+                    }).fail(function (error) {
+                        console.error(error);
+                    });
                 },
                 function (err) {
                     console.error("[Extension] is missing package.json " + baseUrl, err);

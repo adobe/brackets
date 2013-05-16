@@ -38,18 +38,23 @@ var _nodeConnectionDeferred = new $.Deferred(),
     NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
 function loadNodeExtension(name, baseUrl, mainModule, services) {
+    var deferred = new $.Deferred();
     _nodeConnectionDeferred.done(function () {
         if (_nodeConnection && _nodeConnection.connected()) {
             _nodeConnection.domains.extensionData.loadExtension(name, baseUrl).done(function () {
                 if (mainModule.nodeReady) {
                     mainModule.nodeReady(services);
+                    deferred.resolve();
                 }
             });
             
         } else {
-            console.error("Tried to load node extension", name, "but node is not connected");
+            deferred.reject("Tried to load node extension", name, "but node is not connected");
         }
+    }).fail(function () {
+        deferred.reject("Tried to load node extension", name, "but node is not connected");
     });
+    return deferred.promise();
 }
 
 var callNodeFunction = function (name, options) {

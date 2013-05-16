@@ -572,6 +572,15 @@ define(function (require, exports, module) {
                 });
             }
         }
+        
+        /*
+         * @param {ServiceRegistry} services
+         */
+        function init(services) {
+            services.channels.brackets.extension.loaded.subscribe(function (e) {
+//                ScopeManager.initTernEnv();
+            });
+        }
 
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
