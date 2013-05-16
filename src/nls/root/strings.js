@@ -331,6 +331,7 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_FAILED_TO_START"            : "This extension did not start up successfully and should be removed.",
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
@@ -349,7 +350,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",    
+    "UNIT_PIXELS"                          : "pixels",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
