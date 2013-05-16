@@ -130,13 +130,14 @@ define({
     "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
     "LANGUAGE_SUBMIT"                   : "Restartovat {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Zrušit",
-
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Výchozí",
+    
     /**
      * ProjectManager
      */
-
     "PROJECT_LOADING" : "Načítání\u2026",
     "UNTITLED" : "Nový",
+    "WORKING_FILES"     : "Pracovní soubory",
 
     /**
      * Keyboard modifier names
@@ -178,9 +179,10 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
     "CMD_INSTALL_EXTENSION"               : "Instalovat doplňky\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Správce doplňků\u2026",
     "CMD_QUIT"                            : "Konec",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Konec",   
+    "CMD_EXIT"                            : "Konec",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Úpravy",
@@ -205,7 +207,9 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Blokový komentář",
     "CMD_LINE_UP"                         : "Posunout řádek nahoru",
     "CMD_LINE_DOWN"                       : "Posunout řádek dolů",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",    
+    "CMD_OPEN_LINE_ABOVE"                 : "O řádek výše",
+    "CMD_OPEN_LINE_BELOW"                 : "O řádek níže",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
      
     // View menu commands
     "VIEW_MENU"                           : "Zobrazit",
@@ -229,8 +233,10 @@ define({
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
+    "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
     "CMD_JSLINT_FIRST_ERROR"              : "Přejít na první JSLint chybu",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
     "CMD_NEXT_DOC"                        : "Další dokument",
@@ -269,11 +275,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
-    "JSLINT_ERRORS"                        : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
-    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
-    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
     "SEARCH_RESULTS"                       : "Výsledky hledání",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Neukládat",
@@ -283,7 +284,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
     "CLOSE_DONT_SAVE"                      : "Zavřít (neukládat)",
     "RELAUNCH_CHROME"                      : "Restartovat Chrome",
-    "INSTALL"                              : "Install",
+    "INSTALL"                              : "Instalovat",
     "ABOUT"                                : "O aplikaci",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zavřít",
@@ -291,7 +292,8 @@ define({
     "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
-    "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",    
+    "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME} ! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -322,6 +324,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} je neplatné jméno balíčku.",
     "MISSING_PACKAGE_VERSION"              : "Package.json balíček nespecifikuje verzi souboru.",
     "INVALID_VERSION_NUMBER"               : "Balíček verze ({0}) je neplatný.",
+    "INVALID_BRACKETS_VERSION"             : "Řetězec kompatibility {{0}} pro Brackets je neplatný.",
+    "DISALLOWED_WORDS"                     : "Slova {{1}} nejsou povolena v {{0}} poli.",
     "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
     "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
     "ALREADY_INSTALLED"                    : "Doplněk s tímto jménem je již nainstalován. Nový doplněk je nainstalován ve složce disabled extensions.",
@@ -335,7 +339,30 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "URL adresa musí být http nebo https.",
     "UNKNOWN_ERROR"                        : "Neznámá chyba.",
     // For NOT_FOUND_ERR, see generic strings above
-   
+    "EXTENSION_MANAGER_TITLE"              : "Správce doplňků",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Nelze získat přístup k registru doplňků. Prosím, zkuste to znovu později.",
+    "INSTALL_FROM_URL"                     : "Instalovat z URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Datum",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "Tento doplněk funguje pouze ve starší verzi {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
+    "EXTENSION_KEYWORDS"                   : "Klíčová slova",
+    "EXTENSION_INSTALLED"                  : "Nainstalováno",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Hledat",
+    "EXTENSION_MORE_INFO_LINK"             : "Více",
+    "BROWSE_EXTENSIONS"                    : "Procházet doplňky",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
+    
+    // extensions/default/JSLint 
+    "JSLINT_ERRORS"                        : "JSLint chyby",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
+    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
+    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
+                 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
@@ -343,5 +370,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex formát",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formát",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (použito {1} krát)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Více"
 });
