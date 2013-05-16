@@ -3,11 +3,11 @@
     "description": "Used in the management of Brackets extensions",
     "version": "0.24.0",
     "dependencies": {
-        "unzip": "0.1.4",
+        "unzip": "0.1.7",
         "semver": ">1.1.0 <2.0.0",
-        "fs-extra": "0.5.x",
+        "fs-extra": "0.6.x",
         "async": "0.2.x",
-        "request": "2.16.x"
+        "request": "2.21.x"
     },
     "devDependencies": {
         "rewire": "1.1.x"
