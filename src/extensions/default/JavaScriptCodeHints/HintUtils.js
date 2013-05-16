@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"",
         TERN_ADD_FILES_MSG          = "AddFiles",
+        TERN_UPDATE_FILE_MSG        = "UpdateFile",
         TERN_INIT_MSG               = "Init",
         TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
@@ -214,5 +215,6 @@ define(function (require, exports, module) {
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
     exports.TERN_GET_GUESSES_MSG        = TERN_GET_GUESSES_MSG;
+    exports.TERN_UPDATE_FILE_MSG        = TERN_UPDATE_FILE_MSG;
     exports.SUPPORTED_LANGUAGES         = SUPPORTED_LANGUAGES;
 });

@@ -285,6 +285,24 @@ importScripts("thirdparty/requirejs/require.js");
     }
 
     /**
+     *  Update the context of a file in tern.
+     *
+     * @param {string} path - full path of file.
+     * @param {string} text - content of the file.
+     */
+    function handleUpdateFile(path, text) {
+
+        ternServer.addFile(path, text);
+
+        self.postMessage({type: HintUtils.TERN_UPDATE_FILE_MSG,
+            path: path
+            });
+
+        // reset to get the best hints with the updated file.
+        ternServer.reset();
+    }
+
+    /**
      *  Make a completions request to tern to force tern to resolve files
      *  and create a fast first lookup for the user.
      * @param {string} path     - the path of the file
@@ -345,6 +363,8 @@ importScripts("thirdparty/requirejs/require.js");
             text    = request.text;
             offset  = request.offset;
             getTernProperties(dir, file, offset, text, HintUtils.TERN_GET_GUESSES_MSG);
+        } else if (type === HintUtils.TERN_UPDATE_FILE_MSG) {
+            handleUpdateFile(request.path, request.text);
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }

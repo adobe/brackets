@@ -186,7 +186,7 @@ define(function (require, exports, module) {
         var cursor  = session.getCursor(),
             type    = session.getType();
 
-        return !cachedHints ||
+        return !cachedHints || !cachedCursor || !cachedType ||
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
@@ -248,6 +248,20 @@ define(function (require, exports, module) {
         return editor.getModeForSelection() === "javascript";
     }
 
+    /**
+     *  Create a new StringMatcher instance, if needed.
+     *
+     * @returns {StringMatcher} - a StringMatcher instance.
+     */
+    function getStringMatcher() {
+        if (!matcher) {
+            matcher = new StringMatch.StringMatcher({
+                preferPrefixMatches: true
+            });
+        }
+
+        return matcher;
+    }
 
     /**
      *  Common code to get the session hints. Will get guesses if there were
@@ -263,7 +277,7 @@ define(function (require, exports, module) {
      */
     function getSessionHints(query, type, $deferredHints) {
 
-        var hintResults = session.getHints(query, matcher);
+        var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
             var guessesResponse = ScopeManager.requestGuesses(session,
                 session.editor.document);
@@ -274,7 +288,7 @@ define(function (require, exports, module) {
 
             guessesResponse.done(function () {
                 query = session.getQuery();
-                hintResults = session.getHints(query, matcher);
+                hintResults = session.getHints(query, getStringMatcher());
                 cachedHints = hintResults.hints;
                 var hintResponse = getHintResponse(cachedHints, query, type);
 
@@ -367,10 +381,6 @@ define(function (require, exports, module) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
                         cachedType = session.getType();
-                        matcher = new StringMatch.StringMatcher({
-                            preferPrefixMatches: true
-                        });
-
                         getSessionHints(session.getQuery(), type, $deferredHints);
                     }).fail(function () {
                         if ($deferredHints.state() === "pending") {
@@ -491,11 +501,14 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
+         * @param {Editor} previousEditor - the previous editor.
          * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, primePump) {
+        function initializeSession(editor, previousEditor, primePump) {
             session = new Session(editor);
-            ScopeManager.handleEditorChange(session, editor.document, primePump);
+            ScopeManager.handleEditorChange(session, editor.document,
+                previousEditor ? previousEditor.document : null,
+                primePump);
             cachedHints = null;
         }
 
@@ -504,15 +517,20 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context on which to listen for
          *      changes
+         * @param {Editor} previousEditor - the previous editor
          */
-        function installEditorListeners(editor) {
+        function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
             cachedCursor = null;
             cachedHints = null;
             cachedType = null;
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, true);
+                initializeSession(editor, previousEditor, true);
+                $(editor)
+                    .on(HintUtils.eventName("change"), function () {
+                        ScopeManager.handleFileChange(editor.document);
+                    });
             } else {
                 session = null;
             }
@@ -540,7 +558,7 @@ define(function (require, exports, module) {
          */
         function handleActiveEditorChange(event, current, previous) {
             uninstallEditorListeners(previous);
-            installEditorListeners(current);
+            installEditorListeners(current, previous);
         }
         
         /*
