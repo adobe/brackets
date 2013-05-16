@@ -31,10 +31,6 @@
  *
  */
 
-.project-panel-background {
-    background: #3C3F41 url("images/propertiespanel_back.png") repeat-x 0 0;
-}
-
 .panel {
     .vbox;
     .box-flex(1);
@@ -42,7 +38,7 @@
     padding: 0;
     margin: 0;
 
-    .project-panel-background;
+    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px rgba(0,0,0,.5);
@@ -57,6 +53,8 @@
 .simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
+    overflow: hidden;
+    
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
@@ -68,7 +66,7 @@
     }
 }
 
-/* Editor toolbar layout
+/* Horizontal titlebar/menubar (in-browser only)
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
@@ -82,9 +80,14 @@
     - the window resizes (handled by general listener in EditorManager)
     - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
 */
-#main-toolbar.toolbar {
+#titlebar {
+    // Visible only in-browser
+    body.in-appshell & {
+        display: none;
+    }
+    
     text-align: center;
-    .nav {
+    .nav {  // menubar
         float: left;
         text-align: left;
     }
@@ -97,9 +100,36 @@
         display: block;  // must be a block for the fixed width applied by JS to be respected
         // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
     }
+}
+
+/* Vertical icon toolbar on right */
+#main-toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: @main-toolbar-width;
+    height: 100%;
+    box-sizing: border-box;
+    
+    background: @main-toolbar-background-color;
+    padding: 5px 0px;
+    
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
+    
     .buttons {
-        float: right;
-        text-align: left;
+        text-align: center;
+        margin: 0;
+        
+        > a {
+            margin: 5px 0px 5px 0px;
+            padding: 0 !important;
+            position: static !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
     }
 }
 
@@ -113,8 +143,7 @@
     background-color: @bc-white;
     color: @bc-black;
     
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -140,15 +169,6 @@
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
         
-        .experimental-label {
-            color: #a0a0a0;
-            font-size: 15px;
-            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
-            font-weight: normal;
-            font-style: italic;
-            padding-right: 22px;
-        }
-
         span, a {
             cursor: default;
         }
@@ -313,11 +333,16 @@
 /* Dialog-related styles */
 
 .modal {
+    background-color: @tc-gray-panel;
     width: auto;
 }
 
 .modal .close {
     cursor: default;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.09);
 }
 
 .modal-body, .modal-header {
@@ -328,11 +353,20 @@
 }
 
 .modal-footer {
+    background-color: @tc-gray-panel;
+    border-top: 1px solid rgba(0,0,0,0.09);
+    box-shadow: none;
     white-space: nowrap;
 }
 
 .modal-footer .btn.left {
     float: left;
+    
+    /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
+     * with the title.
+     */
+    margin-left: 0;
+    margin-right: 5px;
 }
 
 .modal-body ul {
@@ -367,6 +401,7 @@
 
 .dialog-filename {
     font-weight: @font-weight-semibold;
+    word-wrap: break-word;
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
@@ -412,12 +447,7 @@
             
             // Enable text selection
             cursor: auto;
-            -webkit-user-select: text;
-            -khtml-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            -o-user-select: text;
-            user-select: text;
+            .user-select(text);
         }
     }
 }
@@ -434,8 +464,103 @@
     }
     input.url {
         display: inline;
-        margin: 10px;
-        width: 350px;
+    }
+}
+
+.project-settings-dialog .modal-body input.url {
+    margin: 10px;
+    width: 400px;
+}
+
+.install-extension-dialog .modal-body input.url {
+    margin: 10px 0;
+    width: 550px;
+}
+
+/* Extension Manager dialog */
+.extension-manager-dialog {
+    top: 50%;
+    left: 50%;
+    margin-top: -325px;
+    margin-left: -350px;
+    
+    .modal-header {
+        width: 700px;
+        
+        .search {
+            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            float: right;
+            margin-top: 6px;
+            text-indent: 23px;
+        }
+        .search-clear {
+            position: relative;
+            display: block;
+            float: right;
+            left: -5px;
+            margin: 13px 0 0 -20px;
+            opacity: 0.7;
+            background: url("images/topcoat-cancel-15.svg") no-repeat;
+            width: 15px;
+            height: 16px;
+            z-index: 1;
+        }
+        .search-clear:active {
+            opacity: 0.5;
+        }
+    }
+    .modal-body {
+        width: 730px;
+        height: 500px;
+        text-align: center;
+        overflow-y: scroll;
+        padding: 0;
+        
+        .extension-list {
+            .ext-info {
+                padding-left: 15px;
+                width: 220px;
+            }
+            .ext-name {
+                color: #000;
+                display: block;
+                font-size: 15px;
+                font-weight: @font-weight-light;
+            }
+            .ext-desc {
+                font-weight: @font-weight-light;
+                width: auto;
+            }
+            .muted {
+                color: #888;
+            }
+            .ext-version,
+            .ext-date,
+            .ext-author {
+                font-size: 10px;
+            }
+            .ext-action {
+                font-size: 12px;
+                padding-right: 15px;
+                text-align: right;
+                vertical-align: middle;
+                width: 200px;
+            }            
+            .spinner {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-top: -18px;
+                margin-left: -18px;
+            }
+            .load-error {
+                display: inline-block;
+                margin-top: 240px;
+            }
+            .install {
+                width: 90px;
+            }
+        }
     }
 }
 
@@ -481,13 +606,148 @@
         font-size: 14px;
         line-height: 17px;
         
-        // Enable text selection, since URLs aren't clickable
+        // Enable text selection
         cursor: auto;
-        -webkit-user-select: text;
-        -khtml-user-select: text;
-        -moz-user-select: text;
-        -ms-user-select: text;
-        -o-user-select: text;
-        user-select: text;
+        .user-select(text);
+    }
+}
+
+/* Input */
+input {
+    background-color: #fff;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    @shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
+
+    // Placeholder text gets special styles; can't be bundled together though for some reason
+    &::-webkit-input-placeholder {
+        color: #888;
+    }
+    // Focus states (we use .focused since IE8 and down doesn't support :focus)
+    &:focus,
+    &.focused {
+        outline: 0;
+        background-color: #fff;
+        color: #000;
+        text-shadow: none;
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
+    }
+}
+
+/* Twipsy tooltips */
+.twipsy-inner {
+    .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
+    max-width: none;
+    white-space: nowrap;
+}
+
+/* Buttons */
+
+// Base .btn styles
+.btn {
+    // Button Base
+    background-image: none;
+
+    background-color: #e5e9e9;
+    text-shadow: 0 1px 0 #fff;
+    color: #454545;
+    font-weight: @font-weight-semibold;
+    line-height: normal;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    box-shadow: inset 0 1px 0 #fff;
+
+    &:hover {
+        background-color: #edf1f1;
+        color: #454545;
+    }
+
+    // Focus state for keyboard and accessibility
+    &:focus {
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        outline: none;
+    }
+
+    // Primary Button Type
+    &.primary {
+        background-image: none;
+        background-color: #288edf;
+        border: 1px solid  #0055ad;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
+        color: #fff;
+        text-shadow: 0 -1px 0 rgba(0,0,0,0.36);
+        &.active,
+        &:active {
+            background-image: none;
+            background-color: #0380e8;
+            box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+        }    
+   
+        &:focus {
+            border: 1px solid @tc-gray-component-focused-border;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
+            outline: none;
+        }        
+    }
+    
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: #d3d7d7;
+        box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+    }    
+    
+    &.disabled, &[disabled] {
+        .opacity(30);
+    }
+
+    // Button Sizes
+    &.large {
+        font-size: @basefont + 1px;
+        .border-radius(3px);
+    }
+    &.small {
+        font-size: @basefont - 1px;
+    }
+}
+
+.btn-mini {
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 14px;
+}
+
+/* Tables */
+
+table {
+    th {
+        font-weight: @font-weight-semibold;
+    }
+    td {
+        border-top: 1px solid transparent;
+    }
+    tbody th {
+        border-top: 1px solid transparent);
+    }
+}
+
+.zebra-striped tbody {
+    tr:nth-child(odd) td,
+    tr:nth-child(odd) th {
+        background-color: #e6e9e9; // TopCoat palette
+    }
+    tr:nth-child(even) td,
+    tr:nth-child(even) th {
+        background-color: @tc-gray-panel; // turn off bootstrap hover highlight 
+    }
+}    
+.row-highlight tbody {
+    tr:hover td,
+    tr:hover th {
+        background-color: @tc-highlight; // TopCoat palette
     }
 }

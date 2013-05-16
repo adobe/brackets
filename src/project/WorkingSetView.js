@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
+        $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
     
@@ -82,8 +83,10 @@ define(function (require, exports, module) {
     function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
+            $workingSetHeader.hide();
         } else {
             $openFilesContainer.show();
+            $workingSetHeader.show();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -318,9 +321,8 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
+            ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     }
     
@@ -333,8 +335,7 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").text(file.name);
+        var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
@@ -552,9 +553,14 @@ define(function (require, exports, module) {
         _rebuildWorkingSet();
     }
     
+    function refresh() {
+        _redraw();
+    }
+    
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
+        $workingSetHeader = $("#working-set-header");
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
@@ -598,5 +604,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
+    exports.refresh = refresh;
 });

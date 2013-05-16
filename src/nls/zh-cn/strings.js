@@ -125,12 +125,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "获取更新信息失败",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息.请确认你的电脑已经连接互联网,然后再次尝试重新获取!",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "选择语言",
-    "LANGUAGE_MESSAGE"                  : "请从列表中选择所需的语言:",
-    "LANGUAGE_SUBMIT"                   : "重新加载 {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "取消",
-
     /**
      * ProjectManager
      */
@@ -228,7 +222,6 @@ define({
     "CMD_QUICK_OPEN"                      : "打开快速导航",
     "CMD_GOTO_LINE"                       : "转到某行",
     "CMD_GOTO_DEFINITION"                 : "转到定义",
-    "CMD_JSLINT_FIRST_ERROR"              : "转到第一个JSLint错误",
     "CMD_TOGGLE_QUICK_EDIT"               : "快速编辑",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "上一个匹配项",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "下一个匹配项",
@@ -236,20 +229,6 @@ define({
     "CMD_PREV_DOC"                        : "上一个文件",
     "CMD_SHOW_IN_TREE"                    : "转到工作目录",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "调试",
-    "CMD_REFRESH_WINDOW"                  : "刷新 {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "显示开发工具",
-    "CMD_RUN_UNIT_TESTS"                  : "运行测试",
-    "CMD_JSLINT"                          : "启用JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "显示性能数据",
-    "CMD_NEW_BRACKETS_WINDOW"             : "新建一个 {APP_NAME} 窗口",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
-    "CMD_SWITCH_LANGUAGE"                 : "选择语言",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "启用Node.JS调试",
-    "CMD_LOG_NODE_STATE"                  : "将Node.JS日志显示在控制台中",
-    "CMD_RESTART_NODE"                    : "重启Node.JS",
-
     // Help menu commands
     "HELP_MENU"                           : "帮助",
     "CMD_CHECK_FOR_UPDATE"                : "检查更新",
@@ -257,6 +236,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} 论坛",
     "CMD_RELEASE_NOTES"                   : "发行说明",
     "CMD_REPORT_AN_ISSUE"                 : "报告问题",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
     "CMD_TWITTER"                         : "{TWITTER_NAME}的Twitter(推特需要翻墙)",
     "CMD_ABOUT"                           : "关于 {APP_TITLE}",
 
@@ -268,11 +248,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "测试生成",
     "DEVELOPMENT_BUILD"                    : "开发生成",
-    "JSLINT_ERRORS"                        : "JSLint错误",
-    "JSLINT_ERROR_INFORMATION"             : "1个JSLint错误",
-    "JSLINT_ERRORS_INFORMATION"            : "{0}个JSLint错误",
-    "JSLINT_NO_ERRORS"                     : "未发现JSLint错误 - 骚年加油!",
-    "JSLINT_DISABLED"                      : "JSLint已被禁用或者无法工作在此文件.",
     "SEARCH_RESULTS"                       : "查询结果",
     "OK"                                   : "确定",
     "DONT_SAVE"                            : "放弃保存",
@@ -284,7 +259,6 @@ define({
     "RELAUNCH_CHROME"                      : "重新运行Chrome",
     "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
@@ -324,7 +298,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "这个扩展包不兼容当前的版本,将安装至Disabled扩展文件夹中.",
     "MISSING_MAIN"                         : "扩展包遗失main.js文件.",
     "ALREADY_INSTALLED"                    : "该扩展已经存在,将安装至Disabled扩展文件夹中.",
-    "NO_DISABLED_DIRECTORY"                : "由于扩展文件夹不存在\"extensions/disabled\",所以无法保存扩展至扩展文件夹.",
     "DOWNLOAD_ID_IN_USE"                   : "内部错误:该下载ID已被使用.",
     "DOWNLOAD_TARGET_EXISTS"               : "临时下载文件已存在: {0}.",
     "NO_SERVER_RESPONSE"                   : "无法连接到服务器.",
@@ -336,6 +309,24 @@ define({
     "UNKNOWN_ERROR"                        : "未知内部错误.",
     // For NOT_FOUND_ERR, see generic strings above
     
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "调试",
+    "CMD_SHOW_DEV_TOOLS"                        : "显示开发工具",
+    "CMD_REFRESH_WINDOW"                        : "刷新 {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
+    "CMD_SWITCH_LANGUAGE"                       : "选择语言",
+    "CMD_RUN_UNIT_TESTS"                        : "运行测试",
+    "CMD_SHOW_PERF_DATA"                        : "显示性能数据",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "启用Node.JS调试",
+    "CMD_LOG_NODE_STATE"                        : "将Node.JS日志显示在控制台中",
+    "CMD_RESTART_NODE"                          : "重启Node.JS",
+    
+    "LANGUAGE_TITLE"                            : "选择语言",
+    "LANGUAGE_MESSAGE"                          : "请从列表中选择所需的语言:",
+    "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "取消",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
@@ -343,5 +334,14 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "十六进制格式",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa格式",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "启用JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "转到第一个JSLint错误",
+    "JSLINT_ERRORS"                             : "JSLint错误",
+    "JSLINT_ERROR_INFORMATION"                  : "1个JSLint错误",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0}个JSLint错误",
+    "JSLINT_NO_ERRORS"                          : "未发现JSLint错误 - 骚年加油!",
+    "JSLINT_DISABLED"                           : "JSLint已被禁用或者无法工作在此文件."
 });

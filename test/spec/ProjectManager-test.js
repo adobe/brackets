@@ -23,12 +23,14 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, require: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
     var ProjectManager,     // Load from brackets.test
+        CommandManager,     // Load from brackets.test
+        Commands            = require("command/Commands"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("ProjectManager", function () {
@@ -36,13 +38,17 @@ define(function (require, exports, module) {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files"),
+            testWindow,
             brackets;
 
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+                
                 // Load module instances from brackets.test
                 brackets = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
+                CommandManager = testWindow.brackets.test.CommandManager;
             });
         });
 
@@ -168,6 +174,133 @@ define(function (require, exports, module) {
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
                     runs(assertFile);
                 }
+            });
+        });
+        
+        describe("Selection indicator", function () {
+            
+            function expectSelected(fullPath) {
+                var $projectTreeItems = testWindow.$("#project-files-container > ul").children();
+                var $selectedItem = $projectTreeItems.find("a.jstree-clicked");
+                if (!fullPath) {
+                    expect($selectedItem.length).toBe(0);
+                } else {
+                    expect($selectedItem.length).toBe(1);
+                    expect($selectedItem.parent().data("entry").fullPath).toBe(fullPath);
+                }
+            }
+            
+            it("should deselect after opening file not rendered in tree", function () {
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                var promise,
+                    exposedFile   = testPath + "/file.js",
+                    unexposedFile = testPath + "/directory/file.js";
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: exposedFile });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(exposedFile);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: unexposedFile });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(null);
+                });
+            });
+            
+            
+            function findExtantNode(fullPath) {
+                var $treeItems = testWindow.$("#project-files-container li"),
+                    $result;
+                $treeItems.is(function () {
+                    var $treeNode = testWindow.$(this),
+                        entry = $treeNode.data("entry");
+                    if (entry && entry.fullPath === fullPath) {
+                        $result = $treeNode;
+                        return true;
+                    }
+                    return false;
+                });
+                return $result;
+            }
+            function toggleFolder(fullPath, open) {
+                var $treeNode = findExtantNode(fullPath);
+                
+                var expectedClass = open ? "jstree-open" : "jstree-closed";
+                expect($treeNode.hasClass(expectedClass)).toBe(false);
+                
+                $treeNode.children("a").click();
+                
+                // if a folder has never been expanded before, this will be async
+                waitsFor(function () {
+                    return $treeNode.hasClass(expectedClass);
+                }, (open ? "Open" : "Close") + " tree node", 1000);
+            }
+            
+            it("should reselect previously selected file when made visible again", function () {
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                var promise,
+                    initialFile  = testPath + "/file.js",
+                    folder       = testPath + "/directory/",
+                    fileInFolder = testPath + "/directory/file.js";
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(initialFile);
+                    toggleFolder(folder, true);     // open folder
+                });
+                runs(function () {                  // open file in folder
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(fileInFolder);
+                    toggleFolder(folder, false);    // close folder
+                });
+                runs(function () {
+                    expectSelected(folder);
+                    toggleFolder(folder, true);     // open folder again
+                });
+                runs(function () {
+                    expectSelected(fileInFolder);
+                });
+            });
+            
+            it("should deselect after opening file hidden in tree, but select when made visible again", function () {
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                var promise,
+                    initialFile  = testPath + "/file.js",
+                    folder       = testPath + "/directory/",
+                    fileInFolder = testPath + "/directory/file.js";
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(initialFile);
+                    toggleFolder(folder, true);     // open folder
+                });
+                runs(function () {
+                    toggleFolder(folder, false);    // close folder
+                });
+                runs(function () {                  // open file in folder
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    expectSelected(null);
+                    toggleFolder(folder, true);     // open folder again
+                });
+                runs(function () {
+                    expectSelected(fileInFolder);
+                });
             });
         });
         

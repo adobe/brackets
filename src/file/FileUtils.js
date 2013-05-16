@@ -181,7 +181,7 @@ define(function (require, exports, module) {
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 getFileErrorString(name)
             )
         );
@@ -292,6 +292,18 @@ define(function (require, exports, module) {
         
         return false;
     }
+
+    /**
+     * Returns the file extension for a file name
+     * @param {string} fileName file name with extension or just a file extension
+     * @return {string} File extension if found, otherwise return the original file name
+     */
+    function _getFileExtension(fileName) {
+        var i = fileName.lastIndexOf("."),
+            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
+
+        return ext;
+    }
     
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
@@ -299,34 +311,28 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     // Define public API

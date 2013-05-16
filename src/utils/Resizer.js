@@ -107,6 +107,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the visibility state of a resizable element.
+     * @param {DOMNode} element Html element to toggle
+     * @return {boolean} true if element is visible, false if it is not visible
+     */
+    function visible(element) {
+        return $(element).is(":visible");
+    }
+    
+    /**
      * Adds resizing capabilities to a given html element.
      *
      * Resizing can be configured in two directions:
@@ -133,10 +142,11 @@ define(function (require, exports, module) {
      * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
      * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
      *                          resizer. Defaults to false.
-     * @param {?string} forcemargin CSS selector indicating element whose margin-left should be locked to
-     *                          the resizable elemnt's size.
+     * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
+     *                          the resizable element's size (useful for siblings laid out to the right of
+     *                          the element). Must lie in element's parent's subtree.
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -156,9 +166,9 @@ define(function (require, exports, module) {
         
         $element.prepend($resizer);
         
-        function forceMargins(size) {
-            if (forcemargin !== undefined) {
-                $(forcemargin, $element.parent()).css("margin-left", size);
+        function adjustSibling(size) {
+            if (forceLeft !== undefined) {
+                $(forceLeft, $element.parent()).css("left", size);
             }
         }
         
@@ -193,7 +203,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(elementSize);
+            adjustSibling(elementSize);
             
             // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
@@ -218,7 +228,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(0);
+            adjustSibling(0);
             
             // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
@@ -283,7 +293,7 @@ define(function (require, exports, module) {
                             // Resize the main element to the new size. If there is a content element, 
                             // its size is the new size minus the size of the non-resizable elements
                             resizeElement(newSize, (newSize - baseSize));
-                            forceMargins(newSize);
+                            adjustSibling(newSize);
                             
                             $element.trigger("panelResizeUpdate", [newSize]);
                         }
@@ -379,7 +389,7 @@ define(function (require, exports, module) {
             if (elementPrefs.visible !== undefined && !elementPrefs.visible) {
                 hide($element);
             } else {
-                forceMargins(elementSizeFunction.apply($element));
+                adjustSibling(elementSizeFunction.apply($element));
                 repositionResizer(elementSizeFunction.apply($element));
             }
         }
@@ -422,15 +432,16 @@ define(function (require, exports, module) {
             //}
 
             if ($(element).hasClass("right-resizer")) {
-                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcemargin);
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forceleft);
             }
         });
     });
     
-    exports.makeResizable        = makeResizable;
-    exports.toggle               = toggle;
-    exports.show                 = show;
-    exports.hide                 = hide;
+    exports.makeResizable   = makeResizable;
+    exports.toggle          = toggle;
+    exports.show            = show;
+    exports.hide            = hide;
+    exports.visible         = visible;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;

@@ -113,12 +113,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE" : "Feil ved henting av oppdatering info",
     "ERROR_FETCHING_UPDATE_INFO_MSG" : "Det oppstod et problem ved å få informasjon fra serveren. Vennligst sørg for at du er koblet til internett og prøv på nytt.",
 
-    // Switch language
-    "LANGUAGE_TITLE" : "Bytt språk",
-    "LANGUAGE_MESSAGE" : "Velg ønsket språk fra listen under:",
-    "LANGUAGE_SUBMIT" : "Gjenåpne {APP_NAME}",
-    "LANGUAGE_CANCEL" : "Avbryt",
-
     /**
      * ProjectManager
      */
@@ -184,23 +178,12 @@ define({
     "CMD_NEXT_DOC" : "Neste dokument",
     "CMD_PREV_DOC" : "Forrige dokument",
 
-    // Debug menu commands
-    "DEBUG_MENU" : "Debug",
-    "CMD_REFRESH_WINDOW" : "Oppdater {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS" : "Vis utviklerverktøy",
-    "CMD_RUN_UNIT_TESTS" : "Kjør tester",
-    "CMD_JSLINT" : "Aktiver JSLint",
-    "CMD_SHOW_PERF_DATA" : "Vis ytelsesdata",
-    "CMD_NEW_BRACKETS_WINDOW" : "Nytt {APP_NAME} vindu",
-    "CMD_SHOW_EXTENSIONS_FOLDER" : "Vis ekstensjoner",
-    "CMD_USE_TAB_CHARS" : "Bruk tab karakterer",
-    "CMD_SWITCH_LANGUAGE" : "Bytt språk",
-    "CMD_CHECK_FOR_UPDATE" : "Se etter oppdateringer",
-
     // Help menu commands
     "HELP_MENU" : "Hjelp",
-    "CMD_ABOUT" : "Om {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE" : "Se etter oppdateringer",
+    "CMD_SHOW_EXTENSIONS_FOLDER" : "Vis ekstensjoner",
     "CMD_FORUM" : "{APP_NAME} forum",
+    "CMD_ABOUT" : "Om {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW" : "Lukk vindu",
@@ -208,7 +191,6 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD" : "Experimental build",
-    "JSLINT_ERRORS" : "JSLint feil",
     "SEARCH_RESULTS" : "Søkeresultater",
     "OK" : "OK",
     "DONT_SAVE" : "Ikke lagre",
@@ -219,7 +201,6 @@ define({
     "CLOSE_DONT_SAVE" : "Lukk (ikke lagre)",
     "RELAUNCH_CHROME" : "Start Chrome på nytt",
     "ABOUT" : "About",
-    "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
     "ABOUT_TEXT_LINE1" : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3" : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
@@ -227,5 +208,24 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",
     "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
     "UPDATE_MESSAGE" : "Hei, en ny bygg for {APP_NAME} er tilgjengelig. Her er noen av de nye funksjonene:",
-    "GET_IT_NOW" : "Hent den nå!"
+    "GET_IT_NOW" : "Hent den nå!",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU" : "Debug",
+    "CMD_SHOW_DEV_TOOLS" : "Vis utviklerverktøy",
+    "CMD_REFRESH_WINDOW" : "Oppdater {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW" : "Nytt {APP_NAME} vindu",
+    "CMD_SWITCH_LANGUAGE" : "Bytt språk",
+    "CMD_RUN_UNIT_TESTS" : "Kjør tester",
+    "CMD_SHOW_PERF_DATA" : "Vis ytelsesdata",
+    
+    "LANGUAGE_TITLE" : "Bytt språk",
+    "LANGUAGE_MESSAGE" : "Velg ønsket språk fra listen under:",
+    "LANGUAGE_SUBMIT" : "Gjenåpne {APP_NAME}",
+    "LANGUAGE_CANCEL" : "Avbryt",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT" : "Aktiver JSLint",
+    "JSLINT_ERRORS" : "JSLint feil"
 });

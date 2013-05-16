@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
@@ -188,6 +188,22 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns a mock element (in the test runner window) that's offscreen, for
+     * parenting UI you want to unit-test. When done, make sure to delete it with
+     * remove().
+     * @return {jQueryObject} a jQuery object for an offscreen div
+     */
+    function createMockElement() {
+        return $("<div/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            })
+            .appendTo($("body"));
+    }
+
+    /**
      * Returns a Document and Editor suitable for use with an Editor in
      * isolation: i.e., a Document that will never be set as the
      * currentDocument or added to the working set.
@@ -195,14 +211,8 @@ define(function (require, exports, module) {
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
         // Initialize EditorManager and position the editor-holder offscreen
-        var $editorHolder = $("<div id='mock-editor-holder'/>")
-            .css({
-                position: "absolute",
-                left: "-10000px",
-                top: "-10000px"
-            });
+        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
         EditorManager.setEditorHolder($editorHolder);
-        $("body").append($editorHolder);
         
         // create dummy Document for the Editor
         var doc = createMockDocument(initialContent, languageId);
@@ -225,7 +235,7 @@ define(function (require, exports, module) {
         EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
-
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -848,6 +858,37 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
+    /**
+     * Searches the DOM tree for text containing the given content. Useful for verifying
+     * that data you expect to show up in the UI somewhere is actually there.
+     *
+     * @param {jQueryObject|Node} root The root element to search from. Can be either a jQuery object
+     *     or a raw DOM node.
+     * @param {string} content The content to find.
+     * @return true if content was found
+     */
+    function findDOMText(root, content) {
+        // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
+        // you can't escape quotes in it.
+        var i;
+        if (root instanceof $) {
+            root = root.get(0);
+        }
+        if (!root) {
+            return false;
+        } else if (root.nodeType === 3) { // text node
+            return root.textContent.indexOf(content) !== -1;
+        } else {
+            var children = root.childNodes;
+            for (i = 0; i < children.length; i++) {
+                if (findDOMText(children[i], content)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -895,6 +936,7 @@ define(function (require, exports, module) {
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
+    exports.createMockElement               = createMockElement;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
@@ -913,4 +955,5 @@ define(function (require, exports, module) {
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
+    exports.findDOMText                     = findDOMText;
 });

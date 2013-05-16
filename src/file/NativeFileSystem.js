@@ -943,7 +943,8 @@ define(function (require, exports, module) {
     /**
      * Read the next block of entries from this directory
      * @param {function(Array.<Entry>)} successCallback Callback function for successful operations
-     * @param {function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(DOMError, ?Array.<Entry>)=} errorCallback Callback function for error operations,
+     *      which may include an array of entries that could be read without error
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         if (!this._directory.fullPath) {
@@ -996,28 +997,31 @@ define(function (require, exports, module) {
                                 }
                                 deferred.resolve();
                             } else {
+                                entries[index] = null;  // failed to stat this file, so don't include it
                                 lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
                                 deferred.reject(lastError);
                             }
                         });
                         
                         return deferred.promise();
-                    }, true);
+                    }, false);
     
                     // We want the error callback to get called after some timeout (in case some deferreds don't return).
                     // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
                     var timeoutWrapper = Async.withTimeout(masterPromise, timeout);
+                    
+                    // The entries array may have null values if stat returned things that were
+                    // neither a file nor a dir. So, we need to clean those out.
+                    var cleanedEntries = [];
     
                     // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
-                    timeoutWrapper.done(function () { // success
-                        // The entries array may have null values if stat returned things that were
-                        // neither a file nor a dir. So, we need to clean those out.
-                        var cleanedEntries = [], i;
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i]) {
-                                cleanedEntries.push(entries[i]);
+                    timeoutWrapper.always(function () { // always clean the successful entries 
+                        entries.forEach(function (entry) {
+                            if (entry) {
+                                cleanedEntries.push(entry);
                             }
-                        }
+                        });
+                    }).done(function () { // success
                         successCallback(cleanedEntries);
                     }).fail(function (err) { // error
                         if (err === Async.ERROR_TIMEOUT) {
@@ -1029,7 +1033,7 @@ define(function (require, exports, module) {
                         }
                         
                         if (errorCallback) {
-                            errorCallback(err);
+                            errorCallback(err, cleanedEntries);
                         }
                     });
     

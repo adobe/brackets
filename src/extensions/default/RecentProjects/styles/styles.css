@@ -5,10 +5,12 @@
 }
 .dropdown-arrow {
     display: inline-block;
-    width: 10px;
-    height: 8px;
+    width: 5px;
+    height: 9px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
+    position: relative;
+    top: 1px;
 }
 
 .trash-icon {
@@ -24,12 +26,25 @@
 }
 
 #project-dropdown-toggle {
-    height: 18px;
+    border: 1px solid transparent;
+    display: inline-block;
+    /* adjust margins to keep position #project-title position stable after extension is loaded */
+    margin: -3px 0px -2px -6px;
     overflow: hidden;
+    padding: 0 5px;
     white-space: nowrap;
 }
 
+#project-title {
+    /* vertical align center text */
+    height: 21px;
+    line-height: 21px;
+}
+
 #project-dropdown-toggle:hover {
+    border-radius: 3px;
+    border: 1px solid #2d2f31;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
     color: #a0a0a0;
     text-decoration: none;
 }
@@ -55,7 +70,7 @@
 	padding: 5px 26px 5px 15px;
 }
 
-.recent-folder, #open-folder-link, #project-settings-link {
+.recent-folder, #open-folder-link {
     color: #454545;
 }
 
