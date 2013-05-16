@@ -827,38 +827,54 @@ define(function (require, exports, module) {
     
     /**
      * Sorts an array of SearchResult objects on a primary field, followed by secondary fields
-     * in case of ties. 'fields' maps field name to priority, where 0 is the primary field. E.g.:
-     *      multiFieldSort(bugList, { milestone: 0, severity: 1 });
+     * in case of ties. 'fieldSpec' provides the priority order for fields, where the first entry is the primary field, for example:
+     *      multiFieldSort(bugList, [ "milestone", "severity" ]);
      * Would sort a bug list by milestone, and within each milestone sort bugs by severity.
+     *
+     * fieldSpec can also include comparator functions of the form normally used by the sort()
+     * function.
      *
      * Any fields that have a string value are compared case-insensitively. Fields used should be
      * present on all SearchResult objects (no optional/undefined fields).
      *
      * @param {!Array.<SearchResult>} searchResults
-     * @param {!Object.<string, number>} fields
+     * @param {!Array.<string, function>} fieldSpec
      */
-    function multiFieldSort(searchResults, fields) {
+    function multiFieldSort(searchResults, fieldSpec) {
         // Move field names into an array, with primary field first
-        var fieldNames = [];
-        CollectionUtils.forEach(fields, function (priority, key) {
-            fieldNames[priority] = key;
-        });
+        var comparisons;
+        if (Array.isArray(fieldSpec)) {
+            comparisons = fieldSpec;
+        } else {
+            // TODO Deprecate this form of calling this function
+            comparisons = [];
+            CollectionUtils.forEach(fieldSpec, function (priority, key) {
+                comparisons[priority] = key;
+            });
+        }
         
         searchResults.sort(function (a, b) {
             var priority;
-            for (priority = 0; priority < fieldNames.length; priority++) {
-                var fieldName = fieldNames[priority];
-                var valueA = a[fieldName];
-                var valueB = b[fieldName];
-                if (typeof valueA === "string") {
-                    valueA = valueA.toLowerCase();
-                    valueB = valueB.toLowerCase();
-                }
-                
-                if (valueA < valueB) {
-                    return -1;
-                } else if (valueA > valueB) {
-                    return 1;
+            for (priority = 0; priority < comparisons.length; priority++) {
+                var comparison = comparisons[priority];
+                if (typeof comparison === "function") {
+                    var result = comparison(a, b);
+                    if (result) {
+                        return result;
+                    }
+                } else {
+                    var valueA = a[comparison];
+                    var valueB = b[comparison];
+                    if (typeof valueA === "string") {
+                        valueA = valueA.toLowerCase();
+                        valueB = valueB.toLowerCase();
+                    }
+                    
+                    if (valueA < valueB) {
+                        return -1;
+                    } else if (valueA > valueB) {
+                        return 1;
+                    }
                 }
                 // otherwise, move on to next sort priority
             }

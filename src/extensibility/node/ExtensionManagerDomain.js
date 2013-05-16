@@ -55,6 +55,21 @@ var Errors = {
  */
 var pendingDownloads = {};
 
+/**
+ * Private function to remove the installation directory if the installation fails.
+ * This does not call any callbacks. It's assumed that the callback has already been called
+ * and this cleanup routine will do its best to complete in the background. If there's
+ * a problem here, it is simply logged with console.error.
+ *
+ * @param {string} installDirectory Directory to remove
+ */
+function _removeFailedInstallation(installDirectory) {
+    fs.remove(installDirectory, function (err) {
+        if (err) {
+            console.error("Error while removing directory after failed installation", installDirectory, err);
+        }
+    });
+}
 
 /**
  * Private function to unzip to the correct directory.
@@ -84,6 +99,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     callback(exc);
                     callbackCalled = true;
                     readStream.destroy();
+                    _removeFailedInstallation(installDirectory);
                 }
             })
             .on("entry", function (entry) {
@@ -91,23 +107,17 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 if (prefixlength) {
                     installpath = installpath.substring(prefixlength + 1);
                 }
-                
                 if (entry.type === "Directory") {
                     if (installpath === "") {
                         return;
                     }
-                    extractStream.pause();
-                    fs.mkdirs(installDirectory + "/" + installpath, function (err) {
-                        if (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                            }
-                            extractStream.close();
-                            return;
-                        }
-                        extractStream.resume();
-                    });
+                    try {
+                        fs.mkdirsSync(installDirectory + "/" + installpath);
+                    } catch (e) {
+                        callback(e);
+                        callbackCalled = true;
+                        _removeFailedInstallation(installDirectory);
+                    }
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
                         .on("error", function (err) {
@@ -115,6 +125,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                                 callback(err);
                                 callbackCalled = true;
                                 readStream.destroy();
+                                _removeFailedInstallation(installDirectory);
                             }
                         });
                 }
@@ -338,6 +349,18 @@ function _cmdAbortDownload(downloadId) {
     }
 }
 
+/**
+ * Implements the remove extension command.
+ */
+function _cmdRemove(extensionDir, callback) {
+    fs.remove(extensionDir, function (err) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(null);
+        }
+    });
+}
 
 /**
  * Initialize the "extensions" domain.
@@ -415,6 +438,19 @@ function init(domainManager) {
     );
     domainManager.registerCommand(
         "extensionManager",
+        "remove",
+        _cmdRemove,
+        true,
+        "Removes the Brackets extension at the given path.",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the installed extension folder"
+        }],
+        {}
+    );
+    domainManager.registerCommand(
+        "extensionManager",
         "downloadFile",
         _cmdDownloadFile,
         true,
@@ -454,6 +490,7 @@ function init(domainManager) {
 // used in unit tests
 exports._cmdValidate = validate;
 exports._cmdInstall = _cmdInstall;
+exports._cmdRemove = _cmdRemove;
 
 // used to load the domain
 exports.init = init;

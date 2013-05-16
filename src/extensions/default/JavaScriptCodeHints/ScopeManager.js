@@ -57,6 +57,8 @@ define(function (require, exports, module) {
         numResolvedFiles    = 0,
         numAddedFiles       = 0,
         stopAddingFiles     = false,
+        // exclude require and jquery since we have special knowledge of those
+        excludedFilesRegEx  = /require\.js$|jquery-[\d]\.[\d]\.js$/,
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
@@ -232,7 +234,7 @@ define(function (require, exports, module) {
      * @param {function(Array.<string>)} successCallback - callback with
      * array of file path names.
      */
-    function getFilesInDirectory(dir, successCallback) {
+    function getFilesInDirectory(dir, successCallback, errorCallback) {
         var files = []; // file names without paths.
 
         /**
@@ -248,10 +250,12 @@ define(function (require, exports, module) {
          * @param path - full path of file.
          */
         function fileCallback(path) {
-            files.push(path);
+            if (!excludedFilesRegEx.test(path)) {
+                files.push(path);
+            }
         }
 
-        forEachFileInDirectory(dir, doneCallback, fileCallback);
+        forEachFileInDirectory(dir, doneCallback, fileCallback, null, errorCallback);
     }
 
     /**
@@ -265,9 +269,7 @@ define(function (require, exports, module) {
      */
     function addAllFilesAndSubdirectories(dir, doneCallback) {
 
-        var numDirectoriesLeft = 1,        // number of directories to process
-            excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
-            excludedFilesRegEx  = new RegExp(excludedFilesString);
+        var numDirectoriesLeft = 1;        // number of directories to process
 
         /**
          *  Add the files in the directory and subdirectories of a given directory
@@ -348,6 +350,56 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Add a pending request waiting for the tern-worker to complete.
+     *
+     * @param {string} file - the name of the file
+     * @param {number} offset - the offset into the file the request is for
+     * @param {string} type - the type of request
+     * @return {jQuery.Promise} - the promise for the request  
+     */
+    function addPendingRequest(file, offset, type) {
+        var requests,
+            key = file + "@" + offset,
+            $deferredRequest;
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+            requests = pendingTernRequests[key];
+        } else {
+            requests = {};
+            pendingTernRequests[key] = requests;
+        }
+
+        if (CollectionUtils.hasProperty(requests, type)) {
+            $deferredRequest = requests[type];
+        } else {
+            requests[type] = $deferredRequest = $.Deferred();
+        }
+        return $deferredRequest.promise();
+    }
+
+    /**
+     * Get any pending $.Deferred object waiting on the specified file and request type
+     * @param {string} file - the file
+     * @param {number} offset - the offset in the file the request was at
+     * @param {string} type - the type of request
+     * @return {jQuery.Deferred} - the $.Deferred for the request     
+     */
+    function getPendingRequest(file, offset, type) {
+        var key = file + "@" + offset;
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+            var requests = pendingTernRequests[key],
+                requestType = requests[type];
+
+            delete pendingTernRequests[key][type];
+
+            if (!Object.keys(requests).length) {
+                delete pendingTernRequests[key];
+            }
+
+            return requestType;
+        }
+    }
+    
+    /**
      * Get a Promise for the definition from TernJS, for the file & offset passed in.
      * @return {jQuery.Promise} - a promise that will resolve to definition when
      *      it is done
@@ -361,9 +413,7 @@ define(function (require, exports, module) {
             text: text
         });
 
-        var $deferredJump = $.Deferred();
-        pendingTernRequests[file] = $deferredJump;
-        return $deferredJump.promise();
+        return addPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
     }
 
     /**
@@ -394,43 +444,18 @@ define(function (require, exports, module) {
      */
     function handleJumptoDef(response) {
         
-        var file = response.file;
-        var $deferredJump = pendingTernRequests[file];
+        var file = response.file,
+            offset = response.offset;
         
-        pendingTernRequests[file] = null;
+        var $deferredJump = getPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
+        
+//        pendingTernRequests[file] = null;
         
         if ($deferredJump) {
             $deferredJump.resolveWith(null, [response]);
         }
     }
 
-    /**
-     * Add a pending request waiting for the tern-worker to complete.
-     *
-     * @param {string} file - the name of the file
-     * @param {number} offset - the offset into the file the request is for
-     * @param {string} type - the type of request
-     * @return {jQuery.Promise} - the promise for the request  
-     */
-    function addPendingRequest(file, offset, type) {
-        var requests,
-            key = file + "@" + offset,
-            $deferredRequest;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
-            requests = pendingTernRequests[key];
-        } else {
-            requests = {};
-            pendingTernRequests[key] = requests;
-        }
-
-        if (CollectionUtils.hasProperty(requests, type)) {
-            $deferredRequest = requests[type];
-        } else {
-            requests[type] = $deferredRequest = $.Deferred();
-        }
-        return $deferredRequest.promise();
-    }
-    
     /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      * @param {string} dir - the directory the file is in
@@ -491,8 +516,6 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document for which scope info is 
      *      desired
-     * @param {number} offset - the offset into the document at which scope
-     *      info is desired
      * @return {jQuery.Promise} - The promise will not complete until the tern
      *      hints have completed.
      */
@@ -522,7 +545,14 @@ define(function (require, exports, module) {
 
         $.when(hintPromise, fnTypePromise).done(
             function (completions, fnType) {
-                session.setTernHints(completions);
+                if (completions.completions) {
+                    session.setTernHints(completions.completions);
+                    session.setGuesses(null);
+                } else {
+                    session.setTernHints([]);
+                    session.setGuesses(completions.properties);
+                }
+
                 session.setFnType(fnType);
                 $deferredHints.resolveWith(null);
             }
@@ -531,33 +561,43 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get any pending $.Deferred object waiting on the specified file and request type
-     * @param {string} file - the file
-     * @param {number} offset - the offset in the file the request was at
-     * @param {string} type - the type of request
-     * @return {jQuery.Deferred} - the $.Deferred for the request     
+     * Get a Promise for all of the known properties from TernJS, for the directory and file.
+     * The properties will be used as guesses in tern.
+     * @param {Session} session - the active hinting session
+     * @param {Document} document - the document for which scope info is
+     *      desired
+     * @return {jQuery.Promise} - The promise will not complete until the tern
+     *      request has completed.
      */
-    function getPendingRequest(file, offset, type) {
-        var key = file + "@" + offset;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
-            var requests = pendingTernRequests[key],
-                requestType = requests[type];
+    function requestGuesses(session, document) {
+        var path    = document.file.fullPath,
+            text    = session.getJavascriptText(),
+            offset  = session.getOffset(),
+            $deferred = $.Deferred();
 
-            delete pendingTernRequests[key][type];
+        postMessage({
+            type: HintUtils.TERN_GET_GUESSES_MSG,
+            dir: "",
+            file: path,
+            offset: offset,
+            text: text
+        });
 
-            if (!Object.keys(requests).length) {
-                delete pendingTernRequests[key];
-            }
+        var promise = addPendingRequest(path, offset, HintUtils.TERN_GET_GUESSES_MSG);
+        promise.done(function (guesses) {
+            session.setGuesses(guesses);
+            $deferred.resolve();
+        });
 
-            return requestType;
-        }
+        return $deferred.promise();
     }
-    
+
     /**
      * Handle the response from the tern web worker when
      * it responds with the list of completions
      *
-     * @param {{dir:string, file:string, offset:number, completions:Array.<string>}} response - the response from the worker
+     * @param {{dir:string, file:string, offset:number, completions:Array.<string>,
+     *          properties:Array.<string>}} response - the response from the worker
      */
     function handleTernCompletions(response) {
 
@@ -571,9 +611,9 @@ define(function (require, exports, module) {
         
         if ($deferredHints) {
             if (completions) {
-                $deferredHints.resolveWith(null, [completions]);
+                $deferredHints.resolveWith(null, [{completions: completions}]);
             } else if (properties) {
-                $deferredHints.resolveWith(null, [properties]);
+                $deferredHints.resolveWith(null, [{properties: properties}]);
             } else if (fnType) {
                 $deferredHints.resolveWith(null, [fnType]);
             }
@@ -704,6 +744,25 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handle the response from the tern web worker when
+     * it responds to the get guesses message.
+     *
+     * @param {{file:string, type: string, offset: number, properties: Array.<string>}} response -
+     *      the response from the worker contains the guesses for a
+     *      property lookup.
+     */
+    function handleGetGuesses(response) {
+        var path = response.file,
+            type = response.type,
+            offset = response.offset,
+            $deferredHints = getPendingRequest(path, offset, type);
+
+        if ($deferredHints) {
+            $deferredHints.resolveWith(null, [response.properties]);
+        }
+    }
+
+    /**
      *  We can skip tern initialization if we are opening a file that has
      *  already been added to tern.
      *
@@ -715,15 +774,15 @@ define(function (require, exports, module) {
         return resolvedFiles[newFile] !== undefined;
     }
 
+
     /**
-     * Called each time a new editor becomes active. Refreshes the outer scopes
-     * of the given file as well as of the other files in the given directory.
+     *  Do the work to initialize a code hinting session.
      *
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleEditorChange(session, document, shouldPrimePump) {
+    function doEditorChange(session, document, shouldPrimePump) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
@@ -782,16 +841,26 @@ define(function (require, exports, module) {
                 addFilesDeferred.resolveWith(null, [_ternWorker]);
             }
 
+        }, function () {
+            addFilesDeferred.resolveWith(null);
         });
     }
 
-    /*
-     * Called each time the file associated with the active editor changes.
-     * Marks the file as being dirty and refresh its outer scope.
-     * 
-     * @param {Document} document - the document that has changed
+    /**
+     * Called each time a new editor becomes active.
+     *
+     * @param {Session} session - the active hinting session
+     * @param {Document} document - the document of the editor that has changed
+     * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleFileChange(document) {
+    function handleEditorChange(session, document, shouldPrimePump) {
+        if (addFilesPromise === null) {
+            doEditorChange(session, document, shouldPrimePump);
+        } else {
+            addFilesPromise.done(function () {
+                doEditorChange(session, document, shouldPrimePump);
+            });
+        }
     }
 
     _ternWorker.addEventListener("message", function (e) {
@@ -809,6 +878,8 @@ define(function (require, exports, module) {
             handleJumptoDef(response);
         } else if (type === HintUtils.TERN_PRIME_PUMP_MSG) {
             handlePrimePumpCompletion(response);
+        } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
+            handleGetGuesses(response);
         } else {
             console.log("Worker: " + (response.log || response));
         }
@@ -818,7 +889,7 @@ define(function (require, exports, module) {
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
     exports.handleEditorChange = handleEditorChange;
-    exports.handleFileChange = handleFileChange;
+    exports.requestGuesses = requestGuesses;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
 });

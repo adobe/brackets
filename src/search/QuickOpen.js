@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
-        StringMatch         = require("utils/StringMatch");
+        StringMatch         = require("utils/StringMatch"),
+        ViewUtils           = require("utils/ViewUtils");
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -409,8 +410,9 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
         // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
         // are never results, or we're in file search mode and waiting for the index to get rebuilt)
-        var isNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
-        this.$searchField.toggleClass("no-results", Boolean(isNoResults));
+        var hasNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
+        
+        ViewUtils.toggleClass(this.$searchField, "no-results", hasNoResults);
     };
     
     /**
