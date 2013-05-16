@@ -307,6 +307,11 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         if (_serverProvider) {
+            // Stop listening for requests
+            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+                _serverProvider.setRequestFilterPaths([]);
+            }
+
             // Remove any "request" listeners that were added previously
             $(_serverProvider).off(".livedev");
         }

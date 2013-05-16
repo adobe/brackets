@@ -246,31 +246,50 @@ define(function Inspector(require, exports, module) {
         $exports.off(name, handler);
     }
 
-    /** Disconnect from the remote debugger WebSocket */
+    /**
+     * Disconnect from the remote debugger WebSocket
+     * @return {jQuery.Promise} Promise that is resolved immediately if not
+     *     currently connected or asynchronously when the socket is closed.
+     */
     function disconnect() {
-        if (_socket) {
-            if (_socket.readyState === 1) {
-                _socket.close();
-            } else {
+        var deferred = new $.Deferred();
+
+        if (_socket && (_socket.readyState === WebSocket.OPEN)) {
+            _socket.onclose = function explicitDisconnect() {
+                _onDisconnect();
+
+                deferred.resolve();
+            };
+
+            _socket.close();
+        } else {
+            if (_socket) {
                 delete _socket.onmessage;
                 delete _socket.onopen;
                 delete _socket.onclose;
                 delete _socket.onerror;
             }
+            
             _socket = undefined;
+            deferred.resolve();
         }
+
+        return deferred.promise();
     }
 
-    /** Connect to the remote debugger WebSocket at the given URL
+    /**
+     * Connect to the remote debugger WebSocket at the given URL.
+     * Clients must listen for the `connect` event.
      * @param {string} WebSocket URL
      */
     function connect(socketURL) {
-        disconnect();
-        _socket = new WebSocket(socketURL);
-        _socket.onmessage = _onMessage;
-        _socket.onopen = _onConnect;
-        _socket.onclose = _onDisconnect;
-        _socket.onerror = _onError;
+        disconnect().done(function () {
+            _socket = new WebSocket(socketURL);
+            _socket.onmessage = _onMessage;
+            _socket.onopen = _onConnect;
+            _socket.onclose = _onDisconnect;
+            _socket.onerror = _onError;
+        })
     }
 
     /** Connect to the remote debugger of the page that is at the given URL
