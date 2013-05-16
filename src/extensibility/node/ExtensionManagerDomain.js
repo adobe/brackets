@@ -85,7 +85,9 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     callbackCalled = true;
                     readStream.destroy();
                     fs.remove(installDirectory, function (err) {
-                        console.error("Error while removing directory after failed installation", installDirectory, err);
+                        if (err) {
+                            console.error("Error while removing directory after failed installation", installDirectory, err);
+                        }
                     });
                 }
             })
@@ -107,7 +109,9 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                                 callbackCalled = true;
                                 readStream.destroy();
                                 fs.remove(installDirectory, function (err) {
-                                    console.error("Error while removing directory after failed installation", installDirectory, err);
+                                    if (err) {
+                                        console.error("Error while removing directory after failed installation", installDirectory, err);
+                                    }
                                 });
                             }
                         });
