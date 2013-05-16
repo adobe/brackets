@@ -921,7 +921,7 @@ define(function (require, exports, module) {
 
     /*
      * Called each time the file associated with the active editor changes.
-     * Marks the file as being dirty and refresh its outer scope.
+     * Marks the file as being dirty.
      *
      * @param {Document} document - the document that has changed
      */

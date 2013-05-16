@@ -501,7 +501,7 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
-         * @param {Editor} editor - the previous editor.
+         * @param {Editor} previousEditor - the previous editor.
          * @param {boolean} primePump - true if the pump should be primed.
          */
         function initializeSession(editor, previousEditor, primePump) {
