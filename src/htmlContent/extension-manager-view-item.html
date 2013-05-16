@@ -35,7 +35,7 @@
     </td>
     <td class="ext-action">
         {{#showInstallButton}}
-            <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+            <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
                 {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
             </button>
