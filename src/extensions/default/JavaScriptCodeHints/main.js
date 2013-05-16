@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
+        ExtensionData   = brackets.getModule("extensibility/ExtensionData"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
@@ -485,7 +486,11 @@ define(function (require, exports, module) {
 
      // load the extension
     AppInit.appReady(function () {
-
+        var services = ExtensionData.getServices("JavaScriptCodeHints");
+        services.channels.brackets.extension.loaded.subscribe(function (e) {
+            ScopeManager.initTernEnv();
+        });
+        
         /*
          * When the editor is changed, reset the hinting session and cached 
          * information, and reject any pending deferred requests.
@@ -573,15 +578,6 @@ define(function (require, exports, module) {
             }
         }
         
-        /*
-         * @param {ServiceRegistry} services
-         */
-        function init(services) {
-            services.channels.brackets.extension.loaded.subscribe(function (e) {
-//                ScopeManager.initTernEnv();
-            });
-        }
-
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
