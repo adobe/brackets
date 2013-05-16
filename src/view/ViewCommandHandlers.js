@@ -171,7 +171,7 @@ define(function (require, exports, module) {
         var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
         
         var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = (fsUnits === lhUnits) ? fsNew * LINE_HEIGHT : lhOld;
+        var lhNew   = (fsUnits === lhUnits) ? Math.round(fsNew * LINE_HEIGHT) : lhOld;
         
         var fsStr   = fsNew + fsUnits;
         var lhStr   = lhNew + lhUnits;
