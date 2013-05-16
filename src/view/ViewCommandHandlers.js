@@ -171,7 +171,14 @@ define(function (require, exports, module) {
         var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
         
         var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = (fsUnits === lhUnits) ? Math.round(fsNew * LINE_HEIGHT) : lhOld;
+        var lhNew   = lhOld;
+        if (fsUnits === lhUnits) {
+            lhNew = fsNew * LINE_HEIGHT;
+            if (lhUnits === "px") {
+                // Use integer px value to avoid subsequent round-off differences
+                lhNew = Math.round(lhNew);
+            }
+        }
         
         var fsStr   = fsNew + fsUnits;
         var lhStr   = lhNew + lhUnits;
