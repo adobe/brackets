@@ -55,6 +55,21 @@ var Errors = {
  */
 var pendingDownloads = {};
 
+/**
+ * Private function to remove the installation directory if the installation fails.
+ * This does not call any callbacks. It's assumed that the callback has already been called
+ * and this cleanup routine will do its best to complete in the background. If there's
+ * a problem here, it is simply logged with console.error.
+ *
+ * @param {string} installDirectory Directory to remove
+ */
+function _removeFailedInstallation(installDirectory) {
+    fs.remove(installDirectory, function (err) {
+        if (err) {
+            console.error("Error while removing directory after failed installation", installDirectory, err);
+        }
+    });
+}
 
 /**
  * Private function to unzip to the correct directory.
@@ -84,11 +99,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     callback(exc);
                     callbackCalled = true;
                     readStream.destroy();
-                    fs.remove(installDirectory, function (err) {
-                        if (err) {
-                            console.error("Error while removing directory after failed installation", installDirectory, err);
-                        }
-                    });
+                    _removeFailedInstallation(installDirectory);
                 }
             })
             .on("entry", function (entry) {
@@ -100,7 +111,13 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     if (installpath === "") {
                         return;
                     }
-                    fs.mkdirsSync(installDirectory + "/" + installpath);
+                    try {
+                        fs.mkdirsSync(installDirectory + "/" + installpath);
+                    } catch (e) {
+                        callback(e);
+                        callbackCalled = true;
+                        _removeFailedInstallation(installDirectory);
+                    }
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
                         .on("error", function (err) {
@@ -108,11 +125,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                                 callback(err);
                                 callbackCalled = true;
                                 readStream.destroy();
-                                fs.remove(installDirectory, function (err) {
-                                    if (err) {
-                                        console.error("Error while removing directory after failed installation", installDirectory, err);
-                                    }
-                                });
+                                _removeFailedInstallation(installDirectory);
                             }
                         });
                 }
