@@ -93,6 +93,7 @@ define(function RemoteAgent(require, exports, module) {
     function _stopKeepAliveInterval() {
         if (_intervalId) {
             window.clearInterval(_intervalId);
+            _intervalId = null;
         }
     }
 
