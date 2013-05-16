@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
+        Async            = require("utils/Async"),
         registry_utils   = require("extensibility/registry_utils");
 
     /**
@@ -50,6 +51,7 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
+        this._idsToRemove = {};
         
         // Listen for extension status changes.
         $(ExtensionManager).on("statusChange", this._handleStatusChange);
@@ -99,6 +101,13 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
     /**
+     * @private
+     * @type {Object.<string, boolean>}
+     * Map of extensions marked for removal when the view is closed.
+     */
+    ExtensionManagerViewModel.prototype._idsToRemove = null;
+        
+    /**
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
@@ -139,19 +148,16 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Initializes the model from the set of locally installed extensions, sorted
-     * alphabetically by id (or name of the extension folder for legacy extensions).
-     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     * @private
+     * Re-sorts the current full set based on the source we're viewing.
      */
-    ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
+    ExtensionManagerViewModel.prototype._sortFullSet = function () {
         var self = this;
-        this.extensions = ExtensionManager.extensions;
-        this._sortedFullSet = Object.keys(this.extensions)
-            .filter(function (key) {
-                return self.extensions[key].installInfo &&
-                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
-            })
-            .sort(function (key1, key2) {
+        
+        // Currently, we never need to re-sort the registry view since it's always sorted when we
+        // grab it, and items are never added to the view. That might change in the future.
+        if (this.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
+            this._sortedFullSet = this._sortedFullSet.sort(function (key1, key2) {
                 var metadata1 = self.extensions[key1].installInfo.metadata,
                     metadata2 = self.extensions[key2].installInfo.metadata,
                     id1 = (metadata1.title || metadata1.name).toLowerCase(),
@@ -164,6 +170,23 @@ define(function (require, exports, module) {
                     return 1;
                 }
             });
+        }
+    };
+    
+    /**
+     * Initializes the model from the set of locally installed extensions, sorted
+     * alphabetically by id (or name of the extension folder for legacy extensions).
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     */
+    ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
+        this._sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo &&
+                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
+            });
+        this._sortFullSet();
         this._setInitialFilter();
         return new $.Deferred().resolve();
     };
@@ -200,7 +223,7 @@ define(function (require, exports, module) {
             } else if (index === -1 && this.extensions[id].installInfo) {
                 // This was not in our set, but is now installed. Add it and resort.
                 this._sortedFullSet.push(id);
-                this._sortedFullSet.sort();
+                this._sortFullSet();
                 refilter = true;
             }
             if (refilter) {
@@ -273,6 +296,53 @@ define(function (require, exports, module) {
                     return true;
                 }
             });
+    };
+    
+    /**
+     * Marks an extension for later removal, or unmarks an extension previously marked.
+     * @param {string} id The id of the extension to mark for removal.
+     * @param {boolean} mark Whether to mark or unmark it.
+     */
+    ExtensionManagerViewModel.prototype.markForRemoval = function (id, mark) {
+        if (mark) {
+            this._idsToRemove[id] = true;
+        } else {
+            delete this._idsToRemove[id];
+        }
+        $(this).triggerHandler("change", [id]);
+    };
+    
+    /**
+     * Returns true if an extension is marked for removal.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for removal, false otherwise.
+     */
+    ExtensionManagerViewModel.prototype.isMarkedForRemoval = function (id) {
+        return !!(this._idsToRemove[id]);
+    };
+    
+    /**
+     * Returns true if there are any extensions marked for removal.
+     * @return {boolean} true if there are extensions to remove
+     */
+    ExtensionManagerViewModel.prototype.hasExtensionsToRemove = function () {
+        return Object.keys(this._idsToRemove).length > 0;
+    };
+    
+    /**
+     * Removes extensions previously marked for removal.
+     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
+     *     if one or more extensions can't be removed. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    ExtensionManagerViewModel.prototype.removeMarkedExtensions = function () {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(this._idsToRemove),
+            function (id) {
+                return ExtensionManager.remove(id);
+            }
+        );
     };
     
     exports.ExtensionManagerViewModel = ExtensionManagerViewModel;
