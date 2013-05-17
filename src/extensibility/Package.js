@@ -134,10 +134,13 @@ define(function (require, exports, module) {
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    var destinationDirectory = ExtensionLoader.getUserExtensionPath();
-                    var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                    var destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
+                        disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
+                        systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+                    
                     nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
+                        systemExtensionDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
                         nameHint: nameHint
                     })
@@ -150,7 +153,9 @@ define(function (require, exports, module) {
                                 // This was a new extension and everything looked fine.
                                 // We load it into Brackets right away.
                                 ExtensionLoader.loadExtension(result.name, {
-                                    baseUrl: result.installedTo
+                                    // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
+                                    // We need to convert them back.
+                                    baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
                                 }, "main").then(function () {
                                     d.resolve(result);
                                 }, function () {
@@ -263,7 +268,7 @@ define(function (require, exports, module) {
      */
     function cancelDownload(downloadId) {
         // TODO: if we're still waiting on the NodeConnection, how do we cancel?
-        console.assert(_nodeConnectionDeferred.isResolved());
+        console.assert(_nodeConnectionDeferred.state() === "resolved");
         _nodeConnectionDeferred.done(function (connection) {
             connection.domains.extensionManager.abortDownload(downloadId);
         });
@@ -364,7 +369,29 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes the extension at the given path.
+     *
+     * @param {string} path The absolute path to the extension to remove.
+     * @return {$.Promise} A promise that's resolved when the extension is removed, or
+     *     rejected if there was an error.
+     */
     
+    function remove(path) {
+        var d = new $.Deferred();
+        _nodeConnectionDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.extensionManager.remove(path)
+                        .pipe(d.resolve, d.reject);
+                }
+            })
+            .fail(function (err) {
+                d.reject(err);
+            });
+        return d.promise();
+    }
+        
     /**
      * Allows access to the deferred that manages the node connection. This
      * is *only* for unit tests. Messing with this not in testing will
@@ -414,5 +441,6 @@ define(function (require, exports, module) {
     exports.installFromURL = installFromURL;
     exports.validate = validate;
     exports.install = install;
+    exports.remove = remove;
     exports.formatError = formatError;
 });

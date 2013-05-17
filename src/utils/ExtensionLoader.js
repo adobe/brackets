@@ -53,8 +53,8 @@ define(function (require, exports, module) {
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
     var globalConfig = {
-            "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n"
+            "text" : srcPath + "/thirdparty/text/text",
+            "i18n" : srcPath + "/thirdparty/i18n/i18n"
         };
     
     /**

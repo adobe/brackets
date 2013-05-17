@@ -287,7 +287,7 @@ define(function (require, exports, module) {
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.docDir     = docDir;
                     
-                    if (!self.cachedHints.deferred.isRejected()) {
+                    if (self.cachedHints.deferred.state() !== "rejected") {
                         var currentDeferred = self.cachedHints.deferred;
                         // Since we've cached the results, the next call to _getUrlList should be synchronous.
                         // If it isn't, we've got a problem and should reject both the current deferred
@@ -296,13 +296,11 @@ define(function (require, exports, module) {
                         if (syncResults instanceof Array) {
                             currentDeferred.resolveWith(self, [syncResults]);
                         } else {
-                            if (currentDeferred && !currentDeferred.isResolved() && !currentDeferred.isRejected()) {
+                            if (currentDeferred && currentDeferred.state() === "pending") {
                                 currentDeferred.reject();
                             }
                             
-                            if (self.cachedHints.deferred &&
-                                    !self.cachedHints.deferred.isResolved() &&
-                                    !self.cachedHints.deferred.isRejected()) {
+                            if (self.cachedHints.deferred && self.cachedHints.deferred.state() === "pending") {
                                 self.cachedHints.deferred.reject();
                                 self.cachedHints.deferred = null;
                             }

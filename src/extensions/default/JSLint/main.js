@@ -52,10 +52,13 @@ define(function (require, exports, module) {
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
     
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
+        JSLintOptions = JSON.parse(require("text!config.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true };
+        defaultPrefs = {
+            enabled: JSLintOptions.enabled_by_default
+        };
     
     
     /** @const {string} JSLint commands ID */

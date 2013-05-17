@@ -125,7 +125,7 @@ define(function (require, exports, module) {
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
-
+    
     /**
      * @private
      * @type {PreferenceStorage}
@@ -178,17 +178,34 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
-     * if no item is selected.
-     *
+     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the file tree, or null
+     * if no item is selected in the tree (though the working set may still have a selection; use
+     * getSelectedItem() to get the selection regardless of whether it's in the tree or working set).
      * @return {?Entry}
      */
-    function getSelectedItem() {
+    function _getTreeSelectedItem() {
         var selected = _projectTree.jstree("get_selected");
         if (selected) {
             return selected.data("entry");
         }
         return null;
+    }
+    
+    /**
+     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the sidebar panel, whether in
+     * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
+     * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
+     * have the current document visible in the tree & working set.
+     * @return {?Entry}
+     */
+    function getSelectedItem() {
+        // Prefer file tree selection, else use working set selection
+        var selectedEntry = _getTreeSelectedItem();
+        if (!selectedEntry) {
+            var doc = DocumentManager.getCurrentDocument();
+            selectedEntry = (doc && doc.file);
+        }
+        return selectedEntry;
     }
 
     function _fileViewFocusChange() {
@@ -619,7 +636,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) > -1) {
+        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
             return false;
         }
         var extension = entry.name.split('.').pop();
@@ -740,6 +757,7 @@ define(function (require, exports, module) {
             function (error, entries) {
                 if (entries) {
                     // some but not all entries failed to load, so render what we can
+                    console.warn("Error reading a subset of folder " + dirEntry);
                     processEntries(entries);
                 } else {
                     Dialogs.showModalDialog(
@@ -1205,9 +1223,14 @@ define(function (require, exports, module) {
                     if (isFolder) {
                         _projectTree.jstree("sort", data.rslt.obj.parent());
                     }
-
+                    
                     _projectTree.jstree("select_node", data.rslt.obj, true);
-
+                    
+                    //If the new item is a file, generate the file display entry.
+                    if (!isFolder) {
+                        _projectTree.jstree("set_text", data.rslt.obj, ViewUtils.getFileEntryDisplay(entry));
+                    }
+                   
                     // Notify listeners that the project model has changed
                     $(exports).triggerHandler("projectFilesChange");
                     
@@ -1356,7 +1379,7 @@ define(function (require, exports, module) {
 
                 result.resolve();
             } else {
-                // Show and error alert
+                // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_RENAMING_FILE_TITLE,
@@ -1385,6 +1408,11 @@ define(function (require, exports, module) {
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
             .done(function (selected) {
+                // Don't try to rename again if we are already renaming
+                if (_isInRename(selected)) {
+                    return;
+                }
+                
                 var isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
@@ -1434,6 +1462,62 @@ define(function (require, exports, module) {
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree
+    }
+
+    /**
+     * Delete file or directore from project
+     * @param {!Entry} entry FileEntry or DirectoryEntry to delete
+     */
+    function deleteItem(entry) {
+        var result = new $.Deferred();
+
+        entry.remove(function () {
+            _findTreeNode(entry).done(function ($node) {
+                _projectTree.one("delete_node.jstree", function () {
+                    // When a node is deleted, the previous node is automatically selected.
+                    // This works fine as long as the previous node is a file, but doesn't 
+                    // work so well if the node is a folder
+                    var sel     = _projectTree.jstree("get_selected"),
+                        entry   = sel ? sel.data("entry") : null;
+                    
+                    if (entry && entry.isDirectory) {
+                        // Make sure it didn't turn into a leaf node. This happens if
+                        // the only file in the directory was deleted
+                        if (sel.hasClass("jstree-leaf")) {
+                            sel.removeClass("jstree-leaf jstree-open");
+                            sel.addClass("jstree-closed");
+                        }
+                    }
+                });
+                var oldSuppressToggleOpen = suppressToggleOpen;
+                suppressToggleOpen = true;
+                _projectTree.jstree("delete_node", $node);
+                suppressToggleOpen = oldSuppressToggleOpen;
+            });
+            
+            // Notify that one of the project files has changed
+            $(exports).triggerHandler("projectFilesChange");
+            
+            DocumentManager.notifyPathDeleted(entry.fullPath);
+
+            _redraw(true);
+            result.promise();
+        }, function (err) {
+            // Show an error alert
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_DELETING_FILE_TITLE,
+                StringUtils.format(
+                    Strings.ERROR_DELETING_FILE,
+                    StringUtils.htmlEscape(entry.fullPath),
+                    FileUtils.getFileErrorString(err)
+                )
+            );
+
+            result.reject(err);
+        });
+
+        return result;
     }
     
     /**
@@ -1501,6 +1585,7 @@ define(function (require, exports, module) {
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
     exports.createNewItem            = createNewItem;
     exports.renameItemInline         = renameItemInline;
+    exports.deleteItem               = deleteItem;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;

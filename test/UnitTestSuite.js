@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     require("spec/ExtensionManager-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
+    require("spec/FileUtils-test");
     require("spec/FindReplace-test");
     require("spec/HTMLInstrumentation-test");
     require("spec/InlineEditorProviders-test");

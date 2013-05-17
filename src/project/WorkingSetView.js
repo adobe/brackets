@@ -321,9 +321,8 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
+            ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     }
     
@@ -336,8 +335,7 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
@@ -387,14 +385,16 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet() {
+    function _rebuildWorkingSet(forceRedraw) {
         $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _redraw();
+        if (forceRedraw) {
+            _redraw();
+        }
     }
 
     /**
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
         _scrollSelectedDocIntoView();
     }
 
@@ -552,7 +552,22 @@ define(function (require, exports, module) {
         // Rebuild the working set if any file or folder name changed.
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
+    }
+    
+    /**
+     * @private
+     * @param {string} path
+     */
+    function _handlePathDeleted(path) {
+        // Rebuild the working set if any file or folder was deleted.
+        // We could be smarter about this and only delete affected
+        // items.
+        _rebuildWorkingSet(false);
+    }
+    
+    function refresh() {
+        _redraw();
     }
     
     function create(element) {
@@ -590,6 +605,10 @@ define(function (require, exports, module) {
             _handleFileNameChanged(oldName, newName);
         });
         
+        $(DocumentManager).on("pathDeleted", function (event, path) {
+            _handlePathDeleted(path);
+        });
+        
         $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
@@ -602,5 +621,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
+    exports.refresh = refresh;
 });
