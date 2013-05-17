@@ -605,7 +605,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
         // Register quickEditHelper.
-        EditorManager.registerQuickEditHelper(quickEditHelper);
+        brackets._jsCodeHintsHelper = quickEditHelper;
   
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
