@@ -269,6 +269,7 @@ define(function (require, exports, module) {
                 commands.forEach(function (id) {
                     unregister(id);
                 });
+                delete extensionCommands[e.name];
             });
         }
     });

@@ -45,7 +45,11 @@ function createWrapper(name, options) {
 }
 
 function clearRequireCache(base) {
+    base = fs.realpathSync(base);
     Object.keys(require.cache).forEach(function (module) {
+        if (module.indexOf("dev") > -1) {
+            console.log("CLEAR? ", module, base);
+        }
         if (module.indexOf(base) === 0) {
             delete require.cache[module];
         }

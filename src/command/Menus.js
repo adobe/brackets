@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
         ExtensionData       = require("extensibility/ExtensionData"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
         builtInServices     = ExtensionData._brackets,
         ViewUtils           = require("utils/ViewUtils");
 
@@ -1035,17 +1036,19 @@ define(function (require, exports, module) {
     function subscribeToChannels() {
         builtInServices.channels.brackets.extension.loaded.subscribe(function (e) {
             var services = ExtensionData.getServices(e.name);
-            services.commands.add("Disable " + e.name, "disable-" + e.name, function () {
+            services.commands.add("Reload " + e.name, "reload-" + e.name, function () {
                 services.__removeAll();
                 var menuitems = extensionMenuItems[e.name];
                 if (menuitems) {
                     menuitems.forEach(function (menuitem) {
                         menuitem[0].removeMenuItem(menuitem[1]);
                     });
+                    delete extensionMenuItems[e.name];
                 }
                 builtInServices.channels.brackets.extension.disabled.publish(e);
+                ExtensionLoader.reloadExtension(e.name);
             });
-            services.menus.extensionsMenu.addItem("disable-" + e.name);
+            services.menus.extensionsMenu.addItem("reload-" + e.name);
         });
     }
     

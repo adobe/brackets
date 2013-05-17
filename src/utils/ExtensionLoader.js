@@ -96,12 +96,24 @@ define(function (require, exports, module) {
     function getRequireContextForExtension(name) {
         return contexts[name];
     }
-
-    function _hackifyExtension(name, baseUrl, extensionRequire, mainModule) {
+    
+    var reloaders = {};
+    
+    function reloadExtension(name) {
+        reloaders[name]();
+    }
+    
+    function _hackifyExtension(name, config, entryPoint, extensionRequire, mainModule) {
         // old fashioned extension
         if (!mainModule || !mainModule.init) {
             return;
         }
+        var baseUrl = config.baseUrl;
+        reloaders[name] = function () {
+            delete contexts[name];
+            extensionRequire.undef(entryPoint);
+            loadExtension(name, config, entryPoint);
+        };
         AppInit.appReady(function () {
             extensionRequire(["text!" + baseUrl + "/package.json"],
                 function (metadataText) {
@@ -149,7 +161,7 @@ define(function (require, exports, module) {
         extensionRequire([entryPoint],
             function (mainModule) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
-                _hackifyExtension(name, config.baseUrl, extensionRequire, mainModule);
+                _hackifyExtension(name, config, entryPoint, extensionRequire, mainModule);
                 result.resolve();
                 $(exports).triggerHandler("load", config.baseUrl);
             },
@@ -353,6 +365,7 @@ define(function (require, exports, module) {
     exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;
     exports.loadExtension = loadExtension;
+    exports.reloadExtension = reloadExtension;
     exports.testExtension = testExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;
     exports.testAllExtensionsInNativeDirectory = testAllExtensionsInNativeDirectory;
