@@ -132,6 +132,7 @@ define(function (require, exports, module) {
         case STATE_INSTALLING:
             url = this.$url.val();
             this.$inputArea.hide();
+            this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
                 .append("<span class='spinner spin'/>");
             this.$msgArea.show();

@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             brackets.config.extension_url = origExtensionUrl;
         });
         
-        function mockLoadExtensions(names) {
+        function mockLoadExtensions(names, fail) {
             var numStatusChanges = 0;
             runs(function () {
                 $(ExtensionManager).on("statusChange.mock-load", function () {
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                 var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                 names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
                 names.forEach(function (name) {
-                    $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
+                    $(ExtensionLoader).triggerHandler(fail ? "loadFailed" : "load", mockPath + "/" + name);
                 });
             });
             
@@ -192,6 +192,16 @@ define(function (require, exports, module) {
                             expect(ExtensionManager.extensions[extId].installInfo).toBeUndefined();
                         }
                     });
+                });
+            });
+            
+            it("should list an extension that is installed but failed to load", function () {
+                runs(function () {
+                    waitsForDone(ExtensionManager.downloadRegistry(), "loading registry");
+                });
+                mockLoadExtensions(["user/mock-extension-3"], true);
+                runs(function () {
+                    expect(ExtensionManager.extensions["mock-extension-3"].installInfo.status).toEqual(ExtensionManager.START_FAILED);
                 });
             });
             
@@ -781,6 +791,17 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect(view).not.toHaveText("mock-extension-1");
+                    });
+                });
+                
+                it("should show extensions that failed to load and allow them to be removed", function () {
+                    mockLoadExtensions(["user/mock-extension-3"], true);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect(view).toHaveText("mock-extension-3");
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.attr("disabled")).toBeFalsy();
                     });
                 });
                 

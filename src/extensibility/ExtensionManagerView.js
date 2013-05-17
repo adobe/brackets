@@ -201,6 +201,7 @@ define(function (require, exports, module) {
         // Calculate various bools, since Mustache doesn't let you use expressions and interprets
         // arrays as iteration contexts.
         context.isInstalled = !!entry.installInfo;
+        context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.hasVersionInfo = !!info.versions;
                 
         var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);

@@ -180,12 +180,13 @@ define(function (require, exports, module) {
                 deferred.resolve();
             });
             
-            it("should hide the url field while installing", function () {
+            it("should hide the url field and 'browse extensions' button while installing", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 expect(fields.$url.is(":visible")).toBeFalsy();
+                expect(fields.$browseExtensionsButton.is(":visible")).toBeFalsy();
                 deferred.resolve();
             });
     
