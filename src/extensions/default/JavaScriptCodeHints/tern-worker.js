@@ -29,10 +29,10 @@ importScripts("thirdparty/requirejs/require.js");
 (function () {
     "use strict";
     
-    var HintUtils;
+    var MessageIds;
     var Tern;
-    require(["./HintUtils"], function (hintUtils) {
-        HintUtils = hintUtils;
+    require(["./MessageIds"], function (messageIds) {
+        MessageIds = messageIds;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
         ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
             Tern = tern;
@@ -56,7 +56,7 @@ importScripts("thirdparty/requirejs/require.js");
         
         // post a message back to the main thread to get the file contents 
         self.postMessage({
-            type: HintUtils.TERN_GET_FILE_MSG,
+            type: MessageIds.TERN_GET_FILE_MSG,
             file: name
         });
     }
@@ -146,12 +146,12 @@ importScripts("thirdparty/requirejs/require.js");
         ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'definition' request: " + error);
-                self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG});
+                self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG});
                 return;
             }
             
             // Post a message back to the main thread with the definition
-            self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG,
+            self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG,
                               file: file,
                               resultFile: data.file,
                               offset: offset,
@@ -227,7 +227,7 @@ importScripts("thirdparty/requirejs/require.js");
 
             if (completions.length > 0 || !isProperty) {
                 // Post a message back to the main thread with the completions
-                self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
+                self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
                     dir: dir,
                     file: file,
                     offset: offset,
@@ -235,7 +235,7 @@ importScripts("thirdparty/requirejs/require.js");
                     });
             } else {
                 // if there are no completions, then get all the properties
-                getTernProperties(dir, file, offset, text, HintUtils.TERN_COMPLETIONS_MSG);
+                getTernProperties(dir, file, offset, text, MessageIds.TERN_COMPLETIONS_MSG);
             }
         });
     }
@@ -263,7 +263,7 @@ importScripts("thirdparty/requirejs/require.js");
             }
 
             // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
+            self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
                               dir: dir,
                               file: file,
                               offset: offset,
@@ -294,7 +294,7 @@ importScripts("thirdparty/requirejs/require.js");
 
         ternServer.addFile(path, text);
 
-        self.postMessage({type: HintUtils.TERN_UPDATE_FILE_MSG,
+        self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
             path: path
             });
 
@@ -313,7 +313,7 @@ importScripts("thirdparty/requirejs/require.js");
 
         ternServer.request(request, function (error, data) {
             // Post a message back to the main thread
-            self.postMessage({type: HintUtils.TERN_PRIME_PUMP_MSG,
+            self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
                 path: path
                 });
         });
@@ -324,46 +324,46 @@ importScripts("thirdparty/requirejs/require.js");
             request = e.data,
             type = request.type;
 
-        if (type === HintUtils.TERN_INIT_MSG) {
+        if (type === MessageIds.TERN_INIT_MSG) {
             
             dir         = request.dir;
             var env     = request.env,
                 files   = request.files;
             initTernServer(env, dir, files);
-        } else if (type === HintUtils.TERN_COMPLETIONS_MSG) {
+        } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
             dir = request.dir;
             file = request.file;
             text    = request.text;
             offset  = request.offset;
             getTernHints(dir, file, offset, text, request.isProperty);
-        } else if (type === HintUtils.TERN_GET_FILE_MSG) {
+        } else if (type === MessageIds.TERN_GET_FILE_MSG) {
             file = request.file;
             text = request.text;
             handleGetFile(file, text);
-        } else if (type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
+        } else if (type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
             dir     = request.dir;
             file    = request.file;
             text    = request.text;
             offset  = request.offset;
             var pos = request.pos;
             handleFunctionType(dir, file, pos, offset, text);
-        } else if (type === HintUtils.TERN_JUMPTODEF_MSG) {
+        } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
             file    = request.file;
             dir     = request.dir;
             text    = request.text;
             offset  = request.offset;
             getJumptoDef(dir, file, offset, text);
-        } else if (type === HintUtils.TERN_ADD_FILES_MSG) {
+        } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
             handleAddFiles(request.files);
-        } else if (type === HintUtils.TERN_PRIME_PUMP_MSG) {
+        } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
             handlePrimePump(request.path, request.text);
-        } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
+        } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
             dir     = request.dir;
             file    = request.file;
             text    = request.text;
             offset  = request.offset;
-            getTernProperties(dir, file, offset, text, HintUtils.TERN_GET_GUESSES_MSG);
-        } else if (type === HintUtils.TERN_UPDATE_FILE_MSG) {
+            getTernProperties(dir, file, offset, text, MessageIds.TERN_GET_GUESSES_MSG);
+        } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
             handleUpdateFile(request.path, request.text);
         } else {
             _log("Unknown message: " + JSON.stringify(request));

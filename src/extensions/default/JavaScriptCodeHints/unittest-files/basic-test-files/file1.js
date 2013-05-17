@@ -148,4 +148,9 @@ var _A1 = A1;
 var s = "", // string type
     help;   // unknown type
 
-
+function testNonAscii() {
+    "use strict";
+    var hope;  // unknown type
+    hope["frenchçProp"] = "";
+    
+}
