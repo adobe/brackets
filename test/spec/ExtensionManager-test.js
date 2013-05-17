@@ -804,14 +804,21 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should show extensions that failed to load and allow them to be removed", function () {
+                it("should show extensions that failed to load with a 'remove' link", function () {
                     mockLoadExtensions(["user/mock-extension-3"], true);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect(view).toHaveText("mock-extension-3");
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        expect($button.length).toBe(1);
-                        expect($button.attr("disabled")).toBeFalsy();
+                        var $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(1);
+                        expect($removeLink.attr("disabled")).toBeFalsy();
+                        
+                        $removeLink.click();
+                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
+                        var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($undoLink.length).toBe(1);
+                        $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(0);
                     });
                 });
                 

@@ -156,6 +156,8 @@ define(function (require, exports, module) {
                 var $target = $(e.target);
                 if ($target.hasClass("undo-remove")) {
                     self.model.markForRemoval($target.attr("data-extension-id"), false);
+                } else if ($target.hasClass("remove")) {
+                    self.model.markForRemoval($target.attr("data-extension-id"), true);
                 } else {
                     // Open any other link in the external browser.
                     NativeApp.openURLInDefaultBrowser($target.attr("href"));

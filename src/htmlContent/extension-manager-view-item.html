@@ -18,12 +18,7 @@
                 {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
             </div>
         {{/isCompatible}}
-        {{#failedToStart}}
-            <p class="error"><em>{{Strings.EXTENSION_FAILED_TO_START}}</em></p>
-        {{/failedToStart}}
-        {{#metadata.description}}
-            {{metadata.description}}
-        {{/metadata.description}}
+        {{metadata.description}}
         {{^metadata.description}}
             <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
         {{/metadata.description}}
@@ -47,13 +42,20 @@
             </button>
         {{/showInstallButton}}
         {{#isInstalled}}
+            {{^failedToStart}}
+                {{^isMarkedForRemoval}}
+                    <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                        {{Strings.REMOVE}}
+                    </button>
+                {{/isMarkedForRemoval}}
+            {{/failedToStart}}
+            {{#failedToStart}}
+                {{^isMarkedForRemoval}}
+                    {{Strings.EXTENSION_ERROR}} (<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>)
+                {{/isMarkedForRemoval}}
+            {{/failedToStart}}
             {{#isMarkedForRemoval}}
                 {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
-            {{/isMarkedForRemoval}}
-            {{^isMarkedForRemoval}}
-                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
-                    {{Strings.REMOVE}}
-                </button>
             {{/isMarkedForRemoval}}
         {{/isInstalled}}
     </td>
