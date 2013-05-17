@@ -110,6 +110,10 @@ define(function (require, exports, module) {
         }
         var baseUrl = config.baseUrl;
         reloaders[name] = function () {
+            if (mainModule.disable) {
+                var services = ExtensionData.getServices(name);
+                mainModule.disable(services);
+            }
             delete contexts[name];
             extensionRequire.undef(entryPoint);
             loadExtension(name, config, entryPoint, true);
@@ -118,7 +122,7 @@ define(function (require, exports, module) {
             extensionRequire(["text!" + baseUrl + "/package.json"],
                 function (metadataText) {
                     var metadata = JSON.parse(metadataText);
-                    var services = ExtensionData.getServices(metadata.name);
+                    var services = ExtensionData.getServices(name);
                     services.metadata = metadata;
                     mainModule.init(services);
                     NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services).done(function () {

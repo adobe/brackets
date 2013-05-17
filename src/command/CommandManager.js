@@ -251,7 +251,6 @@ define(function (require, exports, module) {
     var extensionCommands = {};
     
     builtInServices.addFunction("commands.add", function (name, id, fn) {
-        console.log("Added command via new API", name);
         register(name, id, fn.bind(this));
         var extension = this.__meta.extension.name;
         var ec = extensionCommands[extension];
@@ -263,7 +262,6 @@ define(function (require, exports, module) {
     
     builtInServices.channels.brackets.core.ready.subscribe(function (e) {
         if (e.module === "ExtensionLoader") {
-            console.log("ExtensionLoader is ready, so command manager is subscribing");
             builtInServices.channels.brackets.extension.disabled.subscribe(function (e) {
                 var commands = extensionCommands[e.name];
                 commands.forEach(function (id) {

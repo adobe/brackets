@@ -39,7 +39,6 @@ function createWrapper(name, options) {
         var args = ExtensionData.convertArgumentsToArray(arguments, root.__addCallback.bind(root));
         
         var extension = this.__meta.extension.name;
-        console.log("Phoning home from", extension, "to", name, "with", args);
         _emitEvent(DOMAIN_NAME, "callFunction", [extension, name, args]);
     };
 }
@@ -47,9 +46,6 @@ function createWrapper(name, options) {
 function clearRequireCache(base) {
     base = fs.realpathSync(base);
     Object.keys(require.cache).forEach(function (module) {
-        if (module.indexOf("dev") > -1) {
-            console.log("CLEAR? ", module, base);
-        }
         if (module.indexOf(base) === 0) {
             delete require.cache[module];
         }
@@ -85,7 +81,6 @@ function _cmdLoadExtension(name, baseUrl, callback) {
 function _cmdCallFunction(extension, name, args) {
     var services = ExtensionData.getServices(extension);
     var fn = services.getObject(name);
-    console.log("Calling into node from", extension, "to", name, "with", args);
     fn.apply(fn, args);
 }
 
