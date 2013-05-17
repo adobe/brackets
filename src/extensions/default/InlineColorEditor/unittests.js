@@ -393,7 +393,8 @@ define(function (require, exports, module) {
             describe("simple load/commit", function () {
             
                 it("should load the initial color correctly", function () {
-                    var colorStr = "rgba(77, 122, 31, 0.5)";
+                    var colorStr    = "rgba(77, 122, 31, 0.5)";
+                    var colorStrRgb = "rgb(77, 122, 31)";
                     
                     runs(function () {
                         makeUI(colorStr);
@@ -405,7 +406,7 @@ define(function (require, exports, module) {
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, 90, 2.0);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, 90, 2.0);
     
-                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStr)).toBe(true);
+                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStrRgb)).toBe(true);
                     });
 
                     // Need to do these on a timeout since we can't seem to read back CSS positions synchronously.
@@ -421,6 +422,7 @@ define(function (require, exports, module) {
                 
                 it("should load a committed color correctly", function () {
                     var colorStr = "rgba(77, 122, 31, 0.5)";
+                    var colorStrRgb = "rgb(77, 122, 31)";
                     
                     runs(function () {
                         makeUI("#0a0a0a");
@@ -430,7 +432,7 @@ define(function (require, exports, module) {
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
-                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStr)).toBe(true);
+                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStrRgb)).toBe(true);
                     });
 
                     // Need to do these on a timeout since we can't seem to read back CSS positions synchronously.
@@ -1279,7 +1281,8 @@ define(function (require, exports, module) {
                 });
                 it("should normalize a string to match tinycolor's format", function () {
                     makeUI("#abcdef");
-                    expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
+                    //Percentage based colors are now supported: the following test is obsolete
+                    //expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
                     expect(colorEditor._normalizeColorString("rgb(10,20,   30)")).toBe("rgb(10, 20, 30)");
                 });
             });

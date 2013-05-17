@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+        ModalBar            = require("widgets/ModalBar").ModalBar,
+        ViewUtils           = require("utils/ViewUtils");
     
     var modalBar,
         isFindFirst = false;
@@ -113,9 +114,11 @@ define(function (require, exports, module) {
         return found;
     }
 
-    function clearHighlights(state) {
-        state.marked.forEach(function (markedRange) {
-            markedRange.clear();
+    function clearHighlights(cm, state) {
+        cm.operation(function () {
+            state.marked.forEach(function (markedRange) {
+                markedRange.clear();
+            });
         });
         state.marked.length = 0;
     }
@@ -128,7 +131,7 @@ define(function (require, exports, module) {
             }
             state.query = null;
 
-            clearHighlights(state);
+            clearHighlights(cm, state);
         });
     }
     
@@ -176,7 +179,7 @@ define(function (require, exports, module) {
             isFindFirst = true;
             cm.operation(function () {
                 if (state.query) {
-                    clearHighlights(getSearchState(cm));
+                    clearHighlights(cm, state);
                 }
                 state.query = parseQuery(query);
                 if (!state.query) {
@@ -219,7 +222,7 @@ define(function (require, exports, module) {
                 var foundAny = findNext(editor, rev);
                 
                 if (modalBar) {
-                    getDialogTextField().toggleClass("no-results", !foundAny);
+                    ViewUtils.toggleClass(getDialogTextField(), "no-results", !foundAny);
                 }
             });
             isFindFirst = false;
@@ -244,7 +247,7 @@ define(function (require, exports, module) {
         });
         $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
-            clearHighlights(state);
+            clearHighlights(cm, state);
             
             // As soon as focus goes back to the editor, restore normal selection color
             $(cm.getWrapperElement()).removeClass("find-highlighting");
@@ -323,6 +326,8 @@ define(function (require, exports, module) {
                             match = cursor.findNext();
                             if (!match ||
                                     (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                                // No more matches, so destroy modalBar
+                                modalBar = null;
                                 return;
                             }
                         }

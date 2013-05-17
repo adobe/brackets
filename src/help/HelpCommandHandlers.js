@@ -75,9 +75,12 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
         
         // Get containers
-        var $dlg = $(".about-dialog.instance");
-        var $contributors = $dlg.find(".about-contributors");
-            
+        var $dlg = $(".about-dialog.instance"),
+            $contributors = $dlg.find(".about-contributors"),
+            $spinner = $dlg.find(".spinner");
+        
+        $spinner.addClass("spin");
+        
         // Get all the project contributors and add them to the dialog
         $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
             
@@ -94,7 +97,7 @@ define(function (require, exports, module) {
                 // Count the contributors loaded and hide the spinner once all are loaded
                 contributorsCount++;
                 if (contributorsCount >= totalContributors) {
-                    $dlg.find(".about-spinner").css("display", "none");
+                    $spinner.removeClass("spin");
                 }
             }).each(function () {
                 if (this.complete) {
@@ -113,7 +116,7 @@ define(function (require, exports, module) {
                 }
             });
         }).fail(function () {
-            $dlg.find(".about-spinner").css("display", "none");
+            $spinner.removeClass("spin");
             $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
         });
     }

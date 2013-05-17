@@ -260,6 +260,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
                     expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "hasOwnProperty", [ {start: 11, end: 13} ]);
                 });
             });
             
@@ -461,6 +462,15 @@ define(function (require, exports, module) {
                     expect(functions.length).toBe(1);
                     expect(functions[0].lineStart).toBe(6);
                     expect(functions[0].lineEnd).toBe(8);
+                });
+                
+                indexAndFind(function (fileInfos) {
+                    return JSUtils.findMatchingFunctions("hasOwnProperty", fileInfos);
+                });
+                runs(function () {
+                    expect(functions.length).toBe(1);
+                    expect(functions[0].lineStart).toBe(11);
+                    expect(functions[0].lineEnd).toBe(13);
                 });
             });
         });

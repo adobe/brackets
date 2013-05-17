@@ -20,10 +20,39 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
- /*global module, require*/
+ /*global module, require, process*/
+module.exports = function (grunt) {
+    "use strict";
 
-function writeJSON(grunt, path, obj) {
-    grunt.file.write(path, JSON.stringify(obj, null, "    "));
-}
+    var common      = {},
+        path        = require("path"),
+        _platform;
+        
+    function writeJSON(grunt, path, obj) {
+        grunt.file.write(path, JSON.stringify(obj, null, "    "));
+    }
 
-module.exports.writeJSON = writeJSON;
+    function resolve(relPath) {
+        return path.resolve(process.cwd(), relPath);
+    }
+        
+    function platform() {
+        if (!_platform) {
+            if (process.platform === "darwin") {
+                _platform = "mac";
+            } else if (process.platform === "win32") {
+                _platform = "win";
+            } else {
+                _platform = "linux";
+            }
+        }
+
+        return _platform;
+    }
+
+    common.writeJSON    = writeJSON;
+    common.resolve      = resolve;
+    common.platform     = platform;
+
+    return common;
+};

@@ -122,16 +122,22 @@ define(function Inspector(require, exports, module) {
         }
 
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
-        var id, callback, args, i, params = {};
+        var id, callback, args, i, params = {}, promise;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
         if (typeof args[args.length - 1] === "function") {
-            id = _messageId++;
-            _messageCallbacks[id] = args.pop();
+            callback = args.pop();
         } else {
-            id = 0;
+            var deferred = new $.Deferred();
+            promise = deferred.promise();
+            callback = function (result) {
+                deferred.resolve(result);
+            };
         }
+
+        id = _messageId++;
+        _messageCallbacks[id] = callback;
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
@@ -141,6 +147,8 @@ define(function Inspector(require, exports, module) {
             }
         }
         _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+
+        return promise;
     }
 
     /** WebSocket did close */
@@ -151,11 +159,19 @@ define(function Inspector(require, exports, module) {
 
     /** WebSocket reported an error */
     function _onError(error) {
+        if (_connectDeferred) {
+            _connectDeferred.reject();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("error", [error]);
     }
 
     /** WebSocket did open */
     function _onConnect() {
+        if (_connectDeferred) {
+            _connectDeferred.resolve();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("connect");
     }
 
@@ -174,6 +190,7 @@ define(function Inspector(require, exports, module) {
         } else if (response.result) {
             if (_messageCallbacks[response.id]) {
                 _messageCallbacks[response.id](response.result);
+                delete _messageCallbacks[response.id];
             }
         } else {
             var domainAndMethod = response.method.split(".");
@@ -186,11 +203,11 @@ define(function Inspector(require, exports, module) {
 
     /** Public Functions *****************************************************/
 
-    /** Get the available debugger sockets from the remote debugger
+    /** Get a list of the available windows/tabs/extensions that are remote-debuggable
      * @param {string} host IP or name
      * @param {integer} debugger port
      */
-    function getAvailableSockets(host, port) {
+    function getDebuggableWindows(host, port) {
         if (!host) {
             host = "127.0.0.1";
         }
@@ -207,7 +224,9 @@ define(function Inspector(require, exports, module) {
         request.onerror = function onError() {
             def.reject(request.response);
         };
+
         request.send(null);
+
         return def.promise();
     }
 
@@ -264,17 +283,14 @@ define(function Inspector(require, exports, module) {
         }
         var deferred = new $.Deferred();
         _connectDeferred = deferred;
-        var promise = getAvailableSockets();
+        var promise = getDebuggableWindows();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.isRejected()) {
-                return;
-            }
             var i, page;
             for (i in response) {
                 page = response[i];
                 if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
                     connect(page.webSocketDebuggerUrl);
-                    deferred.resolve();
+                    // _connectDeferred may be resolved by onConnect or rejected by onError
                     return;
                 }
             }
@@ -288,7 +304,7 @@ define(function Inspector(require, exports, module) {
 
     /** Check if the inspector is connected */
     function connected() {
-        return _socket !== undefined;
+        return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
     /** Initialize the Inspector
@@ -297,25 +313,23 @@ define(function Inspector(require, exports, module) {
      */
     function init(theConfig) {
         exports.config = theConfig;
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Inspector/Inspector.json");
-        request.onload = function onLoad() {
-            var InspectorJSON = JSON.parse(request.response);
-            var i, j, domain, domainDef, command;
-            for (i in InspectorJSON.domains) {
-                domain = InspectorJSON.domains[i];
-                exports[domain.domain] = {};
-                for (j in domain.commands) {
-                    command = domain.commands[j];
-                    exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
-                }
+
+        var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
+            InspectorJSON = JSON.parse(InspectorText);
+        
+        var i, j, domain, domainDef, command;
+        for (i in InspectorJSON.domains) {
+            domain = InspectorJSON.domains[i];
+            exports[domain.domain] = {};
+            for (j in domain.commands) {
+                command = domain.commands[j];
+                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
-        };
-        request.send(null);
+        }
     }
 
     // Export public functions
-    exports.getAvailableSockets = getAvailableSockets;
+    exports.getDebuggableWindows = getDebuggableWindows;
     exports.on = on;
     exports.off = off;
     exports.disconnect = disconnect;

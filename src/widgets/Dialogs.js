@@ -55,7 +55,15 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_DELETED      = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
     
-    
+
+    /** 
+     * A stack of keydown event handler functions that corresponds to the
+     * current stack of modal dialogs.
+     * 
+     * @type {Array.<Function>} 
+     */
+    var _keydownListeners = [];
+
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
         $(".clickable-link", dlg).off("click");
@@ -66,7 +74,7 @@ define(function (require, exports, module) {
         return dlg.find("[data-button-id='" + buttonId + "']");
     }
 
-    var _handleKeyDown = function (e) {
+    var _handleKeyDown = function (e, autoDismiss) {
         var primaryBtn = this.find(".primary"),
             buttonId = null,
             which = String.fromCharCode(e.which);
@@ -75,11 +83,11 @@ define(function (require, exports, module) {
         var inFormField = ($(e.target).filter(":input").length > 0),
             inTextArea = (e.target.tagName === "TEXTAREA");
         
-        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
+        if (e.which === KeyEvent.DOM_VK_ESCAPE) {
+            buttonId = DIALOG_BTN_CANCEL;
+        } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
-            if (primaryBtn) {
-                buttonId = primaryBtn.attr("data-button-id");
-            }
+            primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
             this.find(".dialog-button:focus").click();
@@ -102,7 +110,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (buttonId) {
+        if (autoDismiss && buttonId) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
@@ -154,10 +162,17 @@ define(function (require, exports, module) {
      * Creates a new modal dialog from a given template.
      * The template can either be a string or a jQuery object representing a DOM node that is *not* in the current DOM.
      *
-     * @param {string} template - A string template or jQuery object to use as the dialog HTML.
+     * @param {string} template A string template or jQuery object to use as the dialog HTML.
+     * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
+     *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
+     *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
      * @return {Dialog}
      */
-    function showModalDialogUsingTemplate(template) {
+    function showModalDialogUsingTemplate(template, autoDismiss) {
+        if (autoDismiss === undefined) {
+            autoDismiss = true;
+        }
+        
         var result = $.Deferred(),
             promise = result.promise();
         
@@ -170,12 +185,14 @@ define(function (require, exports, module) {
 
         $(".clickable-link", $dlg).on("click", function _handleLink(e) {
             // Links use data-href (not href) attribute so Brackets itself doesn't redirect
-            if (e.target.dataset && e.target.dataset.href) {
-                NativeApp.openURLInDefaultBrowser(e.target.dataset.href);
+            if (e.currentTarget.dataset && e.currentTarget.dataset.href) {
+                NativeApp.openURLInDefaultBrowser(e.currentTarget.dataset.href);
             }
         });
 
-        var handleKeyDown = _handleKeyDown.bind($dlg);
+        var handleKeyDown = function (e) {
+            _handleKeyDown.call($dlg, e, autoDismiss);
+        };
 
         // Pipe dialog-closing notification back to client code
         $dlg.one("hidden", function () {
@@ -196,8 +213,22 @@ define(function (require, exports, module) {
 
             // Remove keydown event handler
             window.document.body.removeEventListener("keydown", handleKeyDown, true);
-            KeyBindingManager.setEnabled(true);
-        
+            
+            // Remove this dialog's listener from the stack of listeners. (It 
+            // might not be on the top of the stack if the dialogs are somehow
+            // dismissed out of order.)
+            _keydownListeners = _keydownListeners.filter(function (listener) {
+                return listener !== handleKeyDown;
+            });
+            
+            // Restore the previous listener if there was one; otherwise return
+            // control to the KeyBindingManager.
+            if (_keydownListeners.length > 0) {
+                var previousListener = _keydownListeners[_keydownListeners.length - 1];
+                window.document.body.addEventListener("keydown", previousListener, true);
+            } else {
+                KeyBindingManager.setEnabled(true);
+            }
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -206,21 +237,32 @@ define(function (require, exports, module) {
                 primaryBtn.focus();
             }
 
-            // Listen for dialog keyboard shortcuts
+            // If this is the only dialog then also disable the KeyBindingManager;
+            // otherwise, remove and the previous dialog's listener before installing the new one.
+            if (_keydownListeners.length > 0) {
+                var previousListener = _keydownListeners[_keydownListeners.length - 1];
+                window.document.body.removeEventListener("keydown", previousListener, true);
+            } else {
+                KeyBindingManager.setEnabled(false);
+            }
+            _keydownListeners.push(handleKeyDown);
+            
+            // Handle this dialog's keyboard events with the current listener
             window.document.body.addEventListener("keydown", handleKeyDown, true);
-            KeyBindingManager.setEnabled(false);
         });
         
         // Click handler for buttons
-        $dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog($dlg, $(this).attr("data-button-id"));
-        });
+        if (autoDismiss) {
+            $dlg.one("click", ".dialog-button", function (e) {
+                _dismissDialog($dlg, $(this).attr("data-button-id"));
+            });
+        }
 
         // Run the dialog
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: true
+            keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
         });
 
         return (new Dialog($dlg, promise));

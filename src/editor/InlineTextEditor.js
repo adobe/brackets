@@ -64,8 +64,8 @@ define(function (require, exports, module) {
         var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
         
-        $.each($dirtyIndicators, function (index, indicator) {
-            $indicator = $(indicator);
+        $dirtyIndicators.each(function (index, indicator) {
+            $indicator = $(this);
             if ($indicator.data("fullPath") === doc.file.fullPath) {
                 _showDirtyIndicator($indicator, doc.isDirty);
             }
@@ -256,6 +256,7 @@ define(function (require, exports, module) {
         $(inlineInfo.editor).on("change.InlineTextEditor", function (event, editor) {
             if (self.hostEditor.isFullyVisible()) {
                 self.sizeInlineWidgetToContents(true);
+                self._updateLineRange(editor);
             }
         });
         
@@ -271,7 +272,6 @@ define(function (require, exports, module) {
     /**
      * Updates start line display.
      * @param {Editor} editor
-     * @return {boolean} Returns true when the widget height requires an update
      */
     InlineTextEditor.prototype._updateLineRange = function (editor) {
         var oldStartLine    = this._startLine,
@@ -285,8 +285,6 @@ define(function (require, exports, module) {
         if (oldStartLine !== this._startLine) {
             this.$lineNumber.text(this._startLine + 1);
         }
-
-        return (this._lineCount !== oldLineCount);
     };
 
     /**

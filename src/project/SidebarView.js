@@ -75,10 +75,32 @@ define(function (require, exports, module) {
     /**
      * Toggle sidebar visibility.
      */
-    function toggleSidebar(width) {
+    function toggle() {
         Resizer.toggle($sidebar);
     }
 
+    /**
+     * Show the sidebar.
+     */
+    function show() {
+        Resizer.show($sidebar);
+    }
+    
+    /**
+     * Hide the sidebar.
+     */
+    function hide() {
+        Resizer.hide($sidebar);
+    }
+    
+    /**
+     * Returns the visibility state of the sidebar.
+     * @return {boolean} true if element is visible, false if it is not visible
+     */
+    function visible() {
+        return Resizer.visible($sidebar);
+    }
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
@@ -112,6 +134,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
+            WorkingSetView.refresh();
             $sidebar.find(".sidebar-selection").width(width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
@@ -128,8 +151,11 @@ define(function (require, exports, module) {
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
-    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
     
     // Define public API
-    exports.toggleSidebar = toggleSidebar;
+    exports.toggle  = toggle;
+    exports.show    = show;
+    exports.hide    = hide;
+    exports.visible = visible;
 });

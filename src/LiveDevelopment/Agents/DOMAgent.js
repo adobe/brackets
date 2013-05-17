@@ -312,7 +312,6 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
-        Inspector.Page.enable();
         return _load.promise();
     }
 

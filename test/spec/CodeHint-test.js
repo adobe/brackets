@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, $, CodeMirror, brackets  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,16 +30,17 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        Editor          = require("editor/Editor").Editor,
         KeyEvent        = require("utils/KeyEvent"),
+        Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
+        CommandManager,
         CodeHintManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
         testWindow,
         initCodeHintTest;
 
-    describe("Code Hint Menus", function () {
+    describe("CodeHintManager", function () {
         this.category = "integration";
 
         /**
@@ -49,23 +50,13 @@ define(function (require, exports, module) {
          * @param {!number} openPos The pos within openFile to place the IP.
          */
         var _initCodeHintTest = function (openFile, openPos) {
-            var hostOpened = false,
-                err = false,
-                workingSet = [];
-    
+            
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
+            
             runs(function () {
-                workingSet.push(openFile);
-                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                    hostOpened = true;
-                }).fail(function () {
-                    err = true;
-                });
+                var promise = SpecRunnerUtils.openProjectFiles([openFile]);
+                waitsForDone(promise);
             });
-    
-            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-    
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
                 editor.setCursorPos(openPos.line, openPos.ch);
@@ -83,13 +74,109 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 CodeHintManager     = testWindow.brackets.test.CodeHintManager;
                 EditorManager       = testWindow.brackets.test.EditorManager;
+                CommandManager      = testWindow.brackets.test.CommandManager;
             });
         });
     
         afterEach(function () {
             SpecRunnerUtils.closeTestWindow();
         });
-
+        
+        
+        function simulateCtrlSpace(editor) {
+            var e = $.Event("keydown");
+            e.keyCode = KeyEvent.DOM_VK_SPACE;
+            e.ctrlKey = true;
+            
+            // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
+            // here, but it does not yet support modifer keys
+            CodeHintManager.handleKeyEvent(editor, e);
+        }
+        
+        // Note: these don't request hint results - they only examine hints that might already be open
+        function expectNoHints() {
+            var codeHintList = CodeHintManager._getCodeHintList();
+            expect(codeHintList).toBeFalsy();
+        }
+        function expectSomeHints() {
+            var codeHintList = CodeHintManager._getCodeHintList();
+            expect(codeHintList).toBeTruthy();
+            expect(codeHintList.isOpen()).toBe(true);
+            return codeHintList;
+        }
+        
+        
+        describe("Hint Provider Registration", function () {
+            beforeEach(function () {
+                initCodeHintTest("test1.html", {line: 0, ch: 0});
+            });
+            
+            var mockProvider = {
+                hasHints: function (editor, implicitChar) {
+                    return true;
+                },
+                getHints: function (implicitChar) {
+                    return { hints: ["mock hint"], match: null, selectInitial: false };
+                },
+                insertHint: function (hint) { }
+            };
+            
+            function expectMockHints() {
+                var codeHintList = expectSomeHints();
+                expect(codeHintList.hints[0]).toBe("mock hint");
+                expect(codeHintList.hints.length).toBe(1);
+            }
+            
+            it("should register provider for a new language", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
+                    
+                    // Ensure no hints in language we didn't register for
+                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    expectNoHints();
+                    
+                    // Expect hints in language we did register for
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    expectMockHints();
+                });
+            });
+            
+            it("should register higher-priority provider for existing language", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["html"], 1);
+                    
+                    // Expect hints to replace default HTML hints
+                    var editor = EditorManager.getCurrentFullEditor();
+                    editor.setCursorPos(3, 1);
+                    simulateCtrlSpace(editor);
+                    expectMockHints();
+                });
+            });
+            
+            it("should register \"all\" languages provider", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
+                    
+                    // Expect hints in language that already had hints (when not colliding with original provider)
+                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    expectMockHints();
+                    
+                    // Expect hints in language that had no hints before
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    expectMockHints();
+                });
+            });
+        });
+        
+        
         describe("HTML Tests", function () {
 
             it("should show code hints menu and insert text at IP", function () {
@@ -104,23 +191,14 @@ define(function (require, exports, module) {
 
                 // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
-
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
-                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-                    // here, but it does not yet support modifer keys
-                    CodeHintManager.handleKeyEvent(editor, e);
-
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeTruthy();
-                    expect(codeHintList.isOpen()).toBe(true);
+                    simulateCtrlSpace(editor);
+                    expectSomeHints();
                 });
 
                 // simulate Enter key to insert code hint into doc
@@ -137,6 +215,9 @@ define(function (require, exports, module) {
                     var newPos = editor.getCursorPos();
                     lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
+                    
+                    // and popup should auto-close
+                    expectNoHints();
                 });
             });
 
@@ -150,21 +231,13 @@ define(function (require, exports, module) {
 
                 // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
-
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
-
-                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-                    // here, but it does not yet support modifer keys
-                    CodeHintManager.handleKeyEvent(editor, e);
+                    
+                    simulateCtrlSpace(editor);
 
                     // verify list is open
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeTruthy();
-                    expect(codeHintList.isOpen()).toBe(true);
+                    expectSomeHints();
                 });
 
                 // simulate Esc key to dismiss code hints menu
@@ -174,8 +247,7 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
                     // verify list is no longer open
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeFalsy();
+                    expectNoHints();
                 });
             });
         });

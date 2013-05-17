@@ -37,16 +37,19 @@ define(function (require, exports, module) {
     // TODO: dynamically populate the local prefix list below?
     module.exports = {
         root: true,
+        "cs": true,
         "de": true,
         "fr": true,
         "nb": true,
         "es": true,
         "it": true,
+        "pl": true,
         "pt-br": true,
         "pt-pt": true,
         "ja": true,
         "tr": true,
         "ru": true,
-        "sv": true
+        "sv": true,
+        "zh-cn": true
     };
 });

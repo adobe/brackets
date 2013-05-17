@@ -7,3 +7,8 @@ function toString() {
 function length() {
     return 0;
 }
+
+// This function's name collides with an Object.prototype member
+function hasOwnProperty() {
+    return false;
+}

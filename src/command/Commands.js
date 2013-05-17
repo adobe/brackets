@@ -47,6 +47,8 @@ define(function (require, exports, module) {
     exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
+    exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
+    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
@@ -71,6 +73,8 @@ define(function (require, exports, module) {
     exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
+    exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";
+    exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
 
     // VIEW
@@ -78,7 +82,11 @@ define(function (require, exports, module) {
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
-    exports.TOGGLE_JSLINT               = "debug.jslint";
+    exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
+    exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
+    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";
+    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";
+    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";
@@ -88,11 +96,12 @@ define(function (require, exports, module) {
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
+    exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
-    exports.NAVIGATE_GOTO_JSLINT_ERROR  = "navigate.gotoJSLintError";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
+    exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 

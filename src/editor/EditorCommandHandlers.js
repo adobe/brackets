@@ -48,21 +48,69 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Creates regular expressions for multiple line comment prefixes
+     * @param {!Array.<string>} prefixes - the line comment prefixes
+     * @return {Array.<RegExp>}
+     */
+    function _createLineExpressions(prefixes) {
+        var lineExp = [];
+        prefixes.forEach(function (prefix) {
+            lineExp.push(new RegExp("^\\s*" + StringUtils.regexEscape(prefix)));
+        });
+        return lineExp;
+    }
+    
+    /**
+     * @private
+     * Returns true if any regular expression matches the given string
+     * @param {!string} string - where to look
+     * @param {!Array.<RegExp>} expressions - what to look
+     * @return {boolean}
+     */
+    function _matchExpressions(string, expressions) {
+        return expressions.some(function (exp) {
+            return string.match(exp);
+        });
+    }
+    
+    /**
+     * @private
+     * Returns the line comment prefix that best matches the string. Since there might be line comment prefixes
+     * that are prefixes of other line comment prefixes, it searches throught all and returns the longest line
+     * comment prefix that matches the string.
+     * @param {!string} string - where to look
+     * @param {!Array.<RegExp>} expressions - the line comment regular expressions
+     * @param {!Array.<string>} prefixes - the line comment prefixes
+     * @return {string}
+     */
+    function _getLinePrefix(string, expressions, prefixes) {
+        var result = null;
+        expressions.forEach(function (exp, index) {
+            if (string.match(exp) && ((result && result.length < prefixes[index].length) || !result)) {
+                result = prefixes[index];
+            }
+        });
+        return result;
+    }
+    
+    /**
+     * @private
      * Searchs for an uncommented line between startLine and endLine
      * @param {!Editor} editor
      * @param {!number} startLine - valid line inside the document
      * @param {!number} endLine - valid line inside the document
+     * @param {!Array.<string>} lineExp - an array of line comment prefixes regular expressions
      * @return {boolean} true if there is at least one uncommented line
      */
-    function _containsUncommented(editor, startLine, endLine, prefix) {
-        var lineExp = new RegExp("^\\s*" + StringUtils.regexEscape(prefix));
+    function _containsUncommented(editor, startLine, endLine, lineExp) {
         var containsUncommented = false;
         var i;
         var line;
+        
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
-            // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(lineExp) && line.match(/\S/)) {
+            // A line is commented out if it starts with 0-N whitespace chars, then a line comment prefix
+            if (line.match(/\S/) && !_matchExpressions(line, lineExp)) {
                 containsUncommented = true;
                 break;
             }
@@ -77,12 +125,16 @@ define(function (require, exports, module) {
      * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
      * out. Commenting out adds the prefix at column 0 of every line. Uncommenting removes the first prefix
      * on each line (if any - empty lines might not have one).
+     *
+     * @param {!Editor} editor
+     * @param {!Array.<string>} prefixes, e.g. ["//"]
      */
-    function lineCommentPrefix(editor, prefix) {
-        var doc = editor.document;
-        var sel = editor.getSelection();
-        var startLine = sel.start.line;
-        var endLine = sel.end.line;
+    function lineCommentPrefix(editor, prefixes) {
+        var doc       = editor.document,
+            sel       = editor.getSelection(),
+            startLine = sel.start.line,
+            endLine   = sel.end.line,
+            lineExp   = _createLineExpressions(prefixes);
         
         // Is a range of text selected? (vs just an insertion pt)
         var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
@@ -95,31 +147,35 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine, prefix);
+        var containsUncommented = _containsUncommented(editor, startLine, endLine, lineExp);
         var i;
         var line;
+        var prefix;
+        var commentI;
         var updateSelection = false;
         
         // Make the edit
         doc.batchOperation(function () {
             
             if (containsUncommented) {
-                // Comment out - prepend "//" to each line
+                // Comment out - prepend the first prefix to each line
                 for (i = startLine; i <= endLine; i++) {
-                    doc.replaceRange(prefix, {line: i, ch: 0});
+                    doc.replaceRange(prefixes[0], {line: i, ch: 0});
                 }
                 
-                // Make sure selection includes "//" that was added at start of range
+                // Make sure selection includes the prefix that was added at start of range
                 if (sel.start.ch === 0 && hasSelection) {
                     updateSelection = true;
                 }
-                
+            
             } else {
-                // Uncomment - remove first "//" on each line (if any)
+                // Uncomment - remove the prefix on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
-                    line = doc.getLine(i);
-                    var commentI = line.indexOf(prefix);
-                    if (commentI !== -1) {
+                    line   = doc.getLine(i);
+                    prefix = _getLinePrefix(line, lineExp, prefixes);
+                    
+                    if (prefix) {
+                        commentI = line.indexOf(prefix);
                         doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
                     }
                 }
@@ -206,9 +262,9 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!string} prefix, e.g. "<!--"
      * @param {!string} suffix, e.g. "-->"
-     * @param {?string} linePrefix, e.g. "//"
+     * @param {!Array.<string>} linePrefixes, e.g. ["//"]
      */
-    function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefix) {
+    function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefixes) {
         
         var doc            = editor.document,
             sel            = editor.getSelection(),
@@ -217,7 +273,7 @@ define(function (require, exports, module) {
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp        = linePrefix ? new RegExp("^" + StringUtils.regexEscape(linePrefix)) : null,
+            lineExp        = _createLineExpressions(linePrefixes),
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,
@@ -228,23 +284,23 @@ define(function (require, exports, module) {
         var result, text, line;
         
         // Move the context to the first non-empty token.
-        if (!ctx.token.className && ctx.token.string.trim().length === 0) {
+        if (!ctx.token.type && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (lineExp && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+        if (lineExp.length && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
             var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
             var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
             
             // Find if we aren't actually inside a block-comment
             result = true;
-            while (result && ctx.token.string.match(lineExp)) {
+            while (result && _matchExpressions(ctx.token.string, lineExp)) {
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
             }
             
             // If we aren't in a block-comment.
-            if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
+            if (!result || ctx.token.type !== "comment" || ctx.token.string.match(suffixExp)) {
                 // Is a range of text selected? (vs just an insertion pt)
                 var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
                 
@@ -255,7 +311,7 @@ define(function (require, exports, module) {
                 }
                 
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, endLine, linePrefix)) {
+                if (!_containsUncommented(editor, sel.start.line, endLine, lineExp)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases
@@ -269,16 +325,16 @@ define(function (require, exports, module) {
             
         // If we are in a selection starting and ending in invalid tokens and with no content (not considering spaces),
         // find if we are inside a block-comment.
-        } else if (startCtx.token.className === null && endCtx.token.className === null &&
-                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos)) {
+        } else if (startCtx.token.type === null && endCtx.token.type === null &&
+                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos, true)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
             
             // We found a comment, find the start and end and check if the selection is inside the block-comment.
-            if (startCtx.token.className === "comment") {
+            if (startCtx.token.type === "comment") {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
                 suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
                 
-                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
+                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos, true)) {
                     canComment = true;
                 }
             } else {
@@ -286,7 +342,7 @@ define(function (require, exports, module) {
             }
         
         // If the start is inside a comment, find the prefix and suffix positions.
-        } else if (ctx.token.className === "comment") {
+        } else if (ctx.token.type === "comment") {
             prefixPos = _findCommentStart(ctx, prefixExp);
             suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length);
             
@@ -310,7 +366,7 @@ define(function (require, exports, module) {
         // Search if there is another comment in the selection. Do nothing if there is one.
         if (!canComment && !invalidComment && !lineUncomment && suffixPos) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
-            if (editor.posWithinRange(start, sel.start, sel.end)) {
+            if (editor.posWithinRange(start, sel.start, sel.end, true)) {
                 // Start searching at the next token, if there is one.
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
                          _findNextBlockComment(ctx, sel.end, prefixExp);
@@ -327,7 +383,7 @@ define(function (require, exports, module) {
             return;
         
         } else if (lineUncomment) {
-            lineCommentPrefix(editor, linePrefix);
+            lineCommentPrefix(editor, linePrefixes);
         
         } else {
             doc.batchOperation(function () {
@@ -433,15 +489,15 @@ define(function (require, exports, module) {
         // If the selection includes a comment or is already a line selection, delegate to Block-Comment
         var ctx       = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
         var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-        var className = ctx.token.className;
+        var className = ctx.token.type;
         result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
         
         if (className === "comment" || result || isLineSelection) {
-            blockCommentPrefixSuffix(editor, prefix, suffix);
+            blockCommentPrefixSuffix(editor, prefix, suffix, []);
         } else {
             // Set the new selection and comment it
             editor.setSelection(selStart, selEnd);
-            blockCommentPrefixSuffix(editor, prefix, suffix);
+            blockCommentPrefixSuffix(editor, prefix, suffix, []);
             
             // Restore the old selection taking into account the prefix change
             if (isMultipleLine) {
@@ -469,8 +525,8 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection();
         
         if (language.hasBlockCommentSyntax()) {
-            // getLineCommentPrefix returns null if no line comment syntax is defined
-            blockCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), language.getLineCommentPrefix());
+            // getLineCommentPrefixes always return an array, and will be empty if no line comment syntax is defined
+            blockCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), language.getLineCommentPrefixes());
         }
     }
     
@@ -487,7 +543,7 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection();
         
         if (language.hasLineCommentSyntax()) {
-            lineCommentPrefix(editor, language.getLineCommentPrefix());
+            lineCommentPrefix(editor, language.getLineCommentPrefixes());
         } else if (language.hasBlockCommentSyntax()) {
             lineCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix());
         }
@@ -569,11 +625,13 @@ define(function (require, exports, module) {
         
         var doc = editor.document,
             sel = editor.getSelection(),
-            originalSel  = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
-            inlineWidget = EditorManager.getFocusedInlineWidget(),
-            firstLine    = editor.getFirstVisibleLine(),
-            lastLine     = editor.getLastVisibleLine();
+            originalSel    = editor.getSelection(),
+            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
+            firstLine      = editor.getFirstVisibleLine(),
+            lastLine       = editor.getLastVisibleLine(),
+            totalLines     = editor.lineCount(),
+            lineLength     = 0;
         
         sel.start.ch = 0;
         // The end of the selection becomes the start of the next line, if it isn't already
@@ -589,7 +647,13 @@ define(function (require, exports, module) {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
                     if (sel.end.line === lastLine + 1) {
-                        prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                        if (isInlineWidget) {
+                            prevText   = prevText.substring(0, prevText.length - 1);
+                            lineLength = doc.getLine(sel.end.line - 1).length;
+                            doc.replaceRange("\n", { line: sel.end.line - 1, ch: lineLength });
+                        } else {
+                            prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                        }
                     }
                     
                     doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
@@ -607,17 +671,28 @@ define(function (require, exports, module) {
             }
             break;
         case DIRECTION_DOWN:
-            if (sel.end.line <= lastLine + (inlineWidget ? -1 : 1)) {
+            if (sel.end.line <= lastLine) {
                 doc.batchOperation(function () {
-                    var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+                    var nextText      = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 }),
+                        deletionStart = sel.end;
                     
-                    var deletionStart = sel.end;
-                    if (!inlineWidget && sel.end.line === lastLine) {
-                        nextText += "\n";
-                        deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                    if (sel.end.line === lastLine) {
+                        if (isInlineWidget) {
+                            if (sel.end.line === totalLines - 1) {
+                                nextText += "\n";
+                            }
+                            lineLength = doc.getLine(sel.end.line - 1).length;
+                            doc.replaceRange("\n", { line: sel.end.line, ch: doc.getLine(sel.end.line).length });
+                        } else {
+                            nextText     += "\n";
+                            deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                        }
                     }
     
                     doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+                    if (lineLength) {
+                        doc.replaceRange("", { line: sel.end.line - 1, ch: lineLength }, { line: sel.end.line, ch: 0 });
+                    }
                     doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
                 });
             }
@@ -639,6 +714,67 @@ define(function (require, exports, module) {
      */
     function moveLineDown(editor) {
         moveLine(editor, DIRECTION_DOWN);
+    }
+
+    /**
+     * Inserts a new and smart indented line above/below the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     * @param {Number} direction - direction where to place the new line (-1,+1) => (Up,Down)
+     */
+    function openLine(editor, direction) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var sel            = editor.getSelection(),
+            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
+            lastLine       = editor.getLastVisibleLine(),
+            cm             = editor._codeMirror,
+            doc            = editor.document,
+            line;
+        
+        // Insert the new line
+        switch (direction) {
+        case DIRECTION_UP:
+            line = sel.start.line;
+            break;
+        case DIRECTION_DOWN:
+            line = sel.end.line;
+            if (!(hasSelection && sel.end.ch === 0)) {
+                // If not linewise selection
+                line++;
+            }
+            break;
+        }
+        
+        if (line > lastLine && isInlineWidget) {
+            doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length}, null, "+input");
+        } else {
+            doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
+        }
+        cm.indentLine(line, "smart", false);
+        editor.setSelection({line: line, ch: null});
+    }
+
+    /**
+     * Inserts a new and smart indented line above the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     */
+    function openLineAbove(editor) {
+        openLine(editor, DIRECTION_UP);
+    }
+
+    /**
+     * Inserts a new and smart indented line below the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     */
+    function openLineBelow(editor) {
+        openLine(editor, DIRECTION_DOWN);
     }
 
     /**
@@ -730,20 +866,22 @@ define(function (require, exports, module) {
     }
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,    blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
-    
-    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
-    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
-    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
+    CommandManager.register(Strings.CMD_INDENT,           Commands.EDIT_INDENT,           indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,         Commands.EDIT_UNINDENT,         unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,          Commands.EDIT_LINE_COMMENT,     lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,    Commands.EDIT_BLOCK_COMMENT,    blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,        Commands.EDIT_DUPLICATE,        duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,     Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,          Commands.EDIT_LINE_UP,          moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,        Commands.EDIT_LINE_DOWN,        moveLineDown);
+    CommandManager.register(Strings.CMD_OPEN_LINE_ABOVE,  Commands.EDIT_OPEN_LINE_ABOVE,  openLineAbove);
+    CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,  Commands.EDIT_OPEN_LINE_BELOW,  openLineBelow);
+    CommandManager.register(Strings.CMD_SELECT_LINE,      Commands.EDIT_SELECT_LINE,      selectLine);
+
+    CommandManager.register(Strings.CMD_UNDO,             Commands.EDIT_UNDO,             handleUndo);
+    CommandManager.register(Strings.CMD_REDO,             Commands.EDIT_REDO,             handleRedo);
+    CommandManager.register(Strings.CMD_CUT,              Commands.EDIT_CUT,              ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,             Commands.EDIT_COPY,             ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,            Commands.EDIT_PASTE,            ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,       Commands.EDIT_SELECT_ALL,       _handleSelectAll);
 });

@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
@@ -30,7 +30,9 @@ define(function (require, exports, module) {
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils");
 
     // The following are all loaded from the test window
     var CommandManager,
@@ -38,20 +40,22 @@ define(function (require, exports, module) {
         NativeApp,
         LiveDevelopment,
         LiveDevServerManager,
-        DOMAgent,
         Inspector,
+        DOMAgent,
         DocumentManager,
         ProjectManager;
     
     // Used as mocks
     require("LiveDevelopment/main");
-    var CommandsModule          = require("command/Commands"),
-        CommandsManagerModule   = require("command/CommandManager"),
-        LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
-        InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocumentModule       = require("LiveDevelopment/Documents/CSSDocument"),
-        CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
+    var CommandsModule            = require("command/Commands"),
+        CommandsManagerModule     = require("command/CommandManager"),
+        LiveDevelopmentModule     = require("LiveDevelopment/LiveDevelopment"),
+        InspectorModule           = require("LiveDevelopment/Inspector/Inspector"),
+        CSSDocumentModule         = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSAgentModule            = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLDocumentModule        = require("LiveDevelopment/Documents/HTMLDocument"),
+        HTMLInstrumentationModule = require("language/HTMLInstrumentation");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -69,21 +73,22 @@ define(function (require, exports, module) {
         var localText,
             browserText;
         
-        //verify we aren't currently connected
-        expect(Inspector.connected()).toBeFalsy();
+        //verify live dev isn't currently active
+        expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles");
         });
         
-        //start the connection
+        //start live dev
         runs(function () {
             LiveDevelopment.open();
         });
-        waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
         
         // Wait for the file and its stylesheets to fully load (and be communicated back).
-        waits(1000);
+        waitsFor(function () {
+            return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+        }, "Waiting for browser to become active", 10000);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles");
@@ -116,7 +121,7 @@ define(function (require, exports, module) {
             expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
             
             var doc = DocumentManager.getOpenDocumentForPath(testPath + "/" + htmlFile);
-            //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+            expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
         });
     }
 
@@ -124,6 +129,80 @@ define(function (require, exports, module) {
         
         this.category = "integration";
         
+        describe("Live Development startup and shutdown", function () {
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                        LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                        Inspector            = testWindow.brackets.test.Inspector;
+                        NativeApp            = testWindow.brackets.test.NativeApp;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.closeTestWindow();
+                });
+            });
+            
+            it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
+                var id  = Math.floor(Math.random() * 100000),
+                    url = LiveDevelopment.launcherUrl + "?id=" + id,
+                    connected = false,
+                    failed = false;
+                
+                runs(function () {
+                    waitsForDone(
+                        NativeApp.openLiveBrowser(url, true),
+                        "NativeApp.openLiveBrowser",
+                        5000
+                    );
+                });
+                   
+                runs(function () {
+                    var retries = 0;
+                    function tryConnect() {
+                        if (retries < 10) {
+                            retries++;
+                            Inspector.connectToURL(url)
+                                .done(function () {
+                                    connected = true;
+                                })
+                                .fail(function () {
+                                    window.setTimeout(tryConnect, 500);
+                                });
+                        } else {
+                            failed = true;
+                        }
+                    }
+                    tryConnect();
+                });
+                
+                waitsFor(function () { return connected || failed; }, 10000);
+                
+                runs(function () {
+                    expect(failed).toBe(false);
+                    expect(Inspector.connected()).toBeTruthy();
+                });
+                
+                runs(function () {
+                    var deferred = $.Deferred();
+                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
+                        Inspector.disconnect();
+                        deferred.resolve();
+                    });
+                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                });
+                
+                runs(function () {
+                    expect(Inspector.connected()).toBeFalsy();
+                });
+            });
+        });
+
         describe("CSS Editing", function () {
 
             beforeEach(function () {
@@ -133,7 +212,6 @@ define(function (require, exports, module) {
                         LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
                         LiveDevServerManager = testWindow.brackets.test.LiveDevServerManager;
                         DOMAgent             = testWindow.brackets.test.DOMAgent;
-                        Inspector            = testWindow.brackets.test.Inspector;
                         DocumentManager      = testWindow.brackets.test.DocumentManager;
                         CommandManager       = testWindow.brackets.test.CommandManager;
                         Commands             = testWindow.brackets.test.Commands;
@@ -150,56 +228,60 @@ define(function (require, exports, module) {
                     LiveDevelopment.close();
                 });
 
-                waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_INACTIVE);
+                }, "Waiting for browser to become inactive", 10000);
 
                 SpecRunnerUtils.closeTestWindow();
             });
             
             it("should establish a browser connection for an opened html file", function () {
-                //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                //verify live dev isn't currently active
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 runs(function () {
                     LiveDevelopment.open();
                 });
-                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+                }, "Waiting for browser to become active", 10000);
  
                 runs(function () {
-                    expect(Inspector.connected()).toBeTruthy();
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
-                    //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
                 
-                // Let things settle down before trying to close the connection.
+                // Let things settle down before trying to stop live dev.
                 waits(1000);
             });
             
             it("should should not start a browser connection for an opened css file", function () {
-                //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                //verify live dev isn't currently active
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 runs(function () {
                     LiveDevelopment.open();
                 });
                 
-                //we just need to wait an arbitrary time since we can't check for the connection to be true
+                //need to wait an arbitrary time since we can't check for live dev to be active
                 waits(1000);
  
                 runs(function () {
-                    expect(Inspector.connected()).toBeFalsy();
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
 
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.css");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
@@ -218,8 +300,8 @@ define(function (require, exports, module) {
                 var localText,
                     browserText;
                 
-                //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                //verify live dev isn't currently active
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
                 runs(function () {
@@ -242,7 +324,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 var liveDoc;
                 runs(function () {
                     LiveDevelopment.open();
@@ -275,8 +357,8 @@ define(function (require, exports, module) {
                     browserHtmlText,
                     htmlDoc;
                 
-                // verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                //verify live dev isn't currently active
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
                 runs(function () {
@@ -299,7 +381,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                // Modify some text in test file before starting live connection
+                // Modify some text in test file before starting live dev
                 runs(function () {
                     htmlDoc =  DocumentManager.getCurrentDocument();
                     origHtmlText = htmlDoc.getText();
@@ -307,7 +389,7 @@ define(function (require, exports, module) {
                     htmlDoc.setText(updatedHtmlText);
                 });
                                 
-                // start the connection
+                // start live dev
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
                     waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
@@ -319,11 +401,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
-                // Verify that we get the original text and not modified text.
+                // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(230);
-                    expect(originalNode.value).toBe("Brackets is awesome!");
+                    originalNode = DOMAgent.nodeAtLocation(388);
+                    expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
                 // wait for LiveDevelopment to unload and reload agents after saving
@@ -348,12 +430,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment re-load and re-activate", 10000);
                 
                 // Grab the node that we've modified in Brackets. 
-                // This time we should have modified text since the file has been saved in Brackets.
                 var updatedNode, doneSyncing = false;
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    updatedNode = DOMAgent.nodeAtLocation(388);
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -366,7 +447,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                     
-                    // Verify that we have modified text
+                    // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                     
@@ -408,31 +489,6 @@ define(function (require, exports, module) {
                 });
 
 
-                // Use node server base url
-                runs(function () {
-                    provider = LiveDevServerManager.getProvider(file1Path);
-                    expect(provider).toBeTruthy();
-
-                    // Wait until provider is ready to serve
-                    var promise = (provider) ? provider.readyToServe() : null;
-                    waitsForDone(promise, "Waiting for LiveDevServerProvider to become ready to serve", 1000);
-                });
-
-                runs(function () {
-                    LiveDevelopment._setServerProvider(provider);
-                    baseUrl         = (provider) ? provider.getBaseUrl() : "";
-                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
-
-                    // Should use server url with base url
-                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
-                    expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
-
-                    // File outside project should still use file url
-                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
-                });
-
-
                 // Set user defined base url, and then get provider
                 runs(function () {
                     baseUrl         = "http://localhost/";
@@ -451,6 +507,7 @@ define(function (require, exports, module) {
                     expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
 
                     // Clear base url
+                    LiveDevelopment._setServerProvider(null);
                     ProjectManager.setBaseUrl("");
                 });
             });
@@ -586,6 +643,150 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(2, 0);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(3);
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
+            });
+        });
+
+        describe("Highlighting elements in browser from cursor positions in HTML page", function () {
+            
+            var testDocument,
+                testEditor,
+                testHTMLDoc,
+                liveDevelopmentConfig,
+                inspectorConfig,
+                fileContent = null,
+                instrumentedHtml = "",
+                elementIds = {},
+                testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
+                WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html");
+          
+            function init(fileEntry) {
+                if (fileEntry) {
+                    runs(function () {
+                        FileUtils.readAsText(fileEntry)
+                            .done(function (text) {
+                                fileContent = text;
+                            });
+                    });
+                    
+                    waitsFor(function () { return (fileContent !== null); }, 1000);
+                }
+            }
+        
+            function createIdToTagMap(html) {
+                var elementIdRegEx = /<(\w+?)\s+(?:[^<]*?\s)*?data-brackets-id='(\S+?)'/gi,
+                    match,
+                    tagID,
+                    tagName;
+                
+                elementIds = {};
+                do {
+                    match = elementIdRegEx.exec(html);
+                    if (match) {
+                        tagID = match[2];
+                        tagName = match[1];
+                        
+                        // Verify that the newly found ID is unique.
+                        expect(elementIds[tagID]).toBeUndefined();
+                        
+                        elementIds[tagID] = tagName.toLowerCase();
+                    }
+                } while (match);
+            }
+            
+            function verifyTagWithId(line, ch, tag) {
+                testEditor.setCursorPos(line, ch);
+                var id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                expect(elementIds[id]).toEqual(tag);
+            }
+            
+            beforeEach(function () {
+                if (!fileContent) {
+                    init(WellFormedFileEntry);
+                }
+                
+                runs(function () {
+                    // save original configs
+                    liveDevelopmentConfig = LiveDevelopmentModule.config;
+                    inspectorConfig = InspectorModule.config;
+                    
+                    // force init
+                    LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                    HighlightAgentModule.load();
+                    
+                    // module spies -- used to mock actual API calls so that we can test those
+                    // APIs without having to actually launch the browser.
+                    spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
+                    
+                    var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
+                    testDocument = mock.doc;
+                    testEditor = mock.editor;
+                    
+                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
+                    createIdToTagMap(instrumentedHtml);
+                    testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                    testHTMLDoc.setInstrumentationEnabled(true);
+                });
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                
+                instrumentedHtml = "";
+                elementIds = {};
+            });
+            
+            it("should highlight the image for cursor positions inside img tag.", function () {
+                verifyTagWithId(58, 4, "img");  // before <img
+                verifyTagWithId(58, 95, "img"); // after />
+                verifyTagWithId(58, 65, "img"); // inside src attribute value
+
+            });
+
+            it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
+                verifyTagWithId(58, 1, "a");  // before "   <img"
+                verifyTagWithId(59, 0, "a");  // before </a>
+            });
+
+            it("No highlight when the cursor position is outside of the 'html' tag", function () {
+                var count = HighlightAgentModule.hide.callCount;
+                
+                testEditor.setCursorPos(0, 5);  // inside 'doctype' tag
+                expect(HighlightAgentModule.hide).toHaveBeenCalled();
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 1);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+
+                testEditor.setCursorPos(147, 5);  // after </html>
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 2);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+            });
+
+            it("Should highlight the entire body for all cursor positions inside an html comment", function () {
+                verifyTagWithId(15, 1, "body");  // cursor between < and ! in the comment start
+                verifyTagWithId(16, 15, "body");
+                verifyTagWithId(17, 3, "body");  // cursor after -->
+            });
+
+            it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
+                verifyTagWithId(5, 60, "meta");
+                verifyTagWithId(8, 12, "link");
+            });
+
+            it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
+                verifyTagWithId(6, 11, "title");  // inside the begin tag
+                verifyTagWithId(6, 30, "title");  // in the content
+                verifyTagWithId(6, 50, "title");  // inside the end tag
+            });
+
+            it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
+                verifyTagWithId(13, 1, "h2");  // inside the begin tag
+                verifyTagWithId(13, 20, "h2"); // in the content
+                verifyTagWithId(13, 27, "h2"); // inside the end tag
             });
         });
     });

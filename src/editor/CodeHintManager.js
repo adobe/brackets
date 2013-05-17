@@ -26,11 +26,11 @@
  *
  * The CodeHintManager mediates the interaction between the editor and a
  * collection of hint providers. If hints are requested explicitly by the
- * user, then the providers registered for the current mode are queried
+ * user, then the providers registered for the current language are queried
  * for their ability to provide hints in order of descending priority by
  * way their hasHints methods. Character insertions may also constitute an
  * implicit request for hints; consequently, providers for the current
- * mode are also queried on character insertion for both their ability to
+ * language are also queried on character insertion for both their ability to
  * provide hints and also for the suitability of providing implicit hints
  * in the given editor context.
  *
@@ -102,12 +102,12 @@
  * param {Editor} editor 
  * A non-null editor object for the active window.
  *
- * param {String} implicitChar 
+ * param {string} implicitChar 
  * Either null, if the hinting request was explicit, or a single character
  * that represents the last insertion and that indicates an implicit
  * hinting request.
  *
- * return {Boolean} 
+ * return {boolean} 
  * Determines whether the current provider is able to provide hints for
  * the given editor context and, in case implicitChar is non- null,
  * whether it is appropriate to do so.
@@ -164,14 +164,14 @@
  * assume that the document will not be changed outside of the editor
  * during a session.
  *
- * param {String} implicitChar
+ * param {string} implicitChar
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- * return {(Object + jQuery.Deferred)<
- *      hints: Array<(String + jQuery.Obj)>,
- *      match: String,
- *      selectInitial: Boolean>}
+ * return {jQuery.Deferred|{
+ *      hints: Array.<string|jQueryObject>,
+ *      match: string,
+ *      selectInitial: boolean}}
  * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
@@ -182,7 +182,7 @@
  * by default in the hint list window. If match is non-null, then the
  * hints should be strings. 
  * 
- * TODO - NOT YET IMPLEMENTED: If the match is null, the manager will not 
+ * If the match is null, the manager will not 
  * attempt to emphasize any parts of the hints when rendering the hint 
  * list; instead the provider may return strings or jQuery objects for 
  * which emphasis is self-contained. For example, the strings may contain
@@ -204,10 +204,10 @@
  * explicit hinting request, which may result in a new hinting session
  * being opened with some provider, but not necessarily the current one.
  *
- * param {String} hint 
+ * param {string} hint 
  * The hint to be inserted into the editor context for the current session.
  * 
- * return {Boolean} 
+ * return {boolean} 
  * Indicates whether the manager should follow hint insertion with an
  * explicit hint request.
  */
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         keyDownEditor   = null;
 
     /**
-     * Comparator to sort providers based on their priority
+     * Comparator to sort providers from high to low priority
      */
     function _providerSort(a, b) {
         return b.priority - a.priority;
@@ -240,77 +240,56 @@ define(function (require, exports, module) {
     
     /**    
      * The method by which a CodeHintProvider registers its willingness to
-     * providing hints for editors in a given mode.
+     * providing hints for editors in a given language.
      *
-     * @param {CodeHintProvider} provider
+     * @param {!CodeHintProvider} provider
      * The hint provider to be registered, described below. 
      *
-     * @param {Array[(string|Object<name: string>)]} modes
-     * The set of mode names for which the provider is capable of
-     * providing hints. If the special mode name "all" is included then
-     * the provider may be called upon to provide hints for any mode.
+     * @param {!Array.<string>} languageIds
+     * The set of language ids for which the provider is capable of
+     * providing hints. If the special language id name "all" is included then
+     * the provider may be called for any language.
      *
-     * @param {Integer} priority
-     * A non-negative number used to break ties among hint providers for a
-     * particular mode. Providers that register with a higher priority
-     * will have the opportunity to provide hints at a given mode before
-     * those with a lower priority. Brackets default providers have
-     * priority zero.
+     * @param {?number} priority
+     * Used to break ties among hint providers for a particular language.
+     * Providers with a higher number will be asked for hints before those
+     * with a lower priority value. Defaults to zero.
      */
-    function registerHintProvider(providerInfo, modes, priority) {
+    function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
-                
-        if (modes) {
-            var modeNames = [], registerInAllModes = false;
-            var i, currentModeName;
-            for (i = 0; i < modes.length; i++) {
-                currentModeName = (typeof modes[i] === "string") ? modes[i] : modes[i].name;
-                if (currentModeName) {
-                    if (currentModeName === "all") {
-                        registerInAllModes = true;
-                        break;
-                    } else {
-                        modeNames.push(currentModeName);
-                    }
+        
+        if (languageIds.indexOf("all") !== -1) {
+            // Ignore anything else in languageIds and just register for every language. This includes
+            // the special "all" language since its key is in the hintProviders map from the beginning.
+            var languageId;
+            for (languageId in hintProviders) {
+                if (hintProviders.hasOwnProperty(languageId)) {
+                    hintProviders[languageId].push(providerObj);
+                    hintProviders[languageId].sort(_providerSort);
                 }
             }
-
-            if (registerInAllModes) {
-                // if we're registering in all, then we ignore the modeNames array
-                // so that we avoid registering a provider twice
-                var modeName;
-                for (modeName in hintProviders) {
-                    if (hintProviders.hasOwnProperty(modeName)) {
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
-                    }
+        } else {
+            languageIds.forEach(function (languageId) {
+                if (!hintProviders[languageId]) {
+                    // Initialize provider list with any existing all-language providers
+                    hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
                 }
-            } else {
-                modeNames.forEach(function (modeName) {
-                    if (modeName) {
-                        if (!hintProviders[modeName]) {
-                            // initialize a new mode with all providers
-                            hintProviders[modeName] = Array.prototype.concat(hintProviders.all);
-                        }
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
-                    }
-                });
-            }
+                hintProviders[languageId].push(providerObj);
+                hintProviders[languageId].sort(_providerSort);
+            });
         }
     }
 
     /** 
-     *  Return the array of hint providers for the given mode.
+     *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
-     * @param {(string|Object<name: string>)} mode
-     * @return {Array.<{provider: Object, modes: Array.<string>, priority: number}>}
+     * @param {!string} languageId
+     * @return {?Array.<{provider: Object, priority: number}>}
      */
-    function _getProvidersForMode(mode) {
-        var modeName = (typeof mode === "string") ? mode : mode.name;
-        return hintProviders[modeName] || hintProviders.all;
+    function _getProvidersForLanguageId(languageId) {
+        return hintProviders[languageId] || hintProviders.all;
     }
 
     /**
@@ -341,7 +320,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed
@@ -395,15 +374,14 @@ define(function (require, exports, module) {
      */
     function _beginSession(editor) {
         // Find a suitable provider, if any
-        var mode = editor.getModeForSelection(),
-            enabledProviders = _getProvidersForMode(mode);
+        var language = editor.getLanguageForSelection(),
+            enabledProviders = _getProvidersForLanguageId(language.getId());
         
-        $.each(enabledProviders, function (index, item) {
+        enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
-                return false;
+                return true;
             }
-            return true;
         });
 
         // If a provider is found, initialize the hint list and update it
@@ -505,6 +483,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Test if a hint popup is open.
+     *
+     * @returns {boolean} - true if the hints are open, false otherwise.
+     */
+    function isOpen() {
+        return (hintList && hintList.isOpen());
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
@@ -513,6 +500,7 @@ define(function (require, exports, module) {
     exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API
+    exports.isOpen                  = isOpen;
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;

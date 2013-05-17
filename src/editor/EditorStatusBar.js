@@ -54,7 +54,8 @@ define(function (require, exports, module) {
     }
     
     function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
+        var lines = editor.lineCount();
+        $fileInfo.text(StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
     }
     
     function _updateIndentType() {
@@ -65,7 +66,7 @@ define(function (require, exports, module) {
     }
 
     function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
     }
     
     function _updateIndentSize() {
@@ -98,15 +99,16 @@ define(function (require, exports, module) {
         
         // restore focus to the editor
         EditorManager.focusEditor();
-
+        
         if (!value || isNaN(value)) {
             return;
         }
         
+        value = Math.max(Math.min(Math.floor(value), 10), 1);
         if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
+            Editor.setTabSize(value);
         } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
+            Editor.setSpaceUnits(value);
         }
 
         // update indicator
@@ -118,8 +120,9 @@ define(function (require, exports, module) {
     
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
+            $(previous).off(".statusbar");
+            $(previous.document).off(".statusbar");
+            previous.document.releaseRef();
         }
         
         if (!current) {
@@ -132,6 +135,9 @@ define(function (require, exports, module) {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
+            
+            current.document.addRef();
+            $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
             
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);

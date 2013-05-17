@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
         Dialogs             = require("widgets/Dialogs"),
+        CollectionUtils     = require("utils/CollectionUtils"),
         Strings             = require("strings");
 
     /**
@@ -56,6 +57,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _indexListDirty = true;
+
+    /**
+     * Store whether the index manager has exceeded the limit so the warning dialog only
+     * appears once.
+     * @type {boolean}
+     */
+    var _maxFileDialogDisplayed = false;
 
     /** class FileIndex
      *
@@ -133,7 +141,7 @@ define(function (require, exports, module) {
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
   
-        $.each(_indexList, function (indexName, index) {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
             if (index.filterFunction(entry)) {
                 index.fileInfos.push(fileInfo);
             }
@@ -216,7 +224,13 @@ define(function (require, exports, module) {
                         if (state.fileCount > 10000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
-                                _showMaxFilesDialog();
+                                if (!_maxFileDialogDisplayed) {
+                                    _showMaxFilesDialog();
+                                    _maxFileDialogDisplayed = true;
+                                } else {
+                                    console.warn("The maximum number of files have been indexed. Actions " +
+                                                 "that lookup files in the index may function incorrectly.");
+                                }
                             }
                             return;
                         }
@@ -229,7 +243,6 @@ define(function (require, exports, module) {
                             _scanDirectoryRecurse(entry);
                         }
                     });
-
                     _finishDirScan(dirEntry);
                 },
                 // error callback
@@ -263,7 +276,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _clearIndexes() {
-        $.each(_indexList, function (indexName, index) {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
             index.fileInfos = [];
         });
     }
@@ -395,11 +408,20 @@ define(function (require, exports, module) {
             return PathUtils.filenameExtension(filename) === ".css";
         }
     );
-    
-    $(ProjectManager).on("projectOpen projectFilesChange", function (event, projectRoot) {
+
+    /**
+     * When a new project is opened set the flag for index exceeding maximum
+     * warning back to false. 
+     */
+    $(ProjectManager).on("projectOpen", function (event, projectRoot) {
+        _maxFileDialogDisplayed = false;
         markDirty();
     });
     
+    $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
+        markDirty();
+    });
+
     PerfUtils.createPerfMeasurement("FILE_INDEX_MANAGER_SYNC", "syncFileIndex");
 
     exports.markDirty = markDirty;
