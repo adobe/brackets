@@ -131,7 +131,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 }
                 
             })
-            .on("end", function () {
+            .on("close", function () {
                 if (!callbackCalled) {
                     callback(null, validationResult);
                     callbackCalled = true;

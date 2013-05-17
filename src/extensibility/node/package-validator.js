@@ -295,7 +295,7 @@ function validate(path, options, callback) {
                     foundMainIn = commonPrefix;
                 }
             })
-            .on("end", function () {
+            .on("close", function () {
                 // Reached the end of the zipfile
                 // Report results
                 
