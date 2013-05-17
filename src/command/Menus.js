@@ -832,14 +832,14 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
         
-        builtInServices.addFunction("menus." + generateFriendlyId(id) + ".addItem", function (id) {
+        builtInServices.addFunction("menus." + generateFriendlyId(id) + ".addItem", function (id, keybinding, position, relative) {
             var extension = this.__meta.extension.name;
             var items = extensionMenuItems[extension];
             if (!items) {
                 items = extensionMenuItems[extension] = [];
             }
             items.push([menu, id]);
-            menu.addMenuItem(id);
+            menu.addMenuItem(id, keybinding, position, relative);
         });
 
         if (!_isHTMLMenu(id)) {

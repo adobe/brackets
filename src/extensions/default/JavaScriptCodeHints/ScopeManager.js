@@ -125,11 +125,17 @@ define(function (require, exports, module) {
     function getBuiltins() {
         return builtinLibraryNames;
     }
-
+    
+    var initializing = false;
+    
     /**
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
+        if (initializing) {
+            return;
+        }
+        initializing = true;
         ternEnvironment = [];
         builtinLibraryNames = [];
         var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
@@ -142,15 +148,19 @@ define(function (require, exports, module) {
                     library = JSON.parse(text);
                     builtinLibraryNames.push(library["!name"]);
                     ternEnvironment.push(library);
+                    initializing = false;
                 }).fail(function (error) {
                     console.log("failed to read tern config file " + i);
+                    initializing = false;
                 });
             }, function (error) {
                 console.log("failed to read tern config file " + i);
+                initializing = false;
             });
         });
         var extensionHints = ExtensionData.getHints();
         ternEnvironment.push(extensionHints);
+        initializing = false;
     }
 
     initTernEnv();

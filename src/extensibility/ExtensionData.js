@@ -479,6 +479,15 @@ function getHints(root) {
     var hints = {
         "!name": "services",
         "ServiceRegistry": {
+            "addObject": {
+                "!type": "fn()"
+            },
+            "addRegistry": {
+                "!type": "fn()"
+            },
+            "addFunction": {
+                "!type": "fn()"
+            }
         }
     };
     var defs = {};
