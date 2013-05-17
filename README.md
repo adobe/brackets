@@ -38,8 +38,8 @@ How to run Brackets
 
 **Brackets isn't ready for general use yet.** It's still missing a lot of basic
 editor features. That said, what's there is reasonably stable&mdash;the
-Brackets team uses Brackets to develop Brackets full time. So if you're
-adventurous, try it out!
+Brackets team uses Brackets to develop Brackets full time. So feel free to
+give it a spin and let us know what's missing!
 
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.

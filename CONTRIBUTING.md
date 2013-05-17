@@ -1,4 +1,6 @@
-### Filing a bug?
+# The Basics
+
+### Filing a bug
 
 Check the [Troubleshooting Page](https://github.com/adobe/brackets/wiki/Troubleshooting) for common
 issues with installing & launching Brackets, using Live Preview, etc.
@@ -11,21 +13,23 @@ Disable all extensions to verify the issue is a core Brackets bug.
 **For feature requests** please first check our [feature backlog](http://bit.ly/BracketsBacklog) to
 see if it's already there. You can upvote features you'd like to see.
 
-### Submitting a pull request?
+### Submitting a pull request
 
 **Before you start coding**, post to the [brackets-dev Google group](http://groups.google.com/group/brackets-dev)
 or the [#brackets IRC channel on freenode](http://webchat.freenode.net/?channels=brackets) about what
 you're thinking of working on, so you can get early feedback. We don't want you to do tons of work
-and then have to rewrite half of it.
+and then have to rewrite half of it!
 
 For more on what's expected in a good pull request, see [Contributing Code](#contributing-code) below.
 
 
-# Contributing to Brackets
+# Ways to Contribute
 
 There are many ways you can contribute to the Brackets project:
 
 * **Fix a bug** or **implement a new feature** - read on below.
+* **[Write a Brackets extension](https://github.com/adobe/brackets/wiki/How-to-write-extensions)** and
+  tell us about it!
 * **Test Brackets** and [report bugs](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
   you find. For sample testing steps, see
   [Brackets smoke tests](https://github.com/adobe/brackets/wiki/Brackets-Smoke-Tests),
@@ -37,10 +41,8 @@ There are many ways you can contribute to the Brackets project:
 * **Write documentation** and help keep it up to date
   (the [How to Use Brackets](https://github.com/adobe/brackets/wiki/How-to-Use-Brackets) intro page
   is one example).
-* Try out various [Brackets extensions](https://github.com/adobe/brackets/wiki/Brackets-Extensions)
+* **Try out some [Brackets extensions](https://github.com/adobe/brackets/wiki/Brackets-Extensions)**
   and give feedback to their authors.
-* [Write your own extension](https://github.com/adobe/brackets/wiki/How-to-write-extensions) and
-  tell us about it!
 
 
 ## Where Do I Start?
@@ -52,12 +54,12 @@ Here are some ideas:
 
 * [Starter bugs](https://github.com/adobe/brackets/issues?labels=starter+bug&state=open) can
   provide a good intro to the Brackets code.
+* [Extension ideas](https://github.com/adobe/brackets/issues?labels=Extension+Idea&state=closed)
+  are feature requests that we think would be best implemented as an add-on; it's up to the
+  Brackets community to write them!
 * [Starter features](http://bit.ly/BracketsBacklog) are a bit larger in scope. Be sure to discuss
   these in the newsgroup before starting. _(To see starter features, click Filter Cards on the
   right and then click the green "Starter Feature" label)._
-* [Extension ideas](https://github.com/adobe/brackets/issues?labels=Extension+Idea&state=open)
-  are feature requests that we think would be best implemented as an add-on; it's up to the
-  Brackets community to write them!
 
 Once you're ready to start coding, see the next section, [Contributing Code](#contributing-code).
 
@@ -70,6 +72,8 @@ before you've learned to code!
 
 ## Contributing Code
 
+To get started editing the Brackets code, read [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
+
 Before submitting any pull request, please make sure to:
 
 1. Discuss any major changes or questions beforehand in the [brackets-dev newsgroup](http://groups.google.com/group/brackets-dev).
@@ -81,7 +85,7 @@ Before submitting any pull request, please make sure to:
    (we cannot merge before this).
 
 High quality code and a top-notch user experience are very important in Brackets, and we carefully
-review pull requests keep it that way. The better you follow the guidelines above, the more likely
+review pull requests to keep it that way. The better you follow the guidelines above, the more likely
 we are to accept your pull request - and the faster the code review will go.
 
  
