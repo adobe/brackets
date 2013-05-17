@@ -333,11 +333,16 @@
 /* Dialog-related styles */
 
 .modal {
+    background-color: @tc-gray-panel;
     width: auto;
 }
 
 .modal .close {
     cursor: default;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.09);
 }
 
 .modal-body, .modal-header {
@@ -348,8 +353,8 @@
 }
 
 .modal-footer {
-    background-color: #dfe2e2;
-    border-top: 1px solid rgba(0,0,0,0.15);
+    background-color: @tc-gray-panel;
+    border-top: 1px solid rgba(0,0,0,0.09);
     box-shadow: none;
     white-space: nowrap;
 }
@@ -442,12 +447,7 @@
             
             // Enable text selection
             cursor: auto;
-            -webkit-user-select: text;
-            -khtml-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            -o-user-select: text;
-            user-select: text;
+            .user-select(text);
         }
     }
 }
@@ -484,24 +484,76 @@
     margin-top: -325px;
     margin-left: -350px;
     
-    .modal-body {
+    .modal-header {
         width: 700px;
+        
+        .search {
+            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            float: right;
+            margin-top: 6px;
+            padding-left: 27px;
+            padding-right: 20px;
+        }
+        .search-clear {
+            position: relative;
+            display: block;
+            float: right;
+            left: -5px;
+            margin: 13px 0 0 -20px;
+            opacity: 0.7;
+            background: url("images/topcoat-cancel-15.svg") no-repeat;
+            width: 15px;
+            height: 16px;
+            z-index: 1;
+        }
+        .search-clear:active {
+            opacity: 0.5;
+        }
+    }
+    .modal-body {
+        width: 730px;
         height: 500px;
         text-align: center;
         overflow-y: scroll;
+        padding: 0;
         
         .extension-list {
+            td {
+                height: 2em;
+            }
+            .ext-info {
+                padding-left: 15px;
+                width: 220px;
+            }
             .ext-name {
-                font-weight: bold;
+                color: #000;
+                display: block;
+                font-size: 15px;
+                font-weight: @font-weight-light;
             }
             .ext-desc {
-                width: 60%;
+                font-weight: @font-weight-light;
+                width: auto;
+            }
+            .muted {
+                color: #888;
+            }
+            .error {
+                font-weight: @font-weight-semibold;
+                color: #ff5656;
             }
             .ext-version,
             .ext-date,
             .ext-author {
-                font-size: 0.8em;
+                font-size: 10px;
             }
+            .ext-action {
+                font-size: 12px;
+                padding-right: 15px;
+                text-align: right;
+                vertical-align: middle;
+                width: 200px;
+            }            
             .spinner {
                 position: absolute;
                 top: 50%;
@@ -564,17 +616,36 @@
         
         // Enable text selection
         cursor: auto;
-        -webkit-user-select: text;
-        -khtml-user-select: text;
-        -moz-user-select: text;
-        -ms-user-select: text;
-        -o-user-select: text;
-        user-select: text;
+        .user-select(text);
+    }
+}
+
+/* Input */
+input {
+    background-color: #fff;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    @shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
+
+    // Placeholder text gets special styles; can't be bundled together though for some reason
+    &::-webkit-input-placeholder {
+        color: #888;
+    }
+    // Focus states (we use .focused since IE8 and down doesn't support :focus)
+    &:focus,
+    &.focused {
+        outline: 0;
+        background-color: #fff;
+        color: #000;
+        text-shadow: none;
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
     }
 }
 
 /* Twipsy tooltips */
 .twipsy-inner {
+    .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
     max-width: none;
     white-space: nowrap;
 }
@@ -589,7 +660,7 @@
     background-color: #e5e9e9;
     text-shadow: 0 1px 0 #fff;
     color: #454545;
-    font-weight: 500;
+    font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid #9c9e9e;
     .border-radius(3px);
@@ -602,6 +673,7 @@
 
     // Focus state for keyboard and accessibility
     &:focus {
+        border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
         outline: none;
     }
@@ -622,6 +694,7 @@
         }    
    
         &:focus {
+            border: 1px solid @tc-gray-component-focused-border;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
             outline: none;
         }        
@@ -646,5 +719,43 @@
     }
     &.small {
         font-size: @basefont - 1px;
+    }
+}
+
+.btn-mini {
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 14px;
+}
+
+/* Tables */
+
+table {
+    th {
+        font-weight: @font-weight-semibold;
+    }
+    td {
+        border-top: 1px solid transparent;
+    }
+    tbody th {
+        border-top: 1px solid transparent);
+    }
+}
+
+.zebra-striped tbody {
+    tr:nth-child(odd) td,
+    tr:nth-child(odd) th {
+        background-color: #e6e9e9; // TopCoat palette
+    }
+    tr:nth-child(even) td,
+    tr:nth-child(even) th {
+        background-color: @tc-gray-panel; // turn off bootstrap hover highlight 
+    }
+}    
+.row-highlight tbody {
+    tr:hover td,
+    tr:hover th {
+        background-color: @tc-highlight; // TopCoat palette
     }
 }

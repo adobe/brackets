@@ -55,6 +55,21 @@ var Errors = {
  */
 var pendingDownloads = {};
 
+/**
+ * Private function to remove the installation directory if the installation fails.
+ * This does not call any callbacks. It's assumed that the callback has already been called
+ * and this cleanup routine will do its best to complete in the background. If there's
+ * a problem here, it is simply logged with console.error.
+ *
+ * @param {string} installDirectory Directory to remove
+ */
+function _removeFailedInstallation(installDirectory) {
+    fs.remove(installDirectory, function (err) {
+        if (err) {
+            console.error("Error while removing directory after failed installation", installDirectory, err);
+        }
+    });
+}
 
 /**
  * Private function to unzip to the correct directory.
@@ -84,6 +99,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     callback(exc);
                     callbackCalled = true;
                     readStream.destroy();
+                    _removeFailedInstallation(installDirectory);
                 }
             })
             .on("entry", function (entry) {
@@ -91,23 +107,17 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 if (prefixlength) {
                     installpath = installpath.substring(prefixlength + 1);
                 }
-                
                 if (entry.type === "Directory") {
                     if (installpath === "") {
                         return;
                     }
-                    extractStream.pause();
-                    fs.mkdirs(installDirectory + "/" + installpath, function (err) {
-                        if (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                            }
-                            extractStream.close();
-                            return;
-                        }
-                        extractStream.resume();
-                    });
+                    try {
+                        fs.mkdirsSync(installDirectory + "/" + installpath);
+                    } catch (e) {
+                        callback(e);
+                        callbackCalled = true;
+                        _removeFailedInstallation(installDirectory);
+                    }
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
                         .on("error", function (err) {
@@ -115,6 +125,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                                 callback(err);
                                 callbackCalled = true;
                                 readStream.destroy();
+                                _removeFailedInstallation(installDirectory);
                             }
                         });
                 }
@@ -170,11 +181,12 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * 
  * @param {string} Absolute path to the package zip file
  * @param {string} the destination directory
- * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}} additional settings to control the installation
+ * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
+ *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
-    if (!options || !options.disabledDirectory || !options.apiVersion) {
+    if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemExtensionDirectory) {
         callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
         return;
     }
@@ -197,7 +209,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
             extensionName = path.basename(packagePath, ".zip");
         }
         validationResult.name = extensionName;
-        var installDirectory = path.join(destinationDirectory, extensionName);
+        var installDirectory = path.join(destinationDirectory, extensionName),
+            systemInstallDirectory = path.join(options.systemExtensionDirectory, extensionName);
         
         if (validationResult.metadata && validationResult.metadata.engines &&
                 validationResult.metadata.engines.brackets) {
@@ -213,7 +226,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         
         // If the extension is already there, at this point we will not overwrite
         // a running extension. Instead, we unzip into the disabled directory.
-        if (fs.existsSync(installDirectory)) {
+        if (fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
             installDirectory = path.join(options.disabledDirectory, extensionName);
             _removeAndInstall(packagePath, installDirectory, validationResult, callback);
@@ -336,6 +349,18 @@ function _cmdAbortDownload(downloadId) {
     }
 }
 
+/**
+ * Implements the remove extension command.
+ */
+function _cmdRemove(extensionDir, callback) {
+    fs.remove(extensionDir, function (err) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(null);
+        }
+    });
+}
 
 /**
  * Initialize the "extensions" domain.
@@ -386,7 +411,7 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         [{
@@ -410,6 +435,19 @@ function init(domainManager) {
             type: "string",
             description: "top level directory in the package zip which contains all of the files"
         }]
+    );
+    domainManager.registerCommand(
+        "extensionManager",
+        "remove",
+        _cmdRemove,
+        true,
+        "Removes the Brackets extension at the given path.",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the installed extension folder"
+        }],
+        {}
     );
     domainManager.registerCommand(
         "extensionManager",
@@ -452,6 +490,7 @@ function init(domainManager) {
 // used in unit tests
 exports._cmdValidate = validate;
 exports._cmdInstall = _cmdInstall;
+exports._cmdRemove = _cmdRemove;
 
 // used to load the domain
 exports.init = init;

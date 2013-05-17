@@ -12,3 +12,8 @@
     font-size: 1em;
     color: #FFC81C;
 }
+
+#jslint-results .line { /* To make the line number line up with editor line numbers */
+    text-align: right;
+    width: 30px;
+}

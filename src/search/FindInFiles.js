@@ -63,6 +63,9 @@ define(function (require, exports, module) {
         currentQuery = "",
         currentScope;
     
+    // Div holding the search results. Initialized in htmlReady().
+    var $searchResultsDiv;
+    
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
         $(".modal-bar .message").css("display", "inline-block");
@@ -187,7 +190,13 @@ define(function (require, exports, module) {
         
         return this.result.promise();
     };
-
+    
+    function _hideSearchResults() {
+        if ($searchResultsDiv.is(":visible")) {
+            $searchResultsDiv.hide();
+            EditorManager.resizeEditor();
+        }
+    }
 
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found
@@ -231,10 +240,8 @@ define(function (require, exports, module) {
     }
         
     function _showSearchResults(searchResults, query, scope) {
-        var $searchResultsDiv = $("#search-results");
-        
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table' />")
+            var $resultTable = $("<table class='zebra-striped row-highlight condensed-table' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -329,13 +336,12 @@ define(function (require, exports, module) {
             
             $("#search-results .close")
                 .one("click", function () {
-                    $searchResultsDiv.hide();
-                    EditorManager.resizeEditor();
+                    _hideSearchResults();
                 });
             
             $searchResultsDiv.show();
         } else {
-            $searchResultsDiv.hide();
+            _hideSearchResults();
         }
         
         EditorManager.resizeEditor();
@@ -431,25 +437,17 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
         var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
         doFindInFiles(selectedEntry);
     }
     
-    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container");
+        $searchResultsDiv  = $("#search-results");
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($("#search-results").is(":visible")) {
+        if ($searchResultsDiv.is(":visible")) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
@@ -459,6 +457,7 @@ define(function (require, exports, module) {
     }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);

@@ -313,22 +313,24 @@ define(function (require, exports, module) {
                 var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
                 
-                expect(wholeStringSearch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                var comparePath = path.toLowerCase();
+                
+                expect(wholeStringSearch("sdoc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(0),
                     new SpecialMatch(13),
                     new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
-                expect(wholeStringSearch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("doc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(13),
                     new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
-                expect(wholeStringSearch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("z", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
                 
-                expect(wholeStringSearch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("docdoc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(4),
                     new NormalMatch(5),
                     new NormalMatch(6),
@@ -338,7 +340,7 @@ define(function (require, exports, module) {
                 ]);
                 
                 // test for a suspected bug where specials are matched out of order.
-                expect(wholeStringSearch("hc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("hc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
             });
             
             it("should handle matches that don't fit at all in the final segment", function () {
@@ -347,7 +349,9 @@ define(function (require, exports, module) {
                 var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
                 
-                expect(wholeStringSearch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                var comparePath = path.toLowerCase();
+                
+                expect(wholeStringSearch("quick", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -355,7 +359,7 @@ define(function (require, exports, module) {
                     new NormalMatch(27)
                 ]);
                 
-                expect(wholeStringSearch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("quickopen", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -367,7 +371,7 @@ define(function (require, exports, module) {
                     new NormalMatch(39)
                 ]);
                                 
-                expect(wholeStringSearch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("quickopenain", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -415,7 +419,7 @@ define(function (require, exports, module) {
                 ranges = result.stringRanges;
                 expect(ranges.length).toBe(3);
                 
-                expect(stringMatch("src/search/QuickOpen.js", "qo")).toEqual({
+                expect(stringMatch("src/search/QuickOpen.js", "qo", { segmentedSearch: true })).toEqual({
                     matchGoodness: jasmine.any(Number),
                     label: "src/search/QuickOpen.js",
                     stringRanges: [
@@ -439,7 +443,7 @@ define(function (require, exports, module) {
             });
             
             it("should prefer special characters", function () {
-                expect(stringMatch("src/document/DocumentCommandHandler.js", "dch")).toEqual({
+                expect(stringMatch("src/document/DocumentCommandHandler.js", "dch", { segmentedSearch: true })).toEqual({
                     matchGoodness: jasmine.any(Number),
                     label: "src/document/DocumentCommandHandler.js",
                     stringRanges: [
@@ -454,11 +458,96 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should optionally prefer prefix matches", function () {
+                expect(stringMatch("stringTimeRing", "str", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "stringTimeRing",
+                    stringRanges: [
+                        { text: "str", matched: true, includesLastSegment: true },
+                        { text: "ingTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("stringTimeRing", "STR", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "stringTimeRing",
+                    stringRanges: [
+                        { text: "str", matched: true, includesLastSegment: true },
+                        { text: "ingTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("STRINGTimeRing", "str", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "STRINGTimeRing",
+                    stringRanges: [
+                        { text: "STR", matched: true, includesLastSegment: true },
+                        { text: "INGTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("src/foo/bar/src.js", "src", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "src/foo/bar/src.js",
+                    stringRanges: [
+                        { text: "src", matched: true, includesLastSegment: true },
+                        { text: "/foo/bar/src.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                var result = stringMatch("src/foo/bar/src.js", "fbs", {
+                    preferPrefixMatches: true
+                });
+                
+                expect(result).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "src/foo/bar/src.js",
+                    stringRanges: [
+                        { text: "src/", matched: false, includesLastSegment: true },
+                        { text: "f", matched: true, includesLastSegment: true },
+                        { text: "oo/", matched: false, includesLastSegment: true },
+                        { text: "b", matched: true, includesLastSegment: true },
+                        { text: "ar/", matched: false, includesLastSegment: true },
+                        { text: "s", matched: true, includesLastSegment: true },
+                        { text: "rc.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(result.matchGoodness).toBeGreaterThan(-Number.MAX_VALUE);
+
+                expect(stringMatch("long", "longerQuery", {
+                    preferPrefixMatches: true
+                })).toEqual(null);
+            });
+            
+            it("should default to single segment matches", function () {
+                var expectedResult = {
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets/utils/brackets.js", matched: false, includesLastSegment: true }
+                    ]
+                };
+                
+                expect(stringMatch("brackets/utils/brackets.js", "brack")).toEqual(expectedResult);
+                
+                expect(stringMatch("brackets/utils/brackets.js", "brack", { segmentedSearch: false })).toEqual(expectedResult);
+            });
+            
             var goodRelativeOrdering = function (query, testStrings) {
                 var lastScore = -Infinity;
                 var goodOrdering = true;
                 testStrings.forEach(function (str) {
-                    var result = stringMatch(str, query);
+                    var result = stringMatch(str, query, { segmentedSearch: true });
                     
                     // note that matchGoodness is expressed in negative numbers
                     if (result.matchGoodness < lastScore) {
@@ -617,6 +706,75 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("multiFieldSort", function () {
+            var items = [
+                { value: 105, name: "Strawberry" },
+                { value: 51, name: "Grapefruit" },
+                { value: 200, name: "Apple" },
+                { value: 200, name: "_Rutabega" },
+                { value: 199, name: "Apple" },
+                { value: 200, name: "Banana" }
+            ];
+            
+            it("should accept old-style key: priority", function () {
+                // start with a copy of the array
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, {
+                    value: 0,
+                    name: 1
+                });
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "_Rutabega" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" }
+                ]);
+            });
+            
+            it("should accept array of keys", function () {
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, ["value", "name"]);
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "_Rutabega" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" }
+                ]);
+            });
+            
+            it("should accept a comparison function", function () {
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, ["value", function (a, b) {
+                    var aName = a.name.toLowerCase(), bName = b.name.toLowerCase();
+                    // this sort function will cause _ to sort lower than lower case
+                    // alphabetical letters
+                    if (aName[0] === "_" && bName[0] !== "_") {
+                        return 1;
+                    } else if (bName[0] === "_" && aName[0] !== "_") {
+                        return -1;
+                    }
+                    if (aName < bName) {
+                        return -1;
+                    } else if (aName > bName) {
+                        return 1;
+                    }
+                    return 0;
+                }]);
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" },
+                    { value: 200, name: "_Rutabega" }
+                ]);
+            });
+        });
+        
         describe("StringMatcher", function () {
             beforeEach(function () {
                 this.addMatchers({
@@ -681,6 +839,45 @@ define(function (require, exports, module) {
                 matcher.reset();
                 expect("foo").not.toBeInCache(matcher, "_specialsCache");
                 expect("foo").not.toBeInCache(matcher, "_noMatchCache");
+            });
+            
+            it("should accept the prefixes option", function () {
+                var matcher = new StringMatch.StringMatcher({
+                    preferPrefixMatches: true
+                });
+                var result = matcher.match("stringTimeRing", "str");
+                expect(result.stringRanges[0]).toEqual(
+                    { text: "str", matched: true, includesLastSegment: true }
+                );
+            });
+                    
+            it("should pass the segmentedSearch option", function () {
+                var matcher = new StringMatch.StringMatcher({
+                    segmentedSearch: false
+                });
+                
+                expect(matcher.match("brackets/utils/brackets.js", "brack")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets/utils/brackets.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                matcher = new StringMatch.StringMatcher({
+                    segmentedSearch: true
+                });
+                
+                expect(matcher.match("brackets/utils/brackets.js", "brack")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brackets/utils/", matched: false, includesLastSegment: false },
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets.js", matched: false, includesLastSegment: true }
+                    ]
+                });
             });
         });
     });

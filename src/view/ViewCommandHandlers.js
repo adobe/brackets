@@ -24,6 +24,16 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $ */
 
+/**
+ * The ViewCommandHandlers object dispatches the following event(s):
+ *    - fontSizeChange -- Triggered when the font size is changed via the
+ *          Increase Font Size, Decrease Font Size, or Restore Font Size commands.
+ *          The 2nd arg to the listener is the amount of the change. The 3rd arg
+ *          is a string containing the new font size after applying the change.
+ *          The 4th arg is a string containing the new line height after applying
+ *          the change.
+ */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -65,7 +75,7 @@ define(function (require, exports, module) {
      * The ratio of line-height to font-size when they use the same units
      * @type {float}
      */
-    var LINE_HEIGHT = 1.25;
+    var LINE_HEIGHT = 1.3;
     
     /**
      * @private
@@ -174,6 +184,7 @@ define(function (require, exports, module) {
         
         _setSizeAndRestoreScroll(fsStr, lhStr);
         
+        $(exports).triggerHandler("fontSizeChange", [adjustment, fsStr, lhStr]);
         return true;
     }
     

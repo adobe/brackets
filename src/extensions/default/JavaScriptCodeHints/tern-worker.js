@@ -29,12 +29,12 @@ importScripts("thirdparty/requirejs/require.js");
 (function () {
     "use strict";
     
-    var HintUtils;
+    var MessageIds;
     var Tern;
-    require(["./HintUtils"], function (hintUtils) {
-        HintUtils = hintUtils;
+    require(["./MessageIds"], function (messageIds) {
+        MessageIds = messageIds;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/plugin/requirejs"], function (tern, requirejs) {
+        ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
             Tern = tern;
         });
     });
@@ -56,7 +56,7 @@ importScripts("thirdparty/requirejs/require.js");
         
         // post a message back to the main thread to get the file contents 
         self.postMessage({
-            type: HintUtils.TERN_GET_FILE_MSG,
+            type: MessageIds.TERN_GET_FILE_MSG,
             file: name
         });
     }
@@ -87,7 +87,7 @@ importScripts("thirdparty/requirejs/require.js");
             defs: env,
             async: true,
             getFile: getFile,
-            plugins: {requirejs: {}}
+            plugins: {requirejs: {}, doc_comment: true}
         };
         ternServer = new Tern.Server(ternOptions);
         
@@ -146,12 +146,12 @@ importScripts("thirdparty/requirejs/require.js");
         ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'definition' request: " + error);
-                self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG});
+                self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG});
                 return;
             }
             
             // Post a message back to the main thread with the definition
-            self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG,
+            self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG,
                               file: file,
                               resultFile: data.file,
                               offset: offset,
@@ -160,19 +160,57 @@ importScripts("thirdparty/requirejs/require.js");
                              });
         });
     }
-    
-    
+
+    /**
+     * Get all the known properties for guessing.
+     *
+     * @param {string} dir      - the directory
+     * @param {string} file     - the file name
+     * @param {number} offset   - the offset into the file where we want completions for
+     * @param {string} text     - the text of the file
+     * @param {string} type     - the type of the message to reply with.
+     */
+    function getTernProperties(dir, file, offset, text, type) {
+
+        var request = buildRequest(dir, file, "properties", undefined, text),
+            i;
+        //_log("tern properties: request " + request.type + dir + " " + file);
+        ternServer.request(request, function (error, data) {
+            var properties = [];
+            if (error) {
+                _log("Error returned from Tern 'properties' request: " + error);
+            } else {
+                //_log("tern properties: completions = " + data.completions.length);
+                for (i = 0; i < data.completions.length; ++i) {
+                    var property = data.completions[i];
+                    properties.push({value: property, guess: true});
+                }
+            }
+
+            // Post a message back to the main thread with the completions
+            self.postMessage({type: type,
+                              dir: dir,
+                              file: file,
+                              offset: offset,
+                              properties: properties
+                });
+        });
+    }
+        
     /**
      * Get the completions for the given offset
      * @param {string} dir      - the directory
      * @param {string} file     - the file name
      * @param {number} offset   - the offset into the file where we want completions for
      * @param {string} text     - the text of the file
+     * @param {boolean} isProperty - true if getting a property hint,
+     * otherwise getting an identifier hint.
      */
-    function getTernHints(dir, file, offset, text) {
+    function getTernHints(dir, file, offset, text, isProperty) {
         
         var request = buildRequest(dir, file, "completions", offset, text),
             i;
+
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function (error, data) {
             var completions = [];
@@ -187,47 +225,18 @@ importScripts("thirdparty/requirejs/require.js");
                 }
             }
 
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              completions: completions
-                             });
-        });
-    }
-
-    /**
-     * Get all the known properties for guessing.
-     *
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {string} text     - the text of the file
-     */
-    function handleGetProperties(dir, file, offset, text) {
-
-        var request = buildRequest(dir, file, "properties", undefined, text),
-            i;
-        //_log("request " + request.type + dir + " " + file);
-        ternServer.request(request, function (error, data) {
-            var properties = [];
-            if (error) {
-                _log("Error returned from Tern 'properties' request: " + error);
+            if (completions.length > 0 || !isProperty) {
+                // Post a message back to the main thread with the completions
+                self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
+                    dir: dir,
+                    file: file,
+                    offset: offset,
+                    completions: completions
+                    });
             } else {
-                //_log("completions = " + data.completions.length);
-                for (i = 0; i < data.completions.length; ++i) {
-                    var property = data.completions[i];
-                    properties.push({value: property, guess: true});
-                }
+                // if there are no completions, then get all the properties
+                getTernProperties(dir, file, offset, text, MessageIds.TERN_COMPLETIONS_MSG);
             }
-
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_GET_PROPERTIES_MSG,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              properties: properties
-                });
         });
     }
 
@@ -254,12 +263,59 @@ importScripts("thirdparty/requirejs/require.js");
             }
 
             // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
+            self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
                               dir: dir,
                               file: file,
                               offset: offset,
                               fnType: fnType
                              });
+        });
+    }
+
+    /**
+     *  Add an array of files to tern.
+     *
+     * @param {Array.<string>} files - each string in the array is the full
+     * path of a file.
+     */
+    function handleAddFiles(files) {
+        files.forEach(function (file) {
+            ternServer.addFile(file);
+        });
+    }
+
+    /**
+     *  Update the context of a file in tern.
+     *
+     * @param {string} path - full path of file.
+     * @param {string} text - content of the file.
+     */
+    function handleUpdateFile(path, text) {
+
+        ternServer.addFile(path, text);
+
+        self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
+            path: path
+            });
+
+        // reset to get the best hints with the updated file.
+        ternServer.reset();
+    }
+
+    /**
+     *  Make a completions request to tern to force tern to resolve files
+     *  and create a fast first lookup for the user.
+     * @param {string} path     - the path of the file
+     * @param {string} text     - the text of the file
+     */
+    function handlePrimePump(path, text) {
+        var request = buildRequest("", path, "completions", 0, text);
+
+        ternServer.request(request, function (error, data) {
+            // Post a message back to the main thread
+            self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
+                path: path
+                });
         });
     }
     
@@ -268,42 +324,47 @@ importScripts("thirdparty/requirejs/require.js");
             request = e.data,
             type = request.type;
 
-        if (type === HintUtils.TERN_INIT_MSG) {
+        if (type === MessageIds.TERN_INIT_MSG) {
             
             dir         = request.dir;
             var env     = request.env,
                 files   = request.files;
             initTernServer(env, dir, files);
-            
-        } else if (type === HintUtils.TERN_COMPLETIONS_MSG) {
+        } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
             dir = request.dir;
             file = request.file;
             text    = request.text;
             offset  = request.offset;
-            getTernHints(dir, file, offset, text);
-        } else if (type === HintUtils.TERN_GET_PROPERTIES_MSG) {
-            file    = request.file;
-            dir     = request.dir;
-            text    = request.text;
-            offset  = request.offset;
-            handleGetProperties(dir, file, offset, text);
-        } else if (type === HintUtils.TERN_GET_FILE_MSG) {
+            getTernHints(dir, file, offset, text, request.isProperty);
+        } else if (type === MessageIds.TERN_GET_FILE_MSG) {
             file = request.file;
             text = request.text;
             handleGetFile(file, text);
-        } else if (type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
+        } else if (type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
             dir     = request.dir;
             file    = request.file;
             text    = request.text;
             offset  = request.offset;
             var pos = request.pos;
             handleFunctionType(dir, file, pos, offset, text);
-        } else if (type === HintUtils.TERN_JUMPTODEF_MSG) {
+        } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
             file    = request.file;
             dir     = request.dir;
             text    = request.text;
             offset  = request.offset;
             getJumptoDef(dir, file, offset, text);
+        } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
+            handleAddFiles(request.files);
+        } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+            handlePrimePump(request.path, request.text);
+        } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
+            dir     = request.dir;
+            file    = request.file;
+            text    = request.text;
+            offset  = request.offset;
+            getTernProperties(dir, file, offset, text, MessageIds.TERN_GET_GUESSES_MSG);
+        } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
+            handleUpdateFile(request.path, request.text);
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }

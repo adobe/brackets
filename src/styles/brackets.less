@@ -48,12 +48,7 @@ html, body {
     overflow: hidden;
     
     /* Turn off selection for UI elements */
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+    .user-select(none);
     
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
@@ -109,7 +104,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    border-bottom: 1px solid @tc-gray-panel-border;
+    box-shadow: @tc-small-shadow-bottom;
     
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -162,14 +158,13 @@ a, img {
     }
 }
 
-@-webkit-keyframes rotating {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    
-    100% {
-        -webkit-transform: rotate(360deg);
-    }
+@-webkit-keyframes spinner-sprites-12 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -120px 0px; }
+}
+@-webkit-keyframes spinner-sprites-36 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -360px 0px; }
 }
 
 #status-indent > * {
@@ -252,25 +247,30 @@ a, img {
 }
 
 .bottom-panel {
+    background-color: @tc-gray-panel;
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
-    border-color: lighten(@bc-grey, @bc-color-step-size*4);
+    border-color: @tc-gray-panel-border;
     
     .toolbar {
+        background-color: @tc-gray-panel-top-bar;
+        border-bottom: @tc-gray-panel-top-bar-shadow;
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
         z-index: @z-index-brackets-results-panel;
-        .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
         .title {
+            color: @tc-text;
             font-size: @label-font-size;
-            font-weight: bold;
+            font-weight: @font-weight-semibold;
         }
         .close {
             position: absolute;
             right: 10px;
+            top: 6px;
         }
     }
     
@@ -279,16 +279,18 @@ a, img {
         overflow: auto;
 
         td {
+            font-size: 12px;
             padding-left: @base-padding;
             padding-right: @base-padding;
         }
         
         .highlight {
-            background: #d2dcf8;
+            background: #fff;
+            border-radius: 2px;
         }
         
         tr.selected td {
-            background-color: @bc-light-blue;
+            background-color: @tc-highlight;
         }
     }
 }
@@ -329,11 +331,11 @@ a, img {
     }
 }
 
-#toolbar-add-extension {
-    .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
-    margin-left: 1px !important;
+#toolbar-extension-manager {
+    .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
+    opacity: 0.7;
     &:hover {
-        background-position: -18px 0;
+        opacity: 0.5;
     }
 }
 
@@ -459,10 +461,6 @@ a, img {
     ul {
         padding-left: 8px;
     }
-}
-
-#editor-holder .scroller-shadow {
-    width: 100%;
 }
 
 .scroller-shadow {
@@ -708,6 +706,7 @@ a, img {
 }
 
 #search-results td {
+    padding-left: 3px;
     vertical-align: baseline;
 }
 
@@ -718,8 +717,8 @@ a, img {
     
     font-family: @fontstack-sans-serif;
     font-size: 13px;
-    color: @content-color;
-    background: #eee;
+    color: @tc-text;
+    background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
     overflow: hidden;
     
@@ -731,14 +730,12 @@ a, img {
 
 .modal-bar input {
     font-family: @fontstack-sans-serif;
-    border: 1px solid @content-color-weaker;
     outline: none;
-    background: @background-color-3;
     width: 20em;
     margin: .3em .3em;
-    color: inherit;
     &.no-results {
-        background-color: mix(@background-color-3, #FF0000, 70%);
+        border: 1px solid #bc0023;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
     }
 }
 
@@ -779,39 +776,51 @@ a, img {
 
 .smart_autocomplete_container {
     
-    border: 1px solid #999;
-    background-color: #FFFFFF;
+    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
+    
+    background-color: @tc-gray-panel;
+    border-radius: 0 0 4px 4px;
+    box-shadow: @tc-normal-shadow-bottom;
+    
+    // so that border won't show when height is 0.
+    box-sizing: border-box; 
+    
+    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
+    width: 400px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
-    padding: 0px 8px 0px 0px;
-    margin: 9px 0px 0px 0px;
+    padding: 0px;
+    margin: 9px 0 0;
 
     .quick-open-path {
+        color: #666;
         font-size: 11px;
-        color: gray;
+        letter-spacing: 0.04em;
+        line-height: 11px;
     }
 
     li {
-        color: black;
-        border-bottom: 1px solid;
+        color: #222;
+        line-height: 15px;
         list-style: none;
         cursor: default;
-        padding: 0px 2px 0px 4px;
+        padding: 6px 10px;
+    }
+    
+    li:nth-child(odd) {
+        background-color: #e6e9e9;
+    }
+    
+    li.smart_autocomplete_highlight {
+        background-color: @tc-highlight;
     }
 }
 
-li.smart_autocomplete_highlight {
-    background-color: #e0f0fa;
-}
-
-.quicksearch-pathmatch {
-    font-weight: bold;
-    color: #555;
-}
-
+.quicksearch-pathmatch,
 .quicksearch-namematch {
-    font-weight: bold;
+    font-weight: @font-weight-semibold;
 }
 
 
@@ -823,11 +832,11 @@ li.smart_autocomplete_highlight {
     margin-top: -2px;
     width: 12px;
     height: 12px;
-    background: url("images/small_spinner.svg") no-repeat;
+    background: url("images/spinner_small_sprites12.png") no-repeat;
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: rotating 1.5s linear infinite;
+        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
         visibility: visible;
     }
     
@@ -835,7 +844,29 @@ li.smart_autocomplete_highlight {
         width: 36px;
         height: 36px;
         margin-top: 0;
-        background: url("images/spinner2x.png") 50% no-repeat;
-        background-size: 100%;
+        background: url("images/spinner_large_sprites36.png") no-repeat;
+
+        &.spin {
+            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        }
     }
+}
+// Retina versions
+@media only screen and (-webkit-min-device-pixel-ratio: 2), 
+       only screen and (min-device-pixel-ratio: 2) {
+    .spinner {
+        background-image: url("images/spinner_small_sprites12@2x.png");
+        background-size: 120px 12px;
+
+        &.large {
+            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
+            background-size: 360px 36px;
+        }
+    }
+}
+
+
+/* Turn on text selection for JSLint error messages */
+#jslint-results {
+    .user-select(text);
 }
