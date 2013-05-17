@@ -98,8 +98,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
         menu.addMenuItem(Commands.SHOW_CODE_HINTS);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
 
         /*
          * View menu

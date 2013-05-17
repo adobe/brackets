@@ -517,6 +517,10 @@ define(function (require, exports, module) {
         return hintList;
     }
 
+    // Dismiss code hints before executing any command since the command
+    // may make the current hinting session irrevalent after execution. 
+    // For example, when the user hits Ctrl+K to open Quick Doc, it is 
+    // pointless to keep the hint list since the user wants to view the Quick Doc.
     $(CommandManager).on("beforeExecuteCommand", _endSession);
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
