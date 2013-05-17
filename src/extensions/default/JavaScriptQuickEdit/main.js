@@ -104,80 +104,63 @@ define(function (require, exports, module) {
      *      or null if we're not going to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
+        // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
+        var helper = EditorManager.getQuickEditHelper();
+        if (helper === null) {
+            return null;
+        }
+
         var result = new $.Deferred();
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_INLINE_CREATE);
 
-        // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
-        var helper = EditorManager.getQuickEditHelper();
-        if (helper !== null) {
-            var response = helper();
-            if (response.hasOwnProperty("promise")) {
-                response.promise.done(function (jumpResp) {
-                    var resolvedPath = jumpResp.fullPath;
-                    if (resolvedPath) {
+        var response = helper();
+        if (response.hasOwnProperty("promise")) {
+            response.promise.done(function (jumpResp) {
+                var resolvedPath = jumpResp.fullPath;
+                if (resolvedPath) {
 
-                        // Tern doesn't always return entire function extent.
-                        // Use QuickEdit search now that we know which file to look at.
-                        var fileInfos = [];
-                        fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
-                        JSUtils.findMatchingFunctions(functionName, fileInfos)
-                            .done(function (functions) {
-                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                                jsInlineEditor.load(hostEditor);
-                                
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.resolve(jsInlineEditor);
-                            })
-                            .fail(function () {
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.reject();
-                            });
-
-                    } else {        // no result from Tern.  Fall back to _findInProject().
-
-                        _findInProject(functionName).done(function (functions) {
-                            if (functions && functions.length > 0) {
-                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                                jsInlineEditor.load(hostEditor);
-                                
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.resolve(jsInlineEditor);
-                            } else {
-                                // No matching functions were found
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.reject();
-                            }
-                        }).fail(function () {
-                            PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                    // Tern doesn't always return entire function extent.
+                    // Use QuickEdit search now that we know which file to look at.
+                    var fileInfos = [];
+                    fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
+                    JSUtils.findMatchingFunctions(functionName, fileInfos)
+                        .done(function (functions) {
+                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                            jsInlineEditor.load(hostEditor);
+                            
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.resolve(jsInlineEditor);
+                        })
+                        .fail(function () {
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                             result.reject();
                         });
-                    }
 
-                }).fail(function () {
-                    PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                    result.reject();
-                });
+                } else {        // no result from Tern.  Fall back to _findInProject().
 
-            }
-
-        } else {
-
-            _findInProject(functionName).done(function (functions) {
-                if (functions && functions.length > 0) {
-                    var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                    jsInlineEditor.load(hostEditor);
-                    
-                    PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                    result.resolve(jsInlineEditor);
-                } else {
-                    // No matching functions were found
-                    PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                    result.reject();
+                    _findInProject(functionName).done(function (functions) {
+                        if (functions && functions.length > 0) {
+                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                            jsInlineEditor.load(hostEditor);
+                            
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.resolve(jsInlineEditor);
+                        } else {
+                            // No matching functions were found
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.reject();
+                        }
+                    }).fail(function () {
+                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                        result.reject();
+                    });
                 }
+
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                 result.reject();
             });
+
         }
 
         return result.promise();
