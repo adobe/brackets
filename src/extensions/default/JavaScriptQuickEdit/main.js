@@ -105,7 +105,7 @@ define(function (require, exports, module) {
      */
     function _createInlineEditor(hostEditor, functionName) {
         // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
-        var helper = EditorManager.getQuickEditHelper();
+        var helper = brackets._jsCodeHintsHelper;
         if (helper === null) {
             return null;
         }
