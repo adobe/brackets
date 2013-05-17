@@ -1084,6 +1084,16 @@ define(function (require, exports, module) {
                 hintsPresentOrdered(hintObj, ["shift", "shiftKey"]);
             });
 
+            it("should handle valid non-ascii characters in a property name", function () {
+                var start = { line: 153, ch: 0 },
+                    end   = { line: 153, ch: 13 };
+
+                testDoc.replaceRange("hope.frenchçP", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                // check we have a properties that start with "shift"
+                hintsPresentOrdered(hintObj, ["frenchçProp"]);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {

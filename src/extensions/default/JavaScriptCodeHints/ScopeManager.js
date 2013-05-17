@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         FileIndexManager    = brackets.getModule("project/FileIndexManager"),
-        HintUtils           = require("HintUtils");
+        HintUtils           = require("HintUtils"),
+        MessageIds          = require("MessageIds");
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
         numInitialFiles = files.length;
 
         _ternWorker.postMessage({
-            type        : HintUtils.TERN_INIT_MSG,
+            type        : MessageIds.TERN_INIT_MSG,
             dir         : dir,
             files       : files,
             env         : ternEnvironment
@@ -107,7 +108,7 @@ define(function (require, exports, module) {
 
             numAddedFiles += files.length;
             _ternWorker.postMessage({
-                type        : HintUtils.TERN_ADD_FILES_MSG,
+                type        : MessageIds.TERN_ADD_FILES_MSG,
                 files       : files
             });
 
@@ -410,14 +411,14 @@ define(function (require, exports, module) {
      */
     function getJumptoDef(dir, file, offset, text) {
         postMessage({
-            type: HintUtils.TERN_JUMPTODEF_MSG,
+            type: MessageIds.TERN_JUMPTODEF_MSG,
             dir: dir,
             file: file,
             offset: offset,
             text: text
         });
 
-        return addPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
+        return addPendingRequest(file, offset, MessageIds.TERN_JUMPTODEF_MSG);
     }
 
     /**
@@ -451,7 +452,7 @@ define(function (require, exports, module) {
         var file = response.file,
             offset = response.offset;
         
-        var $deferredJump = getPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_JUMPTODEF_MSG);
         
 //        pendingTernRequests[file] = null;
         
@@ -473,7 +474,7 @@ define(function (require, exports, module) {
      */
     function getTernHints(dir, file, offset, text, isProperty) {
         postMessage({
-            type: HintUtils.TERN_COMPLETIONS_MSG,
+            type: MessageIds.TERN_COMPLETIONS_MSG,
             dir: dir,
             file: file,
             offset: offset,
@@ -481,7 +482,7 @@ define(function (require, exports, module) {
             isProperty: isProperty
         });
         
-        return addPendingRequest(file, offset, HintUtils.TERN_COMPLETIONS_MSG);
+        return addPendingRequest(file, offset, MessageIds.TERN_COMPLETIONS_MSG);
     }
 
     /**
@@ -497,7 +498,7 @@ define(function (require, exports, module) {
      */
     function getTernFunctionType(dir, file, pos, offset, text) {
         postMessage({
-            type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
+            type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
             dir: dir,
             file: file,
             pos: pos,
@@ -505,7 +506,7 @@ define(function (require, exports, module) {
             text: text
         });
 
-        return addPendingRequest(file, offset, HintUtils.TERN_CALLED_FUNC_TYPE_MSG);
+        return addPendingRequest(file, offset, MessageIds.TERN_CALLED_FUNC_TYPE_MSG);
     }
     
     
@@ -580,14 +581,14 @@ define(function (require, exports, module) {
             $deferred = $.Deferred();
 
         postMessage({
-            type: HintUtils.TERN_GET_GUESSES_MSG,
+            type: MessageIds.TERN_GET_GUESSES_MSG,
             dir: "",
             file: path,
             offset: offset,
             text: text
         });
 
-        var promise = addPendingRequest(path, offset, HintUtils.TERN_GET_GUESSES_MSG);
+        var promise = addPendingRequest(path, offset, MessageIds.TERN_GET_GUESSES_MSG);
         promise.done(function (guesses) {
             session.setGuesses(guesses);
             $deferred.resolve();
@@ -642,7 +643,7 @@ define(function (require, exports, module) {
 
         function replyWith(name, txt) {
             _postMessageByPass({
-                type: HintUtils.TERN_GET_FILE_MSG,
+                type: MessageIds.TERN_GET_FILE_MSG,
                 file: name,
                 text: txt
             });
@@ -722,12 +723,12 @@ define(function (require, exports, module) {
      */
     function primePump(path, text) {
         _postMessageByPass({
-            type        : HintUtils.TERN_PRIME_PUMP_MSG,
+            type        : MessageIds.TERN_PRIME_PUMP_MSG,
             path        : path,
             text        : text
         });
 
-        return addPendingRequest(path, 0, HintUtils.TERN_PRIME_PUMP_MSG);
+        return addPendingRequest(path, 0, MessageIds.TERN_PRIME_PUMP_MSG);
     }
 
     /**
@@ -776,12 +777,12 @@ define(function (require, exports, module) {
         var path  = document.file.fullPath;
 
         _postMessageByPass({
-            type       : HintUtils.TERN_UPDATE_FILE_MSG,
+            type       : MessageIds.TERN_UPDATE_FILE_MSG,
             path       : path,
             text       : document.getText()
         });
 
-        return addPendingRequest(path, 0, HintUtils.TERN_UPDATE_FILE_MSG);
+        return addPendingRequest(path, 0, MessageIds.TERN_UPDATE_FILE_MSG);
     }
 
     /**
@@ -933,20 +934,20 @@ define(function (require, exports, module) {
         var response = e.data,
             type = response.type;
 
-        if (type === HintUtils.TERN_COMPLETIONS_MSG ||
-                type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
+        if (type === MessageIds.TERN_COMPLETIONS_MSG ||
+                type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
             // handle any completions the worker calculated
             handleTernCompletions(response);
-        } else if (type === HintUtils.TERN_GET_FILE_MSG) {
+        } else if (type === MessageIds.TERN_GET_FILE_MSG) {
             // handle a request for the contents of a file
             handleTernGetFile(response);
-        } else if (type === HintUtils.TERN_JUMPTODEF_MSG) {
+        } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
             handleJumptoDef(response);
-        } else if (type === HintUtils.TERN_PRIME_PUMP_MSG) {
+        } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
             handlePrimePumpCompletion(response);
-        } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
+        } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
             handleGetGuesses(response);
-        } else if (type === HintUtils.TERN_UPDATE_FILE_MSG) {
+        } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
             handleUpdateFile(response);
         } else {
             console.log("Worker: " + (response.log || response));
