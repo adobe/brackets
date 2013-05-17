@@ -1069,7 +1069,7 @@ define(function (require, exports, module) {
      */
     function notifyFileDeleted(file, skipAutoSelect) {
         // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file);
+        closeFullEditor(file, skipAutoSelect);
         
         // Notify all other editors to close as well
         var doc = getOpenDocumentForPath(file.fullPath);
