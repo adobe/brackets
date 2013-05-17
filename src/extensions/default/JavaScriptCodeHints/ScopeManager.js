@@ -266,8 +266,7 @@ define(function (require, exports, module) {
      *  Add the files in the directory and subdirectories of a given directory
      *  to tern.
      *
-     * @param {string} dir - the directory to add
-     * be included.
+     * @param {string} dir - the root directory to add.
      * @param {function ()} doneCallback - called when all files have been
      * added to tern.
      */
@@ -279,8 +278,7 @@ define(function (require, exports, module) {
          *  Add the files in the directory and subdirectories of a given directory
          *  to tern, excluding the rootTernDir).
          *
-         * @param {string} dir - the directory to add
-         * be included.
+         * @param {string} dir - the root directory to add.
          * @param {function()} successCallback - callback when
          * done processing files.
          */
@@ -334,6 +332,7 @@ define(function (require, exports, module) {
                 }
             }
 
+            dir = FileUtils.canonicalizeFolderPath(dir);
             forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
         }
 
@@ -876,7 +875,9 @@ define(function (require, exports, module) {
                         addAllFilesAndSubdirectories(dir, function () {
                             // If the file is in the project root, then read
                             // all the files under the project root.
-                            if (projectRoot && (dir + "/").indexOf(projectRoot) === 0) {
+                            var currentDir = (dir + "/");
+                            if (projectRoot && currentDir !== projectRoot &&
+                                    currentDir.indexOf(projectRoot) === 0) {
                                 addAllFilesAndSubdirectories(projectRoot, function () {
                                     // prime the pump again but this time don't wait
                                     // for completion.
