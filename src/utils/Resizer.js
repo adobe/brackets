@@ -111,7 +111,7 @@ define(function (require, exports, module) {
      * @param {DOMNode} element Html element to toggle
      * @return {boolean} true if element is visible, false if it is not visible
      */
-    function visible(element) {
+    function isVisible(element) {
         return $(element).is(":visible");
     }
     
@@ -441,7 +441,7 @@ define(function (require, exports, module) {
     exports.toggle          = toggle;
     exports.show            = show;
     exports.hide            = hide;
-    exports.visible         = visible;
+    exports.isVisible       = isVisible;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
