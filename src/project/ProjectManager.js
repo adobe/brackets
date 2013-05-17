@@ -1392,12 +1392,33 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         entry.remove(function () {
-            // Notify that one of the project files has changed
-            $(exports).triggerHandler("projectFilesDelete");
-
             _findTreeNode(entry).done(function ($node) {
+                _projectTree.one("delete_node.jstree", function () {
+                    // When a node is deleted, the previous node is automatically selected.
+                    // This works fine as long as the previous node is a file, but doesn't 
+                    // work so well if the node is a folder
+                    var sel     = _projectTree.jstree("get_selected"),
+                        entry   = sel ? sel.data("entry") : null;
+                    
+                    if (entry && entry.isDirectory) {
+                        // Make sure it didn't turn into a leaf node. This happens if
+                        // the only file in the directory was deleted
+                        if (sel.hasClass("jstree-leaf")) {
+                            sel.removeClass("jstree-leaf jstree-open");
+                            sel.addClass("jstree-closed");
+                        }
+                    }
+                });
+                var oldSuppressToggleOpen = suppressToggleOpen;
+                suppressToggleOpen = true;
                 _projectTree.jstree("delete_node", $node);
+                suppressToggleOpen = oldSuppressToggleOpen;
             });
+            
+            // Notify that one of the project files has changed
+            $(exports).triggerHandler("projectFilesChange");
+            
+            DocumentManager.notifyPathDeleted(entry.fullPath);
 
             _redraw(true);
             result.promise();

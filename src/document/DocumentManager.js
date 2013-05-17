@@ -76,6 +76,7 @@
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
+ *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -478,8 +479,9 @@ define(function (require, exports, module) {
      * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
      */
-    function closeFullEditor(file) {
+    function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -491,7 +493,7 @@ define(function (require, exports, module) {
             }
             
             // Switch editor to next document (or blank it out)
-            if (nextFile) {
+            if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
                     .done(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
@@ -1063,8 +1065,9 @@ define(function (require, exports, module) {
      * sort of "project file model," making this just a private event handler.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
-    function notifyFileDeleted(file) {
+    function notifyFileDeleted(file, skipAutoSelect) {
         // First ensure it's not currentDocument, and remove from working set
         closeFullEditor(file);
         
@@ -1212,6 +1215,27 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Called after a file or folder has been deleted. This function is responsible 
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} path The path of the file/folder that has been deleted
+     */
+    function notifyPathDeleted(path) {
+        var i, docPath;
+        
+        for (docPath in _openDocuments) {
+            if (FileUtils.isAffectedWhenRenaming(docPath, path)) {
+                // This will close the doc and remove from the working set
+                notifyFileDeleted(new NativeFileSystem.FileEntry(docPath), true);
+                delete _openDocuments[docPath];
+            }
+        }
+        
+        // Send a "pathDeleted" event. This will trigger the views to update.
+        $(exports).triggerHandler("pathDeleted", path);
+    }
+    
+    /**
      * @private
      * Update document
      */
@@ -1262,6 +1286,7 @@ define(function (require, exports, module) {
     exports.closeAll                    = closeAll;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
+    exports.notifyPathDeleted           = notifyPathDeleted;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(module);
