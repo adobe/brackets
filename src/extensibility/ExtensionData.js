@@ -378,6 +378,8 @@ function createRootObject() {
                     console.log(message);
                 });
                 
+                this.addObject("brackets.ready");
+                this.channels.add("brackets.core.ready");
                 this.channels.add("brackets.serviceRegistry.addObject");
                 this.channels.add("brackets.serviceRegistry.addFunction");
                 this.channels.brackets.serviceRegistry.addObject.subscribe(addObjectFromRemote.bind(this));

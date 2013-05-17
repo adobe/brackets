@@ -130,6 +130,7 @@
     // extension).
     locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
+        console.log("Going to require brackets");
         require(["brackets"], function () {});
     </script>
 

@@ -51,14 +51,21 @@ define(function (require, exports, module) {
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
-    ExtensionData._brackets.__initializeMaster();
-    ExtensionData._brackets.channels.add("brackets.extension.loaded");
-    ExtensionData._brackets.channels.add("brackets.extension.disabled");
-    var extensionLoaded = ExtensionData._brackets.channels.brackets.extension.loaded;
-    var extensionDisabled = ExtensionData._brackets.channels.brackets.extension.disabled;
+    var builtInServices = ExtensionData._brackets;
+    builtInServices.channels.add("brackets.extension.loaded");
+    builtInServices.channels.add("brackets.extension.disabled");
+    var extensionLoaded = builtInServices.channels.brackets.extension.loaded;
+    var extensionDisabled = builtInServices.channels.brackets.extension.disabled;
     extensionLoaded.subscribe(function (e) {
         console.log(e.name, "is done loading");
     });
+    
+    console.log("Publishing to core.ready");
+    builtInServices.channels.brackets.core.ready.publish({
+        module: "ExtensionLoader",
+        state: "servicesRegistered"
+    });
+    builtInServices.addObject("brackets.ready.extensionLoader");
     
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.

@@ -44,8 +44,21 @@ function createWrapper(name, options) {
     };
 }
 
+function clearRequireCache(base) {
+    Object.keys(require.cache).forEach(function (module) {
+        if (module.indexOf(base) === 0) {
+            delete require.cache[module];
+        }
+    });
+}
+
 function _cmdInitialize(registryID, data) {
     ExtensionData._brackets.__initialize(registryID, JSON.parse(data), createWrapper);
+    ExtensionData._brackets.channels.brackets.extension.disabled.subscribe(function (e) {
+        var services = ExtensionData.getServices(e.name);
+        services.__removeAll();
+        clearRequireCache(services.__meta.extension.baseUrl);
+    });
 }
 
 function _cmdLoadExtension(name, baseUrl, callback) {
@@ -53,7 +66,9 @@ function _cmdLoadExtension(name, baseUrl, callback) {
     if (fs.existsSync(nodeMainPath + ".js")) {
         var nodeMain = require(nodeMainPath);
         if (nodeMain.init) {
-            var promise = nodeMain.init(ExtensionData.getServices(name));
+            var services = ExtensionData.getServices(name);
+            services.__meta.extension.baseUrl = baseUrl;
+            var promise = nodeMain.init(services);
             if (promise) {
                 promise.done(callback);
             } else {

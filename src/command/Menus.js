@@ -792,6 +792,11 @@ define(function (require, exports, module) {
         $(".dropdown").removeClass("open");
     }
     
+    // TODO: this should actually take advantage of a mechanism (that does not exist)
+    // on the ServiceRegistry for notifications of removals of items in part of the
+    // registry
+    var extensionMenuItems = {};
+    
     /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
      *
@@ -827,6 +832,12 @@ define(function (require, exports, module) {
         menuMap[id] = menu;
         
         builtInServices.addFunction("menus." + generateFriendlyId(id) + ".addItem", function (id) {
+            var extension = this.__meta.extension.name;
+            var items = extensionMenuItems[extension];
+            if (!items) {
+                items = extensionMenuItems[extension] = [];
+            }
+            items.push([menu, id]);
             menu.addMenuItem(id);
         });
 
@@ -1017,6 +1028,35 @@ define(function (require, exports, module) {
             cmenu.addMenuItem(id);
         });
         return cmenu;
+    }
+    
+    var extensionsMenu = addMenu("Extensions", "extensions-menu", "last");
+    
+    function subscribeToChannels() {
+        builtInServices.channels.brackets.extension.loaded.subscribe(function (e) {
+            var services = ExtensionData.getServices(e.name);
+            services.commands.add("Disable " + e.name, "disable-" + e.name, function () {
+                services.__removeAll();
+                var menuitems = extensionMenuItems[e.name];
+                if (menuitems) {
+                    menuitems.forEach(function (menuitem) {
+                        menuitem[0].removeMenuItem(menuitem[1]);
+                    });
+                }
+                builtInServices.channels.brackets.extension.disabled.publish(e);
+            });
+            services.menus.extensionsMenu.addItem("disable-" + e.name);
+        });
+    }
+    
+    if (!builtInServices.brackets.ready.extensionLoader) {
+        builtInServices.channels.brackets.core.ready.subscribe(function (e) {
+            if (e.module === "ExtensionLoader") {
+                subscribeToChannels();
+            }
+        });
+    } else {
+        subscribeToChannels();
     }
 
     /** NOT IMPLEMENTED

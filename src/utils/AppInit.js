@@ -39,6 +39,11 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var ExtensionData = require("extensibility/ExtensionData");
+    console.log("initializing master");
+    ExtensionData._brackets.__initializeMaster();
+
+
     // Fires when the base htmlContent/main-view.html is loaded
     var HTML_READY  = "htmlReady";
 

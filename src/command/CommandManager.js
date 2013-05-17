@@ -243,13 +243,39 @@ define(function (require, exports, module) {
         }
     }
     
+    function unregister(id) {
+        delete _commands[id];
+    }
+    
+    // hacky temporary registry
+    var extensionCommands = {};
+    
     builtInServices.addFunction("commands.add", function (name, id, fn) {
         console.log("Added command via new API", name);
         register(name, id, fn.bind(this));
+        var extension = this.__meta.extension.name;
+        var ec = extensionCommands[extension];
+        if (!ec) {
+            ec = extensionCommands[extension] = [];
+        }
+        ec.push(id);
+    });
+    
+    builtInServices.channels.brackets.core.ready.subscribe(function (e) {
+        if (e.module === "ExtensionLoader") {
+            console.log("ExtensionLoader is ready, so command manager is subscribing");
+            builtInServices.channels.brackets.extension.disabled.subscribe(function (e) {
+                var commands = extensionCommands[e.name];
+                commands.forEach(function (id) {
+                    unregister(id);
+                });
+            });
+        }
     });
 
     // Define public API
     exports.register        = register;
+    exports.unregister      = unregister;
     exports.execute         = execute;
     exports.get             = get;
     exports.getAll          = getAll;
