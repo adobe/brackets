@@ -112,7 +112,7 @@ define(function (require, exports, module) {
         reloaders[name] = function () {
             delete contexts[name];
             extensionRequire.undef(entryPoint);
-            loadExtension(name, config, entryPoint);
+            loadExtension(name, config, entryPoint, true);
         };
         AppInit.appReady(function () {
             extensionRequire(["text!" + baseUrl + "/package.json"],
@@ -145,14 +145,19 @@ define(function (require, exports, module) {
      *              if the extension fails to load or throws an exception immediately when loaded.
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
-    function loadExtension(name, config, entryPoint) {
+    function loadExtension(name, config, entryPoint, cacheBust) {
+        var urlArgs;
+        if (cacheBust) {
+            urlArgs = "bust=" + (new Date()).getTime();
+        }
         var result = new $.Deferred(),
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: globalConfig,
-                locale: brackets.getLocale()
+                locale: brackets.getLocale(),
+                urlArgs: urlArgs
             });
         contexts[name] = extensionRequire;
 
