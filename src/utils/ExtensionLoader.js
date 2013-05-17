@@ -125,7 +125,9 @@ define(function (require, exports, module) {
                     var services = ExtensionData.getServices(name);
                     services.metadata = metadata;
                     mainModule.init(services);
+                    console.log("Loading the node side", name);
                     NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services).done(function () {
+                        console.log("node side done", name);
                         extensionLoaded.publish({
                             name: name
                         });

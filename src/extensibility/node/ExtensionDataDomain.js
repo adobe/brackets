@@ -74,7 +74,11 @@ function _cmdLoadExtension(name, baseUrl, callback) {
             } else {
                 callback();
             }
+        } else {
+            callback();
         }
+    } else {
+        callback();
     }
 }
 

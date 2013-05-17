@@ -45,6 +45,8 @@ function loadNodeExtension(name, baseUrl, mainModule, services) {
                 if (mainModule.nodeReady) {
                     mainModule.nodeReady(services);
                     deferred.resolve();
+                } else {
+                    deferred.resolve();
                 }
             });
             
