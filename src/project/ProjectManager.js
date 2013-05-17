@@ -1299,7 +1299,7 @@ define(function (require, exports, module) {
 
                 result.resolve();
             } else {
-                // Show and error alert
+                // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_RENAMING_FILE_TITLE,
@@ -1383,6 +1383,62 @@ define(function (require, exports, module) {
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
+
+    /**
+     * Delete file or directore from project
+     * @param {!Entry} entry FileEntry or DirectoryEntry to delete
+     */
+    function deleteItem(entry) {
+        var result = new $.Deferred();
+
+        entry.remove(function () {
+            _findTreeNode(entry).done(function ($node) {
+                _projectTree.one("delete_node.jstree", function () {
+                    // When a node is deleted, the previous node is automatically selected.
+                    // This works fine as long as the previous node is a file, but doesn't 
+                    // work so well if the node is a folder
+                    var sel     = _projectTree.jstree("get_selected"),
+                        entry   = sel ? sel.data("entry") : null;
+                    
+                    if (entry && entry.isDirectory) {
+                        // Make sure it didn't turn into a leaf node. This happens if
+                        // the only file in the directory was deleted
+                        if (sel.hasClass("jstree-leaf")) {
+                            sel.removeClass("jstree-leaf jstree-open");
+                            sel.addClass("jstree-closed");
+                        }
+                    }
+                });
+                var oldSuppressToggleOpen = suppressToggleOpen;
+                suppressToggleOpen = true;
+                _projectTree.jstree("delete_node", $node);
+                suppressToggleOpen = oldSuppressToggleOpen;
+            });
+            
+            // Notify that one of the project files has changed
+            $(exports).triggerHandler("projectFilesChange");
+            
+            DocumentManager.notifyPathDeleted(entry.fullPath);
+
+            _redraw(true);
+            result.promise();
+        }, function (err) {
+            // Show an error alert
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_DELETING_FILE_TITLE,
+                StringUtils.format(
+                    Strings.ERROR_DELETING_FILE,
+                    StringUtils.htmlEscape(entry.fullPath),
+                    FileUtils.getFileErrorString(err)
+                )
+            );
+
+            result.reject(err);
+        });
+
+        return result;
+    }
     
     /**
      * Forces createNewItem() to complete by removing focus from the rename field which causes
@@ -1448,6 +1504,7 @@ define(function (require, exports, module) {
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
     exports.createNewItem            = createNewItem;
     exports.renameItemInline         = renameItemInline;
+    exports.deleteItem               = deleteItem;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
 });

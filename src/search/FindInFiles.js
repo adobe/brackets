@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
+        FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
         StatusBar           = require("widgets/StatusBar"),
@@ -455,8 +456,21 @@ define(function (require, exports, module) {
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
+  
+    function _pathDeletedHandler(event, path) {
+        if ($searchResultsDiv.is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item, idx) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                    searchResults.splice(idx, 1);
+                }
+            });
+            _showSearchResults(searchResults, currentQuery, currentScope);
+        }
+    }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
