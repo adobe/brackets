@@ -121,11 +121,11 @@ define(function (require, exports, module) {
             });
             
             it("should keep the same font size when opening another document", function () {
-                var promise, expectedSize, editor;
+                var promise, originalSize, editor;
                 
                 runs(function () {
                     editor       = EditorManager.getCurrentFullEditor();
-                    expectedSize = editor.getTextHeight() + 1;
+                    originalSize = editor.getTextHeight();
                     
                     promise = CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     waitsForDone(promise, "Increase font size");
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
-                    expect(editor.getTextHeight()).toBe(expectedSize);
+                    expect(editor.getTextHeight()).toBeGreaterThan(originalSize);
                 });
                 
                 // This must be in the last spec in the suite.
