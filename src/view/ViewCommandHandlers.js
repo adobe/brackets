@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * The ratio of line-height to font-size when they use the same units
      * @type {float}
      */
-    var LINE_HEIGHT = 1.3;
+    var LINE_HEIGHT = 1.25;
     
     /**
      * @private
@@ -175,8 +175,8 @@ define(function (require, exports, module) {
         if (fsUnits === lhUnits) {
             lhNew = fsNew * LINE_HEIGHT;
             if (lhUnits === "px") {
-                // Use integer px value to avoid subsequent round-off differences
-                lhNew = Math.round(lhNew);
+                // Use integer px value to avoid rounding differences
+                lhNew = Math.ceil(lhNew);
             }
         }
         
