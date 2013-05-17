@@ -337,9 +337,12 @@ define({
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
 	"EXTENSION_MANAGER_REMOVE": "[6958947] !é=Remove Extension=!",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "[6958948] !é=Unable to remove extension: {{0}}=!",
-	"QUIT_BRACKETS_AFTER_REMOVAL": "[6958951] !é=After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
-	"QUIT_BRACKETS": "[6958950] !é=Quit Brackets=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "[6958948] !é=Unable to remove one or more extensions: {{0}}. Brackets will still quit.=!",
+	"MARKED_FOR_REMOVAL": "[6966720] !é=Marked for removal=!",
+	"UNDO_REMOVE": "Annuler",
+	"REMOVE_AND_QUIT_TITLE": "[6966723] !é=Remove Extensions=!",
+	"REMOVE_AND_QUIT_MESSAGE": "[6966722] !é=To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
+	"REMOVE_AND_QUIT": "[6966721] !é=Remove Extensions and Quit=!",
 	"EXTENSION_NOT_INSTALLED": "[6958949] !é=Couldn't remove extension {{0}} because it wasn't installed.=!",
     
     /**
