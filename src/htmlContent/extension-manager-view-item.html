@@ -27,6 +27,9 @@
         {{^metadata.description}}
             <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
         {{/metadata.description}}
+        {{#metadata.homepage}}
+            <p><a href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
+        {{/metadata.homepage}}
         {{#metadata.keywords.length}}
             <br/>
             <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:

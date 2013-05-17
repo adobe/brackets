@@ -551,6 +551,13 @@ define(function (require, exports, module) {
                             return "Expected view" + notText + " to contain text " + expected;
                         };
                         return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                    },
+                    toHaveLink: function (expected) {
+                        var notText = this.isNot ? " not" : "";
+                        this.message = function () {
+                            return "Expected view" + notText + " to contain link " + expected;
+                        };
+                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
                     }
                 });
                 spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
@@ -585,6 +592,9 @@ define(function (require, exports, module) {
                                         expect(view).toHaveText(value);
                                     }
                                 });
+                            if (item.metadata.homepage) {
+                                expect(view).toHaveLink(item.metadata.homepage);
+                            }
                             
                             // Array-valued fields
                             [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
