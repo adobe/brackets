@@ -242,6 +242,7 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Help menu commands
     "HELP_MENU"                           : "Help",
@@ -340,9 +341,12 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove extension: {{0}}",
-    "QUIT_BRACKETS_AFTER_REMOVAL"          : "After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
-    "QUIT_BRACKETS"                        : "Quit Brackets",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. Brackets will still quit.",
+    "MARKED_FOR_REMOVAL"                   : "Marked for removal",
+    "UNDO_REMOVE"                          : "Undo",
+    "REMOVE_AND_QUIT_TITLE"                : "Remove Extensions",
+    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
     
     /**

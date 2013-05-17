@@ -241,7 +241,7 @@ define(function (require, exports, module) {
         
     function _showSearchResults(searchResults, query, scope) {
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table' />")
+            var $resultTable = $("<table class='zebra-striped row-highlight condensed-table' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -437,13 +437,7 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
         var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
         doFindInFiles(selectedEntry);
     }
     

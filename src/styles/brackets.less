@@ -247,25 +247,30 @@ a, img {
 }
 
 .bottom-panel {
+    background-color: @tc-gray-panel;
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
-    border-color: lighten(@bc-grey, @bc-color-step-size*4);
+    border-color: @tc-gray-panel-border;
     
     .toolbar {
+        background-color: @tc-gray-panel-top-bar;
+        border-bottom: @tc-gray-panel-top-bar-shadow;
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
         z-index: @z-index-brackets-results-panel;
-        .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
         .title {
+            color: @tc-text;
             font-size: @label-font-size;
-            font-weight: bold;
+            font-weight: @font-weight-semibold;
         }
         .close {
             position: absolute;
             right: 10px;
+            top: 6px;
         }
     }
     
@@ -274,16 +279,18 @@ a, img {
         overflow: auto;
 
         td {
+            font-size: 12px;
             padding-left: @base-padding;
             padding-right: @base-padding;
         }
         
         .highlight {
-            background: #d2dcf8;
+            background: #fff;
+            border-radius: 2px;
         }
         
         tr.selected td {
-            background-color: @bc-light-blue;
+            background-color: @tc-highlight;
         }
     }
 }
@@ -325,10 +332,10 @@ a, img {
 }
 
 #toolbar-extension-manager {
-    .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
-    margin-left: 1px !important;
+    .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
+    opacity: 0.7;
     &:hover {
-        background-position: -18px 0;
+        opacity: 0.5;
     }
 }
 
@@ -699,6 +706,7 @@ a, img {
 }
 
 #search-results td {
+    padding-left: 3px;
     vertical-align: baseline;
 }
 

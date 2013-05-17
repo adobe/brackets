@@ -115,13 +115,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {boolean}
-     * Whether the user should be prompted to quit Brackets when the view is disposed.
-     */
-    ExtensionManagerView.prototype._quitRequired = false;
-    
-    /**
-     * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
      */
     ExtensionManagerView.prototype._setupEventHandlers = function () {
@@ -155,18 +148,24 @@ define(function (require, exports, module) {
         // UI event handlers
         this.$el
             .on("click", "a", function (e) {
-                // Intercept clicks on external links to open in the native browser.
+                // Never allow the default behavior for links--we don't want
+                // them to navigate out of Brackets!
                 e.stopImmediatePropagation();
                 e.preventDefault();
-                NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
+                
+                var $target = $(e.target);
+                if ($target.hasClass("undo-remove")) {
+                    self.model.markForRemoval($target.attr("data-extension-id"), false);
+                } else {
+                    // Open any other link in the external browser.
+                    NativeApp.openURLInDefaultBrowser($target.attr("href"));
+                }
             })
             .on("click", "button.install", function (e) {
-                // "this" is correct here (it's the button)
-                self._installUsingDialog($(this).attr("data-extension-id"));
+                self._installUsingDialog($(e.target).attr("data-extension-id"));
             })
             .on("click", "button.remove", function (e) {
-                // "this" is correct here (it's the button)
-                self._remove($(this).attr("data-extension-id"));
+                self.model.markForRemoval($(e.target).attr("data-extension-id"), true);
             });
     };
     
@@ -212,6 +211,7 @@ define(function (require, exports, module) {
         context.allowInstall = context.isCompatible && !context.isInstalled;
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        context.isMarkedForRemoval = this.model.isMarkedForRemoval(info.metadata.name);
         
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
@@ -255,30 +255,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @private
-     * Remove the extension at the given path.
-     * @param {string} path Full local path to the extension to remove.
-     */
-    ExtensionManagerView.prototype._remove = function (id) {
-        var self = this;
-        ExtensionManager.remove(id)
-            .done(function () {
-                self._quitRequired = true;
-            })
-            .fail(function (err) {
-                var errInfo = (err instanceof Error ? err.message : err);
-                if (Strings[errInfo]) {
-                    errInfo = Strings[errInfo];
-                }
-                if (!errInfo) {
-                    errInfo = Strings.UNKNOWN_ERROR;
-                }
-                Dialogs.showModalDialog("error-dialog", Strings.EXTENSION_MANAGER_REMOVE,
-                                        StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, errInfo));
-            });
-    };
-    
-    /**
      * Filters the contents of the view.
      * @param {string} query The query to filter by.
      */
@@ -288,19 +264,42 @@ define(function (require, exports, module) {
     
     /**
      * Disposes the view. Must be called when the view goes away.
+     * @param {boolean} _skipRemoval Whether to skip removal of marked extensions. Only for unit testing.
      */
-    ExtensionManagerView.prototype.dispose = function () {
-        this.model.dispose();
+    ExtensionManagerView.prototype.dispose = function (_skipRemoval) {
+        var self = this;
         
         // If an extension was removed, prompt the user to quit Brackets.
-        if (this._quitRequired) {
-            Dialogs.showModalDialog("quit-brackets-after-removal", Strings.EXTENSION_MANAGER_TITLE,
-                                    Strings.QUIT_BRACKETS_AFTER_REMOVAL)
+        if (!_skipRemoval && this.model.hasExtensionsToRemove()) {
+            Dialogs.showModalDialog("remove-marked-extensions", Strings.REMOVE_AND_QUIT_TITLE,
+                                    Strings.REMOVE_AND_QUIT_MESSAGE)
                 .done(function (buttonId) {
                     if (buttonId === "ok") {
-                        CommandManager.execute(Commands.FILE_QUIT);
+                        self.model.removeMarkedExtensions()
+                            .done(function () {
+                                self.model.dispose();
+                                CommandManager.execute(Commands.FILE_QUIT);
+                            })
+                            .fail(function (errorArray) {
+                                self.model.dispose();
+                                
+                                var ids = [];
+                                errorArray.forEach(function (errorObj) {
+                                    ids.push(errorObj.item);
+                                });
+                                Dialogs.showModalDialog("error-dialog", Strings.EXTENSION_MANAGER_REMOVE,
+                                                        StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", ")))
+                                    .done(function () {
+                                        // We still have to quit even if some of the removals failed.
+                                        CommandManager.execute(Commands.FILE_QUIT);
+                                    });
+                            });
+                    } else {
+                        self.model.dispose();
                     }
                 });
+        } else {
+            this.model.dispose();
         }
     };
     
