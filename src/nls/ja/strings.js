@@ -239,6 +239,7 @@ define({
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
+	"CMD_SHOW_IN_OS": "!能=[6966943] Show in OS_=!",
     
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
@@ -337,9 +338,12 @@ define({
 	"EXTENSION_MORE_INFO_LINK": "詳細",
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
 	"EXTENSION_MANAGER_REMOVE": "!能=[6958947] Remove Extension_=!",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "!能=[6958948] Unable to remove extension: {{0}}_=!",
-	"QUIT_BRACKETS_AFTER_REMOVAL": "!能=[6958951] After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
-	"QUIT_BRACKETS": "!能=[6958950] Quit Brackets_=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "!能=[6958948] Unable to remove one or more extensions: {{0}}. Brackets will still quit._=!",
+	"MARKED_FOR_REMOVAL": "!能=[6966720] Marked for removal_=!",
+	"UNDO_REMOVE": "取り消し",
+	"REMOVE_AND_QUIT_TITLE": "!能=[6966723] Remove Extensions_=!",
+	"REMOVE_AND_QUIT_MESSAGE": "!能=[6966722] To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
+	"REMOVE_AND_QUIT": "!能=[6966721] Remove Extensions and Quit_=!",
 	"EXTENSION_NOT_INSTALLED": "!能=[6958949] Couldn't remove extension {{0}} because it wasn't installed._=!",
     
     /**
