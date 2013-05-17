@@ -35,11 +35,24 @@ define(function (require, exports, module) {
         properties          = JSON.parse(CSSProperties);
     
     /**
+     * Check whether the exclusion is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when inserting hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function _hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
      * @constructor
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
         this.secondaryTriggerKeys = ":";
+        this.exclusion = null;
     }
 
     /**
@@ -61,7 +74,8 @@ define(function (require, exports, module) {
      */
     CssPropHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos();
+        var cursor = this.editor.getCursorPos(),
+            textAfterCursor;
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
@@ -70,8 +84,36 @@ define(function (require, exports, module) {
         }
         
         if (implicitChar) {
+            // If we have an exclusion from previous session, clear it now.
+            if (this.exclusion) {
+                if (this.info.context === CSSUtils.PROP_NAME) {
+                    textAfterCursor = this.info.name.substr(this.info.offset);
+                } else {
+                    textAfterCursor = this.info.value.substr(this.info.offset);
+                }
+                if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
+                    this.exclusion = null;
+                }
+            }
+            
+            if (this.info.context === CSSUtils.PROP_NAME) {
+                // Check if implicitChar is the first character typed before an existing property name.
+                if (!this.exclusion && this.info.offset === 1 && implicitChar === this.info.name[0]) {
+                    this.exclusion = this.info.name.substr(this.info.offset);
+                }
+            }
+            
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
+        } else if (this.info.context === CSSUtils.PROP_NAME) {
+            if (this.info.offset === 0) {
+                this.exclusion = this.info.name;
+            } else if (this.exclusion) {
+                textAfterCursor = this.info.name.substr(this.info.offset);
+                if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
+                    this.exclusion = null;
+                }
+            }
         }
         
         return true;
@@ -86,8 +128,8 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, 
-     *      selectInitial: Boolean>}
+     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 
      * 1. a sorted array hints that consists of strings
@@ -110,6 +152,14 @@ define(function (require, exports, module) {
             selectInitial = true;
         }
         
+        // Clear the exclusion if the user moves the cursor with left/right arrow key.
+        if (this.exclusion && context === CSSUtils.PROP_NAME) {
+            var textAfterCursor = needle.substr(this.info.offset);
+            if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
+                this.exclusion = null;
+            }
+        }
+
         if (context === CSSUtils.PROP_VALUE) {
             if (!properties[needle]) {
                 return null;
@@ -178,11 +228,23 @@ define(function (require, exports, module) {
 
         if (this.info.context === CSSUtils.PROP_NAME) {
             keepHints = true;
-            if (this.info.name.length === 0) {
+            var textAfterCursor = this.info.name.substr(this.info.offset);
+            if (this.info.name.length === 0 || _hasValidExclusion(this.exclusion, textAfterCursor)) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
                 hint += ":";
                 end.ch = start.ch;
+                end.ch += offset;
+                    
+                if (this.exclusion) {
+                    // Append a space to the end of hint to insert and then adjust
+                    // the cursor before that space.
+                    hint += " ";
+                    adjustCursor = true;
+                    newCursor = { line: cursor.line,
+                                  ch: start.ch + hint.length - 1 };
+                    this.exclusion = null;
+                }
             } else {
                 // It's a replacement of an existing one or just typed in property.
                 // So we need to check whether there is an existing colon following 
