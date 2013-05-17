@@ -135,27 +135,22 @@ define(function (require, exports, module) {
 
                     } else {        // no result from Tern.  Fall back to _findInProject().
 
-                        if (!functionName) {
-                            result.reject();
-                        } else {
-
-                            _findInProject(functionName).done(function (functions) {
-                                if (functions && functions.length > 0) {
-                                    var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                                    jsInlineEditor.load(hostEditor);
-                                    
-                                    PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                    result.resolve(jsInlineEditor);
-                                } else {
-                                    // No matching functions were found
-                                    PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                    result.reject();
-                                }
-                            }).fail(function () {
-                                PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                        _findInProject(functionName).done(function (functions) {
+                            if (functions && functions.length > 0) {
+                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                                jsInlineEditor.load(hostEditor);
+                                
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.resolve(jsInlineEditor);
+                            } else {
+                                // No matching functions were found
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                                 result.reject();
-                            });
-                        }
+                            }
+                        }).fail(function () {
+                            PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.reject();
+                        });
                     }
 
                 }).fail(function () {
@@ -213,7 +208,6 @@ define(function (require, exports, module) {
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
         var functionName = _getFunctionName(hostEditor, sel.start);
-
         if (!functionName) {
             return null;
         }

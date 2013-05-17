@@ -166,10 +166,9 @@ define(function (require, exports, module) {
         self.setSelectedIndex(0);
         
         if (this._ranges.length > 1) {      // attach to main container
-            this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
-        } else {                            // no need to show ranges found if there's only one
-            this.$htmlContent.append(this.$editorsDiv);
+            this.$htmlContent.append(this.$relatedContainer);
         }
+        this.$htmlContent.append(this.$editorsDiv);
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);

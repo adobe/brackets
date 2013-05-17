@@ -404,6 +404,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @param {string} file a relative path
+     * @return {string} returns the path we resolved when we tried to parse the file, or undefined
+     */
+    function getResolvedPath(file) {
+        return resolvedFiles[file];
+    }
+
+    /**
      * Get a Promise for the definition from TernJS, for the file & offset passed in.
      * @return {jQuery.Promise} - a promise that will resolve to definition when
      *      it is done
@@ -621,14 +629,6 @@ define(function (require, exports, module) {
                 $deferredHints.resolveWith(null, [fnType]);
             }
         }
-    }
-
-    /**
-     * @param {string} file a relative path
-     * @return {string} returns the path we resolved when we tried to parse the file, or undefined
-     */
-    function getResolvedPath(file) {
-        return resolvedFiles[file];
     }
 
     /**
