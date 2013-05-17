@@ -18,11 +18,14 @@
                 {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
             </div>
         {{/isCompatible}}
+        {{#failedToStart}}
+            <p class="error"><em>{{Strings.EXTENSION_FAILED_TO_START}}</em></p>
+        {{/failedToStart}}
         {{#metadata.description}}
             {{metadata.description}}
         {{/metadata.description}}
         {{^metadata.description}}
-            <span class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></span>
+            <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
         {{/metadata.description}}
         {{#metadata.keywords.length}}
             <br/>
