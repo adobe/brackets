@@ -190,11 +190,12 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var deferred = $.Deferred();
-                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
-                        Inspector.disconnect();
-                        deferred.resolve();
+                    Inspector.Runtime.evaluate("window.open('', '_self').close()").done(function () {
+                        Inspector.disconnect().done(function () {
+                            deferred.resolve();
+                        });
                     });
-                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate", 5000);
                 });
                 
                 runs(function () {
@@ -327,7 +328,7 @@ define(function (require, exports, module) {
                 //start live dev
                 var liveDoc;
                 runs(function () {
-                    LiveDevelopment.open();
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
                 });
                 waitsFor(function () {
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
@@ -392,7 +393,7 @@ define(function (require, exports, module) {
                 // start live dev
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
-                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
                 });
                 
                 waitsFor(function () {

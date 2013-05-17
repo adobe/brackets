@@ -308,7 +308,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (_serverProvider) {
             // Stop listening for requests
-            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+            if (_serverProvider.setRequestFilterPaths) {
                 _serverProvider.setRequestFilterPaths([]);
             }
 
@@ -358,7 +358,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // Send custom HTTP response for the current live document
                 $(_serverProvider).on("request.livedev", function (event, request) {
                     // response can be null in which case the StaticServerDomain reverts to simple file serving.
-                    var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
+                    var response = _liveDocument && _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
                     request.send(response);
                 });
             }
@@ -417,7 +417,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var name, promises = [], agentsToLoad, promise;
+        _setStatus(STATUS_LOADING_AGENTS);
+
+        var promises = [], agentsToLoad, promise;
 
         if (exports.config.experimental) {
             // load all agents
@@ -426,8 +428,10 @@ define(function LiveDevelopment(require, exports, module) {
             // load only enabled agents
             agentsToLoad = _enabledAgentNames;
         }
-        for (name in agentsToLoad) {
-            if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
+
+        agentsToLoad = Object.keys(agentsToLoad);
+        agentsToLoad.forEach(function (name) {
+            if (agents[name] && agents[name].load) {
                 promise = agents[name].load();
 
                 if (promise) {
@@ -436,8 +440,20 @@ define(function LiveDevelopment(require, exports, module) {
 
                 _loadedAgentNames.push(name);
             }
-        }
-        return promises;
+        });
+        
+        Async.withTimeout($.when.apply(undefined, promises), 5000).done(_onLoad)
+            .fail(function (reason) {
+                if (reason === Async.ERROR_TIMEOUT) {
+                    console.error("Timeout waiting for LiveDevelopment agents to load");
+
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                        Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    );
+                }
+            });
     }
 
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
@@ -582,10 +598,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     function reconnect() {
         unloadAgents();
-        
-        _setStatus(STATUS_LOADING_AGENTS);
-        var promises = loadAgents();
-        $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+        loadAgents();
     }
 
     /** Open the Connection and go live */
@@ -861,9 +874,7 @@ define(function LiveDevelopment(require, exports, module) {
             });
 
             // Load agents
-            _setStatus(STATUS_LOADING_AGENTS);
-            var promises = loadAgents();
-            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+            loadAgents();
         }
         
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);

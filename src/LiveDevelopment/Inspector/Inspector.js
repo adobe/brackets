@@ -83,6 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    var Async = require("utils/Async");
+
     // jQuery exports object for events
     var $exports = $(exports);
 
@@ -252,14 +254,18 @@ define(function Inspector(require, exports, module) {
      *     currently connected or asynchronously when the socket is closed.
      */
     function disconnect() {
-        var deferred = new $.Deferred();
+        var deferred = new $.Deferred(),
+            promise = deferred.promise();
 
         if (_socket && (_socket.readyState === WebSocket.OPEN)) {
-            _socket.onclose = function explicitDisconnect() {
+            _socket.onclose = function () {
+                // trigger disconnect event
                 _onDisconnect();
 
                 deferred.resolve();
             };
+
+            promise = Async.withTimeout(promise, 5000);
 
             _socket.close();
         } else {
@@ -268,13 +274,14 @@ define(function Inspector(require, exports, module) {
                 delete _socket.onopen;
                 delete _socket.onclose;
                 delete _socket.onerror;
+
+                _socket = undefined;
             }
             
-            _socket = undefined;
             deferred.resolve();
         }
 
-        return deferred.promise();
+        return promise;
     }
 
     /**
