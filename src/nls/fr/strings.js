@@ -239,6 +239,7 @@ define({
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
+	"CMD_SHOW_IN_OS": "[6966943] !é=Show in OS=!",
     
     // Help menu commands
 	"HELP_MENU": "Aide",

@@ -239,6 +239,7 @@ define({
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
+	"CMD_SHOW_IN_OS": "!能=[6966943] Show in OS_=!",
     
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
