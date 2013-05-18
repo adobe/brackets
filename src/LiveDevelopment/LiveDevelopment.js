@@ -813,6 +813,14 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         
+        if (brackets.inBrowser) {
+            // Load agents
+            _setStatus(STATUS_LOADING_AGENTS);
+            var promises = loadAgents();
+            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+            return;
+        }
+        
         /* 
          * Create a promise that resolves when the interstitial page has
          * finished loading.

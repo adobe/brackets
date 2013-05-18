@@ -159,7 +159,8 @@ define(function Inspector(require, exports, module) {
         }
         
         if (brackets.inBrowser) {
-            _postMsg({name: "__ld_sendCommand", method: method, id: id, params: params});
+            params.id = id;
+            _postMsg({name: "__ld_sendCommand", method: method, params: params});
         } else {
             _socket.send(JSON.stringify({ method: method, id: id, params: params }));
         }
@@ -369,11 +370,14 @@ define(function Inspector(require, exports, module) {
                 if (msg.data) {
                     if (msg.data.name === "__ld_connected") {
                         isConnected = true;
-                    } else if (msg.data.name === "__ld_event") {
+                        _onConnect();
+                    } else if (msg.data.name === "__ld_event" || msg.data.name === "__ld_sendCommand_response") {
                         var msgCopy = {};
                         var prop;
                         for (prop in msg) {
                             if (msg.hasOwnProperty(prop)) {
+                                // msg.data comes in as an Object, but _onMessage expects
+                                // it to be a JSON string.
                                 if (prop === "data") {
                                     msgCopy.data = JSON.stringify(msg.data);
                                 } else {
