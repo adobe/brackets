@@ -348,11 +348,9 @@ define(function (require, exports, module) {
      * @param {$.Event} event The Click Event to respond to.
      */
     function _handleMiddleMouseClick(event) {
-        if (event.which === 2) {
-            var file = $(event.target).parent("li").data(_FILE_KEY);
+        var file = $(event.target).closest("li").data(_FILE_KEY);
 
-            DocumentManager.closeFullEditor(file);
-        }
+        DocumentManager.closeFullEditor($.extend({}, file));
     }
     
     /** 
@@ -379,8 +377,11 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
-            _handleMiddleMouseClick(e);
-            _reorderListItem(e, $(this));
+            if (e.which === 2) {
+                _handleMiddleMouseClick(e);
+            } else {
+                _reorderListItem(e, $(this));
+            }
             e.preventDefault();
         });
 
