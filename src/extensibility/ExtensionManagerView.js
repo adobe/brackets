@@ -271,33 +271,41 @@ define(function (require, exports, module) {
         
         // If an extension was removed, prompt the user to quit Brackets.
         if (!_skipRemoval && this.model.hasExtensionsToRemove()) {
-            Dialogs.showModalDialog("remove-marked-extensions", Strings.REMOVE_AND_QUIT_TITLE,
-                                    Strings.REMOVE_AND_QUIT_MESSAGE)
-                .done(function (buttonId) {
-                    if (buttonId === "ok") {
-                        self.model.removeMarkedExtensions()
-                            .done(function () {
-                                self.model.dispose();
-                                CommandManager.execute(Commands.FILE_QUIT);
-                            })
-                            .fail(function (errorArray) {
-                                self.model.dispose();
-                                
-                                var ids = [];
-                                errorArray.forEach(function (errorObj) {
-                                    ids.push(errorObj.item);
-                                });
-                                Dialogs.showModalDialog("error-dialog", Strings.EXTENSION_MANAGER_REMOVE,
-                                                        StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", ")))
-                                    .done(function () {
-                                        // We still have to quit even if some of the removals failed.
-                                        CommandManager.execute(Commands.FILE_QUIT);
-                                    });
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_REMOVE_EXTENSIONS,
+                Strings.REMOVE_AND_QUIT_TITLE,
+                Strings.REMOVE_AND_QUIT_MESSAGE,
+                [
+                    { className: "",        id: "cancel", text: Strings.CANCEL          },
+                    { className: "primary", id: "ok",     text: Strings.REMOVE_AND_QUIT }
+                ]
+            ).done(function (buttonId) {
+                if (buttonId === "ok") {
+                    self.model.removeMarkedExtensions()
+                        .done(function () {
+                            self.model.dispose();
+                            CommandManager.execute(Commands.FILE_QUIT);
+                        })
+                        .fail(function (errorArray) {
+                            self.model.dispose();
+                            
+                            var ids = [];
+                            errorArray.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
                             });
-                    } else {
-                        self.model.dispose();
-                    }
-                });
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
+                                Strings.EXTENSION_MANAGER_REMOVE,
+                                StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                            ).done(function () {
+                                // We still have to quit even if some of the removals failed.
+                                CommandManager.execute(Commands.FILE_QUIT);
+                            });
+                        });
+                } else {
+                    self.model.dispose();
+                }
+            });
         } else {
             this.model.dispose();
         }

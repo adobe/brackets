@@ -193,7 +193,7 @@ define(function (require, exports, module) {
      * Show a dialog that shows the update 
      */
     function _showUpdateNotificationDialog(updates) {
-        Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings)).getPromise()
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
                     // The first entry in the updates array has the latest download link

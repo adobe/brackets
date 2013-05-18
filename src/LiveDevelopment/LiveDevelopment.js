@@ -644,8 +644,12 @@ define(function LiveDevelopment(require, exports, module) {
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                         Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
-                    ).getPromise().done(function (id) {
+                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                        [
+                            { className: "left",    id: "cancel", text: Strings.CANCEL          },
+                            { className: "primary", id: "ok",     text: Strings.RELAUNCH_CHROME }
+                        ]
+                    ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
                             _setStatus(STATUS_INACTIVE);

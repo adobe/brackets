@@ -207,7 +207,7 @@ define(function (require, exports, module) {
     /**
      * @param {FileError} error
      * @param {!Document} doc
-     * @return {$.Promise}
+     * @return {Dialog}
      */
     function showReloadError(error, doc) {
         return Dialogs.showModalDialog(
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
                 StringUtils.breakableUrl(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.name)
             )
-        ).getPromise();
+        );
     }
     
     
@@ -254,9 +254,10 @@ define(function (require, exports, module) {
                 return promise;
             }
             
-            var message;
-            var dialogId;
             var toClose;
+            var dialogId;
+            var message;
+            var buttons;
             
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
@@ -268,6 +269,10 @@ define(function (require, exports, module) {
                         ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
+                buttons = [
+                    { className: "left",    id: "dontsave", text: Strings.RELOAD_FROM_DISK       },
+                    { className: "primary", id: "cancel",   text: Strings.KEEP_CHANGES_IN_EDITOR }
+                ];
                 
             } else {
                 toClose = true;
@@ -278,9 +283,13 @@ define(function (require, exports, module) {
                         ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
+                buttons = [
+                    { className: "left",    id: "dontsave", text: Strings.CLOSE_DONT_SAVE        },
+                    { className: "primary", id: "cancel",   text: Strings.KEEP_CHANGES_IN_EDITOR }
+                ];
             }
             
-            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message).getPromise()
+            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message, buttons)
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
@@ -296,7 +305,7 @@ define(function (require, exports, module) {
                                 .fail(function (error) {
                                     // Unable to load changed version from disk - show error UI
                                     showReloadError(error, doc)
-                                        .always(function () {
+                                        .done(function () {
                                             // After user dismisses, move on to next conflict prompt
                                             result.reject();
                                         });

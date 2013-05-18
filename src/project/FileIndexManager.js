@@ -156,7 +156,7 @@ define(function (require, exports, module) {
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_MAX_FILES_TITLE,
             Strings.ERROR_MAX_FILES
-        ).getPromise();
+        );
     }
 
     /* Recursively visits all files that are descendent of dirEntry and adds

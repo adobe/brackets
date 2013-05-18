@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                 StringUtils.breakableUrl(path),
                 getFileErrorString(name)
             )
-        ).getPromise();
+        );
     }
 
     /**

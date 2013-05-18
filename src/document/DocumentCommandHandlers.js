@@ -392,7 +392,7 @@ define(function (require, exports, module) {
                 StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
-        ).getPromise();
+        );
     }
     
     /** Note: if there is an error, the promise is not rejected until the user has dimissed the dialog */
@@ -401,7 +401,7 @@ define(function (require, exports, module) {
         
         function handleError(error, fileEntry) {
             showSaveFileError(error.name, fileEntry.fullPath)
-                .always(function () {
+                .done(function () {
                     result.reject(error);
                 });
         }
@@ -581,8 +581,13 @@ define(function (require, exports, module) {
                 StringUtils.format(
                     Strings.SAVE_CLOSE_MESSAGE,
                     StringUtils.breakableUrl(filename)
-                )
-            ).getPromise().done(function (id) {
+                ),
+                [
+                    { className: "left",    id: "dontsave", text: Strings.DONT_SAVE },
+                    { className: "",        id: "cancel",   text: Strings.CANCEL    },
+                    { className: "primary", id: "ok",       text: Strings.SAVE      }
+                ]
+            ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
                 } else if (id === Dialogs.DIALOG_BTN_OK) {
@@ -673,8 +678,13 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                message
-            ).getPromise().done(function (id) {
+                message,
+                [
+                    { className: "left",    id: "dontsave", text: Strings.DONT_SAVE },
+                    { className: "",        id: "cancel",   text: Strings.CANCEL    },
+                    { className: "primary", id: "ok",       text: Strings.SAVE      }
+                ]
+            ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
                 } else if (id === Dialogs.DIALOG_BTN_OK) {

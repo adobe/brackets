@@ -865,7 +865,7 @@ define(function (require, exports, module) {
                             StringUtils.breakableUrl(rootPath),
                             error.name
                         )
-                    ).getPromise().done(function () {
+                    ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory

@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
-        ).always(function () {
+        ).done(function () {
             view.dispose();
         });
         

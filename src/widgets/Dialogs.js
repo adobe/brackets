@@ -39,28 +39,27 @@ define(function (require, exports, module) {
         Strings           = require("strings"),
         DialogTemplate    = require("text!htmlContent/dialog-template.html");
     
-    var DefaultDialogs = JSON.parse(require("text!widgets/default-dialogs.json"));
     
+    var DIALOG_BTN_CANCEL           = "cancel",
+        DIALOG_BTN_OK               = "ok",
+        DIALOG_BTN_DONTSAVE         = "dontsave",
+        DIALOG_CANCELED             = "_canceled",
+        DIALOG_BTN_DOWNLOAD         = "download";
     
-    var DIALOG_BTN_CANCEL          = "cancel",
-        DIALOG_BTN_OK              = "ok",
-        DIALOG_BTN_DONTSAVE        = "dontsave",
-        DIALOG_CANCELED            = "_canceled",
-        DIALOG_BTN_DOWNLOAD        = "download";
-    
-    var DIALOG_ID_ERROR            = "error-dialog",
-        DIALOG_ID_INFO             = "error-dialog", // uses the same template for now--could be different in future
-        DIALOG_ID_SAVE_CLOSE       = "save-close-dialog",
-        DIALOG_ID_EXT_CHANGED      = "ext-changed-dialog",
-        DIALOG_ID_EXT_DELETED      = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
+    var DIALOG_ID_ERROR             = "error-dialog",
+        DIALOG_ID_INFO              = "error-dialog", // uses the same template for now--could be different in future
+        DIALOG_ID_SAVE_CLOSE        = "save-close-dialog",
+        DIALOG_ID_EXT_CHANGED       = "ext-changed-dialog",
+        DIALOG_ID_EXT_DELETED       = "ext-deleted-dialog",
+        DIALOG_ID_LIVE_DEVELOPMENT  = "live-development-error-dialog",
+        DIALOG_ID_REMOVE_EXTENSIONS = "remove-marked-extensions";
     
 
     /** 
      * A stack of keydown event handler functions that corresponds to the
      * current stack of modal dialogs.
      * 
-     * @type {Array.<Function>} 
+     * @type {Array.<function>} 
      */
     var _keydownListeners = [];
 
@@ -128,8 +127,8 @@ define(function (require, exports, module) {
      * @constructor
      * @private
      *
-     * @param {$.Element} $dlg - The dialog jQuery element
-     * @param {$.Promise} promise - A promise that will be resolved with the ID of the clicked button when the dialog
+     * @param {$.Element} $dlg The dialog jQuery element
+     * @param {$.Promise} promise A promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
     function Dialog($dlg, promise) {
@@ -154,6 +153,13 @@ define(function (require, exports, module) {
         if (this._$dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
             _dismissDialog(this._$dlg, DIALOG_CANCELED);
         }
+    };
+    
+    /**
+     * Adds a done callback to the dialog promise
+     */
+    Dialog.prototype.done = function (callback) {
+        this._promise.done(callback);
     };
     
     
@@ -270,48 +276,34 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new modal dialog using the default template and the template variables given in JSON
-     * or a JavaScript object where:
-     * -- It has a "title" and "message" keys that are uses for the title and message of the dialog
-     * -- It has an array of buttons where each button has a class, id and text property. The id is
-     *    used in "data-button-id".
+     * Creates a new general purpose modal dialog using the template variables from "default-dialogs.json"
+     * and a new title and/or message if specified.
      *
-     * @param {string} dlgClass - A class to identify the dialog in the HTML.
-     * @param {{title: string, message: string, buttons: Array.<Object>}} templateVars - The dialog
-     *      dialog variable strings as described above.
+     * @param {string} dlgClass A class name identifier for the dialog.
+     * @param {string=} title The title of the dialog. Can contain HTML markup. If unspecified, the title
+     *      in the JSON file is used unchanged.
+     * @param {string=} message The message to display in the dialog. Can contain HTML markup. If
+     *      unspecified, the message in the JSON file is used.
+     * @param {Array.<{className: string, id: string, text: string>=} buttons An array of buttons where each button
+     *      has a class, id and text property. The id is used in "data-button-id". It defaults to an Ok button
      * @return {Dialog}
      */
-    function showModalDialogUsingJSON(dlgClass, templateVars) {
-        var template = Mustache.render(DialogTemplate, $.extend(templateVars, {dlgClass: dlgClass}));
-        template = Mustache.render(template, Strings);
+    function showModalDialog(dlgClass, title, message, buttons) {
+        var templateVars = {
+            dlgClass: dlgClass,
+            title:    title   || "",
+            message:  message || "",
+            buttons:  buttons || [{ className: "primary", id: "ok", text: Strings.OK }]
+        };
+        var template = Mustache.render(DialogTemplate, templateVars);
         
         return showModalDialogUsingTemplate(template);
     }
     
     /**
-     * Creates a new general purpose modal dialog using the template variables from "default-dialogs.json"
-     * and a new title and/or message if specified.
-     *
-     * @param {string} dlgClass - The key of the dialog in the JSON file.
-     * @param {string=} title - The title of the dialog. Can contain HTML markup. If unspecified, the title
-     *      in the JSON file is used unchanged.
-     * @param {string=} message - The message to display in the dialog. Can contain HTML markup. If
-     *      unspecified, the message in the JSON file is used.
-     * @return {Dialog}
-     */
-    function showModalDialog(dlgClass, title, message) {
-        if (DefaultDialogs[dlgClass]) {
-            var templateVars = DefaultDialogs[dlgClass];
-            templateVars.title   = title   || templateVars.title;
-            templateVars.message = message || templateVars.message;
-            
-            return showModalDialogUsingJSON(dlgClass, templateVars);
-        }
-    }
-    
-    /**
      * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
+     * @param {string} dlgClass The class name identifier for the dialog.
      */
     function cancelModalDialogIfOpen(dlgClass) {
         $("." + dlgClass + ".instance").each(function (index, dlg) {
@@ -334,9 +326,9 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED        = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED        = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT   = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_ID_REMOVE_EXTENSIONS  = DIALOG_ID_REMOVE_EXTENSIONS;
     
     exports.showModalDialog              = showModalDialog;
-    exports.showModalDialogUsingJSON     = showModalDialogUsingJSON;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;
     exports.cancelModalDialogIfOpen      = cancelModalDialogIfOpen;
 });
