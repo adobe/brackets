@@ -618,6 +618,6 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
 
         // For unit testing
-//        exports.urlCodeHintProvider = urlHints;
+        exports.hintProvider = urlHints;
     });
 });
