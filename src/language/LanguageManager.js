@@ -62,10 +62,11 @@
  *     });
  * You can combine file names and extensions, or not define them at all.
  *
- * You can also refine an existing language. Currently you can only set the comment styles:
+ * You can also refine an existing language:
  *     var language = LanguageManager.getLanguage("haskell");
  *     language.setLineCommentSyntax(["--"]);
  *     language.setBlockCommentSyntax("{-", "-}");
+ *     language.addFileExtension("lhs");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode

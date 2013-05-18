@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
+        FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
         StatusBar           = require("widgets/StatusBar"),
@@ -241,7 +242,7 @@ define(function (require, exports, module) {
         
     function _showSearchResults(searchResults, query, scope) {
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table' />")
+            var $resultTable = $("<table class='zebra-striped row-highlight condensed-table' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -437,13 +438,7 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
         var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
         doFindInFiles(selectedEntry);
     }
     
@@ -461,8 +456,21 @@ define(function (require, exports, module) {
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
+  
+    function _pathDeletedHandler(event, path) {
+        if ($searchResultsDiv.is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item, idx) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                    searchResults.splice(idx, 1);
+                }
+            });
+            _showSearchResults(searchResults, currentQuery, currentScope);
+        }
+    }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);

@@ -421,16 +421,12 @@ define(function (require, exports, module) {
      * The parameters and return value are the same as for getMatchRanges.
      *
      * @param {string} query the search string (will be searched lower case)
-     * @param {string} str the original string to search
+     * @param {string} compareStr the lower-cased string to search
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _wholeStringSearch(query, str, specials, lastSegmentSpecialsIndex) {
-        // set up query as all lower case and make a lower case string to use for comparisons
-        query = query.toLowerCase();
-        var compareStr = str.toLowerCase();
-        
+    function _wholeStringSearch(query, compareStr, specials, lastSegmentSpecialsIndex) {
         var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         var matchList;
@@ -458,7 +454,7 @@ define(function (require, exports, module) {
         } else {
             // No match in the last segment, so we start over searching the whole
             // string
-            matchList = _generateMatchList(query, compareStr, specials, 0, lastSegmentStart);
+            matchList = _generateMatchList(query, compareStr, specials, 0);
         }
         
         return matchList;
@@ -653,11 +649,46 @@ define(function (require, exports, module) {
         }
         return result;
     }
-        
+    
+    /*
+     * If we short circuit normal matching to produce a prefix match,
+     * this function will generate the appropriate SearchResult.
+     * This function assumes that the prefix match check has already
+     * been performed.
+     *
+     * @param {string} str  The string with the prefix match for the query
+     * @param {string} query  The query that matched the beginning of str
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} ranges has a matching range for beginning of str
+     *                      and a non-matching range for the end of the str
+     *                      the score is -Number.MAX_VALUE in all cases
+     */
+    function _prefixMatchResult(str, query) {
+        var result = new SearchResult(str);
+        result.matchGoodness = -Number.MAX_VALUE;
+        if (DEBUG_SCORES) {
+            result.scoreDebug = {
+                beginning: Number.MAX_VALUE
+            };
+        }
+        result.stringRanges = [{
+            text: str.substr(0, query.length),
+            matched: true,
+            includesLastSegment: true
+        }];
+        if (str.length > query.length) {
+            result.stringRanges.push({
+                text: str.substring(query.length),
+                matched: false,
+                includesLastSegment: true
+            });
+        }
+        return result;
+    }
+    
     /*
      * Match str against the query using the QuickOpen algorithm provided by
-     * the functions above. The general idea is to prefer matches in the last
-     * segment (the filename) and matches of "special" characters. stringMatch
+     * the functions above. The general idea is to prefer matches of "special" characters and,
+     * optionally, matches that occur in the "last segment" (generally, the filename). stringMatch
      * will try to provide the best match and produces a "matchGoodness" score
      * to allow for relative ranking.
      *
@@ -670,12 +701,20 @@ define(function (require, exports, module) {
      * 
      * @param {string} str  The string to search
      * @param {string} query  The query string to find in string
-     * @param {?Object} (optional) the specials data from findSpecialCharacters, if already known
+     * @param {{preferPrefixMatches:?boolean, segmentedSearch:?boolean}} options to control search behavior.
+     *                  preferPrefixMatches puts an exact case-insensitive prefix match ahead of all other matches,
+     *                  even short-circuiting the match logic. This option implies segmentedSearch=false.
+     *                  When segmentedSearch is true, the string is broken into segments by "/" characters
+     *                  and the last segment is searched first and matches there are scored higher.
+     * @param {?Object} special (optional) the specials data from findSpecialCharacters, if already known
+     *                  This is generally just used by StringMatcher for optimization.
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function stringMatch(str, query, special) {
+    function stringMatch(str, query, options, special) {
         var result;
-
+        
+        options = options || {};
+        
         // No query? Short circuit the normal work done and just
         // return a single range that covers the whole string.
         if (!query) {
@@ -692,14 +731,36 @@ define(function (require, exports, module) {
             return result;
         }
         
+        // comparisons are case insensitive, so switch to lower case here
+        query = query.toLowerCase();
+        var compareStr = str.toLowerCase();
+        
+        if (options.preferPrefixMatches) {
+            options.segmentedSearch = false;
+        }
+        
+        if (options.preferPrefixMatches && compareStr.substr(0, query.length) === query) {
+            return _prefixMatchResult(str, query);
+        }
+        
         // Locate the special characters and then use orderedCompare to do the real
         // work.
         if (!special) {
             special = findSpecialCharacters(str);
         }
-        var lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
-        var matchList = _wholeStringSearch(query, str, special.specials,
+        var lastSegmentStart, matchList;
+        
+        // For strings that are not broken into multiple segments, we can potentially
+        // avoid some extra work
+        if (options.segmentedSearch) {
+            lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
+            matchList = _wholeStringSearch(query, compareStr, special.specials,
                               special.lastSegmentSpecialsIndex);
+        } else {
+            lastSegmentStart = 0;
+            matchList = _generateMatchList(query, compareStr, special.specials,
+                                           0);
+        }
         
         // If we get a match, turn this into a SearchResult as expected by the consumers
         // of this API.
@@ -717,38 +778,54 @@ define(function (require, exports, module) {
     
     /**
      * Sorts an array of SearchResult objects on a primary field, followed by secondary fields
-     * in case of ties. 'fields' maps field name to priority, where 0 is the primary field. E.g.:
-     *      multiFieldSort(bugList, { milestone: 0, severity: 1 });
+     * in case of ties. 'fieldSpec' provides the priority order for fields, where the first entry is the primary field, for example:
+     *      multiFieldSort(bugList, [ "milestone", "severity" ]);
      * Would sort a bug list by milestone, and within each milestone sort bugs by severity.
+     *
+     * fieldSpec can also include comparator functions of the form normally used by the sort()
+     * function.
      *
      * Any fields that have a string value are compared case-insensitively. Fields used should be
      * present on all SearchResult objects (no optional/undefined fields).
      *
      * @param {!Array.<SearchResult>} searchResults
-     * @param {!Object.<string, number>} fields
+     * @param {!Array.<string, function>} fieldSpec
      */
-    function multiFieldSort(searchResults, fields) {
+    function multiFieldSort(searchResults, fieldSpec) {
         // Move field names into an array, with primary field first
-        var fieldNames = [];
-        CollectionUtils.forEach(fields, function (priority, key) {
-            fieldNames[priority] = key;
-        });
+        var comparisons;
+        if (Array.isArray(fieldSpec)) {
+            comparisons = fieldSpec;
+        } else {
+            // TODO Deprecate this form of calling this function
+            comparisons = [];
+            CollectionUtils.forEach(fieldSpec, function (priority, key) {
+                comparisons[priority] = key;
+            });
+        }
         
         searchResults.sort(function (a, b) {
             var priority;
-            for (priority = 0; priority < fieldNames.length; priority++) {
-                var fieldName = fieldNames[priority];
-                var valueA = a[fieldName];
-                var valueB = b[fieldName];
-                if (typeof valueA === "string") {
-                    valueA = valueA.toLowerCase();
-                    valueB = valueB.toLowerCase();
-                }
-                
-                if (valueA < valueB) {
-                    return -1;
-                } else if (valueA > valueB) {
-                    return 1;
+            for (priority = 0; priority < comparisons.length; priority++) {
+                var comparison = comparisons[priority];
+                if (typeof comparison === "function") {
+                    var result = comparison(a, b);
+                    if (result) {
+                        return result;
+                    }
+                } else {
+                    var valueA = a[comparison];
+                    var valueB = b[comparison];
+                    if (typeof valueA === "string") {
+                        valueA = valueA.toLowerCase();
+                        valueB = valueB.toLowerCase();
+                    }
+                    
+                    if (valueA < valueB) {
+                        return -1;
+                    } else if (valueA > valueB) {
+                        return 1;
+                    }
                 }
                 // otherwise, move on to next sort priority
             }
@@ -772,8 +849,14 @@ define(function (require, exports, module) {
      *
      * You are free to store other data on this object to assist in higher-level caching.
      * (This object's caches are all stored in "_" prefixed properties.)
+     *
+     * @param {{preferPrefixMatches:?boolean, segmentedSearch:?boolean}} options to control search behavior.
+     *                  preferPrefixMatches puts an exact case-insensitive prefix match ahead of all other matches,
+     *                  even short-circuiting the match logic. This option implies segmentedSearch=false.
+     *                  segmentedSearch treats segments of the string specially.
      */
-    function StringMatcher() {
+    function StringMatcher(options) {
+        this.options = options;
         this.reset();
     }
     
@@ -831,7 +914,7 @@ define(function (require, exports, module) {
             this._specialsCache[str] = special;
         }
         
-        var result = stringMatch(str, query, special);
+        var result = stringMatch(str, query, this.options, special);
         
         // If this query was not a match, we cache that fact for next time.
         if (!result) {

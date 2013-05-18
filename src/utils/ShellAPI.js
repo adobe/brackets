@@ -32,9 +32,12 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var CommandManager = require("command/CommandManager"),
+    var AppInit        = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
         Commands       = require("command/Commands");
 
+    var appReady = false; // Set to true after app is fully initialized
+    
     /**
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
      * calling Brackets commands from the native shell.
@@ -42,7 +45,7 @@ define(function (require, exports, module) {
     function executeCommand(eventName) {
         // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
         // This should really be fixed with proper menu enabling.
-        if ($(".modal.instance").length) {
+        if ($(".modal.instance").length || !appReady) {
             // Another hack to fix issue #3219 so that all test windows are closed 
             // as before the fix for #3152 has been introduced. isBracketsTestWindow 
             // property is explicitly set in createTestWindowAndRun() in SpecRunnerUtils.js.
@@ -67,5 +70,9 @@ define(function (require, exports, module) {
         return (promise && promise.state() === "rejected") ? false : true;
     }
 
+    AppInit.appReady(function () {
+        appReady = true;
+    });
+    
     exports.executeCommand = executeCommand;
 });

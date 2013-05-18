@@ -342,9 +342,11 @@ define(function (require, exports, module) {
         fileNewInProgress = true;
 
         // Determine the directory to put the new file
-        // If a file is currently selected, put it next to it.
-        // If a directory is currently selected, put it in it.
-        // If nothing is selected, put it at the root of the project
+        // If a file is currently selected in the tree, put it next to it.
+        // If a directory is currently selected in the tree, put it in it.
+        // If nothing is selected in the tree, put it at the root of the project
+        // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
+        // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
             selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
@@ -766,15 +768,18 @@ define(function (require, exports, module) {
         );
     }
     
-    /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
+    /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
-        // Prefer selected tree item (which could be a folder); else use current file
+        // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
+            // Else use current file (not selected in ProjectManager if not visible in tree or working set)
             var doc = DocumentManager.getCurrentDocument();
             entry = doc && doc.file;
         }
-        ProjectManager.renameItemInline(entry);
+        if (entry) {
+            ProjectManager.renameItemInline(entry);
+        }
     }
 
     /** Closes the window, then quits the app */
@@ -840,6 +845,23 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
+    function handleFileDelete() {
+        var entry = ProjectManager.getSelectedItem();
+        ProjectManager.deleteItem(entry);
+    }
+
+    /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
+    function handleShowInOS() {
+        var entry = ProjectManager.getSelectedItem();
+        if (entry) {
+            brackets.app.showOSFolder(entry.fullPath, function (err) {
+                if (err) {
+                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                }
+            });
+        }
+    }
+    
     // Init DOM elements
     AppInit.htmlReady(function () {
         var $titleContainerToolbar = $("#titlebar");
@@ -860,6 +882,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
@@ -876,6 +899,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

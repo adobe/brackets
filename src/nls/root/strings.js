@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
-    "FILE_EXISTS_ERR"                   : "The file already exists.",
+    "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -53,6 +53,8 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -130,32 +132,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Language:",
-    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancel",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                         : "Czech",
-    "LOCALE_DE"                         : "German",
-    "LOCALE_EN"                         : "English",
-    "LOCALE_ES"                         : "Spanish",
-    "LOCALE_FR"                         : "French",
-    "LOCALE_IT"                         : "Italian",
-    "LOCALE_JA"                         : "Japanese",
-    "LOCALE_NB"                         : "Norwegian",
-    "LOCALE_PL"                         : "Polish",
-    "LOCALE_PT_BR"                      : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                      : "Portuguese",
-    "LOCALE_RU"                         : "Russian",
-    "LOCALE_SV"                         : "Swedish",
-    "LOCALE_TR"                         : "Turkish",
-    "LOCALE_ZH_CN"                      : "Chinese, simplified",
 
     /**
      * ProjectManager
@@ -167,7 +143,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
@@ -204,8 +179,10 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_FILE_DELETE"                     : "Delete",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
+    "CMD_FILE_REFRESH"                    : "Refresh",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -236,6 +213,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
+    "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -259,8 +237,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
-    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
-    "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -268,21 +244,8 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_OS"                      : "Show in OS",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Reload {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Show Developer Tools",
-    "CMD_RUN_UNIT_TESTS"                  : "Run Tests",
-    "CMD_JSLINT"                          : "Enable JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
-    "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Enable Node Debugger",
-    "CMD_LOG_NODE_STATE"                  : "Log Node State to Console",
-    "CMD_RESTART_NODE"                    : "Restart Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
@@ -290,6 +253,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
 
@@ -310,15 +274,14 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
-    "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -333,6 +296,9 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // Extension Management strings
+    "INSTALL"                              : "Install",
+    "REMOVE"                               : "Remove",
+    "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
@@ -371,21 +337,64 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_MORE_INFO"                  : "More info...",
+    "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
+    "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. Brackets will still quit.",
+    "MARKED_FOR_REMOVAL"                   : "Marked for removal",
+    "UNDO_REMOVE"                          : "Undo",
+    "REMOVE_AND_QUIT_TITLE"                : "Remove Extensions",
+    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
+    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
     
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
+    /**
+     * Unit names
+     */
 
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
+    "UNIT_PIXELS"                          : "pixels",
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
+    "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
+    "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
+    "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
+    "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
+    "CMD_RESTART_NODE"                          : "Restart Node",
+    
+    "LANGUAGE_TITLE"                            : "Switch Language",
+    "LANGUAGE_MESSAGE"                          : "Language:",
+    "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_CS"                                 : "Czech",
+    "LOCALE_DE"                                 : "German",
+    "LOCALE_EN"                                 : "English",
+    "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FR"                                 : "French",
+    "LOCALE_IT"                                 : "Italian",
+    "LOCALE_JA"                                 : "Japanese",
+    "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_PL"                                 : "Polish",
+    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SV"                                 : "Swedish",
+    "LOCALE_TR"                                 : "Turkish",
+    "LOCALE_ZH_CN"                              : "Chinese, simplified",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
@@ -395,6 +404,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Enable JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",
+    "JSLINT_ERRORS"                             : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
+    "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"
