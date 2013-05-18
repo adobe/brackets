@@ -144,6 +144,44 @@ define(function (require, exports, module) {
     
     var suppressToggleOpen = false;
     
+    var treeSortingFunctions = {
+        ALPHABETIC: function (a, b) {
+            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+        },
+        PLATFORM_DEFAULTS: function (a, b) {
+            if (brackets.platform === "win") {
+                var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                    b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                return (a1 > b1) ? 1 : -1;
+            } else {
+                return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+            }
+        },
+        REVERSED_ALPHABETIC: function (a, b) {
+            return this.get_text(a).toLowerCase() < this.get_text(b).toLowerCase() ? 1 : -1;
+        },
+        ALPHABETIC_FOLDERS_ON_TOP: function (a, b) {
+            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+            return (a1 > b1) ? 1 : -1;
+        },
+        ALPHABETIC_FOLDERS_AT_BOTTOM: function (a, b) {
+            var a1 = ($(a).hasClass("jstree-leaf") ? "0" : "1") + this.get_text(a).toLowerCase(),
+                b1 = ($(b).hasClass("jstree-leaf") ? "0" : "1") + this.get_text(b).toLowerCase();
+            return (a1 > b1) ? 1 : -1;
+        },
+        REVERSED_ALPHABETIC_FOLDERS_ON_TOP: function (a, b) {
+            var a1 = ($(a).hasClass("jstree-leaf") ? "0" : "1") + this.get_text(a).toLowerCase(),
+                b1 = ($(b).hasClass("jstree-leaf") ? "0" : "1") + this.get_text(b).toLowerCase();
+            return (a1 < b1) ? 1 : -1;
+        },
+        REVERSED_ALPHABETIC_FOLDERS_AT_BOTTOM: function (a, b) {
+            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+            return (a1 < b1) ? 1 : -1;
+        }
+    };
+    
     /**
      * @private
      */
@@ -395,6 +433,17 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
+    
+    /**
+     * Returns false when the event occured without any input present in the li closest to the DOM object
+     *
+     * @param {event} event to check
+     * @return {Function} The function to sort the project tree with
+     */
+    function _getCurrentSortFunction() {
+        //Currently just returns the platform default sorting as long as no UI has been decided
+        return treeSortingFunctions.PLATFORM_DEFAULTS;
+    }
 
     /**
      * @private
@@ -424,17 +473,8 @@ define(function (require, exports, module) {
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
-                sort :  function (a, b) {
-                    if (brackets.platform === "win") {
-                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                        var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
-                            b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
-                        return (a1 > b1) ? 1 : -1;
-                    } else {
-                        return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
-                    }
-                }
-            }).bind(
+                sort :  _getCurrentSortFunction()
+            }).on(
                 "before.jstree",
                 function (event, data) {
                     if (data.func === "toggle_node") {
@@ -444,7 +484,7 @@ define(function (require, exports, module) {
                         suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
                     }
                 }
-            ).bind(
+            ).on(
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
@@ -478,7 +518,7 @@ define(function (require, exports, module) {
                     
                     suppressToggleOpen = false;
                 }
-            ).bind(
+            ).on(
                 "reopen.jstree",
                 function (event, data) {
                     // This handler fires for the initial load and subsequent
@@ -508,13 +548,13 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 }
-            ).bind(
+            ).on(
                 "scroll.jstree",
                 function (e) {
                     // close all dropdowns on scroll
                     Menus.closeAll();
                 }
-            ).bind(
+            ).on(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     if (event.type === "open_node") {
@@ -539,7 +579,7 @@ define(function (require, exports, module) {
                     
                     _savePreferences();
                 }
-            ).bind(
+            ).on(
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
@@ -564,13 +604,13 @@ define(function (require, exports, module) {
         // since we've turned off user selection of UI text globally. So we just unbind it,
         // and add our own double-click handler here.
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
-        _projectTree.bind("init.jstree", function () {
+        _projectTree.on("init.jstree", function () {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
-                .unbind("dblclick.jstree")
-                .bind("dblclick.jstree", function (event) {
+                .off("dblclick.jstree")
+                .on("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
