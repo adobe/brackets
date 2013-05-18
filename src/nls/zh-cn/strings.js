@@ -97,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "使用正则表达式进行搜索,范例:/re/",
+    "FIND_RESULT_COUNT"                 : "{0} 个结果",
     "WITH"                              : "与",
     "BUTTON_YES"                        : "是",
     "BUTTON_NO"                         : "否",
@@ -130,6 +131,7 @@ define({
     "LANGUAGE_MESSAGE"                  : "请从列表中选择所需的语言:",
     "LANGUAGE_SUBMIT"                   : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "取消",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "系统默认",
 
     /**
      * ProjectManager
@@ -313,7 +315,7 @@ define({
     "INSTALL_FAILED"                       : "安装失败.",
     "CANCELING_INSTALL"                    : "正在取消...",
     "CANCELING_HUNG"                       : "取消安装需要很长时间.可能出现了内部错误.",
-    "INSTALL_CANCELLED"                    : "安装已取消.",
+    "INSTALL_CANCELED"                     : "安装已取消.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP文件.",
     "INVALID_PACKAGE_JSON"                 : "扩展包中的Package.json不存在. (错误是: {0}).",
@@ -321,6 +323,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} 是一个无效扩展包名.",
     "MISSING_PACKAGE_VERSION"              : "扩展包中的Package.json未指定版本号 {0}.",
     "INVALID_VERSION_NUMBER"               : "扩展包版本 ({0}) 是一个无效版本号.",
+    "INVALID_BRACKETS_VERSION"             : "Brackets兼容字串{{0}}是无效字串.",
+    "DISALLOWED_WORDS"                     : "该关键字 {{1}} 不能用于 {{0}} 区域中.",
     "API_NOT_COMPATIBLE"                   : "这个扩展包不兼容当前的版本,将安装至Disabled扩展文件夹中.",
     "MISSING_MAIN"                         : "扩展包遗失main.js文件.",
     "ALREADY_INSTALLED"                    : "该扩展已经存在,将安装至Disabled扩展文件夹中.",
