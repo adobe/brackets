@@ -350,7 +350,7 @@ define(function (require, exports, module) {
     function _handleMiddleMouseClick(event) {
         var file = $(event.target).closest("li").data(_FILE_KEY);
 
-        DocumentManager.closeFullEditor($.extend({}, file));
+        DocumentManager.closeFullEditor(file);
     }
     
     /** 
