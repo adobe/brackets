@@ -90,7 +90,7 @@
     "flex-wrap":                   {"values": ["nowrap", "wrap", "wrap-reverse"]},
     "float":                       {"values": ["left", "right", "none", "inherit"]},
     "font":                        {"values": []},
-    "font-family":                 {"values": []},
+    "font-family":                 {"values": ["cursive", "fantasy", "inherit", "monospace", "sans-serif", "serif"]},
     "font-feature-settings":       {"values": ["normal"]},
     "font-kerning":                {"values": ["auto", "none", "normal"]},
     "font-language-override":      {"values": ["normal"]},
