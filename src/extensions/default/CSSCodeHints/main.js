@@ -34,6 +34,10 @@ define(function (require, exports, module) {
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
+    // Context of the last request for hints: either CSSUtils.PROP_NAME,
+    // CSSUtils.PROP_VALUE or null.
+    var lastContext;
+    
     /**
      * @constructor
      */
@@ -63,6 +67,7 @@ define(function (require, exports, module) {
         this.editor = editor;
         var cursor = this.editor.getCursorPos();
 
+        lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
@@ -111,6 +116,14 @@ define(function (require, exports, module) {
         }
         
         if (context === CSSUtils.PROP_VALUE) {
+            // When switching from a NAME to a VALUE context, restart the session
+            // to give other more specialized providers a chance to intervene.
+            if (lastContext === CSSUtils.PROP_NAME) {
+                return true;
+            } else {
+                lastContext = CSSUtils.PROP_VALUE;
+            }
+            
             if (!properties[needle]) {
                 return null;
             }
@@ -133,6 +146,7 @@ define(function (require, exports, module) {
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
+            lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
                 if (pname.indexOf(needle) === 0) {
