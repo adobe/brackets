@@ -24,7 +24,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
+/*global define, $, WebSocket, FileError, window, XMLHttpRequest, brackets */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -83,6 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    var AppInit = require("utils/AppInit");
+    
     // jQuery exports object for events
     var $exports = $(exports);
 
@@ -91,6 +93,12 @@ define(function Inspector(require, exports, module) {
     var _socket; // remote debugger WebSocket
     var _connectDeferred; // The deferred connect
 
+    var isConnected;    // Only used when running in browser
+    
+    function _postMsg(msg) {
+        window.postMessage(msg, "*");
+    }
+    
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
      * Type checking is complex because of $ref and done on the remote end anyways
@@ -111,17 +119,20 @@ define(function Inspector(require, exports, module) {
      * @param {object} the method signature
      */
     function _send(method, signature, varargs) {
-        if (!_socket) {
-            // FUTURE: Our current implementation closes and re-opens an inspector connection whenever
-            // a new HTML file is selected. If done quickly enough, pending requests from the previous
-            // connection could come in before the new socket connection is established. For now we 
-            // simply ignore this condition. 
-            // This race condition will go away once we support multiple inspector connections and turn
-            // off auto re-opening when a new HTML file is selected.
-            return;
+        if (!brackets.inBrowser) {
+            if (!_socket) {
+                // FUTURE: Our current implementation closes and re-opens an inspector connection whenever
+                // a new HTML file is selected. If done quickly enough, pending requests from the previous
+                // connection could come in before the new socket connection is established. For now we 
+                // simply ignore this condition. 
+                // This race condition will go away once we support multiple inspector connections and turn
+                // off auto re-opening when a new HTML file is selected.
+                return;
+            }
+    
+            console.assert(_socket, "You must connect to the WebSocket before sending messages.");
         }
-
-        console.assert(_socket, "You must connect to the WebSocket before sending messages.");
+        
         var id, callback, args, i, params = {}, promise;
 
         // extract the parameters, the callback function, and the message id
@@ -146,8 +157,13 @@ define(function Inspector(require, exports, module) {
                 params[signature[i].name] = args[i];
             }
         }
-        _socket.send(JSON.stringify({ method: method, id: id, params: params }));
-
+        
+        if (brackets.inBrowser) {
+            _postMsg({name: "__ld_sendCommand", method: method, id: id, params: params});
+        } else {
+            _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+        }
+        
         return promise;
     }
 
@@ -248,6 +264,13 @@ define(function Inspector(require, exports, module) {
 
     /** Disconnect from the remote debugger WebSocket */
     function disconnect() {
+        if (brackets.inBrowser) {
+            _postMsg({
+                name: "__ld_disconnect"
+            });
+            isConnected = false;
+            return;
+        }
         if (_socket) {
             if (_socket.readyState === 1) {
                 _socket.close();
@@ -277,6 +300,15 @@ define(function Inspector(require, exports, module) {
      * @param {string} url
      */
     function connectToURL(url) {
+        if (brackets.inBrowser) {
+            // TODO: Make sure chrome extension is installed
+            _postMsg({
+                name: "__ld_openPage",
+                url: url
+            });
+            return new $.Deferred().resolve().promise();
+        }
+        
         if (_connectDeferred) {
             // reject an existing connection attempt
             _connectDeferred.reject("CANCEL");
@@ -304,6 +336,9 @@ define(function Inspector(require, exports, module) {
 
     /** Check if the inspector is connected */
     function connected() {
+        if (brackets.inBrowser) {
+            return isConnected;
+        }
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
@@ -328,6 +363,31 @@ define(function Inspector(require, exports, module) {
         }
     }
 
+    AppInit.appReady(function () {
+        if (brackets.inBrowser) {
+            window.addEventListener("message", function (msg) {
+                if (msg.data) {
+                    if (msg.data.name === "__ld_connected") {
+                        isConnected = true;
+                    } else if (msg.data.name === "__ld_event") {
+                        var msgCopy = {};
+                        var prop;
+                        for (prop in msg) {
+                            if (msg.hasOwnProperty(prop)) {
+                                if (prop === "data") {
+                                    msgCopy.data = JSON.stringify(msg.data);
+                                } else {
+                                    msgCopy[prop] = msg[prop];
+                                }
+                            }
+                        }
+                        _onMessage(msgCopy);
+                    }
+                }
+            });
+        }
+    });
+    
     // Export public functions
     exports.getDebuggableWindows = getDebuggableWindows;
     exports.on = on;

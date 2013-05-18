@@ -224,6 +224,11 @@ define(function LiveDevelopment(require, exports, module) {
         parentUrl = _pathToUrl(matches[1]);
         doc.url = parentUrl + encodeURI(matches[2]);
 
+        if (brackets.inBrowser) {
+            // !!!HACK - remove "/Public/" from the URL so the file can be fetched from dropbox
+            doc.url = doc.url.replace("/Public/", "/");
+        }
+        
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files)
         // TODO: Issue #2033 Improve how default page is determined
@@ -634,6 +639,11 @@ define(function LiveDevelopment(require, exports, module) {
             
             _openDocument(doc, EditorManager.getCurrentFullEditor());
 
+            // !!!HACK
+            if (brackets.inBrowser) {
+                launcherUrl = doc.root.url;
+            }
+            
             Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
@@ -715,6 +725,9 @@ define(function LiveDevelopment(require, exports, module) {
             showWrongDocError();
         } else {
             _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+            
+            // HACK -- Re-get doc now that _serverProvider is set
+            doc = _getCurrentDocument();
             
             if (!exports.config.experimental && !_serverProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
