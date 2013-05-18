@@ -124,8 +124,7 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this,
-                origEditor = EditorManager.getFocusedEditor();
+            var self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -374,6 +373,7 @@ define(function (require, exports, module) {
             if (tagInfo.position.offset >= 0) {
                 query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
             }
+            this.info = tagInfo;
 
         } else if (mode === "css") {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 }]);
             });
 
-            return deferred;
+            return deferred.promise();
         }
 
         return null;

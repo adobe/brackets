@@ -29,63 +29,65 @@ define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
+    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         Editor              = brackets.getModule("editor/Editor").Editor,
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
+        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UrlCodeHints        = require("main");
 
-    describe("Url Code Hinting", function () {
 
-        var defaultContent =
-            "<!doctype html>\n" +
-            "<html>\n" +
-            "<head>\n" +
-            "<style type='text/css'>\n" +
-            "@import url() screen;\n" +
-            "body {\n" +
-            "  background-image: url();\n" +
-            "  border-image: url('');\n" +
-            '  list-style-image: url("");\n' +
-            "}\n" +
-            "</style>\n" +                              // line 10
-            '<link href="" rel="stylesheet">\n' +
-            "<script src='' type=''></script>\n" +
-            "</head>\n" +
-            "<body>\n" +
-            "  <img src=''>\n" +
-            "  <img src='testfiles/'>\n" +
-            "  <a href='results.html?id=1003'>Results</a>" +
-            "</body>\n" +
-            "</html>\n";
+    describe("Url Code Hinting", function () {
         
-        var testWindow,
+        var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
+            testHtmlPath    = extensionPath + "/testfiles/test.html",
+            testWindow,
             testDocument,
-            testEditor;
+            testEditor,
+            hintsObj;
         
-        beforeEach(function () {
-            // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent, "html");
+        /**
+         * Returns an Editor suitable for use in isolation, given a Document. (Unlike
+         * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
+         * for you).
+         *
+         * @param {Document} doc - the document to be contained by the new Editor
+         * @return {Editor} - the mock editor object
+         */
+        function createMockEditor(doc) {
+            // Initialize EditorManager
+            var $editorHolder = $("<div id='mock-editor-holder'/>");
+            EditorManager.setEditorHolder($editorHolder);
+            $("body").append($editorHolder);
             
-            // create Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, $("#editor").get(0));
-        });
-        
-        afterEach(function () {
-            testEditor.destroy();
-            testEditor = null;
-            $("#editor").remove();
-            testDocument = null;
-        });
-        
-        
-        // Ask provider for hints at current cursor position; expect it to return some
-        function expectHints(provider) {
-// TODO: handle async hints
-            expect(provider.hasHints(testEditor, null)).toBe(true);
-            var hintsObj = provider.getHints();
-            expect(hintsObj).not.toBeNull();
-            return hintsObj.hints; // return just the array of hints
+            // create Editor instance
+            var editor = new Editor(doc, true, $editorHolder.get(0));
+            EditorManager._notifyActiveEditorChanged(editor);
+            
+            return editor;
+        }
+
+        // Ask provider for hints at current cursor position; expect it to return
+        // a Deferred object then wait for it to resolve
+        function expectAsyncHints(provider) {
+            runs(function () {
+                expect(provider.hasHints(testEditor, null)).toBe(true);
+                hintsObj = provider.getHints();
+                expect(hintsObj).toBeTruthy();
+            });
+
+            runs(function () {
+                if (hintsObj instanceof Object && hintsObj.hasOwnProperty("done")) {
+                    hintsObj.done(function (resolvedHintsObj) {
+                        hintsObj = resolvedHintsObj;
+                    });
+                }
+            });
+            
+            waitsFor(function () {
+                return (!hintsObj || hintsObj.hints);
+            }, "Unable to resolve hints", 2000);
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
@@ -98,26 +100,57 @@ define(function (require, exports, module) {
         function verifyUrlHints(hintList, expectedFirstHint) {
             if (!expectedFirstHint) {
                 // Mac and Windows sort folder and file names differently
-                expectedFirstHint = (brackets.platform === "win") ? "testfiles/" : "data.json";
+                expectedFirstHint = (brackets.platform === "win") ? "subfolder/" : "data.json";
             }
             expect(hintList[0]).toBe(expectedFirstHint);
         }
 
         describe("HTML Code Hints", function () {
-            
-            it("should hint for href attribute (double-quotes)", function () {
-                testEditor.setCursorPos({ line: 11, ch: 12 });
-                var hintList = expectHints(UrlCodeHints.hintProvider);
-                verifyUrlHints(hintList);
+
+            it("should setup before tests", function () {
+                runs(function () {
+                    DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
+                        testDocument = doc;
+                    });
+                });
+        
+                waitsFor(function () {
+                    return (testDocument);
+                }, "Unable to open test document", 5000);
+    
+                // create Editor instance (containing a CodeMirror instance)
+                runs(function () {
+                    testEditor = createMockEditor(testDocument);
+                    DocumentManager.setCurrentDocument(testDocument);
+                });
             });
             
+            it("should hint for href attribute (double-quotes)", function () {
+                runs(function () {
+                    hintsObj = null;
+                    testEditor.setCursorPos({ line: 11, ch: 12 });
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints);
+                });
+            });
+
             it("should hint for src attribute (single-quotes)", function () {
-                testEditor.setCursorPos({ line: 12, ch: 13 });
-                var hintList = expectHints(UrlCodeHints.hintProvider);
-                verifyUrlHints(hintList);
+                runs(function () {
+                    hintsObj = null;
+                    testEditor.setCursorPos({ line: 12, ch: 13 });
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints);
+                });
             });
             
 /*
+        
             it("should filter hints by prefix", function () {  // (bug #1260)
                 testDocument.replaceRange("  <s\n", { line: 8, ch: 0 }); // insert new line "<s", after line "<p></p>"
                 
@@ -154,6 +187,17 @@ define(function (require, exports, module) {
                 verifyUrlHints(hintList);
             });
 */
+            it("should cleanup after tests", function () {
+                runs(function () {
+                    // The following call ensures that the document is reloaded
+                    // from disk before each test
+                    DocumentManager.closeAll();
+                    
+                    SpecRunnerUtils.destroyMockEditor(testDocument);
+                    testEditor = null;
+                    testDocument = null;
+                });
+            });
         });
         
         describe("CSS Code Hints", function () {
