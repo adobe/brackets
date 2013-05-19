@@ -279,33 +279,34 @@ define(function (require, exports, module) {
                     { className: "",        id: "cancel", text: Strings.CANCEL          },
                     { className: "primary", id: "ok",     text: Strings.REMOVE_AND_QUIT }
                 ]
-            ).done(function (buttonId) {
-                if (buttonId === "ok") {
-                    self.model.removeMarkedExtensions()
-                        .done(function () {
-                            self.model.dispose();
-                            CommandManager.execute(Commands.FILE_QUIT);
-                        })
-                        .fail(function (errorArray) {
-                            self.model.dispose();
-                            
-                            var ids = [];
-                            errorArray.forEach(function (errorObj) {
-                                ids.push(errorObj.item);
-                            });
-                            Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
-                                Strings.EXTENSION_MANAGER_REMOVE,
-                                StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
-                            ).done(function () {
-                                // We still have to quit even if some of the removals failed.
+            )
+                .done(function (buttonId) {
+                    if (buttonId === "ok") {
+                        self.model.removeMarkedExtensions()
+                            .done(function () {
+                                self.model.dispose();
                                 CommandManager.execute(Commands.FILE_QUIT);
+                            })
+                            .fail(function (errorArray) {
+                                self.model.dispose();
+                                
+                                var ids = [];
+                                errorArray.forEach(function (errorObj) {
+                                    ids.push(errorObj.item);
+                                });
+                                Dialogs.showModalDialog(
+                                    Dialogs.DIALOG_ID_ERROR,
+                                    Strings.EXTENSION_MANAGER_REMOVE,
+                                    StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                                ).done(function () {
+                                    // We still have to quit even if some of the removals failed.
+                                    CommandManager.execute(Commands.FILE_QUIT);
+                                });
                             });
-                        });
-                } else {
-                    self.model.dispose();
-                }
-            });
+                    } else {
+                        self.model.dispose();
+                    }
+                });
         } else {
             this.model.dispose();
         }

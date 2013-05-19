@@ -649,27 +649,28 @@ define(function LiveDevelopment(require, exports, module) {
                             { className: "left",    id: "cancel", text: Strings.CANCEL          },
                             { className: "primary", id: "ok",     text: Strings.RELAUNCH_CHROME }
                         ]
-                    ).done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK) {
-                            // User has chosen to reload Chrome, quit the running instance
-                            _setStatus(STATUS_INACTIVE);
-                            NativeApp.closeLiveBrowser()
-                                .done(function () {
-                                    browserStarted = false;
-                                    window.setTimeout(function () {
-                                        open().done(result.resolve).fail(result.reject);
+                    )
+                        .done(function (id) {
+                            if (id === Dialogs.DIALOG_BTN_OK) {
+                                // User has chosen to reload Chrome, quit the running instance
+                                _setStatus(STATUS_INACTIVE);
+                                NativeApp.closeLiveBrowser()
+                                    .done(function () {
+                                        browserStarted = false;
+                                        window.setTimeout(function () {
+                                            open().done(result.resolve).fail(result.reject);
+                                        });
+                                    })
+                                    .fail(function (err) {
+                                        // Report error?
+                                        _setStatus(STATUS_ERROR);
+                                        browserStarted = false;
+                                        result.reject("CLOSE_LIVE_BROWSER");
                                     });
-                                })
-                                .fail(function (err) {
-                                    // Report error?
-                                    _setStatus(STATUS_ERROR);
-                                    browserStarted = false;
-                                    result.reject("CLOSE_LIVE_BROWSER");
-                                });
-                        } else {
-                            result.reject("CANCEL");
-                        }
-                    });
+                            } else {
+                                result.reject("CANCEL");
+                            }
+                        });
                     return;
                 }
                 retryCount++;
