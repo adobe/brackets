@@ -50,6 +50,7 @@ define(function (require, exports, module) {
     exports.FILE_DELETE                 = "file.delete";
     exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
+    exports.FILE_REFRESH                = "file.refresh";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
