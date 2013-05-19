@@ -416,9 +416,10 @@ define(function (require, exports, module) {
                 // Only listen to each promise once.
                 if (!promise._project_listening) {
                     promise._project_listening = true;
-                    promise.done(function () {
-                        // One of the promises is done. Remove it from the list, then
-                        // see if we have any more left.
+                    promise.always(function () {
+                        // One of the promises is completed (either resolved or rejected;
+                        // in either case we want to move on).
+                        // Remove it from the list, then see if we have any more left.
                         var index = _renderPromises.indexOf(promise);
                         if (index !== -1) {
                             _renderPromises.splice(index, 1);
@@ -769,6 +770,8 @@ define(function (require, exports, module) {
                             error.name
                         )
                     );
+                    // Reject the render promise so we can move on.
+                    deferred.reject();
                 }
             }
         );
