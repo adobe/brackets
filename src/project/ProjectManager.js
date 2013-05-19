@@ -66,7 +66,8 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        Async               = require("utils/Async");
     
     /**
      * @private
@@ -627,7 +628,7 @@ define(function (require, exports, module) {
             $projectTreeContainer.show();
         });
 
-        return result.promise();
+        return Async.withTimeout(result.promise(), 1000);
     }
     
     /**
@@ -899,7 +900,7 @@ define(function (require, exports, module) {
                     // immediate children, and so on.
                     resultRenderTree = _renderTree(_treeDataProvider);
 
-                    resultRenderTree.done(function () {
+                    resultRenderTree.always(function () {
                         if (projectRootChanged) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
