@@ -11,6 +11,14 @@
         "blockComment": ["/*", "*/"]
     },
     
+    "scss": {
+        "name": "SCSS",
+        "mode": ["css-base", "text/x-scss", "css/css"],
+        "fileExtensions": ["scss"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]        
+    },
+    
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
@@ -118,7 +126,7 @@
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass", "scss"]
+        "fileExtensions": ["sass"]
     },
 
     "lua": {
