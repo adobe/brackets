@@ -189,17 +189,11 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    var deferred = $.Deferred();
-                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
-                        Inspector.disconnect();
-                        deferred.resolve();
-                    });
-                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                    var promise = Inspector.Runtime.evaluate("window.open('', '_self').close()");
+                    waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
                 });
                 
-                runs(function () {
-                    expect(Inspector.connected()).toBeFalsy();
-                });
+                waitsFor(function () { return !Inspector.connected(); }, 10000);
             });
         });
 
@@ -325,17 +319,17 @@ define(function (require, exports, module) {
                 });
                 
                 //start live dev
-                var liveDoc;
                 runs(function () {
                     LiveDevelopment.open();
                 });
+                // Wait for the file and its stylesheets to fully load (and be communicated back).
                 waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+                }, "Waiting for browser to become active", 10000);
                 
-                var doneSyncing = false;
+                var liveDoc, doneSyncing = false;
                 runs(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -392,7 +386,7 @@ define(function (require, exports, module) {
                 // start live dev
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
-                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
                 });
                 
                 waitsFor(function () {

@@ -99,7 +99,7 @@ define(function HighlightAgent(require, exports, module) {
      * @param {string} rule selector
      */
     function rule(name) {
-        if (_highlight.ref === name) {
+        if (_highlight && (_highlight.ref === name)) {
             return;
         }
         hide();
