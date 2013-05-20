@@ -125,11 +125,17 @@ define(function (require, exports, module) {
                     fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
                     JSUtils.findMatchingFunctions(functionName, fileInfos)
                         .done(function (functions) {
-                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                            jsInlineEditor.load(hostEditor);
-                            
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                            result.resolve(jsInlineEditor);
+                            if (functions && functions.length > 0) {
+                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                                jsInlineEditor.load(hostEditor);
+                                
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.resolve(jsInlineEditor);
+                            } else {
+                                // No matching functions were found
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.reject();
+                            }
                         })
                         .fail(function () {
                             PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
