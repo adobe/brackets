@@ -163,6 +163,10 @@ define(function LiveDevelopment(require, exports, module) {
             // Need to use encoded project path because it's decoded below.
             path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
 
+            if (brackets.inBrowser) {
+                // !!! HACK - URL's don't have /Public/. Add here
+                path = "/Public" + path;
+            }
         } else if (url.indexOf("file://") === 0) {
             // Convert a file URL to local file path
             path = url.slice(7);
