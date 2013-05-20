@@ -133,8 +133,11 @@ define(function (require, exports, module) {
         // If unspecified, expects the default unfiltered list.
         function verifyUrlHints(hintList, expectedFirstHint) {
             if (!expectedFirstHint) {
-                // Mac and Windows sort folder and file names differently
-                expectedFirstHint = (brackets.platform === "win") ? "subfolder/" : "data.json";
+                // IMPORTANT: Mac and Windows sort folder contents differently,
+                // so the files and folders in the "testfiles" folder are named
+                // strategically so that they sort the same on both Mac and Windows
+                // (i.e. folders are listed first, and then files).
+                expectedFirstHint = "subfolder/";
             }
             expect(hintList[0]).toBe(expectedFirstHint);
         }
@@ -148,8 +151,10 @@ define(function (require, exports, module) {
             
             it("should hint for href attribute", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 12, ch: 12 });
+
+                    // Must reset hintsObj before every call to expectAsyncHints()
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -160,8 +165,8 @@ define(function (require, exports, module) {
 
             it("should hint for src attribute", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 13, ch: 13 });
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -199,8 +204,8 @@ define(function (require, exports, module) {
             
             it("should hint for @import url()", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 4, ch: 12 });
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -211,8 +216,8 @@ define(function (require, exports, module) {
 
             it("should hint for background-image: url()", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 6, ch: 24 });
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -223,8 +228,8 @@ define(function (require, exports, module) {
 
             it("should hint for border-image: url('')", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 7, ch: 21 });
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -235,8 +240,8 @@ define(function (require, exports, module) {
             
             it("should hint for list-style-image: url(\"\")", function () {
                 runs(function () {
-                    hintsObj = null;
                     testEditor.setCursorPos({ line: 8, ch: 25 });
+                    hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
@@ -284,24 +289,118 @@ define(function (require, exports, module) {
                 tearDownTests();
             });
 
-/*
-        * no closing single quote
-          - closing single quote added
-          
-        * no closing doubl equote
-          - closing double quote added
-          
-        * no closing paren
-          - closing paren added
-          
-        * hints stay open after selecting folder
-          - cursor is not moved outside of url()
-          
-        * hints close after selecting file
-          - cursor is moved outside of url()
-*/
+            it("should handle unclosed url(", function () {
+                var pos1    = { line: 9, ch: 20 },
+                    pos2    = { line: 9, ch: 24 },
+                    pos3    = { line: 9, ch: 34 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    testDocument.replaceRange("url(", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[1]).toBe("test.html");
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[1])).toBe(false);
+                    
+                    // hint was added with closing paren
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("url(test.html)");
+                    
+                    // Cursor was moved past closing paren
+                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                });
+            });
             
-            
+            it("should handle unclosed url( with unclosed single-quote", function () {
+                var pos1    = { line: 9, ch: 20 },
+                    pos2    = { line: 9, ch: 25 },
+                    pos3    = { line: 9, ch: 36 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    testDocument.replaceRange("url('", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[1]).toBe("test.html");
+                    
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[1])).toBe(false);
+                    
+                    // Hint was added with closing single-quote and closing paren
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("url('test.html')");
+                    
+                    // Cursor was moved past closing single-quote and closing paren
+                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                });
+            });
+
+            it("should keep hints open after inserting folder", function () {
+                var pos1    = { line: 9, ch: 20 },
+                    pos2    = { line: 9, ch: 25 },
+                    pos3    = { line: 9, ch: 35 },
+                    pos4    = { line: 9, ch: 37 },
+                    pos5    = { line: 9, ch: 48 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    testDocument.replaceRange('url("', pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+                    
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+                    
+                    // Hint was added with closing double-quote and closing paren
+                    expect(testDocument.getRange(pos1, pos4)).toEqual('url("subfolder/")');
+                    
+                    // Cursor remains inside double-quote and closing paren
+                    expect(testEditor.getCursorPos()).toEqual(pos3);
+
+                    // Get hints of inserted folder
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(3);
+                    
+                    // Complete path is displayed
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+                    
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+                    
+                    // Hint was added
+                    expect(testDocument.getRange(pos1, pos5)).toEqual('url("subfolder/chevron.png")');
+                    
+                    // Cursor was moved past closing double-quote and closing paren
+                    expect(testEditor.getCursorPos()).toEqual(pos5);
+                });
+            });
         });
         
     }); // describe("Url Code Hinting"
