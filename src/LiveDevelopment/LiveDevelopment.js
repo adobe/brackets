@@ -509,6 +509,8 @@ define(function LiveDevelopment(require, exports, module) {
             } else {
                 oneAgentPromise.fail(function () {
                     console.error("Failed to load agent", name);
+                }).done(function () {
+                    console.log("loaded agent", name);
                 });
             }
 
@@ -523,7 +525,14 @@ define(function LiveDevelopment(require, exports, module) {
         // wrap agent loading with a timeout
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
-        allAgentsPromise.done(result.resolve);
+        allAgentsPromise.done(function () {
+            // After interstitial page, loading agents and navigating to the
+            // current document for the first time, call _agentsFinishedLoading() to gather
+            // related documents and set status to STATUS_ACTIVE.
+            _agentsFinishedLoading();
+
+            result.resolve();
+        });
 
         allAgentsPromise.fail(function (reason) {
             if (reason === Async.ERROR_TIMEOUT) {
@@ -545,7 +554,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Run when all agents are loaded */
-    function _onLoad() {
+    function _agentsFinishedLoading() {
         var doc = _getCurrentDocument();
         if (!doc) {
             return;
@@ -625,7 +634,7 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function reconnect() {
         unloadAgents();
-        return loadAgents();
+        loadAgents();
     }
 
     /** Open the Connection and go live */
@@ -909,16 +918,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        $(Inspector.Page).one("frameNavigated.livedev", function () {
-            // After interstitial page, loading agents and navigating to the
-            // current document for the first time, call onLoad() to gather
-            // related documents and set status to STATUS_ACTIVE. This sequence
-            // only happens during the initial open() call.
-            loadAgentsPromise.done(_onLoad);
-
-            // Handle subsequent frame navigation
-            $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
-        });
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
 		
         waitForInterstitialPageLoad()
             .fail(function () {
@@ -972,10 +972,10 @@ define(function LiveDevelopment(require, exports, module) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Unload and reload agents before reloading the page
-            reconnect().done(function () {
-                // Reload HTML page
-                Inspector.Page.reload();
-            });
+            reconnect();
+
+            // Reload HTML page
+            Inspector.Page.reload();
         }
     }
 

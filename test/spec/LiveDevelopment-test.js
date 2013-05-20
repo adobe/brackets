@@ -189,18 +189,11 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    var deferred = $.Deferred();
-                    Inspector.Runtime.evaluate("window.open('', '_self').close()").done(function () {
-                        Inspector.disconnect().done(function () {
-                            deferred.resolve();
-                        });
-                    });
-                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate", 5000);
+                    var promise = Inspector.Runtime.evaluate("window.open('', '_self').close()");
+                    waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
                 });
                 
-                runs(function () {
-                    expect(Inspector.connected()).toBeFalsy();
-                });
+                waitsFor(function () { return !Inspector.connected(); }, 10000);
             });
         });
 
