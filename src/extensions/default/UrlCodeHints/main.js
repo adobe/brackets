@@ -223,14 +223,13 @@ define(function (require, exports, module) {
             sortFunc = null;
 
         // Do not show hints after "?" in url
-        if (query.queryStr.indexOf("?") !== -1) {
-            return null;
+        if (query.queryStr.indexOf("?") === -1) {
+            
+            // Default behavior for url hints is do not close on select.
+            this.closeOnSelect = false;
+            hints = this._getUrlList(query);
+            sortFunc = StringUtils.urlSort;
         }
-
-        // Default behavior for url hints is do not close on select.
-        this.closeOnSelect = false;
-        hints = this._getUrlList(query);
-        sortFunc = StringUtils.urlSort;
         
         return { hints: hints, sortFunc: sortFunc };
     };
@@ -305,17 +304,19 @@ define(function (require, exports, module) {
             tokenType = tagInfo.position.tokenType;
              
             if (tokenType === HTMLUtils.ATTR_VALUE) {
-                if (tagInfo.position.offset >= 0) {
-                    query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                } else {
-                    // We get negative offset for a quoted attribute value with some leading whitespaces 
-                    // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                    // So just set the queryStr to an empty string. 
-                    query = "";
-                }
                 
-                // If we're at an attribute value, check if it's an attribute name that has hintable values.
+                // Verify that attribute name has hintable values
                 if (htmlAttrs[tagInfo.attr.name]) {
+                
+                    if (tagInfo.position.offset >= 0) {
+                        query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                    } else {
+                        // We get negative offset for a quoted attribute value with some leading whitespaces 
+                        // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                        // So just set the queryStr to an empty string. 
+                        query = "";
+                    }
+                
                     var hintsAndSortFunc = this._getUrlHints({queryStr: query});
                     var hints = hintsAndSortFunc.hints;
                     if (hints instanceof Array) {
@@ -445,7 +446,7 @@ define(function (require, exports, module) {
                 }]);
             });
 
-            return deferred.promise();
+            return deferred;
         }
 
         return null;
