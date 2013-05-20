@@ -243,37 +243,47 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file and makes it the current document. Does NOT add it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command;
-     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
+     * @private
+     * Splits a decorated file path into its parts.
+     * @param {?string} path - a string of the form "fullpath[:lineNumber[:columnNumber]]"
+     * @return {{path: string, line: ?number, column: ?number}} 
      */
-    function handleFileOpen(commandData) {
-        var fullPath = null;
-        var lineNumber = null;
-        var columnNumber = null;
-        if (commandData) {
-            fullPath = commandData.fullPath;
-            if (fullPath) {
-                // If the path has a trailing :lineNumber and :columnNumber, strip 
-                // these off and assign to the lineNumber and columnNumber vars.
-                fullPath = fullPath.replace(/(.+?):([0-9]+)(:([0-9]+))?$/, "$1");
-                if (RegExp.$2) {
-                    lineNumber = Math.floor(RegExp.$2);
+    function _parseDecoratedPath(path) {
+        var result = {path: path, line: null, column: null};
+        if (path) {
+            // If the path has a trailing :lineNumber and :columnNumber, strip 
+            // these off and assign to result.line and result.column.
+            var matchResult = /(.+?):([0-9]+)(:([0-9]+))?$/.exec(path);
+            if (matchResult) {
+                result.path = matchResult[1];
+                if (matchResult[2]) {
+                    result.line = parseInt(matchResult[2], 10);
                 }
-                if (RegExp.$4) {
-                    columnNumber = Math.floor(RegExp.$4);
+                if (matchResult[4]) {
+                    result.column = parseInt(matchResult[4], 10);
                 }
             }
         }
+        return result;
+    }
 
-        return _doOpenWithOptionalPath(fullPath)
+    /**
+     * Opens the given file and makes it the current document. Does NOT add it to the working set.
+     * @param {!{fullPath:string}} Params for FILE_OPEN command;
+     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
+     */
+    function handleFileOpen(commandData) {
+        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null);
+        return _doOpenWithOptionalPath(fileInfo.path)
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
-                if (lineNumber) {
-                    if (!columnNumber) {
-                        columnNumber = 0;
+                if (fileInfo.line !== null) {
+                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                        fileInfo.column = 1;
                     }
-                    EditorManager.getCurrentFullEditor().setCursorPos(lineNumber, columnNumber, true);
+                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
                 }
                 
                 // Give the editor focus
@@ -895,6 +905,9 @@ define(function (require, exports, module) {
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
     });
+
+    // Exported for unit testing only
+    exports._parseDecoratedPath = _parseDecoratedPath;
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
