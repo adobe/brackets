@@ -326,17 +326,17 @@ define(function (require, exports, module) {
                 });
                 
                 //start live dev
-                var liveDoc;
                 runs(function () {
-                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
+                    LiveDevelopment.open();
                 });
+                // Wait for the file and its stylesheets to fully load (and be communicated back).
                 waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+                }, "Waiting for browser to become active", 10000);
                 
-                var doneSyncing = false;
+                var liveDoc, doneSyncing = false;
                 runs(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {

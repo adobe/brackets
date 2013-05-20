@@ -64,7 +64,9 @@ define(function NetworkAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
-        return Inspector.Network.enable().done(function () {
+
+        // FIXME Windows only: Somtimes enable() isn't acknowledged
+        return Inspector.retry(Inspector.Network.enable).always(function () {
             $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
         });
     }

@@ -407,55 +407,6 @@ define(function LiveDevelopment(require, exports, module) {
                                   false); // don't fail fast
     }
 
-    /** Unload the agents */
-    function unloadAgents() {
-        _loadedAgentNames.forEach(function (name) {
-            agents[name].unload();
-        });
-        _loadedAgentNames = [];
-    }
-
-    /** Load the agents */
-    function loadAgents() {
-        _setStatus(STATUS_LOADING_AGENTS);
-
-        var promises = [], agentsToLoad, promise;
-
-        if (exports.config.experimental) {
-            // load all agents
-            agentsToLoad = agents;
-        } else {
-            // load only enabled agents
-            agentsToLoad = _enabledAgentNames;
-        }
-
-        agentsToLoad = Object.keys(agentsToLoad);
-        agentsToLoad.forEach(function (name) {
-            if (agents[name] && agents[name].load) {
-                promise = agents[name].load();
-
-                if (promise) {
-                    promises.push(promise);
-                }
-
-                _loadedAgentNames.push(name);
-            }
-        });
-        
-        Async.withTimeout($.when.apply(undefined, promises), 5000).done(_onLoad)
-            .fail(function (reason) {
-                if (reason === Async.ERROR_TIMEOUT) {
-                    console.error("Timeout waiting for LiveDevelopment agents to load");
-
-                    Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
-                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                        Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-                    );
-                }
-            });
-    }
-
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -518,6 +469,79 @@ define(function LiveDevelopment(require, exports, module) {
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
         _setStatus(STATUS_ERROR);
+    }
+
+    /** Unload the agents */
+    function unloadAgents() {
+        _loadedAgentNames.forEach(function (name) {
+            agents[name].unload();
+        });
+        _loadedAgentNames = [];
+    }
+
+    /** Load the agents */
+    function loadAgents() {
+        var result = new $.Deferred(),
+            promises = [],
+            agentsToLoad,
+            allAgentsPromise,
+            loadOneAgent;
+
+        _setStatus(STATUS_LOADING_AGENTS);
+
+        if (exports.config.experimental) {
+            // load all agents
+            agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            agentsToLoad = _enabledAgentNames;
+        }
+
+        loadOneAgent = function (name) {
+            var oneAgentPromise;
+
+            if (agents[name] && agents[name].load) {
+                oneAgentPromise = agents[name].load();
+            }
+
+            if (!oneAgentPromise) {
+                oneAgentPromise = new $.Deferred().resolve().promise();
+            } else {
+                oneAgentPromise.fail(function () {
+                    console.error("Failed to load agent", name);
+                });
+            }
+
+            _loadedAgentNames.push(name);
+
+            return oneAgentPromise;
+        };
+
+        // load agents in parallel
+        allAgentsPromise = Async.doInParallel(Object.keys(agentsToLoad), loadOneAgent, true);
+
+        // wrap agent loading with a timeout
+        allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
+
+        allAgentsPromise.done(result.resolve);
+
+        allAgentsPromise.fail(function (reason) {
+            if (reason === Async.ERROR_TIMEOUT) {
+                _setStatus(STATUS_ERROR);
+
+                console.error("Timeout waiting for LiveDevelopment agents to load");
+
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            }
+
+            result.reject();
+        });
+
+        return result.promise();
     }
 
     /** Run when all agents are loaded */
@@ -596,9 +620,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * Unload and reload agents
+     */
     function reconnect() {
         unloadAgents();
-        loadAgents();
+        return loadAgents();
     }
 
     /** Open the Connection and go live */
@@ -817,7 +844,8 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
-        
+        var loadAgentsPromise;
+
         /* 
          * Create a promise that resolves when the interstitial page has
          * finished loading.
@@ -863,21 +891,34 @@ define(function LiveDevelopment(require, exports, module) {
          */
         function onInterstitialPageLoad() {
             // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable().done(function () {
-                // Load the right document (some agents are waiting for the page's load event)
-                var doc = _getCurrentDocument();
-                if (doc) {
-                    Inspector.Page.navigate(doc.root.url);
-                } else {
-                    close();
-                }
-            });
+            Inspector.Page.enable();
 
-            // Load agents
-            loadAgents();
+            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+            // navigate to the page first before loading can complete.
+            // To accomodate this, we load all agents and navigate in
+            // parallel.
+            loadAgentsPromise = loadAgents();
+
+            var doc = _getCurrentDocument();
+            if (doc) {
+                // Navigate from interstitial to the document
+                // Fires a frameNavigated event
+                Inspector.Page.navigate(doc.root.url);
+            } else {
+                close();
+            }
         }
         
-        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+        $(Inspector.Page).one("frameNavigated.livedev", function () {
+            // After interstitial page, loading agents and navigating to the
+            // current document for the first time, call onLoad() to gather
+            // related documents and set status to STATUS_ACTIVE. This sequence
+            // only happens during the initial open() call.
+            loadAgentsPromise.done(_onLoad);
+
+            // Handle subsequent frame navigation
+            $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+        });
 		
         waitForInterstitialPageLoad()
             .fail(function () {
@@ -931,10 +972,10 @@ define(function LiveDevelopment(require, exports, module) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Unload and reload agents before reloading the page
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reconnect().done(function () {
+                // Reload HTML page
+                Inspector.Page.reload();
+            });
         }
     }
 
