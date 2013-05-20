@@ -214,7 +214,7 @@ define(function (require, exports, module) {
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
     }
-    
+
     /**
      * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
      * asked if it wants to provide inline docs given the current editor and cursor location.
