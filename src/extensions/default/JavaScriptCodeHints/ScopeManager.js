@@ -796,8 +796,9 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
+     * @param {boolean} forceInitialization - initialize even if it's not usually needed
      */
-    function doEditorChange(session, document, shouldPrimePump) {
+    function doEditorChange(session, document, shouldPrimePump, forceInitialization) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
@@ -808,7 +809,7 @@ define(function (require, exports, module) {
         pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
 
         // avoid re-initializing tern if possible.
-        if (canSkipTernInitialization(path)) {
+        if (!forceInitialization && canSkipTernInitialization(path)) {
             // skipping initializing tern
             return;
         }
@@ -867,13 +868,14 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
+     * @param {boolean} forceInitialization - true if initialization should always occur
      */
-    function handleEditorChange(session, document, shouldPrimePump) {
+    function handleEditorChange(session, document, shouldPrimePump, forceInitialization) {
         if (addFilesPromise === null) {
-            doEditorChange(session, document, shouldPrimePump);
+            doEditorChange(session, document, shouldPrimePump, forceInitialization);
         } else {
             addFilesPromise.done(function () {
-                doEditorChange(session, document, shouldPrimePump);
+                doEditorChange(session, document, shouldPrimePump, forceInitialization);
             });
         }
     }

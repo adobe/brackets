@@ -56,11 +56,7 @@ define(function (require, exports, module) {
     builtInServices.channels.add("brackets.extension.disabled");
     var extensionLoaded = builtInServices.channels.brackets.extension.loaded;
     var extensionDisabled = builtInServices.channels.brackets.extension.disabled;
-    extensionLoaded.subscribe(function (e) {
-        console.log(e.name, "is done loading");
-    });
     
-    console.log("Publishing to core.ready");
     builtInServices.channels.brackets.core.ready.publish({
         module: "ExtensionLoader",
         state: "servicesRegistered"

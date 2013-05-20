@@ -486,10 +486,6 @@ define(function (require, exports, module) {
 
      // load the extension
     AppInit.appReady(function () {
-        var services = ExtensionData.getServices("JavaScriptCodeHints");
-        services.channels.brackets.extension.loaded.subscribe(function (e) {
-            ScopeManager.initTernEnv();
-        });
         
         /*
          * When the editor is changed, reset the hinting session and cached 
@@ -497,13 +493,20 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context to be initialized.
          * @param {boolean} primePump - true if the pump should be primed.
+         * @param {boolean} forceInitialization - true if initialization should always occur
          */
-        function initializeSession(editor, primePump) {
+        function initializeSession(editor, primePump, forceInitialization) {
             session = new Session(editor);
-            ScopeManager.handleEditorChange(session, editor.document, primePump);
+            ScopeManager.handleEditorChange(session, editor.document, primePump, forceInitialization);
             cachedHints = null;
         }
 
+        var services = ExtensionData.getServices("JavaScriptCodeHints");
+        services.channels.brackets.extension.loaded.subscribe(function (e) {
+            ScopeManager.initTernEnv();
+            initializeSession(EditorManager.getActiveEditor(), false, true);
+        });
+        
         /*
          * Install editor change listeners
          * 
