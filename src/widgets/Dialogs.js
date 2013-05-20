@@ -300,4 +300,7 @@ define(function (require, exports, module) {
     exports.showModalDialog              = showModalDialog;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;
     exports.cancelModalDialogIfOpen      = cancelModalDialogIfOpen;
+    
+    var ExtensionData = require("extensibility/ExtensionData");
+    ExtensionData._brackets.addFunction("widgets.showModalDialogUsingTemplate", showModalDialogUsingTemplate);
 });
