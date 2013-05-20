@@ -83,6 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    var Async = require("utils/Async");
+
     // jQuery exports object for events
     var $exports = $(exports);
 
