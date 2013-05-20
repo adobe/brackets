@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     function _isInPropName(ctx) {
         var state,
             lastToken;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
         }
 
@@ -78,8 +78,8 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
-                ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment" ||
+                ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
             return false;
         }
 
@@ -136,14 +136,14 @@ define(function (require, exports, module) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.className === "property" || ctxClone.token.className === "property error" ||
+            if (ctxClone.token.type === "property" || ctxClone.token.type === "property error" ||
                     ctxClone.token.string === "{" || ctxClone.token.string === ";") {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
-                (ctxClone.token.className === "property" || ctxClone.token.className === "property error")) {
+                (ctxClone.token.type === "property" || ctxClone.token.type === "property error")) {
             return ctxClone.token.string;
         }
         
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
                     ctx.token.string === ":" || ctx.token.string === "{" ||
                     ctx.token.string === ";") {
                 break;
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             }
             // If we're already in the next rule, then we don't want to add the last value
             // since it is the property name of the next rule.
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
                     ctx.token.string === ":") {
                 lastValue = "";
                 break;
@@ -357,16 +357,16 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
+                propName = ctx.token.string;
+            } else {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
-                if (testToken.className === "property" || testToken.className === "property error" || testToken.className === "tag") {
+                if (testToken.type === "property" || testToken.type === "property error" || testToken.type === "tag") {
                     propName = testToken.string;
                     offset = 0;
                 }
-            } else if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
-                propName = ctx.token.string;
             }
             
             // If we're in property name context but not in an existing property name, 
@@ -947,7 +947,7 @@ define(function (require, exports, module) {
             TokenUtils.movePrevToken(ctx);
             
             while (true) {
-                if (ctx.token.className !== "comment") {
+                if (ctx.token.type !== "comment") {
                     // Stop once we've reached a {, }, or ;
                     if (/[\{\}\;]/.test(ctx.token.string)) {
                         break;
@@ -964,7 +964,7 @@ define(function (require, exports, module) {
         
         // scan backwards to see if the cursor is in a rule
         while (true) {
-            if (ctx.token.className !== "comment") {
+            if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     break;
                 } else if (ctx.token.string === "{") {
@@ -990,7 +990,7 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.className !== "comment" && ctx.token.string.trim() !== "") {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && ctx.token.string.trim() !== "") {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }
@@ -1001,7 +1001,7 @@ define(function (require, exports, module) {
         if (!selector && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
-                if (ctx.token.className !== "comment") {
+                if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
                         break;

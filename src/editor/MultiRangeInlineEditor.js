@@ -126,13 +126,13 @@ define(function (require, exports, module) {
         this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
-        
+
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
         
         // List "selection" highlight
         this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
-        
+
         // Inner container
         this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
@@ -165,8 +165,10 @@ define(function (require, exports, module) {
         // select the first range
         self.setSelectedIndex(0);
         
-        // attach to main container
-        this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
+        if (this._ranges.length > 1) {      // attach to main container
+            this.$htmlContent.append(this.$relatedContainer);
+        }
+        this.$htmlContent.append(this.$editorsDiv);
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);
@@ -208,14 +210,14 @@ define(function (require, exports, module) {
         var $previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
         
         if ($previousItem) {
-            $previousItem.toggleClass("selected", false);
+            $previousItem.removeClass("selected");
         }
         
         this._selectedRangeIndex = newIndex;
         
         var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
-        this._ranges[this._selectedRangeIndex].$listItem.toggleClass("selected", true);
+        this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
 
         // Remove previous editors
         this.editors.forEach(function (editor) {

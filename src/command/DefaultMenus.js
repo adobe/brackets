@@ -98,6 +98,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.SHOW_CODE_HINTS);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
 
         /*
@@ -179,14 +181,19 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
+        project_cmenu.addMenuItem(Commands.FILE_DELETE);
+        project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuDivider();
+        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();

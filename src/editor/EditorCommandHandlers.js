@@ -284,7 +284,7 @@ define(function (require, exports, module) {
         var result, text, line;
         
         // Move the context to the first non-empty token.
-        if (!ctx.token.className && ctx.token.string.trim().length === 0) {
+        if (!ctx.token.type && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
             }
             
             // If we aren't in a block-comment.
-            if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
+            if (!result || ctx.token.type !== "comment" || ctx.token.string.match(suffixExp)) {
                 // Is a range of text selected? (vs just an insertion pt)
                 var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
                 
@@ -325,16 +325,16 @@ define(function (require, exports, module) {
             
         // If we are in a selection starting and ending in invalid tokens and with no content (not considering spaces),
         // find if we are inside a block-comment.
-        } else if (startCtx.token.className === null && endCtx.token.className === null &&
-                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos)) {
+        } else if (startCtx.token.type === null && endCtx.token.type === null &&
+                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos, true)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
             
             // We found a comment, find the start and end and check if the selection is inside the block-comment.
-            if (startCtx.token.className === "comment") {
+            if (startCtx.token.type === "comment") {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
                 suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
                 
-                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
+                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos, true)) {
                     canComment = true;
                 }
             } else {
@@ -342,7 +342,7 @@ define(function (require, exports, module) {
             }
         
         // If the start is inside a comment, find the prefix and suffix positions.
-        } else if (ctx.token.className === "comment") {
+        } else if (ctx.token.type === "comment") {
             prefixPos = _findCommentStart(ctx, prefixExp);
             suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length);
             
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
         // Search if there is another comment in the selection. Do nothing if there is one.
         if (!canComment && !invalidComment && !lineUncomment && suffixPos) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
-            if (editor.posWithinRange(start, sel.start, sel.end)) {
+            if (editor.posWithinRange(start, sel.start, sel.end, true)) {
                 // Start searching at the next token, if there is one.
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
                          _findNextBlockComment(ctx, sel.end, prefixExp);
@@ -489,7 +489,7 @@ define(function (require, exports, module) {
         // If the selection includes a comment or is already a line selection, delegate to Block-Comment
         var ctx       = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
         var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-        var className = ctx.token.className;
+        var className = ctx.token.type;
         result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
         
         if (className === "comment" || result || isLineSelection) {

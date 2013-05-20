@@ -21,11 +21,11 @@ You can see some
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
 on the wiki and [intro videos](http://www.youtube.com/user/CodeBrackets) on the Brackets YouTube channel.
 
-Brackets is early in development, so many of the features you would
+Brackets is fairly early in development, so some of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
-it's going, the [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) 
-file contains some useful links to help you get started. Please contribute!    
+it's going, _there are lots of ways you can help._ See [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md)
+for more info. Please contribute!
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
@@ -36,10 +36,10 @@ for info on how we're using CodeMirror.
 How to run Brackets
 -------------------
 
-**Brackets isn't ready for general use yet.** It's still early in
-development, is missing a lot of basic editor features, and *probably*
-has bugs. That said, we've actually been using Brackets to develop Brackets
-for awhile now, so what's there is reasonably stable.
+**Brackets isn't ready for general use yet.** It's still missing a lot of basic
+editor features. That said, what's there is reasonably stable&mdash;the
+Brackets team uses Brackets to develop Brackets full time. So feel free to
+give it a spin and let us know what's missing!
 
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.
@@ -58,7 +58,7 @@ directly via git, see [How to Hack on Brackets](https://github.com/adobe/bracket
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
-You can choose a different folder to edit from *File > Open Folder*. (Might we
+You can choose a different folder to edit using *File > Open Folder*. (Might we
 suggest editing the Brackets source code and submitting some pull requests?)
 
 Most of Brackets should be pretty self-explanatory, but for information on how
@@ -71,34 +71,39 @@ for a list of new features and known issues in each build.
 
 I found a bug/missing feature!
 ------------------------------
-     
-Issues starting Brackets the first time? Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting).         
-       
-Brackets bugs are tracked in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
-When filing a new bug, please remember to include:
 
-* Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
-* Platform/OS version
-* Steps to reproduce problem with actual and expected results
-* Link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
-  if that's convenient)       
-       
-More details on how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
-For feature requests, go ahead and file them in the issue tracker; they'll be converted
-to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
+Issues starting Brackets the first time? Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting).
 
-\* Please excuse the mess in the "Icebox (To Be Reviewed)" list. We're still importing data from our internal system.
+**For bugs** be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
+Include steps to consistently reproduce the problem, actual vs. expected results, and your OS and
+Brackets version number. Disable all extensions to verify the issue is a core Brackets bug.
+[Read more guidelines for filing good bugs...](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
+
+**For feature requests** please first check our [feature backlog](http://bit.ly/BracketsBacklog) to
+see if it's already there; you can upvote it if so. If not, feel free to file it as an issue; we'll
+move it to the feature backlog for you.
 
 I want to help!
 ---------------
 
-Awesome! Please read [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
+Awesome! Please read the [Guide to Contributing](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md)
+and learn [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
 I want to keep track of how Brackets is doing!
 ----------------------------------------------
 
-Not sure you needed the exclamation point there, but I like your enthusiasm.
+Not sure you needed the exclamation point there, but we like your enthusiasm.
+
+**What's Brackets working on next?**
+
+* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns labeled "Sprint N"
+  are features already in progress and should ship within 2 weeks. Features at the top of
+  the "Product Backlog" list will come next.
+* Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
+
+**Contact info:**
 
 * **Twitter:** [@brackets](http://twitter.com/#!/brackets)
+* **Blog:** http://blog.brackets.io/
 * **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
 * **Developers mailing list:** http://groups.google.com/group/brackets-dev

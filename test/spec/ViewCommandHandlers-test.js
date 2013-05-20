@@ -84,27 +84,25 @@ define(function (require, exports, module) {
         describe("Adjust the Font Size", function () {
             it("should increase the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() + 2;
+                    var editors      = getEditors(),
+                        originalSize = editors.editor.getTextHeight();
                     
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                    expect(editors.editor.getTextHeight()).toBeGreaterThan(originalSize);
+                    expect(editors.inline.getTextHeight()).toBeGreaterThan(originalSize);
                 });
             });
             
             it("should decrease the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() - 2;
+                    var editors      = getEditors(),
+                        originalSize = editors.editor.getTextHeight();
                     
                     CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
                     
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                    expect(editors.editor.getTextHeight()).toBeLessThan(originalSize);
+                    expect(editors.inline.getTextHeight()).toBeLessThan(originalSize);
                 });
             });
             
@@ -123,11 +121,11 @@ define(function (require, exports, module) {
             });
             
             it("should keep the same font size when opening another document", function () {
-                var promise, expectedSize, editor;
+                var promise, originalSize, editor;
                 
                 runs(function () {
                     editor       = EditorManager.getCurrentFullEditor();
-                    expectedSize = editor.getTextHeight() + 1;
+                    originalSize = editor.getTextHeight();
                     
                     promise = CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     waitsForDone(promise, "Increase font size");
@@ -141,7 +139,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
-                    expect(editor.getTextHeight()).toBe(expectedSize);
+                    expect(editor.getTextHeight()).toBeGreaterThan(originalSize);
                 });
                 
                 // This must be in the last spec in the suite.

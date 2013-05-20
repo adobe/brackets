@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
@@ -865,9 +865,10 @@ define(function (require, exports, module) {
      * @param {jQueryObject|Node} root The root element to search from. Can be either a jQuery object
      *     or a raw DOM node.
      * @param {string} content The content to find.
+     * @param {boolean} asLink If true, find the content in the href of an <a> tag, otherwise find it in text nodes.
      * @return true if content was found
      */
-    function findDOMText(root, content) {
+    function findDOMText(root, content, asLink) {
         // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
         // you can't escape quotes in it.
         var i;
@@ -876,12 +877,15 @@ define(function (require, exports, module) {
         }
         if (!root) {
             return false;
-        } else if (root.nodeType === 3) { // text node
+        } else if (!asLink && root.nodeType === 3) { // text node
             return root.textContent.indexOf(content) !== -1;
         } else {
+            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+                return true;
+            }
             var children = root.childNodes;
             for (i = 0; i < children.length; i++) {
-                if (findDOMText(children[i], content)) {
+                if (findDOMText(children[i], content, asLink)) {
                     return true;
                 }
             }

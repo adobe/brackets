@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "es/Primeros Pasos"
+    "GETTING_STARTED"           : "es/Primeros Pasos"
 });

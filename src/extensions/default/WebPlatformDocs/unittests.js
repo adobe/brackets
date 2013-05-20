@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         InlineDocsViewer    = require("InlineDocsViewer"),
         testCSS             = require("text!unittest-files/test1.css"),
         testHTML            = require("text!unittest-files/test1.html"),
-        description         = require("text!unittest-files/description.txt");
+        description         = require("text!unittest-files/description.html");
 
     describe("WebPlatformDocs", function () {
             
@@ -194,14 +194,18 @@ define(function (require, exports, module) {
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
                     title,
-                    href;
+                    href,
+                    $links = viewer.$htmlContent.find("a");
                 
-                viewer.$htmlContent.find("a").each(function (i, anchor) {
+                // 7 links in description.html, 1 "more info" link in template
+                expect($links.length).toBe(8);
+                
+                $links.each(function (i, anchor) {
                     $a = $(anchor);
                     href = $a.attr("href");
                     
                     if ($a.attr("data-expected")) {
-                        // transform all URLs, see unittest-files/description.txt
+                        // transform all URLs, see unittest-files/description.html
                         expect(href).toBe($a.attr("data-expected"));
                     } else {
                         // accont for "read more" URL
