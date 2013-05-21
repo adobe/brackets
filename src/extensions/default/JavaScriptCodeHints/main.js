@@ -162,11 +162,12 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
