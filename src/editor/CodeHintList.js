@@ -148,6 +148,7 @@ define(function (require, exports, module) {
             _addHint;
 
         this.hints = hintObj.hints;
+        this.hints.handleWideResults = hintObj.handleWideResults;
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
@@ -214,11 +215,11 @@ define(function (require, exports, module) {
                 }
             });
             
-            // single item lists may be styled differently (function signatures are an example)
-            if (this.hints.length === 1) {
-                $ul.find("li a").addClass("single");
+            // Lists with wide results require different formatting
+            if (this.hints.handleWideResults) {
+                $ul.find("li a").addClass("wide-result");
             }
-
+            
             // attach to DOM
             $parent.append($ul);
             
@@ -256,7 +257,7 @@ define(function (require, exports, module) {
         var rightOverhang = posLeft + menuWidth - $window.width();
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
-        } else {
+        } else if (this.hints.handleWideResults) {
             availableWidth = rightOverhang * -1 + menuWidth;
         }
 
