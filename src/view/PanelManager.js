@@ -108,14 +108,10 @@ define(function (require, exports, module) {
             if (_currentEditor) {
 
                 // Gather info to determine whether to scroll after editor resizes
-                var scrollInfo = _currentEditor._codeMirror.getScrollInfo(),
-                    currScroll = scrollInfo.top,
-                    height     = scrollInfo.clientHeight,
+                var height     = _currentEditor._codeMirror.getScrollInfo().clientHeight,
                     textHeight = _currentEditor.getTextHeight(),
                     cursorTop  = _currentEditor._codeMirror.cursorCoords().top,
-                    allHeight  = 0;
-
-                var bottom = cursorTop - $("#editor-holder").offset().top + textHeight - height;
+                    bottom     = cursorTop - $("#editor-holder").offset().top + textHeight - height;
 
                 // Determine whether panel would block text at cursor
                 // If so, scroll the editor to expose the cursor above
