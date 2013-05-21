@@ -40,7 +40,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
-        EditorManager           = require("editor/EditorManager"),
         Resizer                 = require("utils/Resizer");
     
     
@@ -190,10 +189,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Force PanelManager to recalculate the editor-holder size and trigger an event, in cases that our normal panel
-     * and window listeners wouldn't detect.
-     * 
-     * For internal use only: most code should call EditorManager.resizeEditor() for this purpose.
+     * Used by EditorManager to notify us of layout changes our normal panel/window listeners wouldn't detect.
+     * For internal use only: most code should call EditorManager.resizeEditor().
      */
     function _notifyLayoutChange(refreshHint) {
         triggerEditorResize(refreshHint);

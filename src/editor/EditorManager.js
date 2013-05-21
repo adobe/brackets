@@ -355,23 +355,23 @@ define(function (require, exports, module) {
      */
     var REFRESH_SKIP = "skip";
 
-    /** 
-     * Update the editor area's size: invokes PanelManager to compute the correct size and call us back with it.
-     * Anyone who changes the size/visibility of editor area siblings without going through PanelManager/Resizer
-     * *must* manually call resizeEditor().
+    /**
+     * Must be called whenever the size/visibility of editor area siblings is changed without going through
+     * PanelManager or Resizer. Resizable panels created via PanelManager do not require this manual call.
      */
     function resizeEditor() {
         if (!_editorHolder) {
             return;  // still too early during init
         }
+        // PanelManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
         PanelManager._notifyLayoutChange();
     }
     
     /**
-     * Update the current CodeMirror's editor's size. Must be called any time the contents of the editor area
+     * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
      * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
      * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
-     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show.
+     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
      * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
