@@ -765,11 +765,21 @@ define(function (require, exports, module) {
                         }
                     });
                 });
+                
+                it("should show the 'no extensions' message when there are no extensions installed", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).not.toBe("none");
+                        expect($("table", view.$el).css("display")).toBe("none");
+                    });
+                });
                            
                 it("should show only items that are already installed and have a remove button for each", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).toBe("none");
+                        expect($("table", view.$el).css("display")).not.toBe("none");
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.remove[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" ||
