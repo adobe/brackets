@@ -28,7 +28,7 @@
  * Manages panels surrounding the editor area.
  * 
  * Updates panel sizes when the window is resized. Maintains the max resizing limits for panels, based on
- * currently available window size. Persists & restores panel sizes across sessions.
+ * currently available window size.
  * 
  * Events:
  *    - editorAreaResize -- When editor-holder's size changes for any reason (including panel show/hide
@@ -51,13 +51,16 @@ define(function (require, exports, module) {
         instance (or the no-editor placeholder) */
     var $editorHolder;
     
+    /** @type {boolean} Have we already started listening for the end of the ongoing window resize? */
+    var windowResizing = false;
     
+
     /**
      * Calculates the available height for the full-size Editor (or the no-editor placeholder),
      * accounting for the current size of all visible panels, toolbar, & status bar.
      * @return {number}
      */
-    function _calcEditorHeight() {
+    function calcEditorHeight() {
         var availableHt = $windowContent.height();
         
         $editorHolder.siblings().each(function (i, elem) {
@@ -71,6 +74,20 @@ define(function (require, exports, module) {
         return Math.max(availableHt, 0);
     }
     
+    /** Updates panel resize limits to disallow making panels big enough to shrink editor area below 0 */
+    function updateResizeLimits() {
+        var editorAreaHeight = $editorHolder.height();
+        
+        $editorHolder.siblings().each(function (i, elem) {
+            var $elem = $(elem);
+            if ($elem.css("display") === "none") {
+                $elem.data("maxsize", editorAreaHeight);
+            } else {
+                $elem.data("maxsize", editorAreaHeight + $elem.outerHeight());
+            }
+        });
+    }
+    
     
     /**
      * Calculates a new size for editor-holder and dispatches a change event. Does not actually update
@@ -79,10 +96,10 @@ define(function (require, exports, module) {
      * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
      */
     function triggerEditorResize(refreshHint) {
-        var editorAreaHeight = _calcEditorHeight();
+        // Find how much space is left for the editor
+        var editorAreaHeight = calcEditorHeight();
         
-        // TODO: update panel max heights
-        
+        // Resize editor to fill the space
         $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint]);
     }
     
@@ -92,12 +109,29 @@ define(function (require, exports, module) {
         // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
         // itself when it sees the window resize event
         triggerEditorResize("skip");
+        
+        if (!windowResizing) {
+            windowResizing = true;
+            
+            // We don't need any fancy debouncing here - we just need to react before the user can start
+            // resizing any panels at the new window size. So just listen for first mousemove once the
+            // window resize releases mouse capture.
+            $(window.document).one("mousemove", function () {
+                windowResizing = false;
+                updateResizeLimits();
+            });
+        }
     }
     
     /** Trigger editor area resize whenever the given panel is shown/hidden/resized */
     function listenToResize($panel) {
+        // Update editor height when shown/hidden, & continuously as panel is resized
         $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
             triggerEditorResize();
+        });
+        // Update max size of sibling panels when shown/hidden, & at *end* of resize gesture
+        $panel.on("panelCollapsed panelExpanded panelResizeEnd", function () {
+            updateResizeLimits();
         });
     }
     
@@ -146,9 +180,11 @@ define(function (require, exports, module) {
      * @param {number=} minSize  Minimum height of panel in px; default is 0
      * @return {!Panel}
      */
-    function createBottomPanel(id, $panel, minSize) {   // TODO: allow retrieval by id...
+    function createBottomPanel(id, $panel, minSize) {
         $panel.insertBefore("#status-bar");
         $panel.hide();
+        updateResizeLimits();  // initialize panel's max size
+        
         return new Panel($panel, minSize);
     }
     
@@ -161,6 +197,7 @@ define(function (require, exports, module) {
      */
     function _notifyLayoutChange(refreshHint) {
         triggerEditorResize(refreshHint);
+        updateResizeLimits();
     }
     
     

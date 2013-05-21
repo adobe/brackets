@@ -138,7 +138,8 @@ define(function (require, exports, module) {
      * @param {!string} direction Direction of the resize action: one of the DIRECTION_* constants.
      * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
      *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
-     * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
+     * @param {?number} minSize Minimum size (width or height) of the element's outer dimensions, including
+     *                          border & padding. Defaults to 0.
      * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
      *                          resizer. Defaults to false.
      * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
@@ -167,7 +168,10 @@ define(function (require, exports, module) {
         
         $element.prepend($resizer);
         
+        // Important so min/max sizes behave predictably
+        $element.css("box-sizing", "border-box");
         
+        // Detect legacy cases where panels in the editor area are created without using PanelManager APIs
         if ($parent[0] && $parent.is(".content") && !createdByPanelManager) {
             console.warn("Deprecated: resizable panels should be created via PanelManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
             $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
