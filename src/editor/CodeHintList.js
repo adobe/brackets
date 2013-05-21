@@ -258,7 +258,8 @@ define(function (require, exports, module) {
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
         } else if (this.hints.handleWideResults) {
-            availableWidth = rightOverhang * -1 + menuWidth;
+            // Right overhang is negative
+            availableWidth = menuWidth + Math.abs(rightOverhang);
         }
 
         return {left: posLeft, top: posTop, width: availableWidth};
