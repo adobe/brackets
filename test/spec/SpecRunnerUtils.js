@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager");
@@ -210,8 +211,10 @@ define(function (require, exports, module) {
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
-        // Initialize EditorManager and position the editor-holder offscreen
+        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
         var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
         
         // create dummy Document for the Editor

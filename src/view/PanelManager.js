@@ -25,7 +25,7 @@
 /*global define, window, $, brackets */
 
 /**
- * Manages panels surrounding the editor area.
+ * Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).
  * 
  * Updates panel sizes when the window is resized. Maintains the max resizing limits for panels, based on
  * currently available window size.
@@ -89,14 +89,16 @@ define(function (require, exports, module) {
     
     
     /**
-     * Calculates a new size for editor-holder and dispatches a change event. Does not actually update
-     * editor-holder's size (EditorManager does that in response to our event).
+     * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "editorAreaResize"
+     * event. (The editors within are resized by EditorManager, in response to that event).
      * 
      * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
      */
     function triggerEditorResize(refreshHint) {
         // Find how much space is left for the editor
         var editorAreaHeight = calcEditorHeight();
+        
+        $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
         $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint]);
@@ -210,6 +212,12 @@ define(function (require, exports, module) {
         }
     });
     
+    // Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor()
+    function _setMockDOM($mockWindowContent, $mockEditorHolder) {
+        $windowContent = $mockWindowContent;
+        $editorHolder = $mockEditorHolder;
+    }
+    
     // If someone adds a panel in the .content stack the old way, make sure we still listen for resize/show/hide
     // (Resizer emits a deprecation warning for us - no need to log anything here)
     $(Resizer).on("deprecatedPanelAdded", function (event, $panel) {
@@ -224,4 +232,5 @@ define(function (require, exports, module) {
     // Define public API
     exports.createBottomPanel    = createBottomPanel;
     exports._notifyLayoutChange  = _notifyLayoutChange;
+    exports._setMockDOM          = _setMockDOM;
 });
