@@ -483,6 +483,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test whether the provider has an exclusion that is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when the provider inserts the selected hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
      *  Test if a hint popup is open.
      *
      * @returns {boolean} - true if the hints are open, false otherwise.
@@ -504,4 +516,5 @@ define(function (require, exports, module) {
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.hasValidExclusion       = hasValidExclusion;
 });
