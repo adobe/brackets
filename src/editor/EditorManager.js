@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands            = require("command/Commands"),
+        PanelManager        = require("view/PanelManager"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -341,54 +342,44 @@ define(function (require, exports, module) {
     
     
     /**
-     * Calculates the available height for the full-size Editor (or the no-editor placeholder),
-     * accounting for the current size of all visible panels, toolbar, & status bar.
-     * @return {number}
-     */
-    function _calcEditorHeight() {
-        var availableHt = $(".content").height();
-        
-        _editorHolder.siblings().each(function (i, elem) {
-            var $elem = $(elem);
-            if ($elem.css("display") !== "none") {
-                availableHt -= $elem.outerHeight();
-            }
-        });
-        
-        // Clip value to 0 (it could be negative if a panel wants more space than we have)
-        return Math.max(availableHt, 0);
-    }
-    
-    /**
-     * Flag for resizeEditor() to always force refresh.
+     * Flag for _onEditorAreaResize() to always force refresh.
      * @const
      * @type {string}
      */
     var REFRESH_FORCE = "force";
     
     /**
-     * Flag for resizeEditor() to never refresh.
+     * Flag for _onEditorAreaResize() to never refresh.
      * @const
      * @type {string}
      */
     var REFRESH_SKIP = "skip";
 
     /** 
-     * Resize the editor. This must be called any time the contents of the editor area are swapped
-     * or any time the editor area might change height. EditorManager takes care of calling this when
-     * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
-     * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
-     *
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
-     *    whether it needs to refresh.
+     * Update the editor area's size: invokes PanelManager to compute the correct size and call us back with it.
+     * Anyone who changes the size/visibility of editor area siblings without going through PanelManager/Resizer
+     * *must* manually call resizeEditor().
      */
-    function resizeEditor(refreshFlag) {
+    function resizeEditor() {
         if (!_editorHolder) {
             return;  // still too early during init
         }
+        PanelManager._notifyLayoutChange();
+    }
+    
+    /**
+     * Update the current CodeMirror's editor's size. Must be called any time the contents of the editor area
+     * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
+     * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
+     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show.
+     * 
+     * @param {number} editorAreaHt
+     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let _onEditorAreaResize()
+     *    determine whether it needs to refresh.
+     */
+    function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         
-        var editorAreaHt = _calcEditorHeight();
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
@@ -410,15 +401,6 @@ define(function (require, exports, module) {
                 _currentEditor.refreshAll(true);
             }
         }
-    }
-    
-    /**
-     * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
-     * height.
-     */
-    function _updateEditorDuringResize() {
-        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(REFRESH_SKIP);
     }
     
     
@@ -465,13 +447,13 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
+        // Skip refreshing the editor since we're going to refresh it more explicitly below
         _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
         // Resize and refresh the editor, since it might have changed size or had other edits applied
         // since it was last visible.
-        resizeEditor(REFRESH_FORCE);
+        PanelManager._notifyLayoutChange(REFRESH_FORCE);
     }
 
     /**
@@ -705,11 +687,8 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+    $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
 
-    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
-    // refresh on resize.
-    window.addEventListener("resize", _updateEditorDuringResize, true);
-    
     // For unit tests and internal use only
     exports._openInlineWidget = _openInlineWidget;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
