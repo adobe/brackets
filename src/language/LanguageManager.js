@@ -410,12 +410,6 @@ define(function (require, exports, module) {
                     result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
                     return;
                 }
-                
-                // modeConfig can be a string or mode object
-                if (modeConfig !== mode && modeConfig.name !== mode) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                    return;
-                }
             }
             
             // This mode is now only about what to tell CodeMirror
