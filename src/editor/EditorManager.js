@@ -380,8 +380,6 @@ define(function (require, exports, module) {
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         
-        _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
-        
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
