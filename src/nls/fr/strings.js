@@ -36,7 +36,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
-	"FILE_EXISTS_ERR": "[6484476] !é=The file or directory already exists.=!",
+	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -53,8 +53,8 @@ define({
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du fichier",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_DELETING_FILE_TITLE": "[6967025] !é=Error deleting file=!",
-	"ERROR_DELETING_FILE": "[6967024] !é=An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}=!",
+	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
+	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
 	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
@@ -213,7 +213,7 @@ define({
 	"CMD_OPEN_LINE_ABOVE": "Ouvrir une ligne au-dessus",
 	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
-	"CMD_SHOW_CODE_HINTS": "[6967023] !é=Show Code Hints=!",
+	"CMD_SHOW_CODE_HINTS": "Afficher les indicateurs de code",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -244,7 +244,7 @@ define({
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
-	"CMD_SHOW_IN_OS": "[6966943] !é=Show in OS=!",
+	"CMD_SHOW_IN_OS": "Afficher dans le SE",
     
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -337,22 +337,22 @@ define({
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
-	"EXTENSION_MORE_INFO": "Plus d'infos...",
-	"EXTENSION_ERROR": "[6967026] !é=Extension error=!",
+	"EXTENSION_MORE_INFO": "Plus d’infos...",
+	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
 	"EXTENSION_MANAGER_REMOVE": "Supprimer l’extension",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "[6958948] !é=Unable to remove one or more extensions: {{0}}. Brackets will still quit.=!",
-	"MARKED_FOR_REMOVAL": "[6966720] !é=Marked for removal=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {{0}}. Brackets va être fermé malgré tout.",
+	"MARKED_FOR_REMOVAL": "Marquée pour suppression",
 	"UNDO_REMOVE": "Annuler",
-	"REMOVE_AND_QUIT_TITLE": "[6966723] !é=Remove Extensions=!",
-	"REMOVE_AND_QUIT_MESSAGE": "[6966722] !é=To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
-	"REMOVE_AND_QUIT": "[6966721] !é=Remove Extensions and Quit=!",
+	"REMOVE_AND_QUIT_TITLE": "Supprimer les extensions",
+	"REMOVE_AND_QUIT_MESSAGE": "Pour supprimer les extensions marquées, vous devez quitter puis relancer Brackets. Vous serez invité à enregistrer vos modifications.",
+	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {{0}} car elle n’est pas installée.",
-	"NO_EXTENSIONS": "[6967841] !é=No extensions installed yet.<br />Click the Install from URL button below to get started.=!",
+	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br />Cliquez sur le bouton Installer à partir de l’URL se trouvant ci-dessous pour démarrer.",
     
     /**
      * Unit names
