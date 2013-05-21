@@ -352,6 +352,7 @@ define({
 	"REMOVE_AND_QUIT_MESSAGE": "[6966722] !é=To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
 	"REMOVE_AND_QUIT": "[6966721] !é=Remove Extensions and Quit=!",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {{0}} car elle n’est pas installée.",
+	"NO_EXTENSIONS": "[6967841] !é=No extensions installed yet.<br />Click the Install from URL button below to get started.=!",
     
     /**
      * Unit names

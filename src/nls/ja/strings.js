@@ -352,6 +352,7 @@ define({
 	"REMOVE_AND_QUIT_MESSAGE": "!能=[6966722] To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
 	"REMOVE_AND_QUIT": "!能=[6966721] Remove Extensions and Quit_=!",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {{0}} を削除できませんでした。",
+	"NO_EXTENSIONS": "!能=[6967841] No extensions installed yet.<br />Click the Install from URL button below to get started._=!",
     
     /**
      * Unit names
