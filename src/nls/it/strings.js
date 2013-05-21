@@ -166,6 +166,10 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Evidenziatura Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
+    "CMD_FILE_DELETE"                     : "Delete",
+    "CMD_INSTALL_EXTENSION"               : "Installa Estensione\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gestore Estensioni\u2026",
+    "CMD_FILE_REFRESH"                    : "Aggiorna",
     "CMD_QUIT"                            : "Esci",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Esci",
