@@ -103,7 +103,8 @@ define(function (require, exports, module) {
      * a gold star when no errors are found.
      */
     function run() {
-        var currentDoc = DocumentManager.getCurrentDocument();
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            editor = EditorManager.getCurrentFullEditor();
         
         var perfTimerDOM,
             perfTimerLint;
@@ -151,12 +152,12 @@ define(function (require, exports, module) {
                         var line      = lineTd.text();
                         var character = lineTd.data("character");
         
-                        var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line - 1, character - 1, true);
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.show();
+                Resizer.show($lintResults);
+
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
@@ -175,7 +176,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
-                $lintResults.hide();
+                Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
@@ -184,12 +185,13 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
-            $lintResults.hide();
+            Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
         
         EditorManager.resizeEditor();
+
     }
     
     /**
