@@ -78,7 +78,7 @@ define(function (require, exports, module) {
                     view.filter("");
                 });
                 
-                // Disable the search field when there are no items int eh view.
+                // Disable the search field when there are no items in the view.
                 $(view.model).on("change", function () {
                     updateSearch();
                 });
