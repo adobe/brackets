@@ -42,7 +42,17 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
-        var $dlg, view;
+        var $dlg, view, $search, $searchClear;
+        
+        function updateSearch() {
+            if (view.model.filterSet.length === 0) {
+                $search.attr("disabled", "disabled");
+                $searchClear.attr("disabled", "disabled");
+            } else {
+                $search.removeAttr("disabled");
+                $searchClear.removeAttr("disabled");
+            }
+        }
         
         // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
@@ -53,6 +63,8 @@ define(function (require, exports, module) {
         
         // Create the view.
         $dlg = $(".extension-manager-dialog");
+        $search = $(".search", $dlg);
+        $searchClear = $(".search-clear", $dlg);
         view = new ExtensionManagerView();
         view.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED)
             .done(function () {
@@ -62,8 +74,13 @@ define(function (require, exports, module) {
                 $dlg.on("input", ".search", function (e) {
                     view.filter($(this).val());
                 }).on("click", ".search-clear", function (e) {
-                    $(".search", $dlg).val("");
+                    $search.val("");
                     view.filter("");
+                });
+                
+                // Disable the search field when there are no items int eh view.
+                $(view.model).on("change", function () {
+                    updateSearch();
                 });
 
                 // Handle the install button.                
@@ -72,7 +89,10 @@ define(function (require, exports, module) {
                         CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
                     });
                 
-                $dlg.find(".search").focus();
+                updateSearch();
+                if (!$search.attr("disabled")) {
+                    $dlg.find(".search").focus();
+                }
             });
     }
     
