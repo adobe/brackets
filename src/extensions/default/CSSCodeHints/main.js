@@ -39,18 +39,6 @@ define(function (require, exports, module) {
     var lastContext;
     
     /**
-     * Check whether the exclusion is still the same as text after the cursor.
-     *
-     * @param {string} exclusion - Text not to be overwritten when inserting hint.
-     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
-     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
-     * false otherwise.
-     */
-    function _hasValidExclusion(exclusion, textAfterCursor) {
-        return (exclusion && exclusion === textAfterCursor);
-    }
-    
-    /**
      * @constructor
      */
     function CssPropHints() {
@@ -59,6 +47,28 @@ define(function (require, exports, module) {
         this.exclusion = null;
     }
 
+    /**
+     * Check whether the exclusion is still the same as text after the cursor. 
+     * If not, reset it to null.
+     *
+     * @param {boolean} propNameOnly
+     * true to indicate that we update the exclusion only if the cursor is inside property name context.
+     * Otherwise, we also update exclusion for property value context.
+     */
+    CssPropHints.prototype.updateExclusion = function (propNameOnly) {
+        var textAfterCursor;
+        if (this.exclusion && this.info) {
+            if (this.info.context === CSSUtils.PROP_NAME) {
+                textAfterCursor = this.info.name.substr(this.info.offset);
+            } else if (!propNameOnly && this.info.context === CSSUtils.PROP_VALUE) {
+                textAfterCursor = this.info.value.substr(this.info.offset);
+            }
+            if (!CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                this.exclusion = null;
+            }
+        }
+    };
+    
     /**
      * Determines whether CSS propertyname or -name hints are available in the current editor
      * context.
@@ -89,18 +99,7 @@ define(function (require, exports, module) {
         }
         
         if (implicitChar) {
-            // If we have an exclusion from previous session, clear it now.
-            if (this.exclusion) {
-                if (this.info.context === CSSUtils.PROP_NAME) {
-                    textAfterCursor = this.info.name.substr(this.info.offset);
-                } else {
-                    textAfterCursor = this.info.value.substr(this.info.offset);
-                }
-                if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
-                    this.exclusion = null;
-                }
-            }
-            
+            this.updateExclusion(false);
             if (this.info.context === CSSUtils.PROP_NAME) {
                 // Check if implicitChar is the first character typed before an existing property name.
                 if (!this.exclusion && this.info.offset === 1 && implicitChar === this.info.name[0]) {
@@ -113,11 +112,8 @@ define(function (require, exports, module) {
         } else if (this.info.context === CSSUtils.PROP_NAME) {
             if (this.info.offset === 0) {
                 this.exclusion = this.info.name;
-            } else if (this.exclusion) {
-                textAfterCursor = this.info.name.substr(this.info.offset);
-                if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
-                    this.exclusion = null;
-                }
+            } else {
+                this.updateExclusion(true);
             }
         }
         
@@ -158,12 +154,7 @@ define(function (require, exports, module) {
         }
         
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
-        if (this.exclusion && context === CSSUtils.PROP_NAME) {
-            var textAfterCursor = needle.substr(this.info.offset);
-            if (!_hasValidExclusion(this.exclusion, textAfterCursor)) {
-                this.exclusion = null;
-            }
-        }
+        this.updateExclusion(true);
 
         if (context === CSSUtils.PROP_VALUE) {
             // When switching from a NAME to a VALUE context, restart the session
@@ -243,7 +234,7 @@ define(function (require, exports, module) {
         if (this.info.context === CSSUtils.PROP_NAME) {
             keepHints = true;
             var textAfterCursor = this.info.name.substr(this.info.offset);
-            if (this.info.name.length === 0 || _hasValidExclusion(this.exclusion, textAfterCursor)) {
+            if (this.info.name.length === 0 || CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
                 hint += ":";
