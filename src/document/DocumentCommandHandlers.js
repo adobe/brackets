@@ -289,6 +289,17 @@ define(function (require, exports, module) {
                 // Give the editor focus
                 EditorManager.focusEditor();
             });
+        // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
+        // Do all tests with brackets already running, and also with brackets not already running.
+        //
+        // drag a file onto brackets icon in desktop (this uses undecorated paths)
+        // drag a file onto brackets icon in taskbar (this uses undecorated paths)
+        // open a file from brackets sidebar (this uses undecorated paths)
+        // from command line: ...../Brackets.app/Contents path         - where 'path' is undecorated
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line"
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line:column"
+        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated 
+        // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
     /**
