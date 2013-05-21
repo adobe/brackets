@@ -446,7 +446,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml = Mustache.render(searchResultsTemplate, Strings);
-        searchResultsPanel = PanelManager.createBottomPanel("search-results", $(panelHtml));
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
