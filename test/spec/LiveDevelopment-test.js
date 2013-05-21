@@ -55,7 +55,8 @@ define(function (require, exports, module) {
         CSSAgentModule            = require("LiveDevelopment/Agents/CSSAgent"),
         HighlightAgentModule      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLDocumentModule        = require("LiveDevelopment/Documents/HTMLDocument"),
-        HTMLInstrumentationModule = require("language/HTMLInstrumentation");
+        HTMLInstrumentationModule = require("language/HTMLInstrumentation"),
+        NativeAppModule           = require("utils/NativeApp");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -82,13 +83,13 @@ define(function (require, exports, module) {
         
         //start live dev
         runs(function () {
-            LiveDevelopment.open();
+            waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 10000);
         });
         
         // Wait for the file and its stylesheets to fully load (and be communicated back).
         waitsFor(function () {
             return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
-        }, "Waiting for browser to become active", 10000);
+        }, "Waiting for browser to become active", 5000);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles");
@@ -129,34 +130,17 @@ define(function (require, exports, module) {
         
         this.category = "integration";
         
-        describe("Live Development startup and shutdown", function () {
-            beforeEach(function () {
-                runs(function () {
-                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
-                        LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
-                        Inspector            = testWindow.brackets.test.Inspector;
-                        NativeApp            = testWindow.brackets.test.NativeApp;
-                    });
+        describe("Inspector", function () {
 
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
-            });
-            
-            afterEach(function () {
-                runs(function () {
-                    SpecRunnerUtils.closeTestWindow();
-                });
-            });
-            
             it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
                 var id  = Math.floor(Math.random() * 100000),
-                    url = LiveDevelopment.launcherUrl + "?id=" + id,
+                    url = LiveDevelopmentModule.launcherUrl + "?id=" + id,
                     connected = false,
                     failed = false;
                 
                 runs(function () {
                     waitsForDone(
-                        NativeApp.openLiveBrowser(url, true),
+                        NativeAppModule.openLiveBrowser(url, true),
                         "NativeApp.openLiveBrowser",
                         5000
                     );
@@ -167,7 +151,7 @@ define(function (require, exports, module) {
                     function tryConnect() {
                         if (retries < 10) {
                             retries++;
-                            Inspector.connectToURL(url)
+                            InspectorModule.connectToURL(url)
                                 .done(function () {
                                     connected = true;
                                 })
@@ -185,21 +169,15 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(failed).toBe(false);
-                    expect(Inspector.connected()).toBeTruthy();
+                    expect(InspectorModule.connected()).toBeTruthy();
                 });
                 
                 runs(function () {
-                    var deferred = $.Deferred();
-                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
-                        Inspector.disconnect();
-                        deferred.resolve();
-                    });
-                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                    var promise = InspectorModule.Runtime.evaluate("window.open('', '_self').close()");
+                    waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
                 });
                 
-                runs(function () {
-                    expect(Inspector.connected()).toBeFalsy();
-                });
+                waitsFor(function () { return !InspectorModule.connected(); }, 10000);
             });
         });
 
@@ -325,17 +303,17 @@ define(function (require, exports, module) {
                 });
                 
                 //start live dev
-                var liveDoc;
                 runs(function () {
                     LiveDevelopment.open();
                 });
+                // Wait for the file and its stylesheets to fully load (and be communicated back).
                 waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+                }, "Waiting for browser to become active", 10000);
                 
-                var doneSyncing = false;
+                var liveDoc, doneSyncing = false;
                 runs(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -392,7 +370,7 @@ define(function (require, exports, module) {
                 // start live dev
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
-                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
                 });
                 
                 waitsFor(function () {

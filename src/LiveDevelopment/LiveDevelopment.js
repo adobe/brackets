@@ -358,7 +358,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // Send custom HTTP response for the current live document
                 $(_serverProvider).on("request.livedev", function (event, request) {
                     // response can be null in which case the StaticServerDomain reverts to simple file serving.
-                    var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
+                    var response = _liveDocument && _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
                     request.send(response);
                 });
             }
@@ -405,39 +405,6 @@ define(function LiveDevelopment(require, exports, module) {
         return Async.doInParallel(agents.css.getStylesheetURLs(),
                                   createLiveStylesheet,
                                   false); // don't fail fast
-    }
-
-    /** Unload the agents */
-    function unloadAgents() {
-        _loadedAgentNames.forEach(function (name) {
-            agents[name].unload();
-        });
-        _loadedAgentNames = [];
-    }
-
-    /** Load the agents */
-    function loadAgents() {
-        var name, promises = [], agentsToLoad, promise;
-
-        if (exports.config.experimental) {
-            // load all agents
-            agentsToLoad = agents;
-        } else {
-            // load only enabled agents
-            agentsToLoad = _enabledAgentNames;
-        }
-        for (name in agentsToLoad) {
-            if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
-                promise = agents[name].load();
-
-                if (promise) {
-                    promises.push(promise);
-                }
-
-                _loadedAgentNames.push(name);
-            }
-        }
-        return promises;
     }
 
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
@@ -504,8 +471,92 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_ERROR);
     }
 
+    /** Unload the agents */
+    function unloadAgents() {
+        _loadedAgentNames.forEach(function (name) {
+            agents[name].unload();
+        });
+        _loadedAgentNames = [];
+    }
+
+    /** Load the agents */
+    function loadAgents() {
+        var result = new $.Deferred(),
+            promises = [],
+            agentsToLoad,
+            allAgentsPromise,
+            loadOneAgent;
+
+        _setStatus(STATUS_LOADING_AGENTS);
+
+        if (exports.config.experimental) {
+            // load all agents
+            agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            agentsToLoad = _enabledAgentNames;
+        }
+
+        loadOneAgent = function (name) {
+            var oneAgentPromise;
+
+            if (agents[name] && agents[name].load) {
+                console.log("loading agent", name);
+                oneAgentPromise = agents[name].load();
+            }
+
+            if (!oneAgentPromise) {
+                console.log("finished loading agent sync", name);
+                oneAgentPromise = new $.Deferred().resolve().promise();
+            } else {
+                oneAgentPromise.fail(function () {
+                    console.error("Failed to load agent", name);
+                }).done(function () {
+                    console.log("finished loading agent async", name);
+                });
+            }
+
+            _loadedAgentNames.push(name);
+
+            return oneAgentPromise;
+        };
+
+        // load agents in parallel
+        allAgentsPromise = Async.doInParallel(Object.keys(agentsToLoad), loadOneAgent, true);
+
+        // wrap agent loading with a timeout
+        allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
+
+        allAgentsPromise.done(function () {
+            // After interstitial page, loading agents and navigating to the
+            // current document for the first time, call _agentsFinishedLoading() to gather
+            // related documents and set status to STATUS_ACTIVE.
+            _agentsFinishedLoading();
+
+            result.resolve();
+        });
+
+        allAgentsPromise.fail(function (reason) {
+            if (reason === Async.ERROR_TIMEOUT) {
+                _setStatus(STATUS_ERROR);
+
+                console.error("Timeout waiting for LiveDevelopment agents to load");
+
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            }
+
+            result.reject();
+        });
+
+        return result.promise();
+    }
+
     /** Run when all agents are loaded */
-    function _onLoad() {
+    function _agentsFinishedLoading() {
         var doc = _getCurrentDocument();
         if (!doc) {
             return;
@@ -580,12 +631,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * Unload and reload agents
+     */
     function reconnect() {
         unloadAgents();
-        
-        _setStatus(STATUS_LOADING_AGENTS);
-        var promises = loadAgents();
-        $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+        loadAgents();
     }
 
     /** Open the Connection and go live */
@@ -638,6 +689,8 @@ define(function LiveDevelopment(require, exports, module) {
             _setStatus(STATUS_CONNECTING);
             
             _openDocument(doc, EditorManager.getCurrentFullEditor());
+
+            $(Inspector).one("connect", _onConnect);
 
             Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
@@ -804,7 +857,8 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
-        
+        var loadAgentsPromise;
+
         /* 
          * Create a promise that resolves when the interstitial page has
          * finished loading.
@@ -850,20 +904,22 @@ define(function LiveDevelopment(require, exports, module) {
          */
         function onInterstitialPageLoad() {
             // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable().done(function () {
-                // Load the right document (some agents are waiting for the page's load event)
-                var doc = _getCurrentDocument();
-                if (doc) {
-                    Inspector.Page.navigate(doc.root.url);
-                } else {
-                    close();
-                }
-            });
+            Inspector.Page.enable();
 
-            // Load agents
-            _setStatus(STATUS_LOADING_AGENTS);
-            var promises = loadAgents();
-            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+            // navigate to the page first before loading can complete.
+            // To accomodate this, we load all agents and navigate in
+            // parallel.
+            loadAgentsPromise = loadAgents();
+
+            var doc = _getCurrentDocument();
+            if (doc) {
+                // Navigate from interstitial to the document
+                // Fires a frameNavigated event
+                Inspector.Page.navigate(doc.root.url);
+            } else {
+                close();
+            }
         }
         
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
@@ -987,8 +1043,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        $(Inspector).on("connect", _onConnect)
-            .on("disconnect", _onDisconnect)
+        $(Inspector).on("disconnect", _onDisconnect)
             .on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
