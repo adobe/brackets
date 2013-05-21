@@ -352,6 +352,7 @@ define({
     "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
     "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br />Click the Install from URL button below to get started.",
     
     /**
      * Unit names
