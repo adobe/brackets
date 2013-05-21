@@ -373,21 +373,24 @@ define(function (require, exports, module) {
      * Loads a mode and sets it for this language.
      * 
      * @param {string|Array.<string>} mode            CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     *                                                Assumes the mode is either already located or located in thirdparty/CodeMirror2/mode/<name>/<name>.js;
+     *                                                you can specify a third argument which is the path to the mode file within the "mode" folder (without the js extension).
      *
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
     Language.prototype._loadAndSetMode = function (mode) {
         var result      = new $.Deferred(),
             self        = this,
-            mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
+            modePath,
+            mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode, plus an optional mode path ["clike", "text/x-c++src", "clike/clike"]
         
         if (Array.isArray(mode)) {
-            if (mode.length !== 2) {
-                result.reject("Mode must either be a string or an array containing two strings");
+            if (mode.length < 2 || mode.length > 3) {
+                result.reject("Mode must either be a string or an array containing two or three strings");
                 return result.promise();
             }
             mimeMode = mode[1];
+            modePath = mode[2];
             mode = mode[0];
         }
         
@@ -429,7 +432,8 @@ define(function (require, exports, module) {
         if (CodeMirror.modes[mode]) {
             finish();
         } else {
-            require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
+            modePath = modePath || (mode + "/" + mode);
+            require(["thirdparty/CodeMirror2/mode/" + modePath], finish);
         }
         
         return result.promise();
