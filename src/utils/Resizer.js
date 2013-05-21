@@ -60,8 +60,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager");
+        PreferencesManager      = require("preferences/PreferencesManager");
     
     /**
      * @private
@@ -145,11 +144,13 @@ define(function (require, exports, module) {
      * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
+     * @param {?boolean} createdByPanelManager For internal use only
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByPanelManager) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
+            $parent             = $element.parent(),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
             elementID           = $element.attr("id"),
@@ -166,9 +167,15 @@ define(function (require, exports, module) {
         
         $element.prepend($resizer);
         
+        
+        if ($parent[0] && $parent.is(".content") && !createdByPanelManager) {
+            console.warn("Deprecated: resizable panels should be created via PanelManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
+            $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
+        }
+        
         function adjustSibling(size) {
             if (forceLeft !== undefined) {
-                $(forceLeft, $element.parent()).css("left", size);
+                $(forceLeft, $parent).css("left", size);
             }
         }
         
@@ -205,9 +212,6 @@ define(function (require, exports, module) {
             
             adjustSibling(elementSize);
             
-            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-            EditorManager.resizeEditor();
-            
             $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
@@ -229,9 +233,6 @@ define(function (require, exports, module) {
             }
             
             adjustSibling(0);
-            
-            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-            EditorManager.resizeEditor();
             
             $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
@@ -307,9 +308,6 @@ define(function (require, exports, module) {
                             $element.trigger("panelResizeStart", newSize);
                         }
                     }
-    
-                    // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-                    EditorManager.resizeEditor();
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
@@ -319,6 +317,13 @@ define(function (require, exports, module) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
+                
+                // respect max size if one provided (e.g. by PanelManager)
+                var maxSize = $element.data("maxsize");
+                if (maxSize !== undefined) {
+                    newSize = Math.min(newSize, maxSize);
+                }
+                                   
                 e.preventDefault();
                 
                 if (animationRequest === null) {
