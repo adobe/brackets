@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     function UrlCodeHints() {}
 
     /**
-     * Helper function for search(). Create a list of urls to existing files based on the query.
+     * Helper function to create a list of urls to existing files based on the query.
      * @param {{queryStr: string}} query -- a query object, used to filter the code hints
      * @return {Array.<string>}
      */
@@ -209,13 +209,13 @@ define(function (require, exports, module) {
      * @param {{queryStr: string}} query
      * The current query
      *
-     * @param {String} tagName 
+     * @param {string} tagName
      * HTML tag name
      *
-     * @param {String} attrName 
+     * @param {string} attrName
      * HTML attribute name
      *
-     * @return {Object<hints: (Array[String]|$.Deferred<Array[String]>), sortFunc: ?Function>} 
+     * @return {Object<hints: (Array[string]|$.Deferred<Array[string]>), sortFunc: ?Function>}
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
@@ -241,12 +241,12 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean}
+     * @return {boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
@@ -343,8 +343,8 @@ define(function (require, exports, module) {
      * Returns a list of availble font hints, if possible, for the current
      * editor context.
      *
-     * @return {Object<hints: Array<jQuery.Object>, match: String,
-     *      selectInitial: Boolean>}
+     * @return {Object<hints: Array<jQuery.Object>, match: string,
+     *      selectInitial: boolean>}
      *
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides:
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
      * @param {jQuery.Object} completion
      * The hint to be inserted into the editor context.
      *
-     * @return {Boolean}
+     * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */

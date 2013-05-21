@@ -364,7 +364,7 @@ define(function (require, exports, module) {
      *           values: Array.<string>,
      *           isNewItem: boolean}} A CSS context info object.
      */
-    function _getImportRuleInfo(ctx, editor) {
+    function _getImportUrlInfo(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
             backwardPos = $.extend({}, ctx.pos),
             forwardPos  = $.extend({}, ctx.pos),
@@ -477,7 +477,7 @@ define(function (require, exports, module) {
         }
 
         if (_isInImportRule(ctx)) {
-            return _getImportRuleInfo(ctx, editor);
+            return _getImportUrlInfo(ctx, editor);
         }
         
         return createInfo();
