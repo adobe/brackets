@@ -244,7 +244,7 @@ define({
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
-    "CMD_SHOW_IN_OS"                      : "Mostrar en Sistema Operativo",
+    "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
     
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
@@ -338,7 +338,7 @@ define({
     "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
     "EXTENSION_MORE_INFO"                  : "Más información...",
-    "EXTENSION_ERROR"                      : "Error en extensión",
+    "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
@@ -346,12 +346,13 @@ define({
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
     "EXTENSION_MANAGER_REMOVE"             : "Eliminar extensión",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {{0}}. Brackets se cerrará igualmente.",
-    "MARKED_FOR_REMOVAL"                   : "Pendiente de eliminar",
+    "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
     "UNDO_REMOVE"                          : "Deshacer",
     "REMOVE_AND_QUIT_TITLE"                : "Eliminar extensiones",
-    "REMOVE_AND_QUIT_MESSAGE"              : "Para eliminar las extensiones señaladas, debes cerrar y reiniciar Brackets. Serás avisado para guardar los cambios existentes.",
+    "REMOVE_AND_QUIT_MESSAGE"              : "Para eliminar las extensiones marcadas, debes cerrar y reiniciar Brackets. Serás avisado para guardar los cambios existentes.",
     "REMOVE_AND_QUIT"                      : "Eliminar extensiones y salir",
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
+    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en el botón Instalar desde URL para empezar.",
 
     /**
      * Unit names
