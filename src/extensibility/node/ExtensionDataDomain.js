@@ -65,10 +65,10 @@ function _cmdLoadExtension(name, baseUrl, callback) {
     var nodeMainPath = baseUrl + "/node-main";
     if (fs.existsSync(nodeMainPath + ".js")) {
         var nodeMain = require(nodeMainPath);
-        if (nodeMain.init) {
+        if (nodeMain.load) {
             var services = ExtensionData.getServices(name);
             services.__meta.extension.baseUrl = baseUrl;
-            var promise = nodeMain.init(services);
+            var promise = nodeMain.load(services);
             if (promise) {
                 promise.done(callback);
             } else {

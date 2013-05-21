@@ -101,14 +101,14 @@ define(function (require, exports, module) {
     
     function _hackifyExtension(name, config, entryPoint, extensionRequire, mainModule) {
         // old fashioned extension
-        if (!mainModule || !mainModule.init) {
+        if (!mainModule || !mainModule.load) {
             return;
         }
         var baseUrl = config.baseUrl;
         reloaders[name] = function () {
-            if (mainModule.disable) {
+            if (mainModule.unload) {
                 var services = ExtensionData.getServices(name);
-                mainModule.disable(services);
+                mainModule.unload(services);
             }
             delete contexts[name];
             extensionRequire.undef(entryPoint);
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
                     var metadata = JSON.parse(metadataText);
                     var services = ExtensionData.getServices(name);
                     services.metadata = metadata;
-                    mainModule.init(services);
+                    mainModule.load(services);
                     NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services).done(function () {
                         extensionLoaded.publish({
                             name: name
