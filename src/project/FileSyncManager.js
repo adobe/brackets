@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils"),
@@ -211,7 +212,7 @@ define(function (require, exports, module) {
      */
     function showReloadError(error, doc) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
-                dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
+                dialogId = DefaultDialogs.DIALOG_ID_EXT_CHANGED;
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.breakableUrl(
@@ -270,13 +271,21 @@ define(function (require, exports, module) {
                     )
                 );
                 buttons = [
-                    { className: "left",    id: "dontsave", text: Strings.RELOAD_FROM_DISK       },
-                    { className: "primary", id: "cancel",   text: Strings.KEEP_CHANGES_IN_EDITOR }
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
+                        text:      Strings.RELOAD_FROM_DISK
+                    },
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id:        Dialogs.DIALOG_BTN_CANCEL,
+                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                    }
                 ];
                 
             } else {
                 toClose = true;
-                dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
+                dialogId = DefaultDialogs.DIALOG_ID_EXT_DELETED;
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.breakableUrl(
@@ -284,8 +293,16 @@ define(function (require, exports, module) {
                     )
                 );
                 buttons = [
-                    { className: "left",    id: "dontsave", text: Strings.CLOSE_DONT_SAVE        },
-                    { className: "primary", id: "cancel",   text: Strings.KEEP_CHANGES_IN_EDITOR }
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
+                        text:      Strings.CLOSE_DONT_SAVE
+                    },
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id:        Dialogs.DIALOG_BTN_CANCEL,
+                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                    }
                 ];
             }
             
@@ -348,8 +365,8 @@ define(function (require, exports, module) {
             
             // Close dialog if it was open. This will 'unblock' presentConflict(), which bails back
             // to us immediately upon seeing _restartPending. We then restart the sync - see below
-            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_CHANGED);
-            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_DELETED);
+            Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_CHANGED);
+            Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_DELETED);
             
             return;
         }

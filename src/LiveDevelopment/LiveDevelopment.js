@@ -75,6 +75,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var Async                = require("utils/Async"),
         Dialogs              = require("widgets/Dialogs"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
@@ -595,7 +596,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         function showWrongDocError() {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
@@ -612,15 +613,12 @@ define(function LiveDevelopment(require, exports, module) {
                     } else {
                         result.reject();
                     }
-                })
-                .fail(function () {
-                    result.reject();
                 });
         }
 
         function showLiveDevServerNotReadyError() {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
             );
@@ -642,12 +640,20 @@ define(function LiveDevelopment(require, exports, module) {
                 if (retryCount > 6) {
                     _setStatus(STATUS_ERROR);
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
+                        DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                         Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
                         Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
                         [
-                            { className: "left",    id: "cancel", text: Strings.CANCEL          },
-                            { className: "primary", id: "ok",     text: Strings.RELAUNCH_CHROME }
+                            {
+                                className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                                id:        Dialogs.DIALOG_BTN_CANCEL,
+                                text:      Strings.CANCEL
+                            },
+                            {
+                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id:        Dialogs.DIALOG_BTN_OK,
+                                text:      Strings.RELAUNCH_CHROME
+                            }
                         ]
                     )
                         .done(function (id) {
@@ -699,7 +705,7 @@ define(function LiveDevelopment(require, exports, module) {
                             }
 
                             Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
+                                DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
                                 message
                             );
@@ -872,7 +878,7 @@ define(function LiveDevelopment(require, exports, module) {
             .fail(function () {
                 close();
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
+                    DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                     Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
                 );

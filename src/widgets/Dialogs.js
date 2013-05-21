@@ -39,20 +39,23 @@ define(function (require, exports, module) {
         Strings           = require("strings"),
         DialogTemplate    = require("text!htmlContent/dialog-template.html");
     
-    
+    /**
+     * Dialog Buttons IDs
+     * @const {string}
+     */
     var DIALOG_BTN_CANCEL           = "cancel",
         DIALOG_BTN_OK               = "ok",
         DIALOG_BTN_DONTSAVE         = "dontsave",
         DIALOG_CANCELED             = "_canceled",
         DIALOG_BTN_DOWNLOAD         = "download";
     
-    var DIALOG_ID_ERROR             = "error-dialog",
-        DIALOG_ID_INFO              = "error-dialog", // uses the same template for now--could be different in future
-        DIALOG_ID_SAVE_CLOSE        = "save-close-dialog",
-        DIALOG_ID_EXT_CHANGED       = "ext-changed-dialog",
-        DIALOG_ID_EXT_DELETED       = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT  = "live-development-error-dialog",
-        DIALOG_ID_REMOVE_EXTENSIONS = "remove-marked-extensions";
+    /**
+     * Dialog Buttons Class Names
+     * @const {string}
+     */
+    var DIALOG_BTN_CLASS_PRIMARY    = "primary",
+        DIALOG_BTN_CLASS_NORMAL     = "",
+        DIALOG_BTN_CLASS_LEFT       = "left";
     
 
     /** 
@@ -276,8 +279,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new general purpose modal dialog using the template variables from "default-dialogs.json"
-     * and a new title and/or message if specified.
+     * Creates a new general purpose modal dialog using the default template and the template variables given
+     * as parameters as described.
      *
      * @param {string} dlgClass A class name identifier for the dialog.
      * @param {string=} title The title of the dialog. Can contain HTML markup. If unspecified, the title
@@ -293,7 +296,7 @@ define(function (require, exports, module) {
             dlgClass: dlgClass,
             title:    title   || "",
             message:  message || "",
-            buttons:  buttons || [{ className: "primary", id: "ok", text: Strings.OK }]
+            buttons:  buttons || [{ className: DIALOG_BTN_CLASS_PRIMARY, id: DIALOG_BTN_OK, text: Strings.OK }]
         };
         var template = Mustache.render(DialogTemplate, templateVars);
         
@@ -320,13 +323,9 @@ define(function (require, exports, module) {
     exports.DIALOG_CANCELED              = DIALOG_CANCELED;
     exports.DIALOG_BTN_DOWNLOAD          = DIALOG_BTN_DOWNLOAD;
     
-    exports.DIALOG_ID_ERROR              = DIALOG_ID_ERROR;
-    exports.DIALOG_ID_INFO               = DIALOG_ID_INFO;
-    exports.DIALOG_ID_SAVE_CLOSE         = DIALOG_ID_SAVE_CLOSE;
-    exports.DIALOG_ID_EXT_CHANGED        = DIALOG_ID_EXT_CHANGED;
-    exports.DIALOG_ID_EXT_DELETED        = DIALOG_ID_EXT_DELETED;
-    exports.DIALOG_ID_LIVE_DEVELOPMENT   = DIALOG_ID_LIVE_DEVELOPMENT;
-    exports.DIALOG_ID_REMOVE_EXTENSIONS  = DIALOG_ID_REMOVE_EXTENSIONS;
+    exports.DIALOG_BTN_CLASS_PRIMARY     = DIALOG_BTN_CLASS_PRIMARY;
+    exports.DIALOG_BTN_CLASS_NORMAL      = DIALOG_BTN_CLASS_NORMAL;
+    exports.DIALOG_BTN_CLASS_LEFT        = DIALOG_BTN_CLASS_LEFT;
     
     exports.showModalDialog              = showModalDialog;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;

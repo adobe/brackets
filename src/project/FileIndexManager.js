@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         CollectionUtils     = require("utils/CollectionUtils"),
         Strings             = require("strings");
 
@@ -150,10 +151,11 @@ define(function (require, exports, module) {
     
     /**
      * Error dialog when max files in index is hit
+     * @return {Dialog}
      */
     function _showMaxFilesDialog() {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_MAX_FILES_TITLE,
             Strings.ERROR_MAX_FILES
         );

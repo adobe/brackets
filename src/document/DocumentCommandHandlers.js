@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -379,9 +380,16 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(name, path) {
+    /**
+     * @private
+     * Shows an Error modal dialog
+     * @param {string} name
+     * @param {string} path
+     * @return {Dialog}
+     */
+    function _showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
@@ -396,7 +404,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.name, fileEntry.fullPath)
+            _showSaveFileError(error.name, fileEntry.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
@@ -513,7 +521,7 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 FileUtils.showFileOpenError(error.name, doc.file.fullPath)
-                    .always(function () {
+                    .done(function () {
                         result.reject(error);
                     });
             });
@@ -572,16 +580,28 @@ define(function (require, exports, module) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 StringUtils.format(
                     Strings.SAVE_CLOSE_MESSAGE,
                     StringUtils.breakableUrl(filename)
                 ),
                 [
-                    { className: "left",    id: "dontsave", text: Strings.DONT_SAVE },
-                    { className: "",        id: "cancel",   text: Strings.CANCEL    },
-                    { className: "primary", id: "ok",       text: Strings.SAVE      }
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
+                    }
                 ]
             )
                 .done(function (id) {
@@ -673,13 +693,25 @@ define(function (require, exports, module) {
             message += "</ul>";
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 message,
                 [
-                    { className: "left",    id: "dontsave", text: Strings.DONT_SAVE },
-                    { className: "",        id: "cancel",   text: Strings.CANCEL    },
-                    { className: "primary", id: "ok",       text: Strings.SAVE      }
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
+                    }
                 ]
             )
                 .done(function (id) {
