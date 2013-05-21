@@ -51,7 +51,8 @@ define(function (require, exports, module) {
     /**
      * Helper function to create a list of urls to existing files based on the query.
      * @param {{queryStr: string}} query -- a query object, used to filter the code hints
-     * @return {Array.<string>}
+     *
+     * @return {Array[string]|$.Deferred} The (possibly deferred) hints.
      */
     UrlCodeHints.prototype._getUrlList = function (query) {
         var doc,
@@ -204,19 +205,13 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Helper function that determins the possible value hints for a given html tag/attribute name pair
+     * Helper function that determines the possible value hints for a given html tag/attribute name pair
      * 
      * @param {{queryStr: string}} query
      * The current query
      *
-     * @param {string} tagName
-     * HTML tag name
-     *
-     * @param {string} attrName
-     * HTML attribute name
-     *
-     * @return {Object<hints: (Array[string]|$.Deferred<Array[string]>), sortFunc: ?Function>}
-     * The (possibly deferred) hints and the sort function to use on thise hints.
+     * @return {Object<hints: (Array[string]|$.Deferred), sortFunc: ?Function>}
+     * The (possibly deferred) hints and the sort function to use on these hints.
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
@@ -248,7 +243,7 @@ define(function (require, exports, module) {
      *
      * @return {boolean}
      * Determines whether the current provider is able to provide hints for
-     * the given editor context and, in case implicitChar is non- null,
+     * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
     UrlCodeHints.prototype.hasHints = function (editor, implicitChar) {
@@ -262,6 +257,22 @@ define(function (require, exports, module) {
         return false;
     };
 
+    /**
+     * Helper function for hasHints() for CSS.
+     *
+     * @param {Editor} editor
+     * A non-null editor object for the active window.
+     *
+     * @param {string} implicitChar
+     * Either null, if the hinting request was explicit, or a single character
+     * that represents the last insertion and that indicates an implicit
+     * hinting request.
+     *
+     * @return {boolean}
+     * Determines whether the current provider is able to provide hints for
+     * the given editor context and, in case implicitChar is non-null,
+     * whether it is appropriate to do so.
+     */
     UrlCodeHints.prototype.hasCssHints = function (editor, implicitChar) {
         this.editor = editor;
         var cursor = this.editor.getCursorPos();
@@ -292,6 +303,22 @@ define(function (require, exports, module) {
         return false;
     };
 
+    /**
+     * Helper function for hasHints() for HTML.
+     *
+     * @param {Editor} editor
+     * A non-null editor object for the active window.
+     *
+     * @param {string} implicitChar
+     * Either null, if the hinting request was explicit, or a single character
+     * that represents the last insertion and that indicates an implicit
+     * hinting request.
+     *
+     * @return {boolean}
+     * Determines whether the current provider is able to provide hints for
+     * the given editor context and, in case implicitChar is non-null,
+     * whether it is appropriate to do so.
+     */
     UrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
         var tagInfo,
             query,
