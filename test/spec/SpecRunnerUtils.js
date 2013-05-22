@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager");
@@ -204,24 +205,34 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a Document and Editor suitable for use with an Editor in
-     * isolation: i.e., a Document that will never be set as the
-     * currentDocument or added to the working set.
-     * @return {!{doc:{Document}, editor:{Editor}}}
+     * Returns an Editor tied to the given Document, but suitable for use in isolation
+     * (without being placed inside the surrounding Brackets UI).
+     * @return {!Editor}
      */
-    function createMockEditor(initialContent, languageId, visibleRange) {
-        // Initialize EditorManager and position the editor-holder offscreen
+    function createMockEditorForDocument(doc, visibleRange) {
+        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
         var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
-        
-        // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent, languageId);
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
         EditorManager._notifyActiveEditorChanged(editor);
         
-        return { doc: doc, editor: editor };
+        return editor;
+    }
+    
+    /**
+     * Returns a Document and Editor suitable for use in isolation: i.e., the Document
+     * will never be set as the currentDocument or added to the working set and the
+     * Editor does not live inside a full-blown Brackets UI layout.
+     * @return {!{doc:!Document, editor:!Editor}}
+     */
+    function createMockEditor(initialContent, languageId, visibleRange) {
+        // create dummy Document, then Editor tied to it
+        var doc = createMockDocument(initialContent, languageId);
+        return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
     /**
@@ -941,6 +952,7 @@ define(function (require, exports, module) {
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
+    exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
