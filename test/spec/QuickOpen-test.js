@@ -36,12 +36,13 @@ define(function (require, exports, module) {
         this.category = "integration";
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/QuickOpen-test-files");
-        var brackets, test$, executeCommand, EditorManager, DocumentManager;
+        var brackets, testWindow, test$, executeCommand, EditorManager, DocumentManager;
 
         beforeEach(function () {
         
             runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (other) {
+                    testWindow = other;
                     brackets = testWindow.brackets;
                     test$ = testWindow.$;
                     executeCommand = testWindow.executeCommand;
@@ -76,7 +77,7 @@ define(function (require, exports, module) {
             
             expectSearchBarOpen();
             
-            window.setTimeout(function () {
+            testWindow.setTimeout(function () {
                 getSearchField().val(str);
             }, timeoutLength);
         }
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
             var eventLooped = false;
             runs(function () {
                 pressEnter();
-                window.setTimeout(function () {
+                testWindow.setTimeout(function () {
                     eventLooped = true;
                 }, 50);
             });
@@ -152,7 +153,7 @@ define(function (require, exports, module) {
                 expect(editor).toHaveCursorPosition(49, 0);
                 
                 // We expect the result to be scrolled roughly to the middle of the window.
-                var scroller = $(editor.getScrollerElement());
+                var scroller = test$(editor.getScrollerElement());
                 var offset = scroller.offset().top;
                 var editorHeight = scroller.height();
                 var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
