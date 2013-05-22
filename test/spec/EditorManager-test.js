@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var EditorManager   = require("editor/EditorManager"),
+        PanelManager    = require("view/PanelManager"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
     describe("EditorManager", function () {
@@ -37,19 +38,24 @@ define(function (require, exports, module) {
             var testEditor, testDoc, $root, $fakeContentDiv;
             
             beforeEach(function () {
-                var mock = SpecRunnerUtils.createMockEditor("");
-                testEditor = mock.editor;
-                testDoc = mock.doc;
-                $root = $(testEditor.getRootElement());
-                
                 // Normally the editor holder would be created inside a "content" div, which is
                 // used in the available height calculation. We create a fake content div just to
-                // hold the height, and move the editor holder into it.
+                // hold the height, and we'll place the editor holder in it.
                 $fakeContentDiv = $("<div class='content'/>")
                     .css("height", "200px")
                     .appendTo(document.body);
+                
+                // createMockEditor() creates the mock-editor-holder, and links EditorManager/PanelManager
+                // to it (and links PanelManager to our content div)
+                var mock = SpecRunnerUtils.createMockEditor("");
+                
+                // move newly created mock-editor-holder into the content div we created above
                 $("#mock-editor-holder")
                     .appendTo($fakeContentDiv);
+                
+                testEditor = mock.editor;
+                testDoc = mock.doc;
+                $root = $(testEditor.getRootElement());
                 
                 testDoc._masterEditor = testEditor;
                 EditorManager._doShow(testDoc);
@@ -72,7 +78,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -83,7 +89,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -94,7 +100,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -106,7 +112,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -117,7 +123,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -128,7 +134,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -139,7 +145,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -151,7 +157,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
+                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
             
@@ -162,7 +168,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor();
+                PanelManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -173,7 +179,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor();
+                PanelManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -184,7 +190,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor();
+                PanelManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -196,7 +202,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor();
+                PanelManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
         });
