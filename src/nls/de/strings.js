@@ -312,9 +312,9 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
     "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
-    "INVALID_BRACKETS_VERSION"             : "Die Brackets-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
+    "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
     "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{0}} nicht erlaubt.",
-    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
+    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von {APP_NAME} kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
@@ -342,7 +342,7 @@ define({
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {{0}}",
     "QUIT_BRACKETS_AFTER_REMOVAL"          : "Nach dem Entfernen von Erweiterungen müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
-    "QUIT_BRACKETS"                        : "Brackets beenden",
+    "QUIT_BRACKETS"                        : "{APP_NAME} beenden",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {{0}} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     
     /**

@@ -107,7 +107,7 @@ define({
     "CHOOSE_FOLDER"                     : "Wybierz Folder",
 
     "RELEASE_NOTES"                     : "Informacje o Wydaniu",
-    "NO_UPDATE_TITLE"                   : "Brackets jest aktualny!",
+    "NO_UPDATE_TITLE"                   : "{APP_NAME} jest aktualny!",
     "NO_UPDATE_MESSAGE"                 : "Aktualnie używasz najnowszej wersji {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "dla \"{4}\" {5} - {0} {1} w {2} {3}",
@@ -295,7 +295,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} jest niepoprawną nazwą pakietu.",
     "MISSING_PACKAGE_VERSION"              : "Plik package.json nie zawiera numeru wersji pakietu.",
     "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
-    "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją Brackets. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
+    "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją {APP_NAME}. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
     "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
     "ALREADY_INSTALLED"                    : "Rozszerzenie z taką samą nazwą jest już zainstalowane. Nowe rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
     "DOWNLOAD_ID_IN_USE"                   : "Błąd wewnętrzny: nazwa ściąganego pliku już istnieje.",
