@@ -119,6 +119,9 @@
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/requirejs/require.js" data-main="brackets"></script>
 
+    <!-- Polyfil $.fn.addBack until jQuery 2.0.0 lands -->
+    <script>$.fn.addBack = $.fn.andSelf;</script>
+
     <!-- Verify that all dependencies are loaded. -->
     <script>
         window.setTimeout(function () {
