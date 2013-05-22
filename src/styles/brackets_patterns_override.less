@@ -240,6 +240,10 @@
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
+                
+                &.wide-result {
+                    white-space: normal;
+                }
 
                 &:hover, &.highlight {
                     color: @bc-black;
@@ -505,9 +509,17 @@
             width: 15px;
             height: 16px;
             z-index: 1;
+            
+            &:disabled {
+                opacity: 0.3;
+                cursor: default;
+            }
         }
         .search-clear:active {
             opacity: 0.5;
+            &:disabled {
+                opacity: 0.3;
+            }
         }
     }
     .modal-body {
@@ -516,6 +528,15 @@
         text-align: center;
         overflow-y: scroll;
         padding: 0;
+        
+        .empty-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            margin-top: -1em;
+            text-align: center;
+        }
         
         .extension-list {
             td {
@@ -622,7 +643,7 @@
 }
 
 /* Input */
-input {
+input, textarea {
     background-color: #fff;
     border: 1px solid #9c9e9e;
     .border-radius(3px);
@@ -641,6 +662,11 @@ input {
         text-shadow: none;
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
+    }
+    
+    &:disabled {
+        opacity: 0.3;
+        cursor: default;
     }
 }
 

@@ -162,11 +162,12 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
@@ -591,9 +592,22 @@ define(function (require, exports, module) {
             }
         }
 
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
+        // Register quickEditHelper.
+        brackets._jsCodeHintsHelper = quickEditHelper;
+  
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
         if (menu) {

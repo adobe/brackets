@@ -472,7 +472,8 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
+            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey ||
+                    event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 // End the session if the user presses any key with a modifier (other than Ctrl+Space).
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -513,6 +514,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test whether the provider has an exclusion that is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when the provider inserts the selected hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
      *  Test if a hint popup is open.
      *
      * @returns {boolean} - true if the hints are open, false otherwise.
@@ -543,4 +556,5 @@ define(function (require, exports, module) {
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.hasValidExclusion       = hasValidExclusion;
 });

@@ -537,6 +537,8 @@ define(function (require, exports, module) {
             }
             hints[0] = {value: fnHint, positions: []};
         }
+        
+        hints.handleWideResults = true;
         return hints;
     };
 

@@ -36,7 +36,7 @@ define({
 	"NOT_READABLE_ERR": "ファイルを読み取れません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
-	"FILE_EXISTS_ERR": "!能=[6484476] The file or directory already exists._=!",
+	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
@@ -53,8 +53,8 @@ define({
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_FILE_TITLE": "ファイルの名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
-	"ERROR_DELETING_FILE_TITLE": "!能=[6967025] Error deleting file_=!",
-	"ERROR_DELETING_FILE": "!能=[6967024] An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}_=!",
+	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
+	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "ファイル名が不正です。",
 	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\|",
 	"FILE_ALREADY_EXISTS": "ファイル <span class='dialog-filename'>{0}</span> は既に存在しています。",
@@ -213,7 +213,7 @@ define({
 	"CMD_OPEN_LINE_ABOVE": "上の行を開く",
 	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
-	"CMD_SHOW_CODE_HINTS": "!能=[6967023] Show Code Hints_=!",
+	"CMD_SHOW_CODE_HINTS": "コードヒントを表示",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -244,7 +244,7 @@ define({
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
-	"CMD_SHOW_IN_OS": "!能=[6966943] Show in OS_=!",
+	"CMD_SHOW_IN_OS": "OS で表示",
     
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
@@ -338,20 +338,21 @@ define({
 	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
 	"EXTENSION_MORE_INFO": "詳細情報...",
-	"EXTENSION_ERROR": "!能=[6967026] Extension error_=!",
+	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
 	"EXTENSION_MORE_INFO_LINK": "詳細",
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
 	"EXTENSION_MANAGER_REMOVE": "拡張機能を削除",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "!能=[6958948] Unable to remove one or more extensions: {{0}}. Brackets will still quit._=!",
-	"MARKED_FOR_REMOVAL": "!能=[6966720] Marked for removal_=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "1 つ以上の拡張機能 ({{0}}) を削除できません。Brackets が終了中です。",
+	"MARKED_FOR_REMOVAL": "削除予定",
 	"UNDO_REMOVE": "取り消し",
-	"REMOVE_AND_QUIT_TITLE": "!能=[6966723] Remove Extensions_=!",
-	"REMOVE_AND_QUIT_MESSAGE": "!能=[6966722] To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
-	"REMOVE_AND_QUIT": "!能=[6966721] Remove Extensions and Quit_=!",
+	"REMOVE_AND_QUIT_TITLE": "拡張機能を削除",
+	"REMOVE_AND_QUIT_MESSAGE": "削除予定の拡張機能を削除するには、Brackets を一度終了して再起動する必要があります。未保存の変更を保存するかどうか確認されます。",
+	"REMOVE_AND_QUIT": "拡張機能を削除して終了",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {{0}} を削除できませんでした。",
+	"NO_EXTENSIONS": "拡張機能はまだインストールされていません。<br/>下にある「URL からインストール」ボタンをクリックして開始しましょう。",
     
     /**
      * Unit names
