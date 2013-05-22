@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -126,6 +126,11 @@ define(function (require, exports, module) {
                 // Make sure we've opened the right file. It should open the longer one, because
                 // of the scoring in the StringMatch algorithm.
                 expect(DocumentManager.getCurrentDocument().file.name).toEqual("lotsOfLines.html");
+            });
+            
+            waits(50);
+            
+            runs(function () {
                 executeCommand(Commands.NAVIGATE_GOTO_LINE);
                 enterSearchText(":50");
             });
@@ -134,15 +139,11 @@ define(function (require, exports, module) {
                 return getSearchField().val() === ":50";
             }, "goto line entry timeout", 1000);
             
-            var eventLooped = false;
             runs(function () {
                 pressEnter();
-                window.setTimeout(function () {
-                    eventLooped = true;
-                }, 50);
             });
             
-            waitsFor(function () { return eventLooped; });
+            waits(50);
             
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
