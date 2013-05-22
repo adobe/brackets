@@ -339,9 +339,13 @@ define(function (require, exports, module) {
                 });
                 
                 var runCreateInlineEditor = function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    // Set the cursor in the middle of a call to "extend" so the JS helper function works correctly.
+                    editor.setCursorPos(271, 20);
                     waitsForDone(
-                        JavaScriptQuickEdit._createInlineEditor(EditorManager.getCurrentFullEditor(), "extend"),
-                        "createInlineEditor"
+                        JavaScriptQuickEdit._createInlineEditor(editor, "extend"),
+                        "createInlineEditor",
+                        5000
                     );
                 };
                 
