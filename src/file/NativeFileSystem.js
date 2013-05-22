@@ -370,7 +370,14 @@ define(function (require, exports, module) {
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        var deleteFunc = brackets.fs.moveToTrash || brackets.fs.unlink;
+        var deleteFunc = brackets.fs.moveToTrash; // Future: Could fallback to unlink 
+        
+        if (!deleteFunc) {
+            // Running in a shell that doesn't support moveToTrash. Return an error.
+            errorCallback(brackets.fs.ERR_UNKNOWN);
+            return;
+        }
+        
         deleteFunc(this.fullPath, function (err) {
             if (err === brackets.fs.NO_ERROR) {
                 successCallback();

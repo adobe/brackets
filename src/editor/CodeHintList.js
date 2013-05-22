@@ -148,6 +148,7 @@ define(function (require, exports, module) {
             _addHint;
 
         this.hints = hintObj.hints;
+        this.hints.handleWideResults = hintObj.handleWideResults;
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
@@ -214,6 +215,11 @@ define(function (require, exports, module) {
                 }
             });
             
+            // Lists with wide results require different formatting
+            if (this.hints.handleWideResults) {
+                $ul.find("li a").addClass("wide-result");
+            }
+            
             // attach to DOM
             $parent.append($ul);
             
@@ -222,10 +228,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Computes top left location for hint list so that the list is not clipped by the window
+     * Computes top left location for hint list so that the list is not clipped by the window.
+     * Also computes the largest available width.
      *
      * @private
-     * @return {{left: number, top: number}}
+     * @return {{left: number, top: number, width: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
         var cursor      = this.editor._codeMirror.cursorCoords(),
@@ -244,13 +251,18 @@ define(function (require, exports, module) {
         }
 
         posTop -= 30;   // shift top for hidden parent element
-
-        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
+        
+        var menuWidth = $menuWindow.width();
+        var availableWidth = menuWidth;
+        var rightOverhang = posLeft + menuWidth - $window.width();
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
+        } else if (this.hints.handleWideResults) {
+            // Right overhang is negative
+            availableWidth = menuWidth + Math.abs(rightOverhang);
         }
 
-        return {left: posLeft, top: posTop};
+        return {left: posLeft, top: posTop, width: availableWidth};
     };
     
     /**
@@ -371,7 +383,7 @@ define(function (require, exports, module) {
             var hintPos = this._calcHintListLocation();
             
             this.$hintMenu.addClass("open")
-                .css({"left": hintPos.left, "top": hintPos.top});
+                .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
             
             PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
@@ -390,7 +402,8 @@ define(function (require, exports, module) {
         // Update the CodeHintList location
         if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
-            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top,
+                                "width": hintPos.width + "px"});
         }
     };
 

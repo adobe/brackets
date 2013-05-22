@@ -3,12 +3,12 @@
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
         <span class="muted ext-version">{{metadata.version}}</span> 
         {{#authorInfo}}
-            &mdash; <span class="muted ext-author">
-                    {{Strings.EXTENSION_AUTHOR}}: {{{authorInfo}}}
+            <span class="muted ext-author">
+                &mdash; {{{authorInfo}}}
             </span>
         {{/authorInfo}}
         {{#hasVersionInfo}}
-            &mdash; <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+            <span class="muted ext-date"> &mdash; {{lastVersionDate}}</span>
         {{/hasVersionInfo}}
     </td>
     <td class="ext-desc">
