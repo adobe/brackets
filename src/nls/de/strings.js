@@ -248,7 +248,7 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
-    "CMD_SHOW_IN_OS"                      : "Im Betriebssystem anzeigen",
+    "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -340,7 +340,7 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
-    "EXTENSION_MORE_INFO"                  : "Mehr Informationen...",
+    "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
     "EXTENSION_INSTALLED"                  : "Installiert",
@@ -349,13 +349,13 @@ define({
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {{0}}",
-    "MARKED_FOR_REMOVAL"                   : "Markiert zum Entfernen",
+    "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
     "UNDO_REMOVE"                          : "Rückgängig",
     "REMOVE_AND_QUIT_TITLE"                : "Erweiterungen entfernen",
     "REMOVE_AND_QUIT_MESSAGE"              : "Um die markierten Erweiterungen zu entfernen, müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
-    "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und Beenden",
+    "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und beenden",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {{0}} konnte nicht entfernt werden, weil sie nicht installiert ist.",
-    
+    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br />Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
     /**
      * Unit names
      */
