@@ -29,7 +29,7 @@ define({
      * Errors
      */
 
-    // General file io error strings
+    // Řetězce pro obecné chyby souboru
     "GENERIC_ERROR"                     : "(chyba {0})",
     "NOT_FOUND_ERR"                     : "Soubor nenalezen.",
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
@@ -37,13 +37,13 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
 
-    // Project error strings
+    // Řetězce pro chyby v projektu
     "ERROR_LOADING_PROJECT"             : "Chyba při otevírání projektu",
     "OPEN_DIALOG_ERROR"                 : "Došlo k chybě při zobrazování dialogu Otevřít soubor. (chyba {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Došlo k chybě při načítání adresáře <span class='dialog-filename'>{0}</span>. (chyba {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Došlo k chybě při načítání obsahu složky <span class='dialog-filename'>{0}</span>. (chyba {1})",
 
-    // File open/save error string
+    // Řetězce pro otevírání/ukládání souboru
     "ERROR_OPENING_FILE_TITLE"          : "Chyba při otevírání souboru",
     "ERROR_OPENING_FILE"                : "Došlo k chybě při otevírání souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RELOADING_FILE_TITLE"        : "Chyba při načítání změn z disku",
@@ -58,15 +58,15 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
 
-    // Application error strings
+    // Řetězce pro aplikaci
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
 
-    // FileIndexManager error string
+    // Řetězce pro FileIndexManager 
     "ERROR_MAX_FILES_TITLE"             : "Chyba při indexování souborů",
     "ERROR_MAX_FILES"                   : "Maximální počet souborů byl indexován. Funkce pro vyhledávání v indexovaných souborech nemusí fungovat správně.",
 
-    // Live Development error strings
+    // Řetězce pro Živý náhled
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba při spouštění prohlížeče",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome prohlížeč nebyl nalezen. Je nainstalován?",
     "ERROR_LAUNCHING_BROWSER"           : "Došlo k chybě při spouštění prohlížeče. (chyba {0})",
@@ -95,7 +95,7 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
     
-    // Find, Replace, Find in Files
+    // Najít, Nahradit, Najít v souborech
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "WITH"                              : "S",
@@ -156,7 +156,7 @@ define({
      * Command Name Constants
      */
 
-    // File menu commands
+    // Příkazy pro menu Soubor
     "FILE_MENU"                           : "Soubor",
     "CMD_FILE_NEW"                        : "Nový soubor",
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
@@ -173,10 +173,10 @@ define({
     "CMD_FILE_RENAME"                     : "Přejmenovat",
     "CMD_INSTALL_EXTENSION"               : "Instalovat doplňky\u2026",
     "CMD_QUIT"                            : "Konec",
-    // Used in native File menu on Windows
+    // Použito v souborovém menu Windows
     "CMD_EXIT"                            : "Konec",
 
-    // Edit menu commands
+    // Příkazy pro menu Úpravy
     "EDIT_MENU"                           : "Úpravy",
     "CMD_UNDO"                            : "Zpět",
     "CMD_REDO"                            : "Znovu",
@@ -201,7 +201,7 @@ define({
     "CMD_LINE_DOWN"                       : "Posunout řádek dolů",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
      
-    // View menu commands
+    // Příkazy pro menu zobrazit
     "VIEW_MENU"                           : "Zobrazit",
     "CMD_HIDE_SIDEBAR"                    : "Skrýt boční menu",
     "CMD_SHOW_SIDEBAR"                    : "Zobrazit boční menu",
@@ -218,7 +218,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatické řazení",
 
-    // Navigate menu Commands
+    // Příkazy pro menu Navigace
     "NAVIGATE_MENU"                       : "Navigace",
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
@@ -230,7 +230,7 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     
-    // Help menu commands
+    // Řetězce pro nápovědu
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
@@ -242,11 +242,11 @@ define({
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
 
 
-    // Special commands invoked by the native shell
+    // Zvláštní příkazy vyvolané nativním rozhraním
     "CMD_CLOSE_WINDOW"                    : "Zavřít okno",
     "CMD_ABORT_QUIT"                      : "Zrušit",
 
-    // Strings for main-view.html
+    // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
     "SEARCH_RESULTS"                       : "Výsledky hledání",
@@ -279,7 +279,7 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Neznámá chyba při zpracování URL",
     
-    // Extension Management strings
+    // Řetězce pro instalaci doplňků
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
     "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
     "INSTALL_EXTENSION_HINT"               : "URL adresa zip archivu nebo GitHub repozitáře",
@@ -289,7 +289,7 @@ define({
     "CANCELING_INSTALL"                    : "Rušení instalace\u2026",
     "CANCELING_HUNG"                       : "Rušení instalace trvá dlouho. Mohlo dojít k interní chybě.",
     "INSTALL_CANCELED"                     : "Instalace zrušena.",
-    // These must match the error codes in ExtensionsDomain.Errors.* :
+    // Tyto se musí shodovat s chybovými hlášeními v ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Stažený soubor není platný zip soubor.",
     "INVALID_PACKAGE_JSON"                 : "Package.json balíček není platný (chyba byla: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Package.json balíček nespecifikuje jméno souboru.",
@@ -307,10 +307,10 @@ define({
     "MALFORMED_URL"                        : "URL adresa je neplatná. Ujistěte se, že jste adresu zadali správně.",
     "UNSUPPORTED_PROTOCOL"                 : "URL adresa musí být http nebo https.",
     "UNKNOWN_ERROR"                        : "Neznámá chyba.",
-    // For NOT_FOUND_ERR, see generic strings above
+    // Pro NOT_FOUND_ERR, vyhledejte obecné řetězce výše
     
     
-    // extensions/default/DebugCommands
+    // Doplňky/výchozí/DebugCommands
     "DEBUG_MENU"                                : "Nástroje",
     "CMD_SHOW_DEV_TOOLS"                        : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                        : "Restartovat {APP_NAME}",
@@ -327,7 +327,7 @@ define({
     "LANGUAGE_SUBMIT"                           : "Restartovat {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Zrušit",
     
-    // extensions/default/InlineColorEditor
+    // Doplňky/výchozí/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa formát",
@@ -336,7 +336,7 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (použito {1} krát)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
     
-    // extensions/default/JSLint
+    // Doplňky/výchozí/JSLint
     "CMD_JSLINT"                                : "Povolit JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "Přejít na první JSLint chybu",
     "JSLINT_ERRORS"                             : "JSLint chyby",
