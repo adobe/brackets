@@ -296,7 +296,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} je neplatné jméno balíčku.",
     "MISSING_PACKAGE_VERSION"              : "Package.json balíček nespecifikuje verzi souboru.",
     "INVALID_VERSION_NUMBER"               : "Balíček verze ({0}) je neplatný.",
-    "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
+    "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi {APP_NAME}. Naleznete jej ve složce disabled extensions.",
     "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
     "ALREADY_INSTALLED"                    : "Doplněk s tímto jménem je již nainstalován. Nový doplněk je nainstalován ve složce disabled extensions.",
     "DOWNLOAD_ID_IN_USE"                   : "Interní chyba: ID stahování se již používá.",
