@@ -1107,6 +1107,10 @@ define(function (require, exports, module) {
     function _projectSettings() {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
     }
+    
+    var _illegalFilenames = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+                             'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+                             'nul', 'con', 'prn', 'aux', '.', '..', '...'];
 
     /**
      * @private
@@ -1119,7 +1123,7 @@ define(function (require, exports, module) {
         // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
         // We may want to add checks for those here.
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || (_illegalFilenames.indexOf(filename.toLowerCase()) !== -1)) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
