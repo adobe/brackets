@@ -1120,8 +1120,7 @@ define(function (require, exports, module) {
      */
     function _checkForValidFilename(filename) {
         // Validate file name
-        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
+        // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || (_illegalFilenames.indexOf(filename.toLowerCase()) !== -1)) {
             Dialogs.showModalDialog(
