@@ -62,32 +62,11 @@ define(function (require, exports, module) {
         // temporarily exclude less*min.js because it is causing instability in tern.
         excludedFilesRegEx  = /require\.js$|jquery[\w.\-]*\.js$|less[\w.\-]*\.min\.js$/,
         isDocumentDirty     = false,
-        _ternWorker         = (function () {
-            var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
-            return new Worker(path);
-        }());
+        _ternWorker         = null;
 
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100,
         MAX_FILES_IN_PROJECT = 100;
-
-    /**
-     * Create a new tern server.
-     */
-    function initTernServer(dir, files) {
-        numResolvedFiles = 0;
-        numAddedFiles = 0;
-        stopAddingFiles = false;
-        numInitialFiles = files.length;
-
-        _ternWorker.postMessage({
-            type        : MessageIds.TERN_INIT_MSG,
-            dir         : dir,
-            files       : files,
-            env         : ternEnvironment
-        });
-        rootTernDir = dir + "/";
-    }
 
     /**
      *  Add new files to tern, keeping any previous files.
@@ -107,9 +86,11 @@ define(function (require, exports, module) {
             }
 
             numAddedFiles += files.length;
-            _ternWorker.postMessage({
-                type        : MessageIds.TERN_ADD_FILES_MSG,
-                files       : files
+            ternPromise.done(function (worker) {
+                worker.postMessage({
+                    type        : MessageIds.TERN_ADD_FILES_MSG,
+                    files       : files
+                });
             });
 
         } else {
@@ -801,6 +782,70 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Init the web worker that does all the code hinting work.
+     *
+     * If a worker already exists, then this will terminate that worker and
+     * start a new worker - this helps alleviate leaks that may be ocurring in 
+     * the code that the worker runs.  
+     */
+    function initTernWorker() {
+        if (_ternWorker) {
+            _ternWorker.terminate();
+        }
+        var workerDeferred = $.Deferred();
+        ternPromise = workerDeferred.promise();
+        var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
+        _ternWorker = new Worker(path);
+
+        _ternWorker.addEventListener("message", function (e) {
+            var response = e.data,
+                type = response.type;
+    
+            if (type === MessageIds.TERN_COMPLETIONS_MSG ||
+                    type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
+                // handle any completions the worker calculated
+                handleTernCompletions(response);
+            } else if (type === MessageIds.TERN_GET_FILE_MSG) {
+                // handle a request for the contents of a file
+                handleTernGetFile(response);
+            } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
+                handleJumptoDef(response);
+            } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+                handlePrimePumpCompletion(response);
+            } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
+                handleGetGuesses(response);
+            } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
+                handleUpdateFile(response);
+            } else if (type === MessageIds.TERN_WORKER_READY) {
+                workerDeferred.resolveWith(null, [_ternWorker]);
+            } else {
+                console.log("Worker: " + (response.log || response));
+            }
+        });
+        
+    }
+    /**
+     * Create a new tern server.
+     */
+    function initTernServer(dir, files) {
+        initTernWorker();
+        numResolvedFiles = 0;
+        numAddedFiles = 0;
+        stopAddingFiles = false;
+        numInitialFiles = files.length;
+
+        ternPromise.done(function (worker) {
+            worker.postMessage({
+                type        : MessageIds.TERN_INIT_MSG,
+                dir         : dir,
+                files       : files,
+                env         : ternEnvironment
+            });
+        });
+        rootTernDir = dir + "/";
+    }
+
+    /**
      *  We can skip tern initialization if we are opening a file that has
      *  already been added to tern.
      *
@@ -829,17 +874,13 @@ define(function (require, exports, module) {
             file        = split.file,
             pr;
 
-        var ternDeferred     = $.Deferred(),
-            addFilesDeferred = $.Deferred();
+        var addFilesDeferred = $.Deferred();
 
-        ternPromise = ternDeferred.promise();
         addFilesPromise = addFilesDeferred.promise();
         pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
 
         // avoid re-initializing tern if possible.
         if (canSkipTernInitialization(path)) {
-            // skipping initializing tern
-            ternDeferred.resolveWith(null, [_ternWorker]);
 
             // update the previous document in tern to prevent stale files.
             if (isDocumentDirty && previousDocument) {
@@ -863,7 +904,6 @@ define(function (require, exports, module) {
         projectRoot = pr;
         getFilesInDirectory(dir, function (files) {
             initTernServer(dir, files);
-            ternDeferred.resolveWith(null, [_ternWorker]);
 
             if (shouldPrimePump) {
                 var hintsPromise = primePump(path, document.getText());
@@ -930,29 +970,29 @@ define(function (require, exports, module) {
         isDocumentDirty = true;
     }
 
-    _ternWorker.addEventListener("message", function (e) {
-        var response = e.data,
-            type = response.type;
-
-        if (type === MessageIds.TERN_COMPLETIONS_MSG ||
-                type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
-            // handle any completions the worker calculated
-            handleTernCompletions(response);
-        } else if (type === MessageIds.TERN_GET_FILE_MSG) {
-            // handle a request for the contents of a file
-            handleTernGetFile(response);
-        } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
-            handleJumptoDef(response);
-        } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
-            handlePrimePumpCompletion(response);
-        } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
-            handleGetGuesses(response);
-        } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
-            handleUpdateFile(response);
-        } else {
-            console.log("Worker: " + (response.log || response));
+    /**
+     * Do some cleanup when a project is closed.
+     *
+     * We can clean up the web worker we use to calculate hints now, since
+     * we know we will need to re-init it in any new project that is opened.  
+     */
+    function handleProjectClose() {
+        function terminateWorker() {
+            _ternWorker.terminate();
+            _ternWorker = null;
+            resolvedFiles = {};
         }
-    });
+        
+        if (_ternWorker) {
+            if (addFilesPromise) {
+                // If we're in the middle of added files, don't terminate 
+                // until we're done or we might get NPEs
+                addFilesPromise.done(terminateWorker).fail(terminateWorker);
+            } else {
+                terminateWorker();
+            }
+        }
+    }
 
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
@@ -962,4 +1002,5 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
+    exports.handleProjectClose = handleProjectClose;
 });

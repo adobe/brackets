@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         TERN_GET_FILE_MSG           = "GetFile",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump",
-        TERN_GET_GUESSES_MSG        = "GetGuesses";
+        TERN_GET_GUESSES_MSG        = "GetGuesses",
+        TERN_WORKER_READY           = "WorkerReady";
 
     exports.TERN_ADD_FILES_MSG          = TERN_ADD_FILES_MSG;
     exports.TERN_JUMPTODEF_MSG          = TERN_JUMPTODEF_MSG;
