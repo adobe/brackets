@@ -977,11 +977,20 @@ define(function (require, exports, module) {
      * we know we will need to re-init it in any new project that is opened.  
      */
     function handleProjectClose() {
-        if (_ternWorker) {
+        function terminateWorker() {
             _ternWorker.terminate();
             _ternWorker = null;
-            ternPromise = null;
             resolvedFiles = {};
+        }
+        
+        if (_ternWorker) {
+            if (addFilesPromise) {
+                // If we're in the middle of added files, don't terminate 
+                // until we're done or we might get NPEs
+                addFilesPromise.done(terminateWorker).fail(terminateWorker);
+            } else {
+                terminateWorker();
+            }
         }
     }
 
