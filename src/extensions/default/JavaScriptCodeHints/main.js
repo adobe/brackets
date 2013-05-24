@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
@@ -620,6 +621,10 @@ define(function (require, exports, module) {
         $(EditorManager)
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
+        
+        $(ProjectManager).on("beforeProjectClose", function () {
+            ScopeManager.handleProjectClose();
+        });
         
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
