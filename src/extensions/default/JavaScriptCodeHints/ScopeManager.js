@@ -781,6 +781,13 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Init the web worker that does all the code hinting work.
+     *
+     * If a worker already exists, then this will terminate that worker and
+     * start a new worker - this helps alleviate leaks that may be ocurring in 
+     * the code that the worker runs.  
+     */
     function initTernWorker() {
         if (_ternWorker) {
             _ternWorker.terminate();
@@ -963,6 +970,12 @@ define(function (require, exports, module) {
         isDocumentDirty = true;
     }
 
+    /**
+     * Do some cleanup when a project is closed.
+     *
+     * We can clean up the web worker we use to calculate hints now, since
+     * we know we will need to re-init it in any new project that is opened.  
+     */
     function handleProjectClose() {
         if (_ternWorker) {
             _ternWorker.terminate();
