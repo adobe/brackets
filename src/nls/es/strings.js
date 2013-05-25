@@ -52,6 +52,8 @@ define({
     "ERROR_SAVING_FILE"                 : "Ha ocurrido un error al intentar guardar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error renombrando archivo",
     "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el archivo <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
+    "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nombre de archivo inválido",
     "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "El archivo <span class='dialog-filename'>{0}</span> ya existe.",
@@ -87,6 +89,11 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo: Haz click para desconectar (Guarda el archivo para actualizar)",
+    
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Desarrollo en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Desarrollo en Vivo se ha detenido porque se ha cerrado la página en el navegador",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Desarrollo en Vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Desarrollo en Vivo se ha detenido por motivos desconocidos ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
@@ -124,13 +131,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Cambiar idioma",
-    "LANGUAGE_MESSAGE"                  : "Idioma:",
-    "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancelar",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Idioma predeterminado",
 
     /**
      * ProjectManager
@@ -157,8 +157,9 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Haz click para cambiar el ancho de las tabulaciones",
     "STATUSBAR_SPACES"                      : "Espacios",
     "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Líneas",
-
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Línea",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Líneas",
+    
     /**
      * Command Name Constants
      */
@@ -178,8 +179,10 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
+    "CMD_FILE_DELETE"                     : "Eliminar",
     "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
     "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
+    "CMD_FILE_REFRESH"                    : "Actualizar",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
@@ -210,7 +213,8 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Crear línea arriba",
     "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
-     
+    "CMD_SHOW_CODE_HINTS"                 : "Mostrar sugerencias de código",
+    
     // View menu commands
     "VIEW_MENU"                           : "Visualización",
     "CMD_HIDE_SIDEBAR"                    : "Ocultar menú lateral",
@@ -233,8 +237,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
     "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
-    "CMD_JUMPTO_DEFINITION"               : "Saltar a la definición",
-    "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
@@ -242,20 +244,7 @@ define({
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
-    
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Desarrollo",
-    "CMD_REFRESH_WINDOW"                  : "Reiniciar {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostrar herramientas para desarrolladores",
-    "CMD_RUN_UNIT_TESTS"                  : "Ejecutar tests",
-    "CMD_JSLINT"                          : "Habilitar JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostrar información de rendimiento",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
-    "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Habilitar depuración de Node",
-    "CMD_LOG_NODE_STATE"                  : "Mostrar estado de Node en Consola",
-    "CMD_RESTART_NODE"                    : "Reiniciar Node",
+    "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
     
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
@@ -264,9 +253,11 @@ define({
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
-
+    
+    
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
@@ -283,9 +274,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
-    "INSTALL"                              : "Instalar",
     "ABOUT"                                : "Acerca de\u2026",
-    "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
@@ -307,6 +296,9 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
     
     // Extension Management strings
+    "INSTALL"                              : "Instalar",
+    "REMOVE"                               : "Eliminar",
+    "CANT_REMOVE_DEV"                      : "Las extensiones en la carpeta \"dev\" se deben eliminar manualmente.",
     "INSTALL_EXTENSION_TITLE"              : "Instalar extensión",
     "INSTALL_EXTENSION_LABEL"              : "URL de la extensión",
     "INSTALL_EXTENSION_HINT"               : "URL del archivo zip de la extensión o del repositorio de Github",
@@ -323,12 +315,11 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} no es un nombre de paquete válido.",
     "MISSING_PACKAGE_VERSION"              : "El archivo package.json no especifica la versión del paquete.",
     "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
-    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de Brackets {{0}} no es válido.",
+    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de {APP_NAME} {{0}} no es válido.",
     "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
-    "NO_DISABLED_DIRECTORY"                : "No se puede guardar la extensión en extensions/disabled porque la carpeta no existe.",
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
@@ -346,21 +337,65 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
+    "EXTENSION_MORE_INFO"                  : "Más información...",
+    "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
+    "EXTENSION_MANAGER_REMOVE"             : "Eliminar extensión",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {{0}}. {APP_NAME} se cerrará igualmente.",
+    "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
+    "UNDO_REMOVE"                          : "Deshacer",
+    "REMOVE_AND_QUIT_TITLE"                : "Eliminar extensiones",
+    "REMOVE_AND_QUIT_MESSAGE"              : "Para eliminar las extensiones marcadas, debes cerrar y reiniciar {APP_NAME}. Serás avisado para guardar los cambios existentes.",
+    "REMOVE_AND_QUIT"                      : "Eliminar extensiones y salir",
+    "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
+    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en el botón Instalar desde URL para empezar.",
+
+    /**
+     * Unit names
+     */
+
+    "UNIT_PIXELS"                          : "píxeles",
+
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Desarrollo",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
+    "CMD_REFRESH_WINDOW"                        : "Reiniciar {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nueva ventana de {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambiar idioma",
+    "CMD_RUN_UNIT_TESTS"                        : "Ejecutar tests",
+    "CMD_SHOW_PERF_DATA"                        : "Mostrar información de rendimiento",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Habilitar depuración de Node",
+    "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
+    "CMD_RESTART_NODE"                          : "Reiniciar Node",
     
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
+    "LANGUAGE_TITLE"                            : "Cambiar idioma",
+    "LANGUAGE_MESSAGE"                          : "Idioma:",
+    "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Cancelar",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
     
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
+    /**
+     * Locales
+     */
+    "LOCALE_CS"                                 : "Checo",
+    "LOCALE_DE"                                 : "Alemán",
+    "LOCALE_EN"                                 : "Inglés",
+    "LOCALE_ES"                                 : "Español",
+    "LOCALE_FR"                                 : "Francés",
+    "LOCALE_IT"                                 : "Italiano",
+    "LOCALE_JA"                                 : "Japonés",
+    "LOCALE_NB"                                 : "Noruego",
+    "LOCALE_PL"                                 : "Polaco",
+    "LOCALE_PT_BR"                              : "Portugués, Brasil",
+    "LOCALE_PT_PT"                              : "Portugués",
+    "LOCALE_RU"                                 : "Ruso",
+    "LOCALE_SV"                                 : "Sueco",
+    "LOCALE_TR"                                 : "Turco",
+    "LOCALE_ZH_CN"                              : "Chino, simplificado",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
@@ -370,6 +405,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Habilitar JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Ir al primer error de JSLint",
+    "JSLINT_ERRORS"                             : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                          : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                           : "JSLint está deshabilitado o no soporta el archivo actual",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Más"

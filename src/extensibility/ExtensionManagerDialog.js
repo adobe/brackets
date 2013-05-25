@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $, Mustache, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,7 +31,9 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
-        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView;
+        AppInit               = require("utils/AppInit"),
+        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -40,18 +42,63 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
+        var $dlg, view, $search, $searchClear;
+        
+        function updateSearch() {
+            if (view.model.filterSet.length === 0) {
+                $search.attr("disabled", "disabled");
+                $searchClear.attr("disabled", "disabled");
+            } else {
+                $search.removeAttr("disabled");
+                $searchClear.removeAttr("disabled");
+            }
+        }
+        
+        // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
-        );
+        ).always(function () {
+            view.dispose();
+        });
         
-        var view = new ExtensionManagerView();
-        view.$el.appendTo($(".extension-manager-dialog .modal-body"));
-        
-        $(".extension-manager-dialog .install-from-url")
-            .click(function () {
-                CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+        // Create the view.
+        $dlg = $(".extension-manager-dialog");
+        $search = $(".search", $dlg);
+        $searchClear = $(".search-clear", $dlg);
+        view = new ExtensionManagerView();
+        view.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED)
+            .done(function () {
+                view.$el.appendTo($(".modal-body", $dlg));
+                
+                // Filter the view when the user types in the search field.
+                $dlg.on("input", ".search", function (e) {
+                    view.filter($(this).val());
+                }).on("click", ".search-clear", function (e) {
+                    $search.val("");
+                    view.filter("");
+                });
+                
+                // Disable the search field when there are no items in the view.
+                $(view.model).on("change", function () {
+                    updateSearch();
+                });
+
+                // Handle the install button.                
+                $(".extension-manager-dialog .install-from-url")
+                    .click(function () {
+                        CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+                    });
+                
+                updateSearch();
+                if (!$search.attr("disabled")) {
+                    $dlg.find(".search").focus();
+                }
             });
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
+
+    AppInit.appReady(function () {
+        $("#toolbar-extension-manager").click(_showDialog);
+    });
 });

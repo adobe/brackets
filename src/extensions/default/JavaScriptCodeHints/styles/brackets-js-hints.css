@@ -45,6 +45,7 @@
 
 .brackets-js-hints.literal-hint {
     color: #444; /* dark grey */
+    font-family: monospace;
 }
 
 .brackets-js-hints.keyword-hint {

@@ -15,8 +15,8 @@
         "extension_wiki_url": "https://github.com/adobe/brackets/wiki/Brackets-Extensions"
     },
     "name": "Brackets",
-    "version": "0.24.0-0",
-    "apiVersion": "0.24.0",
+    "version": "0.25.0-0",
+    "apiVersion": "0.25.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -29,6 +29,8 @@
     },
     "devDependencies": {
         "grunt": "0.4.1",
+        "jasmine-node": "1.7.1",
+        "grunt-contrib-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.6",
         "phantomjs": "1.9.0-1",
         "grunt-lib-phantomjs": "0.3.0",

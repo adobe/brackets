@@ -27,15 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var acorn                       = require("thirdparty/acorn/acorn");
+
     var LANGUAGE_ID                 = "javascript",
+        HTML_LANGUAGE_ID            = "html",
+        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, HTML_LANGUAGE_ID],
         SINGLE_QUOTE                = "'",
-        DOUBLE_QUOTE                = "\"",
-        TERN_INIT_MSG               = "Init",
-        TERN_JUMPTODEF_MSG          = "JumptoDef",
-        TERN_COMPLETIONS_MSG        = "Completions",
-        TERN_GET_FILE_MSG           = "GetFile",
-        TERN_GET_PROPERTIES_MSG     = "Properties",
-        TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType";
+        DOUBLE_QUOTE                = "\"";
 
     /**
      * Create a hint token with name value that occurs at the given list of
@@ -57,12 +55,22 @@ define(function (require, exports, module) {
 
     /**
      * Is the string key perhaps a valid JavaScript identifier?
-     * 
-     * @param {string} key - the string to test
+     *
+     * @param {string} key - string to test.
      * @return {boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
-        return (/[0-9a-z_\$]/i).test(key);
+        var result = false,
+            i;
+
+        for (i = 0; i < key.length; i++) {
+            result = acorn.isIdentifierChar(key.charCodeAt(i));
+            if (!result) {
+                break;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -72,10 +80,12 @@ define(function (require, exports, module) {
      * @return {boolean} - could the token be hintable?
      */
     function hintable(token) {
-        switch (token.className) {
+        switch (token.type) {
         case "comment":
         case "number":
         case "regexp":
+        // exclude variable & param decls
+        case "def":
             return false;
         default:
             return true;
@@ -165,6 +175,10 @@ define(function (require, exports, module) {
         });
     }
 
+    function isSupportedLanguage(languageId) {
+        return SUPPORTED_LANGUAGES.indexOf(languageId) !== -1;
+    }
+
     var KEYWORD_NAMES   = [
         "break", "case", "catch", "continue", "debugger", "default", "delete",
         "do", "else", "finally", "for", "function", "if", "in", "instanceof",
@@ -184,22 +198,18 @@ define(function (require, exports, module) {
         }),
         LITERALS        = annotateLiterals(LITERAL_TOKENS);
 
-    exports.makeToken               = makeToken;
-    exports.hintable                = hintable;
-    exports.hintableKey             = hintableKey;
-    exports.maybeIdentifier         = maybeIdentifier;
-    exports.splitPath               = splitPath;
-    exports.eventName               = eventName;
-    exports.annotateLiterals        = annotateLiterals;
-    exports.KEYWORDS                = KEYWORDS;
-    exports.LITERALS                = LITERALS;
-    exports.LANGUAGE_ID             = LANGUAGE_ID;
-    exports.SINGLE_QUOTE            = SINGLE_QUOTE;
-    exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
-    exports.TERN_JUMPTODEF_MSG      = TERN_JUMPTODEF_MSG;
-    exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
-    exports.TERN_INIT_MSG           = TERN_INIT_MSG;
-    exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
-    exports.TERN_GET_PROPERTIES_MSG = TERN_GET_PROPERTIES_MSG;
-    exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
+    exports.makeToken                   = makeToken;
+    exports.hintable                    = hintable;
+    exports.hintableKey                 = hintableKey;
+    exports.maybeIdentifier             = maybeIdentifier;
+    exports.splitPath                   = splitPath;
+    exports.eventName                   = eventName;
+    exports.annotateLiterals            = annotateLiterals;
+    exports.isSupportedLanguage         = isSupportedLanguage;
+    exports.KEYWORDS                    = KEYWORDS;
+    exports.LITERALS                    = LITERALS;
+    exports.LANGUAGE_ID                 = LANGUAGE_ID;
+    exports.SINGLE_QUOTE                = SINGLE_QUOTE;
+    exports.DOUBLE_QUOTE                = DOUBLE_QUOTE;
+    exports.SUPPORTED_LANGUAGES         = SUPPORTED_LANGUAGES;
 });

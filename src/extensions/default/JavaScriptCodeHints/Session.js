@@ -21,13 +21,16 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager");
 
@@ -42,11 +45,25 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
-        this.ternProperties = [];
+        this.ternGuesses = null;
         this.fnType = null;
-        this.builtins = ScopeManager.getBuiltins();
-        this.builtins.push("requirejs.js");     // consider these globals as well.
+        this.builtins = null;
     }
+
+    /**
+     *  Get the builtin libraries tern is using.
+     *
+     * @returns {Array.<string>} - array of library names.
+     * @private
+     */
+    Session.prototype._getBuiltins = function () {
+        if (!this.builtins) {
+            this.builtins = ScopeManager.getBuiltins();
+            this.builtins.push("requirejs.js");     // consider these globals as well.
+        }
+
+        return this.builtins;
+    };
 
     /**
      * Get the name of the file associated with the current session
@@ -186,16 +203,23 @@ define(function (require, exports, module) {
     Session.prototype.getQuery = function () {
         var cursor  = this.getCursor(),
             token   = this.getToken(cursor),
-            query   = "";
-        
+            query   = "",
+            start   = cursor.ch,
+            end     = start;
+
         if (token) {
-            // If the token string is not an identifier, then the query string
-            // is empty.
-            if (HintUtils.maybeIdentifier(token.string)) {
-                query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
-                query = query.trim();
+            var line = this.getLine(cursor.line);
+            while (start > 0) {
+                if (HintUtils.maybeIdentifier(line[start - 1])) {
+                    start--;
+                } else {
+                    break;
+                }
             }
+
+            query = line.substring(start, end);
         }
+
         return query;
     };
 
@@ -233,6 +257,28 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @return {{line:number, ch:number}} - the line, col info for where the previous "."
+     *      in a property lookup occurred, or undefined if no previous "." was found.
+     */
+    Session.prototype.findPreviousDot = function () {
+        var cursor = this.getCursor(),
+            token = this.getToken(cursor);
+        
+        // If the cursor is right after the dot, then the current token will be "."
+        if (token && token.string === ".") {
+            return cursor;
+        } else {
+            // If something has been typed like 'foo.b' then we have to look back 2 tokens
+            // to get past the 'b' token
+            token = this._getPreviousToken(cursor);
+            if (token && token.string === ".") {
+                return cursor;
+            }
+        }
+        return undefined;
+    };
+    
+    /**
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
@@ -251,18 +297,30 @@ define(function (require, exports, module) {
      *      function being called     
      */
     Session.prototype.getType = function () {
+        function getLexicalState(token) {
+            if (token.state.lexical) {
+                // in a javascript file this is just in the state field
+                return token.state.lexical;
+            } else if (token.state.localState && token.state.localState.lexical) {
+                // inline javascript in an html file will have this in 
+                // the localState field
+                return token.state.localState.lexical;
+            }
+        }
         var propertyLookup   = false,
             inFunctionCall   = false,
             showFunctionType = false,
             context          = null,
             cursor           = this.getCursor(),
             functionCallPos,
-            token            = this.getToken(cursor);
+            token            = this.getToken(cursor),
+            lexical;
 
         if (token) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call"
-            if (token.state.lexical.info === "call") {
+            lexical = getLexicalState(token);
+            if (lexical.info === "call") {
                 inFunctionCall = true;
                 if (this.getQuery().length > 0) {
                     inFunctionCall = false;
@@ -279,7 +337,7 @@ define(function (require, exports, module) {
                     // and it will prevent us from walking back thousands of lines if something went wrong.
                     // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
                     // working well
-                    var col = token.state.lexical.column,
+                    var col = lexical.column,
                         line,
                         e,
                         found;
@@ -294,19 +352,14 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            if (token.string === ".") {
+            if (token.type === "property") {
+                propertyLookup = true;
+            }
+
+            cursor = this.findPreviousDot();
+            if (cursor) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
-            } else {
-                if (token.className === "property") {
-                    propertyLookup = true;
-                }
-
-                token = this._getPreviousToken(cursor);
-                if (token && token.string === ".") {
-                    propertyLookup = true;
-                    context = this.getContext(cursor);
-                }
             }
             if (propertyLookup) { showFunctionType = false; }
         }
@@ -319,15 +372,37 @@ define(function (require, exports, module) {
             context: context
         };
     };
-
+    
+    // Comparison function used for sorting that does a case-insensitive string
+    // comparison on the "value" field of both objects. Unlike a normal string
+    // comparison, however, this sorts leading "_" to the bottom, given that a
+    // leading "_" usually denotes a private value.
+    function penalizeUnderscoreValueCompare(a, b) {
+        var aName = a.value.toLowerCase(), bName = b.value.toLowerCase();
+        // this sort function will cause _ to sort lower than lower case
+        // alphabetical letters
+        if (aName[0] === "_" && bName[0] !== "_") {
+            return 1;
+        } else if (bName[0] === "_" && aName[0] !== "_") {
+            return -1;
+        }
+        if (aName < bName) {
+            return -1;
+        } else if (aName > bName) {
+            return 1;
+        }
+        return 0;
+    }
+    
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
-     * @return {Array.<Object>} - the sorted list of hints for the current 
-     *      session.
+     * @returns {hints: Array.<string>, needGuesses: boolean} - array of
+     * matching hints. If needGuesses is true, then the caller needs to
+     * request guesses and call getHints again.
      */
     Session.prototype.getHints = function (query, matcher) {
 
@@ -336,8 +411,9 @@ define(function (require, exports, module) {
         }
 
         var MAX_DISPLAYED_HINTS = 500,
-            type = this.getType(),
-            builtins = this.builtins,
+            type                = this.getType(),
+            builtins            = this._getBuiltins(),
+            needGuesses         = false,
             hints;
 
         /**
@@ -398,10 +474,14 @@ define(function (require, exports, module) {
 
             // If there are no hints then switch over to guesses.
             if (hints.length === 0) {
-                hints = filterWithQueryAndMatcher(this.ternProperties, matcher);
+                if (this.ternGuesses) {
+                    hints = filterWithQueryAndMatcher(this.ternGuesses, matcher);
+                } else {
+                    needGuesses = true;
+                }
             }
 
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
         } else if (type.showFunctionType) {
             hints = this.getFunctionTypeHint();
         } else {     // identifiers, literals, and keywords
@@ -409,21 +489,24 @@ define(function (require, exports, module) {
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, value: 3 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", "depth", "builtin", penalizeUnderscoreValueCompare ]);
         }
 
         if (hints.length > MAX_DISPLAYED_HINTS) {
             hints = hints.slice(0, MAX_DISPLAYED_HINTS);
         }
-        return hints;
+
+        return {hints: hints, needGuesses: needGuesses};
     };
     
     Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
     };
-    Session.prototype.setTernProperties = function (newProperties) {
-        this.ternProperties = newProperties;
+
+    Session.prototype.setGuesses = function (newGuesses) {
+        this.ternGuesses = newGuesses;
     };
+
     Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;
     };
@@ -441,7 +524,12 @@ define(function (require, exports, module) {
                 cursor = sessionType.functionCallPos,
                 token = cursor ? this.getToken(cursor) : undefined,
                 varName;
-            if (token) {
+            if (token &&
+                    // only change the 'fn' when the token looks like a function
+                    // name, and isn't some other kind of expression
+                    (token.type === "variable" ||
+                     token.type === "variable-2" ||
+                     token.type === "property")) {
                 varName = token.string;
                 if (varName) {
                     fnHint = varName + fnHint.substr(2);
@@ -449,7 +537,70 @@ define(function (require, exports, module) {
             }
             hints[0] = {value: fnHint, positions: []};
         }
+        
+        hints.handleWideResults = true;
         return hints;
+    };
+
+    /**
+     * Get the javascript text of the file open in the editor for this Session.
+     * For a javascript file, this is just the text of the file.  For an HTML file,
+     * this will be only the text in the <script> tags.  This is so that we can pass
+     * just the javascript text to tern, and avoid confusing it with HTML tags, since it
+     * only knows how to parse javascript.
+     * @return {string} - the "javascript" text that can be sent to Tern.
+     */
+    Session.prototype.getJavascriptText = function () {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+            // HTML file - need to send back only the bodies of the
+            // <script> tags
+            var text = "",
+                offset = this.getOffset(),
+                cursor = this.getCursor(),
+                editor = this.editor,
+                scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
+            
+            // Add all the javascript text
+            // For non-javascript blocks we replace everything except for newlines
+            // with whitespace.  This is so that the offset and cursor positions
+            // we get from the document still work.  
+            // Alternatively we could strip the non-javascript text, and modify the offset,
+            // and/or cursor, but then we have to remember how to reverse the translation
+            // to support jump-to-definition
+            var htmlStart = {line: 0, ch: 0};
+            scriptBlocks.forEach(function (scriptBlock) {
+                var start = scriptBlock.start,
+                    end = scriptBlock.end;
+                
+                // get the preceding html text, and replace it with whitespace
+                var htmlText = editor.document.getRange(htmlStart, start);
+                htmlText = htmlText.replace(/./g, " ");
+
+                htmlStart = end;
+                text += htmlText + scriptBlock.text;
+            });
+            
+            return text;
+        } else {
+            // Javascript file, just return the text
+            return this.editor.document.getText();
+        }
+    };
+    
+    /**
+     * Deterimine if the cursor is located in the name of a function declaration.
+     * This is so we can suppress hints when in a funtion name, as we do for variable and
+     * parameter declarations, but we can tell those from the token itself rather than having
+     * to look at previous tokens.
+     * 
+     * @return {boolean} - true if the current cursor position is in the name of a function decl.
+     */
+    Session.prototype.isFunctionName = function () {
+        var cursor = this.getCursor(),
+            token  = this.getToken(cursor),
+            prevToken = this._getPreviousToken(cursor);
+        
+        return prevToken.string === "function";
     };
     
     module.exports = Session;

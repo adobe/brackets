@@ -38,9 +38,11 @@ define(function (require, exports, module) {
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
-        Session         = require("Session");
+        Session         = require("Session"),
+        Acorn           = require("thirdparty/acorn/acorn");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 
@@ -52,7 +54,6 @@ define(function (require, exports, module) {
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
         matcher      = null;  // string matcher for hints
-
 
     /**
      *  Get the value of current session.
@@ -161,11 +162,12 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
@@ -185,7 +187,7 @@ define(function (require, exports, module) {
         var cursor  = session.getCursor(),
             type    = session.getType();
 
-        return !cachedHints ||
+        return !cachedHints || !cachedCursor || !cachedType ||
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
@@ -210,18 +212,18 @@ define(function (require, exports, module) {
             return true;
         }
 
-        if (token.className === null) {
+        if (token.type === null) {
             token = session.getNextTokenOnLine(cursor);
         }
 
-        if (lastToken && lastToken.className === null) {
+        if (lastToken && lastToken.type === null) {
             lastToken = session.getNextTokenOnLine(cachedCursor);
         }
 
         // Both of the tokens should never be null (happens when token is off
         // the end of the line), so one is null then close the hints.
         if (!lastToken || !token ||
-                token.className !== lastToken.className) {
+                token.type !== lastToken.type) {
             return true;
         }
 
@@ -236,6 +238,78 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @return {boolean} - true if the document is a html file
+     */
+    function isHTMLFile(document) {
+        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        return languageID === "html";
+    }
+    
+    function isInlineScript(editor) {
+        return editor.getModeForSelection() === "javascript";
+    }
+
+    /**
+     *  Create a new StringMatcher instance, if needed.
+     *
+     * @returns {StringMatcher} - a StringMatcher instance.
+     */
+    function getStringMatcher() {
+        if (!matcher) {
+            matcher = new StringMatch.StringMatcher({
+                preferPrefixMatches: true
+            });
+        }
+
+        return matcher;
+    }
+
+    /**
+     *  Common code to get the session hints. Will get guesses if there were
+     *  no completions for the query.
+     *
+     * @param {string} query - user text to search hints with
+     * @param {Object} type - the type of query, property vs. identifier
+     * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
+     * resolve (optional). If not supplied a new Deferred will be created if
+     * needed.
+     * @return {Object + jQuery.Deferred} - hint response (immediate or
+     *     deferred) as defined by the CodeHintManager API
+     */
+    function getSessionHints(query, type, $deferredHints) {
+
+        var hintResults = session.getHints(query, getStringMatcher());
+        if (hintResults.needGuesses) {
+            var guessesResponse = ScopeManager.requestGuesses(session,
+                session.editor.document);
+
+            if (!$deferredHints) {
+                $deferredHints = $.Deferred();
+            }
+
+            guessesResponse.done(function () {
+                query = session.getQuery();
+                hintResults = session.getHints(query, getStringMatcher());
+                cachedHints = hintResults.hints;
+                var hintResponse = getHintResponse(cachedHints, query, type);
+
+                $deferredHints.resolveWith(null, [hintResponse]);
+            });
+
+            return $deferredHints;
+        } else if ($deferredHints && $deferredHints.state() === "pending") {
+            cachedHints = hintResults.hints;
+            var hintResponse    = getHintResponse(cachedHints, query, type);
+
+            $deferredHints.resolveWith(null, [hintResponse]);
+            return null;
+        } else {
+            cachedHints = hintResults.hints;
+            return getHintResponse(cachedHints, query, type);
+        }
+    }
+
+    /**
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
@@ -244,11 +318,20 @@ define(function (require, exports, module) {
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if (session && HintUtils.hintableKey(key)) {
+            
+            if (isHTMLFile(session.editor.document)) {
+                if (!isInlineScript(session.editor)) {
+                    return false;
+                }
+            }
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
+                if (session.isFunctionName()) {
+                    return false;
+                }
                 var offset = session.getOffset(),
                     type    = session.getType(),
                     query   = session.getQuery();
@@ -265,7 +348,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    /** 
+    /**
       * Return a list of hints, possibly deferred, for the current editor 
       * context
       * 
@@ -276,6 +359,7 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
+
         if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
             var type    = session.getType(),
                 query   = session.getQuery();
@@ -292,23 +376,13 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                var offset          = session.getOffset(),
-                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset);
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
                         cachedType = session.getType();
-
-                        matcher = new StringMatch.StringMatcher();
-                        cachedHints = session.getHints(query, matcher);
-
-                        if ($deferredHints.state() === "pending") {
-                            query = session.getQuery();
-                            var hintResponse    = getHintResponse(cachedHints, query, type);
-
-                            $deferredHints.resolveWith(null, [hintResponse]);
-                        }
+                        getSessionHints(session.getQuery(), type, $deferredHints);
                     }).fail(function () {
                         if ($deferredHints.state() === "pending") {
                             $deferredHints.reject();
@@ -320,8 +394,7 @@ define(function (require, exports, module) {
             }
 
             if (cachedHints) {
-                cachedHints = session.getHints(session.getQuery(), matcher);
-                return getHintResponse(cachedHints, query, type);
+                return getSessionHints(query, type);
             }
         }
 
@@ -331,7 +404,7 @@ define(function (require, exports, module) {
     /**
      * Inserts the hint selected by the user into the current editor.
      * 
-     * @param {jQuery.Object} hint - hint object to insert into current editor
+     * @param {jQuery.Object} $hintObj - hint object to insert into current editor
      * @return {boolean} - should a new hinting session be requested 
      *      immediately after insertion?
      */
@@ -376,15 +449,52 @@ define(function (require, exports, module) {
             // if we were displaying a function type            
             return false;
         }
+        
+        if (session.getType().property) {
+            // if we're inserting a property name, we need to make sure the 
+            // hint is a valid property name.  
+            // to check this, run the hint through Acorns tokenizer
+            // it should result in one token, and that token should either be 
+            // a 'name' or a 'keyword', as javascript allows keywords as property names
+            var tokenizer = Acorn.tokenize(completion);
+            var currentToken = tokenizer(),
+                invalidPropertyName = false;
+            
+            // the name is invalid if the hint is not a 'name' or 'keyword' token
+            if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
+                invalidPropertyName = true;
+            } else {
+                // check for a second token - if there is one (other than 'eof')
+                // then the hint isn't a valid property name either
+                currentToken = tokenizer();
+                if (currentToken.type !== Acorn.tokTypes.eof) {
+                    invalidPropertyName = true;
+                }
+            }
+            
+            if (invalidPropertyName) {
+                // need to walk back to the '.' and replace
+                // with '["<hint>"]
+                var dotCursor = session.findPreviousDot();
+                if (dotCursor) {
+                    completion = "[\"" + completion + "\"]";
+                    start.line = dotCursor.line;
+                    start.ch = dotCursor.ch - 1;
+                }
+            }
+        }
         // Replace the current token with the completion
-        session.editor.document.replaceRange(completion, start, end);
+        // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
+        // directly to replace the range instead of using the Document, as we should. The
+        // reason is due to a flaw in our current document synchronization architecture when
+        // inline editors are open.
+        session.editor._codeMirror.replaceRange(completion, start, end);
 
         // Return false to indicate that another hinting session is not needed
         return false;
     };
 
-
-    // load the extension
+     // load the extension
     AppInit.appReady(function () {
 
         /*
@@ -392,10 +502,14 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
+         * @param {Editor} previousEditor - the previous editor.
+         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor) {
-            ScopeManager.handleEditorChange(editor.document);
+        function initializeSession(editor, previousEditor, primePump) {
             session = new Session(editor);
+            ScopeManager.handleEditorChange(session, editor.document,
+                previousEditor ? previousEditor.document : null,
+                primePump);
             cachedHints = null;
         }
 
@@ -404,15 +518,16 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context on which to listen for
          *      changes
+         * @param {Editor} previousEditor - the previous editor
          */
-        function installEditorListeners(editor) {
+        function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
             cachedCursor = null;
             cachedHints = null;
             cachedType = null;
 
-            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
-                initializeSession(editor);
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+                initializeSession(editor, previousEditor, true);
                 $(editor)
                     .on(HintUtils.eventName("change"), function () {
                         ScopeManager.handleFileChange(editor.document);
@@ -444,7 +559,7 @@ define(function (require, exports, module) {
          */
         function handleActiveEditorChange(event, current, previous) {
             uninstallEditorListeners(previous);
-            installEditorListeners(current);
+            installEditorListeners(current, previous);
         }
         
         /*
@@ -477,9 +592,22 @@ define(function (require, exports, module) {
             }
         }
 
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
+        // Register quickEditHelper.
+        brackets._jsCodeHintsHelper = quickEditHelper;
+  
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
         if (menu) {
@@ -497,7 +625,7 @@ define(function (require, exports, module) {
         installEditorListeners(EditorManager.getActiveEditor());
 
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID], 0);
+        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         // for unit testing
         exports.getSession = getSession;

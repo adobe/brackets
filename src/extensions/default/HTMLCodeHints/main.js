@@ -36,8 +36,9 @@ define(function (require, exports, module) {
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        HTMLTags            = require("text!HtmlTags.json"),
+        StringUtils         = brackets.getModule("utils/StringUtils");
+    
+    var HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
         tags,
         attributes;
@@ -45,7 +46,23 @@ define(function (require, exports, module) {
     /**
      * @constructor
      */
-    function TagHints() {}
+    function TagHints() {
+        this.exclusion = null;
+    }
+    
+    /**
+     * Check whether the exclusion is still the same as text after the cursor. 
+     * If not, reset it to null.
+     */
+    TagHints.prototype.updateExclusion = function () {
+        var textAfterCursor;
+        if (this.exclusion && this.tagInfo) {
+            textAfterCursor = this.tagInfo.tagName.substr(this.tagInfo.position.offset);
+            if (!CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                this.exclusion = null;
+            }
+        }
+    };
     
     /**
      * Determines whether HTML tag hints are available in the current editor
@@ -54,31 +71,39 @@ define(function (require, exports, module) {
      * @param {Editor} editor 
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar 
+     * @param {string} implicitChar 
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean} 
+     * @return {boolean} 
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
     TagHints.prototype.hasHints = function (editor, implicitChar) {
-        var tagInfo,
-            query;
+        var pos = editor.getCursorPos();
         
+        this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
         this.editor = editor;
         if (implicitChar === null) {
-            tagInfo = HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
-            if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-                if (tagInfo.position.offset >= 0) {
+            if (this.tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+                if (this.tagInfo.position.offset >= 0) {
+                    if (this.tagInfo.position.offset === 0) {
+                        this.exclusion = this.tagInfo.tagName;
+                    } else {
+                        this.updateExclusion();
+                    }
                     return true;
                 }
             }
             return false;
         } else {
-            return implicitChar === "<";
+            if (implicitChar === "<") {
+                this.exclusion = this.tagInfo.tagName;
+                return true;
+            }
+            return false;
         }
     };
        
@@ -86,8 +111,8 @@ define(function (require, exports, module) {
      * Returns a list of availble HTML tag hints if possible for the current
      * editor context. 
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, 
-     *      selectInitial: Boolean>}
+     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
      * of strings; 2. a string match that is used by the manager to emphasize
@@ -96,13 +121,14 @@ define(function (require, exports, module) {
      * by default in the hint list window.
      */
     TagHints.prototype.getHints = function (implicitChar) {
-        var tagInfo = HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()),
-            query,
+        var query,
             result;
 
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            if (tagInfo.position.offset >= 0) {
-                query = tagInfo.tagName.slice(0, tagInfo.position.offset);
+        this.tagInfo = HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
+        if (this.tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+            if (this.tagInfo.position.offset >= 0) {
+                this.updateExclusion();
+                query = this.tagInfo.tagName.slice(0, this.tagInfo.position.offset);
                 result = $.map(tags, function (value, key) {
                     if (key.indexOf(query) === 0) {
                         return key;
@@ -123,10 +149,10 @@ define(function (require, exports, module) {
     /**
      * Inserts a given HTML tag hint into the current editor context. 
      * 
-     * @param {String} hint 
+     * @param {string} hint 
      * The hint to be inserted into the editor context.
-     * 
-     * @return {Boolean} 
+     *
+     * @return {boolean} 
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
@@ -134,23 +160,28 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             cursor = this.editor.getCursorPos(),
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             charCount = 0;
 
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            charCount = tagInfo.tagName.length;
+        if (this.tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+            var textAfterCursor = this.tagInfo.tagName.substr(this.tagInfo.position.offset);
+            if (CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                charCount = this.tagInfo.position.offset;
+            } else {
+                charCount = this.tagInfo.tagName.length;
+            }
         }
 
         end.line = start.line = cursor.line;
-        start.ch = cursor.ch - tagInfo.position.offset;
+        start.ch = cursor.ch - this.tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (completion !== tagInfo.tagName) {
+        if (this.exclusion || completion !== this.tagInfo.tagName) {
             if (start.ch !== end.ch) {
                 this.editor.document.replaceRange(completion, start, end);
             } else {
                 this.editor.document.replaceRange(completion, start);
             }
+            this.exclusion = null;
         }
         
         return false;
@@ -162,6 +193,7 @@ define(function (require, exports, module) {
     function AttrHints() {
         this.globalAttributes = this.readGlobalAttrHints();
         this.cachedHints = null;
+        this.exclusion = "";
         
         // Used in URL hinting to keep the popup list open
         // by setting this to false.
@@ -287,7 +319,7 @@ define(function (require, exports, module) {
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.docDir     = docDir;
                     
-                    if (!self.cachedHints.deferred.isRejected()) {
+                    if (self.cachedHints.deferred.state() !== "rejected") {
                         var currentDeferred = self.cachedHints.deferred;
                         // Since we've cached the results, the next call to _getUrlList should be synchronous.
                         // If it isn't, we've got a problem and should reject both the current deferred
@@ -296,13 +328,11 @@ define(function (require, exports, module) {
                         if (syncResults instanceof Array) {
                             currentDeferred.resolveWith(self, [syncResults]);
                         } else {
-                            if (currentDeferred && !currentDeferred.isResolved() && !currentDeferred.isRejected()) {
+                            if (currentDeferred && currentDeferred.state() === "pending") {
                                 currentDeferred.reject();
                             }
                             
-                            if (self.cachedHints.deferred &&
-                                    !self.cachedHints.deferred.isResolved() &&
-                                    !self.cachedHints.deferred.isRejected()) {
+                            if (self.cachedHints.deferred && self.cachedHints.deferred.state() === "pending") {
                                 self.cachedHints.deferred.reject();
                                 self.cachedHints.deferred = null;
                             }
@@ -338,18 +368,18 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Helper function that determins the possible value hints for a given html tag/attribute name pair
+     * Helper function that determines the possible value hints for a given html tag/attribute name pair
      * 
      * @param {{queryStr: string}} query
      * The current query
      *
-     * @param {String} tagName 
+     * @param {string} tagName 
      * HTML tag name
      *
-     * @param {String} attrName 
+     * @param {string} attrName 
      * HTML attribute name
      *
-     * @return {Object<hints: (Array[String]|$.Deferred<Array[String]>), sortFunc: ?Function>} 
+     * @return {{hints: Array.<string>|$.Deferred, sortFunc: ?Function}} 
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
     AttrHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
@@ -381,40 +411,68 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Check whether the exclusion is still the same as text after the cursor. 
+     * If not, reset it to null.
+     *
+     * @param {boolean} attrNameOnly
+     * true to indicate that we update the exclusion only if the cursor is inside an attribute name context.
+     * Otherwise, we also update exclusion for attribute value context.
+     */
+    AttrHints.prototype.updateExclusion = function (attrNameOnly) {
+        if (this.exclusion && this.tagInfo) {
+            var tokenType = this.tagInfo.position.tokenType,
+                offset = this.tagInfo.position.offset,
+                textAfterCursor;
+            
+            if (tokenType === HTMLUtils.ATTR_NAME) {
+                textAfterCursor = this.tagInfo.attr.name.substr(offset);
+            } else if (!attrNameOnly && tokenType === HTMLUtils.ATTR_VALUE) {
+                textAfterCursor = this.tagInfo.attr.value.substr(offset);
+            }
+            if (!CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                this.exclusion = null;
+            }
+        }
+    };
+    
+    /**
      * Determines whether HTML attribute hints are available in the current 
      * editor context.
      * 
      * @param {Editor} editor 
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar 
+     * @param {string} implicitChar 
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean} 
+     * @return {boolean} 
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
     AttrHints.prototype.hasHints = function (editor, implicitChar) {
-        var tagInfo,
+        var pos = editor.getCursorPos(),
+            tokenType,
+            offset,
             query,
-            tokenType;
+            textAfterCursor;
         
         this.editor = editor;
+        this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
+        tokenType = this.tagInfo.position.tokenType;
+        offset = this.tagInfo.position.offset;
         if (implicitChar === null) {
-            tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
             query = null;
-            tokenType = tagInfo.position.tokenType;
              
             if (tokenType === HTMLUtils.ATTR_NAME) {
-                if (tagInfo.position.offset >= 0) {
-                    query = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                if (offset >= 0) {
+                    query = this.tagInfo.attr.name.slice(0, offset);
                 }
             } else if (tokenType === HTMLUtils.ATTR_VALUE) {
-                if (tagInfo.position.offset >= 0) {
-                    query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                if (this.tagInfo.position.offset >= 0) {
+                    query = this.tagInfo.attr.value.slice(0, offset);
                 } else {
                     // We get negative offset for a quoted attribute value with some leading whitespaces 
                     // as in <a rel= "rtl" where the cursor is just to the right of the "=".
@@ -423,8 +481,10 @@ define(function (require, exports, module) {
                 }
                 
                 // If we're at an attribute value, check if it's an attribute name that has hintable values.
-                if (tagInfo.attr.name) {
-                    var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query}, tagInfo.tagName, tagInfo.attr.name);
+                if (this.tagInfo.attr.name) {
+                    var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query},
+                                                                      this.tagInfo.tagName,
+                                                                      this.tagInfo.attr.name);
                     var hints = hintsAndSortFunc.hints;
                     if (hints instanceof Array) {
                         // If we got synchronous hints, check if we have something we'll actually use
@@ -442,10 +502,24 @@ define(function (require, exports, module) {
                 }
             }
 
+            if (offset >= 0) {
+                if (tokenType === HTMLUtils.ATTR_NAME && offset === 0) {
+                    this.exclusion = this.tagInfo.attr.name;
+                } else {
+                    this.updateExclusion(false);
+                }
+            }
+            
             return query !== null;
         } else {
-            return (implicitChar === " " || implicitChar === "'" ||
-                implicitChar === "\"" || implicitChar === "=");
+            if (implicitChar === " " || implicitChar === "'" ||
+                    implicitChar === "\"" || implicitChar === "=") {
+                if (tokenType === HTMLUtils.ATTR_NAME) {
+                    this.exclusion = this.tagInfo.attr.name;
+                }
+                return true;
+            }
+            return false;
         }
     };
     
@@ -453,8 +527,8 @@ define(function (require, exports, module) {
      * Returns a list of availble HTML attribute hints if possible for the 
      * current editor context. 
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, 
-     *      selectInitial: Boolean>}
+     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
      * of strings; 2. a string match that is used by the manager to emphasize
@@ -464,27 +538,32 @@ define(function (require, exports, module) {
      */
     AttrHints.prototype.getHints = function (implicitChar) {
         var cursor = this.editor.getCursorPos(),
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             query = {queryStr: null},
-            tokenType = tagInfo.position.tokenType,
-            result = [];
+            tokenType,
+            offset,
+            result = [],
+            textAfterCursor;
  
+        this.tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
+        tokenType = this.tagInfo.position.tokenType;
+        offset = this.tagInfo.position.offset;
         if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
-            query.tag = tagInfo.tagName;
+            query.tag = this.tagInfo.tagName;
             
-            if (tagInfo.position.offset >= 0) {
+            if (offset >= 0) {
                 if (tokenType === HTMLUtils.ATTR_NAME) {
-                    query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                    query.queryStr = this.tagInfo.attr.name.slice(0, offset);
                 } else {
-                    query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                    query.attrName = tagInfo.attr.name;
+                    query.queryStr = this.tagInfo.attr.value.slice(0, offset);
+                    query.attrName = this.tagInfo.attr.name;
                 }
+                this.updateExclusion(false);
             } else if (tokenType === HTMLUtils.ATTR_VALUE) {
                 // We get negative offset for a quoted attribute value with some leading whitespaces 
                 // as in <a rel= "rtl" where the cursor is just to the right of the "=".
                 // So just set the queryStr to an empty string. 
                 query.queryStr = "";
-                query.attrName = tagInfo.attr.name;
+                query.attrName = this.tagInfo.attr.name;
             }
 
             query.usedAttr = HTMLUtils.getTagAttributes(this.editor, cursor);
@@ -541,10 +620,10 @@ define(function (require, exports, module) {
     /**
      * Inserts a given HTML attribute hint into the current editor context.
      * 
-     * @param {String} hint 
+     * @param {string} hint 
      * The hint to be inserted into the editor context.
      * 
-     * @return {Boolean} 
+     * @return {boolean} 
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
@@ -552,27 +631,43 @@ define(function (require, exports, module) {
         var cursor = this.editor.getCursorPos(),
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
-            tokenType = tagInfo.position.tokenType,
+            tokenType = this.tagInfo.position.tokenType,
+            offset = this.tagInfo.position.offset,
             charCount = 0,
             insertedName = false,
-            replaceExistingOne = tagInfo.attr.valueAssigned,
+            replaceExistingOne = this.tagInfo.attr.valueAssigned,
             endQuote = "",
-            shouldReplace = true;
+            shouldReplace = true,
+            textAfterCursor;
 
         if (tokenType === HTMLUtils.ATTR_NAME) {
-            charCount = tagInfo.attr.name.length;
+            textAfterCursor = this.tagInfo.attr.name.substr(offset);
+            if (CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                charCount = offset;
+                replaceExistingOne = false;
+            } else {
+                charCount = this.tagInfo.attr.name.length;
+            }
             // Append an equal sign and two double quotes if the current attr is not an empty attr
             // and then adjust cursor location before the last quote that we just inserted.
             if (!replaceExistingOne && attributes && attributes[completion] &&
                     attributes[completion].type !== "flag") {
                 completion += "=\"\"";
                 insertedName = true;
-            } else if (completion === tagInfo.attr.name) {
+            } else if (completion === this.tagInfo.attr.name) {
                 shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
+            textAfterCursor = this.tagInfo.attr.value.substr(offset);
+            if (CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                charCount = offset;
+                // Set exclusion to null only after attribute value insertion,
+                // not after attribute name insertion since we need to keep it 
+                // for attribute value insertion.
+                this.exclusion = null;
+            } else {
+                charCount = this.tagInfo.attr.value.length;
+            }
             
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
@@ -580,20 +675,20 @@ define(function (require, exports, module) {
                 this.closeOnSelect = true;
             }
             
-            if (!tagInfo.attr.hasEndQuote) {
-                endQuote = tagInfo.attr.quoteChar;
+            if (!this.tagInfo.attr.hasEndQuote) {
+                endQuote = this.tagInfo.attr.quoteChar;
                 if (endQuote) {
                     completion += endQuote;
-                } else if (tagInfo.position.offset === 0) {
+                } else if (offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
+            } else if (completion === this.tagInfo.attr.value) {
                 shouldReplace = false;
             }
         }
 
         end.line = start.line = cursor.line;
-        start.ch = cursor.ch - tagInfo.position.offset;
+        start.ch = cursor.ch - offset;
         end.ch = start.ch + charCount;
 
         if (shouldReplace) {
@@ -605,9 +700,9 @@ define(function (require, exports, module) {
         }
 
         if (!this.closeOnSelect) {
-            // If we append the missing quote, then we need to adjust the cursor postion
+            // If we append the missing quote, then we need to adjust the cursor position
             // to keep the code hint list open.
-            if (tokenType === HTMLUtils.ATTR_VALUE && !tagInfo.attr.hasEndQuote) {
+            if (tokenType === HTMLUtils.ATTR_VALUE && !this.tagInfo.attr.hasEndQuote) {
                 this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
             }
             return true;
@@ -619,7 +714,7 @@ define(function (require, exports, module) {
             // Since we're now inside the double-quotes we just inserted,
             // immediately pop up the attribute value hint.
             return true;
-        } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+        } else if (tokenType === HTMLUtils.ATTR_VALUE && this.tagInfo.attr.hasEndQuote) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }

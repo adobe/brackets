@@ -27,8 +27,8 @@
 
 require.config({
     paths: {
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
+    require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     

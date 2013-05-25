@@ -10,14 +10,23 @@
         "fileExtensions": ["css"],
         "blockComment": ["/*", "*/"]
     },
-    
+
+
+    "scss": {
+        "name": "SCSS",
+        "mode": ["css", "text/x-scss"],
+        "fileExtensions": ["scss"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "ejs", "jsp"],
         "blockComment": ["<!--", "-->"]
     },
-    
+
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
@@ -25,27 +34,27 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
-    
+
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
         "fileExtensions": ["json"],
         "lineComment": ["//"]
     },
-    
+
     "xml": {
         "name": "XML",
         "mode": "xml",
         "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml"],
         "blockComment": ["<!--", "-->"]
     },
-    
+
     "php": {
         "name": "PHP",
         "mode": "php",
         "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
     },
-    
+
     "c": {
         "name": "C",
         "mode": ["clike", "text/x-csrc"],
@@ -53,7 +62,7 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
-    
+
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
@@ -61,7 +70,7 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
-    
+
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
@@ -69,14 +78,14 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
-    
+
     "clike": {
         "name": "clike",
         "mode": "clike",
         "blockComment": ["/*", "*/"],
         "lineComment": ["//", "#"]
     },
-    
+
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
@@ -102,23 +111,23 @@
         "mode": "perl",
         "fileExtensions": ["pl", "pm"]
     },
-    
+
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
-    
+
     "python": {
         "name": "Python",
         "mode": "python",
         "fileExtensions": ["py", "pyw"]
     },
-    
+
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass", "scss"]
+        "fileExtensions": ["sass"]
     },
 
     "lua": {
@@ -137,26 +146,26 @@
         "name": "Diff",
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
-    },       
-    
+    },
+
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
         "fileExtensions": ["md", "markdown"]
     },
-    
+
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
         "fileExtensions": ["yaml", "yml"]
     },
-    
+
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
         "fileExtensions": ["hx"]
     },
-    
+
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],

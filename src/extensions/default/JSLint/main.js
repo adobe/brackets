@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands                = brackets.getModule("command/Commands"),
+        PanelManager            = brackets.getModule("view/PanelManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Menus                   = brackets.getModule("command/Menus"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
@@ -52,10 +53,13 @@ define(function (require, exports, module) {
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
     
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
+        JSLintOptions = JSON.parse(require("text!config.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true };
+        defaultPrefs = {
+            enabled: JSLintOptions.enabled_by_default
+        };
     
     
     /** @const {string} JSLint commands ID */
@@ -153,7 +157,7 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.show();
+                Resizer.show($lintResults);
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
@@ -172,7 +176,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
-                $lintResults.hide();
+                Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
@@ -181,12 +185,10 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
-            $lintResults.hide();
+            Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -260,20 +262,15 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
         var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
-        $(jsLintHtml).insertBefore("#status-bar");
+        var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
+        $lintResults = $("#jslint-results");
         
         var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#9733;</div>", Strings);
         $(goldStarHtml).insertBefore("#status-file");
-        
-        $lintResults = $("#jslint-results");
         
         StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
         
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
-        
-        // AppInit.htmlReady() has already executed before extensions are loaded
-        // so, for now, we need to call this ourself
-        Resizer.makeResizable($lintResults.get(0), "vert", "top", 100);
     });
 });

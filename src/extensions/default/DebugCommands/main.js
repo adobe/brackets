@@ -23,23 +23,28 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, WebSocket */
+/*global define, $, brackets, window, WebSocket, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands           = brackets.getModule("command/Commands"),
-        CommandManager     = brackets.getModule("command/CommandManager"),
-        Editor             = brackets.getModule("editor/Editor").Editor,
-        FileUtils          = brackets.getModule("file/FileUtils"),
-        KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
-        Menus              = brackets.getModule("command/Menus"),
-        Strings            = brackets.getModule("strings"),
-        PerfUtils          = brackets.getModule("utils/PerfUtils"),
-        ProjectManager     = brackets.getModule("project/ProjectManager"),
-        NativeApp          = brackets.getModule("utils/NativeApp"),
-        NativeFileSystem   = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        NodeDebugUtils     = require("NodeDebugUtils");
+    var Commands               = brackets.getModule("command/Commands"),
+        CommandManager         = brackets.getModule("command/CommandManager"),
+        KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
+        Menus                  = brackets.getModule("command/Menus"),
+        Editor                 = brackets.getModule("editor/Editor").Editor,
+        FileUtils              = brackets.getModule("file/FileUtils"),
+        NativeFileSystem       = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager         = brackets.getModule("project/ProjectManager"),
+        PerfUtils              = brackets.getModule("utils/PerfUtils"),
+        NativeApp              = brackets.getModule("utils/NativeApp"),
+        CollectionUtils        = brackets.getModule("utils/CollectionUtils"),
+        StringUtils            = brackets.getModule("utils/StringUtils"),
+        Dialogs                = brackets.getModule("widgets/Dialogs"),
+        Strings                = brackets.getModule("strings"),
+        NodeDebugUtils         = require("NodeDebugUtils"),
+        PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
+        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 	
@@ -87,20 +92,9 @@ define(function (require, exports, module) {
     }
     
     function _handleShowPerfData() {
-        var $perfHeader = $("<div class='modal-header' />")
-            .append("<a href='#' class='close'>&times;</a>")
-            .append("<h1 class='dialog-title'>Performance Data</h1>")
-            .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
-        
-        var $perfBody = $("<div class='modal-body' style='padding: 0; max-height: 500px; overflow: auto;' />");
-
-        var $data = $("<table class='zebra-striped condensed-table'>")
-            .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
-            .append("<tbody />")
-            .appendTo($perfBody);
-        
-        var makeCell = function (content) {
-            return $("<td/>").text(content);
+        var templateVars = {
+            delimitedPerfData: PerfUtils.getDelimitedPerfData(),
+            perfData: []
         };
         
         var getValue = function (entry) {
@@ -121,28 +115,18 @@ define(function (require, exports, module) {
                 return entry;
             }
         };
-            
-        var testName;
+        
         var perfData = PerfUtils.getData();
-        for (testName in perfData) {
-            if (perfData.hasOwnProperty(testName)) {
-                // Add row to error table
-                $("<tr/>")
-                    .append(makeCell(testName))
-                    .append(makeCell(getValue(perfData[testName])))
-                    .appendTo($data);
-            }
-        }
-                                                     
-        $("<div class='modal hide' />")
-            .append($perfHeader)
-            .append($perfBody)
-            .appendTo(window.document.body)
-            .modal({
-                backdrop: "static",
-                show: true
+        CollectionUtils.forEach(perfData, function (value, testName) {
+            templateVars.perfData.push({
+                testName: StringUtils.breakableUrl(testName),
+                value:    getValue(value)
             });
-
+        });
+        
+        var template = Mustache.render(PerfDialogTemplate, templateVars);
+        Dialogs.showModalDialogUsingTemplate(template);
+        
         // Select the raw perf data field on click since select all doesn't 
         // work outside of the editor
         $("#brackets-perf-raw-data").click(function () {
@@ -153,85 +137,37 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
-
+    
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
             fs.root.createReader().readEntries(function (entries) {
-
-                var $submit,
+                var $dialog,
+                    $submit,
                     $select,
                     locale,
-                    curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale());
+                    curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale()),
+                    languages = [];
                 
                 function setLanguage(event) {
                     locale = $select.val();
                     $submit.attr("disabled", false);
                 }
-    
-                var $modal = $("<div class='modal hide' />");
-    
-                var $header = $("<div class='modal-header' />")
-                    .append("<a href='#' class='close'>&times;</a>")
-                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
-                    .appendTo($modal);
-                  
-                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
-                    .appendTo($modal);
-
-                var $p = $("<p class='dialog-message'>")
-                    .text(Strings.LANGUAGE_MESSAGE)
-                    .appendTo($body);
-
-                $select = $("<select>")
-                    .on("change", setLanguage)
-                    .appendTo($p);
                 
-                var $footer = $("<div class='modal-footer' />")
-                    .appendTo($modal);
-                
-                var $cancel = $("<button class='dialog-button btn left'>")
-                    .on("click", function () {
-                        $modal.modal('hide');
-                    })
-                    .text(Strings.LANGUAGE_CANCEL)
-                    .appendTo($footer);
-                
-                $submit = $("<button class='dialog-button btn primary'>")
-                    .text(Strings.LANGUAGE_SUBMIT)
-                    .on("click", function () {
-                        if (locale === undefined) {
-                            return;
-                        } else if (locale !== curLocale) {
-                            brackets.setLocale(locale);
-                            CommandManager.execute(DEBUG_REFRESH_WINDOW);
-                        }
-                    })
-                    .attr("disabled", "disabled")
-                    .appendTo($footer);
-                
-                $modal
-                    .appendTo(window.document.body)
-                    .modal({
-                        backdrop: "static",
-                        show: true
-                    })
-                    .on("hidden", function () {
-                        $(this).remove();
-                    });
-
-                function addLocale(text, val) {
-                    var $option = $("<option>")
-                        .text(text)
-                        .val(val)
-                        .appendTo($select);
+                // returns the localized label for the given locale
+                // or the locale, if nothing found
+                function getLocalizedLabel(locale) {
+                    var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
+                        i18n = Strings[key];
+                    
+                    return i18n === undefined ? locale : i18n;
                 }
 
                 // add system default
-                addLocale(Strings.LANGUAGE_SYSTEM_DEFAULT, null);
+                languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
                 
                 // add english
-                addLocale("en", "en");
+                languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -246,12 +182,26 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            addLocale(label, language);
+                            languages.push({label: getLocalizedLabel(label), language: language});
                         }
                     }
                 });
                 
-                $select.val(curLocale);
+                var template = Mustache.render(LanguageDialogTemplate, $.extend({languages: languages}, Strings));
+                Dialogs.showModalDialogUsingTemplate(template).done(function () {
+                    if (locale === undefined) {
+                        return;
+                    } else if (locale !== curLocale) {
+                        brackets.setLocale(locale);
+                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                    }
+                });
+                
+                $dialog = $(".switch-language.instance");
+                $submit = $dialog.find(".dialog-button[data-button-id='ok']");
+                $select = $dialog.find("select");
+                
+                $select.on("change", setLanguage).val(curLocale);
             });
         });
     }

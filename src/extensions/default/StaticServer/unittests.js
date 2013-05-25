@@ -28,14 +28,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var StaticServer    = require("main"),
+    var main            = require("main"),
         NodeConnection  = brackets.getModule("utils/NodeConnection"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils");
     
     var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
     
-    var CONNECT_TIMEOUT = 5000;
+    var CONNECT_TIMEOUT = 20000;
     
     var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
             
@@ -52,50 +52,33 @@ define(function (require, exports, module) {
         // Unit tests for the underlying node server.
         describe("StaticServerDomain", function () {
             var nodeConnection,
-                logs = [];
+                logs;
             
             beforeEach(function () {
-                runs(function () {
-                    nodeConnection = new NodeConnection();
+                logs = [];
                 
-                    $(nodeConnection).on("base.log", function (event, level, timestamp, message) {
-                        logs.push({level: level, message: message});
+                if (!nodeConnection) {
+                    runs(function () {
+                        // wait for StaticServer/main to connect and load the StaticServerDomain
+                        main._getNodeConnectionDeferred().done(function (conn) {
+                            nodeConnection = conn;
+                        });
+
+                        waitsFor(function () { return nodeConnection; }, "NodeConnection connected", CONNECT_TIMEOUT);
                     });
 
-                    waitsForDone(nodeConnection.connect(false), "connecting to node server", CONNECT_TIMEOUT);
-                });
-                
-                runs(function () {
-                    var domainPromise = new $.Deferred(),
-                        retries = 0;
-
-                    function waitForDomain() {
-                        if (nodeConnection.domains.staticServer) {
-                            domainPromise.resolve();
-                        } else {
-                            retries++;
-                            if (retries >= 5) {
-                                domainPromise.reject();
-                            } else {
-                                setTimeout(waitForDomain, 100);
-                            }
-                        }
-                    }
-                    
-                    waitForDomain();
-                    waitsForDone(domainPromise, "waiting for StaticServer domain to load");
-                });
+                    runs(function () {
+                        $(nodeConnection).on("base.log", function (event, level, timestamp, message) {
+                            logs.push({level: level, message: message});
+                        });
+                    });
+                }
             });
             
             afterEach(function () {
                 runs(function () {
+                    // reset StaticServerDomain
                     waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
-                });
-
-                runs(function () {
-                    nodeConnection.disconnect();
-                    nodeConnection = null;
-                    logs = [];
                 });
             });
 
@@ -399,7 +382,10 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return location && text; }, "waiting for text from server");
+                waitsFor(
+                    function () { return location && text && (logs.length > 0); },
+                    "waiting for text from server and warning in log"
+                );
 
                 runs(function () {
                     expect(logs.length).toBe(1);
@@ -410,7 +396,6 @@ define(function (require, exports, module) {
                     expect(text).toBe("good response");
                     
                     // cleanup
-                    $(nodeConnection).off("base.log");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
                 });
@@ -468,7 +453,6 @@ define(function (require, exports, module) {
                     expect(text).toBe("This is a file in folder 1.");
                     
                     // cleanup
-                    $(nodeConnection).off("base.log");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
                 });
