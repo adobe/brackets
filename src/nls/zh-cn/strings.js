@@ -59,7 +59,7 @@ define({
     "ERROR_CREATING_FILE"               : "试图创建该文件时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} Brackets 暂无法运行在浏览器窗口中.",
+    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂无法运行在浏览器窗口中.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} 是建立在HTML上的一个桌面程序，你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
 
     // FileIndexManager error string

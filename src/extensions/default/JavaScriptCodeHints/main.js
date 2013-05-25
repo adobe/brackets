@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
@@ -162,11 +163,12 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
@@ -591,9 +593,22 @@ define(function (require, exports, module) {
             }
         }
 
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
         // Register command handler
         CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
         
+        // Register quickEditHelper.
+        brackets._jsCodeHintsHelper = quickEditHelper;
+  
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
         if (menu) {
@@ -606,6 +621,10 @@ define(function (require, exports, module) {
         $(EditorManager)
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
+        
+        $(ProjectManager).on("beforeProjectClose", function () {
+            ScopeManager.handleProjectClose();
+        });
         
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());

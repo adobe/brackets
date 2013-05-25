@@ -365,13 +365,26 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deletes a file or directory
+     * Deletes a file or directory by moving to the trash/recycle bin.
      * @param {function()} successCallback Callback function for successful operations
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+        var deleteFunc = brackets.fs.moveToTrash; // Future: Could fallback to unlink 
+        
+        if (!deleteFunc) {
+            // Running in a shell that doesn't support moveToTrash. Return an error.
+            errorCallback(brackets.fs.ERR_UNKNOWN);
+            return;
+        }
+        
+        deleteFunc(this.fullPath, function (err) {
+            if (err === brackets.fs.NO_ERROR) {
+                successCallback();
+            } else {
+                errorCallback(err);
+            }
+        });
     };
     
     /**

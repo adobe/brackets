@@ -118,10 +118,12 @@
  * The method by which a provider provides hints for the editor context
  * associated with the current session. The getHints method is called only
  * if the provider asserted its willingness to provide hints in an earlier
- * call to hasHints. The provider may return null, which indicates that
- * the manager should end the current hinting session and close the hint
- * list window. Otherwise, the provider should return a response object
- * that contains three properties: 
+ * call to hasHints. The provider may return null or false, which indicates 
+ * that the manager should end the current hinting session and close the hint
+ * list window; or true, which indicates that the manager should end the 
+ * current hinting session but immediately attempt to begin a new hinting
+ * session by querying registered providers. Otherwise, the provider should
+ * return a response object that contains three properties:
  *
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
@@ -220,7 +222,11 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var KeyEvent        = require("utils/KeyEvent"),
+    var Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        EditorManager   = require("editor/EditorManager"),
+        Strings         = require("strings"),
+        KeyEvent        = require("utils/KeyEvent"),
         CodeHintList    = require("editor/CodeHintList").CodeHintList;
 
     var hintProviders   = { "all" : [] },
@@ -291,11 +297,16 @@ define(function (require, exports, module) {
     function _getProvidersForLanguageId(languageId) {
         return hintProviders[languageId] || hintProviders.all;
     }
+    
+    var _beginSession;
 
     /**
      * End the current hinting session
      */
     function _endSession() {
+        if (!hintList) {
+            return;
+        }
         hintList.close();
         hintList = null;
         keyDownEditor = null;
@@ -348,23 +359,30 @@ define(function (require, exports, module) {
         if (!response) {
             // the provider wishes to close the session
             _endSession();
-        } else if (response.hasOwnProperty("hints")) { // a synchronous response
-            if (hintList.isOpen()) {
-                // the session is open 
-                hintList.update(response);
-            } else {
-                hintList.open(response);
-            }
-        } else { // response is a deferred
-            deferredHints = response;
-            response.done(function (hints) {
+        } else {
+            // if the response is true, end the session and begin another
+            if (response === true) {
+                var previousEditor = sessionEditor;
+                _endSession();
+                _beginSession(previousEditor);
+            } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open 
-                    hintList.update(hints);
+                    hintList.update(response);
                 } else {
-                    hintList.open(hints);
+                    hintList.open(response);
                 }
-            });
+            } else { // response is a deferred
+                deferredHints = response;
+                response.done(function (hints) {
+                    if (hintList.isOpen()) {
+                        // the session is open 
+                        hintList.update(hints);
+                    } else {
+                        hintList.open(hints);
+                    }
+                });
+            }
         }
     }
     
@@ -372,7 +390,7 @@ define(function (require, exports, module) {
      * Try to begin a new hinting session. 
      * @param {Editor} editor
      */
-    function _beginSession(editor) {
+    _beginSession = function (editor) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -403,6 +421,26 @@ define(function (require, exports, module) {
         } else {
             lastChar = null;
         }
+    };
+    
+    /**
+     * Explicitly start a new session. If we have an existing session, 
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+            // Begin a new explicit session
+            _beginSession(editor);
+        }
     }
     
     /**
@@ -420,15 +458,7 @@ define(function (require, exports, module) {
     function handleKeyEvent(editor, event) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
-            if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
-                event.preventDefault();
-                lastChar = null;
-                if (_inSession(editor)) {
-                    _endSession();
-                }
-                // Begin a new explicit session
-                _beginSession(editor);
-            } else if (_inSession(editor) && hintList.isOpen()) {
+            if (_inSession(editor) && hintList.isOpen()) {
                 // Pass event to the hint list, if it's open
                 hintList.handleKeyEvent(event);
             }
@@ -442,7 +472,8 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
+            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey ||
+                    event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 // End the session if the user presses any key with a modifier (other than Ctrl+Space).
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -483,6 +514,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test whether the provider has an exclusion that is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when the provider inserts the selected hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
      *  Test if a hint popup is open.
      *
      * @returns {boolean} - true if the hints are open, false otherwise.
@@ -497,6 +540,15 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
+
+    // Dismiss code hints before executing any command since the command
+    // may make the current hinting session irrevalent after execution. 
+    // For example, when the user hits Ctrl+K to open Quick Doc, it is 
+    // pointless to keep the hint list since the user wants to view the Quick Doc.
+    $(CommandManager).on("beforeExecuteCommand", _endSession);
+
+    CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
+
     exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API
@@ -504,4 +556,5 @@ define(function (require, exports, module) {
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.hasValidExclusion       = hasValidExclusion;
 });

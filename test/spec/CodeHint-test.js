@@ -83,14 +83,8 @@ define(function (require, exports, module) {
         });
         
         
-        function simulateCtrlSpace(editor) {
-            var e = $.Event("keydown");
-            e.keyCode = KeyEvent.DOM_VK_SPACE;
-            e.ctrlKey = true;
-            
-            // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-            // here, but it does not yet support modifer keys
-            CodeHintManager.handleKeyEvent(editor, e);
+        function invokeCodeHints() {
+            CommandManager.execute(Commands.SHOW_CODE_HINTS);
         }
         
         // Note: these don't request hint results - they only examine hints that might already be open
@@ -132,7 +126,7 @@ define(function (require, exports, module) {
                     CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
                     
                     // Ensure no hints in language we didn't register for
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectNoHints();
                     
                     // Expect hints in language we did register for
@@ -140,7 +134,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise);
                 });
                 runs(function () {
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
                 });
             });
@@ -152,7 +146,7 @@ define(function (require, exports, module) {
                     // Expect hints to replace default HTML hints
                     var editor = EditorManager.getCurrentFullEditor();
                     editor.setCursorPos(3, 1);
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
                     expectMockHints();
                 });
             });
@@ -162,7 +156,7 @@ define(function (require, exports, module) {
                     CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
                     
                     // Expect hints in language that already had hints (when not colliding with original provider)
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
                     
                     // Expect hints in language that had no hints before
@@ -170,7 +164,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise);
                 });
                 runs(function () {
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
                 });
             });
@@ -189,7 +183,6 @@ define(function (require, exports, module) {
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
@@ -197,7 +190,7 @@ define(function (require, exports, module) {
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
                     expectSomeHints();
                 });
 
@@ -229,12 +222,8 @@ define(function (require, exports, module) {
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
 
                     // verify list is open
                     expectSomeHints();
@@ -246,6 +235,34 @@ define(function (require, exports, module) {
                         element = testWindow.$(".dropdown.open")[0];
                     SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
+                    // verify list is no longer open
+                    expectNoHints();
+                });
+            });
+
+            it("should dismiss code hints menu when launching a command", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                });
+
+                // Call Undo command to remove "di" and then verify no code hints
+                runs(function () {
+                    CommandManager.execute(Commands.EDIT_UNDO);
+                    
                     // verify list is no longer open
                     expectNoHints();
                 });

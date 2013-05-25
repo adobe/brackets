@@ -551,6 +551,13 @@ define(function (require, exports, module) {
                             return "Expected view" + notText + " to contain text " + expected;
                         };
                         return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                    },
+                    toHaveLink: function (expected) {
+                        var notText = this.isNot ? " not" : "";
+                        this.message = function () {
+                            return "Expected view" + notText + " to contain link " + expected;
+                        };
+                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
                     }
                 });
                 spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
@@ -585,6 +592,9 @@ define(function (require, exports, module) {
                                         expect(view).toHaveText(value);
                                     }
                                 });
+                            if (item.metadata.homepage) {
+                                expect(view).toHaveLink(item.metadata.homepage);
+                            }
                             
                             // Array-valued fields
                             [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
@@ -755,11 +765,21 @@ define(function (require, exports, module) {
                         }
                     });
                 });
+                
+                it("should show the 'no extensions' message when there are no extensions installed", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).not.toBe("none");
+                        expect($("table", view.$el).css("display")).toBe("none");
+                    });
+                });
                            
                 it("should show only items that are already installed and have a remove button for each", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).toBe("none");
+                        expect($("table", view.$el).css("display")).not.toBe("none");
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.remove[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" ||
@@ -794,14 +814,21 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should show extensions that failed to load and allow them to be removed", function () {
+                it("should show extensions that failed to load with a 'remove' link", function () {
                     mockLoadExtensions(["user/mock-extension-3"], true);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect(view).toHaveText("mock-extension-3");
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        expect($button.length).toBe(1);
-                        expect($button.attr("disabled")).toBeFalsy();
+                        var $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(1);
+                        expect($removeLink.attr("disabled")).toBeFalsy();
+                        
+                        $removeLink.click();
+                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
+                        var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($undoLink.length).toBe(1);
+                        $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(0);
                     });
                 });
                 
