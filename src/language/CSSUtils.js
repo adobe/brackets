@@ -406,13 +406,13 @@ define(function (require, exports, module) {
             return createInfo();
         }
 
-        // Strip leading whitespace and adjust offset
-        var oldLength = propValues[0].length;
-        propValues[0] = propValues[0].replace(/^\s*/, "");
-        offset -= (oldLength - propValues[0].length);
-        if (offset < 0) {
-            offset = 0;
-        }
+//        // Strip leading whitespace and adjust offset
+//        var oldLength = propValues[0].length;
+//        propValues[0] = propValues[0].replace(/^\s*/, "");
+//        offset -= (oldLength - propValues[0].length);
+//        if (offset < 0) {
+//            offset = 0;
+//        }
         
         // Get value after cursor up until closing paren or newline
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);

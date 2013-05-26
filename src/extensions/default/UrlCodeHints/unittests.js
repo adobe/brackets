@@ -48,24 +48,13 @@ define(function (require, exports, module) {
             hintsObj;
         
         /**
-         * Returns an Editor suitable for use in isolation, given a Document. (Unlike
-         * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
-         * for you).
+         * Returns an Editor suitable for use in isolation, given a Document.
          *
          * @param {Document} doc - the document to be contained by the new Editor
          * @return {Editor} - the mock editor object
          */
         function createMockEditor(doc) {
-            // Initialize EditorManager
-            var $editorHolder = $("<div id='mock-editor-holder'/>");
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
-            
-            // create Editor instance
-            var editor = new Editor(doc, true, $editorHolder.get(0));
-            EditorManager._notifyActiveEditorChanged(editor);
-            
-            return editor;
+            return SpecRunnerUtils.createMockEditorForDocument(doc);
         }
 
         function setupTests() {

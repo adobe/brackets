@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -279,7 +279,8 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
 
-        if ((this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) || this.info.isNewItem) {
+//        if ((this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) || this.info.isNewItem) {
+        if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
         }
 
@@ -412,18 +413,31 @@ define(function (require, exports, module) {
             }
 
             // Cursor is in an existing property value or partially typed value
-            if (!this.info.isNewItem && this.info.index !== -1) {
+//            if (!this.info.isNewItem && this.info.index !== -1) {
+            if (this.info.index !== -1) {
 
                 // Collect value up to (item) index/(char) offset
                 var i, val = "";
                 for (i = 0; i < this.info.index; i++) {
                     val += this.info.values[i];
                 }
-                val += this.info.values[this.info.index].substr(0, this.info.offset);
+                // index may exceed length of array for multiple-value case
+                if (this.info.index < this.info.values.length) {
+                    val += this.info.values[this.info.index].substr(0, this.info.offset);
+                }
 
                 // Strip "url("
                 val = val.replace(/^url\(/i, "");
 
+                // Keep track of leading whitespace and strip it
+                var matchWhitespace = val.match(/^\s*/);
+                if (matchWhitespace) {
+                    this.info.leadingWhitespace = matchWhitespace[0];
+                    val = val.substring(matchWhitespace[0].length);
+                } else {
+                    this.info.leadingWhitespace = null;
+                }
+                
                 // Keep track of opening quote and strip it
                 if (val.match(/^["']/)) {
                     this.info.openingQuote = val[0];
@@ -531,7 +545,10 @@ define(function (require, exports, module) {
         if (hasClosingQuote) {
             hasClosingParen = (this.info.values[this.info.index].indexOf(")", closingOffset) !== -1);
         } else {
-            closingOffset = (this.info.values[this.info.index].indexOf(")", this.info.offset));
+            // index may exceed length of array for multiple-value case
+            if (this.info.index < this.info.values.length) {
+                closingOffset = (this.info.values[this.info.index].indexOf(")", this.info.offset));
+            }
             hasClosingParen = (closingOffset !== -1);
         }
 
@@ -543,11 +560,15 @@ define(function (require, exports, module) {
             start.ch -= this.info.filter.length;
         }
 
-        // Append matching quotes, parens
+        // Append matching quote, whitespace, paren
         if (this.info.openingQuote && !hasClosingQuote) {
             insertText += this.info.openingQuote;
         }
         if (!hasClosingParen) {
+            // Add trailing whitespace to match leading whitespace
+            if (this.info.leadingWhitespace) {
+                insertText += this.info.leadingWhitespace;
+            }
             insertText += ")";
         }
 
