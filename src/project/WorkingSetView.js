@@ -381,7 +381,7 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
         
-        $newItem.on("click", function (e) {
+        $newItem.click(function (e) {
             if (e.which === 2) {
                 _handleMiddleMouseClick(e);
             }
