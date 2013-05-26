@@ -775,7 +775,7 @@ define(function (require, exports, module) {
      * Closes all menus that are open
      */
     function closeAll() {
-        $(".dropdown").removeClass("open");
+        $(".dropdown").removeClass("open").dropdown("toggle");
     }
     
     /**
@@ -877,7 +877,7 @@ define(function (require, exports, module) {
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
-            $toggle = $("<a href='#' class='dropdown-toggle'></a>").hide();
+            $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>").hide();
 
         // assemble the menu fragments
         $newMenu.append($toggle).append($popUp);
