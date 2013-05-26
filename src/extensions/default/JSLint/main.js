@@ -265,9 +265,8 @@ define(function (require, exports, module) {
         var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
-        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#9733;</div>", Strings);
-        $(goldStarHtml).insertBefore("#status-file");
-        
+        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#10022;</div>", Strings);
+        $(goldStarHtml).insertAfter("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
         
         // Called on HTML ready to trigger the initial UI state

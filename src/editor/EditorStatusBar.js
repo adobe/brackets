@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     
     function _updateFileInfo(editor) {
         var lines = editor.lineCount();
-        $fileInfo.text(StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
+        $fileInfo.text("\u2014 " + StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
     }
     
     function _updateIndentType() {
