@@ -318,8 +318,10 @@ define(function (require, exports, module) {
                 canAddNewOne = true;
             } else {
                 index = (index < 0) ? 0 : index + 1;
-                lastValue = ctx.token.string.trim();
-                if (lastValue.length === 0) {
+                if (ctx.token.string.match(/\S/)) {
+                    lastValue = ctx.token.string;
+                } else {
+                    // Last token is all whitespace
                     canAddNewOne = true;
                     if (index > 0) {
                         // Append all spaces before the cursor to the previous value in values array
@@ -406,14 +408,6 @@ define(function (require, exports, module) {
             return createInfo();
         }
 
-//        // Strip leading whitespace and adjust offset
-//        var oldLength = propValues[0].length;
-//        propValues[0] = propValues[0].replace(/^\s*/, "");
-//        offset -= (oldLength - propValues[0].length);
-//        if (offset < 0) {
-//            offset = 0;
-//        }
-        
         // Get value after cursor up until closing paren or newline
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         do {

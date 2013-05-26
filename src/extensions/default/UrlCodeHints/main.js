@@ -279,7 +279,6 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
 
-//        if ((this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) || this.info.isNewItem) {
         if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
         }
@@ -297,7 +296,7 @@ define(function (require, exports, module) {
         }
         
         // starts with "url(" ?
-        if (val.match(/^url\(/i)) {
+        if (val.match(/^\s*url\(/i)) {
             return true;
         }
 
@@ -413,7 +412,6 @@ define(function (require, exports, module) {
             }
 
             // Cursor is in an existing property value or partially typed value
-//            if (!this.info.isNewItem && this.info.index !== -1) {
             if (this.info.index !== -1) {
 
                 // Collect value up to (item) index/(char) offset
@@ -427,7 +425,7 @@ define(function (require, exports, module) {
                 }
 
                 // Strip "url("
-                val = val.replace(/^url\(/i, "");
+                val = val.replace(/^\s*url\(/i, "");
 
                 // Keep track of leading whitespace and strip it
                 var matchWhitespace = val.match(/^\s*/);
@@ -494,7 +492,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Inserts a given font hint into the current editor context.
+     * Inserts a given url hint into the current editor context.
      *
      * @param {jQuery.Object} completion
      * The hint to be inserted into the editor context.
@@ -514,6 +512,82 @@ define(function (require, exports, module) {
         return false;
     };
 
+    /**
+     * Get distance between 2 positions.
+     * 
+     * Assumption: pos2 >= pos1
+     * 
+     * Note that this function is designed to work on CSSUtils info.values array,
+     * so this could be made a method if that is converted to an object.
+     *
+     * @param {Array}  array  - strings to be searched
+     * @param {{index: number, offset: number}} pos1 - starting index/offset in index string
+     * @param {{index: number, offset: number}} pos2 - ending index/offset in index string
+     *
+     * @return {number}
+     * Number of characters between 2 positions
+     */
+    UrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
+        var i, count = 0;
+        
+        if (pos1.index === pos2.index) {
+            return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
+        } else if (pos1.index < pos2.index) {
+            if (pos1.index < 0 || pos1.index >= array.length || pos2.index < 0 || pos2.index >= array.length) {
+                return 0;
+            }
+            
+            for (i = pos1.index; i <= pos2.index; i++) {
+                if (i === pos1.index) {
+                    count += (array[i].length - pos1.offset);
+                } else if (i === pos2.index) {
+                    count += pos2.offset;
+                } else {
+                    count += array[i].length;
+                }
+            }
+        }
+        
+        return count;
+    };
+
+    /**
+     * Finds next position in array of specified char.
+     * 
+     * Note that this function is designed to work on CSSUtils info.values array,
+     * so this could be made a method if that is converted to an object.
+     *
+     * @param {Array}  array  - strings to be searched
+     * @param {string} char   - char to search for
+     * @param {{index: number, offset: number}} pos - starting index/offset in index string
+     *
+     * @return {{index: number, offset: number}}
+     * Index of array, and offset in string where char found.
+     */
+    UrlCodeHints.prototype.findNextPosInArray = function (array, char, pos) {
+        var i, o, searchOffset;
+        for (i = pos.index; i < array.length; i++) {
+            // Only use offset on index, then offset of 0 after that
+            searchOffset = (i === pos.index) ? pos.offset : 0;
+            o = array[i].indexOf(char, searchOffset);
+            
+            if (o !== -1) {
+                return { index: i, offset: o };
+            }
+        }
+        return { index: -1, offset: -1 };
+    };
+
+    /**
+     * Inserts a given css url hint into the current editor context.
+     *
+     * @param {jQuery.Object} completion
+     * The hint to be inserted into the editor context.
+     *
+     * @return {boolean}
+     * Indicates whether the manager should follow hint insertion with an
+     * additional explicit hint request.
+     */
     UrlCodeHints.prototype.insertCssHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start  = { line: cursor.line, ch: cursor.ch },
@@ -521,9 +595,10 @@ define(function (require, exports, module) {
 
         var hasClosingQuote = false,
             hasClosingParen = false,
-            closingOffset   = -1,
             insertText      = completion,
-            moveLen         = 0;
+            moveLen         = 0,
+            closingPos      = { index: -1, offset: -1 },
+            searchResult    = { index: -1, offset: -1 };
 
         if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
@@ -537,24 +612,23 @@ define(function (require, exports, module) {
 
         // Look for optional closing quote
         if (this.info.openingQuote) {
-            closingOffset = this.info.values[this.info.index].indexOf(this.info.openingQuote, this.info.offset);
-            hasClosingQuote = (closingOffset !== -1);
+            closingPos = this.findNextPosInArray(this.info.values, this.info.openingQuote, this.info);
+            hasClosingQuote = (closingPos.index !== -1);
         }
 
         // Look for closing paren
         if (hasClosingQuote) {
-            hasClosingParen = (this.info.values[this.info.index].indexOf(")", closingOffset) !== -1);
+            searchResult = this.findNextPosInArray(this.info.values, ")", closingPos);
+            hasClosingParen = (searchResult.index !== -1);
         } else {
             // index may exceed length of array for multiple-value case
-            if (this.info.index < this.info.values.length) {
-                closingOffset = (this.info.values[this.info.index].indexOf(")", this.info.offset));
-            }
-            hasClosingParen = (closingOffset !== -1);
+            closingPos = this.findNextPosInArray(this.info.values, ")", this.info);
+            hasClosingParen = (closingPos.index !== -1);
         }
 
         // Adjust insert char positions to replace existing value, if there is a closing paren
-        if (closingOffset !== -1) {
-            end.ch += (closingOffset - this.info.offset);
+        if (closingPos.index !== -1) {
+            end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
         }
         if (this.info.filter.length > 0) {
             start.ch -= this.info.filter.length;
@@ -598,6 +672,16 @@ define(function (require, exports, module) {
         return true;
     };
 
+    /**
+     * Inserts a given html url hint into the current editor context.
+     *
+     * @param {jQuery.Object} completion
+     * The hint to be inserted into the editor context.
+     *
+     * @return {boolean}
+     * Indicates whether the manager should follow hint insertion with an
+     * additional explicit hint request.
+     */
     UrlCodeHints.prototype.insertHtmlHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start = {line: -1, ch: -1},
