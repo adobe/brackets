@@ -557,19 +557,19 @@ define(function (require, exports, module) {
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *
-     * @param {Array}  array  - strings to be searched
-     * @param {string} char   - char to search for
+     * @param {Array}  array - strings to be searched
+     * @param {string} ch    - char to search for
      * @param {{index: number, offset: number}} pos - starting index/offset in index string
      *
      * @return {{index: number, offset: number}}
      * Index of array, and offset in string where char found.
      */
-    UrlCodeHints.prototype.findNextPosInArray = function (array, char, pos) {
+    UrlCodeHints.prototype.findNextPosInArray = function (array, ch, pos) {
         var i, o, searchOffset;
         for (i = pos.index; i < array.length; i++) {
             // Only use offset on index, then offset of 0 after that
             searchOffset = (i === pos.index) ? pos.offset : 0;
-            o = array[i].indexOf(char, searchOffset);
+            o = array[i].indexOf(ch, searchOffset);
             
             if (o !== -1) {
                 return { index: i, offset: o };
