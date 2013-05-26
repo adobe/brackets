@@ -265,7 +265,7 @@ define(function (require, exports, module) {
         var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
-        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#10022;</div>", Strings);
+        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
         $(goldStarHtml).insertAfter("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
         
