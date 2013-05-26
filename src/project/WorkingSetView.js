@@ -350,7 +350,7 @@ define(function (require, exports, module) {
     function _handleMiddleMouseClick(event) {
         var file = $(event.target).closest("li").data(_FILE_KEY);
 
-        DocumentManager.closeFullEditor(file);
+        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
     
     /** 
@@ -377,10 +377,13 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
+            _reorderListItem(e, $(this));
+            e.preventDefault();
+        });
+        
+        $newItem.on("click", function (e) {
             if (e.which === 2) {
                 _handleMiddleMouseClick(e);
-            } else {
-                _reorderListItem(e, $(this));
             }
             e.preventDefault();
         });
