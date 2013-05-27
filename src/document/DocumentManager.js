@@ -528,6 +528,21 @@ define(function (require, exports, module) {
         _removeAllFromWorkingSet();
     }
     
+    function closeOthers() {
+        
+        var fileList = $.grep(_workingSet, function (value) {
+            
+            return (value.fullPath !== _currentDocument.file.fullPath);
+        });
+
+        _workingSet = [_currentDocument.file];
+        _workingSetMRUOrder = [_currentDocument.file];
+        _workingSetAddedOrder = [_currentDocument.file];
+
+        // Dispatch event
+        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
+    }
+    
     
     /**
      * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
@@ -1284,6 +1299,7 @@ define(function (require, exports, module) {
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;
     exports.closeAll                    = closeAll;
+    exports.closeOthers                 = closeOthers;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;

@@ -696,11 +696,21 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.closeAll();
+                
+                if (commandData && commandData.closeOthers) {
+                    DocumentManager.closeOthers();
+                } else {
+                    DocumentManager.closeAll();
+                }
+                
             }
         });
         
         return result.promise();
+    }
+            
+    function handleFileCloseOthers() {
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, {closeOthers: true});
     }
     
     /**
@@ -886,6 +896,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS,  Commands.FILE_CLOSE_OTHERS, handleFileCloseOthers);
     CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
 
     if (brackets.platform === "win") {
