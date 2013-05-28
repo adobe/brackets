@@ -385,14 +385,16 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet() {
+    function _rebuildWorkingSet(forceRedraw) {
         $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _redraw();
+        if (forceRedraw) {
+            _redraw();
+        }
     }
 
     /**
@@ -524,7 +526,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
         _scrollSelectedDocIntoView();
     }
 
@@ -550,7 +552,7 @@ define(function (require, exports, module) {
         // Rebuild the working set if any file or folder name changed.
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
     }
     
     function refresh() {

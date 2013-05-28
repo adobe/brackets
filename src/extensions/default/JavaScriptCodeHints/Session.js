@@ -203,16 +203,23 @@ define(function (require, exports, module) {
     Session.prototype.getQuery = function () {
         var cursor  = this.getCursor(),
             token   = this.getToken(cursor),
-            query   = "";
-        
+            query   = "",
+            start   = cursor.ch,
+            end     = start;
+
         if (token) {
-            // If the token string is not an identifier, then the query string
-            // is empty.
-            if (HintUtils.maybeIdentifier(token.string)) {
-                query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
-                query = query.trim();
+            var line = this.getLine(cursor.line);
+            while (start > 0) {
+                if (HintUtils.maybeIdentifier(line[start - 1])) {
+                    start--;
+                } else {
+                    break;
+                }
             }
+
+            query = line.substring(start, end);
         }
+
         return query;
     };
 
@@ -530,6 +537,8 @@ define(function (require, exports, module) {
             }
             hints[0] = {value: fnHint, positions: []};
         }
+        
+        hints.handleWideResults = true;
         return hints;
     };
 

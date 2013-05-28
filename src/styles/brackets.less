@@ -298,9 +298,9 @@ a, img {
 #update-notification {
     margin: 10px 0 5px;
     .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
-    &:hover {
-        .sprite-swap(0,14px);
-    }
+    //&:hover {
+    //    .sprite-swap(0,14px);
+    //}
     display:none;
 }
 
@@ -308,16 +308,16 @@ a, img {
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
     .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
-    &:hover {
-        .sprite-swap(0,16px);
-    }
+    //&:hover {
+    //    .sprite-swap(0,16px);
+    //}
     // 'Connected' state
     &.success {
         .sprite-swap(0,32px);
     }
-    &.success:hover {
-        .sprite-swap(0,48px);
-    }
+    //&.success:hover {
+    //    .sprite-swap(0,48px);
+    //}
     // 'Connection in progress' state
     &.info {
         .sprite-swap(0,64px);
@@ -326,17 +326,17 @@ a, img {
     &.out-of-sync {
         .sprite-swap(0,80px);
     }
-    &.out-of-sync:hover {
-        .sprite-swap(0,96px);
-    }
+    //&.out-of-sync:hover {
+    //    .sprite-swap(0,96px);
+    //}
 }
 
 #toolbar-extension-manager {
     .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
     opacity: 0.7;
-    &:hover {
-        opacity: 0.5;
-    }
+    //&:hover {
+    //    opacity: 0.5;
+    //}
 }
 
 /* Project panel */
@@ -768,7 +768,7 @@ a, img {
     background: rgb(255, 108, 0);
 }
 #find-counter {
-    font-weight: bold;
+    font-weight: @font-weight-semibold;
 }
 
 
@@ -821,6 +821,10 @@ a, img {
 .quicksearch-pathmatch,
 .quicksearch-namematch {
     font-weight: @font-weight-semibold;
+}
+
+.quicksearch-pathmatch {
+    color: #555;
 }
 
 

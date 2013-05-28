@@ -885,6 +885,11 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
+    function handleFileDelete() {
+        var entry = ProjectManager.getSelectedItem();
+        ProjectManager.deleteItem(entry);
+    }
+
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
@@ -896,7 +901,6 @@ define(function (require, exports, module) {
             });
         }
     }
-    
     
     // Init DOM elements
     AppInit.htmlReady(function () {
@@ -918,6 +922,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);

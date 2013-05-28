@@ -337,11 +337,7 @@ define(function (require, exports, module) {
      * @return {?HTMLLIElement} menu item list element
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
-        var $relativeElement,
-            key,
-            menuItem,
-            map,
-            foundMenuItem;
+        var $relativeElement;
         
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {

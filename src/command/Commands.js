@@ -47,8 +47,10 @@ define(function (require, exports, module) {
     exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
+    exports.FILE_DELETE                 = "file.delete";
     exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
+    exports.FILE_REFRESH                = "file.refresh";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
@@ -76,6 +78,7 @@ define(function (require, exports, module) {
     exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";
     exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
+    exports.SHOW_CODE_HINTS             = "edit.showCodeHints";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";

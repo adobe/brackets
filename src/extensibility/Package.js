@@ -153,7 +153,9 @@ define(function (require, exports, module) {
                                 // This was a new extension and everything looked fine.
                                 // We load it into Brackets right away.
                                 ExtensionLoader.loadExtension(result.name, {
-                                    baseUrl: result.installedTo
+                                    // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
+                                    // We need to convert them back.
+                                    baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
                                 }, "main").then(function () {
                                     d.resolve(result);
                                 }, function () {

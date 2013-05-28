@@ -34,14 +34,41 @@ define(function (require, exports, module) {
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
+    // Context of the last request for hints: either CSSUtils.PROP_NAME,
+    // CSSUtils.PROP_VALUE or null.
+    var lastContext;
+    
     /**
      * @constructor
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
         this.secondaryTriggerKeys = ":";
+        this.exclusion = null;
     }
 
+    /**
+     * Check whether the exclusion is still the same as text after the cursor. 
+     * If not, reset it to null.
+     *
+     * @param {boolean} propNameOnly
+     * true to indicate that we update the exclusion only if the cursor is inside property name context.
+     * Otherwise, we also update exclusion for property value context.
+     */
+    CssPropHints.prototype.updateExclusion = function (propNameOnly) {
+        var textAfterCursor;
+        if (this.exclusion && this.info) {
+            if (this.info.context === CSSUtils.PROP_NAME) {
+                textAfterCursor = this.info.name.substr(this.info.offset);
+            } else if (!propNameOnly && this.info.context === CSSUtils.PROP_VALUE) {
+                textAfterCursor = this.info.value.substr(this.info.offset);
+            }
+            if (!CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
+                this.exclusion = null;
+            }
+        }
+    };
+    
     /**
      * Determines whether CSS propertyname or -name hints are available in the current editor
      * context.
@@ -61,8 +88,10 @@ define(function (require, exports, module) {
      */
     CssPropHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos();
+        var cursor = this.editor.getCursorPos(),
+            textAfterCursor;
 
+        lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
@@ -70,8 +99,22 @@ define(function (require, exports, module) {
         }
         
         if (implicitChar) {
+            this.updateExclusion(false);
+            if (this.info.context === CSSUtils.PROP_NAME) {
+                // Check if implicitChar is the first character typed before an existing property name.
+                if (!this.exclusion && this.info.offset === 1 && implicitChar === this.info.name[0]) {
+                    this.exclusion = this.info.name.substr(this.info.offset);
+                }
+            }
+            
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
+        } else if (this.info.context === CSSUtils.PROP_NAME) {
+            if (this.info.offset === 0) {
+                this.exclusion = this.info.name;
+            } else {
+                this.updateExclusion(true);
+            }
         }
         
         return true;
@@ -86,8 +129,8 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, 
-     *      selectInitial: Boolean>}
+     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 
      * 1. a sorted array hints that consists of strings
@@ -110,7 +153,18 @@ define(function (require, exports, module) {
             selectInitial = true;
         }
         
+        // Clear the exclusion if the user moves the cursor with left/right arrow key.
+        this.updateExclusion(true);
+
         if (context === CSSUtils.PROP_VALUE) {
+            // When switching from a NAME to a VALUE context, restart the session
+            // to give other more specialized providers a chance to intervene.
+            if (lastContext === CSSUtils.PROP_NAME) {
+                return true;
+            } else {
+                lastContext = CSSUtils.PROP_VALUE;
+            }
+            
             if (!properties[needle]) {
                 return null;
             }
@@ -133,6 +187,7 @@ define(function (require, exports, module) {
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
+            lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
                 if (pname.indexOf(needle) === 0) {
@@ -178,11 +233,23 @@ define(function (require, exports, module) {
 
         if (this.info.context === CSSUtils.PROP_NAME) {
             keepHints = true;
-            if (this.info.name.length === 0) {
+            var textAfterCursor = this.info.name.substr(this.info.offset);
+            if (this.info.name.length === 0 || CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
                 hint += ":";
                 end.ch = start.ch;
+                end.ch += offset;
+                    
+                if (this.exclusion) {
+                    // Append a space to the end of hint to insert and then adjust
+                    // the cursor before that space.
+                    hint += " ";
+                    adjustCursor = true;
+                    newCursor = { line: cursor.line,
+                                  ch: start.ch + hint.length - 1 };
+                    this.exclusion = null;
+                }
             } else {
                 // It's a replacement of an existing one or just typed in property.
                 // So we need to check whether there is an existing colon following 
