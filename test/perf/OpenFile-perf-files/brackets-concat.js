@@ -34580,7 +34580,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
 
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
-        var $goldStar = $("#gold-star");
+        var $lintStatus = $("#lint-status");
         
         if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
@@ -34638,10 +34638,10 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
                     .empty()
                     .append($errorTable);
                 $lintResults.show();
-                $goldStar.hide();
+                $lintStatus.hide();
             } else {
                 $lintResults.hide();
-                $goldStar.show();
+                $lintStatus.show();
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -34650,7 +34650,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
             $lintResults.hide();
-            $goldStar.hide();
+            $lintStatus.hide();
         }
         
         EditorManager.resizeEditor();
@@ -72834,7 +72834,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
 
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
-        var $goldStar = $("#gold-star");
+        var $lintStatus = $("#lint-status");
         
         if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
@@ -72892,10 +72892,10 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
                     .empty()
                     .append($errorTable);
                 $lintResults.show();
-                $goldStar.hide();
+                $lintStatus.hide();
             } else {
                 $lintResults.hide();
-                $goldStar.show();
+                $lintStatus.show();
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -72904,7 +72904,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
             $lintResults.hide();
-            $goldStar.hide();
+            $lintStatus.hide();
         }
         
         EditorManager.resizeEditor();
