@@ -4,15 +4,15 @@
 }
 
 .jslint-disabled {
-    background: url(images/topcoat-inactive-15.svg) 8px 5px no-repeat;
+    background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
 }
 
 .jslint-errors {
-    background: url(images/topcoat-warning-15.svg) 8px 5px no-repeat;
+    background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
 }
 
 .jslint-valid {
-    background: url(images/topcoat-okay-15.svg) 8px 5px no-repeat;
+    background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
 }
 
 #jslint-results .line { /* To make the line number line up with editor line numbers */
