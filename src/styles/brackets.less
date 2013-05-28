@@ -118,15 +118,13 @@ a, img {
 
 #status-bar {
     position: relative;
-    background: transparent;
+    background: #fff;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     color: @tc-text;
     font-family: @fontstack-sans-serif;
     font-size: 11px;
-    line-height: 25px;
-    letter-spacing: 0.09em;
-    
+    line-height: 25px;    
     height: 26px;
     overflow: hidden;
 }
@@ -150,17 +148,16 @@ a, img {
     background: #fff;
     color: @tc-text;
     position: absolute;
-    right: 10px;
+    right: 0;
     text-align: right;
     white-space: nowrap;
         
-    &>div {
+    > div {
         border-left: 1px solid rgba(0, 0, 0, 0.1);
-        display: inline-block;
-        margin-left: 6px;
-        padding-left: 10px;
+        float: right;
+        padding: 0 10px;
     }
-    &>.spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
+    .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
         border: none;
         margin-left: 5px;
         padding: 0;
@@ -185,7 +182,7 @@ a, img {
 }
 
 #indent-type, #indent-width-label {
-    margin-right: 2px;
+    margin-right: 3px;
 }
 
 #indent-type:hover, #indent-width-label:hover {
