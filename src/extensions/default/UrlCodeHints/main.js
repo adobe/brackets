@@ -215,7 +215,7 @@ define(function (require, exports, module) {
      * @param {String} attrName 
      * HTML attribute name
      *
-     * @return {Object<hints: (Array[String]|$.Deferred<Array[String]>), sortFunc: ?Function>} 
+     * @return {{hints: (Array<string>|$.Deferred), sortFunc: ?function(string, string): number}}
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
