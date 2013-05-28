@@ -50,7 +50,8 @@ define(function (require, exports, module) {
     /**
      * Extension status constants.
      */
-    var ENABLED       = "enabled";
+    var ENABLED      = "enabled",
+        START_FAILED = "startFailed";
     
     /**
      * Extension location constants.
@@ -178,7 +179,7 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: ENABLED
+                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
             $(exports).triggerHandler("statusChange", [id]);
         }
@@ -265,8 +266,10 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    // Listen to extension load events
-    $(ExtensionLoader).on("load", _handleExtensionLoad);
+    // Listen to extension load and loadFailed events
+    $(ExtensionLoader)
+        .on("load", _handleExtensionLoad)
+        .on("loadFailed", _handleExtensionLoad);
 
     // Public exports
     exports.downloadRegistry = downloadRegistry;
@@ -276,6 +279,7 @@ define(function (require, exports, module) {
     exports.extensions = extensions;
     
     exports.ENABLED = ENABLED;
+    exports.START_FAILED = START_FAILED;
     
     exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
     exports.LOCATION_DEV = LOCATION_DEV;

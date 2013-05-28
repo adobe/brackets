@@ -97,8 +97,8 @@ define(function (require, exports, module) {
      * Returns the visibility state of the sidebar.
      * @return {boolean} true if element is visible, false if it is not visible
      */
-    function visible() {
-        return Resizer.visible($sidebar);
+    function isVisible() {
+        return Resizer.isVisible($sidebar);
     }
     
     // Initialize items dependent on HTML DOM
@@ -157,5 +157,5 @@ define(function (require, exports, module) {
     exports.toggle  = toggle;
     exports.show    = show;
     exports.hide    = hide;
-    exports.visible = visible;
+    exports.isVisible = isVisible;
 });

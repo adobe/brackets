@@ -148,6 +148,15 @@
             "platform": "mac"
         }
     ],
+    "edit.showCodeHints":  [
+        {
+            "key": "Ctrl-Space"
+        },
+        {
+            "key": "Ctrl-Space",
+            "platform": "mac"
+        }
+    ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"
     ],

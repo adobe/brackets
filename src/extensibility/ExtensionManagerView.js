@@ -62,6 +62,9 @@ define(function (require, exports, module) {
         this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
         this.$el = $("<div class='extension-list'/>");
+        this._$emptyMessage = $("<div class='empty-message'/>")
+            .append(Strings.NO_EXTENSIONS)
+            .appendTo(this.$el);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
         // Show the busy spinner and access the registry.
@@ -92,6 +95,12 @@ define(function (require, exports, module) {
      * The view's model. Handles sorting and filtering of items in the view.
      */
     ExtensionManagerView.prototype.model = null;
+    
+    /**
+     * @type {jQueryObject}
+     * Element showing a message when there are no extensions.
+     */
+    ExtensionManagerView.prototype._$emptyMessage = null;
     
     /**
      * @private
@@ -128,6 +137,7 @@ define(function (require, exports, module) {
             .on("change", function (e, id) {
                 var extensions = self.model.extensions,
                     $oldItem = self._itemViews[id];
+                self._checkNoExtensions();
                 if (self.model.filterSet.indexOf(id) === -1) {
                     // This extension is not in the filter set. Remove it from the view if we
                     // were rendering it previously.
@@ -156,6 +166,8 @@ define(function (require, exports, module) {
                 var $target = $(e.target);
                 if ($target.hasClass("undo-remove")) {
                     self.model.markForRemoval($target.attr("data-extension-id"), false);
+                } else if ($target.hasClass("remove")) {
+                    self.model.markForRemoval($target.attr("data-extension-id"), true);
                 } else {
                     // Open any other link in the external browser.
                     NativeApp.openURLInDefaultBrowser($target.attr("href"));
@@ -201,6 +213,7 @@ define(function (require, exports, module) {
         // Calculate various bools, since Mustache doesn't let you use expressions and interprets
         // arrays as iteration contexts.
         context.isInstalled = !!entry.installInfo;
+        context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.hasVersionInfo = !!info.versions;
                 
         var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
@@ -223,12 +236,27 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Checks if there are no extensions, and if so shows the "no extensions" message.
+     */
+    ExtensionManagerView.prototype._checkNoExtensions = function () {
+        if (this.model.filterSet.length === 0) {
+            this._$emptyMessage.css("display", "block");
+            this._$table.css("display", "none");
+        } else {
+            this._$table.css("display", "");
+            this._$emptyMessage.css("display", "none");
+        }
+    };
+    
+    /**
+     * @private
      * Renders the extension entry table based on the model's current filter set. Will create
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
         var self = this,
             $item;
+        this._checkNoExtensions();
         this._$table.empty();
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];

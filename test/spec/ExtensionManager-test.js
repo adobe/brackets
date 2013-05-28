@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             brackets.config.extension_url = origExtensionUrl;
         });
         
-        function mockLoadExtensions(names) {
+        function mockLoadExtensions(names, fail) {
             var numStatusChanges = 0;
             runs(function () {
                 $(ExtensionManager).on("statusChange.mock-load", function () {
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                 var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                 names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
                 names.forEach(function (name) {
-                    $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
+                    $(ExtensionLoader).triggerHandler(fail ? "loadFailed" : "load", mockPath + "/" + name);
                 });
             });
             
@@ -192,6 +192,16 @@ define(function (require, exports, module) {
                             expect(ExtensionManager.extensions[extId].installInfo).toBeUndefined();
                         }
                     });
+                });
+            });
+            
+            it("should list an extension that is installed but failed to load", function () {
+                runs(function () {
+                    waitsForDone(ExtensionManager.downloadRegistry(), "loading registry");
+                });
+                mockLoadExtensions(["user/mock-extension-3"], true);
+                runs(function () {
+                    expect(ExtensionManager.extensions["mock-extension-3"].installInfo.status).toEqual(ExtensionManager.START_FAILED);
                 });
             });
             
@@ -541,6 +551,13 @@ define(function (require, exports, module) {
                             return "Expected view" + notText + " to contain text " + expected;
                         };
                         return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                    },
+                    toHaveLink: function (expected) {
+                        var notText = this.isNot ? " not" : "";
+                        this.message = function () {
+                            return "Expected view" + notText + " to contain link " + expected;
+                        };
+                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
                     }
                 });
                 spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
@@ -575,6 +592,9 @@ define(function (require, exports, module) {
                                         expect(view).toHaveText(value);
                                     }
                                 });
+                            if (item.metadata.homepage) {
+                                expect(view).toHaveLink(item.metadata.homepage);
+                            }
                             
                             // Array-valued fields
                             [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
@@ -745,11 +765,21 @@ define(function (require, exports, module) {
                         }
                     });
                 });
+                
+                it("should show the 'no extensions' message when there are no extensions installed", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).not.toBe("none");
+                        expect($("table", view.$el).css("display")).toBe("none");
+                    });
+                });
                            
                 it("should show only items that are already installed and have a remove button for each", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
+                        expect($(".empty-message", view.$el).css("display")).toBe("none");
+                        expect($("table", view.$el).css("display")).not.toBe("none");
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.remove[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" ||
@@ -781,6 +811,24 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect(view).not.toHaveText("mock-extension-1");
+                    });
+                });
+                
+                it("should show extensions that failed to load with a 'remove' link", function () {
+                    mockLoadExtensions(["user/mock-extension-3"], true);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect(view).toHaveText("mock-extension-3");
+                        var $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(1);
+                        expect($removeLink.attr("disabled")).toBeFalsy();
+                        
+                        $removeLink.click();
+                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
+                        var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($undoLink.length).toBe(1);
+                        $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
+                        expect($removeLink.length).toBe(0);
                     });
                 });
                 

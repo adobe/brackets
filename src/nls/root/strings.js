@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
-    "FILE_EXISTS_ERR"                   : "The file already exists.",
+    "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -53,6 +53,8 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -177,8 +179,10 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_FILE_DELETE"                     : "Delete",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
+    "CMD_FILE_REFRESH"                    : "Refresh",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -209,6 +213,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
+    "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -239,6 +244,7 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Help menu commands
     "HELP_MENU"                           : "Help",
@@ -309,7 +315,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
-    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string {{0}} is invalid.",
     "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
@@ -331,25 +337,28 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_MORE_INFO"                  : "More info...",
+    "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. Brackets will still quit.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. {APP_NAME} will still quit.",
     "MARKED_FOR_REMOVAL"                   : "Marked for removal",
     "UNDO_REMOVE"                          : "Undo",
     "REMOVE_AND_QUIT_TITLE"                : "Remove Extensions",
-    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
     "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br />Click the Install from URL button below to get started.",
     
     /**
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",    
+    "UNIT_PIXELS"                          : "pixels",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",

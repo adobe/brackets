@@ -49,26 +49,15 @@ define(function (require, exports, module) {
             DocumentManager.setCurrentDocument(doc);
         });
     });
+    
     /**
-     * Returns an Editor suitable for use in isolation, given a Document. (Unlike
-     * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
-     * for you).
+     * Returns an Editor suitable for use in isolation, given a Document.
      *
      * @param {Document} doc - the document to be contained by the new Editor
      * @return {Editor} - the mock editor object
      */
     function createMockEditor(doc) {
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
-        EditorManager.setEditorHolder($editorHolder);
-        $("body").append($editorHolder);
-        
-        // create Editor instance
-        var editor = new Editor(doc, true, $editorHolder.get(0));
-
-        EditorManager._notifyActiveEditorChanged(editor);
-        
-        return editor;
+        return SpecRunnerUtils.createMockEditorForDocument(doc);
     }
 
     describe("JavaScript Code Hinting", function () {
@@ -1084,6 +1073,16 @@ define(function (require, exports, module) {
                 hintsPresentOrdered(hintObj, ["shift", "shiftKey"]);
             });
 
+            it("should handle valid non-ascii characters in a property name", function () {
+                var start = { line: 153, ch: 0 },
+                    end   = { line: 153, ch: 13 };
+
+                testDoc.replaceRange("hope.frenchçP", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                // check we have a properties that start with "shift"
+                hintsPresentOrdered(hintObj, ["frenchçProp"]);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {
