@@ -237,11 +237,12 @@ define(function (require, exports, module) {
      * about each one. Processing is sequential: if the user chooses to reload a document, the next
      * prompt is not shown until after the reload has completed.
      *
+     * @param {string} title Title of the dialog.
      * @return {$.Promise} Resolved/rejected after all documents have been prompted and (if
      *      applicable) reloaded (and any resulting error UI has been dismissed). Rejected if any
      *      one reload failed.
      */
-    function presentConflicts() {
+    function presentConflicts(title) {
         
         var allConflicts = editConflicts.concat(deleteConflicts);
         
@@ -280,7 +281,7 @@ define(function (require, exports, module) {
                 );
             }
             
-            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
+            Dialogs.showModalDialog(dialogId, title, message)
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
@@ -326,8 +327,12 @@ define(function (require, exports, module) {
      * Brackets synced up with the copy on disk (either by loading or saving the file). For clean
      * files, we silently upate the editor automatically. For files with unsaved changes, we prompt
      * the user.
+     *
+     * @param {string} title Title to use for document. Default is "External Changes".
      */
-    function syncOpenDocuments() {
+    function syncOpenDocuments(title) {
+        
+        title = title || Strings.EXT_MODIFIED_TITLE;
         
         // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
         // done -- easy if a prompt dialog is left open. Since the user may have left Brackets to
@@ -378,7 +383,7 @@ define(function (require, exports, module) {
                                 closeDeletedDocs();
                                 
                                 // 5) Prompt for dirty editors (conflicts)
-                                presentConflicts()
+                                presentConflicts(title)
                                     .always(function () {
                                         if (_restartPending) {
                                             // Restart the sync if needed
