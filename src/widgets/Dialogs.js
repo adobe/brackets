@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 /**
  * Utilities for creating and managing standard modal dialogs.
@@ -35,28 +35,34 @@ define(function (require, exports, module) {
 
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
-        NativeApp         = require("utils/NativeApp");
+        NativeApp         = require("utils/NativeApp"),
+        Strings           = require("strings"),
+        DialogTemplate    = require("text!htmlContent/dialog-template.html");
+    
+    /**
+     * Dialog Buttons IDs
+     * @const {string}
+     */
+    var DIALOG_BTN_CANCEL           = "cancel",
+        DIALOG_BTN_OK               = "ok",
+        DIALOG_BTN_DONTSAVE         = "dontsave",
+        DIALOG_CANCELED             = "_canceled",
+        DIALOG_BTN_DOWNLOAD         = "download";
+    
+    /**
+     * Dialog Buttons Class Names
+     * @const {string}
+     */
+    var DIALOG_BTN_CLASS_PRIMARY    = "primary",
+        DIALOG_BTN_CLASS_NORMAL     = "",
+        DIALOG_BTN_CLASS_LEFT       = "left";
+    
 
-    var DIALOG_BTN_CANCEL = "cancel",
-        DIALOG_BTN_OK = "ok",
-        DIALOG_BTN_DONTSAVE = "dontsave",
-        DIALOG_CANCELED = "_canceled",
-        DIALOG_BTN_DOWNLOAD = "download";
-    
-    // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
-    // it live directly in the HTML.
-    var DIALOG_ID_ERROR = "error-dialog",
-        DIALOG_ID_INFO = "error-dialog", // uses the same template for now--could be different in future
-        DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
-        DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
-        DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
-    
     /** 
      * A stack of keydown event handler functions that corresponds to the
      * current stack of modal dialogs.
      * 
-     * @type {Array.<Function>} 
+     * @type {Array.<function>} 
      */
     var _keydownListeners = [];
 
@@ -118,23 +124,60 @@ define(function (require, exports, module) {
         }
     };
     
+    
+    
     /**
-     * Like showModalDialog(), but takes a template as a parameter rather than assuming the template is embedded
-     * in the current DOM. The template can either be a string or a jQuery object representing a DOM node that is
-     * *not* in the current DOM.
+     * @constructor
+     * @private
+     *
+     * @param {$.Element} $dlg The dialog jQuery element
+     * @param {$.Promise} promise A promise that will be resolved with the ID of the clicked button when the dialog
+     *     is dismissed. Never rejected.
+     */
+    function Dialog($dlg, promise) {
+        this._$dlg    = $dlg;
+        this._promise = promise;
+    }
+    
+    /** @type {$.Element} The dialog jQuery element */
+    Dialog.prototype.getElement = function () {
+        return this._$dlg;
+    };
+    
+    /** @type {$.Promise} The dialog promise */
+    Dialog.prototype.getPromise = function () {
+        return this._promise;
+    };
+    
+    /**
+     * Closes the dialog if is visible
+     */
+    Dialog.prototype.close = function () {
+        if (this._$dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+            _dismissDialog(this._$dlg, DIALOG_CANCELED);
+        }
+    };
+    
+    /**
+     * Adds a done callback to the dialog promise
+     */
+    Dialog.prototype.done = function (callback) {
+        this._promise.done(callback);
+    };
+    
+    
+    
+    /**
+     * Creates a new modal dialog from a given template.
+     * The template can either be a string or a jQuery object representing a DOM node that is *not* in the current DOM.
      *
      * @param {string} template A string template or jQuery object to use as the dialog HTML.
-     * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
-     *      the HTML template is used unchanged.
-     * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
-     *      unspecified, body in the HTML template is used unchanged.
      * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
      *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
      *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
-     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
-     *     is dismissed. Never rejected.
+     * @return {Dialog}
      */
-    function showModalDialogUsingTemplate(template, title, message, autoDismiss) {
+    function showModalDialogUsingTemplate(template, autoDismiss) {
         if (autoDismiss === undefined) {
             autoDismiss = true;
         }
@@ -148,14 +191,6 @@ define(function (require, exports, module) {
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
-
-        // Set title and message
-        if (title) {
-            $(".dialog-title", $dlg).html(title);
-        }
-        if (message) {
-            $(".dialog-message", $dlg).html(message);
-        }
 
         $(".clickable-link", $dlg).on("click", function _handleLink(e) {
             // Links use data-href (not href) attribute so Brackets itself doesn't redirect
@@ -239,42 +274,39 @@ define(function (require, exports, module) {
             keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
         });
 
-        return promise;
+        return (new Dialog($dlg, promise));
     }
     
+    
     /**
-     * General purpose modal dialog. Assumes that:
-     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
-     *    classes "template modal hide".
-     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
-     *    of elements with "dialog-button" class, each of which has a "data-button-id".
+     * Creates a new general purpose modal dialog using the default template and the template variables given
+     * as parameters as described.
      *
-     * @param {string} dlgClass The class of the dialog node in the HTML.
-     * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
-     *      the HTML template is used unchanged.
-     * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
-     *      unspecified, body in the HTML template is used unchanged.
-     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
-     *     is dismissed. Never rejected.
+     * @param {string} dlgClass A class name identifier for the dialog.
+     * @param {string=} title The title of the dialog. Can contain HTML markup. If unspecified, the title
+     *      in the JSON file is used unchanged.
+     * @param {string=} message The message to display in the dialog. Can contain HTML markup. If
+     *      unspecified, the message in the JSON file is used.
+     * @param {Array.<{className: string, id: string, text: string>=} buttons An array of buttons where each button
+     *      has a class, id and text property. The id is used in "data-button-id". It defaults to an Ok button
+     * @return {Dialog}
      */
-    function showModalDialog(dlgClass, title, message) {
-        // We clone the HTML rather than using it directly so that if two dialogs of the same
-        // type happen to show up, they can appear at the same time. (This is an edge case that
-        // shouldn't happen often, but we can't prevent it from happening since everything is
-        // asynchronous.)
-        var $template = $("." + dlgClass + ".template")
-            .clone()
-            .removeClass("template");
-        if ($template.length === 0) {
-            console.error("Dialog id " + dlgClass + " does not exist");
-            return;
-        }
-        return showModalDialogUsingTemplate($template, title, message);
+    function showModalDialog(dlgClass, title, message, buttons) {
+        var templateVars = {
+            dlgClass: dlgClass,
+            title:    title   || "",
+            message:  message || "",
+            buttons:  buttons || [{ className: DIALOG_BTN_CLASS_PRIMARY, id: DIALOG_BTN_OK, text: Strings.OK }]
+        };
+        var template = Mustache.render(DialogTemplate, templateVars);
+        
+        return showModalDialogUsingTemplate(template);
     }
     
     /**
      * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
+     * @param {string} dlgClass The class name identifier for the dialog.
      */
     function cancelModalDialogIfOpen(dlgClass) {
         $("." + dlgClass + ".instance").each(function (index, dlg) {
@@ -284,18 +316,16 @@ define(function (require, exports, module) {
         });
     }
     
-    exports.DIALOG_BTN_CANCEL   = DIALOG_BTN_CANCEL;
-    exports.DIALOG_BTN_OK       = DIALOG_BTN_OK;
-    exports.DIALOG_BTN_DONTSAVE = DIALOG_BTN_DONTSAVE;
-    exports.DIALOG_CANCELED     = DIALOG_CANCELED;
-    exports.DIALOG_BTN_DOWNLOAD = DIALOG_BTN_DOWNLOAD;
     
-    exports.DIALOG_ID_ERROR             = DIALOG_ID_ERROR;
-    exports.DIALOG_ID_INFO              = DIALOG_ID_INFO;
-    exports.DIALOG_ID_SAVE_CLOSE        = DIALOG_ID_SAVE_CLOSE;
-    exports.DIALOG_ID_EXT_CHANGED       = DIALOG_ID_EXT_CHANGED;
-    exports.DIALOG_ID_EXT_DELETED       = DIALOG_ID_EXT_DELETED;
-    exports.DIALOG_ID_LIVE_DEVELOPMENT  = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_BTN_CANCEL            = DIALOG_BTN_CANCEL;
+    exports.DIALOG_BTN_OK                = DIALOG_BTN_OK;
+    exports.DIALOG_BTN_DONTSAVE          = DIALOG_BTN_DONTSAVE;
+    exports.DIALOG_CANCELED              = DIALOG_CANCELED;
+    exports.DIALOG_BTN_DOWNLOAD          = DIALOG_BTN_DOWNLOAD;
+    
+    exports.DIALOG_BTN_CLASS_PRIMARY     = DIALOG_BTN_CLASS_PRIMARY;
+    exports.DIALOG_BTN_CLASS_NORMAL      = DIALOG_BTN_CLASS_NORMAL;
+    exports.DIALOG_BTN_CLASS_LEFT        = DIALOG_BTN_CLASS_LEFT;
     
     exports.showModalDialog              = showModalDialog;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;
