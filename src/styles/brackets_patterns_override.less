@@ -357,12 +357,16 @@
 }
 
 .modal-footer {
+    text-align: right;
     background-color: @tc-gray-panel;
     border-top: 1px solid rgba(0,0,0,0.09);
     box-shadow: none;
     white-space: nowrap;
 }
 
+.modal-footer .btn {
+    float: none;
+}
 .modal-footer .btn.left {
     float: left;
     
@@ -371,6 +375,16 @@
      */
     margin-left: 0;
     margin-right: 5px;
+}
+
+.platform-win {
+    /* Reverse Save/Cancel button order on Win */
+    .modal-footer {
+        text-align: left;
+    }
+    .modal-footer .btn:not(.left) {
+        float: right;
+    }
 }
 
 .modal-body ul {
@@ -785,4 +799,16 @@ table {
     tr:hover th {
         background-color: @tc-highlight; // TopCoat palette
     }
+}
+
+/* Emphasis */
+
+strong {
+    font-weight: @font-weight-semibold;
+}
+
+/* Type */
+
+code {
+  background-color: transparent;
 }

@@ -34,16 +34,15 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileViewController  = require("project/FileViewController"),
         FileUtils           = require("file/FileUtils"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -209,8 +208,6 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (paths) {
-                    var i;
-                    
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
@@ -383,9 +380,16 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(name, path) {
+    /**
+     * @private
+     * Shows an Error modal dialog
+     * @param {string} name
+     * @param {string} path
+     * @return {Dialog}
+     */
+    function _showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
@@ -400,8 +404,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.name, fileEntry.fullPath)
-                .always(function () {
+            _showSaveFileError(error.name, fileEntry.fullPath)
+                .done(function () {
                     result.reject(error);
                 });
         }
@@ -517,7 +521,7 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 FileUtils.showFileOpenError(error.name, doc.file.fullPath)
-                    .always(function () {
+                    .done(function () {
                         result.reject(error);
                     });
             });
@@ -576,41 +580,59 @@ define(function (require, exports, module) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 StringUtils.format(
                     Strings.SAVE_CLOSE_MESSAGE,
                     StringUtils.breakableUrl(filename)
-                )
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // "Save" case: wait until we confirm save has succeeded before closing
-                    doSave(doc)
-                        .done(function () {
-                            doClose(file);
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
-                } else {
-                    // "Don't Save" case: even though we're closing the main editor, other views of
-                    // the Document may remain in the UI. So we need to revert the Document to a clean
-                    // copy of whatever's on disk.
-                    doClose(file);
-                    
-                    // Only reload from disk if we've executed the Close for real,
-                    // *and* if at least one other view still exists
-                    if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                        doRevert(doc)
-                            .pipe(result.resolve, result.reject);
-                    } else {
-                        result.resolve();
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
                     }
-                }
-            });
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // "Save" case: wait until we confirm save has succeeded before closing
+                        doSave(doc)
+                            .done(function () {
+                                doClose(file);
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                result.reject();
+                            });
+                    } else {
+                        // "Don't Save" case: even though we're closing the main editor, other views of
+                        // the Document may remain in the UI. So we need to revert the Document to a clean
+                        // copy of whatever's on disk.
+                        doClose(file);
+                        
+                        // Only reload from disk if we've executed the Close for real,
+                        // *and* if at least one other view still exists
+                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                            doRevert(doc)
+                                .pipe(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
+                        }
+                    }
+                });
             result.always(function () {
                 EditorManager.focusEditor();
             });
@@ -671,24 +693,42 @@ define(function (require, exports, module) {
             message += "</ul>";
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                message
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // Save all unsaved files, then if that succeeds, close all
-                    saveAll().done(function () {
-                        result.resolve();
-                    }).fail(function () {
+                message,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
                         result.reject();
-                    });
-                } else {
-                    // "Don't Save" case--we can just go ahead and close all  files.
-                    result.resolve();
-                }
-            });
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Save all unsaved files, then if that succeeds, close all
+                        saveAll().done(function () {
+                            result.resolve();
+                        }).fail(function () {
+                            result.reject();
+                        });
+                    } else {
+                        // "Don't Save" case--we can just go ahead and close all  files.
+                        result.resolve();
+                    }
+                });
         }
         
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors

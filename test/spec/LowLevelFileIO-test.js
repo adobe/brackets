@@ -519,9 +519,57 @@ define(function (require, exports, module) {
 
         }); // describe("unlink")
         
-        describe("mkdir", function () {
+        describe("makedir", function () {
+            var error, complete, isDirectory;
+            
             it("should make a new directory", function () {
-                // TODO: Write this test once we have a function to delete the directory
+                var newDirName = baseDir + "/new_dir";
+                
+                complete = false;
+                runs(function () {
+                    brackets.fs.makedir(newDirName, parseInt("777", 0), function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify directory was created
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newDirName, function (err, stat) {
+                        error = err;
+                        isDirectory = stat.isDirectory();
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                    expect(isDirectory).toBe(true);
+                });
+                
+                // Delete the directory
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(newDirName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
             });
         });
         
@@ -697,5 +745,125 @@ define(function (require, exports, module) {
             });
             // TODO: More testing of error cases? 
         });
+        
+        describe("moveToTrash", function () {
+            var error, complete, isDirectory;
+            
+            it("should move a file to the trash", function () {
+                var newFileName = baseDir + "/delete_me.txt";
+                
+                // Create a file
+                runs(function () {
+                    complete = false;
+                    brackets.fs.writeFile(newFileName, "", _FSEncodings.UTF8, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Move it to the trash
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(newFileName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Make sure it's gone
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(newFileName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+            });
+            
+            it("should move a folder to the trash", function () {
+                var newDirName = baseDir + "/dir_to_delete";
+                
+                // Create a file
+                runs(function () {
+                    complete = false;
+                    brackets.fs.makedir(newDirName, parseInt("777", 8), function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Move it to the trash
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(newDirName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Make sure it's gone
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(newDirName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+            });
+            
+            it("should return an error if the item doesn't exsit", function () {
+                
+                // Move it to the trash
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(baseDir + "/doesnt_exist", function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+            });
+        }); // moveToTrash
     });
 });

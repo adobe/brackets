@@ -43,12 +43,12 @@ define(function (require, exports, module) {
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
-     * @param {String} url
-     * @return {String} empty string if valid, otherwise error string
+     * @param {string} url
+     * @return {string} Empty string if valid, otherwise error string
      */
     function _validateBaseUrl(url) {
         var result = "";
-        // empty url means "no server mapping; use file directly"
+        // Empty url means "no server mapping; use file directly"
         if (url === "") {
             return result;
         }
@@ -74,19 +74,18 @@ define(function (require, exports, module) {
 
     /**
      * Show a dialog that shows the project preferences
-     * @param {String} baseUrl - initial value
-     * @param {String} errorMessage - error to display
-     * @return {$.Promise} A promise object that will be resolved when user successfully enters
-     *          project settings and clicks OK, or rejected if user clicks Cancel.
+     * @param {string} baseUrl Initial value
+     * @param {string} errorMessage Error to display
+     * @return {Dialog} A Dialog object with an internal promise that will be resolved with the ID
+     *      of the clicked button when the dialog is dismissed. Never rejected.
      */
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
-
         var $dlg,
             $title,
             $baseUrlControl,
-            promise;
+            dialog;
 
-        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();
@@ -128,7 +127,7 @@ define(function (require, exports, module) {
         // Give focus to first control
         $baseUrlControl.focus();
 
-        return promise;
+        return dialog;
     }
 
     // For unit testing
