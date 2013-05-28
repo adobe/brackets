@@ -46,6 +46,7 @@ define(function main(require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
@@ -120,7 +121,7 @@ define(function main(require, exports, module) {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_INFO,
+                    DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
                 ).done(function (id) {

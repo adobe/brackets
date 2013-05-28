@@ -75,6 +75,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var Async                = require("utils/Async"),
         Dialogs              = require("widgets/Dialogs"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
@@ -600,7 +601,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         function showWrongDocError() {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
@@ -617,15 +618,12 @@ define(function LiveDevelopment(require, exports, module) {
                     } else {
                         result.reject();
                     }
-                })
-                .fail(function () {
-                    result.reject();
                 });
         }
 
         function showLiveDevServerNotReadyError() {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
             );
@@ -647,30 +645,43 @@ define(function LiveDevelopment(require, exports, module) {
                 if (retryCount > 6) {
                     _setStatus(STATUS_ERROR);
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
+                        DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                         Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
-                    ).done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK) {
-                            // User has chosen to reload Chrome, quit the running instance
-                            _setStatus(STATUS_INACTIVE);
-                            NativeApp.closeLiveBrowser()
-                                .done(function () {
-                                    browserStarted = false;
-                                    window.setTimeout(function () {
-                                        open().done(result.resolve).fail(result.reject);
+                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                        [
+                            {
+                                className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                                id:        Dialogs.DIALOG_BTN_CANCEL,
+                                text:      Strings.CANCEL
+                            },
+                            {
+                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id:        Dialogs.DIALOG_BTN_OK,
+                                text:      Strings.RELAUNCH_CHROME
+                            }
+                        ]
+                    )
+                        .done(function (id) {
+                            if (id === Dialogs.DIALOG_BTN_OK) {
+                                // User has chosen to reload Chrome, quit the running instance
+                                _setStatus(STATUS_INACTIVE);
+                                NativeApp.closeLiveBrowser()
+                                    .done(function () {
+                                        browserStarted = false;
+                                        window.setTimeout(function () {
+                                            open().done(result.resolve).fail(result.reject);
+                                        });
+                                    })
+                                    .fail(function (err) {
+                                        // Report error?
+                                        _setStatus(STATUS_ERROR);
+                                        browserStarted = false;
+                                        result.reject("CLOSE_LIVE_BROWSER");
                                     });
-                                })
-                                .fail(function (err) {
-                                    // Report error?
-                                    _setStatus(STATUS_ERROR);
-                                    browserStarted = false;
-                                    result.reject("CLOSE_LIVE_BROWSER");
-                                });
-                        } else {
-                            result.reject("CANCEL");
-                        }
-                    });
+                            } else {
+                                result.reject("CANCEL");
+                            }
+                        });
                     return;
                 }
                 retryCount++;
@@ -699,7 +710,7 @@ define(function LiveDevelopment(require, exports, module) {
                             }
 
                             Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
+                                DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
                                 message
                             );
@@ -872,7 +883,7 @@ define(function LiveDevelopment(require, exports, module) {
             .fail(function () {
                 close();
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
+                    DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                     Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
                 );
