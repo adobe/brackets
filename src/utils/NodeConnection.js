@@ -486,8 +486,8 @@ define(function (require, exports, module) {
         
         if (this.connected()) {
             $.getJSON("http://localhost:" + this._port + "/api")
-                .success(refreshInterfaceCallback)
-                .error(function () { deferred.reject(); });
+                .done(refreshInterfaceCallback)
+                .fail(function () { deferred.reject(); });
         } else {
             deferred.reject();
         }
