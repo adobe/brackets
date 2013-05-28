@@ -555,17 +555,6 @@ define(function (require, exports, module) {
         _rebuildWorkingSet(true);
     }
     
-    /**
-     * @private
-     * @param {string} path
-     */
-    function _handlePathDeleted(path) {
-        // Rebuild the working set if any file or folder was deleted.
-        // We could be smarter about this and only delete affected
-        // items.
-        _rebuildWorkingSet(false);
-    }
-    
     function refresh() {
         _redraw();
     }
@@ -603,10 +592,6 @@ define(function (require, exports, module) {
     
         $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
             _handleFileNameChanged(oldName, newName);
-        });
-        
-        $(DocumentManager).on("pathDeleted", function (event, path) {
-            _handlePathDeleted(path);
         });
         
         $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
