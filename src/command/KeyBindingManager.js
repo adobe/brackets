@@ -488,7 +488,7 @@ define(function (require, exports, module) {
             // Generally, commands decide whether they can run or not synchronously,
             // and reject immediately, so we can test for that synchronously.
             var promise = CommandManager.execute(_keyMap[key].commandID);
-            return (promise.state() === "rejected") ? false : true;
+            return (promise.state() !== "rejected");
         }
         return false;
     }
@@ -522,7 +522,6 @@ define(function (require, exports, module) {
      */
     function addBinding(command, keyBindings, platform) {
         var commandID           = "",
-            normalizedBindings  = [],
             results;
         
         if (!command) {
