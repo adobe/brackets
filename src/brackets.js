@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                             
                             dirEntry.getFile("index.html", {}, function (fileEntry) {
                                 var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.pipe(deferred.resolve, deferred.reject);
+                                promise.then(deferred.resolve, deferred.reject);
                             }, deferred.reject);
                         } else {
                             deferred.resolve();
