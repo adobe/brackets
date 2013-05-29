@@ -535,17 +535,43 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Check whether we can dismiss the hint list before executing the invoked command
+     *
+     * @param {string} invokedCommandId - The ID of the command being invoked.
+     * @returns {boolean} - true if the invoked command is in the exclusion list, false otherwise.
+     */
+    function _canDismissHintList(invokedCommandId) {
+        // Don't end the hint session if the invoked command is an emmet command
+        // since emmet relies on the visibility of the hint list before executing its commands.
+        if (invokedCommandId && invokedCommandId.indexOf("io.emmet.") !== -1) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Dismiss hint list before executing the invoked command.
+     *
+     * @param {string} invokedCommandId - The ID of the command being invoked.
+     */
+    function _dismissHintList(invokedCommandId) {
+        if (_canDismissHintList(invokedCommandId)) {
+            _endSession();
+        }
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
         return hintList;
     }
-
+    
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution. 
     // For example, when the user hits Ctrl+K to open Quick Doc, it is 
     // pointless to keep the hint list since the user wants to view the Quick Doc.
-    $(CommandManager).on("beforeExecuteCommand", _endSession);
+    $(CommandManager).on("beforeExecuteCommand", _dismissHintList);
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 
