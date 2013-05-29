@@ -129,7 +129,7 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     * @return {{hints: Array.<string|jQueryObject>, match: string, 
      *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 
@@ -270,12 +270,24 @@ define(function (require, exports, module) {
                     hint += ":";
                 }
             }
-        } else if (!this.info.isNewItem && this.info.index !== -1) {
-            // Replacing an existing property value or partially typed value
-            end.ch = start.ch + this.info.values[this.info.index].length;
         } else {
-            // Inserting a new property value
-            end.ch = start.ch;
+            if (!this.info.isNewItem && this.info.index !== -1) {
+                // Replacing an existing property value or partially typed value
+                end.ch = start.ch + this.info.values[this.info.index].length;
+            } else {
+                // Inserting a new property value
+                end.ch = start.ch;
+            }
+
+            var parenMatch = hint.match(/url\([\w\W]*?\)/i);
+            if (parenMatch) {
+                // value has url(...), so place cursor inside opening paren
+                // and keep hints open
+                adjustCursor = true;
+                newCursor = { line: cursor.line,
+                              ch: cursor.ch + 4 - this.info.offset };
+                keepHints = true;
+            }
         }
         
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
