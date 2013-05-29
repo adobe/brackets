@@ -173,7 +173,6 @@ define({
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
-    "CMD_FILE_CLOSE_OTHERS"               : "Close Others",
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
