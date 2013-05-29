@@ -537,7 +537,9 @@ a, img {
 .inline-widget {
     background-color:   @inline-background-color-1;
     min-width: 250px;
+    overflow-y: hidden;
     cursor: default;
+    -webkit-transition: height 0.24s ease-out;
     
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
