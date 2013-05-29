@@ -52,7 +52,7 @@ define(function (require, exports, module) {
      * Helper function to create a list of urls to existing files based on the query.
      * @param {{queryStr: string}} query -- a query object, used to filter the code hints
      *
-     * @return {Array[string]|$.Deferred} The (possibly deferred) hints.
+     * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
     UrlCodeHints.prototype._getUrlList = function (query) {
         var doc,
