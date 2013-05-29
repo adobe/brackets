@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window */
+/*global define, $, PathUtils, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async               = require("utils/Async"),
+        Resizer             = require("utils/Resizer"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
@@ -50,11 +51,15 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         FileIndexManager    = require("project/FileIndexManager"),
+        FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
         StatusBar           = require("widgets/StatusBar"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
+    
+    var searchResultsTemplate = require("text!htmlContent/search-results.html");
 
     var searchResults = [];
     
@@ -63,8 +68,8 @@ define(function (require, exports, module) {
         currentQuery = "",
         currentScope;
     
-    // Div holding the search results. Initialized in htmlReady().
-    var $searchResultsDiv;
+    // Bottom panel holding the search results. Initialized in htmlReady().
+    var searchResultsPanel;
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -192,9 +197,8 @@ define(function (require, exports, module) {
     };
     
     function _hideSearchResults() {
-        if ($searchResultsDiv.is(":visible")) {
-            $searchResultsDiv.hide();
-            EditorManager.resizeEditor();
+        if (searchResultsPanel.isVisible()) {
+            searchResultsPanel.hide();
         }
     }
 
@@ -339,12 +343,10 @@ define(function (require, exports, module) {
                     _hideSearchResults();
                 });
             
-            $searchResultsDiv.show();
+            searchResultsPanel.show();
         } else {
             _hideSearchResults();
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -443,11 +445,12 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $searchResultsDiv  = $("#search-results");
+        var panelHtml = Mustache.render(searchResultsTemplate, Strings);
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($searchResultsDiv.is(":visible")) {
+        if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
@@ -455,8 +458,21 @@ define(function (require, exports, module) {
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
+  
+    function _pathDeletedHandler(event, path) {
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            searchResults.forEach(function (item, idx) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                    searchResults.splice(idx, 1);
+                }
+            });
+            _showSearchResults(searchResults, currentQuery, currentScope);
+        }
+    }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
