@@ -1,19 +1,19 @@
+#jslint-status {
+    width: 13px;
+}
+
 .jslint-disabled {
-    font-size: 1em;
-    color: #808080;
+    background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
 }
 
 .jslint-errors {
-    font-size: 1em;
-    color: #dc322f;
+    background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
 }
 
 .jslint-valid {
-    font-size: 1em;
-    color: #FFC81C;
+    background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
 }
 
 #jslint-results .line { /* To make the line number line up with editor line numbers */
     text-align: right;
-    width: 30px;
 }
