@@ -105,7 +105,7 @@ define(function (require, exports, module) {
      * Returns a list of availble HTML tag hints if possible for the current
      * editor context. 
      *
-     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     * @return {{hints: Array.<string|jQueryObject>, match: string, 
      *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Helper function that determins the possible value hints for a given html tag/attribute name pair
+     * Helper function that determines the possible value hints for a given html tag/attribute name pair
      * 
      * @param {{queryStr: string}} query
      * The current query
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
      * Returns a list of availble HTML attribute hints if possible for the 
      * current editor context. 
      *
-     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     * @return {{hints: Array.<string|jQueryObject>, match: string, 
      *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 

@@ -370,7 +370,7 @@ define(function (require, exports, module) {
      * Returns a list of availble font hints, if possible, for the current
      * editor context.
      *
-     * @return {Object<hints: Array<jQuery.Object>, match: string,
+     * @return {Object<hints: Array.<jQuery.Object>, match: string,
      *      selectInitial: boolean>}
      *
      * Null if the provider wishes to end the hinting session. Otherwise, a
@@ -479,7 +479,7 @@ define(function (require, exports, module) {
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
                 deferred.resolveWith(this, [{
-                    hints : asyncHints,
+                    hints: asyncHints,
                     match: query.queryStr,
                     selectInitial: true
                 }]);
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *
-     * @param {Array}  array  - strings to be searched
+     * @param {Array.<string>}  array  - strings to be searched
      * @param {{index: number, offset: number}} pos1 - starting index/offset in index string
      * @param {{index: number, offset: number}} pos2 - ending index/offset in index string
      *

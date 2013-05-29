@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, selectInitial: Boolean>}
+     * @return {Object<hints: Array.<(String + jQuery.Obj)>, match: String, selectInitial: Boolean>}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
      * of strings; 2. a string match that is used by the manager to emphasize

@@ -129,7 +129,7 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {{hints: Array<string|jQueryObject>, match: string, 
+     * @return {{hints: Array.<string|jQueryObject>, match: string, 
      *      selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 
