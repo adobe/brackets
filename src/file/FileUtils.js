@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
@@ -177,7 +178,7 @@ define(function (require, exports, module) {
     
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
