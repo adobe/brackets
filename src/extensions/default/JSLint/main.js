@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
         JSLintOptions = JSON.parse(require("text!config.json"));
     
-    var INDICATOR_ID = "JSLintStatus",
+    var INDICATOR_ID = "jslint-status",
         defaultPrefs = {
             enabled: JSLintOptions.enabled_by_default
         };
