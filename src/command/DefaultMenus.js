@@ -205,7 +205,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-        editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
+        // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
