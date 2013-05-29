@@ -370,8 +370,7 @@ define(function (require, exports, module) {
      * Returns a list of availble font hints, if possible, for the current
      * editor context.
      *
-     * @return {Object<hints: Array.<jQuery.Object>, match: string,
-     *      selectInitial: boolean>}
+     * @return {{hints: Array.<jQuery.Object>, match: string, selectInitial: boolean}}
      *
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides:
