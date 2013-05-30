@@ -851,10 +851,30 @@ strong {
 /* Type */
 
 code {
-  color: @bc-black;
-  background-color: transparent;
+    color: @bc-black;
+    background-color: transparent;
 }
 
 label {
     font-size: @label-font-size;
+}
+
+/* Overriding Bootstrap's bold properties */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong,
+dt,
+.label {
+    font-weight: @font-weight-semibold;
+}
+
+.alert-message a,
+.form-stacked label {
+    font-weight: @font-weight-semibold;
 }
