@@ -355,12 +355,12 @@ define({
     "NO_EXTENSIONS"                        : "Žádný doplněk ještě nebyl nainstalován.<br />Klikněte na tlačítko Instalovat z URL pro zahájení instalace.",
   
     /**
-     * Unit names
+     * Jména jednotek
      */
 
     "UNIT_PIXELS"                          : "pixely",
       
-    // doplňky/výchozí/DebugCommands    
+    // extensions/default/DebugCommands    
     "DEBUG_MENU"                          : "Nástroje",
     "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
@@ -397,7 +397,7 @@ define({
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_ZH_CN"                              : "Čínsky",
 
-    // doplňky/výchozí/InlineColorEditor
+    // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa formát",
@@ -406,10 +406,10 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (použito {1} krát)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
     
-    // doplňky/výchozí/JavaScriptCodeHints
+    // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
 
-    // doplňky/výchozí/JSLint 
+    // extensions/default/JSLint 
     "CMD_JSLINT"                           : "Povolit JSLint",
     "CMD_JSLINT_FIRST_ERROR"               : "Přejít na první JSLint chybu",
     "JSLINT_ERRORS"                        : "JSLint chyby",
@@ -418,9 +418,9 @@ define({
     "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
     "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
                                   
-    // doplňky/výchozí/QuickView 
+    // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
     
-    // doplňky/výchozí/WebPlatformDocs
+    // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"
 });
