@@ -266,6 +266,16 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Updates an installed extension with the given package file.
+     * @param {string} path to the package file
+     * @return {$.Promise} A promise that's resolved when the extension is updated or
+     *     rejected with an error if there's a problem with the update.
+     */
+    function update(localPath) {
+        return Package.installUpdate(localPath);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -276,6 +286,7 @@ define(function (require, exports, module) {
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
     exports.remove = remove;
+    exports.update = update;
     exports.extensions = extensions;
     
     exports.ENABLED = ENABLED;

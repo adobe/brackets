@@ -46,13 +46,14 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
     disabledDirectory  = path.join(installParent, "disabled"),
     systemExtensionDirectory = path.join(installParent, "system");
 
-var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
-    missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    incompatibleVersion  = path.join(testFilesDirectory, "incompatible-version.zip"),
-    invalidZip           = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
+var basicValidExtension      = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    basicValidExtension2     = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    missingMain              = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown             = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    incompatibleVersion      = path.join(testFilesDirectory, "incompatible-version.zip"),
+    invalidZip               = path.join(testFilesDirectory, "invalid-zip-file.zip"),
+    missingPackageJSON       = path.join(testFilesDirectory, "missing-package-json.zip"),
+    missingPackageJSONUpdate = path.join(testFilesDirectory, "missing-package-json-update.zip");
 
 describe("Package Installation", function () {
     
@@ -98,6 +99,7 @@ describe("Package Installation", function () {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
+            expect(result.installationStatus).toEqual("FAILED");
             done();
         });
     });
@@ -112,6 +114,7 @@ describe("Package Installation", function () {
             expect(result.metadata.name).toEqual("basic-valid-extension");
             expect(result.name).toEqual("basic-valid-extension");
             expect(result.installedTo).toEqual(extensionDirectory);
+            expect(result.installationStatus).toEqual("INSTALLED");
             
             var pathsToCheck = [
                 path.join(extensionDirectory, "package.json"),
@@ -122,6 +125,51 @@ describe("Package Installation", function () {
         });
     });
     
+    it("should signal if an update installation is required", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
+            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
+            
+            expect(err).toBeNull();
+            expect(result.installedTo).toEqual(extensionDirectory);
+            expect(result.installationStatus).toEqual("INSTALLED");
+            ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                expect(result.installationStatus).toEqual("NEEDS_UPDATE");
+                done();
+            });
+        });
+    });
+    
+    it("should successfully update an extension", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
+            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
+            
+            expect(err).toBeNull();
+            ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                ExtensionsDomain._cmdUpdate(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
+                    expect(err).toBeNull();
+                    expect(result.installationStatus).toBe("INSTALLED");
+                    var packageInfo = fs.readJsonSync(path.join(result.installedTo, "package.json"));
+                    expect(packageInfo.version).toBe("2.0.0");
+                    done();
+                });
+            });
+        });
+    });
+    
+    it("should signal an update if a package.json appears", function (done) {
+        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.installationStatus).toEqual("INSTALLED");
+            ExtensionsDomain._cmdInstall(missingPackageJSONUpdate, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                expect(result.installationStatus).toEqual("NEEDS_UPDATE");
+                done();
+            });
+        });
+    });
+
     // This is mildly redundant. the validation check should catch this.
     // But, I wanted to be sure that the install function doesn't try to
     // do anything with the file before validation.
@@ -136,20 +184,13 @@ describe("Package Installation", function () {
             });
     });
     
-    it("should install to the disabled directory if it's already installed", function (done) {
+    it("should not install by default if it's already installed", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
-            expect(result.disabledReason).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
-                expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
-                var extensionDirectory = path.join(disabledDirectory, "basic-valid-extension");
-                var pathsToCheck = [
-                    path.join(extensionDirectory, "package.json"),
-                    path.join(extensionDirectory, "main.js")
-                ];
-                
-                checkPaths(pathsToCheck, done);
+                expect(result.installationStatus).toEqual("ALREADY_INSTALLED");
+                done();
             });
         });
     });
@@ -165,27 +206,6 @@ describe("Package Installation", function () {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { disabledDirectory: disabledDirectory }, function (err, result) {
             expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
             done();
-        });
-    });
-    
-    it("should overwrite the disabled directory copy if there's already one", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-            expect(err).toBeNull();
-            expect(result.disabledReason).toBeNull();
-            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-                expect(err).toBeNull();
-                expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
-                ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
-                    expect(err).toBeNull();
-                    expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
-                    var extensionDirectory = path.join(disabledDirectory, "basic-valid-extension");
-                    fs.readJson(path.join(extensionDirectory, "package.json"), function (err, packageObj) {
-                        expect(err).toBeNull();
-                        expect(packageObj.version).toEqual("2.0.0");
-                        done();
-                    });
-                });
-            });
         });
     });
     

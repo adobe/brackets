@@ -44,6 +44,14 @@ define(function (require, exports, module) {
         UNSUPPORTED_PROTOCOL: "UNSUPPORTED_PROTOCOL"
     };
     
+    var InstallationStatuses = {
+        FAILED: "FAILED",
+        INSTALLED: "INSTALLED",
+        ALREADY_INSTALLED: "ALREADY_INSTALLED",
+        NEEDS_UPDATE: "NEEDS_UPDATE"
+    };
+
+    
     /**
      * @const
      * Amount of time to wait before automatically rejecting the connection
@@ -125,11 +133,12 @@ define(function (require, exports, module) {
      * @param {string} path Absolute path to the package zip file
      * @param {?string} nameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
+     * @param {?boolean} _doUpdate private argument used to signal an update
      * @return {$.Promise} A promise that is resolved with information about the package
      *          (which may include errors, in which case the extension was disabled), or
      *          rejected with an error object.
      */
-    function install(path, nameHint) {
+    function install(path, nameHint, _doUpdate) {
         var d = new $.Deferred();
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
@@ -138,7 +147,8 @@ define(function (require, exports, module) {
                         disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
                         systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
                     
-                    nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
+                    var operation = _doUpdate ? "update" : "install";
+                    nodeConnection.domains.extensionManager[operation](path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
                         systemExtensionDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
@@ -306,30 +316,38 @@ define(function (require, exports, module) {
                 
                 install(downloadResult.localPath, downloadResult.filenameHint)
                     .done(function (result) {
-                        if (result.errors && result.errors.length > 0) {
-                            // Validation errors - for now, only return the first one
-                            state = STATE_FAILED;
-                            d.reject(result.errors[0]);
-                        } else if (result.disabledReason) {
-                            // Extension valid but left disabled (wrong API version, extension name collision, etc.)
-                            state = STATE_FAILED;
-                            d.reject(result.disabledReason);
-                        } else {
-                            // Success! Extension is now running in Brackets
+                        if (result.installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
+                                result.installationStatus === InstallationStatuses.NEEDS_UPDATE) {
+                            // We don't delete the file in this case, because 
                             state = STATE_SUCCEEDED;
-                            d.resolve(result.metadata);
+                            result.localPath = downloadResult.localPath;
+                            d.resolve(result);
+                        } else {
+                            brackets.fs.unlink(downloadResult.localPath, function (err) {
+                                // ignore errors
+                            });
+                            if (result.errors && result.errors.length > 0) {
+                                // Validation errors - for now, only return the first one
+                                state = STATE_FAILED;
+                                d.reject(result.errors[0]);
+                            } else if (result.disabledReason) {
+                                // Extension valid but left disabled (wrong API version, extension name collision, etc.)
+                                state = STATE_FAILED;
+                                d.reject(result.disabledReason);
+                            } else {
+                                // Success! Extension is now running in Brackets
+                                state = STATE_SUCCEEDED;
+                                d.resolve(result);
+                            }
                         }
                     })
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        d.reject(err);  // TODO: needs to be err.message ?
-                    })
-                    .always(function () {
-                        // Whether success or failure, we can delete the original downloaded ZIP file now
                         brackets.fs.unlink(downloadResult.localPath, function (err) {
                             // ignore errors
                         });
+                        d.reject(err);  // TODO: needs to be err.message ?
                     });
             })
             .fail(function (err) {
@@ -376,7 +394,6 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved when the extension is removed, or
      *     rejected if there was an error.
      */
-    
     function remove(path) {
         var d = new $.Deferred();
         _nodeConnectionDeferred
@@ -390,6 +407,24 @@ define(function (require, exports, module) {
                 d.reject(err);
             });
         return d.promise();
+    }
+    
+    /**
+     * Install an extension update located at path.
+     * This assumes that the installation was previously attempted
+     * and an installationStatus of "ALREADY_INSTALLED" or "NEEDS_UPDATE"
+     * was the result.
+     *
+     * This workflow ensures that there should not generally be validation errors
+     * because the first pass at installation the extension looked at the metadata
+     * and installed packages.
+     *
+     * @param {string} path to package file
+     * @return {$.Promise} A promise that is resolved when the extension is successfully
+     *      installed or rejected if there is a problem.
+     */
+    function installUpdate(path) {
+        return install(path, null, true);
     }
         
     /**
@@ -442,5 +477,7 @@ define(function (require, exports, module) {
     exports.validate = validate;
     exports.install = install;
     exports.remove = remove;
+    exports.installUpdate = installUpdate;
     exports.formatError = formatError;
+    exports.InstallationStatuses = InstallationStatuses;
 });
