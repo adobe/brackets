@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");
     
     // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.css");
+    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
     
     
     /**

@@ -87,7 +87,8 @@ define(function (require, exports, module) {
             
             options = {
                 filename: file,
-                paths:    [dir]
+                paths:    [dir],
+                rootpath: dir
             };
         }
         

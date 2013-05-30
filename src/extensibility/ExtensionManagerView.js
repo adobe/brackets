@@ -74,7 +74,7 @@ define(function (require, exports, module) {
             self._setupEventHandlers();
             self._render();
         }).fail(function () {
-            $("<div class='alert-message error load-error'/>")
+            $("<div class='alert error load-error'/>")
                 .text(Strings.EXTENSION_MANAGER_ERROR_LOAD)
                 .appendTo(self.$el);
         }).always(function () {

@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")
                 .css("display", "inline-block")
-                .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }

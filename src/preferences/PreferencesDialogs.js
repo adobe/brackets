@@ -122,7 +122,7 @@ define(function (require, exports, module) {
 
         // Error message
         if (errorMessage) {
-            $dlg.find(".field-container").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
+            $dlg.find(".field-container").append("<div class='alert' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
         // Give focus to first control
