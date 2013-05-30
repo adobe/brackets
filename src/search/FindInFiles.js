@@ -245,7 +245,7 @@ define(function (require, exports, module) {
         
     function _showSearchResults(searchResults, query, scope) {
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped row-highlight condensed-table' />")
+            var $resultTable = $("<table class='table table-striped table-condensed row-highlight' />")
                                 .append("<tbody>");
             
             // Count the total number of matches

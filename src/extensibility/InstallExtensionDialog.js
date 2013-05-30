@@ -292,7 +292,7 @@ define(function (require, exports, module) {
         this.$dlg          = $(".install-extension-dialog.instance");
         this.$url          = this.$dlg.find(".url").focus();
         this.$okButton     = this.$dlg.find(".dialog-button[data-button-id='ok']");
-        this.$cancelButton = this.$dlg.find(".dialog-button[data-button-id='cancel']");
+        this.$cancelButton = this.$dlg.find(".dialog-button[data-dismiss='modal']");
         this.$inputArea    = this.$dlg.find(".input-field");
         this.$msgArea      = this.$dlg.find(".message-field");
         this.$msg          = this.$msgArea.find(".message");

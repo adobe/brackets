@@ -771,7 +771,7 @@ define(function (require, exports, module) {
      * Closes all menus that are open
      */
     function closeAll() {
-        $(".dropdown").removeClass("open");
+        $(".dropdown").removeClass("open").dropdown("toggle");
     }
     
     /**
@@ -873,7 +873,7 @@ define(function (require, exports, module) {
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
-            $toggle = $("<a href='#' class='dropdown-toggle'></a>").hide();
+            $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>").hide();
 
         // assemble the menu fragments
         $newMenu.append($toggle).append($popUp);
@@ -941,6 +941,7 @@ define(function (require, exports, module) {
         }
 
         // open the context menu at final location
+        $menuWindow.dropdown("toggle");
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});
     };
@@ -949,7 +950,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
+        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open").dropdown("toggle");
     };
 
     /**
