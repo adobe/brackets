@@ -80,7 +80,7 @@ define(function (require, exports, module) {
             deferred.resolve(nfs.root);
         }
         
-        resolveNativeFileSystemPath("/").pipe(deferred.resolve, deferred.reject);
+        resolveNativeFileSystemPath("/").then(deferred.resolve, deferred.reject);
         
         return deferred.promise();
     }
@@ -655,7 +655,7 @@ define(function (require, exports, module) {
                     true
                 );
                 
-                copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
+                copyChildrenPromise.then(deferred.resolve, deferred.reject);
             });
         });
 
@@ -702,7 +702,7 @@ define(function (require, exports, module) {
                 promise = copyFileEntry(entry, destination, options);
             }
             
-            promise.pipe(deferred.resolve, deferred.reject);
+            promise.then(deferred.resolve, deferred.reject);
         }).fail(function () {
             deferred.reject();
         });

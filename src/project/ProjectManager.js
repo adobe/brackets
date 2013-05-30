@@ -906,7 +906,7 @@ define(function (require, exports, module) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                            $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
                             result.resolve();
                         }
@@ -1070,7 +1070,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path, false).pipe(result.resolve, result.reject);
+                    _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
@@ -1078,7 +1078,7 @@ define(function (require, exports, module) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
-                                _loadProject(files[0]).pipe(result.resolve, result.reject);
+                                _loadProject(files[0]).then(result.resolve, result.reject);
                             } else {
                                 result.reject();
                             }
