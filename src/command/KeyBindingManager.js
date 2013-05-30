@@ -597,17 +597,16 @@ define(function (require, exports, module) {
 
     AppInit.htmlReady(function () {
         // Install keydown event listener.
-        window.document.body.addEventListener(
+        $(window.document.body).on(
             "keydown",
             function (event) {
                 if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
                     event.preventDefault();
                 }
-            },
-            true
+            }
         );
-        
+    
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
             (brackets.platform !== "win");
     });
@@ -625,7 +624,7 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
-    
+     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
      * Core Brackets modules that use key bindings should always define at

@@ -346,6 +346,8 @@ define(function (require, exports, module) {
                 return;
             }
             
+            // We handle it. So prevent others from handling these keys.
+            event.stopImmediatePropagation();
             event.preventDefault();
         }
     };
