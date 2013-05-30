@@ -597,14 +597,15 @@ define(function (require, exports, module) {
 
     AppInit.htmlReady(function () {
         // Install keydown event listener.
-        $(window.document.body).on(
+        window.document.body.addEventListener(
             "keydown",
             function (event) {
                 if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
                     event.preventDefault();
                 }
-            }
+            },
+            false
         );
     
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
