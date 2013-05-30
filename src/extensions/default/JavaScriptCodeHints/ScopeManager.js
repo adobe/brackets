@@ -1083,8 +1083,6 @@ define(function (require, exports, module) {
      */
     function handleEditorChange(session, document, previousDocument, shouldPrimePump) {
 
-//        pendingTernRequests = {};
-
         if (!currentWorker) {
             currentWorker = new TernWorker();
         }
