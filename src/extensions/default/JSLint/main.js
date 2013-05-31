@@ -172,6 +172,9 @@ define(function (require, exports, module) {
                     }
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors",
                         StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
+                    $("#jslint-results .close").one("click", function () {
+                        Resizer.hide($lintResults);
+                    });
                 }
                 setGotoEnabled(true);
             
