@@ -172,9 +172,6 @@ define(function (require, exports, module) {
                     }
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors",
                         StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
-                    $("#jslint-results .close").one("click", function () {
-                        Resizer.hide($lintResults);
-                    });
                 }
                 setGotoEnabled(true);
             
@@ -271,8 +268,16 @@ define(function (require, exports, module) {
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
-        
+        $("#jslint-results .close").click(function () {
+            Resizer.hide($lintResults);
+        });
+                
+        $("#jslint-status").click(function () {
+            Resizer.show($lintResults);
+        });
+                
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
+        
     });
 });
