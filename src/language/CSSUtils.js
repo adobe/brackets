@@ -938,7 +938,7 @@ define(function (require, exports, module) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
                 return _loadFileAndScan(fileInfo.fullPath, selector);
             })
-                .pipe(result.resolve, result.reject);
+                .then(result.resolve, result.reject);
         });
         
         return result.promise();
