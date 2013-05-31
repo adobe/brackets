@@ -216,6 +216,9 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
+    ],
     "navigate.nextDoc":  [
         {
             "key": "Ctrl-Tab"
