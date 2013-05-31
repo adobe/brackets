@@ -100,7 +100,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"FILE_DELETED_TITLE": "!能=[6971318] File Deleted_=!",
+	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
@@ -158,8 +158,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
     /**
      * Command Name Constants
