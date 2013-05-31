@@ -101,6 +101,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";

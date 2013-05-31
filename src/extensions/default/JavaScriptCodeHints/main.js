@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
@@ -44,10 +45,6 @@ define(function (require, exports, module) {
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
         Acorn           = require("thirdparty/acorn/acorn");
-
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
-    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
@@ -573,8 +570,18 @@ define(function (require, exports, module) {
          * Handle JumptoDefiniton menu/keyboard command.
          */
         function handleJumpToDefinition() {
-            var offset     = session.getCursor(),
-                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+            var offset,
+                response;
+
+            // Only provide jump-to-definition results when cursor is in JavaScript content
+            if (session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            offset = session.getOffset();
+            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
@@ -591,12 +598,17 @@ define(function (require, exports, module) {
                         } else {
                             session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
+                        result.resolve(true);
+                    } else {
+                        result.reject();
                     }
 
                 }).fail(function () {
-                    response.reject();
+                    result.reject();
                 });
             }
+
+            return result.promise();
         }
 
         /*
@@ -609,18 +621,9 @@ define(function (require, exports, module) {
             return response;
         }
 
-        // Register command handler
-        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
-        
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
   
-        // Add the menu item
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        if (menu) {
-            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
-        }
-        
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -634,6 +637,9 @@ define(function (require, exports, module) {
         
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
+
+        // init
+        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
