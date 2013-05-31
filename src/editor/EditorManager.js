@@ -743,9 +743,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
         return _toggleInlineWidget(_inlineDocsProviders);
     });
-    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, function () {
-        return _doJumpToDef();
-    });
+    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
     
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
