@@ -123,7 +123,6 @@ define(function (require, exports, module) {
             $indicator.hide();
         }
         
-        $indicators.prepend($indicator);
     }
     
     /**

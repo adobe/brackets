@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Dialogs                   = require("widgets/Dialogs"),
+        DefaultDialogs            = require("widgets/DefaultDialogs"),
         StringUtils               = require("utils/StringUtils"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
@@ -299,8 +300,23 @@ define(function (require, exports, module) {
         
         // If an extension was removed, prompt the user to quit Brackets.
         if (!_skipRemoval && this.model.hasExtensionsToRemove()) {
-            Dialogs.showModalDialog("remove-marked-extensions", Strings.REMOVE_AND_QUIT_TITLE,
-                                    Strings.REMOVE_AND_QUIT_MESSAGE)
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_REMOVE_EXTENSIONS,
+                Strings.REMOVE_AND_QUIT_TITLE,
+                Strings.REMOVE_AND_QUIT_MESSAGE,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.REMOVE_AND_QUIT
+                    }
+                ]
+            )
                 .done(function (buttonId) {
                     if (buttonId === "ok") {
                         self.model.removeMarkedExtensions()
@@ -315,12 +331,14 @@ define(function (require, exports, module) {
                                 errorArray.forEach(function (errorObj) {
                                     ids.push(errorObj.item);
                                 });
-                                Dialogs.showModalDialog("error-dialog", Strings.EXTENSION_MANAGER_REMOVE,
-                                                        StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", ")))
-                                    .done(function () {
-                                        // We still have to quit even if some of the removals failed.
-                                        CommandManager.execute(Commands.FILE_QUIT);
-                                    });
+                                Dialogs.showModalDialog(
+                                    DefaultDialogs.DIALOG_ID_ERROR,
+                                    Strings.EXTENSION_MANAGER_REMOVE,
+                                    StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                                ).done(function () {
+                                    // We still have to quit even if some of the removals failed.
+                                    CommandManager.execute(Commands.FILE_QUIT);
+                                });
                             });
                     } else {
                         self.model.dispose();

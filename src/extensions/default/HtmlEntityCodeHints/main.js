@@ -39,10 +39,10 @@ define(function (require, exports, module) {
     /**
      * Encodes the special Char value given. 
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to encode
      *
-     * @return {String} 
+     * @return {string}
      * The encoded string
      */
     function _encodeValue(value) {
@@ -52,10 +52,10 @@ define(function (require, exports, module) {
     /**
      * Decodes the special Char value given. 
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to decode
      *
-     * @return {String} 
+     * @return {string}
      * The decoded string
      */
     function _decodeValue(value) {
@@ -77,12 +77,12 @@ define(function (require, exports, module) {
      * @param {Editor} editor 
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean} 
+     * @return {boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
@@ -97,12 +97,12 @@ define(function (require, exports, module) {
      * Returns a list of avaliable HtmlSpecialChar hints if possible for the current
      * editor context. 
      * 
-     * @param {String} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, selectInitial: Boolean>}
+     * @return {{hints: Array.<(string|jQuery.Obj)>, match: string, selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
      * of strings; 2. a string match that is used by the manager to emphasize
@@ -140,10 +140,10 @@ define(function (require, exports, module) {
     /**
      * Sort function used internally when sorting the Hints
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to decode
      *
-     * @return {String} 
+     * @return {string}
      * The decoded string
      */
     SpecialCharHints.prototype._internalSort = function (a, b) {
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
     /**
      * Returns a query for the Hints
      * 
-     * @return {String} 
+     * @return {string}
      * The Query for which to search
      */
     SpecialCharHints.prototype._getQuery = function () {
@@ -201,10 +201,10 @@ define(function (require, exports, module) {
     /**
      * Inserts a given HtmlSpecialChar hint into the current editor context. 
      * 
-     * @param {String} completition 
+     * @param {string} completition
      * The hint to be inserted into the editor context.
      * 
-     * @return {Boolean} 
+     * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */

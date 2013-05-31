@@ -287,12 +287,7 @@ define(function (require, exports, module) {
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
         // lifecycle of the dialog ourselves.
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(InstallDialogTemplate, Strings),
-            null,
-            null,
-            false
-        );
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, Strings), false);
         
         this.$dlg          = $(".install-extension-dialog.instance");
         this.$url          = this.$dlg.find(".url").focus();

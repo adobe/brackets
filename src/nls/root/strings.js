@@ -100,6 +100,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
+    "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
@@ -157,8 +158,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
     /**
      * Command Name Constants

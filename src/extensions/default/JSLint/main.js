@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
         JSLintOptions = JSON.parse(require("text!config.json"));
     
-    var INDICATOR_ID = "JSLintStatus",
+    var INDICATOR_ID = "jslint-status",
         defaultPrefs = {
             enabled: JSLintOptions.enabled_by_default
         };
@@ -265,10 +265,9 @@ define(function (require, exports, module) {
         var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
-        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#9733;</div>", Strings);
-        $(goldStarHtml).insertBefore("#status-file");
-        
-        StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
+        var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
+        $(lintStatusHtml).insertBefore("#status-language");
+        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
         
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));

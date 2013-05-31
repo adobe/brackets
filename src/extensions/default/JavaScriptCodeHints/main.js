@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         cachedHints  = null,  // sorted hints for the current hinting session
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null;  // string matcher for hints
+        matcher      = null,  // string matcher for hints
+        ignoreChange;         // can ignore next "change" event if true;
 
     /**
      *  Get the value of current session.
@@ -374,6 +375,8 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
+                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                ignoreChange = true;
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
@@ -527,8 +530,11 @@ define(function (require, exports, module) {
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor, true);
                 $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
+                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                        if (!ignoreChange) {
+                            ScopeManager.handleFileChange(changeList);
+                        }
+                        ignoreChange = false;
                     });
             } else {
                 session = null;
@@ -609,7 +615,7 @@ define(function (require, exports, module) {
          * Helper for QuickEdit jump-to-definition request.
          */
         function quickEditHelper() {
-            var offset     = session.getOffset(),
+            var offset     = session.getCursor(),
                 response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             return response;

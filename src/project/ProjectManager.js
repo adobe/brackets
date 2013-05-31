@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
@@ -763,7 +764,7 @@ define(function (require, exports, module) {
                     processEntries(entries);
                 } else {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.READ_DIRECTORY_ENTRIES_ERROR,
@@ -905,7 +906,7 @@ define(function (require, exports, module) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                            $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
                             result.resolve();
                         }
@@ -920,7 +921,7 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
@@ -1069,7 +1070,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path, false).pipe(result.resolve, result.reject);
+                    _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
@@ -1077,14 +1078,14 @@ define(function (require, exports, module) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
-                                _loadProject(files[0]).pipe(result.resolve, result.reject);
+                                _loadProject(files[0]).then(result.resolve, result.reject);
                             } else {
                                 result.reject();
                             }
                         },
                         function (error) {
                             Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
+                                DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
                                 StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
@@ -1103,6 +1104,7 @@ define(function (require, exports, module) {
 
     /**
      * Invoke project settings dialog.
+     * @return {Dialog}
      */
     function _projectSettings() {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
@@ -1121,7 +1123,7 @@ define(function (require, exports, module) {
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
                 Strings.INVALID_FILENAME_MESSAGE
             );
@@ -1245,7 +1247,7 @@ define(function (require, exports, module) {
                     if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
                             (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
-                            Dialogs.DIALOG_ID_ERROR,
+                            DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
                             StringUtils.format(
                                 Strings.FILE_ALREADY_EXISTS,
@@ -1258,7 +1260,7 @@ define(function (require, exports, module) {
                                          StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
                         Dialogs.showModalDialog(
-                            Dialogs.DIALOG_ID_ERROR,
+                            DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_CREATING_FILE_TITLE,
                             StringUtils.format(
                                 Strings.ERROR_CREATING_FILE,
@@ -1385,7 +1387,7 @@ define(function (require, exports, module) {
             } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
+                    DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_RENAMING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
