@@ -46,8 +46,6 @@ define(function (require, exports, module) {
         Session         = require("Session"),
         Acorn           = require("thirdparty/acorn/acorn");
 
-    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
-
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
         cachedHints  = null,  // sorted hints for the current hinting session
@@ -574,6 +572,8 @@ define(function (require, exports, module) {
                 return null;
             }
 
+            var result = new $.Deferred();
+
             offset = session.getOffset();
             response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
@@ -592,15 +592,17 @@ define(function (require, exports, module) {
                         } else {
                             session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
-                        response.resolve(true);
+                        result.resolve(true);
                     } else {
-                        response.reject();
+                        result.reject();
                     }
 
                 }).fail(function () {
-                    response.reject();
+                    result.reject();
                 });
             }
+
+            return result.promise();
         }
 
         /*
@@ -632,7 +634,6 @@ define(function (require, exports, module) {
 
         // init
         EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
-        PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);

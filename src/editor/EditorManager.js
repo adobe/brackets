@@ -744,9 +744,12 @@ define(function (require, exports, module) {
         return _toggleInlineWidget(_inlineDocsProviders);
     });
     CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, function () {
-        return _doJumpToDef(_jumpToDefProviders);
+        return _doJumpToDef();
     });
     
+    // Create PerfUtils measurement
+    PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
+
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
