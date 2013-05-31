@@ -597,7 +597,7 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_LEFT:
         case KeyEvent.DOM_VK_RIGHT:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            xOffset = Number($.trim(this.$selectionBase.css("left").replace("%", "")));
+            xOffset = Number($.trim(this.$selectionBase[0].style.left.replace("%", "")));
             adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
             xOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.s = xOffset / 100;
@@ -606,7 +606,7 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_DOWN:
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            yOffset = Number($.trim(this.$selectionBase.css("bottom").replace("%", "")));
+            yOffset = Number($.trim(this.$selectionBase[0].style.bottom.replace("%", "")));
             adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_DOWN) ? (yOffset - step) : (yOffset + step);
             yOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.v = yOffset / 100;
