@@ -226,7 +226,7 @@ define(function (require, exports, module) {
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
                             // Send the resulting document that was opened
-                            .pipe(result.resolve, result.reject);
+                            .then(result.resolve, result.reject);
                     } else {
                         // Reject if the user canceled the dialog
                         result.reject();
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
         var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
-                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .then(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; });
         };
 
@@ -627,7 +627,7 @@ define(function (require, exports, module) {
                         // *and* if at least one other view still exists
                         if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
                             doRevert(doc)
-                                .pipe(result.resolve, result.reject);
+                                .then(result.resolve, result.reject);
                         } else {
                             result.resolve();
                         }

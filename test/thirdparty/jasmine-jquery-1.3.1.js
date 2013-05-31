@@ -175,7 +175,7 @@ jasmine.JQuery.matchersClass = {};
     },
 
     toExist: function() {
-      return this.actual.size() > 0;
+      return this.actual.length > 0;
     },
 
     toHaveAttr: function(attributeName, expectedAttributeValue) {
@@ -211,7 +211,7 @@ jasmine.JQuery.matchersClass = {};
     },
 
     toContain: function(selector) {
-      return this.actual.find(selector).size() > 0;
+      return this.actual.find(selector).length > 0;
     },
 
     toBeDisabled: function(selector){
