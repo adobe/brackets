@@ -375,10 +375,9 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                if (key) {
-                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
-                    ignoreChange = true;
-                }
+                // FIXME: passing null keys until can investigate a fix for "empty" updates
+                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                ignoreChange = true;
 
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
