@@ -399,7 +399,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         makeUI(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
     
                         // Not sure why the tolerances need to be larger for these.
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
