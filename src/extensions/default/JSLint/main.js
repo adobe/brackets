@@ -271,13 +271,14 @@ define(function (require, exports, module) {
         $("#jslint-results .close").click(function () {
             Resizer.hide($lintResults);
         });
-                
+
         $("#jslint-status").click(function () {
-            Resizer.show($lintResults);
+            Resizer.toggle($lintResults);
         });
-                
+                                                                
+                                
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
-        
+                
     });
 });
