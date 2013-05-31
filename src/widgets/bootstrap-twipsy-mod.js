@@ -53,14 +53,7 @@
 
     // set CSS transition event type
     if ( $.support.transition ) {
-      transitionEnd = "TransitionEnd"
-      if ( $.browser.webkit ) {
-      	transitionEnd = "webkitTransitionEnd"
-      } else if ( $.browser.mozilla ) {
-      	transitionEnd = "transitionend"
-      } else if ( $.browser.opera ) {
-      	transitionEnd = "oTransitionEnd"
-      }
+      transitionEnd = $.support.transition.end;
     }
 
   })
@@ -188,7 +181,7 @@
       }
       
       if (surplusRight > 0) {
-        $arrow = $tip.find(".twipsy-arrow");
+        $arrow = $tip.find(".tooltip-arrow");
         if (! this.defaultMargin) {
           this.defaultMargin = parseInt($arrow.css("margin-left"), 10);
         }
@@ -201,8 +194,8 @@
 
   , setContent: function () {
       var $tip = this.tip()
-      $tip.find('.twipsy-inner')[this.options.html ? 'html' : 'text'](this.getTitle())
-      $tip[0].className = 'twipsy'
+      $tip.find('.tooltip-inner')[this.options.html ? 'html' : 'text'](this.getTitle())
+      $tip[0].className = 'tooltip'
     }
 
   , hide: function() {
@@ -255,7 +248,7 @@
     }
 
   , tip: function() {
-      return this.$tip = this.$tip || $('<div class="twipsy" />').html(this.options.template)
+      return this.$tip = this.$tip || $('<div class="tooltip" />').html(this.options.template)
     }
 
   , validate: function() {
@@ -388,7 +381,7 @@
   , offset: 0
   , title: 'title'
   , trigger: 'hover'
-  , template: '<div class="twipsy-arrow"></div><div class="twipsy-inner"></div>'
+  , template: '<div class="tooltip-arrow"></div><div class="tooltip-inner"></div>'
   }
 
   $.fn.twipsy.rejectAttrOptions = [ 'title' ]
