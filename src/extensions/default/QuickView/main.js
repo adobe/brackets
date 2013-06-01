@@ -311,7 +311,7 @@ define(function (require, exports, module) {
             var quotesRegEx = /(\'|\")?([^(\'|\")]*)(\'|\")?/;
             tokenString = tokenString.replace(quotesRegEx, "$2");
             
-            if (/(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
+            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
                 var docPath = editor.document.file.fullPath;
                 var imgPath;
