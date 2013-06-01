@@ -36,24 +36,23 @@ define(function (require, exports, module) {
         Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
         Acorn           = require("thirdparty/acorn/acorn");
-
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
-    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
         cachedHints  = null,  // sorted hints for the current hinting session
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null;  // string matcher for hints
+        matcher      = null,  // string matcher for hints
+        ignoreChange;         // can ignore next "change" event if true;
 
     /**
      *  Get the value of current session.
@@ -162,11 +161,12 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
         var cursor  = session.getCursor(),
             type    = session.getType();
 
-        return !cachedHints ||
+        return !cachedHints || !cachedCursor || !cachedType ||
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
@@ -249,6 +249,66 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Create a new StringMatcher instance, if needed.
+     *
+     * @returns {StringMatcher} - a StringMatcher instance.
+     */
+    function getStringMatcher() {
+        if (!matcher) {
+            matcher = new StringMatch.StringMatcher({
+                preferPrefixMatches: true
+            });
+        }
+
+        return matcher;
+    }
+
+    /**
+     *  Common code to get the session hints. Will get guesses if there were
+     *  no completions for the query.
+     *
+     * @param {string} query - user text to search hints with
+     * @param {Object} type - the type of query, property vs. identifier
+     * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
+     * resolve (optional). If not supplied a new Deferred will be created if
+     * needed.
+     * @return {Object + jQuery.Deferred} - hint response (immediate or
+     *     deferred) as defined by the CodeHintManager API
+     */
+    function getSessionHints(query, type, $deferredHints) {
+
+        var hintResults = session.getHints(query, getStringMatcher());
+        if (hintResults.needGuesses) {
+            var guessesResponse = ScopeManager.requestGuesses(session,
+                session.editor.document);
+
+            if (!$deferredHints) {
+                $deferredHints = $.Deferred();
+            }
+
+            guessesResponse.done(function () {
+                query = session.getQuery();
+                hintResults = session.getHints(query, getStringMatcher());
+                cachedHints = hintResults.hints;
+                var hintResponse = getHintResponse(cachedHints, query, type);
+
+                $deferredHints.resolveWith(null, [hintResponse]);
+            });
+
+            return $deferredHints;
+        } else if ($deferredHints && $deferredHints.state() === "pending") {
+            cachedHints = hintResults.hints;
+            var hintResponse    = getHintResponse(cachedHints, query, type);
+
+            $deferredHints.resolveWith(null, [hintResponse]);
+            return null;
+        } else {
+            cachedHints = hintResults.hints;
+            return getHintResponse(cachedHints, query, type);
+        }
+    }
+
+    /**
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
@@ -287,7 +347,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    /** 
+    /**
       * Return a list of hints, possibly deferred, for the current editor 
       * context
       * 
@@ -298,6 +358,7 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
+
         if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
             var type    = session.getType(),
                 query   = session.getQuery();
@@ -314,22 +375,17 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
+                // FIXME: passing null keys until can investigate a fix for "empty" updates
+                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                ignoreChange = true;
+
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
                         cachedType = session.getType();
-
-                        matcher = new StringMatch.StringMatcher();
-                        cachedHints = session.getHints(query, matcher);
-
-                        if ($deferredHints.state() === "pending") {
-                            query = session.getQuery();
-                            var hintResponse    = getHintResponse(cachedHints, query, type);
-
-                            $deferredHints.resolveWith(null, [hintResponse]);
-                        }
+                        getSessionHints(session.getQuery(), type, $deferredHints);
                     }).fail(function () {
                         if ($deferredHints.state() === "pending") {
                             $deferredHints.reject();
@@ -341,8 +397,7 @@ define(function (require, exports, module) {
             }
 
             if (cachedHints) {
-                cachedHints = session.getHints(session.getQuery(), matcher);
-                return getHintResponse(cachedHints, query, type);
+                return getSessionHints(query, type);
             }
         }
 
@@ -352,7 +407,7 @@ define(function (require, exports, module) {
     /**
      * Inserts the hint selected by the user into the current editor.
      * 
-     * @param {jQuery.Object} hint - hint object to insert into current editor
+     * @param {jQuery.Object} $hintObj - hint object to insert into current editor
      * @return {boolean} - should a new hinting session be requested 
      *      immediately after insertion?
      */
@@ -442,8 +497,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-
-    // load the extension
+     // load the extension
     AppInit.appReady(function () {
 
         /*
@@ -451,17 +505,15 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
+         * @param {Editor} previousEditor - the previous editor.
          * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, primePump) {
-            ScopeManager.handleEditorChange(editor.document);
+        function initializeSession(editor, previousEditor, primePump) {
             session = new Session(editor);
+            ScopeManager.handleEditorChange(session, editor.document,
+                previousEditor ? previousEditor.document : null,
+                primePump);
             cachedHints = null;
-
-            // prime pump for hints so the first user request is fast
-            if (primePump) {
-                ScopeManager.requestHints(session, session.editor.document, 0);
-            }
         }
 
         /*
@@ -469,18 +521,22 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context on which to listen for
          *      changes
+         * @param {Editor} previousEditor - the previous editor
          */
-        function installEditorListeners(editor) {
+        function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
             cachedCursor = null;
             cachedHints = null;
             cachedType = null;
 
-            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
-                initializeSession(editor, true);
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+                initializeSession(editor, previousEditor, true);
                 $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
+                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                        if (!ignoreChange) {
+                            ScopeManager.handleFileChange(changeList);
+                        }
+                        ignoreChange = false;
                     });
             } else {
                 session = null;
@@ -509,15 +565,25 @@ define(function (require, exports, module) {
          */
         function handleActiveEditorChange(event, current, previous) {
             uninstallEditorListeners(previous);
-            installEditorListeners(current);
+            installEditorListeners(current, previous);
         }
         
         /*
          * Handle JumptoDefiniton menu/keyboard command.
          */
         function handleJumpToDefinition() {
-            var offset     = session.getOffset(),
-                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+            var offset,
+                response;
+
+            // Only provide jump-to-definition results when cursor is in JavaScript content
+            if (session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            offset = session.getOffset();
+            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
@@ -534,23 +600,32 @@ define(function (require, exports, module) {
                         } else {
                             session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
+                        result.resolve(true);
+                    } else {
+                        result.reject();
                     }
 
                 }).fail(function () {
-                    response.reject();
+                    result.reject();
                 });
             }
+
+            return result.promise();
         }
 
-        // Register command handler
-        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
-        
-        // Add the menu item
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        if (menu) {
-            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getCursor(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
         }
-        
+
+        // Register quickEditHelper.
+        brackets._jsCodeHintsHelper = quickEditHelper;
+  
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -558,11 +633,18 @@ define(function (require, exports, module) {
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
         
+        $(ProjectManager).on("beforeProjectClose", function () {
+            ScopeManager.handleProjectClose();
+        });
+        
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 
+        // init
+        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
+
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID, "html"], 0);
+        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         // for unit testing
         exports.getSession = getSession;

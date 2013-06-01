@@ -177,6 +177,211 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("deleteItem", function () {
+            it("should delete the selected file in the project tree", function () {
+                var didCreate   = false,
+                    gotError    = false,
+                    complete    = false,
+                    newFileName = testPath + "/delete_me.js",
+                    selectedFile,
+                    error,
+                    stat;
+
+                // Make sure we don't have any test file left from previous failure 
+                // by explicitly deleting the test file if it exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.unlink(newFileName, function (err) {
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+                // Create a file and select it in the project tree.
+                runs(function () {
+                    ProjectManager.createNewItem(testPath, "delete_me.js", true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                });
+                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFileName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                // Verify the existence of the new file and select it in the project tree.
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isFile()).toBe(true);
+                    selectedFile = ProjectManager.getSelectedItem();
+                });
+
+                // Delete the selected file.
+                runs(function () {
+                    gotError = false;
+                    // delete the new file
+                    ProjectManager.deleteItem(selectedFile)
+                        .fail(function () { gotError = true; });
+                });
+
+                waitsFor(function () { return !gotError; }, "ProjectManager.deleteItem() timeout", 1000);
+
+                // Verify that file no longer exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFileName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+
+                    // Verify that some other file is selected in the project tree.
+                    var curSelectedFile = ProjectManager.getSelectedItem();
+                    expect(curSelectedFile).not.toBe(selectedFile);
+                });
+            });
+
+            it("should delete the selected folder and all items in it.", function () {
+                var didCreate      = false,
+                    gotError       = false,
+                    complete       = false,
+                    newFolderName  = testPath + "/toDelete/",
+                    rootFolderName = newFolderName,
+                    rootFolderEntry,
+                    error,
+                    stat;
+
+                // Make sure we don't have any test files/folders left from previous failure 
+                // by explicitly deleting the root test folder if it exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(rootFolderName, function (err) {
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+                // Create a folder
+                runs(function () {
+                    ProjectManager.createNewItem(testPath, "toDelete", true, true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                });
+                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isDirectory()).toBe(true);
+
+                    rootFolderEntry = ProjectManager.getSelectedItem();
+                });
+
+                // Create a sub folder
+                runs(function () {
+                    didCreate = false;
+                    gotError  = false;
+                    ProjectManager.createNewItem(newFolderName, "toDelete1", true, true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                });
+                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    newFolderName += "toDelete1/";
+                    complete = false;
+                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isDirectory()).toBe(true);
+                });
+
+                // Create a file in the sub folder just created.
+                runs(function () {
+                    didCreate = false;
+                    gotError  = false;
+                    ProjectManager.createNewItem(newFolderName, "toDelete2.txt", true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                });
+                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFolderName + "toDelete2.txt", function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isFile()).toBe(true);
+                });
+                
+                // Delete the root folder and all files/folders in it.
+                runs(function () {
+                    gotError = false;
+
+                    ProjectManager.deleteItem(rootFolderEntry)
+                        .fail(function () { gotError = true; });
+                });
+                waitsFor(function () { return !gotError; }, "ProjectManager.deleteItem() timeout", 1000);
+
+                // Verify that the root folder no longer exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(rootFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+
+                    // Verify that some other file is selected in the project tree.
+                    var curSelectedFile = ProjectManager.getSelectedItem();
+                    expect(curSelectedFile).not.toBe(rootFolderEntry);
+                });
+            });
+        });
+        
         describe("Selection indicator", function () {
             
             function expectSelected(fullPath) {
@@ -210,7 +415,6 @@ define(function (require, exports, module) {
                     expectSelected(null);
                 });
             });
-            
             
             function findExtantNode(fullPath) {
                 var $treeItems = testWindow.$("#project-files-container li"),

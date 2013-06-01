@@ -106,12 +106,7 @@
     
     .CodeMirror-gutters {
         background-color: @background-color-3;
-        
-        /*
-        Maintain line gutter border-right to avoid repaint performance issues
-        See https://github.com/marijnh/CodeMirror/issues/1514
-        */
-        border-color: @background-color-3;
+        border-right: none;
     }
     .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
         background-color: @background-color-3;

@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
         NativeApp              = require("utils/NativeApp"),
-        AppInit                = require("utils/AppInit"),
         InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
@@ -133,6 +132,7 @@ define(function (require, exports, module) {
         case STATE_INSTALLING:
             url = this.$url.val();
             this.$inputArea.hide();
+            this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
                 .append("<span class='spinner spin'/>");
             this.$msgArea.show();
@@ -287,12 +287,7 @@ define(function (require, exports, module) {
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
         // lifecycle of the dialog ourselves.
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(InstallDialogTemplate, Strings),
-            null,
-            null,
-            false
-        );
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, Strings), false);
         
         this.$dlg          = $(".install-extension-dialog.instance");
         this.$url          = this.$dlg.find(".url").focus();
@@ -372,10 +367,6 @@ define(function (require, exports, module) {
     }
     
     CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, showDialog);
-    
-    AppInit.appReady(function () {
-        $("#toolbar-add-extension").click(showDialog);
-    });
     
     exports.showDialog = showDialog;
     exports.installUsingDialog = installUsingDialog;

@@ -45,11 +45,25 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
-        this.ternProperties = [];
+        this.ternGuesses = null;
         this.fnType = null;
-        this.builtins = ScopeManager.getBuiltins();
-        this.builtins.push("requirejs.js");     // consider these globals as well.
+        this.builtins = null;
     }
+
+    /**
+     *  Get the builtin libraries tern is using.
+     *
+     * @returns {Array.<string>} - array of library names.
+     * @private
+     */
+    Session.prototype._getBuiltins = function () {
+        if (!this.builtins) {
+            this.builtins = ScopeManager.getBuiltins();
+            this.builtins.push("requirejs.js");     // consider these globals as well.
+        }
+
+        return this.builtins;
+    };
 
     /**
      * Get the name of the file associated with the current session
@@ -189,16 +203,23 @@ define(function (require, exports, module) {
     Session.prototype.getQuery = function () {
         var cursor  = this.getCursor(),
             token   = this.getToken(cursor),
-            query   = "";
-        
+            query   = "",
+            start   = cursor.ch,
+            end     = start;
+
         if (token) {
-            // If the token string is not an identifier, then the query string
-            // is empty.
-            if (HintUtils.maybeIdentifier(token.string)) {
-                query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
-                query = query.trim();
+            var line = this.getLine(cursor.line);
+            while (start > 0) {
+                if (HintUtils.maybeIdentifier(line[start - 1])) {
+                    start--;
+                } else {
+                    break;
+                }
             }
+
+            query = line.substring(start, end);
         }
+
         return query;
     };
 
@@ -334,7 +355,9 @@ define(function (require, exports, module) {
             if (token.type === "property") {
                 propertyLookup = true;
             }
-            if (this.findPreviousDot()) {
+
+            cursor = this.findPreviousDot();
+            if (cursor) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
             }
@@ -349,15 +372,37 @@ define(function (require, exports, module) {
             context: context
         };
     };
-
+    
+    // Comparison function used for sorting that does a case-insensitive string
+    // comparison on the "value" field of both objects. Unlike a normal string
+    // comparison, however, this sorts leading "_" to the bottom, given that a
+    // leading "_" usually denotes a private value.
+    function penalizeUnderscoreValueCompare(a, b) {
+        var aName = a.value.toLowerCase(), bName = b.value.toLowerCase();
+        // this sort function will cause _ to sort lower than lower case
+        // alphabetical letters
+        if (aName[0] === "_" && bName[0] !== "_") {
+            return 1;
+        } else if (bName[0] === "_" && aName[0] !== "_") {
+            return -1;
+        }
+        if (aName < bName) {
+            return -1;
+        } else if (aName > bName) {
+            return 1;
+        }
+        return 0;
+    }
+    
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
-     * @return {Array.<Object>} - the sorted list of hints for the current 
-     *      session.
+     * @returns {hints: Array.<string>, needGuesses: boolean} - array of
+     * matching hints. If needGuesses is true, then the caller needs to
+     * request guesses and call getHints again.
      */
     Session.prototype.getHints = function (query, matcher) {
 
@@ -366,8 +411,9 @@ define(function (require, exports, module) {
         }
 
         var MAX_DISPLAYED_HINTS = 500,
-            type = this.getType(),
-            builtins = this.builtins,
+            type                = this.getType(),
+            builtins            = this._getBuiltins(),
+            needGuesses         = false,
             hints;
 
         /**
@@ -428,10 +474,14 @@ define(function (require, exports, module) {
 
             // If there are no hints then switch over to guesses.
             if (hints.length === 0) {
-                hints = filterWithQueryAndMatcher(this.ternProperties, matcher);
+                if (this.ternGuesses) {
+                    hints = filterWithQueryAndMatcher(this.ternGuesses, matcher);
+                } else {
+                    needGuesses = true;
+                }
             }
 
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
         } else if (type.showFunctionType) {
             hints = this.getFunctionTypeHint();
         } else {     // identifiers, literals, and keywords
@@ -439,21 +489,24 @@ define(function (require, exports, module) {
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, value: 3 });
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", "depth", "builtin", penalizeUnderscoreValueCompare ]);
         }
 
         if (hints.length > MAX_DISPLAYED_HINTS) {
             hints = hints.slice(0, MAX_DISPLAYED_HINTS);
         }
-        return hints;
+
+        return {hints: hints, needGuesses: needGuesses};
     };
     
     Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
     };
-    Session.prototype.setTernProperties = function (newProperties) {
-        this.ternProperties = newProperties;
+
+    Session.prototype.setGuesses = function (newGuesses) {
+        this.ternGuesses = newGuesses;
     };
+
     Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;
     };
@@ -484,6 +537,8 @@ define(function (require, exports, module) {
             }
             hints[0] = {value: fnHint, positions: []};
         }
+        
+        hints.handleWideResults = true;
         return hints;
     };
 

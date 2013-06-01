@@ -1,15 +1,15 @@
 <tr>
-    <td>
+    <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
-        <span class="muted ext-version">{{metadata.version}}</span><br/>
-        <span class="muted ext-author">
-            {{Strings.EXTENSION_AUTHOR}}:
-            {{#metadata.author.name}}
-                {{metadata.author.name}} /
-            {{/metadata.author.name}}
-            <a href="{{ownerLink}}">{{formatUserId}}</a>
-        </span><br/>
-        <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+        <span class="muted ext-version">{{metadata.version}}</span> 
+        {{#authorInfo}}
+            <span class="muted ext-author">
+                &mdash; {{{authorInfo}}}
+            </span>
+        {{/authorInfo}}
+        {{#hasVersionInfo}}
+            <span class="muted ext-date"> &mdash; {{lastVersionDate}}</span>
+        {{/hasVersionInfo}}
     </td>
     <td class="ext-desc">
         {{^isCompatible}}
@@ -18,12 +18,13 @@
                 {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
             </div>
         {{/isCompatible}}
-        {{#metadata.description}}
-            {{metadata.description}}
-        {{/metadata.description}}
+        {{metadata.description}}
         {{^metadata.description}}
-            <span class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></span>
+            <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
         {{/metadata.description}}
+        {{#metadata.homepage}}
+            <p><a href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
+        {{/metadata.homepage}}
         {{#metadata.keywords.length}}
             <br/>
             <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
@@ -33,10 +34,29 @@
             </span>
         {{/metadata.keywords.length}}
     </td>
-    <td>
-        <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
-            {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
-            {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
-        </button>
+    <td class="ext-action">
+        {{#showInstallButton}}
+            <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+                {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
+                {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
+            </button>
+        {{/showInstallButton}}
+        {{#isInstalled}}
+            {{^failedToStart}}
+                {{^isMarkedForRemoval}}
+                    <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                        {{Strings.REMOVE}}
+                    </button>
+                {{/isMarkedForRemoval}}
+            {{/failedToStart}}
+            {{#failedToStart}}
+                {{^isMarkedForRemoval}}
+                    {{Strings.EXTENSION_ERROR}} (<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>)
+                {{/isMarkedForRemoval}}
+            {{/failedToStart}}
+            {{#isMarkedForRemoval}}
+                {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
+            {{/isMarkedForRemoval}}
+        {{/isInstalled}}
     </td>
 </tr>

@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_INSTALL_EXTENSION);
+        menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
         
         // supress redundant quit menu item on mac
         if (brackets.platform !== "mac" && !brackets.inBrowser) {
@@ -98,6 +98,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.SHOW_CODE_HINTS);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
 
         /*
@@ -121,6 +123,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
+        menu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
@@ -179,14 +182,19 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
+        project_cmenu.addMenuItem(Commands.FILE_DELETE);
+        project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuDivider();
+        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
@@ -197,6 +205,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+        // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);

@@ -104,7 +104,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    border-bottom: 1px solid @tc-gray-panel-border;
+    box-shadow: @tc-small-shadow-bottom;
     
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -117,54 +118,59 @@ a, img {
 
 #status-bar {
     position: relative;
-    background-color: @background-color-3;
-    border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
+    background: #fff;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    color: @bc-grey;
+    color: @tc-text;
     font-family: @fontstack-sans-serif;
-    font-size: 0.9em;
-    line-height: 1;
-    
-    height: 20px;
+    font-size: 11px;
+    line-height: 25px;    
+    height: 26px;
     overflow: hidden;
-    padding: 3px 20px 3px 10px;
 }
     
 #status-info {
+    color: @tc-text;
+    left: 10px;
     position: absolute;
-    left: 8px;
-    background-color: @background-color-3;
     white-space: nowrap;
     
     div {
         display: inline;
-        margin-right: 20px;
     }
+}
+
+#status-file {
+    color: #999;
 }
 
 #status-indicators {
+    background: #fff;
+    color: @tc-text;
     position: absolute;
-    right: 4px;
-    background-color: @background-color-3;
+    right: 0;
+    text-align: right;
     white-space: nowrap;
-    
-    &>div {
-        display: inline-block;
-        margin-left: 20px;
+        
+    > div {
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        float: right;
+        padding: 0 10px;
     }
-    &>.spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
-        margin-left: 5px;
+    .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
+        border: none;
+        margin: 6px 10px;
+        padding: 0;
     }
 }
 
-@-webkit-keyframes rotating {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    
-    100% {
-        -webkit-transform: rotate(360deg);
-    }
+@-webkit-keyframes spinner-sprites-12 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -120px 0px; }
+}
+@-webkit-keyframes spinner-sprites-36 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -360px 0px; }
 }
 
 #status-indent > * {
@@ -176,11 +182,8 @@ a, img {
 }
 
 #indent-type, #indent-width-label {
-    margin-right: 2px;
-}
-
-#indent-width-label {
-    width: 14px;
+    cursor: pointer;
+    margin-right: 3px;
 }
 
 #indent-type:hover, #indent-width-label:hover {
@@ -188,26 +191,23 @@ a, img {
 }
 
 #indent-width-input {
-    font-size: 1em;
-    height: 12px;
+    font-size: 11px;
+    font-weight: @font-weight-semibold;
+    height: 13px;
     line-height: 1;
-    vertical-align: -2px;
-    border: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
-    color: @bc-black;
+    vertical-align: middle;
+    color: @tc-text;
     margin: 0;
-    padding: 0;
-    width: 14px;
+    padding: 0 3px 2px;
     position: relative;
-    left: -1px;
-    top: -2px;
-    -webkit-border-radius: 2px;
-    border-radius: 2px;
-    box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
+    left: 0;
+    top: -1px;
+    width: 6px;
+    -webkit-transition: 0.1s linear all;
 }
 
 #indent-width-input:focus {
-    border: 1px solid rgba(9,64,253,0.84);
-    outline: none;
+
 }
 
 #indent-width-input::-webkit-inner-spin-button {
@@ -247,25 +247,30 @@ a, img {
 }
 
 .bottom-panel {
+    background-color: @tc-gray-panel;
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
-    border-color: lighten(@bc-grey, @bc-color-step-size*4);
+    border-color: @tc-gray-panel-border;
     
     .toolbar {
+        background-color: @tc-gray-panel-top-bar;
+        border-bottom: @tc-gray-panel-top-bar-shadow;
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
         z-index: @z-index-brackets-results-panel;
-        .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
         .title {
+            color: @tc-text;
             font-size: @label-font-size;
-            font-weight: bold;
+            font-weight: @font-weight-semibold;
         }
         .close {
             position: absolute;
             right: 10px;
+            top: 6px;
         }
     }
     
@@ -274,16 +279,18 @@ a, img {
         overflow: auto;
 
         td {
+            font-size: 12px;
             padding-left: @base-padding;
             padding-right: @base-padding;
         }
         
         .highlight {
-            background: #d2dcf8;
+            background: #fff;
+            border-radius: 2px;
         }
         
         tr.selected td {
-            background-color: @bc-light-blue;
+            background-color: @tc-highlight;
         }
     }
 }
@@ -291,9 +298,9 @@ a, img {
 #update-notification {
     margin: 10px 0 5px;
     .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
-    &:hover {
-        .sprite-swap(0,14px);
-    }
+    //&:hover {
+    //    .sprite-swap(0,14px);
+    //}
     display:none;
 }
 
@@ -301,16 +308,16 @@ a, img {
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
     .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
-    &:hover {
-        .sprite-swap(0,16px);
-    }
+    //&:hover {
+    //    .sprite-swap(0,16px);
+    //}
     // 'Connected' state
     &.success {
         .sprite-swap(0,32px);
     }
-    &.success:hover {
-        .sprite-swap(0,48px);
-    }
+    //&.success:hover {
+    //    .sprite-swap(0,48px);
+    //}
     // 'Connection in progress' state
     &.info {
         .sprite-swap(0,64px);
@@ -319,17 +326,17 @@ a, img {
     &.out-of-sync {
         .sprite-swap(0,80px);
     }
-    &.out-of-sync:hover {
-        .sprite-swap(0,96px);
-    }
+    //&.out-of-sync:hover {
+    //    .sprite-swap(0,96px);
+    //}
 }
 
-#toolbar-add-extension {
-    .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
-    margin-left: 1px !important;
-    &:hover {
-        background-position: -18px 0;
-    }
+#toolbar-extension-manager {
+    .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
+    opacity: 0.7;
+    //&:hover {
+    //    opacity: 0.5;
+    //}
 }
 
 /* Project panel */
@@ -403,7 +410,7 @@ a, img {
     }
     
     .extension {
-        color: #8e9a9d;
+        color: @project-panel-text-2;
     }
 }
 
@@ -454,10 +461,6 @@ a, img {
     ul {
         padding-left: 8px;
     }
-}
-
-#editor-holder .scroller-shadow {
-    width: 100%;
 }
 
 .scroller-shadow {
@@ -703,6 +706,7 @@ a, img {
 }
 
 #search-results td {
+    padding-left: 3px;
     vertical-align: baseline;
 }
 
@@ -713,8 +717,8 @@ a, img {
     
     font-family: @fontstack-sans-serif;
     font-size: 13px;
-    color: @content-color;
-    background: #eee;
+    color: @tc-text;
+    background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
     overflow: hidden;
     
@@ -726,14 +730,12 @@ a, img {
 
 .modal-bar input {
     font-family: @fontstack-sans-serif;
-    border: 1px solid @content-color-weaker;
     outline: none;
-    background: @background-color-3;
     width: 20em;
     margin: .3em .3em;
-    color: inherit;
     &.no-results {
-        background-color: mix(@background-color-3, #FF0000, 70%);
+        border: 1px solid #bc0023;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
     }
 }
 
@@ -766,7 +768,7 @@ a, img {
     background: rgb(255, 108, 0);
 }
 #find-counter {
-    font-weight: bold;
+    font-weight: @font-weight-semibold;
 }
 
 
@@ -774,39 +776,55 @@ a, img {
 
 .smart_autocomplete_container {
     
-    border: 1px solid #999;
-    background-color: #FFFFFF;
+    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
+    
+    background-color: @tc-gray-panel;
+    border-radius: 0 0 4px 4px;
+    box-shadow: @tc-normal-shadow-bottom;
+    
+    // so that border won't show when height is 0.
+    box-sizing: border-box; 
+    
+    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
+    width: 400px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
-    padding: 0px 8px 0px 0px;
-    margin: 9px 0px 0px 0px;
+    padding: 0px;
+    margin: 9px 0 0;
 
     .quick-open-path {
+        color: #666;
         font-size: 11px;
-        color: gray;
+        letter-spacing: 0.04em;
+        line-height: 11px;
     }
 
     li {
-        color: black;
-        border-bottom: 1px solid;
+        color: #222;
+        line-height: 15px;
         list-style: none;
         cursor: default;
-        padding: 0px 2px 0px 4px;
+        padding: 6px 10px;
+    }
+    
+    li:nth-child(odd) {
+        background-color: #e6e9e9;
+    }
+    
+    li.smart_autocomplete_highlight {
+        background-color: @tc-highlight;
     }
 }
 
-li.smart_autocomplete_highlight {
-    background-color: #e0f0fa;
+.quicksearch-pathmatch,
+.quicksearch-namematch {
+    font-weight: @font-weight-semibold;
 }
 
 .quicksearch-pathmatch {
-    font-weight: bold;
     color: #555;
-}
-
-.quicksearch-namematch {
-    font-weight: bold;
 }
 
 
@@ -818,11 +836,11 @@ li.smart_autocomplete_highlight {
     margin-top: -2px;
     width: 12px;
     height: 12px;
-    background: url("images/small_spinner.svg") no-repeat;
+    background: url("images/spinner_small_sprites12.png") no-repeat;
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: rotating 1.5s linear infinite;
+        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
         visibility: visible;
     }
     
@@ -830,10 +848,27 @@ li.smart_autocomplete_highlight {
         width: 36px;
         height: 36px;
         margin-top: 0;
-        background: url("images/spinner2x.png") 50% no-repeat;
-        background-size: 100%;
+        background: url("images/spinner_large_sprites36.png") no-repeat;
+
+        &.spin {
+            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        }
     }
 }
+// Retina versions
+@media only screen and (-webkit-min-device-pixel-ratio: 2), 
+       only screen and (min-device-pixel-ratio: 2) {
+    .spinner {
+        background-image: url("images/spinner_small_sprites12@2x.png");
+        background-size: 120px 12px;
+
+        &.large {
+            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
+            background-size: 360px 36px;
+        }
+    }
+}
+
 
 /* Turn on text selection for JSLint error messages */
 #jslint-results {

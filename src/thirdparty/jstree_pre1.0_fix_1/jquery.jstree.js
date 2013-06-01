@@ -570,10 +570,10 @@
 				obj = this._get_node(obj);
 				if(obj === -1) { return this.get_container().find("> ul > li:first-child"); }
 				if(!obj.length) { return false; }
-				if(strict) { return (obj.nextAll("li").size() > 0) ? obj.nextAll("li:eq(0)") : false; }
+				if(strict) { return (obj.nextAll("li").length > 0) ? obj.nextAll("li:eq(0)") : false; }
 
 				if(obj.hasClass("jstree-open")) { return obj.find("li:eq(0)"); }
-				else if(obj.nextAll("li").size() > 0) { return obj.nextAll("li:eq(0)"); }
+				else if(obj.nextAll("li").length > 0) { return obj.nextAll("li:eq(0)"); }
 				else { return obj.parentsUntil(".jstree","li").next("li").eq(0); }
 			},
 			_get_prev		: function (obj, strict) {
@@ -1961,7 +1961,7 @@
 			},
 			get_text : function (obj, lang) {
 				obj = this._get_node(obj) || this.data.ui.last_selected;
-				if(!obj.size()) { return false; }
+				if(!obj.length) { return false; }
 				var langs = this._get_settings().languages,
 					s = this._get_settings().core.html_titles;
 				if($.isArray(langs) && langs.length) {
@@ -1981,7 +1981,7 @@
 			},
 			set_text : function (obj, val, lang) {
 				obj = this._get_node(obj) || this.data.ui.last_selected;
-				if(!obj.size()) { return false; }
+				if(!obj.length) { return false; }
 				var langs = this._get_settings().languages,
 					s = this._get_settings().core.html_titles,
 					tmp;
@@ -2800,22 +2800,22 @@
 						var $t = $(this), nm;
 						$t.children("a" + (_this.data.languages ? "" : ":eq(0)") ).not(":has(.jstree-checkbox)").prepend("<ins class='jstree-checkbox'>&#160;</ins>").parent().not(".jstree-checked, .jstree-unchecked").addClass( ts ? "jstree-unchecked" : c );
 						if(rc) {
-							if(!$t.children(":checkbox").length) {
+							if(!$t.children("[type=checkbox]").length) {
 								nm = rcn.call(_this, $t);
 								$t.prepend("<input type='checkbox' class='jstree-real-checkbox' id='" + nm[0] + "' name='" + nm[0] + "' value='" + nm[1] + "' />");
 							}
 							else {
-								$t.children(":checkbox").addClass("jstree-real-checkbox");
+								$t.children("[type=checkbox]").addClass("jstree-real-checkbox");
 							}
 						}
 						if(!ts) {
 							if(c === "jstree-checked" || $t.hasClass("jstree-checked") || $t.children(':checked').length) {
-								$t.find("li").andSelf().addClass("jstree-checked").children(":checkbox").prop("checked", true);
+								$t.find("li").andSelf().addClass("jstree-checked").children("[type=checkbox]").prop("checked", true);
 							}
 						}
 						else {
 							if($t.hasClass("jstree-checked") || $t.children(':checked').length) {
-								$t.addClass("jstree-checked").children(":checkbox").prop("checked", true);
+								$t.addClass("jstree-checked").children("[type=checkbox]").prop("checked", true);
 							}
 						}
 					});
@@ -2832,11 +2832,11 @@
 				if(this._get_settings().checkbox.two_state) {
 					if(state) { 
 						obj.removeClass("jstree-checked").addClass("jstree-unchecked"); 
-						if(rc) { obj.children(":checkbox").prop("checked", false); }
+						if(rc) { obj.children("[type=checkbox]").prop("checked", false); }
 					}
 					else { 
 						obj.removeClass("jstree-unchecked").addClass("jstree-checked"); 
-						if(rc) { obj.children(":checkbox").prop("checked", true); }
+						if(rc) { obj.children("[type=checkbox]").prop("checked", true); }
 					}
 				}
 				else {
@@ -2844,13 +2844,13 @@
 						coll = obj.find("li").andSelf();
 						if(!coll.filter(".jstree-checked, .jstree-undetermined").length) { return false; }
 						coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked"); 
-						if(rc) { coll.children(":checkbox").prop("checked", false); }
+						if(rc) { coll.children("[type=checkbox]").prop("checked", false); }
 					}
 					else { 
 						coll = obj.find("li").andSelf();
 						if(!coll.filter(".jstree-unchecked, .jstree-undetermined").length) { return false; }
 						coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked"); 
-						if(rc) { coll.children(":checkbox").prop("checked", true); }
+						if(rc) { coll.children("[type=checkbox]").prop("checked", true); }
 						if(this.data.ui) { this.data.ui.last_selected = obj; }
 						this.data.checkbox.last_selected = obj;
 					}
@@ -2859,23 +2859,23 @@
 						if(state) {
 							if($this.children("ul").children("li.jstree-checked, li.jstree-undetermined").length) {
 								$this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
+								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children("[type=checkbox]").prop("checked", false); }
 								return false;
 							}
 							else {
 								$this.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked");
-								if(rc) { $this.children(":checkbox").prop("checked", false); }
+								if(rc) { $this.children("[type=checkbox]").prop("checked", false); }
 							}
 						}
 						else {
 							if($this.children("ul").children("li.jstree-unchecked, li.jstree-undetermined").length) {
 								$this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
+								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children("[type=checkbox]").prop("checked", false); }
 								return false;
 							}
 							else {
 								$this.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked");
-								if(rc) { $this.children(":checkbox").prop("checked", true); }
+								if(rc) { $this.children("[type=checkbox]").prop("checked", true); }
 							}
 						}
 					});
@@ -2934,7 +2934,7 @@
 				obj = this._get_node(obj);
 				if(!obj.length) { return; }
 				if(this._get_settings().checkbox.two_state) {
-					obj.find('li').andSelf().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children(':checkbox').prop('checked', true);
+					obj.find('li').andSelf().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children("[type=checkbox]").prop('checked', true);
 					return;
 				}
 				var rc = this._get_settings().checkbox.real_checkboxes,
@@ -2946,7 +2946,7 @@
 				else if(a === c) { this.change_state(obj, false); }
 				else { 
 					obj.parentsUntil(".jstree","li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-					if(rc) { obj.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
+					if(rc) { obj.parentsUntil(".jstree", "li").andSelf().children("[type=checkbox]").prop("checked", false); }
 				}
 			},
 			reselect : function () {
@@ -3186,7 +3186,7 @@
 			_is_loaded : function (obj) { 
 				var s = this._get_settings().xml_data;
 				obj = this._get_node(obj);
-				return obj == -1 || !obj || (!s.ajax && !$.isFunction(s.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").size() > 0;
+				return obj == -1 || !obj || (!s.ajax && !$.isFunction(s.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").length > 0;
 			},
 			load_node_xml : function (obj, s_call, e_call) {
 				var s = this.get_settings().xml_data,
@@ -4013,7 +4013,7 @@
 			load_node : function (obj, s_call, e_call) { var _this = this; this.load_node_html(obj, function () { _this.__callback({ "obj" : _this._get_node(obj) }); s_call.call(this); }, e_call); },
 			_is_loaded : function (obj) { 
 				obj = this._get_node(obj); 
-				return obj == -1 || !obj || (!this._get_settings().html_data.ajax && !$.isFunction(this._get_settings().html_data.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").size() > 0;
+				return obj == -1 || !obj || (!this._get_settings().html_data.ajax && !$.isFunction(this._get_settings().html_data.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").length > 0;
 			},
 			load_node_html : function (obj, s_call, e_call) {
 				var d,

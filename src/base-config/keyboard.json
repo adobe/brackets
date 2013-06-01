@@ -148,6 +148,15 @@
             "platform": "mac"
         }
     ],
+    "edit.showCodeHints":  [
+        {
+            "key": "Ctrl-Space"
+        },
+        {
+            "key": "Ctrl-Space",
+            "platform": "mac"
+        }
+    ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"
     ],
@@ -206,6 +215,9 @@
     ],
     "navigate.gotoDefinition":  [
         "Ctrl-T"
+    ],
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
     ],
     "navigate.nextDoc":  [
         {

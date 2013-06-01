@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
@@ -177,7 +178,7 @@ define(function (require, exports, module) {
     
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
@@ -201,6 +202,22 @@ define(function (require, exports, module) {
             return path.substr(1);
         }
         
+        return path;
+    }
+    
+    /**
+     * Convert a Windows-native path to use Unix style slashes.
+     * On Windows, this converts "C:\foo\bar\baz.txt" to "C:/foo/bar/baz.txt".
+     * On Mac, this does nothing, since Mac paths are already in Unix syntax.
+     * (Note that this does not add an initial forward-slash. Internally, our
+     * APIs generally use the "C:/foo/bar/baz.txt" style for "native" paths.)
+     * @param {string} path A native-style path.
+     * @return {string} A Unix-style path.
+     */
+    function convertWindowsPathToUnixPath(path) {
+        if (brackets.platform === "win") {
+            path = path.replace(/\\/g, "/");
+        }
         return path;
     }
     
@@ -346,6 +363,7 @@ define(function (require, exports, module) {
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
+    exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
