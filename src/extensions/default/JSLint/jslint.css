@@ -15,6 +15,7 @@
 
 .jslint-valid {
     background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
+    pointer-events: none;
     cursor: pointer;
 }
 
