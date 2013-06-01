@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     
     var INDICATOR_ID = "jslint-status",
         defaultPrefs = {
-            enabled: JSLintOptions.enabled_by_default
+            enabled: JSLintOptions.enabled_by_default,
+            collapsed: false
         };
     
     
@@ -77,6 +78,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _enabled = true;
+    
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _collapsed = false;
     
     /**
      * @private
@@ -157,7 +164,9 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                Resizer.show($lintResults);
+                if (!_collapsed) {
+                    Resizer.show($lintResults);
+                }
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
@@ -227,6 +236,27 @@ define(function (require, exports, module) {
     }
     
     
+    /** 
+     * Toggle the collapsed state for the panel
+     * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
+     */
+    function toggleCollapsed(collapsed) {
+        if (collapsed === undefined) {
+            collapsed = !_collapsed;
+        }
+        
+        _collapsed = collapsed;
+        _prefs.setValue("collapsed", _collapsed);
+        
+        if (_collapsed) {
+            Resizer.hide($lintResults);
+        } else {
+            if (JSLINT.errors.length) {
+                Resizer.show($lintResults);
+            }
+        }
+    }
+    
     /** Command to toggle enablement */
     function handleToggleEnabled() {
         setEnabled(!_enabled);
@@ -268,8 +298,19 @@ define(function (require, exports, module) {
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
-        
+        $("#jslint-results .close").click(function () {
+            toggleCollapsed(true);
+        });
+
+        $("#jslint-status").click(function () {
+            toggleCollapsed();
+        });
+                                                                
+                                
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
+        
+        toggleCollapsed(_prefs.getValue("collapsed"));
+                
     });
 });
