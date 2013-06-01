@@ -159,7 +159,6 @@
 
       this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
         .appendTo(document.body)
-        
 
       if ( this.settings.backdrop != 'static' ) {
         this.$backdrop.click($.proxy(this.hide, this))
@@ -188,8 +187,6 @@
   }
 
   function removeBackdrop() {
-          $('.main-view').addClass('blur')
-
     this.$backdrop.remove()
     this.$backdrop = null
   }
