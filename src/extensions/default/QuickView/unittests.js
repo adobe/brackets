@@ -98,9 +98,8 @@ define(function (require, exports, module) {
         }
 
         function checkImageDataAtPos(expectedData, line, ch) {
-            var popoverInfo = getPopoverAtPos(line, ch),
-                imagePath = popoverInfo._imgPath;
-            expect(imagePath).toBe(expectedData);
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo._imgPath).toBe(expectedData);
         }
 
         describe("Quick view colors", function () {
