@@ -600,12 +600,20 @@ define(function (require, exports, module) {
         window.document.body.addEventListener(
             "keydown",
             function (event) {
+                try {
+                    // "beforeKeyBindingManagerKeydown" event is exclusively for CodeHintManager
+                    // to handle keydown events before any other handlers or commands.
+                    $(exports).triggerHandler("beforeKeyBindingManagerKeydown", [event]);
+                } catch (err) {
+                    console.error(err);
+                }
+                
                 if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
                     event.preventDefault();
                 }
             },
-            false
+            true
         );
         
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
