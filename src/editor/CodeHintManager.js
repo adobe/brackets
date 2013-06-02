@@ -559,8 +559,6 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent>} keydownEvent - keydown event passed from KeyBindingManager.
      */
     function _handleKeydownEvent(triggeredEvent, keydownEvent) {
-        var editor = EditorManager.getFocusedEditor();
-
         if (isOpen() && keydownEvent && hintList.isHandlingKeyCode(keydownEvent.keyCode)) {
             KeyBindingManager.setEnabled(false);
             disabledKeyBindingManager = true;
