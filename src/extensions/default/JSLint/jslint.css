@@ -4,14 +4,19 @@
 
 .jslint-disabled {
     background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
+    pointer-events: none;
+    cursor: default;
 }
 
 .jslint-errors {
     background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
+    cursor: pointer;
 }
 
 .jslint-valid {
     background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
+    pointer-events: none;
+    cursor: pointer;
 }
 
 #jslint-results .line { /* To make the line number line up with editor line numbers */
