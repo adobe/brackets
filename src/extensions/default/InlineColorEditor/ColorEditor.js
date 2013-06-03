@@ -157,7 +157,7 @@ define(function (require, exports, module) {
             hueColor = "hsl(" + this._hsv.h + ", 100%, 50%)";
         
         this._updateColorTypeRadioButtons(colorObject.format);
-        this.$colorValue.attr("value", colorValue);
+        this.$colorValue.val(colorValue);
         this.$currentColor.css("background-color", colorValue);
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
