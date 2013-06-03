@@ -51,14 +51,15 @@ define(function (require, exports, module) {
         builtinLibraryNames = [],
         // exclude require and jquery since we have special knowledge of those
         // temporarily exclude less*min.js because it is causing instability in tern.
-        excludedFilesRegEx  = /require\.js$|jquery[\w.\-]*\.js$|less[\w.\-]*\.min\.js$/,
+        // exclude ember*.js as it is currently causing problems
+        excludedFilesRegEx  = /require\.js$|jquery[\w.\-]*\.js$|less[\w.\-]*\.min\.js$|ember[\w.\-]*\.js$/,
         isDocumentDirty     = false,
         _hintCount          = 0,
         _lastPrimePump      = false,
         currentWorker       = null,
         documentChanges     = null;     // bounds of document changes
 
-    var MAX_TEXT_LENGTH      = 1000000, // about 1MB
+    var MAX_TEXT_LENGTH      = 512 * 1024,
         MAX_FILES_IN_DIR     = 100,
         MAX_FILES_IN_PROJECT = 100,
         // how often to reset the tern server
@@ -429,6 +430,20 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get the text of a document, applying any size restrictions
+     * if necessary
+     * @param {Document} document - the document to get the text from
+     */
+    function getTextFromDocument(document) {
+        var text = document.getText();
+        if (text.length > MAX_TEXT_LENGTH) {
+            text = "";
+        }
+        return text;
+    }
+    
+    
+    /**
      * Get an object that describes what tern needs to know about the updated
      * file to produce a hint. As a side-effect of this calls the document
      * changes are reset.
@@ -460,7 +475,7 @@ define(function (require, exports, module) {
         } else {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
-                text: document.getText()};
+                text: getTextFromDocument(document)};
         }
 
         documentChanges = null;
@@ -649,11 +664,11 @@ define(function (require, exports, module) {
          */
         function updateTernFile(document) {
             var path  = document.file.fullPath;
-
+            
             _postMessageByPass({
                 type       : MessageIds.TERN_UPDATE_FILE_MSG,
                 path       : path,
-                text       : document.getText()
+                text       : getTextFromDocument(document)
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
@@ -691,7 +706,7 @@ define(function (require, exports, module) {
                 return DocumentManager.getDocumentForPath(filePath).done(function (document) {
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
-                    replyWith(name, document.getText());
+                    replyWith(name, getTextFromDocument(document));
                 });
             }
             
