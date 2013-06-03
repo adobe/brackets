@@ -164,7 +164,7 @@ define(function (require, exports, module) {
         var $searchField = $("input#findInFilesInput");
         var that = this;
         
-        $searchField.attr("value", initialString || "");
+        $searchField.val(initialString || "");
         $searchField.get(0).select();
         
         $("#findInFilesScope").html(_labelForScope(scope));
