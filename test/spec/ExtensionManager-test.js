@@ -875,7 +875,7 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/mock-legacy-extension"),
-                            $button = $("button.remove[data-extension-id=" + mockPath + "]", view.$el);
+                            $button = $("button.remove[data-extension-id='" + mockPath + "']", view.$el);
                         $button.click();
                         expect(view.model.isMarkedForRemoval(mockPath)).toBe(true);
                     });
