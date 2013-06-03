@@ -280,6 +280,32 @@ define(function (require, exports, module) {
     }
 
     /**
+     * check to see if the text we are sending to Tern is too long.
+     * @param {string} the text to check
+     * @return {string} the text, or the empty text if the original was too long
+     */
+    function filterText(text) {
+        var newText = text;
+        if (text.length > MAX_TEXT_LENGTH) {
+            newText = "";
+        }
+        return newText;
+    }
+    
+    /**
+     * Get the text of a document, applying any size restrictions
+     * if necessary
+     * @param {Document} document - the document to get the text from
+     */
+    function getTextFromDocument(document) {
+        var text = document.getText();
+        text = filterText(text);
+        return text;
+    }
+    
+    
+    
+    /**
      * Request Jump-To-Definition from Tern.
      *
      * @param {session} session - the session
@@ -293,7 +319,7 @@ define(function (require, exports, module) {
             fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 offsetLines: 0,
-                text: session.getJavascriptText()};
+                text: filterText(session.getJavascriptText())};
         
         var ternPromise = getJumptoDef(fileInfo, offset);
         
@@ -429,20 +455,7 @@ define(function (require, exports, module) {
             text: document.getRange(from, to)};
     }
 
-    /**
-     * Get the text of a document, applying any size restrictions
-     * if necessary
-     * @param {Document} document - the document to get the text from
-     */
-    function getTextFromDocument(document) {
-        var text = document.getText();
-        if (text.length > MAX_TEXT_LENGTH) {
-            text = "";
-        }
-        return text;
-    }
-    
-    
+
     /**
      * Get an object that describes what tern needs to know about the updated
      * file to produce a hint. As a side-effect of this calls the document
