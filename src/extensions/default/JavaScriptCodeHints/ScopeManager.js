@@ -542,6 +542,8 @@ define(function (require, exports, module) {
         promise.done(function (guesses) {
             session.setGuesses(guesses);
             $deferred.resolve();
+        }).fail(function () {
+            $deferred.reject();
         });
 
         return $deferred.promise();
@@ -1214,8 +1216,11 @@ define(function (require, exports, module) {
                 session.setFnType(fnType);
                 $deferredHints.resolveWith(null);
             }
-        );
-        return {promise: $deferredHints.promise()};
+        ).fail(function () {
+            $deferredHints.reject();
+        });
+
+        return $deferredHints.promise();
     }
 
     /**
