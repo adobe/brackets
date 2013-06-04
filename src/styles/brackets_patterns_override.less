@@ -209,6 +209,10 @@
         color: fadeout(@bc-black, 25%);
         font-weight: @font-weight-light;
     }
+    .dropdown-toggle:focus {
+        background-color: @bc-white;
+        outline: 0;
+    }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
@@ -216,10 +220,6 @@
         color: @bc-black;
         background: @item-highlight-color;
         border-color: #dbeaf4;
-    }
-    .dropdown-toggle:focus {
-        background: none;
-        outline: 0;
     }
     
     // no triangle icon after menu items
