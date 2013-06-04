@@ -90,6 +90,9 @@
     .nav {  // menubar
         float: left;
         text-align: left;
+        > li {
+            float: left;
+        }
     }
     .title {
         float: none;
@@ -214,7 +217,11 @@
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
-
+    .dropdown-toggle:focus {
+        background: none;
+        outline: 0;
+    }
+    
     // no triangle icon after menu items
     .dropdown-toggle:after {
         border: 0;
@@ -283,6 +290,7 @@
     
     // Ensure a minimum amount of space to the left of the shortcut
     .menu-shortcut {
+        float: right;
         margin-left: 15px;
     }
 }
