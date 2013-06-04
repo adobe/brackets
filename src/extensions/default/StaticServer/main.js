@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      * A deferred which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */
-    var _nodeConnectionDeferred = $.Deferred();
+    var _nodeConnectionDeferred = new $.Deferred();
     
     /**
      * @private

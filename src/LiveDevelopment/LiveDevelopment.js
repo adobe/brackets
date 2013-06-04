@@ -143,6 +143,7 @@ define(function LiveDevelopment(require, exports, module) {
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _serverProvider;      // current LiveDevServerProvider
     var _closeReason;         // reason why live preview was closed
+    var _openDeferred;        // promise returned for each call to open()
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -501,18 +502,14 @@ define(function LiveDevelopment(require, exports, module) {
             var oneAgentPromise;
 
             if (agents[name] && agents[name].load) {
-                console.log("loading agent", name);
                 oneAgentPromise = agents[name].load();
             }
 
             if (!oneAgentPromise) {
-                console.log("finished loading agent sync", name);
                 oneAgentPromise = new $.Deferred().resolve().promise();
             } else {
                 oneAgentPromise.fail(function () {
                     console.error("Failed to load agent", name);
-                }).done(function () {
-                    console.log("finished loading agent async", name);
                 });
             }
 
@@ -528,12 +525,33 @@ define(function LiveDevelopment(require, exports, module) {
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
         allAgentsPromise.done(function () {
-            // After interstitial page, loading agents and navigating to the
-            // current document for the first time, call _agentsFinishedLoading() to gather
-            // related documents and set status to STATUS_ACTIVE.
-            _agentsFinishedLoading();
+            // After (1) the interstitial page loads, (2) then browser navigation
+            // to the base URL is completed, and (3) the agents finish loading
+            // gather related documents and finally set status to STATUS_ACTIVE.
+            var doc = _getCurrentDocument();
 
-            result.resolve();
+            if (doc) {
+                var status = STATUS_ACTIVE,
+                    relatedDocumentsPromise;
+
+                // Note: the following promise is never explicitly rejected, so there
+                // is no failure handler. If _getRelatedDocuments is changed so that rejection
+                // is possible, failure should be managed accordingly.
+                relatedDocumentsPromise = Async.withTimeout(_getRelatedDocuments(), 5000);
+
+                relatedDocumentsPromise
+                    .done(function () {
+                        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                            status = STATUS_OUT_OF_SYNC;
+                        }
+                        _setStatus(status);
+
+                        result.resolve();
+                    })
+                    .fail(result.reject);
+            } else {
+                result.reject();
+            }
         });
 
         allAgentsPromise.fail(function (reason) {
@@ -552,28 +570,10 @@ define(function LiveDevelopment(require, exports, module) {
             result.reject();
         });
 
+        // resolve/reject the open() promise after agents complete
+        result.then(_openDeferred.resolve, _openDeferred.reject);
+
         return result.promise();
-    }
-
-    /** Run when all agents are loaded */
-    function _agentsFinishedLoading() {
-        var doc = _getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var status = STATUS_ACTIVE;
-
-        // Note: the following promise is never explicitly rejected, so there
-        // is no failure handler. If _getRelatedDocuments is changed so that rejection
-        // is possible, failure should be managed accordingly.
-        _getRelatedDocuments()
-            .done(function () {
-                if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                    status = STATUS_OUT_OF_SYNC;
-                }
-                _setStatus(status);
-            });
     }
 
     // WebInspector Event: Page.frameNavigated
@@ -641,11 +641,12 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open the Connection and go live */
     function open() {
-        var result = new $.Deferred(),
-            promise = result.promise();
-        var doc = _getCurrentDocument();
-        var browserStarted = false;
-        var retryCount = 0;
+        _openDeferred = new $.Deferred();
+
+        var promise = _openDeferred.promise(),
+            doc = _getCurrentDocument(),
+            browserStarted = false,
+            retryCount = 0;
 
         _closeReason = null;
 
@@ -655,7 +656,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
-            result.reject();
+            _openDeferred.reject();
         }
 
         function showNeedBaseUrlError() {
@@ -664,13 +665,12 @@ define(function LiveDevelopment(require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
                         // If base url is specifed, then re-invoke open() to continue
                         open();
-                        result.resolve();
                     } else {
-                        result.reject();
+                        _openDeferred.reject();
                     }
                 })
                 .fail(function () {
-                    result.reject();
+                    _openDeferred.reject();
                 });
         }
 
@@ -680,7 +680,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
             );
-            result.reject();
+            _openDeferred.reject();
         }
         
         // helper function that actually does the launch once we are sure we have
@@ -690,11 +690,13 @@ define(function LiveDevelopment(require, exports, module) {
             
             _openDocument(doc, EditorManager.getCurrentFullEditor());
 
+            // Install a one-time event handler when connected to the launcher page
             $(Inspector).one("connect", _onConnect);
 
-            Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
+            // Open the live browser if the connection fails, retry 6 times
+            Inspector.connectToURL(launcherUrl).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
-                    result.reject(err);
+                    _openDeferred.reject(err);
                     return;
                 }
                 if (retryCount > 6) {
@@ -711,17 +713,17 @@ define(function LiveDevelopment(require, exports, module) {
                                 .done(function () {
                                     browserStarted = false;
                                     window.setTimeout(function () {
-                                        open().done(result.resolve).fail(result.reject);
+                                        open().fail(_openDeferred.reject);
                                     });
                                 })
                                 .fail(function (err) {
                                     // Report error?
                                     _setStatus(STATUS_ERROR);
                                     browserStarted = false;
-                                    result.reject("CLOSE_LIVE_BROWSER");
+                                    _openDeferred.reject("CLOSE_LIVE_BROWSER");
                                 });
                         } else {
-                            result.reject("CANCEL");
+                            _openDeferred.reject("CANCEL");
                         }
                     });
                     return;
@@ -757,13 +759,13 @@ define(function LiveDevelopment(require, exports, module) {
                                 message
                             );
 
-                            result.reject("OPEN_LIVE_BROWSER");
+                            _openDeferred.reject("OPEN_LIVE_BROWSER");
                         });
                 }
                     
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(launcherUrl).done(result.resolve).fail(onConnectFail);
+                        Inspector.connectToURL(launcherUrl).fail(onConnectFail);
                     }, 500);
                 }
             });
@@ -828,6 +830,10 @@ define(function LiveDevelopment(require, exports, module) {
         } else {
             cleanup();
         }
+
+        if (_openDeferred && _openDeferred.state() === "pending") {
+            _openDeferred.reject();
+        }
         
         return deferred.promise();
     }
@@ -857,8 +863,6 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
-        var loadAgentsPromise;
-
         /* 
          * Create a promise that resolves when the interstitial page has
          * finished loading.
@@ -904,22 +908,25 @@ define(function LiveDevelopment(require, exports, module) {
          */
         function onInterstitialPageLoad() {
             // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable();
+            Inspector.Page.enable().done(function () {
+                // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+                // navigate to the page first before loading can complete.
+                // To accomodate this, we load all agents and navigate in
+                // parallel.
+                loadAgents();
 
-            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-            // navigate to the page first before loading can complete.
-            // To accomodate this, we load all agents and navigate in
-            // parallel.
-            loadAgentsPromise = loadAgents();
-
-            var doc = _getCurrentDocument();
-            if (doc) {
-                // Navigate from interstitial to the document
-                // Fires a frameNavigated event
-                Inspector.Page.navigate(doc.root.url);
-            } else {
-                close();
-            }
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    // Navigate from interstitial to the document
+                    // Fires a frameNavigated event
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    // Unlikely that we would get to this state where
+                    // a connection is in process but there is no current
+                    // document
+                    close();
+                }
+            })
         }
         
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
@@ -927,6 +934,7 @@ define(function LiveDevelopment(require, exports, module) {
         waitForInterstitialPageLoad()
             .fail(function () {
                 close();
+
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,

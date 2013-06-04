@@ -334,20 +334,20 @@ define(function Inspector(require, exports, module) {
     }
 
     function retry(fn, interval, retryCount) {
-        var deferred = new $.Deferred();
+        var deferred = new $.Deferred(),
+            countdown = retryCount || 4;
 
-        interval = interval || 100;
-        retryCount = retryCount || 5;
+        interval = interval || 250;
 
         function _doRetry() {
             // FIXME Windows only: Somtimes methods (e.g. Console.enable()) aren't acknowledged
             Async.withTimeout(fn.call(), interval).done(function () {
                 deferred.resolve();
             }).fail(function () {
-                retryCount--;
+                countdown--;
 
-                if (retryCount <= 0) {
-                    deferred.reject();
+                if (countdown <= 0) {
+                    deferred.reject("Failed after " + retryCount + " tries");
                     return;
                 }
 

@@ -69,6 +69,13 @@ define(function (require, exports, module) {
     function isOpenInBrowser(doc, agents) {
         return (doc && doc.url && agents && agents.network && agents.network.wasURLRequested(doc.url));
     }
+
+    function openLiveDevelopmentAndWait() {
+        // start live dev
+        runs(function () {
+            waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 15000);
+        });
+    }
     
     function doOneTest(htmlFile, cssFile) {
         var localText,
@@ -80,16 +87,8 @@ define(function (require, exports, module) {
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles");
         });
-        
-        //start live dev
-        runs(function () {
-            waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 10000);
-        });
-        
-        // Wait for the file and its stylesheets to fully load (and be communicated back).
-        waitsFor(function () {
-            return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
-        }, "Waiting for browser to become active", 5000);
+
+        openLiveDevelopmentAndWait();
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles");
@@ -214,21 +213,14 @@ define(function (require, exports, module) {
             });
             
             it("should establish a browser connection for an opened html file", function () {
-                //verify live dev isn't currently active
-                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
-                
                 //open a file
                 runs(function () {
+                    //verify live dev isn't currently active
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                
-                //start live dev
-                runs(function () {
-                    LiveDevelopment.open();
-                });
-                waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
-                }, "Waiting for browser to become active", 10000);
+
+                openLiveDevelopmentAndWait();
  
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
@@ -236,9 +228,6 @@ define(function (require, exports, module) {
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
-                
-                // Let things settle down before trying to stop live dev.
-                waits(1000);
             });
             
             it("should should not start a browser connection for an opened css file", function () {
@@ -252,11 +241,8 @@ define(function (require, exports, module) {
                 
                 //start live dev
                 runs(function () {
-                    LiveDevelopment.open();
+                    waitsForFail(LiveDevelopment.open(), "LiveDevelopment.open()", 10000);
                 });
-                
-                //need to wait an arbitrary time since we can't check for live dev to be active
-                waits(1000);
  
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
@@ -302,14 +288,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start live dev
-                runs(function () {
-                    LiveDevelopment.open();
-                });
-                // Wait for the file and its stylesheets to fully load (and be communicated back).
-                waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
-                }, "Waiting for browser to become active", 10000);
+                openLiveDevelopmentAndWait();
                 
                 var liveDoc, doneSyncing = false;
                 runs(function () {
@@ -367,11 +346,7 @@ define(function (require, exports, module) {
                     htmlDoc.setText(updatedHtmlText);
                 });
                                 
-                // start live dev
-                var liveDoc, liveHtmlDoc;
-                runs(function () {
-                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 5000);
-                });
+                openLiveDevelopmentAndWait();
                 
                 waitsFor(function () {
                     return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC) &&
@@ -413,7 +388,7 @@ define(function (require, exports, module) {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
                     updatedNode = DOMAgent.nodeAtLocation(388);
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
