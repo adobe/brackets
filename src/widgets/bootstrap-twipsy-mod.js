@@ -43,17 +43,38 @@
   var transitionEnd
 
   $(document).ready(function () {
-
+      
     $.support.transition = (function () {
-      var thisBody = document.body || document.documentElement
-        , thisStyle = thisBody.style
-        , support = thisStyle.transition !== undefined || thisStyle.WebkitTransition !== undefined || thisStyle.MozTransition !== undefined || thisStyle.MsTransition !== undefined || thisStyle.OTransition !== undefined
-      return support
+
+      var transitionEnd = (function () {
+
+        var el = document.createElement('bootstrap')
+          , transEndEventNames = {
+               'WebkitTransition' : 'webkitTransitionEnd'
+            ,  'MozTransition'    : 'transitionend'
+            ,  'OTransition'      : 'oTransitionEnd'
+            ,  'msTransition'     : 'MSTransitionEnd'
+            ,  'transition'       : 'transitionend'
+            }
+          , name
+
+        for (name in transEndEventNames){
+          if (el.style[name] !== undefined) {
+            return transEndEventNames[name]
+          }
+        }
+
+      }())
+
+      return transitionEnd && {
+        end: transitionEnd
+      }
+
     })()
 
     // set CSS transition event type
     if ( $.support.transition ) {
-      transitionEnd = $.support.transition.end;
+      transitionEnd = $.support.transition.end
     }
 
   })
