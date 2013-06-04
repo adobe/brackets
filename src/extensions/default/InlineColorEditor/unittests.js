@@ -149,6 +149,9 @@ define(function (require, exports, module) {
                 it("should show the correct color when opened on an hsla() color with a leading period in the alpha field", function () {
                     testOpenColor({line: 49, ch: 18}, "hsla(180, 50%, 50%, .5)");
                 });
+                it("should show the correct color when opened on a color name value", function () {
+                    testOpenColor({line: 53, ch: 18}, "blue");
+                });
                 
                 it("should not open when not on a color", function () {
                     makeColorEditor({line: 1, ch: 6});
