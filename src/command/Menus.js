@@ -835,7 +835,7 @@ define(function (require, exports, module) {
             return menu;
         }
 
-        var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
+        var $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
             $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 

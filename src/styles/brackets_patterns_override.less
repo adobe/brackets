@@ -90,6 +90,9 @@
     .nav {  // menubar
         float: left;
         text-align: left;
+        > li {
+            float: left;
+        }
     }
     .title {
         float: none;
@@ -206,6 +209,10 @@
         color: fadeout(@bc-black, 25%);
         font-weight: @font-weight-light;
     }
+    .dropdown-toggle:focus {
+        background-color: @bc-white;
+        outline: 0;
+    }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
@@ -214,7 +221,7 @@
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
-
+    
     // no triangle icon after menu items
     .dropdown-toggle:after {
         border: 0;
@@ -283,6 +290,7 @@
     
     // Ensure a minimum amount of space to the left of the shortcut
     .menu-shortcut {
+        float: right;
         margin-left: 15px;
     }
 }
