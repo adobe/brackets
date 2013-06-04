@@ -64,10 +64,9 @@
     white-space: nowrap;
 }
 
-#project-dropdown.dropdown-menu .recent-folder-link
-{
+#project-dropdown.dropdown-menu .recent-folder-link {
 	display: block;
-	padding: 5px 26px 5px 15px;
+	padding: 5px 26px 5px 0;
 }
 
 .recent-folder, #open-folder-link {
