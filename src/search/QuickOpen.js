@@ -446,8 +446,6 @@ define(function (require, exports, module) {
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
         // editor to give focus to below, it won't notice otherwise).
         this.$searchField.trigger("lostFocus");
-
-        EditorManager.focusEditor();
         
         // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
         // (because it's a later handler of the event that just triggered _close()), and that code expects to
