@@ -630,9 +630,9 @@ define(function (require, exports, module) {
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" || item.metadata.name === "mock-extension-4") {
-                                expect($button.attr("disabled")).toBeTruthy();
+                                expect($button.prop("disabled")).toBeTruthy();
                             } else {
-                                expect($button.attr("disabled")).toBeFalsy();
+                                expect($button.prop("disabled")).toBeFalsy();
                             }
                         });
                     });
@@ -664,7 +664,7 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
-                        expect($button.attr("disabled")).toBeTruthy();
+                        expect($button.prop("disabled")).toBeTruthy();
                     });
                 });
                 
@@ -693,7 +693,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         // Have to get the button again since the view may have created a new button when re-rendering.
                         $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
-                        expect($button.attr("disabled")).toBeTruthy();
+                        expect($button.prop("disabled")).toBeTruthy();
                     });
                    
                 });
@@ -821,7 +821,7 @@ define(function (require, exports, module) {
                         expect(view).toHaveText("mock-extension-3");
                         var $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
                         expect($removeLink.length).toBe(1);
-                        expect($removeLink.attr("disabled")).toBeFalsy();
+                        expect($removeLink.prop("disabled")).toBeFalsy();
                         
                         $removeLink.click();
                         expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
@@ -838,7 +838,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-2]", view.$el);
                         expect($button.length).toBe(1);
-                        expect($button.attr("disabled")).toBeTruthy();
+                        expect($button.prop("disabled")).toBeTruthy();
                     });
                 });
                 
@@ -875,7 +875,7 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/mock-legacy-extension"),
-                            $button = $("button.remove[data-extension-id=" + mockPath + "]", view.$el);
+                            $button = $("button.remove[data-extension-id='" + mockPath + "']", view.$el);
                         $button.click();
                         expect(view.model.isMarkedForRemoval(mockPath)).toBe(true);
                     });
