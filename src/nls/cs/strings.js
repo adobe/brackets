@@ -238,7 +238,7 @@ define({
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
-    "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
     "CMD_NEXT_DOC"                        : "Další dokument",
