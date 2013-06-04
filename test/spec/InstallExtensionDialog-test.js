@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             });
             
             it("should have the install button disabled when dialog is first open due to empty url field", function () {
-                expect(fields.$okButton.attr("disabled")).toBeTruthy();
+                expect(fields.$okButton.prop("disabled")).toBeTruthy();
             });
             
             it("should not start install if enter hit while url field is empty", function () {
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
             
             it("should enable the install button when the url field is nonempty", function () {
                 setUrl();
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
             });
             
             it("should re-disable the install button if the url field becomes nonempty and then empty", function () {
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                 fields.$url
                     .val("")
                     .trigger("input");
-                expect(fields.$okButton.attr("disabled")).toBeTruthy();
+                expect(fields.$okButton.prop("disabled")).toBeTruthy();
             });
             
             it("should close the dialog when Cancel button clicked after entering url", function () {
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
-                expect(fields.$okButton.attr("disabled")).toBeTruthy();
+                expect(fields.$okButton.prop("disabled")).toBeTruthy();
                 deferred.resolve();
             });
             
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
-                expect(fields.$cancelButton.attr("disabled")).toBeTruthy();
+                expect(fields.$cancelButton.prop("disabled")).toBeTruthy();
                 deferred.reject("CANCELED");
             });
             
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve();
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
     
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                 var installer = makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
     
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
                 setUrl();
                 fields.$okButton.click();
                 deferred.reject();
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
             
@@ -291,7 +291,7 @@ define(function (require, exports, module) {
                 var installer = makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
             
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                 fields.$okButton.click();
                 fields.$cancelButton.click();
                 deferred.reject("CANCELED");
-                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
     
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
                 });
                 waits(100);
                 runs(function () {
-                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                    expect(fields.$okButton.prop("disabled")).toBeFalsy();
                     deferred.reject("CANCELED");
                 });
             });
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
                 waits(100);
                 runs(function () {
                     deferred.resolve();
-                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                    expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 });
             });
 
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
                 waits(100);
                 runs(function () {
                     deferred.reject();
-                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                    expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 });
             });
             
@@ -558,7 +558,7 @@ define(function (require, exports, module) {
                 waits(100);
                 runs(function () {
                     deferred.reject("CANCELED");
-                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                    expect(fields.$okButton.prop("disabled")).toBeFalsy();
                 });
             });
             
@@ -591,7 +591,7 @@ define(function (require, exports, module) {
                     $url: dialog.$url
                 };
                 expect(installer.install).toHaveBeenCalledWith(url);
-                expect(fields.$okButton.attr("disabled")).toBeTruthy();
+                expect(fields.$okButton.prop("disabled")).toBeTruthy();
                 expect(fields.$url.is(":visible")).toBeFalsy();
                 deferred.resolve();
             });

@@ -83,6 +83,7 @@ define(function (require, exports, module) {
         MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
@@ -165,7 +166,7 @@ define(function (require, exports, module) {
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_IN_BROWSER_TITLE,
                 Strings.ERROR_IN_BROWSER
             );
@@ -215,7 +216,7 @@ define(function (require, exports, module) {
                             
                             dirEntry.getFile("index.html", {}, function (fileEntry) {
                                 var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.pipe(deferred.resolve, deferred.reject);
+                                promise.then(deferred.resolve, deferred.reject);
                             }, deferred.reject);
                         } else {
                             deferred.resolve();

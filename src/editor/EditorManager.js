@@ -101,6 +101,12 @@ define(function (require, exports, module) {
      */
     var _inlineDocsProviders = [];
     
+    /**
+     * Registered jump-to-definition providers. See {@link #registerJumpToDefProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _jumpToDefProviders = [];
+    
 	/**
      * @private
      * @param {?Editor} current
@@ -226,6 +232,18 @@ define(function (require, exports, module) {
      */
     function registerInlineDocsProvider(provider) {
         _inlineDocsProviders.push(provider);
+    }
+    
+    /**
+     * Registers a new jump-to-definition provider. When jump-to-definition is invoked each
+     * registered provider is asked if it wants to provide jump-to-definition results, given
+     * the current editor and cursor location. 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with jump-to-definition results, or
+     * returns null to indicate the provider doesn't want to respond to this case.
+     */
+    function registerJumpToDefProvider(provider) {
+        _jumpToDefProviders.push(provider);
     }
     
     /**
@@ -673,6 +691,51 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Asynchronously asks providers to handle jump-to-definition.
+     * @return {!Promise} null if no appropriate provider exists. Else, returns a promise
+     *  which is resolved by adjusting the editor selection to the requested definition.
+     */
+    function _doJumpToDef() {
+        var providers = _jumpToDefProviders;
+        var promise,
+            i,
+            result = new $.Deferred();
+        
+        if (_currentEditor) {
+            // main editor has focus
+
+            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
+            
+            // Run through providers until one responds
+            for (i = 0; i < providers.length && !promise; i++) {
+                var provider = providers[i];
+                promise = provider();
+            }
+
+            // Will one of them will provide a result?
+            if (promise) {
+                promise.done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.resolve();
+                }).fail(function () {
+                    // terminate timer that was started above
+                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.reject();
+                });
+            } else {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                result.reject();
+            }
+            
+        } else {
+            result.reject();
+        }
+        
+        return result.promise();
+    }
+    
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
         return _toggleInlineWidget(_inlineEditProviders);
@@ -680,7 +743,11 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
         return _toggleInlineWidget(_inlineDocsProviders);
     });
+    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
     
+    // Create PerfUtils measurement
+    PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
+
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
@@ -710,6 +777,7 @@ define(function (require, exports, module) {
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.registerInlineDocsProvider = registerInlineDocsProvider;
+    exports.registerJumpToDefProvider = registerJumpToDefProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
 });

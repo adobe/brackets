@@ -808,7 +808,7 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["getAmountDue", "getName", "name", "setAmountDue"]);
                 });
             });
- 
+
             it("should show argument from from .prototype.Method", function () {
                 var start = { line: 80, ch: 0 },
                     testPos = { line: 80, ch: 24 };
@@ -818,18 +818,6 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentOrdered(hintObj, ["setAmountDue(amountDue: ?)"]);
-                });
-            });
-            
-            it("should show guessed argument type from current passing parameter", function () {
-                var start = { line: 80, ch: 0 },
-                    testPos = { line: 80, ch: 24 };
-                
-                testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
-                testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                runs(function () {
-                    hintsPresentOrdered(hintObj, ["setAmountDue(amountDue: number)"]);
                 });
             });
             
@@ -1083,6 +1071,19 @@ define(function (require, exports, module) {
                 // check we have a properties that start with "shift"
                 hintsPresentOrdered(hintObj, ["frenchçProp"]);
             });
+
+            it("should show guessed argument type from current passing parameter", function () {
+                var start = { line: 80, ch: 0 },
+                    testPos = { line: 80, ch: 24 };
+                console.log("should show guessed...");
+                testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
+                testEditor.setCursorPos(testPos);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentOrdered(hintObj, ["setAmountDue(amountDue: number)"]);
+                });
+            });
+
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {

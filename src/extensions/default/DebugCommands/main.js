@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                 
                 function setLanguage(event) {
                     locale = $select.val();
-                    $submit.attr("disabled", false);
+                    $submit.prop("disabled", false);
                 }
                 
                 // returns the localized label for the given locale
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                 });
                 
                 $dialog = $(".switch-language.instance");
-                $submit = $dialog.find(".dialog-button[data-button-id='ok']");
+                $submit = $dialog.find(".dialog-button[data-button-id='" + Dialogs.DIALOG_BTN_OK + "']");
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);

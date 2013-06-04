@@ -121,12 +121,12 @@ define(function (require, exports, module) {
             this.$msgArea.hide();
             this.$inputArea.show();
             this.$okButton
-                .attr("disabled", "disabled")
+                .prop("disabled", true)
                 .text(Strings.INSTALL);
             break;
                 
         case STATE_VALID_URL:
-            this.$okButton.removeAttr("disabled");
+            this.$okButton.prop("disabled", false);
             break;
             
         case STATE_INSTALLING:
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
                 .append("<span class='spinner spin'/>");
             this.$msgArea.show();
-            this.$okButton.attr("disabled", "disabled");
+            this.$okButton.prop("disabled", true);
             this._installer.install(url)
                 .done(function () {
                     self._enterState(STATE_INSTALLED);
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         case STATE_CANCELING_INSTALL:
             // This should call back the STATE_INSTALLING fail() handler above, unless it's too late to cancel
             // in which case we'll still jump to STATE_INSTALLED after this
-            this.$cancelButton.attr("disabled", "disabled");
+            this.$cancelButton.prop("disabled", true);
             this.$msg.text(Strings.CANCELING_INSTALL);
             this._installer.cancel();
             window.setTimeout(function () {
@@ -287,12 +287,7 @@ define(function (require, exports, module) {
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
         // lifecycle of the dialog ourselves.
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(InstallDialogTemplate, Strings),
-            null,
-            null,
-            false
-        );
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, Strings), false);
         
         this.$dlg          = $(".install-extension-dialog.instance");
         this.$url          = this.$dlg.find(".url").focus();

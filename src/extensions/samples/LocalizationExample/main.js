@@ -57,7 +57,9 @@ define(function (require, exports, module) {
     function testCommand() {
         alert(Strings.ALERT_MESSAGE);
 
-        Dialogs.showModalDialog("sample-localized-dialog");
+        // Localize the dialog using Strings as the datasource and use it as the dialog template
+        var localizedTemplate = Mustache.render(browserWrapperHtml, Strings);
+        Dialogs.showModalDialogUsingTemplate(localizedTemplate);
     }
 
 
@@ -68,8 +70,4 @@ define(function (require, exports, module) {
 
     var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
     menu.addMenuItem(myCommandID, null, Menus.AFTER, myCommandID);
-   
-    // Localize the dialog using Strings as the datasource and insert it into the DOM
-    var localizedHTML = $(Mustache.render(browserWrapperHtml, Strings));
-    $('body').append(localizedHTML);
 });

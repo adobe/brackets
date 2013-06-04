@@ -36,24 +36,23 @@ define(function (require, exports, module) {
         Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session"),
         Acorn           = require("thirdparty/acorn/acorn");
-
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
-    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
         cachedHints  = null,  // sorted hints for the current hinting session
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null;  // string matcher for hints
+        matcher      = null,  // string matcher for hints
+        ignoreChange;         // can ignore next "change" event if true;
 
     /**
      *  Get the value of current session.
@@ -376,6 +375,10 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
+                // FIXME: passing null keys until can investigate a fix for "empty" updates
+                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                ignoreChange = true;
+
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
@@ -529,8 +532,11 @@ define(function (require, exports, module) {
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor, true);
                 $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
+                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                        if (!ignoreChange) {
+                            ScopeManager.handleFileChange(changeList);
+                        }
+                        ignoreChange = false;
                     });
             } else {
                 session = null;
@@ -566,8 +572,18 @@ define(function (require, exports, module) {
          * Handle JumptoDefiniton menu/keyboard command.
          */
         function handleJumpToDefinition() {
-            var offset     = session.getOffset(),
-                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+            var offset,
+                response;
+
+            // Only provide jump-to-definition results when cursor is in JavaScript content
+            if (session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            offset = session.getOffset();
+            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
@@ -584,36 +600,32 @@ define(function (require, exports, module) {
                         } else {
                             session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
+                        result.resolve(true);
+                    } else {
+                        result.reject();
                     }
 
                 }).fail(function () {
-                    response.reject();
+                    result.reject();
                 });
             }
+
+            return result.promise();
         }
 
         /*
          * Helper for QuickEdit jump-to-definition request.
          */
         function quickEditHelper() {
-            var offset     = session.getOffset(),
+            var offset     = session.getCursor(),
                 response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             return response;
         }
 
-        // Register command handler
-        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
-        
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
   
-        // Add the menu item
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        if (menu) {
-            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
-        }
-        
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -621,8 +633,15 @@ define(function (require, exports, module) {
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
         
+        $(ProjectManager).on("beforeProjectClose", function () {
+            ScopeManager.handleProjectClose();
+        });
+        
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
+
+        // init
+        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
