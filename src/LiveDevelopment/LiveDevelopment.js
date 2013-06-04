@@ -926,7 +926,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // document
                     close();
                 }
-            })
+            });
         }
         
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
