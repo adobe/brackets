@@ -123,6 +123,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
+        menu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
@@ -204,6 +205,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+        // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);

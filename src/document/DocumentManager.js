@@ -87,6 +87,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSyncManager     = require("project/FileSyncManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -94,7 +95,8 @@ define(function (require, exports, module) {
         CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        Strings             = require("strings");
     
     /**
      * @private
@@ -1223,13 +1225,9 @@ define(function (require, exports, module) {
     function notifyPathDeleted(path) {
         var i, docPath;
         
-        for (docPath in _openDocuments) {
-            if (FileUtils.isAffectedWhenRenaming(docPath, path)) {
-                // This will close the doc and remove from the working set
-                notifyFileDeleted(new NativeFileSystem.FileEntry(docPath), true);
-                delete _openDocuments[docPath];
-            }
-        }
+        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+           in the working set and notifying the user of any unsaved changes. */
+        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
         
         // Send a "pathDeleted" event. This will trigger the views to update.
         $(exports).triggerHandler("pathDeleted", path);
