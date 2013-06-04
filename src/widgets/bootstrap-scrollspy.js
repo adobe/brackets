@@ -1,8 +1,8 @@
 /* =============================================================
- * bootstrap-scrollspy.js v1.4.0
+ * bootstrap-scrollspy.js v2.3.1
  * http://twitter.github.com/bootstrap/javascript.html#scrollspy
  * =============================================================
- * Copyright 2011 Twitter, Inc.
+ * Copyright 2012 Twitter, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,90 +18,145 @@
  * ============================================================== */
 
 
-!function ( $ ) {
+!function ($) {
 
-  "use strict"
+  "use strict"; // jshint ;_;
 
-  var $window = $(window)
 
-  function ScrollSpy( topbar, selector ) {
-    var processScroll = $.proxy(this.processScroll, this)
-    this.$topbar = $(topbar)
-    this.selector = selector || 'li > a'
+ /* SCROLLSPY CLASS DEFINITION
+  * ========================== */
+
+  function ScrollSpy(element, options) {
+    var process = $.proxy(this.process, this)
+      , $element = $(element).is('body') ? $(window) : $(element)
+      , href
+    this.options = $.extend({}, $.fn.scrollspy.defaults, options)
+    this.$scrollElement = $element.on('scroll.scroll-spy.data-api', process)
+    this.selector = (this.options.target
+      || ((href = $(element).attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
+      || '') + ' .nav li > a'
+    this.$body = $('body')
     this.refresh()
-    this.$topbar.delegate(this.selector, 'click', processScroll)
-    $window.scroll(processScroll)
-    this.processScroll()
+    this.process()
   }
 
   ScrollSpy.prototype = {
 
-      refresh: function () {
-        this.targets = this.$topbar.find(this.selector).map(function () {
-          var href = $(this).attr('href')
-          return /^#\w/.test(href) && $(href).length ? href : null
-        })
+      constructor: ScrollSpy
 
-        this.offsets = $.map(this.targets, function (id) {
-          return $(id).offset().top
-        })
+    , refresh: function () {
+        var self = this
+          , $targets
+
+        this.offsets = $([])
+        this.targets = $([])
+
+        $targets = this.$body
+          .find(this.selector)
+          .map(function () {
+            var $el = $(this)
+              , href = $el.data('target') || $el.attr('href')
+              , $href = /^#\w/.test(href) && $(href)
+            return ( $href
+              && $href.length
+              && [[ $href.position().top + (!$.isWindow(self.$scrollElement.get(0)) && self.$scrollElement.scrollTop()), href ]] ) || null
+          })
+          .sort(function (a, b) { return a[0] - b[0] })
+          .each(function () {
+            self.offsets.push(this[0])
+            self.targets.push(this[1])
+          })
       }
 
-    , processScroll: function () {
-        var scrollTop = $window.scrollTop() + 10
+    , process: function () {
+        var scrollTop = this.$scrollElement.scrollTop() + this.options.offset
+          , scrollHeight = this.$scrollElement[0].scrollHeight || this.$body[0].scrollHeight
+          , maxScroll = scrollHeight - this.$scrollElement.height()
           , offsets = this.offsets
           , targets = this.targets
           , activeTarget = this.activeTarget
           , i
 
+        if (scrollTop >= maxScroll) {
+          return activeTarget != (i = targets.last()[0])
+            && this.activate ( i )
+        }
+
         for (i = offsets.length; i--;) {
           activeTarget != targets[i]
             && scrollTop >= offsets[i]
             && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
-            && this.activateButton( targets[i] )
+            && this.activate( targets[i] )
         }
       }
 
-    , activateButton: function (target) {
+    , activate: function (target) {
+        var active
+          , selector
+
         this.activeTarget = target
 
-        this.$topbar
-          .find(this.selector).parent('.active')
+        $(this.selector)
+          .parent('.active')
           .removeClass('active')
 
-        this.$topbar
-          .find(this.selector + '[href="' + target + '"]')
+        selector = this.selector
+          + '[data-target="' + target + '"],'
+          + this.selector + '[href="' + target + '"]'
+
+        active = $(selector)
           .parent('li')
           .addClass('active')
+
+        if (active.parent('.dropdown-menu').length)  {
+          active = active.closest('li.dropdown').addClass('active')
+        }
+
+        active.trigger('activate')
       }
 
   }
 
-  /* SCROLLSPY PLUGIN DEFINITION
-   * =========================== */
 
-  $.fn.scrollSpy = function( options ) {
-    var scrollspy = this.data('scrollspy')
+ /* SCROLLSPY PLUGIN DEFINITION
+  * =========================== */
 
-    if (!scrollspy) {
-      return this.each(function () {
-        $(this).data('scrollspy', new ScrollSpy( this, options ))
-      })
-    }
+  var old = $.fn.scrollspy
 
-    if ( options === true ) {
-      return scrollspy
-    }
+  $.fn.scrollspy = function (option) {
+    return this.each(function () {
+      var $this = $(this)
+        , data = $this.data('scrollspy')
+        , options = typeof option == 'object' && option
+      if (!data) $this.data('scrollspy', (data = new ScrollSpy(this, options)))
+      if (typeof option == 'string') data[option]()
+    })
+  }
 
-    if ( typeof options == 'string' ) {
-      scrollspy[options]()
-    }
+  $.fn.scrollspy.Constructor = ScrollSpy
 
+  $.fn.scrollspy.defaults = {
+    offset: 10
+  }
+
+
+ /* SCROLLSPY NO CONFLICT
+  * ===================== */
+
+  $.fn.scrollspy.noConflict = function () {
+    $.fn.scrollspy = old
     return this
   }
 
-  $(document).ready(function () {
-    $('body').scrollSpy('[data-scrollspy] li > a')
+
+ /* SCROLLSPY DATA-API
+  * ================== */
+
+  $(window).on('load', function () {
+    $('[data-spy="scroll"]').each(function () {
+      var $spy = $(this)
+      $spy.scrollspy($spy.data())
+    })
   })
 
-}( window.jQuery || window.ender );
+}(window.jQuery);
