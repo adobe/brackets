@@ -963,7 +963,7 @@ define(function (require, exports, module) {
             numAddedFiles = 0;
             stopAddingFiles = false;
             numInitialFiles = files.length;
-    
+
             ternPromise.done(function (worker) {
                 worker.postMessage({
                     type        : MessageIds.TERN_INIT_MSG,
@@ -1007,7 +1007,8 @@ define(function (require, exports, module) {
             var addFilesDeferred = $.Deferred();
     
             _lastPrimePump = shouldPrimePump;
-            
+            documentChanges = null;
+
             addFilesPromise = addFilesDeferred.promise();
             pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
     
@@ -1030,7 +1031,6 @@ define(function (require, exports, module) {
             }
     
             isDocumentDirty = false;
-            
             resolvedFiles = {};
     
             projectRoot = pr;
