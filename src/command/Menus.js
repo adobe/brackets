@@ -771,7 +771,7 @@ define(function (require, exports, module) {
      * Closes all menus that are open
      */
     function closeAll() {
-        $(".dropdown").removeClass("open").dropdown("toggle");
+        $(".dropdown").removeClass("open");
     }
     
     /**
@@ -934,14 +934,13 @@ define(function (require, exports, module) {
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
-
+        
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
         }
 
         // open the context menu at final location
-        $menuWindow.dropdown("toggle");
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});
     };
@@ -950,7 +949,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open").dropdown("toggle");
+        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 
     /**
