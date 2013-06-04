@@ -1,4 +1,5 @@
-#jslint-status {
+#status-indicators #jslint-status {
+    border: none;
     width: 13px;
 }
 
@@ -11,6 +12,10 @@
 .jslint-errors {
     background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
     cursor: pointer;
+}
+
+.jslint-errors:active {
+    opacity: 0.5;
 }
 
 .jslint-valid {
