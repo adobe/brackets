@@ -142,6 +142,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Denotes filenames which are not allowed even if the system allows them
+     */
+    var _illegalFilenames = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+                             'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+                             'nul', 'con', 'prn', 'aux', '.', '..', '...'];
+    
+    /**
+     * @private
      * While initially rendering the tree, stores a list of promises for folders waiting to be read.
      * Is null when tree is not doing its initial rendering.
      */
@@ -1110,10 +1118,6 @@ define(function (require, exports, module) {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
     }
     
-    var _illegalFilenames = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
-                             'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
-                             'nul', 'con', 'prn', 'aux', '.', '..', '...'];
-
     /**
      * @private
      *
