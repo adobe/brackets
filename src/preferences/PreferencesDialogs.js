@@ -85,19 +85,20 @@ define(function (require, exports, module) {
             $baseUrlControl,
             dialog;
 
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
-            .done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    var baseUrlValue = $baseUrlControl.val();
-                    var result = _validateBaseUrl(baseUrlValue);
-                    if (result === "") {
-                        ProjectManager.setBaseUrl(baseUrlValue);
-                    } else {
-                        // Re-invoke dialog with result (error message)
-                        showProjectPreferencesDialog(baseUrlValue, result);
-                    }
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings));
+
+        dialog.done(function (id) {
+            if (id === Dialogs.DIALOG_BTN_OK) {
+                var baseUrlValue = $baseUrlControl.val();
+                var result = _validateBaseUrl(baseUrlValue);
+                if (result === "") {
+                    ProjectManager.setBaseUrl(baseUrlValue);
+                } else {
+                    // Re-invoke dialog with result (error message)
+                    showProjectPreferencesDialog(baseUrlValue, result);
                 }
-            });
+            }
+        });
 
         // Populate project settings
         $dlg = $(".project-settings-dialog.instance");

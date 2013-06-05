@@ -1107,7 +1107,7 @@ define(function (require, exports, module) {
      * @return {Dialog}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
 
     /**
