@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         }
         
         function validateLanguage(expected, actual) {
+            var i = 0;
             if (!actual) {
                 actual = LanguageManager.getLanguage(expected.id);
             } else {
@@ -62,7 +63,9 @@ define(function (require, exports, module) {
             
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            for (i = 0; i < actual.getFileExtensions.length; i++) {
+                expect(expected.fileExtensions).toContain(actual.getFileExtensions()[i] || []);
+            }
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
@@ -99,7 +102,7 @@ define(function (require, exports, module) {
                     "id": "html",
                     "name": "HTML",
                     "mode": ["htmlmixed", "text/x-brackets-html"],
-                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "ejs", "jsp"],
+                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "ejs", "jsp", "phtml"],
                     "blockComment": {prefix: "<!--", suffix: "-->"}
                 };
                 
