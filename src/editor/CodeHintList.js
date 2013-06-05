@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         PopUpManager    = require("widgets/PopUpManager"),
         ViewUtils       = require("utils/ViewUtils"),
+        KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent        = require("utils/KeyEvent");
     
     var CodeHintListHTML = require("text!htmlContent/code-hint-list.html");
@@ -103,6 +104,8 @@ define(function (require, exports, module) {
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
                 .append("<ul class='dropdown-menu'></ul>");
+        
+        this._handleKeydown = this._handleKeydown.bind(this);
     }
 
     /**
@@ -266,11 +269,23 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Check whether keyCode is one of the keys that we handle or not.
+     *
+     * @param {number} keyCode
+     */
+    CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
+        return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
+                keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
+                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
+        
+    };
+
+    /**
      * Convert keydown events into hint list navigation actions.
      *
      * @param {KeyBoardEvent} keyEvent
      */
-    CodeHintList.prototype.handleKeyEvent = function (event) {
+    CodeHintList.prototype._handleKeydown = function (event) {
         var keyCode,
             self = this;
 
@@ -326,10 +341,20 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown") {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
             keyCode = event.keyCode;
 
-            if (keyCode === KeyEvent.DOM_VK_UP) {
+            if (event.shiftKey &&
+                    (event.keyCode === KeyEvent.DOM_VK_UP ||
+                     event.keyCode === KeyEvent.DOM_VK_DOWN ||
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
+                this.handleClose();
+                
+                // Let the event bubble.
+                return false;
+            }
+            else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
@@ -342,12 +367,17 @@ define(function (require, exports, module) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
-                // only prevent default handler when the list handles the event
-                return;
+                // Let the event bubble.
+                return false;
             }
             
+            event.stopImmediatePropagation();
             event.preventDefault();
+            return true;
         }
+        
+        // If we didn't handle it, let other global handlers handle it.
+        return false;
     };
 
     /**
@@ -387,6 +417,8 @@ define(function (require, exports, module) {
             this.opened = true;
             
             PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
+            
+            KeyBindingManager.addGlobalKeydownHandler(this._handleKeydown);
         }
     };
 
@@ -416,6 +448,8 @@ define(function (require, exports, module) {
         
         PopUpManager.removePopUp(this.$hintMenu);
         this.$hintMenu.remove();
+        
+        KeyBindingManager.removeGlobalKeydownHandler(this._handleKeydown);
     };
 
     /**

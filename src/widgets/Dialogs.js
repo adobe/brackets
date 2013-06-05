@@ -58,14 +58,6 @@ define(function (require, exports, module) {
         DIALOG_BTN_CLASS_LEFT       = "left";
     
 
-    /** 
-     * A stack of keydown event handler functions that corresponds to the
-     * current stack of modal dialogs.
-     * 
-     * @type {Array.<function>} 
-     */
-    var _keydownListeners = [];
-
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
         $(".clickable-link", dlg).off("click");
@@ -117,11 +109,13 @@ define(function (require, exports, module) {
         } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
-            // TODO (issue #414): more robust handling of dialog scoped
-            //                    vs. global key bindings
             e.stopPropagation();
             e.preventDefault();
         }
+        
+        // Stop any other global handlers from processing the event (but
+        // allow it to continue bubbling if we haven't otherwise stopped it).
+        return true;
     };
     
     
@@ -200,7 +194,7 @@ define(function (require, exports, module) {
         });
 
         var handleKeyDown = function (e) {
-            _handleKeyDown.call($dlg, e, autoDismiss);
+            return _handleKeyDown.call($dlg, e, autoDismiss);
         };
 
         // Pipe dialog-closing notification back to client code
@@ -220,24 +214,8 @@ define(function (require, exports, module) {
             // Remove the dialog instance from the DOM.
             $dlg.remove();
 
-            // Remove keydown event handler
-            window.document.body.removeEventListener("keydown", handleKeyDown, true);
-            
-            // Remove this dialog's listener from the stack of listeners. (It 
-            // might not be on the top of the stack if the dialogs are somehow
-            // dismissed out of order.)
-            _keydownListeners = _keydownListeners.filter(function (listener) {
-                return listener !== handleKeyDown;
-            });
-            
-            // Restore the previous listener if there was one; otherwise return
-            // control to the KeyBindingManager.
-            if (_keydownListeners.length > 0) {
-                var previousListener = _keydownListeners[_keydownListeners.length - 1];
-                window.document.body.addEventListener("keydown", previousListener, true);
-            } else {
-                KeyBindingManager.setEnabled(true);
-            }
+            // Remove our global keydown handler.
+            KeyBindingManager.removeGlobalKeydownHandler(handleKeyDown);
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -246,18 +224,8 @@ define(function (require, exports, module) {
                 primaryBtn.focus();
             }
 
-            // If this is the only dialog then also disable the KeyBindingManager;
-            // otherwise, remove and the previous dialog's listener before installing the new one.
-            if (_keydownListeners.length > 0) {
-                var previousListener = _keydownListeners[_keydownListeners.length - 1];
-                window.document.body.removeEventListener("keydown", previousListener, true);
-            } else {
-                KeyBindingManager.setEnabled(false);
-            }
-            _keydownListeners.push(handleKeyDown);
-            
-            // Handle this dialog's keyboard events with the current listener
-            window.document.body.addEventListener("keydown", handleKeyDown, true);
+            // Push our global keydown handler onto the global stack of handlers.
+            KeyBindingManager.addGlobalKeydownHandler(handleKeyDown);
         });
         
         // Click handler for buttons

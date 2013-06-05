@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
 /*global define, $, brackets, window */
+/*unittests: KeyBindingManager */
 
 /**
  * Manages the mapping of keyboard inputs to commands.
@@ -41,21 +42,32 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
     
     /**
+     * @private
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     var _keyMap = {};
 
     /**
+     * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
     var _commandMap = {};
 
     /**
+     * @private
      * Allow clients to toggle key binding
+     * @type {boolean}
      */
     var _enabled = true;
+    
+    /**
+     * @private
+     * Stack of registered global keydown handlers.
+     * @type {Array.<function(Event): boolean>}
+     */
+    var _globalKeydownHandlers = [];
 
     /**
      * @private
@@ -63,6 +75,7 @@ define(function (require, exports, module) {
     function _reset() {
         _keyMap = {};
         _commandMap = {};
+        _globalKeydownHandlers = [];
     }
 
     /**
@@ -482,7 +495,7 @@ define(function (require, exports, module) {
      * @param {string} A key-description string.
      * @return {boolean} true if the key was processed, false otherwise
      */
-    function handleKey(key) {
+    function _handleKey(key) {
         if (_enabled && _keyMap[key]) {
             // The execute() function returns a promise because some commands are async.
             // Generally, commands decide whether they can run or not synchronously,
@@ -594,17 +607,74 @@ define(function (require, exports, module) {
             addBinding(commandId, defaults);
         }
     }
+    
+    /**
+     * Adds a global keydown handler that gets first crack at keydown events 
+     * before standard keybindings do. This is intended for use by modal or 
+     * semi-modal UI elements like dialogs or the code hint list that should 
+     * execute before normal command bindings are run. 
+     * 
+     * The handler is passed one parameter, the original keyboard event. If the 
+     * handler handles the event (or wants to block other global handlers from 
+     * handling the event), it should return true. Note that this will *only*
+     * stop other global handlers and KeyBindingManager from handling the
+     * event; to prevent further event propagation, you will need to call
+     * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
+     * as usual.
+     *
+     * Multiple keydown handlers can be registered, and are executed in order, 
+     * most-recently-added first.
+     * 
+     * (We have to have a special API for this because (1) handlers are normally
+     * called in least-recently-added order, and we want most-recently-added; 
+     * (2) native DOM events don't have a way for us to find out if 
+     * stopImmediatePropagation()/stopPropagation() has been called on the
+     * event, so we have to have some other way for one of the handlers to 
+     * indicate that it wants to block the other handlers from running.)
+     *
+     * @param {function(Event): boolean} handler The global handler to add.
+     */
+    function addGlobalKeydownHandler(handler) {
+        _globalKeydownHandlers.push(handler);
+    }
+    
+    /**
+     * Removes a global keydown handler added by `addGlobalKeydownHandler`.
+     * Does not need to be the most recently added handler.
+     *
+     * @param {function(Event): boolean} handler The global handler to remove.
+     */
+    function removeGlobalKeydownHandler(handler) {
+        var index = _globalKeydownHandlers.indexOf(handler);
+        if (index !== -1) {
+            _globalKeydownHandlers.splice(index, 1);
+        }
+    }
+    
+    /**
+     * Handles a given keydown event, checking global handlers first before
+     * deciding to handle it ourselves.
+     * @param {Event} The keydown event to handle.
+     */
+    function _handleKeyEvent(event) {
+        var i, handled = false;
+        for (i = _globalKeydownHandlers.length - 1; i >= 0; i--) {
+            if (_globalKeydownHandlers[i](event)) {
+                handled = true;
+                break;
+            }
+        }
+        if (!handled && _handleKey(_translateKeyboardEvent(event))) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
 
     AppInit.htmlReady(function () {
         // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
-            function (event) {
-                if (handleKey(_translateKeyboardEvent(event))) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            },
+            _handleKeyEvent,
             true
         );
         
@@ -619,12 +689,13 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    exports.addGlobalKeydownHandler = addGlobalKeydownHandler;
+    exports.removeGlobalKeydownHandler = removeGlobalKeydownHandler;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
@@ -635,4 +706,8 @@ define(function (require, exports, module) {
      * not Linux.
      */
     exports.useWindowsCompatibleBindings = false;
+    
+    // For unit testing only
+    exports._handleKey = _handleKey;
+    exports._handleKeyEvent = _handleKeyEvent;
 });
