@@ -310,7 +310,7 @@ define(function (require, exports, module) {
         
         // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
         // won't do anything
-        promise.pipe(wrapper.resolve, wrapper.reject);
+        promise.then(wrapper.resolve, wrapper.reject);
         
         return wrapper.promise();
     }

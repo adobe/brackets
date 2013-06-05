@@ -100,6 +100,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
+    "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
@@ -157,8 +158,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
     /**
      * Command Name Constants
@@ -315,7 +316,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
-    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string {{0}} is invalid.",
     "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
@@ -345,11 +346,11 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. Brackets will still quit.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. {APP_NAME} will still quit.",
     "MARKED_FOR_REMOVAL"                   : "Marked for removal",
     "UNDO_REMOVE"                          : "Undo",
     "REMOVE_AND_QUIT_TITLE"                : "Remove Extensions",
-    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
     "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br />Click the Install from URL button below to get started.",

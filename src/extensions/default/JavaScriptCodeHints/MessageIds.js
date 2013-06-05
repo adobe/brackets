@@ -35,7 +35,14 @@ define(function (require, exports, module) {
         TERN_GET_FILE_MSG           = "GetFile",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump",
-        TERN_GET_GUESSES_MSG        = "GetGuesses";
+        TERN_GET_GUESSES_MSG        = "GetGuesses",
+        TERN_WORKER_READY           = "WorkerReady";
+
+    // Message parameter constants
+    var TERN_FILE_INFO_TYPE_PART    = "part",
+        TERN_FILE_INFO_TYPE_FULL    = "full",
+        TERN_FILE_INFO_TYPE_EMPTY   = "empty";
+
 
     exports.TERN_ADD_FILES_MSG          = TERN_ADD_FILES_MSG;
     exports.TERN_JUMPTODEF_MSG          = TERN_JUMPTODEF_MSG;
@@ -46,6 +53,10 @@ define(function (require, exports, module) {
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
     exports.TERN_GET_GUESSES_MSG        = TERN_GET_GUESSES_MSG;
     exports.TERN_UPDATE_FILE_MSG        = TERN_UPDATE_FILE_MSG;
+    exports.TERN_WORKER_READY           = TERN_WORKER_READY;
+    exports.TERN_FILE_INFO_TYPE_PART    = TERN_FILE_INFO_TYPE_PART;
+    exports.TERN_FILE_INFO_TYPE_FULL    = TERN_FILE_INFO_TYPE_FULL;
+    exports.TERN_FILE_INFO_TYPE_EMPTY   = TERN_FILE_INFO_TYPE_EMPTY;
 });
 
 

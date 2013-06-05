@@ -459,8 +459,16 @@ define(function (require, exports, module) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
             if (_inSession(editor) && hintList.isOpen()) {
-                // Pass event to the hint list, if it's open
-                hintList.handleKeyEvent(event);
+                if (event.shiftKey &&
+                        (event.keyCode === KeyEvent.DOM_VK_UP ||
+                         event.keyCode === KeyEvent.DOM_VK_DOWN ||
+                         event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
+                         event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
+                    _endSession();
+                } else {
+                    // Pass event to the hint list, if it's open
+                    hintList.handleKeyEvent(event);
+                }
             }
             if (!(event.ctrlKey || event.altKey || event.metaKey) &&
                     (event.keyCode === KeyEvent.DOM_VK_ENTER ||
@@ -514,6 +522,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test whether the provider has an exclusion that is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when the provider inserts the selected hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
      *  Test if a hint popup is open.
      *
      * @returns {boolean} - true if the hints are open, false otherwise.
@@ -544,4 +564,5 @@ define(function (require, exports, module) {
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.hasValidExclusion       = hasValidExclusion;
 });

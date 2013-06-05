@@ -100,7 +100,7 @@ define(function (require, exports, module) {
          */
         this.$hintMenu =
             $("<li class='dropdown codehint-menu'></li>")
-                .append($("<a href='#' class='dropdown-toggle'></a>")
+                .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
                 .append("<ul class='dropdown-menu'></ul>");
     }

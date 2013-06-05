@@ -53,6 +53,8 @@ define({
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen der Datei",
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
+    "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
     "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
@@ -181,8 +183,10 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_FILE_DELETE"                     : "Löschen",
     "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
     "CMD_EXTENSION_MANAGER"               : "Erweiterungs-Verwaltung\u2026",
+    "CMD_FILE_REFRESH"                    : "Aktualisieren",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Beenden",
@@ -213,6 +217,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Zeile darüber öffnen",
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
+    "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -243,6 +248,7 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
+    "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -312,9 +318,9 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
     "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
-    "INVALID_BRACKETS_VERSION"             : "Die Brackets-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
+    "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
     "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{0}} nicht erlaubt.",
-    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
+    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von {APP_NAME} kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
@@ -334,6 +340,8 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
+    "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
+    "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
     "EXTENSION_INSTALLED"                  : "Installiert",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
@@ -341,10 +349,13 @@ define({
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {{0}}",
-    "QUIT_BRACKETS_AFTER_REMOVAL"          : "Nach dem Entfernen von Erweiterungen müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
-    "QUIT_BRACKETS"                        : "Brackets beenden",
+    "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
+    "UNDO_REMOVE"                          : "Rückgängig",
+    "REMOVE_AND_QUIT_TITLE"                : "Erweiterungen entfernen",
+    "REMOVE_AND_QUIT_MESSAGE"              : "Um die markierten Erweiterungen zu entfernen, müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und beenden",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {{0}} konnte nicht entfernt werden, weil sie nicht installiert ist.",
-    
+    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br />Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
     /**
      * Unit names
      */

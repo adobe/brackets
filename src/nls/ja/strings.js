@@ -100,6 +100,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
+	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
@@ -157,8 +158,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
     /**
      * Command Name Constants
@@ -315,7 +316,7 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
-	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
+	"INVALID_BRACKETS_VERSION": "{APP_NAME} 互換文字列 {{0}} は無効です。",
 	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
@@ -345,11 +346,11 @@ define({
 	"EXTENSION_MORE_INFO_LINK": "詳細",
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
 	"EXTENSION_MANAGER_REMOVE": "拡張機能を削除",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "1 つ以上の拡張機能 ({{0}}) を削除できません。Brackets が終了中です。",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "1 つ以上の拡張機能 ({{0}}) を削除できません。{APP_NAME} が終了中です。",
 	"MARKED_FOR_REMOVAL": "削除予定",
 	"UNDO_REMOVE": "取り消し",
 	"REMOVE_AND_QUIT_TITLE": "拡張機能を削除",
-	"REMOVE_AND_QUIT_MESSAGE": "削除予定の拡張機能を削除するには、Brackets を一度終了して再起動する必要があります。未保存の変更を保存するかどうか確認されます。",
+	"REMOVE_AND_QUIT_MESSAGE": "削除予定の拡張機能を削除するには、{APP_NAME} を一度終了して再起動する必要があります。未保存の変更を保存するかどうか確認されます。",
 	"REMOVE_AND_QUIT": "拡張機能を削除して終了",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {{0}} を削除できませんでした。",
 	"NO_EXTENSIONS": "拡張機能はまだインストールされていません。<br/>下にある「URL からインストール」ボタンをクリックして開始しましょう。",

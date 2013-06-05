@@ -383,7 +383,7 @@ define(function (require, exports, module) {
             .done(function (connection) {
                 if (connection.connected()) {
                     connection.domains.extensionManager.remove(path)
-                        .pipe(d.resolve, d.reject);
+                        .then(d.resolve, d.reject);
                 }
             })
             .fail(function (err) {

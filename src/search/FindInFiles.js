@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window */
+/*global define, $, PathUtils, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async               = require("utils/Async"),
+        Resizer             = require("utils/Resizer"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
@@ -50,12 +51,15 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         FileIndexManager    = require("project/FileIndexManager"),
         FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
         StatusBar           = require("widgets/StatusBar"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
+    
+    var searchResultsTemplate = require("text!htmlContent/search-results.html");
 
     var searchResults = [];
     
@@ -64,8 +68,8 @@ define(function (require, exports, module) {
         currentQuery = "",
         currentScope;
     
-    // Div holding the search results. Initialized in htmlReady().
-    var $searchResultsDiv;
+    // Bottom panel holding the search results. Initialized in htmlReady().
+    var searchResultsPanel;
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -86,7 +90,7 @@ define(function (require, exports, module) {
                 $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error")
                     .css("display", "inline-block")
-                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                    .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -160,7 +164,7 @@ define(function (require, exports, module) {
         var $searchField = $("input#findInFilesInput");
         var that = this;
         
-        $searchField.attr("value", initialString || "");
+        $searchField.val(initialString || "");
         $searchField.get(0).select();
         
         $("#findInFilesScope").html(_labelForScope(scope));
@@ -193,9 +197,8 @@ define(function (require, exports, module) {
     };
     
     function _hideSearchResults() {
-        if ($searchResultsDiv.is(":visible")) {
-            $searchResultsDiv.hide();
-            EditorManager.resizeEditor();
+        if (searchResultsPanel.isVisible()) {
+            searchResultsPanel.hide();
         }
     }
 
@@ -242,7 +245,7 @@ define(function (require, exports, module) {
         
     function _showSearchResults(searchResults, query, scope) {
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped row-highlight condensed-table' />")
+            var $resultTable = $("<table class='table table-striped table-condensed row-highlight' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -340,12 +343,10 @@ define(function (require, exports, module) {
                     _hideSearchResults();
                 });
             
-            $searchResultsDiv.show();
+            searchResultsPanel.show();
         } else {
             _hideSearchResults();
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -444,11 +445,12 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $searchResultsDiv  = $("#search-results");
+        var panelHtml = Mustache.render(searchResultsTemplate, Strings);
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($searchResultsDiv.is(":visible")) {
+        if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
@@ -458,7 +460,7 @@ define(function (require, exports, module) {
     }
   
     function _pathDeletedHandler(event, path) {
-        if ($searchResultsDiv.is(":visible")) {
+        if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item, idx) {
                 if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {

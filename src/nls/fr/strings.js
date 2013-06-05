@@ -100,6 +100,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
+	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
@@ -157,8 +158,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     /**
      * Command Name Constants
@@ -315,7 +316,7 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
-	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
+	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} {{0}} n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
@@ -345,11 +346,11 @@ define({
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
 	"EXTENSION_MANAGER_REMOVE": "Supprimer l’extension",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {{0}}. Brackets va être fermé malgré tout.",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {{0}}. {APP_NAME} va être fermé malgré tout.",
 	"MARKED_FOR_REMOVAL": "Marquée pour suppression",
 	"UNDO_REMOVE": "Annuler",
 	"REMOVE_AND_QUIT_TITLE": "Supprimer les extensions",
-	"REMOVE_AND_QUIT_MESSAGE": "Pour supprimer les extensions marquées, vous devez quitter puis relancer Brackets. Vous serez invité à enregistrer vos modifications.",
+	"REMOVE_AND_QUIT_MESSAGE": "Pour supprimer les extensions marquées, vous devez quitter puis relancer {APP_NAME}. Vous serez invité à enregistrer vos modifications.",
 	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {{0}} car elle n’est pas installée.",
 	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br />Cliquez sur le bouton Installer à partir de l’URL se trouvant ci-dessous pour démarrer.",
