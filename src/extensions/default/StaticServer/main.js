@@ -269,10 +269,6 @@ define(function (require, exports, module) {
                 }
             );
         });
-        
-        if (brackets.test) {
-            brackets.test.extensions.StaticServer = module.exports;
-        }
 
         return _nodeConnectionDeferred.promise();
     }

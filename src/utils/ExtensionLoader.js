@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     var _init       = false,
+        _extensions = {},
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
@@ -107,6 +108,8 @@ define(function (require, exports, module) {
             function (module) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
                 var initPromise;
+
+                _extensions[name] = module;
 
                 if (module.init && (typeof module.init === "function")) {
                     // optional async extension init 
@@ -316,7 +319,15 @@ define(function (require, exports, module) {
         
         return promise;
     }
+
+    function _getExtensionByName(name) {
+        return _extensions[name];
+    }
+
+    // unit tests
+    exports._getExtensionByName = _getExtensionByName;
     
+    // public API
     exports.init = init;
     exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;

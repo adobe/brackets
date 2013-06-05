@@ -60,7 +60,7 @@ define(function (require, exports, module) {
                 if (!nodeConnection) {
                     runs(function () {
                         // wait for StaticServer/main to connect and load the StaticServerDomain
-                        main._getNodeConnectionDeferred().done(function (conn) {
+                        main.init().done(function (conn) {
                             nodeConnection = conn;
                         });
 
@@ -520,20 +520,18 @@ define(function (require, exports, module) {
                 StaticServer;
             
             beforeEach(function () {
+                var ExtensionLoader;
+
                 runs(function () {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test
-                        brackets = testWindow.brackets;
-                        ProjectManager = testWindow.brackets.test.ProjectManager;
+                        brackets        = testWindow.brackets;
+                        ProjectManager  = testWindow.brackets.test.ProjectManager;
+                        StaticServer    = brackets.getModule("utils/ExtensionLoader")._getExtensionByName("StaticServer");
                     });
                 });
                 
-                waitsFor(function () {
-                    return brackets.test.extensions.StaticServer !== undefined;
-                }, "StaticServer to fully initialize");
-                
                 runs(function () {
-                    StaticServer = brackets.test.extensions.StaticServer;
                     waitsForDone(StaticServer._getNodeConnectionDeferred(), "connecting to node server", CONNECT_TIMEOUT);
                 });
             });

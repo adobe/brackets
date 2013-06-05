@@ -45,7 +45,7 @@ define(function (require, exports, module) {
                         CommandManager = testWindow.brackets.test.CommandManager;
                         Commands = testWindow.brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        QuickView = brackets.test.extensions.QuickView;
+                        QuickView = brackets.getModule("utils/ExtensionLoader")._getExtensionByName("QuickView");
                     });
                 });
 
