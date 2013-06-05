@@ -194,6 +194,36 @@ define(function (require, exports, module) {
     };
 
     /**
+     *  Cache the hints and the hint's context.
+     *
+     *  @param {Array.<string>} hints - array of hints
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                showFunctionType:boolean,
+                context: string,
+                functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
+     */
+    function setCachedHintContext(hints, cursor, type, token) {
+        cachedHints = hints;
+        cachedCursor = cursor;
+        cachedType = type;
+        cachedToken = token;
+    }
+
+    /**
+     *  Reset cached hint context.
+     */
+    function resetCachedHintContext() {
+        cachedHints = null;
+        cachedCursor = null;
+        cachedType = null;
+        cachedToken =  null;
+    }
+
+    /**
      *  Have conditions have changed enough to justify closing the hints popup?
      *
      * @param {Session} session - the active hinting session
@@ -264,18 +294,36 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Check if a hint response is pending.
+     *
+     * @param {jQuery.Deferred} deferredHints - deferred hint response
+     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     */
+    function hintsArePending(deferredHints) {
+        return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
+            deferredHints.state() === "pending");
+    }
+
+    /**
      *  Common code to get the session hints. Will get guesses if there were
      *  no completions for the query.
      *
      * @param {string} query - user text to search hints with
-     * @param {Object} type - the type of query, property vs. identifier
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                 showFunctionType:boolean,
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
      * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
      * resolve (optional). If not supplied a new Deferred will be created if
      * needed.
      * @return {Object + jQuery.Deferred} - hint response (immediate or
      *     deferred) as defined by the CodeHintManager API
      */
-    function getSessionHints(query, type, $deferredHints) {
+    function getSessionHints(query, cursor, type, token, $deferredHints) {
 
         var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
@@ -287,23 +335,26 @@ define(function (require, exports, module) {
             }
 
             guessesResponse.done(function () {
-                query = session.getQuery();
-                hintResults = session.getHints(query, getStringMatcher());
-                cachedHints = hintResults.hints;
-                var hintResponse = getHintResponse(cachedHints, query, type);
-
-                $deferredHints.resolveWith(null, [hintResponse]);
+                if (hintsArePending($deferredHints)) {
+                    hintResults = session.getHints(query, getStringMatcher());
+                    setCachedHintContext(hintResults.hints, cursor, type, token);
+                    var hintResponse = getHintResponse(cachedHints, query, type);
+                    $deferredHints.resolveWith(null, [hintResponse]);
+                }
+            }).fail(function () {
+                if (hintsArePending($deferredHints)) {
+                    $deferredHints.reject();
+                }
             });
 
             return $deferredHints;
-        } else if ($deferredHints && $deferredHints.state() === "pending") {
-            cachedHints = hintResults.hints;
+        } else if (hintsArePending($deferredHints)) {
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             var hintResponse    = getHintResponse(cachedHints, query, type);
-
             $deferredHints.resolveWith(null, [hintResponse]);
             return null;
         } else {
-            cachedHints = hintResults.hints;
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             return getHintResponse(cachedHints, query, type);
         }
     }
@@ -336,9 +387,7 @@ define(function (require, exports, module) {
                     query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
-                    cachedCursor = null;
-                    cachedHints = null;
-                    cachedToken = null;
+                    resetCachedHintContext();
                     matcher = null;
                 }
                 return true;
@@ -369,35 +418,32 @@ define(function (require, exports, module) {
                 return null;
             }
 
-            cachedCursor = cursor;
-            cachedToken = token;
-
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                // FIXME: passing null keys until can investigate a fix for "empty" updates
-                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
-                ignoreChange = true;
-
-                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
-
-                if (scopeResponse.hasOwnProperty("promise")) {
-                    var $deferredHints = $.Deferred();
-                    scopeResponse.promise.done(function () {
-                        cachedType = session.getType();
-                        getSessionHints(session.getQuery(), type, $deferredHints);
-                    }).fail(function () {
-                        if ($deferredHints.state() === "pending") {
-                            $deferredHints.reject();
-                        }
-                    });
-
-                    return $deferredHints;
+                if (key) {
+                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ignoreChange = true;
                 }
+
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
+                    $deferredHints = $.Deferred();
+
+                scopeResponse.done(function () {
+                    if (hintsArePending($deferredHints)) {
+                        getSessionHints(query, cursor, type, token, $deferredHints);
+                    }
+                }).fail(function () {
+                    if (hintsArePending($deferredHints)) {
+                        $deferredHints.reject();
+                    }
+                });
+
+                return $deferredHints;
             }
 
             if (cachedHints) {
-                return getSessionHints(query, type);
+                return getSessionHints(query, cursor, type, token);
             }
         }
 
@@ -525,9 +571,7 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
-            cachedCursor = null;
-            cachedHints = null;
-            cachedType = null;
+            resetCachedHintContext();
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor, true);

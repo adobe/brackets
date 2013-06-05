@@ -46,11 +46,11 @@ define(function (require, exports, module) {
         
         function updateSearch() {
             if (view.model.filterSet.length === 0) {
-                $search.attr("disabled", "disabled");
-                $searchClear.attr("disabled", "disabled");
+                $search.prop("disabled", true);
+                $searchClear.prop("disabled", true);
             } else {
-                $search.removeAttr("disabled");
-                $searchClear.removeAttr("disabled");
+                $search.prop("disabled", false);
+                $searchClear.prop("disabled", false);
             }
         }
         
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
                     });
                 
                 updateSearch();
-                if (!$search.attr("disabled")) {
+                if (!$search.prop("disabled")) {
                     $dlg.find(".search").focus();
                 }
             });

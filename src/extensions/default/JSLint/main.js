@@ -251,7 +251,7 @@ define(function (require, exports, module) {
         if (_collapsed) {
             Resizer.hide($lintResults);
         } else {
-            if (JSLINT.errors.length) {
+            if (JSLINT.errors && JSLINT.errors.length) {
                 Resizer.show($lintResults);
             }
         }
