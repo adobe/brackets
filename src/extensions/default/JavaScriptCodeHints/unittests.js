@@ -365,6 +365,11 @@ define(function (require, exports, module) {
                 tearDownTest();
             });
             
+            it("should not list hints in string literal", function () {
+                testEditor.setCursorPos({ line: 20, ch: 22 });
+                expectNoHints(JSCodeHints.jsHintProvider);
+            });
+
             it("should list declared variable and function names in outer scope", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
