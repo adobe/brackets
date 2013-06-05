@@ -54,18 +54,32 @@ define(function (require, exports, module) {
         }
         
         function validateLanguage(expected, actual) {
-            var i = 0;
             if (!actual) {
                 actual = LanguageManager.getLanguage(expected.id);
             } else {
                 expect(LanguageManager.getLanguage(expected.id)).toBe(actual);
             }
             
+            var i = 0;
+            var expectedFileExtensions;
+            
+            // Be sure that expectedFileExtensions is not undefined.  
+            if (expected.fileExtensions === undefined) {
+                expectedFileExtensions = [];
+            } else {
+                expectedFileExtensions = expected.fileExtensions;
+            }
+            
+            var expectedFileExtensionsLength = expectedFileExtensions.length;
+            var actualFileExtensions = actual.getFileExtensions();
+            
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            for (i = 0; i < actual.getFileExtensions.length; i++) {
-                expect(expected.fileExtensions).toContain(actual.getFileExtensions()[i] || []);
+            
+            for (i; i < expectedFileExtensionsLength; i++) {
+                expect(actualFileExtensions).toContain(expectedFileExtensions[i]);
             }
+            
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
