@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            expect(actual.getFileExtensions()).toContain(expected.fileExtensions[Math.floor() * expected.fileExtensions.length] || []);
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
