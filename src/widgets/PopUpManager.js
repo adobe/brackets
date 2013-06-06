@@ -31,8 +31,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager"),
-        KeyEvent      = require("utils/KeyEvent");
+    var AppInit       = require("utils/AppInit"),
+        EditorManager = require("editor/EditorManager"),
+        KeyEvent      = require("utils/KeyEvent"),
+        Menus         = require("command/Menus");
     
     var _popUps = [];
         
@@ -82,11 +84,13 @@ define(function (require, exports, module) {
         }
     }
     
-    function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
-            return;
-        }
-        
+    /**
+     * Remove Esc key handling for a pop-up. Removes the pop-up from the DOM
+     * if the pop-up is currently visible and was not originally attached.
+     *
+     * @param {Event=} keyEvent (optional)
+     */
+    function removeCurrentPopUp(keyEvent) {
         // allow the popUp to prevent closing
         var $popUp,
             i,
@@ -100,7 +104,9 @@ define(function (require, exports, module) {
                 
                 if (!event.isDefaultPrevented()) {
                     // Stop the DOM event from propagating
-                    keyEvent.stopImmediatePropagation();
+                    if (keyEvent) {
+                        keyEvent.stopImmediatePropagation();
+                    }
                     
                     removePopUp($popUp);
 
@@ -118,20 +124,53 @@ define(function (require, exports, module) {
         }
     }
     
-    function _beforeMenuPopup() {
-        // TODO:
-        // 
-        // * trigger events:
-        //   - in-browser menus
-        //   - recent projects list
-        //   - context menus
-        // 
-        console.log("received 'beforeMenuPopup' event");
+    function _keydownCaptureListener(keyEvent) {
+        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
+            return;
+        }
+        
+        removeCurrentPopUp(keyEvent);
     }
     
-    window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
-    $(exports).on("beforeMenuPopup", _beforeMenuPopup);
-    
+    // A menu is being popped up, so remove any other menus that are popped up
+    function _beforeMenuPopup() {
+        // TODO:
+        //
+        // * register as a Popup
+        //   - recent project list
+        //   - context menus
+        //   - native menus
+        //   - in-browser menus
+        //
+        // * trigger events:
+        //   - in-browser menus
+        //
+        // * listen for event from:
+        //   - context menus: editor
+        //   - context menus: working set
+        //   - context menus: project tree
+        //   - context menus: inline editor
+        //
+        removeCurrentPopUp();
+    }
+
+    AppInit.htmlReady(function () {
+        // Register for events
+        window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
+        $(exports).on("beforeMenuPopup", _beforeMenuPopup);
+
+//        var menu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
+//
+//        menu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
+//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
+//
+//        menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
+//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
+//
+//        menu = Menus.getContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
+//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
+    });
     
     exports.addPopUp        = addPopUp;
     exports.removePopUp     = removePopUp;
