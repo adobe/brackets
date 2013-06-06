@@ -632,7 +632,7 @@ define(function (require, exports, module) {
      * event, so we have to have some other way for one of the hooks to 
      * indicate that it wants to block the other hooks from running.)
      *
-     * @param {function(Event): boolean} hook The global handhookler to add.
+     * @param {function(Event): boolean} hook The global hook to add.
      */
     function addGlobalKeydownHook(hook) {
         _globalKeydownHooks.push(hook);
