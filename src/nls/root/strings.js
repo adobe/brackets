@@ -262,6 +262,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
     "CMD_ABORT_QUIT"                      : "Abort Quit",
+    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",

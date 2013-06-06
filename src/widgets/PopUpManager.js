@@ -118,7 +118,20 @@ define(function (require, exports, module) {
         }
     }
     
+    function _beforeMenuPopup() {
+        // TODO:
+        // 
+        // * trigger events:
+        //   - in-browser menus
+        //   - recent projects list
+        //   - context menus
+        // 
+        console.log("received 'beforeMenuPopup' event");
+    }
+    
     window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
+    $(exports).on("beforeMenuPopup", _beforeMenuPopup);
+    
     
     exports.addPopUp        = addPopUp;
     exports.removePopUp     = removePopUp;
