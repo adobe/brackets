@@ -53,7 +53,8 @@ var Statuses = {
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
     SAME_VERSION: "SAME_VERSION",
     OLDER_VERSION: "OLDER_VERSION",
-    NEEDS_UPDATE: "NEEDS_UPDATE"
+    NEEDS_UPDATE: "NEEDS_UPDATE",
+    DISABLED: "DISABLED"
 };
 
 /**
@@ -141,7 +142,11 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             })
             .on("end", function () {
                 if (!callbackCalled) {
-                    validationResult.installationStatus = Statuses.INSTALLED;
+                    // The status may have already been set previously (as in the
+                    // DISABLED case.
+                    if (!validationResult.installationStatus) {
+                        validationResult.installationStatus = Statuses.INSTALLED;
+                    }
                     callback(null, validationResult);
                     callbackCalled = true;
                 }
@@ -265,6 +270,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
                 installDirectory = path.join(options.disabledDirectory, extensionName);
+                validationResult.installationStatus = Statuses.DISABLED;
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
                 _removeAndInstall(packagePath, installDirectory, validationResult, callback);
                 return;

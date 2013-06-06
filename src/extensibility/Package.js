@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         ALREADY_INSTALLED: "ALREADY_INSTALLED",
         SAME_VERSION: "SAME_VERSION",
         OLDER_VERSION: "OLDER_VERSION",
-        NEEDS_UPDATE: "NEEDS_UPDATE"
+        NEEDS_UPDATE: "NEEDS_UPDATE",
+        DISABLED: "DISABLED"
     };
 
     
@@ -159,7 +160,7 @@ define(function (require, exports, module) {
                         .done(function (result) {
                             // If there were errors or the extension is disabled, we don't
                             // try to load it so we're ready to return
-                            if (result.errors.length > 0 || result.disabledReason) {
+                            if (result.installationStatus !== InstallationStatuses.INSTALLED && !_doUpdate) {
                                 d.resolve(result);
                             } else {
                                 // This was a new extension and everything looked fine.
@@ -418,8 +419,8 @@ define(function (require, exports, module) {
     /**
      * Install an extension update located at path.
      * This assumes that the installation was previously attempted
-     * and an installationStatus of "ALREADY_INSTALLED" or "NEEDS_UPDATE"
-     * was the result.
+     * and an installationStatus of "ALREADY_INSTALLED", "NEEDS_UPDATE", "SAME_VERSION",
+     * or "OLDER_VERSION" was the result.
      *
      * This workflow ensures that there should not generally be validation errors
      * because the first pass at installation the extension looked at the metadata

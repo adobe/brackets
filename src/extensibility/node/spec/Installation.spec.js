@@ -261,6 +261,7 @@ describe("Package Installation", function () {
     it("should disable extensions that are not compatible with the current Brackets API", function (done) {
         ExtensionsDomain._cmdInstall(incompatibleVersion, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
+            expect(result.installationStatus).toEqual("DISABLED");
             expect(result.disabledReason).toEqual("API_NOT_COMPATIBLE");
             var extensionDirectory = path.join(disabledDirectory, "incompatible-version");
             var pathsToCheck = [
