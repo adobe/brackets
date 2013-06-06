@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel,
         ExtensionManager          = require("extensibility/ExtensionManager"),
+        Package                   = require("extensibility/Package"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Dialogs                   = require("widgets/Dialogs"),
@@ -169,6 +170,8 @@ define(function (require, exports, module) {
                     self.model.markForRemoval($target.attr("data-extension-id"), false);
                 } else if ($target.hasClass("remove")) {
                     self.model.markForRemoval($target.attr("data-extension-id"), true);
+                } else if ($target.hasClass("undo-update")) {
+                    self.model.removeUpdate($target.attr("data-extension-id"));
                 } else {
                     // Open any other link in the external browser.
                     NativeApp.openURLInDefaultBrowser($target.attr("href"));
@@ -226,6 +229,8 @@ define(function (require, exports, module) {
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.isMarkedForRemoval = this.model.isMarkedForRemoval(info.metadata.name);
+        context.isMarkedForUpdate = this.model.isMarkedForUpdate(info.metadata.name);
+        context.removalAllowed = !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
         
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
@@ -279,6 +284,8 @@ define(function (require, exports, module) {
         var entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
             var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
+            // TODO: this should set .done on the returned promise
+            // and handle the case where an extension needs an update.
             InstallExtensionDialog.installUsingDialog(url);
         }
     };
@@ -293,17 +300,25 @@ define(function (require, exports, module) {
     
     /**
      * Disposes the view. Must be called when the view goes away.
-     * @param {boolean} _skipRemoval Whether to skip removal of marked extensions. Only for unit testing.
+     * @param {boolean} _skipChanges Whether to skip changing of marked extensions. Only for unit testing.
      */
-    ExtensionManagerView.prototype.dispose = function (_skipRemoval) {
+    ExtensionManagerView.prototype.dispose = function (_skipChanges) {
         var self = this;
         
-        // If an extension was removed, prompt the user to quit Brackets.
-        if (!_skipRemoval && this.model.hasExtensionsToRemove()) {
+        var hasRemovedExtensions = this.model.hasExtensionsToRemove(),
+            hasUpdatedExtensions = this.model.hasExtensionsToUpdate();
+        // If an extension was removed or updated, prompt the user to quit Brackets.
+        if (!_skipChanges && (hasRemovedExtensions || hasUpdatedExtensions)) {
+            var buttonLabel = Strings.CHANGE_AND_QUIT;
+            if (hasRemovedExtensions && !hasUpdatedExtensions) {
+                buttonLabel = Strings.REMOVE_AND_QUIT;
+            } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
+                buttonLabel = Strings.UPDATE_AND_QUIT;
+            }
             Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_REMOVE_EXTENSIONS,
-                Strings.REMOVE_AND_QUIT_TITLE,
-                Strings.REMOVE_AND_QUIT_MESSAGE,
+                DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
+                Strings.CHANGE_AND_QUIT_TITLE,
+                Strings.CHANGE_AND_QUIT_MESSAGE,
                 [
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
@@ -313,7 +328,7 @@ define(function (require, exports, module) {
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                         id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.REMOVE_AND_QUIT
+                        text      : buttonLabel
                     }
                 ]
             )
@@ -321,11 +336,40 @@ define(function (require, exports, module) {
                     if (buttonId === "ok") {
                         self.model.removeMarkedExtensions()
                             .done(function () {
-                                self.model.dispose();
-                                CommandManager.execute(Commands.FILE_QUIT);
+                                self.model.updateExtensions()
+                                    .done(function () {
+                                        self.model.dispose();
+                                        CommandManager.execute(Commands.FILE_QUIT);
+                                    })
+                                    .fail(function (errorArray) {
+                                        self.model.dispose();
+                                        
+                                        // This error case should be very uncommon.
+                                        // Just let the user know that we couldn't update
+                                        // this extension and log the errors to the console.
+                                        var ids = [];
+                                        errorArray.forEach(function (errorObj) {
+                                            ids.push(errorObj.item);
+                                            if (errorObj.error && errorObj.error.forEach) {
+                                                console.error("Errors for ", errorObj.item);
+                                                errorObj.error.forEach(function (error) {
+                                                    console.error(Package.formatError(error));
+                                                });
+                                            }
+                                        });
+                                        Dialogs.showModalDialog(
+                                            DefaultDialogs.DIALOG_ID_ERROR,
+                                            Strings.EXTENSION_MANAGER_UPDATE,
+                                            StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
+                                        ).done(function () {
+                                            // We still have to quit even if some of the removals failed.
+                                            CommandManager.execute(Commands.FILE_QUIT);
+                                        });
+                                    });
                             })
                             .fail(function (errorArray) {
                                 self.model.dispose();
+                                self.model.cleanupUpdates();
                                 
                                 var ids = [];
                                 errorArray.forEach(function (errorObj) {
@@ -341,6 +385,7 @@ define(function (require, exports, module) {
                                 });
                             });
                     } else {
+                        self.model.cleanupUpdates();
                         self.model.dispose();
                     }
                 });

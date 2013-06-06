@@ -48,7 +48,9 @@ define(function (require, exports, module) {
         STATE_INSTALL_FAILED    = 5,
         STATE_CANCELING_INSTALL = 6,
         STATE_CANCELING_HUNG    = 7,
-        STATE_INSTALL_CANCELED  = 8;
+        STATE_INSTALL_CANCELED  = 8,
+        STATE_ALREADY_INSTALLED = 9,
+        STATE_NEEDS_UPDATE      = 10;
     
     /** 
      * @constructor
@@ -58,6 +60,7 @@ define(function (require, exports, module) {
     function InstallExtensionDialog(installer) {
         this._installer = installer;
         this._state = STATE_CLOSED;
+        this._installResult = null;
 
         // Timeout before we allow user to leave STATE_INSTALL_CANCELING without waiting for a resolution
         // (per-instance so we can poke it for unit testing)
@@ -138,8 +141,17 @@ define(function (require, exports, module) {
             this.$msgArea.show();
             this.$okButton.prop("disabled", true);
             this._installer.install(url)
-                .done(function () {
-                    self._enterState(STATE_INSTALLED);
+                .done(function (result) {
+                    self._installResult = result;
+                    if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                            result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
+                            result.installationStatus === Package.InstallationStatuses.SAME_VERSION) {
+                        self._enterState(STATE_ALREADY_INSTALLED);
+                    } else if (result.installationStatus === Package.InstallationStatuses.NEEDS_UPDATE) {
+                        self._enterState(STATE_NEEDS_UPDATE);
+                    } else {
+                        self._enterState(STATE_INSTALLED);
+                    }
                 })
                 .fail(function (err) {
                     // If the "failure" is actually a user-requested cancel, don't show an error UI
@@ -192,14 +204,33 @@ define(function (require, exports, module) {
                 .text(Strings.CLOSE);
             this.$cancelButton.hide();
             break;
+        
+        case STATE_ALREADY_INSTALLED:
+            var installResult = this._installResult;
+            var status = installResult.installationStatus;
+            var msgText = Strings["EXTENSION_" + status];
+            if (status === Package.InstallationStatuses.OLDER_VERSION) {
+                msgText = StringUtils.format(msgText, installResult.metadata.version, installResult.installedVersion);
+            }
+            this.$msg.text(msgText);
+            this.$okButton
+                .prop("disabled", false)
+                .text(Strings.OVERWRITE);
+            break;
+        
+        // When we identify that an update needs to be installed (something that
+        // happens at quitting time), we just dismiss the dialog.
+        case STATE_NEEDS_UPDATE:
+            self._enterState(STATE_CLOSED);
+            break;
             
         case STATE_CLOSED:
             $(document.body).off(".installDialog");
             
            // Only resolve as successful if we actually installed something.
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
-            if (prevState === STATE_INSTALLED) {
-                this._dialogDeferred.resolve();
+            if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE) {
+                this._dialogDeferred.resolve(this._installResult);
             } else {
                 this._dialogDeferred.reject();
             }
@@ -215,6 +246,16 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleCancel = function () {
         if (this._state === STATE_INSTALLING) {
             this._enterState(STATE_CANCELING_INSTALL);
+        } else if (this._state === STATE_ALREADY_INSTALLED) {
+            // If we were prompting the user about overwriting a previous installation,
+            // and the user cancels, we can delete the downloaded file.
+            if (this._installResult && this._installResult.localPath) {
+                var filename = this._installResult.localPath;
+                brackets.fs.unlink(filename, function () {
+                    // ignore the result
+                });
+            }
+            this._enterState(STATE_CLOSED);
         } else if (this._state !== STATE_CANCELING_INSTALL) {
             this._enterState(STATE_CLOSED);
         }
@@ -235,6 +276,8 @@ define(function (require, exports, module) {
             this._enterState(STATE_CLOSED);
         } else if (this._state === STATE_VALID_URL) {
             this._enterState(STATE_INSTALLING);
+        } else if (this._state === STATE_ALREADY_INSTALLED) {
+            this._enterState(STATE_NEEDS_UPDATE);
         }
     };
     
@@ -365,8 +408,6 @@ define(function (require, exports, module) {
         var dlg = new InstallExtensionDialog(new InstallerFacade());
         return dlg.show(urlToInstall);
     }
-    
-    CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, showDialog);
     
     exports.showDialog = showDialog;
     exports.installUsingDialog = installUsingDialog;
