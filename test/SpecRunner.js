@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
+        ColorUtils              = require("utils/ColorUtils");
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
