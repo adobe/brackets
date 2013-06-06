@@ -509,7 +509,8 @@ define(function (require, exports, module) {
                         });
                         model.updateFromDownload({
                             localPath: "/path/to/downloaded/file.zip",
-                            name: id
+                            name: id,
+                            installationStatus: "NEEDS_UPDATE"
                         });
                         expect(calledId).toBe(id);
                         expect(model.isMarkedForUpdate(id)).toBe(true);
@@ -527,7 +528,8 @@ define(function (require, exports, module) {
                         });
                         model.updateFromDownload({
                             localPath: filename,
-                            name: id
+                            name: id,
+                            installationStatus: "NEEDS_UPDATE"
                         });
                         calledId = null;
                         spyOn(brackets.fs, "unlink");
@@ -549,7 +551,8 @@ define(function (require, exports, module) {
                         calledId = null;
                         model.updateFromDownload({
                             localPath: "/path/to/downloaded/file.zip",
-                            name: id
+                            name: id,
+                            installationStatus: "NEEDS_UPDATE"
                         });
                         expect(calledId).toBe(id);
                         expect(model.isMarkedForRemoval()).toBe(false);
@@ -565,7 +568,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         model.updateFromDownload({
                             localPath: filename,
-                            name: id
+                            name: id,
+                            installationStatus: "NEEDS_UPDATE"
                         });
                         expect(model.isMarkedForUpdate()).toBe(false);
                         spyOn(brackets.fs, "unlink");
@@ -1062,7 +1066,7 @@ define(function (require, exports, module) {
                     var installDeferred = $.Deferred();
                     spyOn(Package, "installUpdate").andReturn(installDeferred.promise());
                     runs(function () {
-                        view.handleNewInstall({
+                        view.model.updateFromDownload({
                             installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
                             localPath: filename,
                             name: id
@@ -1089,7 +1093,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
-                        view.handleNewInstall({
+                        view.model.updateFromDownload({
                             name: id,
                             localPath: filename,
                             installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
@@ -1112,7 +1116,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
-                        view.handleNewInstall({
+                        view.model.updateFromDownload({
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
@@ -1130,7 +1134,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
-                        view.handleNewInstall({
+                        view.model.updateFromDownload({
                             name: id,
                             installationStatus: "NEEDS_UPDATE",
                             localPath: filename

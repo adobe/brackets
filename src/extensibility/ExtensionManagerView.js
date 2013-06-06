@@ -394,20 +394,5 @@ define(function (require, exports, module) {
         }
     };
     
-   /**
-     * Updates the view based on the results of installing an extension via the
-     * install extension dialog.
-     * @param {Object} installationResult the info provided by Package.download
-     */
-    ExtensionManagerView.prototype.handleNewInstall = function (installationResult) {
-        var installationStatus = installationResult.installationStatus;
-        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
-                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
-                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
-                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
-            this.model.updateFromDownload(installationResult);
-        }
-    };
-    
     exports.ExtensionManagerView = ExtensionManagerView;
 });

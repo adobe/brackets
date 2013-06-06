@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
         Async            = require("utils/Async"),
+        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils");
 
     /**
@@ -351,16 +352,22 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Marks an extension for later update, or unmarks an extension previously marked.
+     * If a downloaded package appears to be an update, mark the extension for update.
      * If an extension was previously marked for removal, marking for update will
      * turn off the removal mark.
      * @param {Object} installationResult info about the install provided by the Package.download function
      */
     ExtensionManagerViewModel.prototype.updateFromDownload = function (installationResult) {
-        var id = installationResult.name;
-        delete this._idsToRemove[id];
-        this._idsToUpdate[id] = installationResult;
-        $(this).triggerHandler("change", [id]);
+        var installationStatus = installationResult.installationStatus;
+        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
+                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
+                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
+            var id = installationResult.name;
+            delete this._idsToRemove[id];
+            this._idsToUpdate[id] = installationResult;
+            $(this).triggerHandler("change", [id]);
+        }
     };
     
     /**

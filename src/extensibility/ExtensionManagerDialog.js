@@ -87,7 +87,7 @@ define(function (require, exports, module) {
                 // Handle the install button.                
                 $(".extension-manager-dialog .install-from-url")
                     .click(function () {
-                        InstallExtensionDialog.showDialog().done(view.handleNewInstall.bind(view));
+                        InstallExtensionDialog.showDialog().done(view.model.updateFromDownload.bind(view.model));
                     });
                 
                 updateSearch();
