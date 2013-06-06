@@ -555,20 +555,17 @@ define(function LiveDevelopment(require, exports, module) {
             }
         });
 
-        allAgentsPromise.fail(function (reason) {
-            if (reason === Async.ERROR_TIMEOUT) {
-                _setStatus(STATUS_ERROR);
+        allAgentsPromise.fail(result.reject);
 
-                console.error("Timeout waiting for LiveDevelopment agents to load");
+        // show error loading live dev dialog
+        result.fail(function () {
+            _setStatus(STATUS_ERROR);
 
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-                );
-            }
-
-            result.reject();
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+            );
         });
 
         // resolve/reject the open() promise after agents complete
