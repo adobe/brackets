@@ -65,7 +65,6 @@ define(function (require, exports, module) {
         this._itemViews = {};
         this.$el = $("<div class='extension-list'/>");
         this._$emptyMessage = $("<div class='empty-message'/>")
-            .append(Strings.NO_EXTENSIONS)
             .appendTo(this.$el);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
@@ -247,6 +246,7 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._checkNoExtensions = function () {
         if (this.model.filterSet.length === 0) {
             this._$emptyMessage.css("display", "block");
+            this._$emptyMessage.html(this.model.sortedFullSet && this.model.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS);
             this._$table.css("display", "none");
         } else {
             this._$table.css("display", "");
