@@ -42,13 +42,11 @@
             </button>
         {{/showInstallButton}}
         {{#isInstalled}}
-            {{^failedToStart}}
-                {{^isMarkedForRemoval}}
-                    <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
-                        {{Strings.REMOVE}}
-                    </button>
-                {{/isMarkedForRemoval}}
-            {{/failedToStart}}
+            {{#removalAllowed}}
+                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                    {{Strings.REMOVE}}
+                </button>
+            {{/removalAllowed}}
             {{#failedToStart}}
                 {{^isMarkedForRemoval}}
                     {{Strings.EXTENSION_ERROR}} (<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>)
@@ -57,6 +55,9 @@
             {{#isMarkedForRemoval}}
                 {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
             {{/isMarkedForRemoval}}
+            {{#isMarkedForUpdate}}
+                {{Strings.MARKED_FOR_UPDATE}} (<a class="undo-update" data-extension-id="{{metadata.name}}">{{Strings.UNDO_UPDATE}}</a>)
+            {{/isMarkedForUpdate}}
         {{/isInstalled}}
     </td>
 </tr>
