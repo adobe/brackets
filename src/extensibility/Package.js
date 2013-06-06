@@ -318,7 +318,8 @@ define(function (require, exports, module) {
                     .done(function (result) {
                         if (result.installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
                                 result.installationStatus === InstallationStatuses.NEEDS_UPDATE) {
-                            // We don't delete the file in this case, because 
+                            // We don't delete the file in this case, because it will be needed
+                            // if the user is going to install the update.
                             state = STATE_SUCCEEDED;
                             result.localPath = downloadResult.localPath;
                             d.resolve(result);
@@ -424,7 +425,9 @@ define(function (require, exports, module) {
      *      installed or rejected if there is a problem.
      */
     function installUpdate(path) {
-        return install(path, null, true);
+        return install(path, null, true).always(function () {
+            brackets.fs.unlink(path);
+        });
     }
         
     /**

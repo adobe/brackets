@@ -31,7 +31,8 @@ define(function (require, exports, module) {
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
-        NativeApp       = require("utils/NativeApp");
+        NativeApp       = require("utils/NativeApp"),
+        Strings         = require("strings");
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, goodInstaller, badInstaller, InstallExtensionDialog, closed,
@@ -581,12 +582,12 @@ define(function (require, exports, module) {
                 deferred.resolve({
                     installationStatus: "ALREADY_INSTALLED"
                 });
-                expect(fields.$okButton.text()).toEqual("Overwrite");
+                expect(fields.$okButton.text()).toEqual(Strings.OVERWRITE);
                 expect(fields.$okButton.prop("disabled")).toBe(false);
-                expect(fields.$cancelButton.text()).toEqual("Cancel");
+                expect(fields.$cancelButton.text()).toEqual(Strings.CANCEL);
                 expect(fields.$cancelButton.prop("disabled")).toBe(false);
                 expect(fields.$browseExtensionsButton.is(":visible")).toBe(false);
-                expect(fields.$dlg.find(".message").text()).toMatch(/overwrite/);
+                expect(fields.$dlg.find(".message").text()).toBe(Strings.ALREADY_INSTALLED);
             });
             
             it("should delete the downloaded file if the warning message is cancelled", function () {

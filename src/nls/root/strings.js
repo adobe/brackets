@@ -352,7 +352,7 @@ define({
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Unable to update one or more extensions: {{0}}. {APP_NAME} will still quit.",
     "MARKED_FOR_REMOVAL"                   : "Marked for removal",
     "UNDO_REMOVE"                          : "Undo",
-    "MARKED_FOR_UPDATE"                    : "Marked to update on restart",
+    "MARKED_FOR_UPDATE"                    : "Marked for update",
     "UNDO_UPDATE"                          : "Undo",
     "CHANGE_AND_QUIT_TITLE"                : "Change Extensions",
     "CHANGE_AND_QUIT_MESSAGE"              : "To update or remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
