@@ -587,7 +587,43 @@ define(function (require, exports, module) {
                 expect(fields.$cancelButton.text()).toEqual(Strings.CANCEL);
                 expect(fields.$cancelButton.prop("disabled")).toBe(false);
                 expect(fields.$browseExtensionsButton.is(":visible")).toBe(false);
-                expect(fields.$dlg.find(".message").text()).toBe(Strings.ALREADY_INSTALLED);
+                expect(fields.$dlg.find(".message").text()).toBe(Strings.EXTENSION_ALREADY_INSTALLED);
+            });
+            
+            it("should display a warning message if the same version is already installed", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                deferred.resolve({
+                    installationStatus: "SAME_VERSION"
+                });
+                expect(fields.$okButton.text()).toEqual(Strings.OVERWRITE);
+                expect(fields.$okButton.prop("disabled")).toBe(false);
+                expect(fields.$cancelButton.text()).toEqual(Strings.CANCEL);
+                expect(fields.$cancelButton.prop("disabled")).toBe(false);
+                expect(fields.$browseExtensionsButton.is(":visible")).toBe(false);
+                expect(fields.$dlg.find(".message").text()).toBe(Strings.EXTENSION_SAME_VERSION);
+            });
+            
+            it("should display a warning message if an older version is already installed", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                deferred.resolve({
+                    installationStatus: "OLDER_VERSION",
+                    installedVersion: "1.0.0",
+                    metadata: {
+                        version: "0.9.0"
+                    }
+                });
+                expect(fields.$okButton.text()).toEqual(Strings.OVERWRITE);
+                expect(fields.$okButton.prop("disabled")).toBe(false);
+                expect(fields.$cancelButton.text()).toEqual(Strings.CANCEL);
+                expect(fields.$cancelButton.prop("disabled")).toBe(false);
+                expect(fields.$browseExtensionsButton.is(":visible")).toBe(false);
+                expect(fields.$dlg.find(".message").text().indexOf("0.9.0")).not.toEqual(-1);
             });
             
             it("should delete the downloaded file if the warning message is cancelled", function () {

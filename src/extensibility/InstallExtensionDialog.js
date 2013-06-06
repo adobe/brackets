@@ -143,7 +143,9 @@ define(function (require, exports, module) {
             this._installer.install(url)
                 .done(function (result) {
                     self._installResult = result;
-                    if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED) {
+                    if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                            result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
+                            result.installationStatus === Package.InstallationStatuses.SAME_VERSION) {
                         self._enterState(STATE_ALREADY_INSTALLED);
                     } else if (result.installationStatus === Package.InstallationStatuses.NEEDS_UPDATE) {
                         self._enterState(STATE_NEEDS_UPDATE);
@@ -204,7 +206,13 @@ define(function (require, exports, module) {
             break;
         
         case STATE_ALREADY_INSTALLED:
-            this.$msg.text(Strings.ALREADY_INSTALLED);
+            var installResult = this._installResult;
+            var status = installResult.installationStatus;
+            var msgText = Strings["EXTENSION_" + status];
+            if (status === Package.InstallationStatuses.OLDER_VERSION) {
+                msgText = StringUtils.format(msgText, installResult.metadata.version, installResult.installedVersion);
+            }
+            this.$msg.text(msgText);
             this.$okButton
                 .prop("disabled", false)
                 .text(Strings.OVERWRITE);

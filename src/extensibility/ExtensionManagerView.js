@@ -391,8 +391,11 @@ define(function (require, exports, module) {
      * @param {Object} installationResult the info provided by Package.download
      */
     ExtensionManagerView.prototype.handleNewInstall = function (installationResult) {
-        if (installationResult.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
-                installationResult.installationStatus === Package.InstallationStatuses.NEEDS_UPDATE) {
+        var installationStatus = installationResult.installationStatus;
+        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
+                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
+                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
             this.model.updateFromDownload(installationResult);
         }
     };

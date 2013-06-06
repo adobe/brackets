@@ -47,6 +47,7 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
     systemExtensionDirectory = path.join(installParent, "system");
 
 var basicValidExtension      = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    basicValidExtension09    = path.join(testFilesDirectory, "basic-valid-extension-0.9.zip"),
     basicValidExtension2     = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
     missingMain              = path.join(testFilesDirectory, "missing-main.zip"),
     oneLevelDown             = path.join(testFilesDirectory, "one-level-extension-master.zip"),
@@ -169,7 +170,7 @@ describe("Package Installation", function () {
             });
         });
     });
-
+    
     // This is mildly redundant. the validation check should catch this.
     // But, I wanted to be sure that the install function doesn't try to
     // do anything with the file before validation.
@@ -184,10 +185,32 @@ describe("Package Installation", function () {
             });
     });
     
-    it("should not install by default if it's already installed", function (done) {
+    it("should not install by default if the same version is already installed", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                expect(result.installationStatus).toEqual("SAME_VERSION");
+                done();
+            });
+        });
+    });
+    
+    it("should not install by default if an older version is already installed", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            ExtensionsDomain._cmdInstall(basicValidExtension09, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                expect(result.installationStatus).toEqual("OLDER_VERSION");
+                done();
+            });
+        });
+    });
+    
+    it("should not install by default if the same legacy extension is already installed", function (done) {
+        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 expect(result.installationStatus).toEqual("ALREADY_INSTALLED");
                 done();

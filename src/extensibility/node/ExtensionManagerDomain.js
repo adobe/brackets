@@ -51,6 +51,8 @@ var Statuses = {
     FAILED: "FAILED",
     INSTALLED: "INSTALLED",
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
+    SAME_VERSION: "SAME_VERSION",
+    OLDER_VERSION: "OLDER_VERSION",
     NEEDS_UPDATE: "NEEDS_UPDATE"
 };
 
@@ -186,9 +188,15 @@ function _checkExistingInstallation(validationResult, installDirectory, systemIn
             // Check to see if the version numbers signal an update.
             if (semver.lt(packageObj.version, validationResult.metadata.version)) {
                 validationResult.installationStatus = Statuses.NEEDS_UPDATE;
+            } else if (semver.gt(packageObj.version, validationResult.metadata.version)) {
+                // Pass a message back to the UI that the new package appears to be an older version
+                // than what's installed.
+                validationResult.installationStatus = Statuses.OLDER_VERSION;
+                validationResult.installedVersion = packageObj.version;
             } else {
-                // If it doesn't appear to strictly be an update, let the user decided what to do.
-                validationResult.installationStatus = Statuses.ALREADY_INSTALLED;
+                // Signal to the UI that it looks like the user is re-installing the
+                // same version.
+                validationResult.installationStatus = Statuses.SAME_VERSION;
             }
         }
         callback(null, validationResult);

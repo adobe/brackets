@@ -48,6 +48,8 @@ define(function (require, exports, module) {
         FAILED: "FAILED",
         INSTALLED: "INSTALLED",
         ALREADY_INSTALLED: "ALREADY_INSTALLED",
+        SAME_VERSION: "SAME_VERSION",
+        OLDER_VERSION: "OLDER_VERSION",
         NEEDS_UPDATE: "NEEDS_UPDATE"
     };
 
