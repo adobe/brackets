@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     }
     
     function _hasButton(dlg, buttonId) {
-        return dlg.find("[data-button-id='" + buttonId + "']");
+        return (dlg.find("[data-button-id='" + buttonId + "']").length > 0);
     }
 
     var _keydownHook = function (e, autoDismiss) {
@@ -75,7 +75,8 @@ define(function (require, exports, module) {
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inFormField = ($(e.target).filter(":input").length > 0),
-            inTextArea = (e.target.tagName === "TEXTAREA");
+            inTextArea = (e.target.tagName === "TEXTAREA"),
+            inTypingField = inTextArea || ($(e.target).filter(":text,:password").length > 0);
         
         if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
@@ -97,7 +98,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === "N" && !inFormField) {
+            if (which === "N" && !inTypingField) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
