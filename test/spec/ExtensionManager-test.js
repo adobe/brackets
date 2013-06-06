@@ -209,7 +209,7 @@ define(function (require, exports, module) {
                 mockLoadExtensions();
                 runs(function () {
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(ExtensionManager.extensions[mockPath + "/user/mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
+                    expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
                 });
             });
             
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
                     expect(ExtensionManager.extensions["mock-extension-1"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEFAULT);
                     expect(ExtensionManager.extensions["mock-extension-2"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEV);
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(ExtensionManager.extensions[mockPath + "/user/mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
+                    expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
                 });
             });
             
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/user/mock-legacy-extension");
+                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-legacy-extension");
                 });
             });
             
@@ -576,7 +576,7 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         expect(brackets.fs.unlink).not.toHaveBeenCalled();
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename);
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
             });
@@ -950,13 +950,14 @@ define(function (require, exports, module) {
                 });
                 
                 it("should mark a legacy extension for removal", function () {
-                    mockLoadExtensions(["user/mock-legacy-extension"]);
+                    var id = "mock-legacy-extension";
+                    mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
-                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/mock-legacy-extension"),
-                            $button = $("button.remove[data-extension-id='" + mockPath + "']", view.$el);
+                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
+                            $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
                         $button.click();
-                        expect(view.model.isMarkedForRemoval(mockPath)).toBe(true);
+                        expect(view.model.isMarkedForRemoval(id)).toBe(true);
                     });
                 });
                 
@@ -1055,7 +1056,7 @@ define(function (require, exports, module) {
                 it("should update extensions and quit if the user hits Update and Quit on the removal confirmation dialog", function () {
                     var model,
                         id = "mock-extension-3",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/mock-extension-3.zip";
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     var installDeferred = $.Deferred();
@@ -1076,7 +1077,7 @@ define(function (require, exports, module) {
                     });
                     waitsFor(function () { return didQuit; }, "mock quit");
                     runs(function () {
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename);
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                         expect(didQuit).toBe(true);
                         expect(model.dispose).toHaveBeenCalled();
                     });

@@ -427,7 +427,7 @@ define(function (require, exports, module) {
             Object.keys(self._idsToUpdate),
             function (id) {
                 var installationResult = self._idsToUpdate[id];
-                return ExtensionManager.update(installationResult.localPath);
+                return ExtensionManager.update(installationResult.name, installationResult.localPath);
             }
         );
     };

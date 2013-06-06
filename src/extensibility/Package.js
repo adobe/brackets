@@ -421,11 +421,13 @@ define(function (require, exports, module) {
      * and installed packages.
      *
      * @param {string} path to package file
+     * @param {?string} nameHint Hint for the extension folder's name (used in favor of
+     *          path's filename if present, and if no package metadata present).
      * @return {$.Promise} A promise that is resolved when the extension is successfully
      *      installed or rejected if there is a problem.
      */
-    function installUpdate(path) {
-        return install(path, null, true).always(function () {
+    function installUpdate(path, nameHint) {
+        return install(path, nameHint, true).always(function () {
             brackets.fs.unlink(path);
         });
     }
