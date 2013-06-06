@@ -111,7 +111,7 @@ define(function (require, exports, module) {
 
                 _extensions[name] = module;
 
-                if (module.init && (typeof module.init === "function")) {
+                if (module && module.init && (typeof module.init === "function")) {
                     // optional async extension init 
                     initPromise = module.init();
 
