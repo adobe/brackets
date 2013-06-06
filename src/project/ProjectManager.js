@@ -1104,10 +1104,10 @@ define(function (require, exports, module) {
 
     /**
      * Invoke project settings dialog.
-     * @return {Dialog}
+     * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
 
     /**

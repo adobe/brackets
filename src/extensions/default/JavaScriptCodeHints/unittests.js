@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
         testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,
-        testEditor;
+        testEditor,
+        preTestText;
 
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
@@ -336,10 +337,15 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDoc);
+                preTestText = testDoc.getText();
             });
         }
 
         function tearDownTest() {
+            // Restore the pre-test version of the text here because the hinter
+            // will update the contents of the previous document in tern.
+            testDoc.setText(preTestText);
+
             // The following call ensures that the document is reloaded
             // from disk before each test
             DocumentManager.closeAll();
@@ -359,6 +365,11 @@ define(function (require, exports, module) {
                 tearDownTest();
             });
             
+            it("should not list hints in string literal", function () {
+                testEditor.setCursorPos({ line: 20, ch: 22 });
+                expectNoHints(JSCodeHints.jsHintProvider);
+            });
+
             it("should list declared variable and function names in outer scope", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -536,7 +547,8 @@ define(function (require, exports, module) {
             
             it("should list implicit hints when typing property lookups", function () {
                 testEditor.setCursorPos({ line: 17, ch: 10 });
-                expectHints(JSCodeHints.jsHintProvider, ".");
+                var hintObj = expectHints(JSCodeHints.jsHintProvider, ".");
+                hintsPresent(hintObj, ["B1", "paramB1"]);
             });
 
 /*          Single quote and double quote keys cause hasHints() to return false.
@@ -1075,7 +1087,6 @@ define(function (require, exports, module) {
             it("should show guessed argument type from current passing parameter", function () {
                 var start = { line: 80, ch: 0 },
                     testPos = { line: 80, ch: 24 };
-                console.log("should show guessed...");
                 testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);

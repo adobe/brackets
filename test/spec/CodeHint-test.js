@@ -202,7 +202,7 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    CodeHintManager.handleKeyEvent(editor, e);
+                    CodeHintManager._getCodeHintList()._handleKeydown(e);
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();

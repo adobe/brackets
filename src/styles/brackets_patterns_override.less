@@ -90,6 +90,9 @@
     .nav {  // menubar
         float: left;
         text-align: left;
+        > li {
+            float: left;
+        }
     }
     .title {
         float: none;
@@ -129,6 +132,10 @@
             position: static !important;
             top: 0 !important;
             left: 0 !important;
+        }
+        
+        > a:active {
+            opacity: 0.5;
         }
     }
 }
@@ -202,6 +209,10 @@
         color: fadeout(@bc-black, 25%);
         font-weight: @font-weight-light;
     }
+    .dropdown-toggle:focus {
+        background-color: @bc-white;
+        outline: 0;
+    }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
@@ -210,7 +221,7 @@
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
-
+    
     // no triangle icon after menu items
     .dropdown-toggle:after {
         border: 0;
@@ -220,7 +231,8 @@
     // Menu dropdown appearance
     .dropdown-menu {
         top: 34px; // Offset from top of menubar item
-                
+        
+        margin-top: 0;
         background-color: @bc-white;
         border: 1px solid #c8c8c8;
         .border-radius(0 0 3px 3px);
@@ -240,24 +252,24 @@
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
-                
+    
                 &.wide-result {
                     white-space: normal;
                 }
-
+                
                 &:hover, &.highlight {
                     color: @bc-black;
                     background: @item-highlight-color;
                 }
-
+            
                 &.disabled {
                     color: @bc-gray;
-
+            
                     &:hover {
                         background: @bc-white;
                     }
                 }
-
+   
                 /* hidden checkmark for all list item content ensures consistent left spacing */
                 &::before {
                     content: "✓\00a0"; /* non-breaking space */
@@ -278,6 +290,7 @@
     
     // Ensure a minimum amount of space to the left of the shortcut
     .menu-shortcut {
+        float: right;
         margin-left: 15px;
     }
 }
@@ -353,7 +366,7 @@
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
        to allow the overall modal to take the width of the footer */
-    width: 560px;
+    width: 580px;
 }
 
 .modal-footer {
@@ -376,6 +389,9 @@
     margin-left: 0;
     margin-right: 5px;
 }
+.modal-footer .btn:not(.left) {
+    margin-left: 5px;
+}
 
 .platform-win {
     /* Reverse Save/Cancel button order on Win */
@@ -395,6 +411,7 @@
 
 .dialog-title {
     margin-bottom: 0;
+    margin-top: 0;
     font-size: 26px;
     line-height: 40px; 
     font-weight: @font-weight-light;
@@ -490,6 +507,9 @@
     width: 400px;
 }
 
+.install-extension-dialog {
+    margin-top: -125px;
+}
 .install-extension-dialog .modal-body input.url {
     margin: 10px 0;
     width: 550px;
@@ -499,7 +519,7 @@
 .extension-manager-dialog {
     top: 50%;
     left: 50%;
-    margin-top: -325px;
+    margin-top: -275px;
     margin-left: -350px;
     
     .modal-header {
@@ -523,6 +543,7 @@
             width: 15px;
             height: 16px;
             z-index: 1;
+            border: 0;
             
             &:disabled {
                 opacity: 0.3;
@@ -538,7 +559,7 @@
     }
     .modal-body {
         width: 730px;
-        height: 500px;
+        height: 400px;
         text-align: center;
         overflow-y: scroll;
         padding: 0;
@@ -685,7 +706,7 @@ input, textarea {
 }
 
 /* Twipsy tooltips */
-.twipsy-inner {
+.tooltip-inner {
     .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
     max-width: none;
     white-space: nowrap;
@@ -755,11 +776,11 @@ input, textarea {
 
     // Button Sizes
     &.large {
-        font-size: @basefont + 1px;
+        font-size: @baseFontSize + 1px;
         .border-radius(3px);
     }
     &.small {
-        font-size: @basefont - 1px;
+        font-size: @baseFontSize - 1px;
     }
 }
 
@@ -784,7 +805,7 @@ table {
     }
 }
 
-.zebra-striped tbody {
+.table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
         background-color: #e6e9e9; // TopCoat palette
@@ -810,5 +831,6 @@ strong {
 /* Type */
 
 code {
+  color: @bc-black;
   background-color: transparent;
 }

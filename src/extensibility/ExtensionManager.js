@@ -194,8 +194,9 @@ define(function (require, exports, module) {
                 // local path and record that it's enabled. We also create a "title" for it (which is
                 // the last segment of its pathname) that we can display and sort by.
                 var match = path.match(/\/([^\/]+)$/),
-                    metadata = { name: path, title: (match && match[1]) || path };
-                setData(path, metadata);
+                    name = (match && match[1]) || path,
+                    metadata = { name: name, title: name };
+                setData(name, metadata);
             });
     }
         
@@ -266,6 +267,17 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Updates an installed extension with the given package file.
+     * @param {string} id of the extension
+     * @param {string} packagePath path to the package file
+     * @return {$.Promise} A promise that's resolved when the extension is updated or
+     *     rejected with an error if there's a problem with the update.
+     */
+    function update(id, packagePath) {
+        return Package.installUpdate(packagePath, id);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -276,6 +288,7 @@ define(function (require, exports, module) {
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
     exports.remove = remove;
+    exports.update = update;
     exports.extensions = extensions;
     
     exports.ENABLED = ENABLED;

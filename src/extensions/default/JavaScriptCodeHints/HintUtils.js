@@ -84,6 +84,7 @@ define(function (require, exports, module) {
         case "comment":
         case "number":
         case "regexp":
+        case "string":
         // exclude variable & param decls
         case "def":
             return false;

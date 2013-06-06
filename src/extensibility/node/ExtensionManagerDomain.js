@@ -40,12 +40,21 @@ var unzip    = require("unzip"),
 var Errors = {
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
     MISSING_REQUIRED_OPTIONS: "MISSING_REQUIRED_OPTIONS",
-    ALREADY_INSTALLED: "ALREADY_INSTALLED",
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
     BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
     NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
     CANNOT_WRITE_TEMP: "CANNOT_WRITE_TEMP",
     CANCELED: "CANCELED"
+};
+
+var Statuses = {
+    FAILED: "FAILED",
+    INSTALLED: "INSTALLED",
+    ALREADY_INSTALLED: "ALREADY_INSTALLED",
+    SAME_VERSION: "SAME_VERSION",
+    OLDER_VERSION: "OLDER_VERSION",
+    NEEDS_UPDATE: "NEEDS_UPDATE",
+    DISABLED: "DISABLED"
 };
 
 /**
@@ -133,6 +142,11 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             })
             .on("end", function () {
                 if (!callbackCalled) {
+                    // The status may have already been set previously (as in the
+                    // DISABLED case.
+                    if (!validationResult.installationStatus) {
+                        validationResult.installationStatus = Statuses.INSTALLED;
+                    }
                     callback(null, validationResult);
                     callbackCalled = true;
                 }
@@ -160,6 +174,40 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
     });
 }
 
+function _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, callback) {
+    // If the extension being installed does not have a package.json, we can't
+    // do any kind of version comparison, so we just signal to the UI that
+    // it already appears to be installed.
+    if (!validationResult.metadata) {
+        validationResult.installationStatus = Statuses.ALREADY_INSTALLED;
+        callback(null, validationResult);
+        return;
+    }
+    
+    fs.readJson(path.join(installDirectory, "package.json"), function (err, packageObj) {
+        // if the package.json is unreadable, we assume that the new package is an update
+        // that is the first to include a package.json.
+        if (err) {
+            validationResult.installationStatus = Statuses.NEEDS_UPDATE;
+        } else {
+            // Check to see if the version numbers signal an update.
+            if (semver.lt(packageObj.version, validationResult.metadata.version)) {
+                validationResult.installationStatus = Statuses.NEEDS_UPDATE;
+            } else if (semver.gt(packageObj.version, validationResult.metadata.version)) {
+                // Pass a message back to the UI that the new package appears to be an older version
+                // than what's installed.
+                validationResult.installationStatus = Statuses.OLDER_VERSION;
+                validationResult.installedVersion = packageObj.version;
+            } else {
+                // Signal to the UI that it looks like the user is re-installing the
+                // same version.
+                validationResult.installationStatus = Statuses.SAME_VERSION;
+            }
+        }
+        callback(null, validationResult);
+    });
+}
+
 /**
  * Implements the "install" command in the "extensions" domain.
  *
@@ -167,11 +215,12 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * thing that is done here.
  *
  * After the extension is validated, it is installed in destinationDirectory
- * unless the extension is already present there. If it is, you must
- * specify a disabledDirectory in options and the extension will be installed
- * there. (options is an object that currently only has disabledDirectory.
- * As we expand out the extension manager, there will likely be additional
- * options added.)
+ * unless the extension is already present there. If it is already present,
+ * a determination is made about whether the package being installed is
+ * an update. If it does appear to be an update, then result.installationStatus
+ * is set to NEEDS_UPDATE. If not, then it's set to ALREADY_INSTALLED.
+ *
+ * If the installation succeeds, then result.installationStatus is set to INSTALLED.
  *
  * The extension is unzipped into a directory in destinationDirectory with
  * the name of the extension (the name is derived either from package.json
@@ -184,16 +233,19 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
  *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
+ * @param {boolean} _doUpdate  private argument to signal that an update should be performed
  */
-function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUpdate) {
     if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemExtensionDirectory) {
         callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
         return;
     }
     
     var validateCallback = function (err, validationResult) {
+        validationResult.localPath = packagePath;
         // If there was trouble at the validation stage, we stop right away.
         if (err || validationResult.errors.length > 0) {
+            validationResult.installationStatus = Statuses.FAILED;
             callback(err, validationResult);
             return;
         }
@@ -218,18 +270,21 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
                 installDirectory = path.join(options.disabledDirectory, extensionName);
+                validationResult.installationStatus = Statuses.DISABLED;
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
                 _removeAndInstall(packagePath, installDirectory, validationResult, callback);
                 return;
             }
         }
         
-        // If the extension is already there, at this point we will not overwrite
-        // a running extension. Instead, we unzip into the disabled directory.
+        // If the extension is already there, we signal to the front end that it's already installed
+        // unless the front end has signaled an intent to update.
         if (fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
-            validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
-            installDirectory = path.join(options.disabledDirectory, extensionName);
-            _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+            if (_doUpdate) {
+                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+            } else {
+                _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, callback);
+            }
         } else {
             // Regular installation with no conflicts.
             validationResult.disabledReason = null;
@@ -240,6 +295,38 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
     validate(packagePath, {}, validateCallback);
 }
 
+/**
+ * Implements the "update" command in the "extensions" domain.
+ *
+ * Currently, this just wraps _cmdInstall, but will remove the existing directory
+ * first.
+ *
+ * There is no need to call validate independently. Validation is the first
+ * thing that is done here.
+ *
+ * After the extension is validated, it is installed in destinationDirectory
+ * unless the extension is already present there. If it is already present,
+ * a determination is made about whether the package being installed is
+ * an update. If it does appear to be an update, then result.installationStatus
+ * is set to NEEDS_UPDATE. If not, then it's set to ALREADY_INSTALLED.
+ *
+ * If the installation succeeds, then result.installationStatus is set to INSTALLED.
+ *
+ * The extension is unzipped into a directory in destinationDirectory with
+ * the name of the extension (the name is derived either from package.json
+ * or the name of the zip file).
+ *
+ * The destinationDirectory will be created if it does not exist.
+ * 
+ * @param {string} Absolute path to the package zip file
+ * @param {string} the destination directory
+ * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
+ *      systemExtensionDirectory: !string}} additional settings to control the installation
+ * @param {function} callback (err, result)
+ */
+function _cmdUpdate(packagePath, destinationDirectory, options, callback) {
+    _cmdInstall(packagePath, destinationDirectory, options, callback, true);
+}
 
 /**
  * Creates a uniquely-named file in the OS temp directory and opens it for writing.
@@ -427,6 +514,55 @@ function init(domainManager) {
             type: "string",
             description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
         }, {
+            name: "installationStatus",
+            type: "string",
+            description: "Current status of the installation (an extension can be valid but not installed because it's an update"
+        }, {
+            name: "installedTo",
+            type: "string",
+            description: "absolute path where the extension was installed to"
+        }, {
+            name: "commonPrefix",
+            type: "string",
+            description: "top level directory in the package zip which contains all of the files"
+        }]
+    );
+    domainManager.registerCommand(
+        "extensionManager",
+        "update",
+        _cmdUpdate,
+        true,
+        "Updates the given Brackets extension (for which install was generally previously attemped). Brackets must be quit after this.",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the extension package"
+        }, {
+            name: "destinationDirectory",
+            type: "string",
+            description: "absolute filesystem path where this extension should be installed"
+        }, {
+            name: "options",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
+            description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
+        }],
+        [{
+            name: "errors",
+            type: "string|Array.<string>",
+            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+        }, {
+            name: "metadata",
+            type: "{name: string, version: string}",
+            description: "all package.json metadata (null if there's no package.json)"
+        }, {
+            name: "disabledReason",
+            type: "string",
+            description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+        }, {
+            name: "installationStatus",
+            type: "string",
+            description: "Current status of the installation (an extension can be valid but not installed because it's an update"
+        }, {
             name: "installedTo",
             type: "string",
             description: "absolute path where the extension was installed to"
@@ -491,6 +627,7 @@ function init(domainManager) {
 exports._cmdValidate = validate;
 exports._cmdInstall = _cmdInstall;
 exports._cmdRemove = _cmdRemove;
+exports._cmdUpdate = _cmdUpdate;
 
 // used to load the domain
 exports.init = init;

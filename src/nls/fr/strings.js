@@ -100,7 +100,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"FILE_DELETED_TITLE": "[6971318] !é=File Deleted=!",
+	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
@@ -158,8 +158,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     /**
      * Command Name Constants

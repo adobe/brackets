@@ -48,7 +48,6 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_DELETE                 = "file.delete";
-    exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_REFRESH                = "file.refresh";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
@@ -101,6 +100,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";

@@ -122,7 +122,7 @@ a, img {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     color: @tc-text;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 25px;    
     height: 26px;
@@ -161,6 +161,10 @@ a, img {
         border: none;
         margin: 6px 10px;
         padding: 0;
+    }
+    
+    #status-language {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
 }
 
@@ -461,6 +465,10 @@ a, img {
     ul {
         padding-left: 8px;
     }
+    
+    > ul {
+        padding-bottom: 24px;
+    }
 }
 
 .scroller-shadow {
@@ -471,12 +479,13 @@ a, img {
     z-index: @z-index-brackets-scroller-shadow;
     
     &.top {
-        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
         background-position: 0 -5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
     
     &.bottom {
-        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        #gradient > .vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
         background-position: 0 5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
@@ -548,7 +557,7 @@ a, img {
         padding: 10px 10px 0px 10px;
         
         .filename {
-            font-family: @fontstack-sans-serif;
+            font-family: @sansFontFamily;
             font-size: 1.1em;
             color: @inline-color-1;
             
@@ -605,7 +614,7 @@ a, img {
     float: right;
     position: relative;
     min-height: 100%;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     width: 250px;
     max-width: 50%;
     overflow: hidden;
@@ -715,7 +724,7 @@ a, img {
 .modal-bar {
     text-align: left;
     
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     font-size: 13px;
     color: @tc-text;
     background: @tc-gray-panel;
@@ -729,7 +738,7 @@ a, img {
 }
 
 .modal-bar input {
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     outline: none;
     width: 20em;
     margin: .3em .3em;
@@ -745,7 +754,7 @@ a, img {
 .modal-bar .error {
     display: none;
     
-    .alert-message {
+    .alert {
         padding-top: 4px;
         padding-bottom: 4px;
     }

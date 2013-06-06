@@ -60,9 +60,18 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguage(expected.id)).toBe(actual);
             }
             
+            var i = 0,
+                expectedFileExtensions = expected.fileExtensions || [],
+                expectedFileExtensionsLength = expectedFileExtensions.length,
+                actualFileExtensions = actual.getFileExtensions();
+            
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            
+            for (i; i < expectedFileExtensionsLength; i++) {
+                expect(actualFileExtensions).toContain(expectedFileExtensions[i]);
+            }
+            
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
