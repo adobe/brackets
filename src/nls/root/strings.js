@@ -362,7 +362,8 @@ define({
     "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
     "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br />Click the Install from URL button below to get started.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
+    "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     
     /**
      * Unit names
