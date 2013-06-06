@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                         .done(function (result) {
                             // If there were errors or the extension is disabled, we don't
                             // try to load it so we're ready to return
-                            if (result.installationStatus !== InstallationStatuses.INSTALLED && !_doUpdate) {
+                            if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
                                 d.resolve(result);
                             } else {
                                 // This was a new extension and everything looked fine.
@@ -433,9 +433,22 @@ define(function (require, exports, module) {
      *      installed or rejected if there is a problem.
      */
     function installUpdate(path, nameHint) {
-        return install(path, nameHint, true).always(function () {
-            brackets.fs.unlink(path, function () { });
-        });
+        var d = new $.Deferred();
+        install(path, nameHint, true)
+            .done(function (result) {
+                if (result.installationStatus !== InstallationStatuses.INSTALLED) {
+                    d.reject(result.errors);
+                } else {
+                    d.resolve(result);
+                }
+            })
+            .fail(function (error) {
+                d.reject(error);
+            })
+            .always(function () {
+                brackets.fs.unlink(path, function () { });
+            });
+        return d.promise();
     }
         
     /**

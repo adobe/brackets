@@ -344,9 +344,18 @@ define(function (require, exports, module) {
                                     .fail(function (errorArray) {
                                         self.model.dispose();
                                         
+                                        // This error case should be very uncommon.
+                                        // Just let the user know that we couldn't update
+                                        // this extension and log the errors to the console.
                                         var ids = [];
                                         errorArray.forEach(function (errorObj) {
                                             ids.push(errorObj.item);
+                                            if (errorObj.error && errorObj.error.forEach) {
+                                                console.error("Errors for ", errorObj.item);
+                                                errorObj.error.forEach(function (error) {
+                                                    console.error(Package.formatError(error));
+                                                });
+                                            }
                                         });
                                         Dialogs.showModalDialog(
                                             DefaultDialogs.DIALOG_ID_ERROR,
