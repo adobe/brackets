@@ -391,6 +391,31 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Return all functions that have the specified name, searching across all the given files.
+     * Does *not* filter out non-js files.
+     *
+     * @param {!String} functionName The name to match.
+     * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
+     * @return {$.Promise} that will be resolved with an Array of objects containing the
+     *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
+     *      Does not addRef() the documents returned in the array.
+     */
+    function findAllMatchingFunctions(functionName, fileInfos) {
+        var result          = new $.Deferred(),
+            docEntries      = [];
+        
+        // RegExp search (or cache lookup) for all functions in the project
+        _getFunctionsInFiles(fileInfos).done(function (docEntries) {
+            // Compute offsets for all matched functions
+            _getOffsetsForFunction(docEntries, functionName).done(function (rangeResults) {
+                result.resolve(rangeResults);
+            });
+        });
+        
+        return result.promise();
+    }
+
+    /**
      * Finds all instances of the specified searchName in "text".
      * Returns an Array of Objects with start and end properties.
      *
@@ -427,4 +452,5 @@ define(function (require, exports, module) {
     exports.findAllMatchingFunctionsInText = findAllMatchingFunctionsInText;
     exports._getFunctionEndOffset = _getFunctionEndOffset; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
+    exports.findAllMatchingFunctions = findAllMatchingFunctions;
 });
