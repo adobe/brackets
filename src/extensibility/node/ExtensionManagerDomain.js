@@ -237,6 +237,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
     }
     
     var validateCallback = function (err, validationResult) {
+        validationResult.localPath = packagePath;
         // If there was trouble at the validation stage, we stop right away.
         if (err || validationResult.errors.length > 0) {
             validationResult.installationStatus = Statuses.FAILED;

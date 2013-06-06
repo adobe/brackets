@@ -136,6 +136,7 @@ describe("Package Installation", function () {
             ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 expect(result.installationStatus).toEqual("NEEDS_UPDATE");
+                expect(result.localPath).toEqual(basicValidExtension2);
                 done();
             });
         });

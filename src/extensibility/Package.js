@@ -318,8 +318,11 @@ define(function (require, exports, module) {
                 
                 install(downloadResult.localPath, downloadResult.filenameHint)
                     .done(function (result) {
-                        if (result.installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
-                                result.installationStatus === InstallationStatuses.NEEDS_UPDATE) {
+                        var installationStatus = result.installationStatus;
+                        if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
+                                installationStatus === InstallationStatuses.NEEDS_UPDATE ||
+                                installationStatus === InstallationStatuses.SAME_VERSION ||
+                                installationStatus === InstallationStatuses.OLDER_VERSION) {
                             // We don't delete the file in this case, because it will be needed
                             // if the user is going to install the update.
                             state = STATE_SUCCEEDED;
