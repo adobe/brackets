@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         Dialogs                   = require("widgets/Dialogs"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
+        Strings                   = require("strings"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
@@ -853,6 +854,18 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect($(".empty-message", view.$el).css("display")).not.toBe("none");
+                        expect($(".empty-message", view.$el).html()).toEqual(Strings.NO_EXTENSIONS);
+                        expect($("table", view.$el).css("display")).toBe("none");
+                    });
+                });
+                           
+                it("should show the 'no extensions' message when there are extensions installed but none match the search query", function () {
+                    mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        view.filter("DON'T_FIND_ME_IN_THE_EXTENSION_LIST");
+                        expect($(".empty-message", view.$el).css("display")).not.toBe("none");
+                        expect($(".empty-message", view.$el).html()).toEqual(Strings.NO_EXTENSION_MATCHES);
                         expect($("table", view.$el).css("display")).toBe("none");
                     });
                 });
