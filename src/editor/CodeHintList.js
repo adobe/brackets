@@ -264,7 +264,19 @@ define(function (require, exports, module) {
 
         return {left: posLeft, top: posTop, width: availableWidth};
     };
-    
+
+    /**
+     * Check whether keyCode is one of the keys that we handle or not.
+     *
+     * @param {number} keyCode
+     */
+    CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
+        return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
+                keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
+                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
+        
+    };
+        
     /**
      * Convert keydown events into hint list navigation actions.
      *
@@ -326,7 +338,7 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown") {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
             keyCode = event.keyCode;
 
             if (keyCode === KeyEvent.DOM_VK_UP) {
@@ -346,6 +358,8 @@ define(function (require, exports, module) {
                 return;
             }
             
+            // We handle it. So prevent others from handling these keys.
+            event.stopImmediatePropagation();
             event.preventDefault();
         }
     };

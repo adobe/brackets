@@ -222,12 +222,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Commands        = require("command/Commands"),
-        CommandManager  = require("command/CommandManager"),
-        EditorManager   = require("editor/EditorManager"),
-        Strings         = require("strings"),
-        KeyEvent        = require("utils/KeyEvent"),
-        CodeHintList    = require("editor/CodeHintList").CodeHintList;
+    var Commands          = require("command/Commands"),
+        CommandManager    = require("command/CommandManager"),
+        EditorManager     = require("editor/EditorManager"),
+        KeyBindingManager = require("command/KeyBindingManager"),
+        Strings           = require("strings"),
+        KeyEvent          = require("utils/KeyEvent"),
+        CodeHintList      = require("editor/CodeHintList").CodeHintList;
 
     var hintProviders   = { "all" : [] },
         lastChar        = null,
@@ -235,7 +236,8 @@ define(function (require, exports, module) {
         sessionEditor   = null,
         hintList        = null,
         deferredHints   = null,
-        keyDownEditor   = null;
+        keyDownEditor   = null,
+        disabledKeyBindingManager = false;
 
     /**
      * Comparator to sort providers from high to low priority
@@ -457,6 +459,13 @@ define(function (require, exports, module) {
      */
     function handleKeyEvent(editor, event) {
         keyDownEditor = editor;
+        
+        // If we have disabled KeyBindingManager, now is the time to re-enable it.
+        if (disabledKeyBindingManager) {
+            KeyBindingManager.setEnabled(true);
+            disabledKeyBindingManager = false;
+        }
+        
         if (event.type === "keydown") {
             if (_inSession(editor) && hintList.isOpen()) {
                 if (event.shiftKey &&
@@ -549,6 +558,28 @@ define(function (require, exports, module) {
         return hintList;
     }
 
+    /**
+     * Check keydown events passed from KeyBindingManager. If it is one of the keys handled by
+     * CodeHintList, then we disable KeyBindingManager to prevent it from handling this specific 
+     * keydown event.
+     *
+     * @param {Event} triggeredEvent - "beforeKeyBindingManagerKeydown" event.
+     * @param {KeyboardEvent>} keydownEvent - keydown event passed from KeyBindingManager.
+     */
+    function _handleKeydownEvent(triggeredEvent, keydownEvent) {
+        if (isOpen() && keydownEvent && hintList.isHandlingKeyCode(keydownEvent.keyCode)) {
+            KeyBindingManager.setEnabled(false);
+            disabledKeyBindingManager = true;
+        }
+    }
+    
+    // KeyBindingManager handles keydown events in the event capturing phase and 
+    // therefore any command that uses the same key as one of CodeHintList handled
+    // keys may hijack the key away from CodeHintList. (eg. Emmet extension issue #2455)
+    // So we use "beforeKeyBindingManagerKeydown" to make sure that CodeHintManager will 
+    // handle all these keydown events first.
+    $(KeyBindingManager).on("beforeKeyBindingManagerKeydown", _handleKeydownEvent);
+    
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution. 
     // For example, when the user hits Ctrl+K to open Quick Doc, it is 
