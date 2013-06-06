@@ -637,6 +637,127 @@ define(function LiveDevelopment(require, exports, module) {
         loadAgents();
     }
 
+    /**
+     * Close the connection and the associated window asynchronously
+     * 
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
+    function close() {
+        _closeReason = "explicit_close";
+
+        var deferred = $.Deferred();
+            
+        /*
+         * Finish closing the live development connection, including setting
+         * the status accordingly.
+         */
+        function cleanup() {
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
+            deferred.resolve();
+        }
+        
+        if (Inspector.connected()) {
+            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
+            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
+                Inspector.disconnect();
+                window.clearTimeout(timer);
+                cleanup();
+            });
+        } else {
+            cleanup();
+        }
+
+        if (_openDeferred && _openDeferred.state() === "pending") {
+            _openDeferred.reject();
+        }
+        
+        return deferred.promise();
+    }
+    
+    /** Triggered by Inspector.connect */
+    function _onConnect(event) {
+        /* 
+         * Create a promise that resolves when the interstitial page has
+         * finished loading.
+         * 
+         * @return {jQuery.Promise}
+         */
+        function waitForInterstitialPageLoad() {
+            var deferred    = $.Deferred(),
+                keepPolling = true,
+                timer       = window.setTimeout(function () {
+                    keepPolling = false;
+                    deferred.reject();
+                }, 10000); // 10 seconds
+            
+            /* 
+             * Asynchronously check to see if the interstitial page has
+             * finished loading; if not, check again until timing out.
+             */
+            function pollInterstitialPage() {
+                if (keepPolling && Inspector.connected()) {
+                    Inspector.Runtime.evaluate("window.isBracketsLiveDevelopmentInterstitialPageLoaded", function (response) {
+                        var result = response.result;
+                        
+                        if (result.type === "boolean" && result.value) {
+                            window.clearTimeout(timer);
+                            deferred.resolve();
+                        } else {
+                            window.setTimeout(pollInterstitialPage, 100);
+                        }
+                    });
+                } else {
+                    deferred.reject();
+                }
+            }
+            
+            pollInterstitialPage();
+            return deferred.promise();
+        }
+        
+        /*
+         * Load agents and navigate to the target document once the 
+         * interstitial page has finished loading.
+         */
+        function onInterstitialPageLoad() {
+            // Page domain must be enabled first before loading other agents
+            Inspector.Page.enable().done(function () {
+                // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+                // navigate to the page first before loading can complete.
+                // To accomodate this, we load all agents and navigate in
+                // parallel.
+                loadAgents();
+
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    // Navigate from interstitial to the document
+                    // Fires a frameNavigated event
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    // Unlikely that we would get to this state where
+                    // a connection is in process but there is no current
+                    // document
+                    close();
+                }
+            });
+        }
+        
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+		
+        waitForInterstitialPageLoad()
+            .fail(function () {
+                close();
+
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            })
+            .done(onInterstitialPageLoad);
+    }
+
     /** Open the Connection and go live */
     function open() {
         _openDeferred = new $.Deferred();
@@ -811,44 +932,6 @@ define(function LiveDevelopment(require, exports, module) {
 
         return promise;
     }
-
-    /**
-     * Close the connection and the associated window asynchronously
-     * 
-     * @return {jQuery.Promise} Resolves once the connection is closed
-     */
-    function close() {
-        _closeReason = "explicit_close";
-
-        var deferred = $.Deferred();
-            
-        /*
-         * Finish closing the live development connection, including setting
-         * the status accordingly.
-         */
-        function cleanup() {
-            _setStatus(STATUS_INACTIVE);
-            _serverProvider = null;
-            deferred.resolve();
-        }
-        
-        if (Inspector.connected()) {
-            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
-            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
-                Inspector.disconnect();
-                window.clearTimeout(timer);
-                cleanup();
-            });
-        } else {
-            cleanup();
-        }
-
-        if (_openDeferred && _openDeferred.state() === "pending") {
-            _openDeferred.reject();
-        }
-        
-        return deferred.promise();
-    }
     
     /** Enable highlighting */
     function showHighlight() {
@@ -871,89 +954,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (Inspector.connected() && agents.highlight) {
             agents.highlight.redraw();
         }
-    }
-    
-    /** Triggered by Inspector.connect */
-    function _onConnect(event) {
-        /* 
-         * Create a promise that resolves when the interstitial page has
-         * finished loading.
-         * 
-         * @return {jQuery.Promise}
-         */
-        function waitForInterstitialPageLoad() {
-            var deferred    = $.Deferred(),
-                keepPolling = true,
-                timer       = window.setTimeout(function () {
-                    keepPolling = false;
-                    deferred.reject();
-                }, 10000); // 10 seconds
-            
-            /* 
-             * Asynchronously check to see if the interstitial page has
-             * finished loading; if not, check again until timing out.
-             */
-            function pollInterstitialPage() {
-                if (keepPolling && Inspector.connected()) {
-                    Inspector.Runtime.evaluate("window.isBracketsLiveDevelopmentInterstitialPageLoaded", function (response) {
-                        var result = response.result;
-                        
-                        if (result.type === "boolean" && result.value) {
-                            window.clearTimeout(timer);
-                            deferred.resolve();
-                        } else {
-                            window.setTimeout(pollInterstitialPage, 100);
-                        }
-                    });
-                } else {
-                    deferred.reject();
-                }
-            }
-            
-            pollInterstitialPage();
-            return deferred.promise();
-        }
-        
-        /*
-         * Load agents and navigate to the target document once the 
-         * interstitial page has finished loading.
-         */
-        function onInterstitialPageLoad() {
-            // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable().done(function () {
-                // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-                // navigate to the page first before loading can complete.
-                // To accomodate this, we load all agents and navigate in
-                // parallel.
-                loadAgents();
-
-                var doc = _getCurrentDocument();
-                if (doc) {
-                    // Navigate from interstitial to the document
-                    // Fires a frameNavigated event
-                    Inspector.Page.navigate(doc.root.url);
-                } else {
-                    // Unlikely that we would get to this state where
-                    // a connection is in process but there is no current
-                    // document
-                    close();
-                }
-            });
-        }
-        
-        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
-		
-        waitForInterstitialPageLoad()
-            .fail(function () {
-                close();
-
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-                );
-            })
-            .done(onInterstitialPageLoad);
     }
 
     /** Triggered by a document change from the DocumentManager */
