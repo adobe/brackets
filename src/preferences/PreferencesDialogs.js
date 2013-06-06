@@ -101,7 +101,7 @@ define(function (require, exports, module) {
         });
 
         // Populate project settings
-        $dlg = $(".project-settings-dialog.instance");
+        $dlg = dialog.getElement();
 
         // Title
         $title = $dlg.find(".dialog-title");
