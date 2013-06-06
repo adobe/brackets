@@ -105,7 +105,7 @@ define(function (require, exports, module) {
                         .hide())
                 .append("<ul class='dropdown-menu'></ul>");
         
-        this._handleKeydown = this._handleKeydown.bind(this);
+        this._keydownHook = this._keydownHook.bind(this);
     }
 
     /**
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
      *
      * @param {KeyBoardEvent} keyEvent
      */
-    CodeHintList.prototype._handleKeydown = function (event) {
+    CodeHintList.prototype._keydownHook = function (event) {
         var keyCode,
             self = this;
 
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
             return true;
         }
         
-        // If we didn't handle it, let other global handlers handle it.
+        // If we didn't handle it, let other global keydown hooks handle it.
         return false;
     };
 
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
             
             PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
             
-            KeyBindingManager.addGlobalKeydownHandler(this._handleKeydown);
+            KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
 
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
         PopUpManager.removePopUp(this.$hintMenu);
         this.$hintMenu.remove();
         
-        KeyBindingManager.removeGlobalKeydownHandler(this._handleKeydown);
+        KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
 
     /**

@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         return dlg.find("[data-button-id='" + buttonId + "']");
     }
 
-    var _handleKeyDown = function (e, autoDismiss) {
+    var _keydownHook = function (e, autoDismiss) {
         var primaryBtn = this.find(".primary"),
             buttonId = null,
             which = String.fromCharCode(e.which);
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
             e.preventDefault();
         }
         
-        // Stop any other global handlers from processing the event (but
+        // Stop any other global hooks from processing the event (but
         // allow it to continue bubbling if we haven't otherwise stopped it).
         return true;
     };
@@ -193,8 +193,8 @@ define(function (require, exports, module) {
             }
         });
 
-        var handleKeyDown = function (e) {
-            return _handleKeyDown.call($dlg, e, autoDismiss);
+        var keydownHook = function (e) {
+            return _keydownHook.call($dlg, e, autoDismiss);
         };
 
         // Pipe dialog-closing notification back to client code
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             $dlg.remove();
 
             // Remove our global keydown handler.
-            KeyBindingManager.removeGlobalKeydownHandler(handleKeyDown);
+            KeyBindingManager.removeGlobalKeydownHook(keydownHook);
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
             }
 
             // Push our global keydown handler onto the global stack of handlers.
-            KeyBindingManager.addGlobalKeydownHandler(handleKeyDown);
+            KeyBindingManager.addGlobalKeydownHook(keydownHook);
         });
         
         // Click handler for buttons

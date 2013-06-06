@@ -396,23 +396,23 @@ define(function (require, exports, module) {
             
         });
         
-        describe("global handlers", function () {
-            var commandCalled, handler1Called, handler2Called, ctrlAEvent;
+        describe("global hooks", function () {
+            var commandCalled, hook1Called, hook2Called, ctrlAEvent;
             
-            function keydownHandler1(event) {
-                handler1Called = true;
+            function keydownHook1(event) {
+                hook1Called = true;
                 return true;
             }
             
-            function keydownHandler2(event) {
-                handler2Called = true;
+            function keydownHook2(event) {
+                hook2Called = true;
                 return true;
             }
             
             function makeKeyEvent() {
                 // We don't create a real native event object here--just a fake
                 // object with enough info for the key translation to work
-                // properly--since our mock handlers don't actually look at it
+                // properly--since our mock hooks don't actually look at it
                 // anyway.
                 return {
                     ctrlKey: true,
@@ -434,8 +434,8 @@ define(function (require, exports, module) {
             
             beforeEach(function () {
                 commandCalled = false;
-                handler1Called = false;
-                handler2Called = false;
+                hook1Called = false;
+                hook2Called = false;
                 ctrlAEvent = makeKeyEvent();
                 CommandManager.register("FakeUnitTestCommand", "unittest.fakeCommand", function () {
                     commandCalled = true;
@@ -443,24 +443,24 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("unittest.fakeCommand", "Ctrl-A");
             });
             
-            it("should block command execution if a global handler is added that prevents it", function () {
-                KeyBindingManager.addGlobalKeydownHandler(keydownHandler1);
+            it("should block command execution if a global hook is added that prevents it", function () {
+                KeyBindingManager.addGlobalKeydownHook(keydownHook1);
                 KeyBindingManager._handleKeyEvent(ctrlAEvent);
-                expect(handler1Called).toBe(true);
+                expect(hook1Called).toBe(true);
                 expect(commandCalled).toBe(false);
                 
-                // In this case, the event should not have been stopped, because our handler didn't stop it
+                // In this case, the event should not have been stopped, because our hook didn't stop it
                 // and KBM didn't handle it.
                 expect(ctrlAEvent.immediatePropagationStopped).toBe(false);
                 expect(ctrlAEvent.propagationStopped).toBe(false);
                 expect(ctrlAEvent.defaultPrevented).toBe(false);
             });
             
-            it("should not block command execution if a global handler is added then removed", function () {
-                KeyBindingManager.addGlobalKeydownHandler(keydownHandler1);
-                KeyBindingManager.removeGlobalKeydownHandler(keydownHandler1);
+            it("should not block command execution if a global hook is added then removed", function () {
+                KeyBindingManager.addGlobalKeydownHook(keydownHook1);
+                KeyBindingManager.removeGlobalKeydownHook(keydownHook1);
                 KeyBindingManager._handleKeyEvent(ctrlAEvent);
-                expect(handler1Called).toBe(false);
+                expect(hook1Called).toBe(false);
                 expect(commandCalled).toBe(true);
 
                 // In this case, the event should have been stopped (but not immediately) because
@@ -470,15 +470,15 @@ define(function (require, exports, module) {
                 expect(ctrlAEvent.defaultPrevented).toBe(true);
             });
             
-            it("should call the most recently added handler first", function () {
-                KeyBindingManager.addGlobalKeydownHandler(keydownHandler1);
-                KeyBindingManager.addGlobalKeydownHandler(keydownHandler2);
+            it("should call the most recently added hook first", function () {
+                KeyBindingManager.addGlobalKeydownHook(keydownHook1);
+                KeyBindingManager.addGlobalKeydownHook(keydownHook2);
                 KeyBindingManager._handleKeyEvent(ctrlAEvent);
-                expect(handler2Called).toBe(true);
-                expect(handler1Called).toBe(false);
+                expect(hook2Called).toBe(true);
+                expect(hook1Called).toBe(false);
                 expect(commandCalled).toBe(false);
 
-                // In this case, the event should not have been stopped, because our handler didn't stop it
+                // In this case, the event should not have been stopped, because our hook didn't stop it
                 // and KBM didn't handle it.
                 expect(ctrlAEvent.immediatePropagationStopped).toBe(false);
                 expect(ctrlAEvent.propagationStopped).toBe(false);

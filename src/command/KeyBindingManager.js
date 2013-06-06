@@ -64,10 +64,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Stack of registered global keydown handlers.
+     * Stack of registered global keydown hooks.
      * @type {Array.<function(Event): boolean>}
      */
-    var _globalKeydownHandlers = [];
+    var _globalKeydownHooks = [];
 
     /**
      * @private
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     function _reset() {
         _keyMap = {};
         _commandMap = {};
-        _globalKeydownHandlers = [];
+        _globalKeydownHooks = [];
     }
 
     /**
@@ -609,57 +609,57 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Adds a global keydown handler that gets first crack at keydown events 
+     * Adds a global keydown hook that gets first crack at keydown events 
      * before standard keybindings do. This is intended for use by modal or 
      * semi-modal UI elements like dialogs or the code hint list that should 
      * execute before normal command bindings are run. 
      * 
-     * The handler is passed one parameter, the original keyboard event. If the 
-     * handler handles the event (or wants to block other global handlers from 
+     * The hook is passed one parameter, the original keyboard event. If the 
+     * hook handles the event (or wants to block other global hooks from 
      * handling the event), it should return true. Note that this will *only*
-     * stop other global handlers and KeyBindingManager from handling the
+     * stop other global hooks and KeyBindingManager from handling the
      * event; to prevent further event propagation, you will need to call
      * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
      * as usual.
      *
-     * Multiple keydown handlers can be registered, and are executed in order, 
+     * Multiple keydown hooks can be registered, and are executed in order, 
      * most-recently-added first.
      * 
      * (We have to have a special API for this because (1) handlers are normally
      * called in least-recently-added order, and we want most-recently-added; 
      * (2) native DOM events don't have a way for us to find out if 
      * stopImmediatePropagation()/stopPropagation() has been called on the
-     * event, so we have to have some other way for one of the handlers to 
-     * indicate that it wants to block the other handlers from running.)
+     * event, so we have to have some other way for one of the hooks to 
+     * indicate that it wants to block the other hooks from running.)
      *
-     * @param {function(Event): boolean} handler The global handler to add.
+     * @param {function(Event): boolean} hook The global handhookler to add.
      */
-    function addGlobalKeydownHandler(handler) {
-        _globalKeydownHandlers.push(handler);
+    function addGlobalKeydownHook(hook) {
+        _globalKeydownHooks.push(hook);
     }
     
     /**
-     * Removes a global keydown handler added by `addGlobalKeydownHandler`.
-     * Does not need to be the most recently added handler.
+     * Removes a global keydown hook added by `addGlobalKeydownHook`.
+     * Does not need to be the most recently added hook.
      *
-     * @param {function(Event): boolean} handler The global handler to remove.
+     * @param {function(Event): boolean} hook The global hook to remove.
      */
-    function removeGlobalKeydownHandler(handler) {
-        var index = _globalKeydownHandlers.indexOf(handler);
+    function removeGlobalKeydownHook(hook) {
+        var index = _globalKeydownHooks.indexOf(hook);
         if (index !== -1) {
-            _globalKeydownHandlers.splice(index, 1);
+            _globalKeydownHooks.splice(index, 1);
         }
     }
     
     /**
-     * Handles a given keydown event, checking global handlers first before
+     * Handles a given keydown event, checking global hooks first before
      * deciding to handle it ourselves.
      * @param {Event} The keydown event to handle.
      */
     function _handleKeyEvent(event) {
         var i, handled = false;
-        for (i = _globalKeydownHandlers.length - 1; i >= 0; i--) {
-            if (_globalKeydownHandlers[i](event)) {
+        for (i = _globalKeydownHooks.length - 1; i >= 0; i--) {
+            if (_globalKeydownHooks[i](event)) {
                 handled = true;
                 break;
             }
@@ -694,8 +694,8 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
-    exports.addGlobalKeydownHandler = addGlobalKeydownHandler;
-    exports.removeGlobalKeydownHandler = removeGlobalKeydownHandler;
+    exports.addGlobalKeydownHook = addGlobalKeydownHook;
+    exports.removeGlobalKeydownHook = removeGlobalKeydownHook;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
