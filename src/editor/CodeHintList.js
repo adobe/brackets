@@ -28,14 +28,14 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus           = require("command/Menus"),
-        StringUtils     = require("utils/StringUtils"),
-        PopUpManager    = require("widgets/PopUpManager"),
-        ViewUtils       = require("utils/ViewUtils"),
+    var Menus             = require("command/Menus"),
+        StringUtils       = require("utils/StringUtils"),
+        PopUpManager      = require("widgets/PopUpManager"),
+        ViewUtils         = require("utils/ViewUtils"),
         KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent        = require("utils/KeyEvent");
+        KeyEvent          = require("utils/KeyEvent");
     
-    var CodeHintListHTML = require("text!htmlContent/code-hint-list.html");
+    var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 
     /**
      * Displays a popup list of hints for a given editor context.
