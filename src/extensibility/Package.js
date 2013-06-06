@@ -434,7 +434,7 @@ define(function (require, exports, module) {
      */
     function installUpdate(path, nameHint) {
         return install(path, nameHint, true).always(function () {
-            brackets.fs.unlink(path);
+            brackets.fs.unlink(path, function () { });
         });
     }
         
