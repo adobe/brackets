@@ -572,7 +572,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     function _onDetached(event, res) {
         // If there already is a reason for closing the session, do not overwrite it
-        if (!_closeReason) {
+        if (!_closeReason && res && res.reason) {
             // Get the explanation from res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
             // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
             // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
