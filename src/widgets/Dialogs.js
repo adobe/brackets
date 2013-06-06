@@ -109,7 +109,9 @@ define(function (require, exports, module) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
-            // or if the target is not a form element.
+            // or if the target is not a form element. (We don't want to use
+            // "inTypingField" here because we want the TAB key to work on
+            // non-text form elements.)
             e.stopPropagation();
             e.preventDefault();
         }
