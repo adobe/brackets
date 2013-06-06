@@ -67,7 +67,7 @@ define(function (require, exports, module) {
                           "at a breakpoint. If you are NOT at a breakpoint, please " +
                           "file a bug and mention this comment. Stack depth = " + stackDepth + ".");
         }
-        return (promise && (typeof promise.state === "function") && promise.state() === "rejected") ? false : true;
+        return (promise && promise.state() === "rejected") ? false : true;
     }
 
     AppInit.appReady(function () {
