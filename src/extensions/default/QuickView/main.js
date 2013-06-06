@@ -245,6 +245,92 @@ define(function (require, exports, module) {
 
             return colorMatch;
         }
+        
+        // simple css property splitter (used to find color stop arguments in gradients)
+        function splitStyleProperty(property) {
+            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g;
+            var recurse = function () {
+                var array = [];
+                for (;;) {
+                    var result = token.exec(property);
+                    if (result[2] === "(") {
+                        var str = result[1].trim() + "(" + recurse().join(",") + ")";
+                        result = token.exec(property);
+                        str += result[1];
+                        array.push(str);
+                    } else {
+                        array.push(result[1].trim());
+                    }
+                    if (result[2] !== ",") {
+                        return array;
+                    }
+                }
+            };
+            return (recurse());
+        }
+        
+        // color stop helpers
+        function isGradientColorStop(args) {
+            return (args.length > 0 && args[0].match(colorRegEx) !== null);
+        }
+        
+        function hasLengthInPixels(args) {
+            return (args.length > 1 && args[1].indexOf("px") > 0);
+        }
+        
+        // Normalizes px color stops to % 
+        function normalizeGradientExpressionForQuickview(expression) {
+            if (expression.indexOf("px") > 0) {
+                var paramStart = expression.indexOf("(") + 1,
+                    paramEnd = expression.lastIndexOf(")"),
+                    parameters = expression.substring(paramStart, paramEnd),
+                    params = splitStyleProperty(parameters),
+                    lowerBound = 0,
+                    upperBound = $previewContainer.width(),
+                    args,
+                    thisSize,
+                    i;
+
+
+                // find lower bound                
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    
+                    if (hasLengthInPixels(args)) {
+                        thisSize = parseFloat(args[1]);
+
+                        upperBound = Math.max(upperBound, thisSize);
+                        // we really only care about converting negative
+                        //  pixel values -- so take the smallest negative pixel 
+                        //  value and use that as baseline for display purposes
+                        if (thisSize < 0) {
+                            lowerBound = Math.min(lowerBound, thisSize);
+                        }
+                    }
+                }
+                
+                // convert negative lower bound to positive and adjust all pixel values
+                //  so that -20px is now 0px and 100px is now 120px 
+                lowerBound = Math.abs(lowerBound);
+                
+                // Offset the upperbound by the lowerBound to give us a corrected context
+                upperBound += lowerBound;
+                
+                // convert to %
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    if (isGradientColorStop(args) && hasLengthInPixels(args)) {
+                        thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        args[1] = thisSize + "%";
+                    }
+                    params[i] = args.join(" ");
+                }
+
+                // put it back together.                
+                expression = expression.substring(0, paramStart) + params.join(", ") + expression.substring(paramEnd);
+            }
+            return expression;
+        }
 
         var gradientMatch = execGradientMatch(line),
             match = gradientMatch.match || execColorMatch(line),
@@ -252,7 +338,14 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+                // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                
+                // normalize the arguments to something that we can display to the user
+                // NOTE: we need both the div and the popover's _previewCSS member 
+                //          (used by unit tests) to match so normalize the css for both
+                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
+                    
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
