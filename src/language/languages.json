@@ -4,6 +4,12 @@
         "mode": ["null", "text/plain"]
     },
 
+    "properties": {
+        "name": "Properties",
+        "mode": ["properties", "text/x-properties"],
+        "fileExtensions": ["ini", "properties"]
+    },
+
     "css": {
         "name": "CSS",
         "mode": "css",
@@ -90,6 +96,18 @@
         "name": "Java",
         "mode": ["clike", "text/x-java"],
         "fileExtensions": ["java"]
+    },
+
+    "scala": {
+        "name": "Scala",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["scala"]
+    },
+
+    "sbt": {
+        "name": "SBT",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["sbt"]
     },
 
     "coffeescript": {
