@@ -345,6 +345,7 @@ define({
 	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
 	"EXTENSION_INSTALLED": "Installée",
+	"EXTENSION_UPDATE_INSTALLED": "[6981214] !é=This extension update has been downloaded and will be installed when you quit {APP_NAME}.=!",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
