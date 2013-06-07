@@ -193,7 +193,7 @@ define(function (require, exports, module) {
                 }
                 
                 function waitForFileCreate() {
-                    return !didCreate && gotError;
+                    return didCreate || gotError;
                 }
                 
                 function assertFile() {

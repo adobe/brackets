@@ -142,11 +142,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Denotes filenames which are not allowed even if the system allows them
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.  
      */
-    var _illegalFilenames = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
-                             'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
-                             'nul', 'con', 'prn', 'aux', '.', '..', '...'];
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
     /**
      * @private
@@ -1128,7 +1127,7 @@ define(function (require, exports, module) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || (_illegalFilenames.indexOf(filename.toLowerCase()) !== -1)) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
