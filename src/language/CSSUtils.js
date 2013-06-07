@@ -411,9 +411,14 @@ define(function (require, exports, module) {
         // Get value after cursor up until closing paren or newline
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         do {
-            if (TokenUtils.moveNextToken(forwardCtx)) {
-                propValues[0] += forwardCtx.token.string;
+            if (!TokenUtils.moveNextToken(forwardCtx)) {
+                if (forwardCtx.token.string === "(") {
+                    break;
+                } else {
+                    return createInfo();
+                }
             }
+            propValues[0] += forwardCtx.token.string;
         } while (forwardCtx.token.string !== ")" && forwardCtx.token.string !== "");
         
         return createInfo(IMPORT_URL, offset, "", index, propValues, false);
