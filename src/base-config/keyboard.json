@@ -8,6 +8,9 @@
     "file.close":  [
         "Ctrl-W"
     ],
+    "file.openFolder": [
+        "Ctrl-Alt-O"
+    ],
     "file.close_all":  [
         "Ctrl-Shift-W"
     ],
