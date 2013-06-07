@@ -447,8 +447,9 @@ define(function (require, exports, module) {
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
+        var self = this;
         this._inlineWidgets.forEach(function (inlineWidget) {
-            inlineWidget.onClosed();
+            self._removeInlineWidgetInternal(inlineWidget);
         });
     };
     
@@ -1004,7 +1005,6 @@ define(function (require, exports, module) {
                                                            { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
-            inlineWidget.onClosed();
         });
         this._inlineWidgets.push(inlineWidget);
 
@@ -1016,7 +1016,7 @@ define(function (require, exports, module) {
      * Removes all inline widgets
      */
     Editor.prototype.removeAllInlineWidgets = function () {
-        // copy the array because _removeInlineWidgetInternal will modifying the original
+        // copy the array because _removeInlineWidgetInternal will modify the original
         var widgets = [].concat(this.getInlineWidgets());
         
         widgets.forEach(function (widget) {
@@ -1033,7 +1033,6 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
-        inlineWidget.onClosed();
     };
     
     /**
@@ -1066,13 +1065,17 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
-        var i;
-        var l = this._inlineWidgets.length;
-        for (i = 0; i < l; i++) {
-            if (this._inlineWidgets[i] === inlineWidget) {
-                this._inlineWidgets.splice(i, 1);
-                break;
+        if (!inlineWidget.isClosed) {
+            var i;
+            var l = this._inlineWidgets.length;
+            for (i = 0; i < l; i++) {
+                if (this._inlineWidgets[i] === inlineWidget) {
+                    this._inlineWidgets.splice(i, 1);
+                    break;
+                }
             }
+            inlineWidget.onClosed();
+            inlineWidget.isClosed = true;
         }
     };
 
