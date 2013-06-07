@@ -464,34 +464,8 @@ define(function (require, exports, module) {
             token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
+            end         = {line: cursor.line, ch: cursor.ch},
             delimiter;
-
-        if (token && token.string === ".") {
-            var nextToken  = session.getNextTokenOnLine(cursor);
-
-            if (nextToken && // don't replace delimiters, etc.
-                    HintUtils.maybeIdentifier(nextToken.string) &&
-                    HintUtils.hintable(nextToken)) {
-                end.ch = nextToken.end;
-            }
-        }
-
-        // If the hint is a string literal, choose a delimiter in which
-        // to wrap it, preserving the existing delimiter if possible.
-        if (hint.literal && hint.kind === "string") {
-            if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimiter = HintUtils.DOUBLE_QUOTE;
-            } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimiter = HintUtils.SINGLE_QUOTE;
-            } else {
-                delimiter = hint.delimiter;
-            }
-
-            completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimiter, "\\" + delimiter);
-            completion = delimiter + completion + delimiter;
-        }
 
         if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
