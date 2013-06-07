@@ -365,7 +365,7 @@ define(function (require, exports, module) {
      *
      * @param {!String} functionName The name to match.
      * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
-     * @param {boolean} [keepAllFiles] If true, don't ignore non-javascript files.
+     * @param {boolean=} keepAllFiles If true, don't ignore non-javascript files.
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
             jsFiles         = [],
             docEntries      = [];
         
-        if (keepAllFiles !== true) {
+        if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
                 return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.fullPath));
