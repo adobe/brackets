@@ -40,17 +40,18 @@ define(function (require, exports, module) {
         NativeApp              = require("utils/NativeApp"),
         InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html");
 
-    var STATE_CLOSED            = 0,
-        STATE_START             = 1,
-        STATE_VALID_URL         = 2,
-        STATE_INSTALLING        = 3,
-        STATE_INSTALLED         = 4,
-        STATE_INSTALL_FAILED    = 5,
-        STATE_CANCELING_INSTALL = 6,
-        STATE_CANCELING_HUNG    = 7,
-        STATE_INSTALL_CANCELED  = 8,
-        STATE_ALREADY_INSTALLED = 9,
-        STATE_NEEDS_UPDATE      = 10;
+    var STATE_CLOSED              = 0,
+        STATE_START               = 1,
+        STATE_VALID_URL           = 2,
+        STATE_INSTALLING          = 3,
+        STATE_INSTALLED           = 4,
+        STATE_INSTALL_FAILED      = 5,
+        STATE_CANCELING_INSTALL   = 6,
+        STATE_CANCELING_HUNG      = 7,
+        STATE_INSTALL_CANCELED    = 8,
+        STATE_ALREADY_INSTALLED   = 9,
+        STATE_OVERWRITE_CONFIRMED = 10,
+        STATE_NEEDS_UPDATE        = 11;
     
     /** 
      * @constructor
@@ -188,10 +189,13 @@ define(function (require, exports, module) {
         case STATE_INSTALLED:
         case STATE_INSTALL_FAILED:
         case STATE_INSTALL_CANCELED:
+        case STATE_NEEDS_UPDATE:
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
             } else if (newState === STATE_INSTALL_FAILED) {
                 msg = Strings.INSTALL_FAILED;
+            } else if (newState === STATE_NEEDS_UPDATE) {
+                msg = Strings.EXTENSION_UPDATE_INSTALLED;
             } else {
                 msg = Strings.INSTALL_CANCELED;
             }
@@ -218,18 +222,17 @@ define(function (require, exports, module) {
                 .text(Strings.OVERWRITE);
             break;
         
-        // When we identify that an update needs to be installed (something that
-        // happens at quitting time), we just dismiss the dialog.
-        case STATE_NEEDS_UPDATE:
-            self._enterState(STATE_CLOSED);
+        case STATE_OVERWRITE_CONFIRMED:
+            this._enterState(STATE_CLOSED);
             break;
-            
+        
         case STATE_CLOSED:
             $(document.body).off(".installDialog");
             
            // Only resolve as successful if we actually installed something.
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
-            if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE) {
+            if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE ||
+                    prevState === STATE_OVERWRITE_CONFIRMED) {
                 this._dialogDeferred.resolve(this._installResult);
             } else {
                 this._dialogDeferred.reject();
@@ -270,14 +273,15 @@ define(function (require, exports, module) {
         if (this._state === STATE_INSTALLED ||
                 this._state === STATE_INSTALL_FAILED ||
                 this._state === STATE_INSTALL_CANCELED ||
-                this._state === STATE_CANCELING_HUNG) {
+                this._state === STATE_CANCELING_HUNG ||
+                this._state === STATE_NEEDS_UPDATE) {
             // In these end states, this is a "Close" button: just close the dialog and indicate
             // success.
             this._enterState(STATE_CLOSED);
         } else if (this._state === STATE_VALID_URL) {
             this._enterState(STATE_INSTALLING);
         } else if (this._state === STATE_ALREADY_INSTALLED) {
-            this._enterState(STATE_NEEDS_UPDATE);
+            this._enterState(STATE_OVERWRITE_CONFIRMED);
         }
     };
     

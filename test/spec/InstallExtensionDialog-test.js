@@ -653,14 +653,14 @@ define(function (require, exports, module) {
                     localPath: packageFilename
                 });
                 spyOn(testWindow.brackets.fs, "unlink");
-                fields.$okButton.click();
-                expect(testWindow.brackets.fs.unlink).not.toHaveBeenCalled();
-                expect(fields.$dlg.is(":visible")).toBe(false);
                 var dialogDone = false;
                 dialog._dialogDeferred.done(function (result) {
                     dialogDone = true;
                     expect(result.installationStatus).toBe("ALREADY_INSTALLED");
                 });
+                fields.$okButton.click();
+                expect(testWindow.brackets.fs.unlink).not.toHaveBeenCalled();
+                expect(fields.$dlg.is(":visible")).toBe(false);
                 expect(dialogDone).toBe(true);
             });
 
@@ -674,7 +674,11 @@ define(function (require, exports, module) {
                     installationStatus: "NEEDS_UPDATE",
                     localPath: packageFilename
                 });
-                expect(fields.$dlg.is(":visible")).toBe(false);
+                expect(fields.$dlg.is(":visible")).toBe(true);
+                expect(fields.$dlg.find(".message").text()).toBe(Strings.EXTENSION_UPDATE_INSTALLED);
+                expect(fields.$okButton.text()).toBe(Strings.CLOSE);
+                expect(fields.$cancelButton.is(":visible")).toBe(false);
+                fields.$okButton.click();
                 var dialogDone = false;
                 dialog._dialogDeferred.done(function (result) {
                     dialogDone = true;
