@@ -190,7 +190,9 @@ define(function (require, exports, module) {
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType;
+                type.showFunctionType !== cachedType.showFunctionType ||
+                (type.functionCallPos && cachedType.functionCallPos &&
+                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
 
     /**
