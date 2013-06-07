@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
@@ -29,13 +29,16 @@ define(function (require, exports, module) {
 
     var Commands            = brackets.getModule("command/Commands"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter"),
-        JSCodeHints         = require("main");
+        JSCodeHints         = require("main"),
+        Preferences         = require("Preferences"),
+        ScopeManager        = require("ScopeManager");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -1218,7 +1221,7 @@ define(function (require, exports, module) {
 
         describe("JavaScript Code Hinting without modules", function () {
             var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
-
+            ScopeManager.handleProjectOpen(extensionPath + "/unittest-files/non-module-test-files/");
             beforeEach(function () {
                 setupTest(testPath, true);
             });
@@ -1337,6 +1340,120 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 runs(function () {
                     editorJumped({line: 5, ch: 23});
+                });
+            });
+        });
+
+        describe("JavaScript Code Hinting preference tests", function () {
+            var testPath = extensionPath + "/unittest-files/preference-test-files/",
+                preferences;
+
+            function getPreferences(path) {
+                preferences = null;
+
+                NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
+                    FileUtils.readAsText(fileEntry).done(function (text) {
+                        var configObj = null;
+                        try {
+                            configObj = JSON.parse(text);
+                        } catch (e) {
+                            // continue with null configObj
+                            console.log(e);
+                        }
+                        preferences = new Preferences(configObj);
+                    }).fail(function (error) {
+                        preferences = new Preferences();
+                    });
+                }, function (error) {
+                    preferences = new Preferences();
+                });
+
+            }
+
+            // Test preferences file with no entries. Preferences should contain
+            // default values.
+            it("should handle reading an empty configuration file", function () {
+                getPreferences(testPath + "defaults-test/.jscodehints");
+                waitsFor(function () {
+                    return preferences !== null;
+                });
+
+                runs(function () {
+                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedFiles().source).
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                    expect(preferences.getMaxFileCount()).toBe(100);
+                    expect(preferences.getMaxFileSize()).toBe(512 * 1024);
+                });
+            });
+
+            // Test preferences file with empty or out of ranges values. Preferences
+            // should contain default values.
+            it("should handle reading an invalid configuration file", function () {
+                getPreferences(testPath + "negative-test/.jscodehints");
+                waitsFor(function () {
+                    return preferences !== null;
+                });
+
+                runs(function () {
+                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedFiles().source).
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                    expect(preferences.getMaxFileCount()).toBe(100);
+                    expect(preferences.getMaxFileSize()).toBe(512 * 1024);
+                });
+            });
+
+            // Positive test. Test pattern matching.
+            it("should handle a valid configuration file", function () {
+                getPreferences(testPath + "positive-test/.jscodehints");
+                waitsFor(function () {
+                    return preferences !== null;
+                });
+
+                runs(function () {
+                    var excludedDirs = preferences.getExcludedDirectories(),
+                        excludedFiles = preferences.getExcludedFiles();
+
+                    // test "excluded-dir1"
+                    expect(excludedDirs.test("excluded-dir1")).toBeTruthy();
+                    expect(excludedDirs.test("xexcluded-dir1")).toBeFalsy();
+
+                    // test "excluded-dir2-*"
+                    expect(excludedDirs.test("excluded-dir2-1")).toBeTruthy();
+                    expect(excludedDirs.test("excluded-dir2-12")).toBeFalsy();
+                    expect(excludedDirs.test("excluded-dir2-z")).toBeFalsy();
+                    expect(excludedDirs.test("excluded-dir2-")).toBeFalsy();
+                    expect(excludedDirs.test("xexcluded-dir2-1")).toBeFalsy();
+
+                    // test "file1?.js"
+                    expect(excludedFiles.test("file1.js")).toBeTruthy();
+                    expect(excludedFiles.test("file12.js")).toBeTruthy();
+                    expect(excludedFiles.test("file123.js")).toBeFalsy();
+
+                    // test "file2*.js"
+                    expect(excludedFiles.test("file2.js")).toBeTruthy();
+                    expect(excludedFiles.test("file2xxx.js")).toBeTruthy();
+                    expect(excludedFiles.test("filexxxx.js")).toBeFalsy();
+
+                    // test "file3.js"
+                    expect(excludedFiles.test("file3.js")).toBeTruthy();
+                    expect(excludedFiles.test("xfile3.js")).toBeFalsy();
+
+                    // test "/file4[x|y|z]?.js/"
+                    expect(excludedFiles.test("file4.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4x.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4y.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4z.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4b.js")).toBeFalsy();
+                    expect(excludedFiles.test("file4xyz.js")).toBeFalsy();
+
+                    // test builtin exclusions are also present
+                    expect(excludedFiles.test("require.js")).toBeTruthy();
+                    expect(excludedFiles.test("jquery.js")).toBeTruthy();
+
+                    expect(preferences.getMaxFileCount()).toBe(512);
+                    expect(preferences.getMaxFileSize()).toBe(100000);
                 });
             });
         });
