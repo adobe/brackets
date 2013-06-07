@@ -552,13 +552,11 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context to be initialized.
          * @param {Editor} previousEditor - the previous editor.
-         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, previousEditor, primePump) {
+        function initializeSession(editor, previousEditor) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
-                previousEditor ? previousEditor.document : null,
-                primePump);
+                previousEditor ? previousEditor.document : null);
             cachedHints = null;
         }
 
@@ -574,7 +572,7 @@ define(function (require, exports, module) {
             resetCachedHintContext();
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, previousEditor, true);
+                initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
@@ -680,7 +678,11 @@ define(function (require, exports, module) {
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
-        
+
+        $(ProjectManager).on("projectOpen", function () {
+            ScopeManager.handleProjectOpen();
+        });
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 
