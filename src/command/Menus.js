@@ -887,6 +887,7 @@ define(function (require, exports, module) {
                 self.close();
             },
             false);
+        PopUpManager.registerContextMenu(this);
     }
     ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;

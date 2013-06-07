@@ -132,46 +132,31 @@ define(function (require, exports, module) {
         removeCurrentPopUp(keyEvent);
     }
     
-    // A menu is being popped up, so remove any other menus that are popped up
+    /**
+     * A menu is being popped up, so remove any menu that is currently popped up
+     */
     function _beforeMenuPopup() {
-        // TODO:
-        //
-        // * register as a Popup
-        //   - recent project list
-        //   - context menus
-        //   - native menus
-        //   - in-browser menus
-        //
-        // * trigger events:
-        //   - in-browser menus
-        //
-        // * listen for event from:
-        //   - context menus: editor
-        //   - context menus: working set
-        //   - context menus: project tree
-        //   - context menus: inline editor
-        //
         removeCurrentPopUp();
+    }
+    
+    /**
+     * Context menus are also created in AppInit.htmlReady(), so they may not
+     * yet have been created when we get our AppInit.htmlReady() callback, so
+     * we provide this method to tell us when to sart listening for their events
+     *
+     * @param {ContextMenu} contextMenu
+     */
+    function registerContextMenu(contextMenu) {
+        $(contextMenu).on("beforeContextMenuOpen", _beforeMenuPopup);
     }
 
     AppInit.htmlReady(function () {
         // Register for events
         window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
         $(exports).on("beforeMenuPopup", _beforeMenuPopup);
-
-//        var menu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
-//
-//        menu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
-//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
-//
-//        menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
-//
-//        menu = Menus.getContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
-//        $(menu).on("beforeContextMenuOpen", _beforeMenuPopup);
     });
     
-    exports.addPopUp        = addPopUp;
-    exports.removePopUp     = removePopUp;
+    exports.addPopUp            = addPopUp;
+    exports.removePopUp         = removePopUp;
+    exports.registerContextMenu = registerContextMenu;
 });
