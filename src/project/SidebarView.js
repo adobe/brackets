@@ -122,7 +122,12 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelResizeEnd", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
+            var $element;
+            $sidebar.find(".sidebar-selection").each(function (index, element) {
+                $element = $(element);
+                $element.width($element.parent()[0].scrollWidth);
+            });
+            
             $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
