@@ -205,11 +205,9 @@ define(function (require, exports, module) {
         $windowContent = $(".content");
         $editorHolder = $("#editor-holder");
         
-        // Sidebar is a special case: a side panel rather than a bottom panel. It could still affect the
-        // editor-holder's height if changing .content's width causes the inBrowser titlebar to wrap/unwrap.
-        if (brackets.inBrowser) {
-            listenToResize($("#sidebar"));
-        }
+        // Sidebar is a special case: it isn't a Panel, and is not created dynamically. Need to explicitly
+        // listen for resize here.
+        listenToResize($("#sidebar"));
     });
     
     // Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor()
