@@ -359,7 +359,7 @@
 }
 
 .modal-header {
-    border-bottom: 1px solid rgba(0,0,0,0.09);
+    border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
 .modal-body, .modal-header {
@@ -372,7 +372,7 @@
 .modal-footer {
     text-align: right;
     background-color: @tc-gray-panel;
-    border-top: 1px solid rgba(0,0,0,0.09);
+    border-top: 1px solid @tc-gray-panel-separator;
     box-shadow: none;
     white-space: nowrap;
 }
@@ -410,6 +410,7 @@
 }
 
 .dialog-title {
+    color: @tc-light-weight-text;
     margin-bottom: 0;
     margin-top: 0;
     font-size: 26px;
@@ -418,16 +419,16 @@
 }
 
 .dialog-message {
+    color: @tc-light-weight-text;
     font-size: 16px;
     line-height: 26px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
 }
 
-/* bootstrap's base color for generic li is gray */
 .dialog-message li {
     line-height: 26px;
-    color: @grayDark;
+    color: @tc-light-weight-text;
 }
 
 .dialog-message select {
@@ -503,7 +504,7 @@
 }
 
 .project-settings-dialog .modal-body input.url {
-    margin: 10px;
+    margin: 0 0 0 5px;
     width: 400px;
 }
 
@@ -538,7 +539,7 @@
             float: right;
             left: -5px;
             margin: 13px 0 0 -20px;
-            opacity: 0.7;
+            opacity: 0.5;
             background: url("images/topcoat-cancel-15.svg") no-repeat;
             width: 15px;
             height: 16px;
@@ -551,7 +552,7 @@
             }
         }
         .search-clear:active {
-            opacity: 0.5;
+            opacity: 0.7;
             &:disabled {
                 opacity: 0.3;
             }
@@ -588,7 +589,7 @@
                 font-weight: @font-weight-light;
             }
             .ext-desc {
-                color: #222;
+                color: #000;
                 font-weight: @font-weight-light;
                 width: auto;
             }
@@ -643,7 +644,7 @@
         margin: 0 10px 0 123px;
         
         #about-build-number {
-            color: #b0b0b0;
+            color: @tc-light-weight-quiet-text;
         }
         .about-info {
             max-height: 300px;
@@ -678,29 +679,47 @@
 }
 
 /* Input */
-input, textarea {
-    background-color: #fff;
-    border: 1px solid #9c9e9e;
-    .border-radius(3px);
-    @shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
-
-    // Placeholder text gets special styles; can't be bundled together though for some reason
+textarea,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+.uneditable-input {
+    background-color: @tc-input-background;
+    border: 1px solid @tc-input-border;
+    color: @tc-text;
+    font-size: @baseFontSize + 1px;
+    .border-radius(@tc-control-border-radius);
+    .box-shadow(@tc-input-inner-shadow);
+    .transition(~"border linear 0s, box-shadow linear 0s");
+    
     &::-webkit-input-placeholder {
-        color: #888;
-    }
-    // Focus states (we use .focused since IE8 and down doesn't support :focus)
-    &:focus,
-    &.focused {
+        color: @tc-input-placeholder-text;
+        font-weight: normal;
+        -webkit-font-smoothing: antialiased;
+    }    
+
+    &:focus {
         outline: 0;
-        background-color: #fff;
-        color: #000;
+        background-color: @tc-input-background;
+        color: @tc-text;
         text-shadow: none;
         border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
+        box-shadow: @tc-input-inner-shadow, @tc-input-glow;
     }
     
     &:disabled {
-        opacity: 0.3;
+        opacity: @tc-disabled-opacity;
         cursor: default;
     }
 }
@@ -719,18 +738,19 @@ input, textarea {
     // Button Base
     background-image: none;
 
-    background-color: #e5e9e9;
-    text-shadow: 0 1px 0 #fff;
-    color: #454545;
+    background-color: @tc-button-background;
+    text-shadow: @tc-text-shadow;
+    color: @tc-text;
+    font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid #9c9e9e;
-    .border-radius(3px);
-    box-shadow: inset 0 1px 0 #fff;
+    border: 1px solid @tc-gray-component-border;
+    .border-radius(@tc-control-border-radius);
+    box-shadow: @tc-button-highlight;
 
     &:hover {
-        background-color: #edf1f1;
-        color: #454545;
+        background-color: @tc-button-background;
+        color: @tc-text;
     }
 
     // Focus state for keyboard and accessibility
@@ -743,21 +763,21 @@ input, textarea {
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: #288edf;
-        border: 1px solid  #0055ad;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
-        color: #fff;
-        text-shadow: 0 -1px 0 rgba(0,0,0,0.36);
+        background-color: @tc-call-to-action;
+        border: 1px solid  @tc-call-to-action-border;
+        box-shadow: @tc-call-to-action-highlight;
+        color: @tc-call-to-action-text;
+        text-shadow: @tc-call-to-action-text-shadow;
         &.active,
         &:active {
             background-image: none;
-            background-color: #0380e8;
-            box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+            background-color: @tc-call-to-action-down;
+            box-shadow: @tc-call-to-action-down-shadow;
         }    
    
         &:focus {
             border: 1px solid @tc-gray-component-focused-border;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
+            box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
             outline: none;
         }        
     }
@@ -766,18 +786,18 @@ input, textarea {
     &.active,
     &:active {
         background-image: none;
-        background-color: #d3d7d7;
-        box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+        background-color: @tc-button-down-background;
+        box-shadow: @tc-button-down-shadow;
     }    
     
     &.disabled, &[disabled] {
-        .opacity(30);
+        opacity: @tc-disabled-opacity;
     }
 
     // Button Sizes
     &.large {
         font-size: @baseFontSize + 1px;
-        .border-radius(3px);
+        .border-radius(@tc-control-border-radius);
     }
     &.small {
         font-size: @baseFontSize - 1px;
@@ -785,10 +805,10 @@ input, textarea {
 }
 
 .btn-mini {
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: normal;
-  line-height: 14px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: normal;
+    line-height: 14px;
 }
 
 /* Tables */
@@ -833,4 +853,8 @@ strong {
 code {
   color: @bc-black;
   background-color: transparent;
+}
+
+label {
+    font-size: @label-font-size;
 }
