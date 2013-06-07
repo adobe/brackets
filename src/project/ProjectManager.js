@@ -1550,23 +1550,6 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
-    
-    if (!_prefs.getValue("welcomeProjectsFixed")) {
-        // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
-        // we would add lots of duplicate entries here.
-        var welcomeProjects = _prefs.getValue("welcomeProjects");
-        if (welcomeProjects) {
-            var newWelcomeProjects = [];
-            var i;
-            for (i = 0; i < welcomeProjects.length; i++) {
-                if (newWelcomeProjects.indexOf(welcomeProjects[i]) === -1) {
-                    newWelcomeProjects.push(welcomeProjects[i]);
-                }
-            }
-            _prefs.setValue("welcomeProjects", newWelcomeProjects);
-            _prefs.setValue("welcomeProjectsFixed", true);
-        }
-    }
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
