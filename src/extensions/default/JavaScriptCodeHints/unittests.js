@@ -1343,7 +1343,7 @@ define(function (require, exports, module) {
             var testPath = extensionPath + "/unittest-files/preference-test-files/",
                 preferences;
 
-            function getText(path) {
+            function getPreferences(path) {
                 preferences = null;
 
                 NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
@@ -1368,7 +1368,7 @@ define(function (require, exports, module) {
             // Test preferences file with no entries. Preferences should contain
             // default values.
             it("should handle reading an empty configuration file", function () {
-                getText(testPath + "defaults-test/.jscodehints");
+                getPreferences(testPath + "defaults-test/.jscodehints");
                 waitsFor(function () {
                     return preferences !== null;
                 });
@@ -1385,7 +1385,7 @@ define(function (require, exports, module) {
             // Test preferences file with empty or out of ranges values. Preferences
             // should contain default values.
             it("should handle reading an invalid configuration file", function () {
-                getText(testPath + "negative-test/.jscodehints");
+                getPreferences(testPath + "negative-test/.jscodehints");
                 waitsFor(function () {
                     return preferences !== null;
                 });
@@ -1401,14 +1401,14 @@ define(function (require, exports, module) {
 
             // Positive test. Test pattern matching.
             it("should handle a valid configuration file", function () {
-                getText(testPath + "positive-test/.jscodehints");
+                getPreferences(testPath + "positive-test/.jscodehints");
                 waitsFor(function () {
                     return preferences !== null;
                 });
 
                 runs(function () {
                     var excludedDirs = preferences.getExcludedDirectories(),
-                        excludesFiles = preferences.getExcludedFiles();
+                        excludedFiles = preferences.getExcludedFiles();
 
                     // test "excluded-dir1"
                     expect(excludedDirs.test("excluded-dir1")).toBeTruthy();
@@ -1422,26 +1422,30 @@ define(function (require, exports, module) {
                     expect(excludedDirs.test("xexcluded-dir2-1")).toBeFalsy();
 
                     // test "file1?.js"
-                    expect(excludesFiles.test("file1.js")).toBeTruthy();
-                    expect(excludesFiles.test("file12.js")).toBeTruthy();
-                    expect(excludesFiles.test("file123.js")).toBeFalsy();
+                    expect(excludedFiles.test("file1.js")).toBeTruthy();
+                    expect(excludedFiles.test("file12.js")).toBeTruthy();
+                    expect(excludedFiles.test("file123.js")).toBeFalsy();
 
                     // test "file2*.js"
-                    expect(excludesFiles.test("file2.js")).toBeTruthy();
-                    expect(excludesFiles.test("file2xxx.js")).toBeTruthy();
-                    expect(excludesFiles.test("filexxxx.js")).toBeFalsy();
+                    expect(excludedFiles.test("file2.js")).toBeTruthy();
+                    expect(excludedFiles.test("file2xxx.js")).toBeTruthy();
+                    expect(excludedFiles.test("filexxxx.js")).toBeFalsy();
 
                     // test "file3.js"
-                    expect(excludesFiles.test("file3.js")).toBeTruthy();
-                    expect(excludesFiles.test("xfile3.js")).toBeFalsy();
+                    expect(excludedFiles.test("file3.js")).toBeTruthy();
+                    expect(excludedFiles.test("xfile3.js")).toBeFalsy();
 
                     // test "/file4[x|y|z]?.js/"
-                    expect(excludesFiles.test("file4.js")).toBeTruthy();
-                    expect(excludesFiles.test("file4x.js")).toBeTruthy();
-                    expect(excludesFiles.test("file4y.js")).toBeTruthy();
-                    expect(excludesFiles.test("file4z.js")).toBeTruthy();
-                    expect(excludesFiles.test("file4b.js")).toBeFalsy();
-                    expect(excludesFiles.test("file4xyz.js")).toBeFalsy();
+                    expect(excludedFiles.test("file4.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4x.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4y.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4z.js")).toBeTruthy();
+                    expect(excludedFiles.test("file4b.js")).toBeFalsy();
+                    expect(excludedFiles.test("file4xyz.js")).toBeFalsy();
+
+                    // test builtin exclusions are also present
+                    expect(excludedFiles.test("require.js")).toBeTruthy();
+                    expect(excludedFiles.test("jquery.js")).toBeTruthy();
 
                     expect(preferences.getMaxFileCount()).toBe(512);
                     expect(preferences.getMaxFileSize()).toBe(100000);

@@ -81,7 +81,13 @@ define(function (require, exports, module) {
     function settingsToRegExp(settings, defaultRegExp) {
         var regExpString = "";
 
-        if (settings) {
+        if (settings instanceof Array && settings.length > 0) {
+
+            // Append default settings to user settings. The default
+            // settings are builtin and cannot be overridden.
+            if (defaultRegExp) {
+                settings.push("/" + defaultRegExp.source + "/");
+            }
 
             // convert each string, with optional wildcards to an equivalent
             // string in a regular expression.
