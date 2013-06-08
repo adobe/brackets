@@ -107,7 +107,8 @@ define(function (require, exports, module) {
     
     /** Trigger editor area resize whenever the window is resized */
     function handleWindowResize() {
-        // These are not initialized in Jasmine Spec Runner window
+        // These are not initialized in Jasmine Spec Runner window until a test
+        // is run that creates a mock document.
         if (!$windowContent || !$editorHolder) {
             return;
         }
