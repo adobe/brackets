@@ -1507,7 +1507,7 @@ define(function (require, exports, module) {
             DocumentManager.notifyPathDeleted(entry.fullPath);
 
             _redraw(true);
-            result.promise();
+            result.resolve();
         }, function (err) {
             // Show an error alert
             Dialogs.showModalDialog(
@@ -1523,7 +1523,7 @@ define(function (require, exports, module) {
             result.reject(err);
         });
 
-        return result;
+        return result.promise();
     }
     
     /**
