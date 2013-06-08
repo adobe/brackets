@@ -1523,7 +1523,7 @@ define(function (require, exports, module) {
             result.reject(err);
         });
 
-        return result;
+        return result.promise();
     }
     
     /**
