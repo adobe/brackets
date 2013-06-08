@@ -107,6 +107,12 @@ define(function (require, exports, module) {
     
     /** Trigger editor area resize whenever the window is resized */
     function handleWindowResize() {
+        // These are not initialized in Jasmine Spec Runner window until a test
+        // is run that creates a mock document.
+        if (!$windowContent || !$editorHolder) {
+            return;
+        }
+        
         // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
         // itself when it sees the window resize event
         triggerEditorResize("skip");
