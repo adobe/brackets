@@ -215,11 +215,12 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return complete; }, 1000);
 
-                // Verify the existence of the new file and select it in the project tree.
+                // Verify the existence of the new file and make sure it is selected in the project tree.
                 runs(function () {
                     expect(error).toBeFalsy();
                     expect(stat.isFile()).toBe(true);
                     selectedFile = ProjectManager.getSelectedItem();
+                    expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
                 });
 
                 // Delete the selected file.
@@ -295,6 +296,7 @@ define(function (require, exports, module) {
                     expect(stat.isDirectory()).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
+                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
                 });
 
                 // Create a sub folder
