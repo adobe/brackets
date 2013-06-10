@@ -245,6 +245,7 @@ define(function (require, exports, module) {
             return colorMatch;
         }
         
+        // simple css property splitter (used to find color stop arguments in gradients)
         function splitStyleProperty(property) {
             var token = /((?:[^""]|".*?"|".*?')*?)([(,)]|$)/g;
             var recurse = function () {
@@ -267,14 +268,16 @@ define(function (require, exports, module) {
             return (recurse());
         }
         
+        // color stop helpers
         function isGradientColorStop(args) {
             return (args.length > 0 && args[0].match(colorRegEx) !== null);
         }
         
-        function hasLengthInPixles(args) {
+        function hasLengthInPixels(args) {
             return (args.length > 1 && args[1].indexOf("px") > 0);
         }
         
+        // Normalizes px color stops to % 
         function normalizeGradientExpressionForQuickview(expression) {
             if (expression.indexOf("px") > 0) {
                 var paramStart = expression.indexOf("(") + 1,
@@ -292,9 +295,12 @@ define(function (require, exports, module) {
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
                     
-                    if (hasLengthInPixles(args)) {
+                    if (hasLengthInPixels(args)) {
                         thisSize = parseFloat(args[1]);
 
+                        // we really only care about converting negative
+                        //  pixel values -- so take the smallest negative pixel 
+                        //  value and use that as baseline for display purposes
                         if (thisSize < 0) {
                             lowerBound = Math.min(lowerBound, thisSize);
                         }
@@ -309,7 +315,9 @@ define(function (require, exports, module) {
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
                     
-                    if (hasLengthInPixles(args)) {
+                    // find the biggest pixel value to use for our context size
+                    //  this is the value we use to compute percentages
+                    if (hasLengthInPixels(args)) {
                         thisSize = parseFloat(args[1]) + lowerBound;
                         upperBound = Math.max(upperBound, thisSize);
                     }
@@ -318,7 +326,7 @@ define(function (require, exports, module) {
                 // convert to %
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
-                    if (isGradientColorStop(args) && hasLengthInPixles(args)) {
+                    if (isGradientColorStop(args) && hasLengthInPixels(args)) {
                         thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
                         args[1] = thisSize + "%";
                     }
@@ -337,8 +345,12 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+                // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
                 
+                // normalize the arguments to something that we can display to the user
+                // NOTE: we need both the div and the popover's _previewCSS member 
+                //          (used by unit tests) to match so normalize the css for both
                 previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
                     
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
