@@ -339,6 +339,12 @@ define(function (require, exports, module) {
 
             return itemsPerPage;
         }
+        
+        // If we're no longer visible, skip handling the key and end the session.
+        if (!this.isOpen()) {
+            this.handleClose();
+            return false;
+        }
 
         // (page) up, (page) down, enter and tab key are handled by the list
         if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
@@ -470,8 +476,9 @@ define(function (require, exports, module) {
         // TODO: Due to #1381, this won't get called if the user clicks out of
         // the code hint menu. That's (sort of) okay right now since it doesn't
         // really matter if a single old invisible code hint list is lying 
-        // around (it'll get closed the next time the user pops up a code 
-        // hint). Once #1381 is fixed this issue should go away.
+        // around (it will ignore keydown events, and it'll get closed the next 
+        // time the user pops up a code hint). Once #1381 is fixed this issue 
+        // should go away.
         this.handleClose = callback;
     };
 
