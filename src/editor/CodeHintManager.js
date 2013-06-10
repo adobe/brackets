@@ -458,10 +458,6 @@ define(function (require, exports, module) {
     function handleKeyEvent(editor, event) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
-            if (_inSession(editor) && hintList.isOpen()) {
-                // Pass event to the hint list, if it's open
-                hintList.handleKeyEvent(event);
-            }
             if (!(event.ctrlKey || event.altKey || event.metaKey) &&
                     (event.keyCode === KeyEvent.DOM_VK_ENTER ||
                      event.keyCode === KeyEvent.DOM_VK_RETURN ||

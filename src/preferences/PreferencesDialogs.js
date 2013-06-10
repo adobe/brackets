@@ -85,22 +85,23 @@ define(function (require, exports, module) {
             $baseUrlControl,
             dialog;
 
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
-            .done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    var baseUrlValue = $baseUrlControl.val();
-                    var result = _validateBaseUrl(baseUrlValue);
-                    if (result === "") {
-                        ProjectManager.setBaseUrl(baseUrlValue);
-                    } else {
-                        // Re-invoke dialog with result (error message)
-                        showProjectPreferencesDialog(baseUrlValue, result);
-                    }
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings));
+
+        dialog.done(function (id) {
+            if (id === Dialogs.DIALOG_BTN_OK) {
+                var baseUrlValue = $baseUrlControl.val();
+                var result = _validateBaseUrl(baseUrlValue);
+                if (result === "") {
+                    ProjectManager.setBaseUrl(baseUrlValue);
+                } else {
+                    // Re-invoke dialog with result (error message)
+                    showProjectPreferencesDialog(baseUrlValue, result);
                 }
-            });
+            }
+        });
 
         // Populate project settings
-        $dlg = $(".project-settings-dialog.instance");
+        $dlg = dialog.getElement();
 
         // Title
         $title = $dlg.find(".dialog-title");
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
 
         // Error message
         if (errorMessage) {
-            $dlg.find(".field-container").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
+            $dlg.find(".field-container").append("<div class='alert' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
         // Give focus to first control

@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                 
                 function setLanguage(event) {
                     locale = $select.val();
-                    $submit.attr("disabled", false);
+                    $submit.prop("disabled", false);
                 }
                 
                 // returns the localized label for the given locale

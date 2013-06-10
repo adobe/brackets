@@ -123,7 +123,7 @@ define(function (require, exports, module) {
                     // Use QuickEdit search now that we know which file to look at.
                     var fileInfos = [];
                     fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
-                    JSUtils.findMatchingFunctions(functionName, fileInfos)
+                    JSUtils.findMatchingFunctions(functionName, fileInfos, true)
                         .done(function (functions) {
                             if (functions && functions.length > 0) {
                                 var jsInlineEditor = new MultiRangeInlineEditor(functions);

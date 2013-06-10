@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")
                 .css("display", "inline-block")
-                .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
         if (modalBar) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialQuery = getDialogTextField().attr("value");
+            initialQuery = getDialogTextField().val();
         }
         
         createModalBar(queryDialog, true);
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
         
         var $input = getDialogTextField();
         $input.on("input", function () {
-            findFirst($input.attr("value"));
+            findFirst($input.val());
         });
 
         // Prepopulate the search field with the current selection, if any.
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
             }
             
             $input
-                .attr("value", initialQuery)
+                .val(initialQuery)
                 .get(0).select();
             findFirst(initialQuery);
             // Clear the "findNextCalled" flag here so we have a clean start
@@ -352,7 +352,7 @@ define(function (require, exports, module) {
         
         // Prepopulate the replace field with the current selection, if any
         getDialogTextField()
-            .attr("value", cm.getSelection())
+            .val(cm.getSelection())
             .get(0).select();
     }
     

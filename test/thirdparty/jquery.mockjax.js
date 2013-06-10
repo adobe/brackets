@@ -1,7 +1,7 @@
 /*!
  * MockJax - jQuery Plugin to Mock Ajax requests
  *
- * Version:  1.5.1
+ * Version:  1.5.2
  * Released:
  * Home:   http://github.com/appendto/jquery-mockjax
  * Author:   Jonathan Sharp (http://jdsharp.com)
@@ -124,24 +124,6 @@
 		return handler;
 	}
 
-	// If logging is enabled, log the mock to the console
-	function logMock( mockHandler, requestSettings ) {
-		if ( window.console && console.log ) {
-			var message = 'MOCK ' + requestSettings.type.toUpperCase() + ': ' + requestSettings.url;
-			var request = $.extend({}, requestSettings);
-
-			if (typeof console.log === 'function') {
-				console.log(message, request);
-			} else {
-				try {
-					console.log( message + ' ' + JSON.stringify(request) );
-				} catch (e) {
-					console.log(message);
-				}
-			}
-		}
-	}
-
 	// Process the xhr objects send operation
 	function _xhrSend(mockHandler, requestSettings, origSettings) {
 
@@ -149,6 +131,8 @@
 		var process = (function(that) {
 			return function() {
 				return (function() {
+					var onReady;
+
 					// The request has returned
 					this.status     = mockHandler.status;
 					this.statusText = mockHandler.statusText;
@@ -166,6 +150,8 @@
 					} else if ( requestSettings.dataType == 'xml' ) {
 						if ( typeof mockHandler.responseXML == 'string' ) {
 							this.responseXML = parseXML(mockHandler.responseXML);
+							//in jQuery 1.9.1+, responseXML is processed differently and relies on responseText
+							this.responseText = mockHandler.responseXML;
 						} else {
 							this.responseXML = mockHandler.responseXML;
 						}
@@ -178,12 +164,15 @@
 					if( typeof mockHandler.statusText === "string") {
 						this.statusText = mockHandler.statusText;
 					}
+					// jQuery 2.0 renamed onreadystatechange to onload
+					onReady = this.onreadystatechange || this.onload;
+
 					// jQuery < 1.4 doesn't have onreadystate change for xhr
-					if ( $.isFunction(this.onreadystatechange) ) {
+					if ( $.isFunction( onReady ) ) {
 						if( mockHandler.isTimeout) {
 							this.status = -1;
 						}
-						this.onreadystatechange( mockHandler.isTimeout ? 'timeout' : undefined );
+						onReady.call( this, mockHandler.isTimeout ? 'timeout' : undefined );
 					} else if ( mockHandler.isTimeout ) {
 						// Fix for 1.3.2 timeout to keep success from firing.
 						this.status = -1;
@@ -388,7 +377,7 @@
 	function jsonpSuccess(requestSettings, callbackContext, mockHandler) {
 		// If a local callback was specified, fire it and pass it the data
 		if ( requestSettings.success ) {
-			requestSettings.success.call( callbackContext, ( mockHandler.response ? mockHandler.response.toString() : mockHandler.responseText || ''), status, {} );
+			requestSettings.success.call( callbackContext, mockHandler.responseText || "", status, {} );
 		}
 
 		// Fire the global callback
@@ -445,8 +434,8 @@
 				continue;
 			}
 
-			// Handle console logging
-			logMock( mockHandler, requestSettings );
+			// If logging is enabled, log the mock to the console
+			$.mockjaxSettings.log( mockHandler, requestSettings );
 
 
 			if ( requestSettings.dataType === "jsonp" ) {
@@ -524,12 +513,27 @@
 	$.mockjaxSettings = {
 		//url:        null,
 		//type:       'GET',
-		log:          function() {
-			if (window.console && window.console.log) {
-				var log = Function.prototype.bind.call(console.log, console);
-				log.apply(console, arguments);
+		log:          function( mockHandler, requestSettings ) {
+			if ( mockHandler.logging === false ||
+				 ( typeof mockHandler.logging === 'undefined' && $.mockjaxSettings.logging === false ) ) {
+				return;
+			}
+			if ( window.console && console.log ) {
+				var message = 'MOCK ' + requestSettings.type.toUpperCase() + ': ' + requestSettings.url;
+				var request = $.extend({}, requestSettings);
+
+				if (typeof console.log === 'function') {
+					console.log(message, request);
+				} else {
+					try {
+						console.log( message + ' ' + JSON.stringify(request) );
+					} catch (e) {
+						console.log(message);
+					}
+				}
 			}
 		},
+		logging:      true,
 		status:       200,
 		statusText:   "OK",
 		responseTime: 500,

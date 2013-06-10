@@ -94,7 +94,8 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
-        ExtensionUtils          = require("utils/ExtensionUtils");
+        ExtensionUtils          = require("utils/ExtensionUtils"),
+        ColorUtils              = require("utils/ColorUtils");
             
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
                             
                             dirEntry.getFile("index.html", {}, function (fileEntry) {
                                 var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.pipe(deferred.resolve, deferred.reject);
+                                promise.then(deferred.resolve, deferred.reject);
                             }, deferred.reject);
                         } else {
                             deferred.resolve();

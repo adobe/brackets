@@ -108,6 +108,14 @@ define(function (require, exports, module) {
         $openFilesContainer     = $("#open-files-container");
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
+    
+        function _resizeSidebarSelection() {
+            var $element;
+            $sidebar.find(".sidebar-selection").each(function (index, element) {
+                $element = $(element);
+                $element.width($element.parent()[0].scrollWidth);
+            });
+        }
 
         // init
         WorkingSetView.create($openFilesContainer);
@@ -122,7 +130,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelResizeEnd", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
+            _resizeSidebarSelection();
             $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
@@ -135,7 +143,7 @@ define(function (require, exports, module) {
         
         $sidebar.on("panelExpanded", function (evt, width) {
             WorkingSetView.refresh();
-            $sidebar.find(".sidebar-selection").width(width);
+            _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");

@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
@@ -45,16 +46,13 @@ define(function (require, exports, module) {
         Session         = require("Session"),
         Acorn           = require("thirdparty/acorn/acorn");
 
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
-    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
-
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
         cachedHints  = null,  // sorted hints for the current hinting session
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null;  // string matcher for hints
+        matcher      = null,  // string matcher for hints
+        ignoreChange;         // can ignore next "change" event if true;
 
     /**
      *  Get the value of current session.
@@ -192,8 +190,40 @@ define(function (require, exports, module) {
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType;
+                type.showFunctionType !== cachedType.showFunctionType ||
+                (type.functionCallPos && cachedType.functionCallPos &&
+                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
+
+    /**
+     *  Cache the hints and the hint's context.
+     *
+     *  @param {Array.<string>} hints - array of hints
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                showFunctionType:boolean,
+                context: string,
+                functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
+     */
+    function setCachedHintContext(hints, cursor, type, token) {
+        cachedHints = hints;
+        cachedCursor = cursor;
+        cachedType = type;
+        cachedToken = token;
+    }
+
+    /**
+     *  Reset cached hint context.
+     */
+    function resetCachedHintContext() {
+        cachedHints = null;
+        cachedCursor = null;
+        cachedType = null;
+        cachedToken =  null;
+    }
 
     /**
      *  Have conditions have changed enough to justify closing the hints popup?
@@ -266,18 +296,36 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Check if a hint response is pending.
+     *
+     * @param {jQuery.Deferred} deferredHints - deferred hint response
+     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     */
+    function hintsArePending(deferredHints) {
+        return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
+            deferredHints.state() === "pending");
+    }
+
+    /**
      *  Common code to get the session hints. Will get guesses if there were
      *  no completions for the query.
      *
      * @param {string} query - user text to search hints with
-     * @param {Object} type - the type of query, property vs. identifier
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                 showFunctionType:boolean,
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
      * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
      * resolve (optional). If not supplied a new Deferred will be created if
      * needed.
      * @return {Object + jQuery.Deferred} - hint response (immediate or
      *     deferred) as defined by the CodeHintManager API
      */
-    function getSessionHints(query, type, $deferredHints) {
+    function getSessionHints(query, cursor, type, token, $deferredHints) {
 
         var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
@@ -289,23 +337,26 @@ define(function (require, exports, module) {
             }
 
             guessesResponse.done(function () {
-                query = session.getQuery();
-                hintResults = session.getHints(query, getStringMatcher());
-                cachedHints = hintResults.hints;
-                var hintResponse = getHintResponse(cachedHints, query, type);
-
-                $deferredHints.resolveWith(null, [hintResponse]);
+                if (hintsArePending($deferredHints)) {
+                    hintResults = session.getHints(query, getStringMatcher());
+                    setCachedHintContext(hintResults.hints, cursor, type, token);
+                    var hintResponse = getHintResponse(cachedHints, query, type);
+                    $deferredHints.resolveWith(null, [hintResponse]);
+                }
+            }).fail(function () {
+                if (hintsArePending($deferredHints)) {
+                    $deferredHints.reject();
+                }
             });
 
             return $deferredHints;
-        } else if ($deferredHints && $deferredHints.state() === "pending") {
-            cachedHints = hintResults.hints;
+        } else if (hintsArePending($deferredHints)) {
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             var hintResponse    = getHintResponse(cachedHints, query, type);
-
             $deferredHints.resolveWith(null, [hintResponse]);
             return null;
         } else {
-            cachedHints = hintResults.hints;
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             return getHintResponse(cachedHints, query, type);
         }
     }
@@ -338,9 +389,7 @@ define(function (require, exports, module) {
                     query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
-                    cachedCursor = null;
-                    cachedHints = null;
-                    cachedToken = null;
+                    resetCachedHintContext();
                     matcher = null;
                 }
                 return true;
@@ -371,31 +420,32 @@ define(function (require, exports, module) {
                 return null;
             }
 
-            cachedCursor = cursor;
-            cachedToken = token;
-
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
-
-                if (scopeResponse.hasOwnProperty("promise")) {
-                    var $deferredHints = $.Deferred();
-                    scopeResponse.promise.done(function () {
-                        cachedType = session.getType();
-                        getSessionHints(session.getQuery(), type, $deferredHints);
-                    }).fail(function () {
-                        if ($deferredHints.state() === "pending") {
-                            $deferredHints.reject();
-                        }
-                    });
-
-                    return $deferredHints;
+                if (key) {
+                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ignoreChange = true;
                 }
+
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
+                    $deferredHints = $.Deferred();
+
+                scopeResponse.done(function () {
+                    if (hintsArePending($deferredHints)) {
+                        getSessionHints(query, cursor, type, token, $deferredHints);
+                    }
+                }).fail(function () {
+                    if (hintsArePending($deferredHints)) {
+                        $deferredHints.reject();
+                    }
+                });
+
+                return $deferredHints;
             }
 
             if (cachedHints) {
-                return getSessionHints(query, type);
+                return getSessionHints(query, cursor, type, token);
             }
         }
 
@@ -416,34 +466,8 @@ define(function (require, exports, module) {
             token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
+            end         = {line: cursor.line, ch: cursor.ch},
             delimiter;
-
-        if (token && token.string === ".") {
-            var nextToken  = session.getNextTokenOnLine(cursor);
-
-            if (nextToken && // don't replace delimiters, etc.
-                    HintUtils.maybeIdentifier(nextToken.string) &&
-                    HintUtils.hintable(nextToken)) {
-                end.ch = nextToken.end;
-            }
-        }
-
-        // If the hint is a string literal, choose a delimiter in which
-        // to wrap it, preserving the existing delimiter if possible.
-        if (hint.literal && hint.kind === "string") {
-            if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimiter = HintUtils.DOUBLE_QUOTE;
-            } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimiter = HintUtils.SINGLE_QUOTE;
-            } else {
-                delimiter = hint.delimiter;
-            }
-
-            completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimiter, "\\" + delimiter);
-            completion = delimiter + completion + delimiter;
-        }
 
         if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
@@ -504,13 +528,11 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context to be initialized.
          * @param {Editor} previousEditor - the previous editor.
-         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, previousEditor, primePump) {
+        function initializeSession(editor, previousEditor) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
-                previousEditor ? previousEditor.document : null,
-                primePump);
+                previousEditor ? previousEditor.document : null);
             cachedHints = null;
         }
 
@@ -523,15 +545,16 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
-            cachedCursor = null;
-            cachedHints = null;
-            cachedType = null;
+            resetCachedHintContext();
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, previousEditor, true);
+                initializeSession(editor, previousEditor);
                 $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
+                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                        if (!ignoreChange) {
+                            ScopeManager.handleFileChange(changeList);
+                        }
+                        ignoreChange = false;
                     });
             } else {
                 session = null;
@@ -567,8 +590,18 @@ define(function (require, exports, module) {
          * Handle JumptoDefiniton menu/keyboard command.
          */
         function handleJumpToDefinition() {
-            var offset     = session.getOffset(),
-                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+            var offset,
+                response;
+
+            // Only provide jump-to-definition results when cursor is in JavaScript content
+            if (session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            offset = session.getOffset();
+            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
@@ -585,36 +618,32 @@ define(function (require, exports, module) {
                         } else {
                             session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
+                        result.resolve(true);
+                    } else {
+                        result.reject();
                     }
 
                 }).fail(function () {
-                    response.reject();
+                    result.reject();
                 });
             }
+
+            return result.promise();
         }
 
         /*
          * Helper for QuickEdit jump-to-definition request.
          */
         function quickEditHelper() {
-            var offset     = session.getOffset(),
+            var offset     = session.getCursor(),
                 response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
             return response;
         }
 
-        // Register command handler
-        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
-        
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
   
-        // Add the menu item
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        if (menu) {
-            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
-        }
-        
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -625,9 +654,16 @@ define(function (require, exports, module) {
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
-        
+
+        $(ProjectManager).on("projectOpen", function () {
+            ScopeManager.handleProjectOpen();
+        });
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
+
+        // init
+        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);

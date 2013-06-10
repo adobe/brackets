@@ -27,12 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs               = require("widgets/Dialogs"),
-        Strings               = require("strings"),
-        Commands              = require("command/Commands"),
-        CommandManager        = require("command/CommandManager"),
-        AppInit               = require("utils/AppInit"),
-        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+    var Dialogs                = require("widgets/Dialogs"),
+        Strings                = require("strings"),
+        Commands               = require("command/Commands"),
+        CommandManager         = require("command/CommandManager"),
+        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
+        AppInit                = require("utils/AppInit"),
+        ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
@@ -46,11 +47,11 @@ define(function (require, exports, module) {
         
         function updateSearch() {
             if (view.model.filterSet.length === 0) {
-                $search.attr("disabled", "disabled");
-                $searchClear.attr("disabled", "disabled");
+                $search.prop("disabled", true);
+                $searchClear.prop("disabled", true);
             } else {
-                $search.removeAttr("disabled");
-                $searchClear.removeAttr("disabled");
+                $search.prop("disabled", false);
+                $searchClear.prop("disabled", false);
             }
         }
         
@@ -86,11 +87,11 @@ define(function (require, exports, module) {
                 // Handle the install button.                
                 $(".extension-manager-dialog .install-from-url")
                     .click(function () {
-                        CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+                        InstallExtensionDialog.showDialog().done(view.model.updateFromDownload.bind(view.model));
                     });
                 
                 updateSearch();
-                if (!$search.attr("disabled")) {
+                if (!$search.prop("disabled")) {
                     $dlg.find(".search").focus();
                 }
             });

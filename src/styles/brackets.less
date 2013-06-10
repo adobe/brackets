@@ -122,7 +122,7 @@ a, img {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     color: @tc-text;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 25px;    
     height: 26px;
@@ -161,6 +161,10 @@ a, img {
         border: none;
         margin: 6px 10px;
         padding: 0;
+    }
+    
+    #status-language {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
 }
 
@@ -410,7 +414,7 @@ a, img {
     }
     
     .extension {
-        color: #8e9a9d;
+        color: @project-panel-text-2;
     }
 }
 
@@ -461,6 +465,10 @@ a, img {
     ul {
         padding-left: 8px;
     }
+    
+    > ul {
+        padding-bottom: 24px;
+    }
 }
 
 .scroller-shadow {
@@ -471,12 +479,13 @@ a, img {
     z-index: @z-index-brackets-scroller-shadow;
     
     &.top {
-        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
         background-position: 0 -5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
     
     &.bottom {
-        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        #gradient > .vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
         background-position: 0 5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
@@ -529,7 +538,8 @@ a, img {
     }
     
     &.can-close:active {
-        background-position: -15px 1px;
+        background-position: -15px 0;
+        opacity: @tc-icon-down;
     }
 }
 
@@ -537,6 +547,7 @@ a, img {
 .inline-widget {
     position: relative;
     overflow: hidden;
+
     background-color: @inline-background-color-1;
     min-width: 250px;
     cursor: default;
@@ -555,7 +566,7 @@ a, img {
         padding: 10px 10px 0px 10px;
         
         .filename {
-            font-family: @fontstack-sans-serif;
+            font-family: @sansFontFamily;
             font-size: 1.1em;
             color: @inline-color-1;
             
@@ -612,7 +623,7 @@ a, img {
     float: right;
     position: relative;
     min-height: 100%;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     width: 250px;
     max-width: 50%;
     overflow: hidden;
@@ -722,8 +733,8 @@ a, img {
 .modal-bar {
     text-align: left;
     
-    font-family: @fontstack-sans-serif;
-    font-size: 13px;
+    font-family: @sansFontFamily;
+    font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
@@ -736,10 +747,12 @@ a, img {
 }
 
 .modal-bar input {
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     outline: none;
     width: 20em;
-    margin: .3em .3em;
+    margin: 5px 5px 0;
+    position: relative;
+    top: -3px;    
     &.no-results {
         border: 1px solid #bc0023;
         box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
@@ -752,7 +765,7 @@ a, img {
 .modal-bar .error {
     display: none;
     
-    .alert-message {
+    .alert {
         padding-top: 4px;
         padding-bottom: 4px;
     }
@@ -794,7 +807,7 @@ a, img {
     box-sizing: border-box; 
     
     // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 400px !important;  
+    width: 434px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
@@ -880,4 +893,10 @@ a, img {
 /* Turn on text selection for JSLint error messages */
 #jslint-results {
     .user-select(text);
+}
+
+/* Line up label text and input text */
+label input {
+    position: relative;
+    top: -2px;
 }
