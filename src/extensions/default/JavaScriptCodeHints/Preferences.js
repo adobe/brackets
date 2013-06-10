@@ -106,14 +106,16 @@ define(function (require, exports, module) {
                         // since we know it is a wildcard.
                         value = value.replace("\\?", ".?");
                         value = value.replace("\\*", ".*");
+
+                        // Add "^" and "$" to prevent matching in the middle of strings.
+                        value = "^" + value + "$";
                     }
 
                     if (index > 0) {
                         regExpString += "|";
                     }
 
-                    // Add "^" and "$" to prevent matching in the middle of strings.
-                    regExpString = regExpString.concat("^" + value + "$");
+                    regExpString = regExpString.concat(value);
                 }
             });
         }

@@ -1449,6 +1449,7 @@ define(function (require, exports, module) {
                     expect(excludedFiles.test("file4z.js")).toBeTruthy();
                     expect(excludedFiles.test("file4b.js")).toBeFalsy();
                     expect(excludedFiles.test("file4xyz.js")).toBeFalsy();
+                    expect(excludedFiles.test("xfile4.js")).toBeTruthy();
 
                     // test builtin exclusions are also present
                     expect(excludedFiles.test("require.js")).toBeTruthy();
