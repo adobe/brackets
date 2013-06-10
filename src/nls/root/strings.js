@@ -111,7 +111,11 @@ define({
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
     "BUTTON_STOP"                       : "Stop",
-
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Next Match",
+    "BUTTON_PREV_HINT"                  : "Previous Match",
+    
     "OPEN_FILE"                         : "Open File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
 
