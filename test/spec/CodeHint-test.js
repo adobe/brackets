@@ -297,10 +297,15 @@ define(function (require, exports, module) {
                         keyCode: KeyEvent.DOM_VK_ENTER,
                         stopImmediatePropagation: function () { },
                         stopPropagation: function () { },
-                        preventDefault: function () { }                        
+                        preventDefault: function () { }
                     });
                     
-                    // verify list is now closed and text of document hasn't changed
+                    // Verify that after the keydown, the session is closed 
+                    // (not just the hint popup). Because of #1381, we don't
+                    // actually have a way to close the session as soon as the
+                    // popup is dismissed by Bootstrap, so we do so on the next
+                    // keydown. Eventually, once that's fixed, we should be able
+                    // to move this expectNoHints() up after the click.
                     expectNoHints();
                     expect(editor.document.getText()).toEqual(text);
                 });
