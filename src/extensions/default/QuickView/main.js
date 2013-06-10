@@ -337,9 +337,11 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
+                
+                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
                     
-                var preview = "<div class='color-swatch' style='background:" + normalizeGradientExpressionForQuickview(previewCSS) + "'>" +
+                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
                     endPos = {line: pos.line, ch: match.index + match[0].length},
