@@ -175,6 +175,42 @@ define(function (require, exports, module) {
                     runs(assertFile);
                 }
             });
+            it("should fail when file name is invalid", function () {
+                var files = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+                              'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+                              'nul', 'con', 'prn', 'aux', '.', '..', '...'];
+                var i = 0;
+                var len = files.length;
+                var fileAt, didCreate, gotError;
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+                function createFile() {
+                    // skip rename
+                    ProjectManager.createNewItem(testPath, fileAt, true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                }
+                
+                function waitForFileCreate() {
+                    return didCreate || gotError;
+                }
+                
+                function assertFile() {
+                    expect(gotError).toBeTruthy();
+                    expect(didCreate).toBeFalsy();
+                }
+                
+                for (i = 0; i < len; i++) {
+                    didCreate = false;
+                    gotError = false;
+                    fileAt = files[i];
+
+                    runs(createFile);
+                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
+                    runs(assertFile);
+                }
+            });
         });
         
         describe("deleteItem", function () {
