@@ -539,7 +539,7 @@ define(function (require, exports, module) {
                             result.reject(error);
                         } else {
 
-                            DocumentManager.getDocumentForPath(path).done(function (newDoc) {                   
+                            DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                                 FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                                     if (_projectManHasFileSelectionFocus()) {
                                         ProjectManager.refreshFileTree().done(function () {
