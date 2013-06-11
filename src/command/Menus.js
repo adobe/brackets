@@ -77,17 +77,27 @@ define(function (require, exports, module) {
         FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
         FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
         FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
+        FILE_EXTENSION_MANAGER:             {sectionMarker: Commands.FILE_EXTENSION_MANAGER},
 
+        EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
+        EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
+        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.EDIT_FIND},
         EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
+        EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
+        EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
+        EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
 
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+        VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
 
         NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
-        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
+        NAVIGATE_DOCUMENTS_COMMANDS:        {sectionMarker: Commands.NAVIGATE_NEXT_DOC},
+        NAVIGATE_OS_COMMANDS:               {sectionMarker: Commands.NAVIGATE_SHOW_IN_FILE_TREE},
+        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT},
+        NAVIGATE_QUICK_DOCS_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
     };
 
     

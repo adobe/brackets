@@ -538,13 +538,14 @@ a, img {
     }
     
     &.can-close:active {
-        background-position: -15px 1px;
+        background-position: -15px 0;
+        opacity: @tc-icon-down;
     }
 }
 
 /* Styles for inline editors */
 .inline-widget {
-    background-color:   @inline-background-color-1;
+    background-color: @inline-background-color-1;
     min-width: 250px;
     cursor: default;
     
@@ -725,7 +726,7 @@ a, img {
     text-align: left;
     
     font-family: @sansFontFamily;
-    font-size: 13px;
+    font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
@@ -741,7 +742,9 @@ a, img {
     font-family: @sansFontFamily;
     outline: none;
     width: 20em;
-    margin: .3em .3em;
+    margin: 5px 5px 0;
+    position: relative;
+    top: -3px;    
     &.no-results {
         border: 1px solid #bc0023;
         box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
@@ -796,7 +799,7 @@ a, img {
     box-sizing: border-box; 
     
     // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 400px !important;  
+    width: 434px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
@@ -882,4 +885,10 @@ a, img {
 /* Turn on text selection for JSLint error messages */
 #jslint-results {
     .user-select(text);
+}
+
+/* Line up label text and input text */
+label input {
+    position: relative;
+    top: -2px;
 }
