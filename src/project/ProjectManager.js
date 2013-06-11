@@ -142,6 +142,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.  
+     */
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+    
+    /**
+     * @private
      * While initially rendering the tree, stores a list of promises for folders waiting to be read.
      * Is null when tree is not doing its initial rendering.
      */
@@ -1109,7 +1116,7 @@ define(function (require, exports, module) {
     function _projectSettings() {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
-
+    
     /**
      * @private
      *
@@ -1118,10 +1125,9 @@ define(function (require, exports, module) {
      */
     function _checkForValidFilename(filename) {
         // Validate file name
-        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
+        // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
