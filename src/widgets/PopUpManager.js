@@ -153,7 +153,7 @@ define(function (require, exports, module) {
      *
      * @param {ContextMenu} contextMenu
      */
-    function registerContextMenu(contextMenu) {
+    function listenToContextMenu(contextMenu) {
         $(contextMenu).on("beforeContextMenuOpen", _beforeMenuPopup);
     }
 
@@ -165,5 +165,5 @@ define(function (require, exports, module) {
     
     exports.addPopUp            = addPopUp;
     exports.removePopUp         = removePopUp;
-    exports.registerContextMenu = registerContextMenu;
+    exports.listenToContextMenu = listenToContextMenu;
 });
