@@ -22,8 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50,
-regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
@@ -515,9 +514,8 @@ define(function (require, exports, module) {
             editor.setSelection(sel.start, sel.end);
         }
     }
-    
-    
-    function _doOpenSaveAs(doc) {
+        
+    function _doOpenSave(doc) {
         var result = new $.Deferred();
         // In the future we'll have to check wether the document is an unsaved
         // untitled focument. If so, we should default to project root.
@@ -530,7 +528,7 @@ define(function (require, exports, module) {
             var fullPath = doc.file.fullPath;
             var saveAsDefaultPath = fullPath.replace(enclosingFolderRegEx, '');
             var defaultName = fullPath.match(fileNameRegEx)[0];
-            NativeFileSystem.showSaveAsDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 function (path) {
                     // now save new document
                     var newPath = path.replace(enclosingFolderRegEx, '');
@@ -562,8 +560,8 @@ define(function (require, exports, module) {
                                             //add new file to working set
                                             FileViewController
                                                 .addToWorkingSetAndSelect(path,
-                                                                FileViewController.WORKING_SET_VIEW
-                                                    ).always(function () {
+                                                                FileViewController.WORKING_SET_VIEW)
+                                                .always(function () {
                                                     _setTextSelection(sel);
                                                     result.resolve();
                                                 });
@@ -603,13 +601,10 @@ define(function (require, exports, module) {
             
         // doc may still be null, e.g. if no editors are open, but doSaveAs() does a null check on
         // doc and makes sure the document is dirty before saving.
-        return _doOpenSaveAs(doc);
+        return _doOpenSave(doc);
   
     }
 
-
-
-    
     /**
      * Saves all unsaved documents.
      * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected

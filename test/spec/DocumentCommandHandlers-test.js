@@ -171,7 +171,7 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        spyOn(testWindow.brackets.fs, 'showSaveAsDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                             callback(undefined, initialPath + newFilename);
                         });
 
@@ -213,7 +213,7 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        spyOn(testWindow.brackets.fs, 'showSaveAsDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                             callback("Error", undefined);
                         });
 
