@@ -46,15 +46,16 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
     disabledDirectory  = path.join(installParent, "disabled"),
     systemExtensionDirectory = path.join(installParent, "system");
 
-var basicValidExtension      = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    basicValidExtension09    = path.join(testFilesDirectory, "basic-valid-extension-0.9.zip"),
-    basicValidExtension2     = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
-    missingMain              = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown             = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    incompatibleVersion      = path.join(testFilesDirectory, "incompatible-version.zip"),
-    invalidZip               = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingPackageJSON       = path.join(testFilesDirectory, "missing-package-json.zip"),
-    missingPackageJSONUpdate = path.join(testFilesDirectory, "missing-package-json-update.zip");
+var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    basicValidExtension09     = path.join(testFilesDirectory, "basic-valid-extension-0.9.zip"),
+    basicValidExtension2      = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    missingMain               = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown              = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    incompatibleVersion       = path.join(testFilesDirectory, "incompatible-version.zip"),
+    invalidZip                = path.join(testFilesDirectory, "invalid-zip-file.zip"),
+    missingPackageJSON        = path.join(testFilesDirectory, "missing-package-json.zip"),
+    missingPackageJSONUpdate  = path.join(testFilesDirectory, "missing-package-json-update.zip"),
+    missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip");
 
 describe("Package Installation", function () {
     
@@ -288,6 +289,26 @@ describe("Package Installation", function () {
                 expect(err).toBeNull();
                 expect(fs.existsSync(result.installedTo)).toBe(false);
                 done();
+            });
+        });
+    });
+    
+    it("should handle a package renamed with package.json", function (done) {
+        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            expect(fs.existsSync(result.installedTo)).toBe(true);
+            var legacyDirectory = result.installedTo;
+            ExtensionsDomain._cmdInstall(missingPackageJSONRenamed, installDirectory, standardOptions, function (err, result) {
+                expect(err).toBeNull();
+                expect(result.installationStatus).toBe("NEEDS_UPDATE");
+                expect(result.name).toBe("missing-package-json");
+                ExtensionsDomain._cmdUpdate(missingPackageJSONRenamed, installDirectory, standardOptions, function (err, result) {
+                    expect(err).toBeNull();
+                    expect(result.installationStatus).toBe("INSTALLED");
+                    expect(result.name).toBe("renamed-in-package-json");
+                    expect(fs.existsSync(legacyDirectory)).toBe(false);
+                    done();
+                });
             });
         });
     });

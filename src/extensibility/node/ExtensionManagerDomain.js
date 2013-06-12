@@ -209,6 +209,18 @@ function _checkExistingInstallation(validationResult, installDirectory, systemIn
 }
 
 /**
+ * A "legacy package" is an extension that was installed based on the GitHub name without
+ * a package.json file. Checking for the presence of these legacy extensions will help
+ * users upgrade if the extension developer puts a different name in package.json than 
+ * the name of the GitHub project.
+ *
+ * @param {string} legacyDirectory directory to check for old-style extension.
+ */
+function legacyPackageCheck(legacyDirectory) {
+    return fs.existsSync(legacyDirectory) && !fs.existsSync(path.join(legacyDirectory, "package.json"));
+}
+
+/**
  * Implements the "install" command in the "extensions" domain.
  *
  * There is no need to call validate independently. Validation is the first
@@ -252,16 +264,21 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
         
         // Prefers the package.json name field, but will take the zip
         // file's name if that's all that's available.
-        var extensionName;
+        var extensionName, guessedName;
+        if (options.nameHint) {
+            guessedName = path.basename(options.nameHint, ".zip");
+        } else {
+            guessedName = path.basename(packagePath, ".zip");
+        }
         if (validationResult.metadata) {
             extensionName = validationResult.metadata.name;
-        } else if (options.nameHint) {
-            extensionName = path.basename(options.nameHint, ".zip");
         } else {
-            extensionName = path.basename(packagePath, ".zip");
+            extensionName = guessedName;
         }
+        
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName),
+            legacyDirectory = path.join(destinationDirectory, guessedName),
             systemInstallDirectory = path.join(options.systemExtensionDirectory, extensionName);
         
         if (validationResult.metadata && validationResult.metadata.engines &&
@@ -277,11 +294,33 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
             }
         }
         
+        // The "legacy" stuff should go away after all of the commonly used extensions
+        // have been upgraded with package.json files.
+        var hasLegacyPackage = validationResult.metadata && legacyPackageCheck(legacyDirectory);
+        
         // If the extension is already there, we signal to the front end that it's already installed
         // unless the front end has signaled an intent to update.
-        if (fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
+        if (hasLegacyPackage || fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
             if (_doUpdate) {
-                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                if (hasLegacyPackage) {
+                    // When there's a legacy installed extension, remove it first,
+                    // then also remove any new-style directory the user may have.
+                    // This helps clean up if the user is in a state where they have
+                    // both legacy and new extensions installed.
+                    fs.remove(legacyDirectory, function (err) {
+                        if (err) {
+                            callback(err);
+                            return;
+                        }
+                        _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                    });
+                } else {
+                    _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                }
+            } else if (hasLegacyPackage) {
+                validationResult.installationStatus = Statuses.NEEDS_UPDATE;
+                validationResult.name = guessedName;
+                callback(null, validationResult);
             } else {
                 _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, callback);
             }

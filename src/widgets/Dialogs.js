@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     }
     
     function _hasButton(dlg, buttonId) {
-        return dlg.find("[data-button-id='" + buttonId + "']");
+        return (dlg.find("[data-button-id='" + buttonId + "']").length > 0);
     }
 
     var _keydownHook = function (e, autoDismiss) {
@@ -75,7 +75,8 @@ define(function (require, exports, module) {
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inFormField = ($(e.target).filter(":input").length > 0),
-            inTextArea = (e.target.tagName === "TEXTAREA");
+            inTextArea = (e.target.tagName === "TEXTAREA"),
+            inTypingField = inTextArea || ($(e.target).filter(":text,:password").length > 0);
         
         if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
@@ -97,7 +98,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === "N" && !inFormField) {
+            if (which === "N" && !inTypingField) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -108,7 +109,9 @@ define(function (require, exports, module) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
-            // or if the target is not a form element.
+            // or if the target is not a form element. (We don't want to use
+            // "inTypingField" here because we want the TAB key to work on
+            // non-text form elements.)
             e.stopPropagation();
             e.preventDefault();
         }

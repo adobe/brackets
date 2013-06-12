@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
         CommandManager,
-        CodeHintManager;
+        CodeHintManager,
+        KeyBindingManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
         testWindow,
@@ -75,6 +76,7 @@ define(function (require, exports, module) {
                 CodeHintManager     = testWindow.brackets.test.CodeHintManager;
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 CommandManager      = testWindow.brackets.test.CommandManager;
+                KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
             });
         });
     
@@ -202,7 +204,7 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    CodeHintManager._getCodeHintList()._handleKeydown(e);
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
@@ -266,6 +268,48 @@ define(function (require, exports, module) {
                     // verify list is no longer open
                     expectNoHints();
                 });
+            });
+            
+            it("should stop handling keydowns if closed by a click outside", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                    
+                    // get the document text and make sure it doesn't change if we
+                    // click outside and then keydown
+                    var text = editor.document.getText();
+                    
+                    testWindow.$("body").click();
+                    KeyBindingManager._handleKeyEvent({
+                        keyCode: KeyEvent.DOM_VK_ENTER,
+                        stopImmediatePropagation: function () { },
+                        stopPropagation: function () { },
+                        preventDefault: function () { }
+                    });
+                    
+                    // Verify that after the keydown, the session is closed 
+                    // (not just the hint popup). Because of #1381, we don't
+                    // actually have a way to close the session as soon as the
+                    // popup is dismissed by Bootstrap, so we do so on the next
+                    // keydown. Eventually, once that's fixed, we should be able
+                    // to move this expectNoHints() up after the click.
+                    expectNoHints();
+                    expect(editor.document.getText()).toEqual(text);
+                });
+                
             });
         });
     });

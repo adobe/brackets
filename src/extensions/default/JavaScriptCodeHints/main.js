@@ -190,7 +190,9 @@ define(function (require, exports, module) {
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType;
+                type.showFunctionType !== cachedType.showFunctionType ||
+                (type.functionCallPos && cachedType.functionCallPos &&
+                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
 
     /**
@@ -464,34 +466,8 @@ define(function (require, exports, module) {
             token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
+            end         = {line: cursor.line, ch: cursor.ch},
             delimiter;
-
-        if (token && token.string === ".") {
-            var nextToken  = session.getNextTokenOnLine(cursor);
-
-            if (nextToken && // don't replace delimiters, etc.
-                    HintUtils.maybeIdentifier(nextToken.string) &&
-                    HintUtils.hintable(nextToken)) {
-                end.ch = nextToken.end;
-            }
-        }
-
-        // If the hint is a string literal, choose a delimiter in which
-        // to wrap it, preserving the existing delimiter if possible.
-        if (hint.literal && hint.kind === "string") {
-            if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimiter = HintUtils.DOUBLE_QUOTE;
-            } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimiter = HintUtils.SINGLE_QUOTE;
-            } else {
-                delimiter = hint.delimiter;
-            }
-
-            completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimiter, "\\" + delimiter);
-            completion = delimiter + completion + delimiter;
-        }
 
         if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
@@ -552,13 +528,11 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context to be initialized.
          * @param {Editor} previousEditor - the previous editor.
-         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, previousEditor, primePump) {
+        function initializeSession(editor, previousEditor) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
-                previousEditor ? previousEditor.document : null,
-                primePump);
+                previousEditor ? previousEditor.document : null);
             cachedHints = null;
         }
 
@@ -574,7 +548,7 @@ define(function (require, exports, module) {
             resetCachedHintContext();
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, previousEditor, true);
+                initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
@@ -680,7 +654,11 @@ define(function (require, exports, module) {
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
-        
+
+        $(ProjectManager).on("projectOpen", function () {
+            ScopeManager.handleProjectOpen();
+        });
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

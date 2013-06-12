@@ -158,8 +158,6 @@ define(function (require, exports, module) {
                         nameHint: nameHint
                     })
                         .done(function (result) {
-                            // If there were errors or the extension is disabled, we don't
-                            // try to load it so we're ready to return
                             if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
                                 d.resolve(result);
                             } else {
