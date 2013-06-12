@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     /**
      * Context menus are also created in AppInit.htmlReady(), so they may not
      * yet have been created when we get our AppInit.htmlReady() callback, so
-     * we provide this method to tell us when to sart listening for their events
+     * we provide this method to tell us when to start listening for their events
      *
      * @param {ContextMenu} contextMenu
      */
