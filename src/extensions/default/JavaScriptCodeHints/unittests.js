@@ -46,9 +46,7 @@ define(function (require, exports, module) {
         testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,
         testEditor,
-        preTestText,
-        testWindow,
-        self            = this;
+        preTestText;
 
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
@@ -355,36 +353,11 @@ define(function (require, exports, module) {
             // The following call ensures that the document is reloaded
             // from disk before each test
             DocumentManager.closeAll();
-            if (testDoc !== null) {
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-            }
+            SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;
         }
 
-        function setupWithTestWindow(testFile) {
-            runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(self, function (w) {
-                    testWindow = w;
-                    // Load module instances from brackets.test
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    EditorManager       = testWindow.brackets.test.EditorManager;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                });
-            });
-            
-            runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testFile});
-                waitsForDone(promise, "Open " + testPath + " into working set");
-            });
-            
-        }
-       
-        function tearDownTestWindow() {
-            SpecRunnerUtils.closeTestWindow();
-        }
-        
         describe("JavaScript Code Hinting Basic", function () {
 
             beforeEach(function () {
@@ -1490,6 +1463,86 @@ define(function (require, exports, module) {
         
         describe("regression tests", function () {
 
+            // Test maybe valid javascript identifier
+            xit("#3558:should return true for valid identifier, false for invalid one", function () {
+                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
+                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
+                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                var invalidIdentifierList = [" break", "\tif", "\ntrade"];
+                
+                invalidIdentifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(false);
+                });
+                
+                identifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(true);
+                });
+            });
+        });
+        
+        describe("JavaScript Code Hinting with test.html file", function () {
+            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
+
+            beforeEach(function () {
+                setupTest(testFile, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+                
+            });
+
+            // issue #3915
+            xit("should read function name has double byte chars", function () {
+                var start   = { line: 15, ch: 8 },
+                    testPos = { line: 15, ch: 10 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试"]);
+                });
+                runs(function () {
+                    testEditor.setCursorPos(testPos);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试()"]);
+                });
+            });
+            
+            it("should jump to function name with double byte chars", function () {
+                var start        = { line: 16, ch: 9 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+
+            // issue #3915
+            xit("should read function name has non ascii chars", function () {
+                var start = { line: 16, ch: 16 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["frenchçProp()"]);
+                });
+            });
+            
+            it("should jump to function name with non ascii chars", function () {
+                var start        = { line: 16, ch: 12 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+        });
+        
+        describe("regression tests", function () {
+
             afterEach(function () {
                 tearDownTest();
             });
@@ -1497,8 +1550,8 @@ define(function (require, exports, module) {
             // Test maybe valid javascript identifier
             xit("#3558:should return true for valid identifier, false for invalid one", function () {
                 var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
-                                      "KingGeorgeⅦ", "π", "ಠ_ಠ", "\u006C\u006F\u006C\u0077\u0061\u0074",
-                                    "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
+                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
                 var invalidIdentifierList = [" break", "\tif", "\ntrade"];
                 
                 invalidIdentifierList.forEach(function (element) {
@@ -1569,98 +1622,6 @@ define(function (require, exports, module) {
                 });
             });
 
-        });
-    
-        describe("JavaScript Code Hinting in quick editor", function () {
-            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
-
-            beforeEach(function () {
-                setupWithTestWindow(testFile);
-            });
-
-            afterEach(tearDownTestWindow);
-            // framework issue        
-            xit("should see code hint lists in quick editor", function () {
-                var start        = { line: 17, ch: 10 },
-                    testPos      = { line: 32, ch: 22};
-                var previousEditor;
-                
-                runs(function () {
-                    previousEditor      = EditorManager.getActiveEditor();
-                    var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
-                    waitsForDone(openQuickEditor, "Open quick editor");
-                    JSCodeHints.initializeSession(EditorManager.getActiveEditor(), previousEditor, true);
-                });
-                
-                runs(function () {
-                    testEditor = EditorManager.getActiveEditor();
-                    testEditor.setCursorPos(testPos);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["getMonthName(mo: number)"]);
-                    
-                });
-            });
- 
-            it("should see jump to definition on varialbe working in quick editor", function () {
-                var start        = { line: 17, ch: 10 },
-                    testPos      = { line: 33, ch: 7},
-                    testJumpPos  = { line: 33, ch: 5},
-                    jumpPos      = {line: 3, ch: 6};
-                var previousEditor;
-                
-                runs(function () {
-                    previousEditor      = EditorManager.getActiveEditor();
-                    var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
-                    waitsForDone(openQuickEditor, "Open quick editor");
-                    JSCodeHints.initializeSession(EditorManager.getActiveEditor(), previousEditor, true);
-                });
-                
-                runs(function () {
-                    testEditor = EditorManager.getActiveEditor();
-                    testEditor.setCursorPos(testPos);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["propA"]);
-                });
-                     
-                
-                runs(function () {
-                    testEditor = EditorManager.getActiveEditor();
-                    testEditor.setCursorPos(testJumpPos);
-                    editorJumped(jumpPos);
-                });
-                
-            });
-            // framework issue
-            xit("should see jump to definition on method working in quick editor", function () {
-                var start        = { line: 19, ch: 13 },
-                    testPos      = { line: 56, ch: 18},
-                    testPos2    = { line: 56, ch: 12},
-                    jumpPos      = {line: 59, ch: 21};
-
-                var previousEditor;
-                
-                runs(function () {
-                    previousEditor      = EditorManager.getActiveEditor();
-                    var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
-                    waitsForDone(openQuickEditor, "Open quick editor");
-                    JSCodeHints.initializeSession(EditorManager.getActiveEditor(), previousEditor, true);
-                });
-                
-                runs(function () {
-                    testEditor = EditorManager.getActiveEditor();
-                    testEditor.setCursorPos(testPos);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["testTryCatch()"]);
-                });
-                     
-                
-                runs(function () {
-                    testEditor = EditorManager.getActiveEditor();
-                    testEditor.setCursorPos(testPos2);
-                    editorJumped(jumpPos);
-                });
-                
-            });
         });
     });
 });
