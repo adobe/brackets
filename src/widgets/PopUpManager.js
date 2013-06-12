@@ -125,7 +125,14 @@ define(function (require, exports, module) {
     }
     
     function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
+         // Escape key or Alt key (Windows-only)
+        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE &&
+                !(keyEvent.keyCode === KeyEvent.DOM_VK_ALT && brackets.platform === "win")) {
+            return;
+        }
+
+        // Don't dismiss the popup if both Ctrl and Alt keys are pressed.
+        if (keyEvent.keyCode === KeyEvent.DOM_VK_ALT && keyEvent.ctrlKey) {
             return;
         }
         
