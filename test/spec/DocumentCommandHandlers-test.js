@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         DocumentManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        StringUtils         = require("utils/StringUtils");
     
     
     describe("DocumentCommandHandlers", function () {
@@ -146,7 +147,93 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Revert test file");
                 });
             });
-            
+
+            // I'd like to test that,
+            // open a file and save it under a new name will change the name of the document in
+            // the working set and in the project view
+            describe("Save As", function () {
+                it("opened document appears with new name in Working Set", function () {
+                    var filePath    = testPath + "/test.js",
+                        newFilename = "testname.js",
+                        newFilePath = testPath + "/" + newFilename,
+                        promise;
+
+                    runs(function () {
+                        promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                        waitsForDone(promise, "FILE_OPEN");
+                    });
+
+                    runs(function () {
+                        var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}",
+                            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, filePath, brackets.config.app_title);
+                        expect(testWindow.document.title).toBe(windowTitle);
+                    });
+
+                    runs(function () {
+                        spyOn(testWindow.brackets.fs, 'showSaveAsDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                            callback(undefined, initialPath + newFilename);
+                        });
+
+                        promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                        waitsForDone(promise, "Provide new filename", 1000);
+                    });
+
+                    runs(function () {
+                        var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}",
+                            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, newFilePath, brackets.config.app_title);
+
+                        expect(testWindow.document.title).toBe(windowTitle);
+                    });
+
+                    runs(function () {
+                        expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+                        // old file no longer in working set
+                        expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    });
+                });
+
+                it("File doesn't appear in Working Set after cancelling save as", function () {
+                    var filePath    = testPath + "/test.js",
+                        newFilename = "testname.js",
+                        newFilePath = testPath + "/" + newFilename,
+                        promise;
+
+                    runs(function () {
+                        promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                        waitsForDone(promise, "FILE_OPEN");
+                    });
+
+                    runs(function () {
+                        var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}",
+                            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, filePath, brackets.config.app_title);
+
+                        expect(testWindow.document.title).toBe(windowTitle);
+                    });
+
+                    runs(function () {
+                        spyOn(testWindow.brackets.fs, 'showSaveAsDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                            callback("Error", undefined);
+                        });
+
+                        promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                        waitsForFail(promise, "Provide new filename", 1000);
+                    });
+
+                    runs(function () {
+                        var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}",
+                            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, filePath, brackets.config.app_title);
+
+                        expect(testWindow.document.title).toBe(windowTitle);
+                    });
+
+                    runs(function () {
+                        expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    });
+                });
+            });
+
             // Regardless of platform, files with CRLF should be saved with CRLF and files with LF should be saved with LF
             it("should preserve line endings when saving changes", function () {
                 var crlfText = "line1\r\nline2\r\nline3",
