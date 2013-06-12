@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+        ModalBar            = require("widgets/ModalBar").ModalBar,
+        ViewUtils           = require("utils/ViewUtils");
     
     var modalBar,
         isFindFirst = false;
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")
                 .css("display", "inline-block")
-                .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
                 var foundAny = findNext(editor, rev);
                 
                 if (modalBar) {
-                    getDialogTextField().toggleClass("no-results", !foundAny);
+                    ViewUtils.toggleClass(getDialogTextField(), "no-results", !foundAny);
                 }
             });
             isFindFirst = false;
@@ -230,7 +231,7 @@ define(function (require, exports, module) {
         if (modalBar) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialQuery = getDialogTextField().attr("value");
+            initialQuery = getDialogTextField().val();
         }
         
         createModalBar(queryDialog, true);
@@ -254,7 +255,7 @@ define(function (require, exports, module) {
         
         var $input = getDialogTextField();
         $input.on("input", function () {
-            findFirst($input.attr("value"));
+            findFirst($input.val());
         });
 
         // Prepopulate the search field with the current selection, if any.
@@ -266,7 +267,7 @@ define(function (require, exports, module) {
             }
             
             $input
-                .attr("value", initialQuery)
+                .val(initialQuery)
                 .get(0).select();
             findFirst(initialQuery);
             // Clear the "findNextCalled" flag here so we have a clean start
@@ -279,12 +280,10 @@ define(function (require, exports, module) {
             Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
     var replacementQueryDialog = Strings.WITH +
             ': <input type="text" style="width: 10em"/>';
-    // style buttons to match height/margins/border-radius of text input boxes
-    var style = ' style="padding:5px 15px;border:1px #999 solid;border-radius:3px;margin:2px 2px 5px;"';
     var doReplaceConfirm = Strings.CMD_REPLACE +
-            '? <button id="replace-yes"' + style + '>' + Strings.BUTTON_YES +
-            '</button> <button id="replace-no"' + style + '>' + Strings.BUTTON_NO +
-            '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
+            '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
+            '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
+            '</button> <button class="btn">' + Strings.BUTTON_STOP + '</button>';
 
     function replace(editor, all) {
         var cm = editor._codeMirror;
@@ -325,6 +324,8 @@ define(function (require, exports, module) {
                             match = cursor.findNext();
                             if (!match ||
                                     (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                                // No more matches, so destroy modalBar
+                                modalBar = null;
                                 return;
                             }
                         }
@@ -351,7 +352,7 @@ define(function (require, exports, module) {
         
         // Prepopulate the replace field with the current selection, if any
         getDialogTextField()
-            .attr("value", cm.getSelection())
+            .val(cm.getSelection())
             .get(0).select();
     }
     

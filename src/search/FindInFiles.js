@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window */
+/*global define, $, PathUtils, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async               = require("utils/Async"),
+        Resizer             = require("utils/Resizer"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
@@ -50,11 +51,15 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         FileIndexManager    = require("project/FileIndexManager"),
+        FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
         StatusBar           = require("widgets/StatusBar"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
+    
+    var searchResultsTemplate = require("text!htmlContent/search-results.html");
 
     var searchResults = [];
     
@@ -62,6 +67,9 @@ define(function (require, exports, module) {
         maxHitsFoundInFile = false,
         currentQuery = "",
         currentScope;
+    
+    // Bottom panel holding the search results. Initialized in htmlReady().
+    var searchResultsPanel;
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -82,7 +90,7 @@ define(function (require, exports, module) {
                 $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error")
                     .css("display", "inline-block")
-                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                    .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -101,8 +109,12 @@ define(function (require, exports, module) {
     function _labelForScope(scope) {
         var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
-            var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, displayPath);
+            return StringUtils.format(
+                Strings.FIND_IN_FILES_SCOPED,
+                StringUtils.breakableUrl(
+                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
+                )
+            );
         } else {
             return Strings.FIND_IN_FILES_NO_SCOPE;
         }
@@ -152,7 +164,7 @@ define(function (require, exports, module) {
         var $searchField = $("input#findInFilesInput");
         var that = this;
         
-        $searchField.attr("value", initialString || "");
+        $searchField.val(initialString || "");
         $searchField.get(0).select();
         
         $("#findInFilesScope").html(_labelForScope(scope));
@@ -183,7 +195,12 @@ define(function (require, exports, module) {
         
         return this.result.promise();
     };
-
+    
+    function _hideSearchResults() {
+        if (searchResultsPanel.isVisible()) {
+            searchResultsPanel.hide();
+        }
+    }
 
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found
@@ -227,10 +244,8 @@ define(function (require, exports, module) {
     }
         
     function _showSearchResults(searchResults, query, scope) {
-        var $searchResultsDiv = $("#search-results");
-        
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table' />")
+            var $resultTable = $("<table class='table table-striped table-condensed row-highlight' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -278,8 +293,11 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
-                    var displayFileName = StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH,
-                                                             StringUtils.breakableUrl(esc(item.fullPath)));
+                    var displayFileName = StringUtils.format(
+                        Strings.FIND_IN_FILES_FILE_PATH,
+                        StringUtils.breakableUrl(item.fullPath)
+                    );
+
                     $("<tr class='file-section' />")
                         .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
                         .click(function () {
@@ -322,16 +340,13 @@ define(function (require, exports, module) {
             
             $("#search-results .close")
                 .one("click", function () {
-                    $searchResultsDiv.hide();
-                    EditorManager.resizeEditor();
+                    _hideSearchResults();
                 });
             
-            $searchResultsDiv.show();
+            searchResultsPanel.show();
         } else {
-            $searchResultsDiv.hide();
+            _hideSearchResults();
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -424,25 +439,18 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
         var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
         doFindInFiles(selectedEntry);
     }
     
-    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container");
+        var panelHtml = Mustache.render(searchResultsTemplate, Strings);
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($("#search-results").is(":visible")) {
+        if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
@@ -450,8 +458,22 @@ define(function (require, exports, module) {
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
+  
+    function _pathDeletedHandler(event, path) {
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            searchResults.forEach(function (item, idx) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                    searchResults.splice(idx, 1);
+                }
+            });
+            _showSearchResults(searchResults, currentQuery, currentScope);
+        }
+    }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
+    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);

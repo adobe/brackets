@@ -122,12 +122,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Была проблема при получении информации о последних обновлениях с сервера. Пожалуйста, убедитесь, что вы подключены к интернету и попробуйте снова. ",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Изменить язык",
-    "LANGUAGE_MESSAGE"                  : "Пожалуйста, выберите желаемый язык из списка ниже:",
-    "LANGUAGE_SUBMIT"                   : "Перезагрузить {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Отмена",
-
     /**
      * ProjectManager
      */
@@ -218,17 +212,6 @@ define({
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве файлов",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Отладка",
-    "CMD_REFRESH_WINDOW"                  : "Перезагрузить {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Показать инструменты разработчика",
-    "CMD_RUN_UNIT_TESTS"                  : "Запустить тесты",
-    "CMD_JSLINT"                          : "Включить JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Показать данные о производительности",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Новое окно {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
-    "CMD_SWITCH_LANGUAGE"                 : "Переключить язык",
-
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
     "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
@@ -236,6 +219,7 @@ define({
     "CMD_FORUM"                           : "Форум {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
     "CMD_REPORT_AN_ISSUE"                 : "Сообщить о проблеме",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
     "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
     "CMD_ABOUT"                           : "О {APP_TITLE}",
 
@@ -247,11 +231,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Экспериментальная сборка",
     "DEVELOPMENT_BUILD"                    : "Сборка для разработчиков",
-    "JSLINT_ERRORS"                        : "Ошибки JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Ошибка JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Ошибок JSLint",
-    "JSLINT_NO_ERRORS"                     : "Нет ошибок JSLint - хорошая работа!",
-    "JSLINT_DISABLED"                      : "JSLint отключен или не работает для текущего файла",
     "SEARCH_RESULTS"                       : "Результаты поиска",
     "OK"                                   : "ОК",
     "DONT_SAVE"                            : "Не сохранять",
@@ -262,7 +241,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Закрыть (Не сохранять)",
     "RELAUNCH_CHROME"                      : "Перезапустить Chrome",
     "ABOUT"                                : "О программе",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Закрыть",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
@@ -281,6 +259,21 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Специальные символы как '{0}' должны быть %-экранированы.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Неизвестная ошибка при парсинге основного URL",
     
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Отладка",
+    "CMD_SHOW_DEV_TOOLS"                        : "Показать инструменты разработчика",
+    "CMD_REFRESH_WINDOW"                        : "Перезагрузить {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Новое окно {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Переключить язык",
+    "CMD_RUN_UNIT_TESTS"                        : "Запустить тесты",
+    "CMD_SHOW_PERF_DATA"                        : "Показать данные о производительности",
+    
+    "LANGUAGE_TITLE"                            : "Изменить язык",
+    "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
+    "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Отмена",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_SELECTION_FIELD_TIP"          : "Насыщенность (х) и яркость (y)",
     "COLOR_EDITOR_HUE_SLIDER_TIP"               : "Цвет",
@@ -292,5 +285,13 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex формат",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa формат",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Использовано {1} раз)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Использовано {1} раза)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Использовано {1} раза)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Включить JSLint",
+    "JSLINT_ERRORS"                             : "Ошибки JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Ошибка JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Ошибок JSLint",
+    "JSLINT_NO_ERRORS"                          : "Нет ошибок JSLint - хорошая работа!",
+    "JSLINT_DISABLED"                           : "JSLint отключен или не работает для текущего файла"
 });

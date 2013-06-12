@@ -143,9 +143,6 @@ define(function (require, exports, module) {
                 // mocked the loading part
                 expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
-                if (brackets.platform === "win") {
-                    expectedPath = expectedPath.replace(/\//g, "\\");
-                }
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
                 NativeFileSystem.resolveNativeFileSystemPath(extensionsRoot + "/user/basic-valid-extension/main.js",
@@ -182,6 +179,27 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return directoryCheckComplete; }, 1000, "checking for disabled extension directory");
                 
+            });
+        });
+        
+        it("should remove an installed extension", function () {
+            var installPath, checkComplete = false;
+            installPackage(basicValid);
+            runs(function () {
+                installPath = lastExtensionLoad.config.baseUrl;
+                handlePackage(installPath, Package.remove);
+            });
+            runs(function () {
+                NativeFileSystem.resolveNativeFileSystemPath(installPath,
+                    function () {
+                        checkComplete = true;
+                        expect("installation path was removed").toEqual(true);
+                    },
+                    function () {
+                        checkComplete = true;
+                    });
+
+                waitsFor(function () { return checkComplete; }, 1000, "checking for extension folder removal");
             });
         });
     });

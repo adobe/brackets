@@ -83,6 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    var Async = require("utils/Async");
+
     // jQuery exports object for events
     var $exports = $(exports);
 
@@ -122,16 +124,22 @@ define(function Inspector(require, exports, module) {
         }
 
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
-        var id, callback, args, i, params = {};
+        var id, callback, args, i, params = {}, promise;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
         if (typeof args[args.length - 1] === "function") {
-            id = _messageId++;
-            _messageCallbacks[id] = args.pop();
+            callback = args.pop();
         } else {
-            id = 0;
+            var deferred = new $.Deferred();
+            promise = deferred.promise();
+            callback = function (result) {
+                deferred.resolve(result);
+            };
         }
+
+        id = _messageId++;
+        _messageCallbacks[id] = callback;
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
@@ -141,6 +149,8 @@ define(function Inspector(require, exports, module) {
             }
         }
         _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+
+        return promise;
     }
 
     /** WebSocket did close */
@@ -182,6 +192,7 @@ define(function Inspector(require, exports, module) {
         } else if (response.result) {
             if (_messageCallbacks[response.id]) {
                 _messageCallbacks[response.id](response.result);
+                delete _messageCallbacks[response.id];
             }
         } else {
             var domainAndMethod = response.method.split(".");
@@ -215,7 +226,9 @@ define(function Inspector(require, exports, module) {
         request.onerror = function onError() {
             def.reject(request.response);
         };
+
         request.send(null);
+
         return def.promise();
     }
 
@@ -235,31 +248,54 @@ define(function Inspector(require, exports, module) {
         $exports.off(name, handler);
     }
 
-    /** Disconnect from the remote debugger WebSocket */
+    /**
+     * Disconnect from the remote debugger WebSocket
+     * @return {jQuery.Promise} Promise that is resolved immediately if not
+     *     currently connected or asynchronously when the socket is closed.
+     */
     function disconnect() {
-        if (_socket) {
-            if (_socket.readyState === 1) {
-                _socket.close();
-            } else {
+        var deferred = new $.Deferred(),
+            promise = deferred.promise();
+
+        if (_socket && (_socket.readyState === WebSocket.OPEN)) {
+            _socket.onclose = function () {
+                // trigger disconnect event
+                _onDisconnect();
+
+                deferred.resolve();
+            };
+
+            promise = Async.withTimeout(promise, 5000);
+
+            _socket.close();
+        } else {
+            if (_socket) {
                 delete _socket.onmessage;
                 delete _socket.onopen;
                 delete _socket.onclose;
                 delete _socket.onerror;
-            }
-            _socket = undefined;
-        }
-    }
 
-    /** Connect to the remote debugger WebSocket at the given URL
+                _socket = undefined;
+            }
+            
+            deferred.resolve();
+        }
+
+        return promise;
+    }
+    /**
+     * Connect to the remote debugger WebSocket at the given URL.
+     * Clients must listen for the `connect` event.
      * @param {string} WebSocket URL
      */
     function connect(socketURL) {
-        disconnect();
-        _socket = new WebSocket(socketURL);
-        _socket.onmessage = _onMessage;
-        _socket.onopen = _onConnect;
-        _socket.onclose = _onDisconnect;
-        _socket.onerror = _onError;
+        disconnect().done(function () {
+            _socket = new WebSocket(socketURL);
+            _socket.onmessage = _onMessage;
+            _socket.onopen = _onConnect;
+            _socket.onclose = _onDisconnect;
+            _socket.onerror = _onError;
+        });
     }
 
     /** Connect to the remote debugger of the page that is at the given URL

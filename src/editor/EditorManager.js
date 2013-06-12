@@ -52,12 +52,12 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands            = require("command/Commands"),
+        PanelManager        = require("view/PanelManager"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        ViewUtils           = require("utils/ViewUtils"),
         Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
@@ -94,6 +94,18 @@ define(function (require, exports, module) {
      * @type {Array.<function(...)>}
      */
     var _inlineEditProviders = [];
+    
+    /**
+     * Registered inline documentation widget providers. See {@link #registerInlineDocsProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _inlineDocsProviders = [];
+    
+    /**
+     * Registered jump-to-definition providers. See {@link #registerJumpToDefProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _jumpToDefProviders = [];
     
 	/**
      * @private
@@ -134,13 +146,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Bound to Ctrl+E on outermost editors.
-     * @param {!Editor} editor the candidate host editor
+     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
+     * position, and once the widget has been created inserts it into the editor.
+     * @param {!Editor} editor The host editor
+     * @param {!Array.<function(!Editor, !{line:Number, ch:Number}):?$.Promise>} providers
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
-     *      is created or rejected when no inline editors are available.
+     *      is created or rejected if no inline providers have offered one.
      */
-    function _openInlineWidget(editor) {
-        PerfUtils.markStart(PerfUtils.INLINE_EDITOR_OPEN);
+    function _openInlineWidget(editor, providers) {
+        PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
         
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
@@ -148,8 +162,8 @@ define(function (require, exports, module) {
             i,
             result = new $.Deferred();
         
-        for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
-            var provider = _inlineEditProviders[i];
+        for (i = 0; i < providers.length && !inlinePromise; i++) {
+            var provider = providers[i];
             inlinePromise = provider(editor, pos);
         }
         
@@ -157,16 +171,16 @@ define(function (require, exports, module) {
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
                 editor.addInlineWidget(pos, inlineWidget);
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 result.resolve();
             }).fail(function () {
                 // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 result.reject();
             });
         } else {
             // terminate timer that was started above
-            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
             result.reject();
         }
         
@@ -197,19 +211,39 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Registers a new inline provider. When _openInlineWidget() is called each registered inline
-     * widget is called and asked if it wants to provide an inline widget given the current cursor
-     * location and document.
-     * @param {function} provider 
-     *      Parameters: 
-     *      {!Editor} editor, {!{line:Number, ch:Number}} pos
-     *      
-     *      Returns:
-     *      {$.Promise} a promise that will be resolved with an inlineWidget
-     *      or null to indicate the provider doesn't create an editor in this case
+     * Registers a new inline editor provider. When Quick Edit is invoked each registered provider is
+     * asked if it wants to provide an inline editor given the current editor and cursor location.
+     * 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
      */
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
+    }
+
+    /**
+     * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
+     * asked if it wants to provide inline docs given the current editor and cursor location.
+     * 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
+     */
+    function registerInlineDocsProvider(provider) {
+        _inlineDocsProviders.push(provider);
+    }
+    
+    /**
+     * Registers a new jump-to-definition provider. When jump-to-definition is invoked each
+     * registered provider is asked if it wants to provide jump-to-definition results, given
+     * the current editor and cursor location. 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with jump-to-definition results, or
+     * returns null to indicate the provider doesn't want to respond to this case.
+     */
+    function registerJumpToDefProvider(provider) {
+        _jumpToDefProviders.push(provider);
     }
     
     /**
@@ -326,55 +360,43 @@ define(function (require, exports, module) {
     
     
     /**
-     * Calculates the available height for the full-size Editor (or the no-editor placeholder),
-     * accounting for the current size of all visible panels, toolbar, & status bar.
-     * @return {number}
-     */
-    function _calcEditorHeight() {
-        var availableHt = $(".content").height();
-        
-        _editorHolder.siblings().each(function (i, elem) {
-            var $elem = $(elem);
-            if ($elem.css("display") !== "none") {
-                availableHt -= $elem.outerHeight();
-            }
-        });
-        
-        // Clip value to 0 (it could be negative if a panel wants more space than we have)
-        return Math.max(availableHt, 0);
-    }
-    
-    /**
-     * Flag for resizeEditor() to always force refresh.
+     * Flag for _onEditorAreaResize() to always force refresh.
      * @const
      * @type {string}
      */
     var REFRESH_FORCE = "force";
     
     /**
-     * Flag for resizeEditor() to never refresh.
+     * Flag for _onEditorAreaResize() to never refresh.
      * @const
      * @type {string}
      */
     var REFRESH_SKIP = "skip";
 
-    /** 
-     * Resize the editor. This must be called any time the contents of the editor area are swapped
-     * or any time the editor area might change height. EditorManager takes care of calling this when
-     * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
-     * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
-     *
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
-     *    whether it needs to refresh.
+    /**
+     * Must be called whenever the size/visibility of editor area siblings is changed without going through
+     * PanelManager or Resizer. Resizable panels created via PanelManager do not require this manual call.
      */
-    function resizeEditor(refreshFlag) {
+    function resizeEditor() {
         if (!_editorHolder) {
             return;  // still too early during init
         }
-        
-        var editorAreaHt = _calcEditorHeight();
-        _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
+        // PanelManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
+        PanelManager._notifyLayoutChange();
+    }
+    
+    /**
+     * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
+     * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
+     * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
+     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
+     * 
+     * @param {number} editorAreaHt
+     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let _onEditorAreaResize()
+     *    determine whether it needs to refresh.
+     */
+    function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
@@ -395,15 +417,6 @@ define(function (require, exports, module) {
                 _currentEditor.refreshAll(true);
             }
         }
-    }
-    
-    /**
-     * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
-     * height.
-     */
-    function _updateEditorDuringResize() {
-        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(REFRESH_SKIP);
     }
     
     
@@ -450,13 +463,13 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
+        // Skip refreshing the editor since we're going to refresh it more explicitly below
         _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
         // Resize and refresh the editor, since it might have changed size or had other edits applied
         // since it was last visible.
-        resizeEditor(REFRESH_FORCE);
+        PanelManager._notifyLayoutChange(REFRESH_FORCE);
     }
 
     /**
@@ -513,17 +526,11 @@ define(function (require, exports, module) {
             container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
-
-        // Remove scroller-shadow from the current editor
-        if (_currentEditor) {
-            ViewUtils.removeScrollerShadow(container, _currentEditor);
-        }
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
             _showEditor(doc);
-            ViewUtils.addScrollerShadow(container, _currentEditor);
         } else {
             _showNoEditor();
         }
@@ -649,12 +656,12 @@ define(function (require, exports, module) {
     
     
     /**
-     * Toggle Quick Edit command handler
-     * @return {!Promise} A promise resolved with true if an inline editor
-     *   is opened or false when closed. The promise is rejected if there
-     *   is no current editor or an inline editor is not created.
+     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
+     *   when closed. Rejected if there is neither an existing widget to close nor a provider
+     *   willing to create a widget (or if no editor is open).
      */
-    function _toggleQuickEdit() {
+    function _toggleInlineWidget(providers) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
@@ -662,15 +669,15 @@ define(function (require, exports, module) {
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
-                PerfUtils.markStart(PerfUtils.INLINE_EDITOR_CLOSE);
+                PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
                 inlineWidget.close();
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
+                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
         
                 // return a resolved promise to CommandManager
                 result.resolve(false);
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor).done(function () {
+                _openInlineWidget(_currentEditor, providers).done(function () {
                     result.resolve(true);
                 }).fail(function () {
                     result.reject();
@@ -684,18 +691,69 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    // Initialize: command handlers
-    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
+    /**
+     * Asynchronously asks providers to handle jump-to-definition.
+     * @return {!Promise} null if no appropriate provider exists. Else, returns a promise
+     *  which is resolved by adjusting the editor selection to the requested definition.
+     */
+    function _doJumpToDef() {
+        var providers = _jumpToDefProviders;
+        var promise,
+            i,
+            result = new $.Deferred();
+        
+        if (_currentEditor) {
+            // main editor has focus
+
+            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
+            
+            // Run through providers until one responds
+            for (i = 0; i < providers.length && !promise; i++) {
+                var provider = providers[i];
+                promise = provider();
+            }
+
+            // Will one of them will provide a result?
+            if (promise) {
+                promise.done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.resolve();
+                }).fail(function () {
+                    // terminate timer that was started above
+                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.reject();
+                });
+            } else {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                result.reject();
+            }
+            
+        } else {
+            result.reject();
+        }
+        
+        return result.promise();
+    }
     
+    // Initialize: command handlers
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
+        return _toggleInlineWidget(_inlineEditProviders);
+    });
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
+        return _toggleInlineWidget(_inlineDocsProviders);
+    });
+    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
+    
+    // Create PerfUtils measurement
+    PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
+
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+    $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
 
-    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
-    // refresh on resize.
-    window.addEventListener("resize", _updateEditorDuringResize, true);
-    
     // For unit tests and internal use only
     exports._openInlineWidget = _openInlineWidget;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
@@ -718,6 +776,8 @@ define(function (require, exports, module) {
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
+    exports.registerInlineDocsProvider = registerInlineDocsProvider;
+    exports.registerJumpToDefProvider = registerJumpToDefProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
 });

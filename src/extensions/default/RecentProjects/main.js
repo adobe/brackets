@@ -45,8 +45,7 @@ define(function (require, exports, module) {
     
     
     var $dropdownToggle,
-        $dropdown,
-        $settings;
+        $dropdown;
     
     var prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
@@ -195,9 +194,6 @@ define(function (require, exports, module) {
                         }
                     });
                 closeDropdown();
-            
-            } else if (id === "project-settings-link") {
-                CommandManager.execute(Commands.FILE_PROJECT_SETTINGS);
             
             } else if (id === "open-folder-link") {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);

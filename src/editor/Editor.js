@@ -119,8 +119,7 @@ define(function (require, exports, module) {
         //    the proper indentation then indent it to the proper place. Otherwise,
         //    add another tab. In either case, move the insertion point to the 
         //    beginning of the text.
-        // 2. If the selection is after the first non-space character, and is not an 
-        //    insertion point, indent the entire line(s).
+        // 2. If the selection is multi-line, indent all the lines.
         // 3. If the selection is after the first non-space character, and is an 
         //    insertion point, insert a tab character or the appropriate number 
         //    of spaces to pad to the nearest tab boundary.
@@ -144,7 +143,7 @@ define(function (require, exports, module) {
                 insertTab = true;
                 to.ch = 0;
             }
-        } else if (instance.somethingSelected()) {
+        } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
         } else {
             insertTab = true;
@@ -155,7 +154,7 @@ define(function (require, exports, module) {
                 CodeMirror.commands.insertTab(instance);
             } else {
                 var i, ins = "", numSpaces = instance.getOption("indentUnit");
-                numSpaces -= to.ch % numSpaces;
+                numSpaces -= from.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }
@@ -448,8 +447,9 @@ define(function (require, exports, module) {
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
+        var self = this;
         this._inlineWidgets.forEach(function (inlineWidget) {
-            inlineWidget.onClosed();
+            self._removeInlineWidgetInternal(inlineWidget);
         });
     };
     
@@ -789,18 +789,26 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if pos is between start and end (inclusive at both ends)
+     * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
+     * but overridable via the endInclusive flag).
      * @param {{line:number, ch:number}} pos
      * @param {{line:number, ch:number}} start
      * @param {{line:number, ch:number}} end
+     * @param {boolean} endInclusive
      *
      */
-    Editor.prototype.posWithinRange = function (pos, start, end) {
-        var startIndex = this.indexFromPos(start),
-            endIndex = this.indexFromPos(end),
-            posIndex = this.indexFromPos(pos);
-
-        return posIndex >= startIndex && posIndex <= endIndex;
+    Editor.prototype.posWithinRange = function (pos, start, end, endInclusive) {
+        if (start.line <= pos.line && end.line >= pos.line) {
+            if (endInclusive) {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                       (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
+            } else {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                       (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+            }
+                   
+        }
+        return false;
     };
     
     /**
@@ -997,7 +1005,6 @@ define(function (require, exports, module) {
                                                            { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
-            inlineWidget.onClosed();
         });
         this._inlineWidgets.push(inlineWidget);
 
@@ -1009,7 +1016,7 @@ define(function (require, exports, module) {
      * Removes all inline widgets
      */
     Editor.prototype.removeAllInlineWidgets = function () {
-        // copy the array because _removeInlineWidgetInternal will modifying the original
+        // copy the array because _removeInlineWidgetInternal will modify the original
         var widgets = [].concat(this.getInlineWidgets());
         
         widgets.forEach(function (widget) {
@@ -1026,7 +1033,6 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
-        inlineWidget.onClosed();
     };
     
     /**
@@ -1059,13 +1065,17 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
-        var i;
-        var l = this._inlineWidgets.length;
-        for (i = 0; i < l; i++) {
-            if (this._inlineWidgets[i] === inlineWidget) {
-                this._inlineWidgets.splice(i, 1);
-                break;
+        if (!inlineWidget.isClosed) {
+            var i;
+            var l = this._inlineWidgets.length;
+            for (i = 0; i < l; i++) {
+                if (this._inlineWidgets[i] === inlineWidget) {
+                    this._inlineWidgets.splice(i, 1);
+                    break;
+                }
             }
+            inlineWidget.onClosed();
+            inlineWidget.isClosed = true;
         }
     };
 
@@ -1336,7 +1346,7 @@ define(function (require, exports, module) {
         _setEditorOption(value, cmOption);
         _prefs.setValue(prefName, value);
     }
-		
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value

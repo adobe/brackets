@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor;
     
-    describe("HTMLUtils", function () {
+    describe("HTMLUtils CodeHints", function () {
     
         //Use a clean version of the editor each time
         var myDocument,
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
                     "</body></ht", "ml>");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo());
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.CLOSING_TAG, 2, "html"));
             });
             
             it("should not find attributes in an empty editor", function () {

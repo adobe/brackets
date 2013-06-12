@@ -28,6 +28,10 @@
     background-color: @background-color-3;
 }
 
+.CodeMirror {
+    .code-font();
+}
+
 .platform-mac .CodeMirror {
     .code-font-mac();
 }
@@ -103,14 +107,12 @@
     .CodeMirror-gutters {
         background-color: @background-color-3;
         border-right: none;
-        min-width: 2.5em;
     }
     .CodeMirror-linenumber {
         color: @accent-comment;
         min-width: 2.5em;
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-        padding-top: 0px;
-        padding-bottom: 0px;
+        padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
     }
     &.CodeMirror-focused .CodeMirror-selected {
         background: @selection-color-focused;
