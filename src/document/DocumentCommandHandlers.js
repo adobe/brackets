@@ -22,8 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50,
-regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
@@ -498,127 +497,6 @@ define(function (require, exports, module) {
         );
     }
     
-    function _projectManHasFileSelectionFocus() {
-        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
-    }
-    
-    function _getTextSelection() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            return editor.getSelection();
-        }
-    }
-    
-    function _setTextSelection(sel) {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            editor.setSelection(sel.start, sel.end);
-        }
-    }
-    
-    
-    function _doOpenSaveAs(doc) {
-        var result = new $.Deferred();
-        // In the future we'll have to check wether the document is an unsaved
-        // untitled focument. If so, we should default to project root.
-        // If the there is no project, default to desktop.
-        if (doc) {
-            var sel = _getTextSelection();
-            
-            var enclosingFolderRegEx = /[^\/]*$/;
-            var fileNameRegEx = /([^\/]+)(\w+$)/;
-            var fullPath = doc.file.fullPath;
-            var saveAsDefaultPath = fullPath.replace(enclosingFolderRegEx, '');
-            var defaultName = fullPath.match(fileNameRegEx)[0];
-            NativeFileSystem.showSaveAsDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
-                function (path) {
-                    // now save new document
-                    var newPath = path.replace(enclosingFolderRegEx, '');
-                    // create empty file,  FileUtils.writeText will create content.
-                    brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
-                        if (error) {
-                            result.reject(error);
-                        } else {
-
-                            DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                                FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
-                                    if (_projectManHasFileSelectionFocus()) {
-                                        ProjectManager.refreshFileTree().done(function () {
-                                            FileViewController.
-                                                openAndSelectDocument(path,
-                                                                      FileViewController.PROJECT_MANAGER)
-                                                .always(function () {
-                                                    _setTextSelection(sel);
-                                                    doc.isDirty = false;
-                                                    result.resolve();
-                                                });
-
-                                        });
-                                    } else { // Working set  has file selection focus
-                                        ProjectManager.refreshFileTree().done(function () {
-                                            // replace original file in working set with new file
-                                            //  remove old file from working set.
-                                            DocumentManager.removeFromWorkingSet(doc.file);
-                                            //add new file to working set
-                                            FileViewController
-                                                .addToWorkingSetAndSelect(path,
-                                                                FileViewController.WORKING_SET_VIEW
-                                                    ).always(function () {
-                                                    _setTextSelection(sel);
-                                                    result.resolve();
-                                                });
-                                        });
-                                    }
-                                });
-                            });
-                        }
-                    });
-                },
-                function (error) {
-                    result.reject(error);
-                });
-            return result.promise();
-        } else {
-            result.reject();
-        }
-    }
-    
-    /**
-     * Prompts user with save as dialog and saves document.
-     * @return {$.Promise} a promise that is resolved once the save  has been completed; or rejected
-     */
-    function handleFileSaveAs(commandData) {
-        // Default to current document if doc is null
-        var doc = null;
-        if (commandData) {
-            doc = commandData.doc;
-        }
-        if (!doc) {
-            var activeEditor = EditorManager.getActiveEditor();
-            
-            if (activeEditor) {
-                doc = activeEditor.document;
-            }
-        }
-            
-        // doc may still be null, e.g. if no editors are open, but doSaveAs() does a null check on
-        // doc and makes sure the document is dirty before saving.
-        return _doOpenSaveAs(doc);
-  
-    }
-
-
-
-    
-    /**
-     * Saves all unsaved documents.
-     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
-     *      after all operations completed if any ONE of them failed.
-     */
-    function handleFileSaveAll() {
-        return saveAll();
-    }
-    
     /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
@@ -643,7 +521,128 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+
+     /**
+     * Opens the native OS save as dialog and saves document.
+     * The original document is reverted in case it was dirty.
+     * Text selection and cursor position from the orignal document
+     * are preserved in the new document.
+     * When saving to the original document the document is saved as if save was called.
+     * @param {Document} doc
+     * @param {Settings} proeprties of the orignal document's editor that need to be carried over to the new document
+     *      i.e. scrollPos, cursorPos and text selection
+     * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
+     */
+    function _doSaveAs(doc, settings) {
+        var fullPath,
+            saveAsDefaultPath,
+            defaultName,
+            result = new $.Deferred();
+        
+        function _doSaveAfterSaveDialog(path) {
+            
+            function _configureEditorAndResolve() {
+                var editor = EditorManager.getActiveEditor();
+                if (editor) {
+                    if (settings) {
+                        editor.setCursorPos(settings.cursorPos);
+                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+                    }
+                }
+                result.resolve();
+            }
+            
+            if (path === fullPath) {
+                return doSave(doc);
+            }
+            // now save new document
+            var newPath = PathUtils.parseUrl(path).directory;
+            // create empty file,  FileUtils.writeText will create content.
+            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
+                if (error) {
+                    result.reject(error);
+                } else {
+                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
+                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                            ProjectManager.refreshFileTree().done(function () {
+                                doRevert(doc);
+                                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                                    FileViewController
+                                        .openAndSelectDocument(path,
+                                                              FileViewController.PROJECT_MANAGER)
+                                        .always(_configureEditorAndResolve);
+                                } else { // Working set  has file selection focus
+                                    // replace original file in working set with new file
+                                    //  remove old file from working set.
+                                    DocumentManager.removeFromWorkingSet(doc.file);
+                                    //add new file to working set
+                                    FileViewController
+                                        .addToWorkingSetAndSelect(path,
+                                                        FileViewController.WORKING_SET_VIEW)
+                                        .always(_configureEditorAndResolve);
+                                }
     
+                            });
+                        });
+                    });
+                }
+            });
+        }
+                
+        // In the future we'll have to check wether the document is an unsaved
+        // untitled focument. If so, we should default to project root.
+        // If the there is no project, default to desktop.
+        if (doc) {
+            fullPath = doc.file.fullPath;
+            saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+            defaultName = PathUtils.parseUrl(fullPath).filename;
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
+                _doSaveAfterSaveDialog,
+                function (error) {
+                    result.reject(error);
+                });
+        } else {
+            result.reject();
+        }
+        return result.promise();
+    }
+    
+    /**
+     * Prompts user with save as dialog and saves document.
+     * @return {$.Promise} a promise that is resolved once the save  has been completed; or rejected
+     */
+    function handleFileSaveAs(commandData) {
+        // Default to current document if doc is null
+        var doc = null,
+            activeEditor,
+            settings;
+        
+        if (commandData) {
+            doc = commandData.doc;
+        } else {
+            activeEditor = EditorManager.getActiveEditor();
+            doc = activeEditor.document;
+            settings = {};
+            settings.selection = activeEditor.getSelection();
+            settings.cursorPos = activeEditor.getCursorPos();
+            settings.scrollPos = activeEditor.getScrollPos();
+        }
+            
+        // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
+        // doc.
+        return _doSaveAs(doc, settings);
+  
+    }
+
+    /**
+     * Saves all unsaved documents.
+     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
+     *      after all operations completed if any ONE of them failed.
+     */
+    function handleFileSaveAll() {
+        return saveAll();
+    }
     
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one

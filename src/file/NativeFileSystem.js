@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                                     Receives the path of the selected file name.
          * @param {function(DOMError)=} errorCallback Callback function for error operations.
          */
-        showSaveAsDialog: function (title,
+        showSaveDialog: function (title,
                                     initialPath,
                                     proposedNewFilename,
                                     successCallback,
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var newFile = brackets.fs.showSaveAsDialog(
+            var newFile = brackets.fs.showSaveDialog(
                 title,
                 initialPath,
                 proposedNewFilename,
