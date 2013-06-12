@@ -50,7 +50,10 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away). 
+ *          eventually go away).
+ *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
+ *          is a string containing the editor option that is changing. The 3rd arg, which can be any
+ *          data type, is the new value for the editor option.
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -1332,6 +1335,7 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }
     
