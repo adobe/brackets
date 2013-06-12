@@ -70,6 +70,27 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async");
     
+    
+    var _excludeFilesList = [".git",
+                             ".gitignore",
+                             ".gitmodules",
+                             ".svn",
+                             "CVS",
+                             "RCS",
+                             "SCCS",
+                             ".cvsignore",
+                             ".arch-ids",
+                             "{arch}",
+                             ".bzr",
+                             ".bzrignore",
+                             ".bzrtags",
+                             ".DS_Store",
+                             "Thumbs.db",
+                             ".hg",
+                             ".hgignore",
+                             ".hgrags",
+                             "_darcs"];
+
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -639,11 +660,10 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
+        if (_excludeFilesList.indexOf(entry.name) > -1) {
             return false;
         }
-        var extension = entry.name.split('.').pop();
-        if (["pyc"].indexOf(extension) > -1) {
+        if (/\.pyc?/.match(entry)) {
             return false;
         }
         return true;
