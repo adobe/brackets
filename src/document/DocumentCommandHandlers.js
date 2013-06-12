@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
+        PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent");
@@ -791,6 +792,14 @@ define(function (require, exports, module) {
         _windowGoingAway = false;
     }
     
+    /**
+     * @private
+     * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
+     */
+    function _handleBeforeMenuPopup() {
+        $(PopUpManager).triggerHandler("beforeMenuPopup");
+    }
+    
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
         return _handleWindowGoingAway(
@@ -934,6 +943,7 @@ define(function (require, exports, module) {
     }
 
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
