@@ -71,25 +71,14 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     
-    var _excludeFilesList = [".git",
-                             ".gitignore",
-                             ".gitmodules",
-                             ".svn",
-                             "CVS",
-                             "RCS",
-                             "SCCS",
-                             ".cvsignore",
-                             ".arch-ids",
-                             "{arch}",
-                             ".bzr",
-                             ".bzrignore",
-                             ".bzrtags",
-                             ".DS_Store",
-                             "Thumbs.db",
-                             ".hg",
-                             ".hgignore",
-                             ".hgrags",
-                             "_darcs"];
+    /**
+     * @private
+     * File and Folder names which are not displayed or searched
+     * NOTE: This list is  based on the gnu tar project exclude list --
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _excludeFilesRegEx = /\.pyc$|\.git|\.svn|CVS|RCS|SCCS|\.cvsignore|\.arch\-ids|\{arch\}|\.bzr|\.DS_Store|Thumbs\.db|\.hg|\_darcs/;
 
     /**
      * @private
@@ -660,13 +649,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if (_excludeFilesList.indexOf(entry.name) > -1) {
-            return false;
-        }
-        if (/\.pyc?/.match(entry)) {
-            return false;
-        }
-        return true;
+        return !_excludeFilesRegEx.match(entry);
     }
 
     /**
