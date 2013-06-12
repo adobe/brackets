@@ -118,7 +118,8 @@ define(function (require, exports, module) {
     exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
-    // File shell callbacks
-    exports.APP_ABORT_QUIT              = "app.abort_quit"; // string must MATCH string in native code (appshell_extensions)
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.APP_ABORT_QUIT              = "app.abort_quit";
+    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";
 });
 
