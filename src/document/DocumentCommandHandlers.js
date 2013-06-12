@@ -904,8 +904,7 @@ define(function (require, exports, module) {
     
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#titlebar");
-        _$titleContainerToolbar = $titleContainerToolbar;
+        _$titleContainerToolbar = $("#titlebar");
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
