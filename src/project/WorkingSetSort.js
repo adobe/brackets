@@ -76,7 +76,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves a Sort object by id
-     * @param {string|Command} command A command ID or command object
+     * @param {(string|Command)} command A command ID or a command object.
      * @return {?Sort}
      */
     function get(command) {
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
     
     /**
      * Enables/Disables Automatic Sort depending on the value.
-     * @param {boolean} enable True to enable, false to disable
+     * @param {boolean} enable True to enable, false to disable.
      */
     function setAutomatic(enable) {
         _automaticSort = enable;
@@ -173,8 +173,10 @@ define(function (require, exports, module) {
      * @private
      *
      * @param {string} commandID A valid command identifier.
-     * @param {function(FileEntry, FileEntry): number} compareFn A valid sort function (see register for a longer explanation).
-     * @param {string} events Space-separated DocumentManager possible events ending with ".sort".
+     * @param {function(FileEntry, FileEntry): number} compareFn A valid sort
+     *      function (see register for a longer explanation).
+     * @param {string} events Space-separated DocumentManager possible events
+     *      ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {
         this._commandID = commandID;
@@ -198,7 +200,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Performs the sort and makes it the current sort method
+     * Performs the sort and makes it the current sort method.
      */
     Sort.prototype.execute = function () {
         _setCurrentSort(this);
@@ -206,7 +208,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Only performs the working set sort if this is the current sort
+     * Only performs the working set sort if this is the current sort.
      */
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
@@ -219,15 +221,18 @@ define(function (require, exports, module) {
     
     /**
      * Registers a working set sort method.
-     * @param {string|Command} command A command ID or command object
-     * @param {function(FileEntry, FileEntry): number} compareFn The function that will be used inside JavaScript's
-     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
-     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
-     *      the same value when given a specific pair of elements a and b as its two arguments.
-     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
-     * @param {?string} events One or more space-separated event types that DocumentManger uses.
-     *      Each event passed will trigger the automatic sort. If no events are passed, the automatic
-     *      sort will be disabled for that sort method.
+     * @param {(string|Command)} command A command ID or a command object
+     * @param {function(FileEntry, FileEntry): number} compareFn The function that
+     *      will be used inside JavaScript's sort function. The return a value
+     *      should be >0 (sort a to a lower index than b), =0 (leaves a and b
+     *      unchanged with respect to each other) or <0 (sort b to a lower index
+     *      than a) and must always returns the same value when given a specific
+     *      pair of elements a and b as its two arguments. Documentation at:
+     *      https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     * @param {?string} events One or more space-separated event types that
+     *      DocumentManger uses. Each event passed will trigger the automatic
+     *      sort. If no events are passed, the automatic sort will be disabled
+     *      for that sort method.
      * @return {?Sort}
      */
     function register(command, compareFn, events) {
@@ -248,7 +253,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Adds ".sort" to the end of each event to make them specific for the automatic sort
+        // Adds ".sort" to the end of each event to make them specific for the automatic sort.
         if (events) {
             events = events.split(" ");
             events.forEach(function (event, index) {
