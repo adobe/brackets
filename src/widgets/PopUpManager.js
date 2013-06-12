@@ -88,7 +88,7 @@ define(function (require, exports, module) {
      * Remove Esc key handling for a pop-up. Removes the pop-up from the DOM
      * if the pop-up is currently visible and was not originally attached.
      *
-     * @param {Event=} keyEvent (optional)
+     * @param {KeyboardEvent=} keyEvent (optional)
      */
     function removeCurrentPopUp(keyEvent) {
         // allow the popUp to prevent closing
