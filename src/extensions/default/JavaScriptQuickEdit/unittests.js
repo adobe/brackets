@@ -412,8 +412,8 @@ define(function (require, exports, module) {
                     var start        = {line: 13, ch: 10 },
                         testPos      = {line: 6, ch: 7},
                         testJumpPos  = {line: 6, ch: 5},
-                        jumpPos      = {line: 3, ch: 6};
-                    var extensionRequire, JSCodeHints, testEditor;
+                        jumpPos      = {line: 3, ch: 6},
+                        testEditor;
 
                     initInlineTest("test.html");
                     initJSCodeHints();
@@ -442,8 +442,8 @@ define(function (require, exports, module) {
                     var start        = {line: 19, ch: 13 },
                         testPos      = {line: 56, ch: 18},
                         testPos2    =  {line: 56, ch: 12},
-                        jumpPos      = {line: 59, ch: 21};
-                    var extensionRequire, JSCodeHints, testEditor;
+                        jumpPos      = {line: 59, ch: 21},
+                        testEditor;
 
                     initInlineTest("test.html");
                     initJSCodeHints();
