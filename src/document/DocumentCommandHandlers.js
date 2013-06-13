@@ -596,10 +596,10 @@ define(function (require, exports, module) {
                 function (error) {
                     result.reject(error);
                 });
-            return result.promise();
         } else {
             result.reject();
         }
+        return result.promise();
     }
     
     /**
