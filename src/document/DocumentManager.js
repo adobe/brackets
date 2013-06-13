@@ -70,7 +70,10 @@
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetSort -- When the workingSet array is sorted. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
+ *      the new sorted list. Listener receives no arguments.
+ *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via draging and droping
+ *      a file to disable automatic sorting. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -341,6 +344,7 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
@@ -354,13 +358,6 @@ define(function (require, exports, module) {
      */
     function sortWorkingSet(compareFn) {
         _workingSet.sort(compareFn);
-        $(exports).triggerHandler("workingSetSort");
-    }
-    
-    /**
-     * Triggers a WorkingSet Sort event
-     */
-    function triggerWorkingSetSort() {
         $(exports).triggerHandler("workingSetSort");
     }
     
@@ -1279,7 +1276,6 @@ define(function (require, exports, module) {
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
-    exports.triggerWorkingSetSort       = triggerWorkingSetSort;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;

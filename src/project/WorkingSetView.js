@@ -246,7 +246,11 @@ define(function (require, exports, module) {
                 }
             
             } else {
-                DocumentManager.triggerWorkingSetSort();
+                // Update the file selection
+                if (selected) {
+                    _fireSelectionChanged();
+                    ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
+                }
                 
                 // Restore the shadow
                 if (addBottomShadow) {
