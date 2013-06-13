@@ -45,15 +45,20 @@
 
 .brackets-js-hints.literal-hint {
     color: #444; /* dark grey */
-    font-family: monospace;
+    font-family: SourceCodePro;
 }
 
 .brackets-js-hints.keyword-hint {
-    font-family: monospace; 
+    font-family: SourceCodePro; 
+}
+
+.brackets-js-hints.keyword-hint .matched-hint {
+    font-family: SourceCodePro-Medium;
+    font-weight: 500; 
 }
 
 .brackets-js-hints .matched-hint {
-    font-weight: bold;
+    font-weight: 500;
 }
 
 .brackets-js-hints.guess-hint {
