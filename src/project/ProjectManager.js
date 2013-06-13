@@ -74,11 +74,11 @@ define(function (require, exports, module) {
     /**
      * @private
      * File and Folder names which are not displayed or searched
-     * NOTE: This list is  based on the gnu tar project exclude list --
+     * TODO: We should add the rest of the file names that TAR excludes:
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
      * @type {RegExp}
      */
-    var _excludeFilesRegEx = /\.pyc$|\.git|\.svn|CVS|RCS|SCCS|\.cvsignore|\.arch\-ids|\{arch\}|\.bzr|\.DS_Store|Thumbs\.db|\.hg|\_darcs/;
+    var _excludeFilesRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|\^.cvsignore$/;
 
     /**
      * @private
@@ -649,7 +649,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        return !_excludeFilesRegEx.match(entry);
+        return !entry.name.match(_excludeFilesRegEx);
     }
 
     /**
