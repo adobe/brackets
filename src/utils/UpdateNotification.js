@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs              = require("widgets/Dialogs"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesManager   = require("preferences/PreferencesManager"),
         Strings              = require("strings"),
@@ -209,7 +210,7 @@ define(function (require, exports, module) {
         $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
         
         $dlg.on("click", "a", function (e) {
-            var url = $(e.target).attr("data-url");
+            var url = $(e.currentTarget).attr("data-url");
             
             if (url) {
                 // Make sure the URL has a domain that we know about
@@ -303,7 +304,7 @@ define(function (require, exports, module) {
                 } else if (force) {
                     // No updates are available. If force == true, let the user know.
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.NO_UPDATE_TITLE,
                         Strings.NO_UPDATE_MESSAGE
                     );
@@ -326,7 +327,7 @@ define(function (require, exports, module) {
                 // Error fetching the update data. If this is a forced check, alert the user
                 if (force) {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
                         Strings.ERROR_FETCHING_UPDATE_INFO_MSG
                     );

@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
-        StringMatch         = require("utils/StringMatch");
+        StringMatch         = require("utils/StringMatch"),
+        ViewUtils           = require("utils/ViewUtils");
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -98,7 +99,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions) {
         this.name = name;
         this.languageIds = languageIds;
         this.done = done;
@@ -107,6 +108,7 @@ define(function (require, exports, module) {
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
+        this.matcherOptions = matcherOptions;
     }
     
     /**
@@ -120,6 +122,7 @@ define(function (require, exports, module) {
      *          itemFocus: function(?SearchResult|string),
      *          itemSelect: funciton(?SearchResult|string),
      *          resultsFormatter: ?function(SearchResult|string, string):string
+     *          matcherOptions: Object
      *        } pluginDef
      *
      * Parameter Documentation:
@@ -137,12 +140,15 @@ define(function (require, exports, module) {
      *      The selected search result item (as returned by search()) is passed as an argument.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
+     *          for available options)
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        if (pluginDef.fileTypes) {
+        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
+        if (pluginDef.fileTypes && !pluginDef.languageIds) {
             console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
             pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
                 return LanguageManager.getLanguageForPath("file." + extension).getId();
@@ -158,7 +164,8 @@ define(function (require, exports, module) {
             pluginDef.match,
             pluginDef.itemFocus,
             pluginDef.itemSelect,
-            pluginDef.resultsFormatter
+            pluginDef.resultsFormatter,
+            pluginDef.matcherOptions
         ));
     }
 
@@ -183,7 +190,9 @@ define(function (require, exports, module) {
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
         // StringMatchers that cache in-progress query data.
-        this._filenameMatcher           = new StringMatch.StringMatcher();
+        this._filenameMatcher           = new StringMatch.StringMatcher({
+            segmentedSearch: true
+        });
         this._matchers                  = {};
     }
     
@@ -399,9 +408,11 @@ define(function (require, exports, module) {
      * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
-        // Give visual clue when there are no results
-        var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
-        this.$searchField.toggleClass("no-results", isNoResults);
+        // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
+        // are never results, or we're in file search mode and waiting for the index to get rebuilt)
+        var hasNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
+        
+        ViewUtils.toggleClass(this.$searchField, "no-results", hasNoResults);
     };
     
     /**
@@ -435,8 +446,6 @@ define(function (require, exports, module) {
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
         // editor to give focus to below, it won't notice otherwise).
         this.$searchField.trigger("lostFocus");
-
-        EditorManager.focusEditor();
         
         // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
         // (because it's a later handler of the event that just triggered _close()), and that code expects to
@@ -543,14 +552,14 @@ define(function (require, exports, module) {
             var i;
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
-                var LanguageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (LanguageIdMatch && plugin.match && plugin.match(query)) {
+                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
+                if (languageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
                     var matcher = this._matchers[currentPlugin.name];
                     if (!matcher) {
-                        matcher = new StringMatch.StringMatcher();
+                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
                         this._matchers[currentPlugin.name] = matcher;
                     }
                     return plugin.search(query, matcher);
@@ -602,7 +611,7 @@ define(function (require, exports, module) {
             }
             
             var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
-            displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
+            displayName += StringUtils.breakableUrl(rangeText);
             
             if (range.matched) {
                 displayName += "</span>";
@@ -786,12 +795,12 @@ define(function (require, exports, module) {
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileList = null;
         fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
-            });
+                this._filenameMatcher.reset();
+            }.bind(this));
     };
 
     function getCurrentEditorSelectedText() {
@@ -833,8 +842,11 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-
-
+    
+    // Listen for a change of project to invalidate our file list
+    $(ProjectManager).on("projectOpen", function () {
+        fileList = null;
+    });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);

@@ -39,27 +39,27 @@ define(function (require, exports, module) {
     /**
      * Encodes the special Char value given. 
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to encode
      *
-     * @return {String} 
+     * @return {string}
      * The encoded string
      */
     function _encodeValue(value) {
-        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
+        return value.replace("&", "&amp;").replace("#", "&#35;");
     }
     
     /**
      * Decodes the special Char value given. 
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to decode
      *
-     * @return {String} 
+     * @return {string}
      * The decoded string
      */
     function _decodeValue(value) {
-        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
+        return value.replace("&amp;", "&").replace("&#35;", "#");
     }
     
     /**
@@ -77,38 +77,32 @@ define(function (require, exports, module) {
      * @param {Editor} editor 
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean} 
+     * @return {boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
     SpecialCharHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        
-        var query = this._getQuery();
 
-        if (implicitChar === null) {
-            return query !== null;
-        }
-        
-        return implicitChar === "&" || query !== null;
+        return this._getQuery() !== null;
     };
        
     /**
      * Returns a list of avaliable HtmlSpecialChar hints if possible for the current
      * editor context. 
      * 
-     * @param {String} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, selectInitial: Boolean>}
+     * @return {{hints: Array.<(string|jQuery.Obj)>, match: string, selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 1. a sorted array hints that consists 
      * of strings; 2. a string match that is used by the manager to emphasize
@@ -120,16 +114,19 @@ define(function (require, exports, module) {
         var query,
             result;
 
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
+        if (implicitChar === null || this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
                     var shownValue = _encodeValue(value);
-                    return shownValue  + "&#59; <span class='entity-display-character'>" + value + ";</span>";
+                    return shownValue  + "; <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(this._internalSort);
             
-            query = _encodeValue(query);
+            if (query !== null) {
+                query = _encodeValue(query);
+            }
+            
             return {
                 hints: result,
                 match: query,
@@ -143,10 +140,10 @@ define(function (require, exports, module) {
     /**
      * Sort function used internally when sorting the Hints
      * 
-     * @param {String} value 
+     * @param {string} value
      * The value to decode
      *
-     * @return {String} 
+     * @return {string}
      * The decoded string
      */
     SpecialCharHints.prototype._internalSort = function (a, b) {
@@ -157,7 +154,7 @@ define(function (require, exports, module) {
             var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
                 num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
                     
-            return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
+            return (num1 - num2);
         }
                 
         return a.localeCompare(b);
@@ -166,57 +163,68 @@ define(function (require, exports, module) {
     /**
      * Returns a query for the Hints
      * 
-     * @return {String} 
+     * @return {string}
      * The Query for which to search
      */
     SpecialCharHints.prototype._getQuery = function () {
         var query,
-            lineContent,
+            lineContentBeforeCursor,
             startChar,
-            endChar;
+            endChar,
+            cursor = this.editor.getCursorPos();
         
-        query = "&";
+        if (HTMLUtils.getTagInfo(this.editor, cursor).tagName !== "") {
+            return null;
+        }
                 
-        lineContent = this.editor.document.getRange({
-            line: this.editor.getCursorPos().line,
+        lineContentBeforeCursor = this.editor.document.getRange({
+            line: cursor.line,
             ch: 0
-        }, this.editor.getCursorPos());
+        }, cursor);
         
-        startChar = lineContent.lastIndexOf("&");
-        endChar = lineContent.lastIndexOf(";");
+        startChar = lineContentBeforeCursor.lastIndexOf("&");
+        endChar = lineContentBeforeCursor.lastIndexOf(";");
         
-        if (endChar < startChar) {
-            query = this.editor.document.getRange({
-                line: this.editor.getCursorPos().line,
-                ch: startChar
-            }, this.editor.getCursorPos());
+        // If no startChar was found or the endChar is greater than the startChar then it is no entity
+        if (startChar === -1 || endChar > startChar) {
+            return null;
         }
-
-        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "") {
-            return query;
-        }
-            
-        return null;
+        
+        query = this.editor.document.getRange({
+            line: cursor.line,
+            ch: startChar
+        }, cursor);
+        
+        return query;
     };
     
     /**
      * Inserts a given HtmlSpecialChar hint into the current editor context. 
      * 
-     * @param {String} completition 
+     * @param {string} completition
      * The hint to be inserted into the editor context.
      * 
-     * @return {Boolean} 
+     * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
     SpecialCharHints.prototype.insertHint = function (completion) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
-            cursor = this.editor.getCursorPos();
+            cursor = this.editor.getCursorPos(),
+            match,
+            matchSemicolonPos;
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
+        match = this.editor.document.getLine(cursor.line).slice(cursor.ch);
+        matchSemicolonPos = match.indexOf(";");
         end.ch = start.ch + this.currentQuery.length;
+        
+        if (matchSemicolonPos !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, matchSemicolonPos))) {
+            end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
+        }
+        
         completion = completion.slice(0, completion.indexOf(" "));
         completion = _decodeValue(completion);
         if (start.ch !== end.ch) {
@@ -238,4 +246,7 @@ define(function (require, exports, module) {
         
         CodeHintManager.registerHintProvider(specialCharHints, ["html"], 1);
     });
+    
+    //Export Hints for Unit Tests
+    exports.SpecialCharHints = SpecialCharHints;
 });

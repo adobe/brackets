@@ -434,7 +434,7 @@ define(function (require, exports, module) {
                     .done(function (fileInfos) {
                         invokeFind(fileInfos)
                             .done(function (functionsResult) { functions = functionsResult; })
-                            .pipe(result.resolve, result.reject);
+                            .then(result.resolve, result.reject);
                     });
                 
                 waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");

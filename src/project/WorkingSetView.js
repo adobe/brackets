@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
+        $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
     
@@ -82,8 +83,10 @@ define(function (require, exports, module) {
     function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
+            $workingSetHeader.hide();
         } else {
             $openFilesContainer.show();
+            $workingSetHeader.show();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -318,9 +321,8 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
+            ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     }
     
@@ -333,13 +335,22 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
+    }
+    
+    /**
+     * @private
+     * @param {$.Event} event The Click Event to respond to.
+     */
+    function _handleMiddleMouseClick(event) {
+        var file = $(event.target).closest("li").data(_FILE_KEY);
+
+        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
     
     /** 
@@ -352,7 +363,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").text(file.name);
+        var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
@@ -360,13 +371,20 @@ define(function (require, exports, module) {
         $openFilesContainer.find("ul").append($newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
-
+        
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
             _reorderListItem(e, $(this));
+            e.preventDefault();
+        });
+        
+        $newItem.click(function (e) {
+            if (e.which === 2) {
+                _handleMiddleMouseClick(e);
+            }
             e.preventDefault();
         });
 
@@ -384,14 +402,16 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet() {
+    function _rebuildWorkingSet(forceRedraw) {
         $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _redraw();
+        if (forceRedraw) {
+            _redraw();
+        }
     }
 
     /**
@@ -523,7 +543,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
         _scrollSelectedDocIntoView();
     }
 
@@ -549,12 +569,17 @@ define(function (require, exports, module) {
         // Rebuild the working set if any file or folder name changed.
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
+    }
+    
+    function refresh() {
+        _redraw();
     }
     
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
+        $workingSetHeader = $("#working-set-header");
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
@@ -598,5 +623,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
+    exports.refresh = refresh;
 });

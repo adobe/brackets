@@ -34,17 +34,17 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileViewController  = require("project/FileViewController"),
         FileUtils           = require("file/FileUtils"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
+        PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent");
@@ -61,6 +61,8 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
+    /** @type {string} String template for window title. Use emdash on mac only. */
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -68,32 +70,45 @@ define(function (require, exports, module) {
     var _lastToolbarHeight = null;
     
     function updateTitle() {
-        var currentDoc = DocumentManager.getCurrentDocument();
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            windowTitle = brackets.config.app_title;
+
+        if (brackets.inBrowser) {
+            if (currentDoc) {
+                _$title.text(_currentTitlePath);
+                _$title.attr("title", currentDoc.file.fullPath);
+                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+            } else {
+                _$title.text("");
+                _$title.attr("title", "");
+                _$dirtydot.css("visibility", "hidden");
+            }
+        
+            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+            // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
+            // fixed width set on it (see the "#titlebar" CSS rule for details).
+            _$titleWrapper.css("width", "");
+            var newWidth = _$title.width();
+            _$titleWrapper.css("width", newWidth);
+            
+            // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+            // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+            var newToolbarHeight = _$titleContainerToolbar.height();
+            if (_lastToolbarHeight !== newToolbarHeight) {
+                _lastToolbarHeight = newToolbarHeight;
+                EditorManager.resizeEditor();
+            }
+        }
+
+        // build shell/browser window title, e.g. "• file.html — Brackets"
         if (currentDoc) {
-            _$title.text(_currentTitlePath);
-            _$title.attr("title", currentDoc.file.fullPath);
-            // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-            _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
-        } else {
-            _$title.text("");
-            _$title.attr("title", "");
-            _$dirtydot.css("visibility", "hidden");
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         }
-        
-        // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
-        // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
-        _$titleWrapper.css("width", "");
-        var newWidth = _$title.width();
-        _$titleWrapper.css("width", newWidth);
-        
-        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-        var newToolbarHeight = _$titleContainerToolbar.height();
-        if (_lastToolbarHeight !== newToolbarHeight) {
-            _lastToolbarHeight = newToolbarHeight;
-            EditorManager.resizeEditor();
-        }
+
+        // update shell/browser window title
+        window.document.title = windowTitle;
     }
     
     function updateDocumentTitle() {
@@ -194,8 +209,6 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (paths) {
-                    var i;
-                    
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
@@ -214,7 +227,7 @@ define(function (require, exports, module) {
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
                             // Send the resulting document that was opened
-                            .pipe(result.resolve, result.reject);
+                            .then(result.resolve, result.reject);
                     } else {
                         // Reject if the user canceled the dialog
                         result.reject();
@@ -327,9 +340,11 @@ define(function (require, exports, module) {
         fileNewInProgress = true;
 
         // Determine the directory to put the new file
-        // If a file is currently selected, put it next to it.
-        // If a directory is currently selected, put it in it.
-        // If nothing is selected, put it at the root of the project
+        // If a file is currently selected in the tree, put it next to it.
+        // If a directory is currently selected in the tree, put it in it.
+        // If nothing is selected in the tree, put it at the root of the project
+        // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
+        // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
             selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
@@ -343,7 +358,7 @@ define(function (require, exports, module) {
         var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
-                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .then(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; });
         };
 
@@ -366,13 +381,20 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(name, path) {
+    /**
+     * @private
+     * Shows an Error modal dialog
+     * @param {string} name
+     * @param {string} path
+     * @return {Dialog}
+     */
+    function _showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
         );
@@ -383,8 +405,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.name, fileEntry.fullPath)
-                .always(function () {
+            _showSaveFileError(error.name, fileEntry.fullPath)
+                .done(function () {
                     result.reject(error);
                 });
         }
@@ -500,7 +522,7 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 FileUtils.showFileOpenError(error.name, doc.file.fullPath)
-                    .always(function () {
+                    .done(function () {
                         result.reject(error);
                     });
             });
@@ -559,38 +581,59 @@ define(function (require, exports, module) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // "Save" case: wait until we confirm save has succeeded before closing
-                    doSave(doc)
-                        .done(function () {
-                            doClose(file);
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
-                } else {
-                    // "Don't Save" case: even though we're closing the main editor, other views of
-                    // the Document may remain in the UI. So we need to revert the Document to a clean
-                    // copy of whatever's on disk.
-                    doClose(file);
-                    
-                    // Only reload from disk if we've executed the Close for real,
-                    // *and* if at least one other view still exists
-                    if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                        doRevert(doc)
-                            .pipe(result.resolve, result.reject);
-                    } else {
-                        result.resolve();
+                StringUtils.format(
+                    Strings.SAVE_CLOSE_MESSAGE,
+                    StringUtils.breakableUrl(filename)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
                     }
-                }
-            });
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // "Save" case: wait until we confirm save has succeeded before closing
+                        doSave(doc)
+                            .done(function () {
+                                doClose(file);
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                result.reject();
+                            });
+                    } else {
+                        // "Don't Save" case: even though we're closing the main editor, other views of
+                        // the Document may remain in the UI. So we need to revert the Document to a clean
+                        // copy of whatever's on disk.
+                        doClose(file);
+                        
+                        // Only reload from disk if we've executed the Close for real,
+                        // *and* if at least one other view still exists
+                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                            doRevert(doc)
+                                .then(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
+                        }
+                    }
+                });
             result.always(function () {
                 EditorManager.focusEditor();
             });
@@ -645,30 +688,48 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
                     "</span></li>";
             });
             message += "</ul>";
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                message
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // Save all unsaved files, then if that succeeds, close all
-                    saveAll().done(function () {
-                        result.resolve();
-                    }).fail(function () {
+                message,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
                         result.reject();
-                    });
-                } else {
-                    // "Don't Save" case--we can just go ahead and close all  files.
-                    result.resolve();
-                }
-            });
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Save all unsaved files, then if that succeeds, close all
+                        saveAll().done(function () {
+                            result.resolve();
+                        }).fail(function () {
+                            result.reject();
+                        });
+                    } else {
+                        // "Don't Save" case--we can just go ahead and close all  files.
+                        result.resolve();
+                    }
+                });
         }
         
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
@@ -722,13 +783,21 @@ define(function (require, exports, module) {
                 }
             });
     }
-	
+    
     /**
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
      */
     function _handleAbortQuit() {
         _windowGoingAway = false;
+    }
+    
+    /**
+     * @private
+     * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
+     */
+    function _handleBeforeMenuPopup() {
+        $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
     
     /** Confirms any unsaved changes, then closes the window */
@@ -748,15 +817,18 @@ define(function (require, exports, module) {
         );
     }
     
-    /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
+    /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
-        // Prefer selected tree item (which could be a folder); else use current file
+        // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
+            // Else use current file (not selected in ProjectManager if not visible in tree or working set)
             var doc = DocumentManager.getCurrentDocument();
             entry = doc && doc.file;
         }
-        ProjectManager.renameItemInline(entry);
+        if (entry) {
+            ProjectManager.renameItemInline(entry);
+        }
     }
 
     /** Closes the window, then quits the app */
@@ -822,10 +894,26 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
+    function handleFileDelete() {
+        var entry = ProjectManager.getSelectedItem();
+        ProjectManager.deleteItem(entry);
+    }
+
+    /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
+    function handleShowInOS() {
+        var entry = ProjectManager.getSelectedItem();
+        if (entry) {
+            brackets.app.showOSFolder(entry.fullPath, function (err) {
+                if (err) {
+                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                }
+            });
+        }
+    }
+    
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#main-toolbar");
-        _$titleContainerToolbar = $titleContainerToolbar;
+        _$titleContainerToolbar = $("#titlebar");
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
@@ -842,6 +930,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
@@ -854,10 +943,12 @@ define(function (require, exports, module) {
     }
 
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

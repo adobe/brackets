@@ -42,7 +42,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
+    var DocumentManager = require("document/DocumentManager"),
+        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and tags. Timestamp is the document timestamp,
@@ -59,12 +60,22 @@ define(function (require, exports, module) {
             return true;
         }
         
-        if (/(!doctype|area|base|basefont|br|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
+        if (/(!doctype|area|base|basefont|br|wbr|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
                 .test(payload.nodeName)) {
             return true;
         }
         
         return false;
+    }
+    
+    /** 
+     * Remove a document from the cache
+     */
+    function _removeDocFromCache(evt, document) {
+        if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
+            delete _cachedValues[document.file.fullPath];
+            $(document).off(".htmlInstrumentation");
+        }
     }
     
     /**
@@ -73,6 +84,18 @@ define(function (require, exports, module) {
      * @return {Array} Array of tag info, or null if no tags were found
      */
     function scanDocument(doc) {
+        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
+            $(doc).on("change.htmlInstrumentation", function () {
+                // Clear cached values on doc change, but keep the entry
+                // in the _cachedValues hash. Keeping the entry means
+                // the event handlers (like this one) won't be added again.
+                _cachedValues[doc.file.fullPath] = null;
+            });
+            
+            // Assign to cache, but don't set a value yet
+            _cachedValues[doc.file.fullPath] = null;
+        }
+        
         if (_cachedValues[doc.file.fullPath]) {
             var cachedValue = _cachedValues[doc.file.fullPath];
             
@@ -90,6 +113,10 @@ define(function (require, exports, module) {
         var tag;
         
         DOMHelpers.eachNode(text, function (payload) {
+            // Ignore closing empty tags like </input> since they're invalid.
+            if (payload.closing && _isEmptyTag(payload)) {
+                return;
+            }
             if (payload.nodeType === 1 && payload.nodeName) {
                 // Set unclosedLength for the last tag
                 if (tagStack.length > 0) {
@@ -106,15 +133,12 @@ define(function (require, exports, module) {
                 
                 // Empty tag
                 if (_isEmptyTag(payload)) {
-                    // Only push img and input. Ignore all other empty tags
-                    if (/(img|input)/i.test(payload.nodeName)) {
-                        tags.push({
-                            name:   payload.nodeName,
-                            tagID:  tagID++,
-                            offset: payload.sourceOffset,
-                            length: payload.sourceLength
-                        });
-                    }
+                    tags.push({
+                        name:   payload.nodeName,
+                        tagID:  tagID++,
+                        offset: payload.sourceOffset,
+                        length: payload.sourceLength
+                    });
                 } else if (payload.closing) {
                     // Closing tag
                     var i,
@@ -289,6 +313,8 @@ define(function (require, exports, module) {
         
         return -1;
     }
+    
+    $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;

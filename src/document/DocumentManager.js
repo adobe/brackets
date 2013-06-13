@@ -76,6 +76,7 @@
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
+ *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -86,6 +87,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSyncManager     = require("project/FileSyncManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -93,7 +95,8 @@ define(function (require, exports, module) {
         CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        Strings             = require("strings");
     
     /**
      * @private
@@ -478,8 +481,9 @@ define(function (require, exports, module) {
      * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
      */
-    function closeFullEditor(file) {
+    function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -491,7 +495,7 @@ define(function (require, exports, module) {
             }
             
             // Switch editor to next document (or blank it out)
-            if (nextFile) {
+            if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
                     .done(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
@@ -814,6 +818,14 @@ define(function (require, exports, module) {
      * given new text; if text == "", then the entire range is effectively deleted. If 'end' is omitted,
      * then the new text is inserted at that point and all existing text is preserved. Line endings will
      * be rewritten to match the document's current line-ending style.
+     * 
+     * IMPORTANT NOTE: Because of #1688, do not use this in cases where you might be
+     * operating on a linked document (like the main document for an inline editor) 
+     * during an outer CodeMirror operation (like a key event that's handled by the
+     * editor itself). A common case of this is code hints in inline editors. In
+     * such cases, use `editor._codeMirror.replaceRange()` instead. This should be
+     * fixed when we migrate to use CodeMirror's native document-linking functionality.
+     *
      * @param {!string} text  Text to insert or replace the range with
      * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
      * @param {?{line:number, ch:number}} end  End of range, exclusive; optional
@@ -1055,10 +1067,11 @@ define(function (require, exports, module) {
      * sort of "project file model," making this just a private event handler.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
-    function notifyFileDeleted(file) {
+    function notifyFileDeleted(file, skipAutoSelect) {
         // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file);
+        closeFullEditor(file, skipAutoSelect);
         
         // Notify all other editors to close as well
         var doc = getOpenDocumentForPath(file.fullPath);
@@ -1204,6 +1217,21 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Called after a file or folder has been deleted. This function is responsible 
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} path The path of the file/folder that has been deleted
+     */
+    function notifyPathDeleted(path) {
+        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+           in the working set and notifying the user of any unsaved changes. */
+        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+        
+        // Send a "pathDeleted" event. This will trigger the views to update.
+        $(exports).triggerHandler("pathDeleted", path);
+    }
+    
+    /**
      * @private
      * Update document
      */
@@ -1254,6 +1282,7 @@ define(function (require, exports, module) {
     exports.closeAll                    = closeAll;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
+    exports.notifyPathDeleted           = notifyPathDeleted;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(module);

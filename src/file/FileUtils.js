@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
@@ -177,11 +178,11 @@ define(function (require, exports, module) {
     
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 getFileErrorString(name)
             )
         );
@@ -201,6 +202,22 @@ define(function (require, exports, module) {
             return path.substr(1);
         }
         
+        return path;
+    }
+    
+    /**
+     * Convert a Windows-native path to use Unix style slashes.
+     * On Windows, this converts "C:\foo\bar\baz.txt" to "C:/foo/bar/baz.txt".
+     * On Mac, this does nothing, since Mac paths are already in Unix syntax.
+     * (Note that this does not add an initial forward-slash. Internally, our
+     * APIs generally use the "C:/foo/bar/baz.txt" style for "native" paths.)
+     * @param {string} path A native-style path.
+     * @return {string} A Unix-style path.
+     */
+    function convertWindowsPathToUnixPath(path) {
+        if (brackets.platform === "win") {
+            path = path.replace(/\\/g, "/");
+        }
         return path;
     }
     
@@ -292,6 +309,18 @@ define(function (require, exports, module) {
         
         return false;
     }
+
+    /**
+     * Returns the file extension for a file name
+     * @param {string} fileName file name with extension or just a file extension
+     * @return {string} File extension if found, otherwise return the original file name
+     */
+    function _getFileExtension(fileName) {
+        var i = fileName.lastIndexOf("."),
+            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
+
+        return ext;
+    }
     
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
@@ -299,34 +328,28 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     // Define public API
@@ -340,6 +363,7 @@ define(function (require, exports, module) {
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
+    exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;

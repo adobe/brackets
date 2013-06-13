@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, Mustache, window */
+/*global define, $, PathUtils, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async                 = require("utils/Async"),
+        Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
@@ -50,14 +51,17 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
+        PanelManager          = require("view/PanelManager"),
         FileIndexManager      = require("project/FileIndexManager"),
+        FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
-        ModalBar              = require("widgets/ModalBar").ModalBar,
-        SearchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
-        SearchResultsTemplate = require("text!htmlContent/search-results.html");
+        ModalBar              = require("widgets/ModalBar").ModalBar;
     
+    var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
+        searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
+        searchResultsTemplate = require("text!htmlContent/search-results.html");
     
     /** @type {$.Element} jQuery elements used in the search results */
     var $searchResults,
@@ -65,13 +69,16 @@ define(function (require, exports, module) {
         $searchContent,
         $selectedRow;
     
-    
     var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100,
         maxHitsFoundInFile = false,
         currentQuery = "",
         currentScope;
+    
+    // Bottom panel holding the search results. Initialized in htmlReady().
+    var searchResultsPanel;
+    
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -92,7 +99,7 @@ define(function (require, exports, module) {
                 $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error")
                     .css("display", "inline-block")
-                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                    .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -111,8 +118,12 @@ define(function (require, exports, module) {
     function _labelForScope(scope) {
         var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
-            var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, displayPath);
+            return StringUtils.format(
+                Strings.FIND_IN_FILES_SCOPED,
+                StringUtils.breakableUrl(
+                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
+                )
+            );
         } else {
             return Strings.FIND_IN_FILES_NO_SCOPE;
         }
@@ -157,7 +168,7 @@ define(function (require, exports, module) {
             value: initialString || "",
             label: _labelForScope(scope)
         };
-        var dialogHTML = Mustache.render(SearchDialogTemplate, $.extend(templateVars, Strings));
+        var dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings));
         
         this.result = new $.Deferred();
         this.modalBar = new ModalBar(dialogHTML, false);
@@ -191,7 +202,15 @@ define(function (require, exports, module) {
         
         return this.result.promise();
     };
-
+    
+    
+    function _hideSearchResults() {
+        if (searchResultsPanel.isVisible()) {
+            searchResultsPanel.hide();
+        }
+    }
+    
+    
     /**
      * @private
      * Searches throught the contents an returns an array of matches
@@ -298,11 +317,16 @@ define(function (require, exports, module) {
                         resultsDisplayed++;
                         i++;
                     }
-                    
+                                        
                     // Add a row for each file
+                    var displayFileName = StringUtils.format(
+                        Strings.FIND_IN_FILES_FILE_PATH,
+                        StringUtils.breakableUrl(item.fullPath)
+                    );
+
                     searchList.push({
                         file:     searchList.length,
-                        filename: StringUtils.breakableUrl(StringUtils.htmlEscape(item.fullPath)),
+                        filename: displayFileName,
                         fullPath: item.fullPath,
                         items:    searchItems
                     });
@@ -313,13 +337,12 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(SearchResultsTemplate, {searchList: searchList}))
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
                 .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $searchResults.find(".close")
                 .one("click", function () {
-                    $searchResults.hide();
-                    EditorManager.resizeEditor();
+                    _hideSearchResults();
                 });
             
             // Add the click event listener directly on the table parent
@@ -360,12 +383,10 @@ define(function (require, exports, module) {
                     }
                 });
             
-            $searchResults.show();
+            searchResultsPanel.show();
         } else {
-            $searchResults.hide();
+            _hideSearchResults();
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -387,10 +408,10 @@ define(function (require, exports, module) {
     }
     
     /**
-    * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
-    * a find operation across all files in the project.
-    * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
-    */
+     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
+     * a find operation across all files in the project.
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     */
     function doFindInFiles(scope) {
 
         var dialog = new FindInFilesDialog();
@@ -458,22 +479,27 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
         var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
         doFindInFiles(selectedEntry);
     }
     
-    
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($("#search-results").is(":visible")) {
+        if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
+            });
+            _showSearchResults(searchResults, currentQuery, currentScope);
+        }
+    }
+  
+    function _pathDeletedHandler(event, path) {
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            searchResults.forEach(function (item, idx) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                    searchResults.splice(idx, 1);
+                }
             });
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
@@ -482,6 +508,9 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
+        var panelHtml = Mustache.render(searchPanelTemplate, Strings);
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
+        
         $searchResults = $("#search-results");
         $searchSummary = $("#search-result-summary");
         $searchContent = $("#search-results .table-container");
@@ -489,6 +518,8 @@ define(function (require, exports, module) {
     
     // Initialize: register listeners
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
+    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
