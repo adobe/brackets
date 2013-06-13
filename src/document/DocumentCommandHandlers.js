@@ -527,7 +527,7 @@ define(function (require, exports, module) {
     }
     
     function _getTextSelection(editor) {
-        if(!editor){
+        if (!editor) {
             editor = EditorManager.getActiveEditor();
         }
         if (editor) {
@@ -547,12 +547,15 @@ define(function (require, exports, module) {
         // In the future we'll have to check wether the document is an unsaved
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
-        if (doc) {            
+        if (doc) {
             var fullPath = doc.file.fullPath;
             var saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
             var defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 function (path) {
+                    if (path === fullPath) {
+                        return doSave(doc);
+                    }
                     // now save new document
                     var newPath = PathUtils.parseUrl(path).directory;
                     // create empty file,  FileUtils.writeText will create content.
@@ -560,7 +563,6 @@ define(function (require, exports, module) {
                         if (error) {
                             result.reject(error);
                         } else {
-
                             DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                                 FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                                     ProjectManager.refreshFileTree().done(function () {
