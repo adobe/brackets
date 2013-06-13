@@ -523,15 +523,13 @@ define(function (require, exports, module) {
         if (doc) {
             var sel = _getTextSelection();
             
-            var enclosingFolderRegEx = /[^\/]*$/;
-            var fileNameRegEx = /([^\/]+)(\w+$)/;
             var fullPath = doc.file.fullPath;
-            var saveAsDefaultPath = fullPath.replace(enclosingFolderRegEx, '');
-            var defaultName = fullPath.match(fileNameRegEx)[0];
+            var saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+            var defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 function (path) {
                     // now save new document
-                    var newPath = path.replace(enclosingFolderRegEx, '');
+                    var newPath = PathUtils.parseUrl(path).directory;
                     // create empty file,  FileUtils.writeText will create content.
                     brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
                         if (error) {
