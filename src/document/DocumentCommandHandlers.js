@@ -538,8 +538,8 @@ define(function (require, exports, module) {
 
                             DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                                 FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
-                                    if (_projectManHasFileSelectionFocus()) {
-                                        ProjectManager.refreshFileTree().done(function () {
+                                    ProjectManager.refreshFileTree().done(function () {
+                                        if (_projectManHasFileSelectionFocus()) {
                                             FileViewController.
                                                 openAndSelectDocument(path,
                                                                       FileViewController.PROJECT_MANAGER)
@@ -548,10 +548,7 @@ define(function (require, exports, module) {
                                                     doc.isDirty = false;
                                                     result.resolve();
                                                 });
-
-                                        });
-                                    } else { // Working set  has file selection focus
-                                        ProjectManager.refreshFileTree().done(function () {
+                                        } else { // Working set  has file selection focus
                                             // replace original file in working set with new file
                                             //  remove old file from working set.
                                             DocumentManager.removeFromWorkingSet(doc.file);
@@ -563,8 +560,9 @@ define(function (require, exports, module) {
                                                     _setTextSelection(sel);
                                                     result.resolve();
                                                 });
-                                        });
-                                    }
+                                        }
+
+                                    });
                                 });
                             });
                         }
