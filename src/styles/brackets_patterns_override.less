@@ -127,15 +127,23 @@
         margin: 0;
         
         > a {
+            border-radius: 3px;
+            background-position: 1px 3px;
+            height: 24px;
             margin: 5px 0px 5px 0px;
             padding: 0 !important;
             position: static !important;
             top: 0 !important;
             left: 0 !important;
+            width: 24px;
+        }
+        
+        > a:hover {
+            background-color: rgba(0, 0, 0, 0.24);
         }
         
         > a:active {
-            opacity: 0.5;
+            background-color: rgba(0, 0, 0, 0.42);
         }
     }
 }
