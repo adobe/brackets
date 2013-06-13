@@ -497,6 +497,31 @@ define(function (require, exports, module) {
         );
     }
     
+    /**
+     * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
+     * in the Document.
+     * @param {Document} doc
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
+     *      file cannot be read (after showing an error dialog to the user).
+     */
+    function doRevert(doc) {
+        var result = new $.Deferred();
+        
+        FileUtils.readAsText(doc.file)
+            .done(function (text, readTimestamp) {
+                doc.refreshText(text, readTimestamp);
+                result.resolve();
+            })
+            .fail(function (error) {
+                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
+                    .done(function () {
+                        result.reject(error);
+                    });
+            });
+        
+        return result.promise();
+    }
+    
     function _projectManHasFileSelectionFocus() {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
     }
@@ -540,12 +565,12 @@ define(function (require, exports, module) {
                                 FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                                     ProjectManager.refreshFileTree().done(function () {
                                         if (_projectManHasFileSelectionFocus()) {
-                                            FileViewController.
-                                                openAndSelectDocument(path,
+                                            FileViewController
+                                                .openAndSelectDocument(path,
                                                                       FileViewController.PROJECT_MANAGER)
                                                 .always(function () {
                                                     _setTextSelection(sel);
-                                                    doc.isDirty = false;
+                                                    doRevert(doc);
                                                     result.resolve();
                                                 });
                                         } else { // Working set  has file selection focus
@@ -595,8 +620,8 @@ define(function (require, exports, module) {
             }
         }
             
-        // doc may still be null, e.g. if no editors are open, but doSaveAs() does a null check on
-        // doc and makes sure the document is dirty before saving.
+        // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
+        // doc.
         return _doOpenSave(doc);
   
     }
@@ -609,32 +634,6 @@ define(function (require, exports, module) {
     function handleFileSaveAll() {
         return saveAll();
     }
-    
-    /**
-     * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
-     * in the Document.
-     * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
-     *      file cannot be read (after showing an error dialog to the user).
-     */
-    function doRevert(doc) {
-        var result = new $.Deferred();
-        
-        FileUtils.readAsText(doc.file)
-            .done(function (text, readTimestamp) {
-                doc.refreshText(text, readTimestamp);
-                result.resolve();
-            })
-            .fail(function (error) {
-                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
-                    .done(function () {
-                        result.reject(error);
-                    });
-            });
-        
-        return result.promise();
-    }
-    
     
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
