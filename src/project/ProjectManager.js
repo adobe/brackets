@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
      * @type {RegExp}
      */
-    var _excludeFilesRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$/;
+    var _excludeFilesRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
 
     /**
      * @private
