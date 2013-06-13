@@ -526,28 +526,28 @@ define(function (require, exports, module) {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
     }
     
-    function _getTextSelection() {
-        var editor = EditorManager.getFocusedEditor();
+    function _getTextSelection(editor) {
+        if(!editor){
+            editor = EditorManager.getActiveEditor();
+        }
         if (editor) {
             return editor.getSelection();
         }
     }
     
-    function _setTextSelection(sel) {
-        var editor = EditorManager.getFocusedEditor();
+    function _setTextSelectionAndCursor(sel) {
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             editor.setSelection(sel.start, sel.end);
         }
     }
         
-    function _doOpenSave(doc) {
+    function _doOpenSave(doc, sel, cursorPos) {
         var result = new $.Deferred();
         // In the future we'll have to check wether the document is an unsaved
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
-        if (doc) {
-            var sel = _getTextSelection();
-            
+        if (doc) {            
             var fullPath = doc.file.fullPath;
             var saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
             var defaultName = PathUtils.parseUrl(fullPath).filename;
@@ -569,7 +569,7 @@ define(function (require, exports, module) {
                                                 .openAndSelectDocument(path,
                                                                       FileViewController.PROJECT_MANAGER)
                                                 .always(function () {
-                                                    _setTextSelection(sel);
+                                                    _setTextSelectionAndCursor(sel, cursorPos);
                                                     doRevert(doc);
                                                     result.resolve();
                                                 });
@@ -582,7 +582,7 @@ define(function (require, exports, module) {
                                                 .addToWorkingSetAndSelect(path,
                                                                 FileViewController.WORKING_SET_VIEW)
                                                 .always(function () {
-                                                    _setTextSelection(sel);
+                                                    _setTextSelectionAndCursor(sel, cursorPos);
                                                     result.resolve();
                                                 });
                                         }
@@ -612,9 +612,10 @@ define(function (require, exports, module) {
         if (commandData) {
             doc = commandData.doc;
         }
+        var activeEditor = EditorManager.getActiveEditor();
+        var selection = _getTextSelection(activeEditor);
+        var cursorPos = activeEditor.getCursorPos();
         if (!doc) {
-            var activeEditor = EditorManager.getActiveEditor();
-            
             if (activeEditor) {
                 doc = activeEditor.document;
             }
@@ -622,7 +623,7 @@ define(function (require, exports, module) {
             
         // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
         // doc.
-        return _doOpenSave(doc);
+        return _doOpenSave(doc, selection, cursorPos);
   
     }
 
