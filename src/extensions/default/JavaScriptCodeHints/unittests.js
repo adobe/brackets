@@ -306,7 +306,10 @@ define(function (require, exports, module) {
         
         /**
          * Trigger a jump to definition, and verify that the editor jumped to 
-         * the expected location.
+         * the expected location. The new location is the variable definition
+         * or function definition of the variable or function at the current
+         * cursor location. Jumping to the new location will cause a new editor
+         * to be opened or open an existing editor.
          *
          * @param {{line:number, ch:number, file:string}} expectedLocation - the 
          *  line, column, and optionally the new file the editor should jump to.  If the
@@ -1464,7 +1467,8 @@ define(function (require, exports, module) {
         describe("regression tests", function () {
 
             // Test maybe valid javascript identifier
-            xit("#3558:should return true for valid identifier, false for invalid one", function () {
+            // FIXME (issue #3558)
+            xit("should return true for valid identifier, false for invalid one", function () {
                 var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
                                       "KingGeorgeⅦ", "π", "ಠ_ಠ",
                                       "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
@@ -1494,7 +1498,7 @@ define(function (require, exports, module) {
                 
             });
 
-            // issue #3915
+            // FIXME (issue #3915)
             xit("should read function name has double byte chars", function () {
                 var start   = { line: 15, ch: 8 },
                     testPos = { line: 15, ch: 10 };
@@ -1520,7 +1524,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            // issue #3915
+            // FIXME (issue #3915)
             xit("should read function name has non ascii chars", function () {
                 var start = { line: 16, ch: 16 };
 
@@ -1548,7 +1552,8 @@ define(function (require, exports, module) {
             });
 
             // Test maybe valid javascript identifier
-            xit("#3558:should return true for valid identifier, false for invalid one", function () {
+            // FIXME (issue #3558)
+            xit("should return true for valid identifier, false for invalid one", function () {
                 var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
                                       "KingGeorgeⅦ", "π", "ಠ_ಠ",
                                       "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
@@ -1577,7 +1582,7 @@ define(function (require, exports, module) {
                 tearDownTest();
                 
             });
-            // issue #3915
+            // FIXME (issue #3915)
             xit("should read function name has double byte chars", function () {
                 var start   = { line: 15, ch: 8 },
                     testPos = { line: 15, ch: 10 };
@@ -1602,7 +1607,7 @@ define(function (require, exports, module) {
                     editorJumped({line: 12, ch: 20});
                 });
             });
-            // issue #3915
+            // FIXME (issue #3915)
             xit("should read function name has non ascii chars", function () {
                 var start = { line: 16, ch: 16 };
 

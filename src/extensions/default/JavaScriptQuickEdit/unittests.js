@@ -330,6 +330,7 @@ define(function (require, exports, module) {
                 function hintsPresentExact(hintObj, expectedHints) {
                     _waitForHints(hintObj, function (hintList) {
                         expect(hintList).not.toBeNull();
+                        expect(hintList.length).toBe(expectedHints.length);
                         expectedHints.forEach(function (expectedHint, index) {
                             expect(hintList[index].data("token").value).toBe(expectedHint);
                         });
@@ -385,10 +386,10 @@ define(function (require, exports, module) {
                     JSCodeHints = extensionRequire("main");
                 }
 
-                // framework issue
-                xit("should see code hint lists in quick editor", function () {
-                    var start        = {line: 17, ch: 10 },
-                        testPos      = {line: 32, ch: 29},
+
+                it("should see code hint lists in quick editor", function () {
+                    var start        = {line: 13, ch: 11 },
+                        testPos      = {line: 5, ch: 29},
                         testEditor;
 
                     initInlineTest("test.html");
@@ -437,12 +438,11 @@ define(function (require, exports, module) {
                     });
                 });
 
-                // framework issue
+                // FIXME (issue #3951): jump to method inside quick editor doesn't jump
                 xit("should see jump to definition on method working in quick editor", function () {
-                    var start        = {line: 19, ch: 13 },
-                        testPos      = {line: 56, ch: 18},
-                        testPos2    =  {line: 56, ch: 12},
-                        jumpPos      = {line: 59, ch: 21},
+                    var start        = {line: 13, ch: 13 },
+                        testPos      = {line: 5,  ch: 25},
+                        jumpPos      = {line: 9, ch: 21},
                         testEditor;
 
                     initInlineTest("test.html");
@@ -456,13 +456,6 @@ define(function (require, exports, module) {
                     runs(function () {
                         testEditor = EditorManager.getActiveEditor();
                         testEditor.setCursorPos(testPos);
-                        var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                        hintsPresentExact(hintObj, ["testTryCatch()"]);
-                    });
-
-                    runs(function () {
-                        testEditor = EditorManager.getActiveEditor();
-                        testEditor.setCursorPos(testPos2);
                         editorJumped(jumpPos);
                     });
 
@@ -470,7 +463,7 @@ define(function (require, exports, module) {
 
             });
         });
-       
+
         describe("Performance suite", function () {
             
             this.category = "performance";
