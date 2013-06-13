@@ -262,6 +262,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
+	"CMD_BEFORE_MENUPOPUP": "[7018403] !é=Before Menu Popup=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",

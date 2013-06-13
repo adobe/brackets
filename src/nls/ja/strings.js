@@ -262,6 +262,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
 	"CMD_ABORT_QUIT": "強制終了する",
+	"CMD_BEFORE_MENUPOPUP": "!能=[7018403] Before Menu Popup_=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
