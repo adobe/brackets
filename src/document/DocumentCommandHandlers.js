@@ -541,60 +541,68 @@ define(function (require, exports, module) {
             editor.setSelection(sel.start, sel.end);
         }
     }
+    
+            
         
     function _doOpenSave(doc, sel, cursorPos) {
-        var result = new $.Deferred();
+        var fullPath,
+            saveAsDefaultPath,
+            defaultName,
+            result = new $.Deferred();
+        
+        function _doSaveAfterSaveDialog(path) {
+            if (path === fullPath) {
+                return doSave(doc);
+            }
+            // now save new document
+            var newPath = PathUtils.parseUrl(path).directory;
+            // create empty file,  FileUtils.writeText will create content.
+            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
+                if (error) {
+                    result.reject(error);
+                } else {
+                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
+                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                            ProjectManager.refreshFileTree().done(function () {
+                                if (_projectManHasFileSelectionFocus()) {
+                                    FileViewController
+                                        .openAndSelectDocument(path,
+                                                              FileViewController.PROJECT_MANAGER)
+                                        .always(function () {
+                                            _setTextSelectionAndCursor(sel, cursorPos);
+                                            doRevert(doc);
+                                            result.resolve();
+                                        });
+                                } else { // Working set  has file selection focus
+                                    // replace original file in working set with new file
+                                    //  remove old file from working set.
+                                    DocumentManager.removeFromWorkingSet(doc.file);
+                                    //add new file to working set
+                                    FileViewController
+                                        .addToWorkingSetAndSelect(path,
+                                                        FileViewController.WORKING_SET_VIEW)
+                                        .always(function () {
+                                            _setTextSelectionAndCursor(sel, cursorPos);
+                                            result.resolve();
+                                        });
+                                }
+    
+                            });
+                        });
+                    });
+                }
+            });
+        }
+                
         // In the future we'll have to check wether the document is an unsaved
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
-            var fullPath = doc.file.fullPath;
-            var saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
-            var defaultName = PathUtils.parseUrl(fullPath).filename;
+            fullPath = doc.file.fullPath;
+            saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+            defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
-                function (path) {
-                    if (path === fullPath) {
-                        return doSave(doc);
-                    }
-                    // now save new document
-                    var newPath = PathUtils.parseUrl(path).directory;
-                    // create empty file,  FileUtils.writeText will create content.
-                    brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
-                        if (error) {
-                            result.reject(error);
-                        } else {
-                            DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                                FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
-                                    ProjectManager.refreshFileTree().done(function () {
-                                        if (_projectManHasFileSelectionFocus()) {
-                                            FileViewController
-                                                .openAndSelectDocument(path,
-                                                                      FileViewController.PROJECT_MANAGER)
-                                                .always(function () {
-                                                    _setTextSelectionAndCursor(sel, cursorPos);
-                                                    doRevert(doc);
-                                                    result.resolve();
-                                                });
-                                        } else { // Working set  has file selection focus
-                                            // replace original file in working set with new file
-                                            //  remove old file from working set.
-                                            DocumentManager.removeFromWorkingSet(doc.file);
-                                            //add new file to working set
-                                            FileViewController
-                                                .addToWorkingSetAndSelect(path,
-                                                                FileViewController.WORKING_SET_VIEW)
-                                                .always(function () {
-                                                    _setTextSelectionAndCursor(sel, cursorPos);
-                                                    result.resolve();
-                                                });
-                                        }
-
-                                    });
-                                });
-                            });
-                        }
-                    });
-                },
+                _doSaveAfterSaveDialog,
                 function (error) {
                     result.reject(error);
                 });
