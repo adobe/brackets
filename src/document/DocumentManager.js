@@ -72,7 +72,7 @@
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
  *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
  *      the new sorted list. Listener receives no arguments.
- *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via draging and droping
+ *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via dragging and dropping
  *      a file to disable automatic sorting. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
