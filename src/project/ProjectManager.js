@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
      * @type {RegExp}
      */
-    var _excludeFilesRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$/;
 
     /**
      * @private
@@ -649,7 +649,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        return !entry.name.match(_excludeFilesRegEx);
+        return !entry.name.match(_exclusionListRegEx);
     }
 
     /**
