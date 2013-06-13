@@ -522,6 +522,9 @@ define(function (require, exports, module) {
                 expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
                 expect(shouldShow(makeEntry("CVS"))).toBe(false);
                 expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
+                
             });
         });
 
