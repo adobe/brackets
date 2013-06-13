@@ -522,35 +522,26 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _projectManHasFileSelectionFocus() {
-        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
-    }
-    
-    function _getTextSelection(editor) {
-        if (!editor) {
-            editor = EditorManager.getActiveEditor();
-        }
-        if (editor) {
-            return editor.getSelection();
-        }
-    }
-    
     function _setTextSelectionAndCursor(sel) {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
             editor.setSelection(sel.start, sel.end);
         }
     }
-    
-            
-        
-    function _doOpenSave(doc, sel, cursorPos) {
+ 
+    function _doSaveAs(doc, sel, cursorPos) {
         var fullPath,
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
         
         function _doSaveAfterSaveDialog(path) {
+            
+            function configureEditorAndResolve(result) {
+                _setTextSelectionAndCursor(sel, cursorPos);
+                result.resolve();
+            }
+            
             if (path === fullPath) {
                 return doSave(doc);
             }
@@ -564,15 +555,12 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                         FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
-                                if (_projectManHasFileSelectionFocus()) {
+                                doRevert(doc);
+                                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
                                     FileViewController
                                         .openAndSelectDocument(path,
                                                               FileViewController.PROJECT_MANAGER)
-                                        .always(function () {
-                                            _setTextSelectionAndCursor(sel, cursorPos);
-                                            doRevert(doc);
-                                            result.resolve();
-                                        });
+                                        .always(configureEditorAndResolve(result));
                                 } else { // Working set  has file selection focus
                                     // replace original file in working set with new file
                                     //  remove old file from working set.
@@ -581,10 +569,7 @@ define(function (require, exports, module) {
                                     FileViewController
                                         .addToWorkingSetAndSelect(path,
                                                         FileViewController.WORKING_SET_VIEW)
-                                        .always(function () {
-                                            _setTextSelectionAndCursor(sel, cursorPos);
-                                            result.resolve();
-                                        });
+                                        .always(configureEditorAndResolve(result));
                                 }
     
                             });
@@ -618,13 +603,19 @@ define(function (require, exports, module) {
      */
     function handleFileSaveAs(commandData) {
         // Default to current document if doc is null
-        var doc = null;
+        var doc = null,
+            activeEditor,
+            selection,
+            cursorPos;
+        
         if (commandData) {
             doc = commandData.doc;
         }
-        var activeEditor = EditorManager.getActiveEditor();
-        var selection = _getTextSelection(activeEditor);
-        var cursorPos = activeEditor.getCursorPos();
+        
+        activeEditor = EditorManager.getActiveEditor();
+        selection = activeEditor.getSelection();
+        cursorPos = activeEditor.getCursorPos();
+        
         if (!doc) {
             if (activeEditor) {
                 doc = activeEditor.document;
@@ -633,7 +624,7 @@ define(function (require, exports, module) {
             
         // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
         // doc.
-        return _doOpenSave(doc, selection, cursorPos);
+        return _doSaveAs(doc, selection, cursorPos);
   
     }
 
