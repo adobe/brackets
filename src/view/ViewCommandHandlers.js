@@ -358,10 +358,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    // There are no menu items, so bind commands directly
-    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
-    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
-
     // Initialize the PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
 

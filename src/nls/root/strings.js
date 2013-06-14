@@ -56,7 +56,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
@@ -113,6 +113,7 @@ define({
     "BUTTON_STOP"                       : "Stop",
 
     "OPEN_FILE"                         : "Open File",
+    "SAVE_FILE_AS"                      : "Save File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
@@ -176,6 +177,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
+    "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
@@ -262,6 +264,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
     "CMD_ABORT_QUIT"                      : "Abort Quit",
+    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",

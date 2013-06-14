@@ -897,6 +897,9 @@ define(function (require, exports, module) {
                 self.close();
             },
             false);
+        
+        // Listen to ContextMenu's beforeContextMenuOpen event to first close other popups
+        PopUpManager.listenToContextMenu(this);
     }
     ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;

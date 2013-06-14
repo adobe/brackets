@@ -56,7 +56,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "ファイル名が不正です。",
-	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\|",
+	"INVALID_FILENAME_MESSAGE": "!能=[6307152] Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words._=!",
 	"FILE_ALREADY_EXISTS": "ファイル <span class='dialog-filename'>{0}</span> は既に存在しています。",
 	"ERROR_CREATING_FILE_TITLE": "ファイルを作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を作成する際にエラーが発生しました。{1}",
@@ -262,6 +262,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
 	"CMD_ABORT_QUIT": "強制終了する",
+	"CMD_BEFORE_MENUPOPUP": "!能=[7018403] Before Menu Popup_=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",

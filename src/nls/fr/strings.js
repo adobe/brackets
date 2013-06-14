@@ -56,7 +56,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
-	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
+	"INVALID_FILENAME_MESSAGE": "[6307152] !é=Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.=!",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
@@ -262,6 +262,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
+	"CMD_BEFORE_MENUPOPUP": "[7018403] !é=Before Menu Popup=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
