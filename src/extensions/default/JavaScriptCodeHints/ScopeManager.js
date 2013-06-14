@@ -132,13 +132,13 @@ define(function (require, exports, module) {
                 } catch (e) {
                     // continue with null configObj which will result in
                     // default settings.
+                    console.log("Error parsing preference file: " + path);
                 }
                 preferences = new Preferences(configObj);
                 deferredPreferences.resolve();
             }).fail(function (error) {
                 preferences = new Preferences();
                 deferredPreferences.resolve();
-                console.log("Error parsing preference file: " + path);
             });
         }, function (error) {
             preferences = new Preferences();
@@ -505,12 +505,14 @@ define(function (require, exports, module) {
             document  = session.editor.document,
             p,
             min,
-            indent;
+            indent,
+            line;
 
         // expand range backwards
         for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
-            var line = session.getLine(p),
-                fn = line.search(/\bfunction\b/);
+            line = session.getLine(p);
+            var fn = line.search(/\bfunction\b/);
+            
             if (fn >= 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
                 if (minIndent === null || minIndent > indent) {
@@ -534,7 +536,8 @@ define(function (require, exports, module) {
             endCh = 0;
 
         for (endLine = start.line + 1; endLine < max; ++endLine) {
-            var line = cm.getLine(endLine);
+            line = cm.getLine(endLine);
+
             if (line.length > 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
                 if (indent <= minIndent) {
