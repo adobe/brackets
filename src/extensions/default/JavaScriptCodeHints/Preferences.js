@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             // exclude require and jquery since we have special knowledge of those
             // temporarily exclude less*min.js because it is causing instability in tern.
             // exclude ember*.js as it is currently causing problems
-            DEFAULT_EXCLUDED_FILES = /^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/,
+            DEFAULT_EXCLUDED_FILES = /^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/,
             DEFAULT_MAX_FILE_COUNT = 100,
             DEFAULT_MAX_FILE_SIZE = 512 * 1024;
 

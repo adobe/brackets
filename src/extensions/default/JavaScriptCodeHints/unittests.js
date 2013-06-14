@@ -1383,7 +1383,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(preferences.getExcludedDirectories()).toBeNull();
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1400,7 +1400,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(preferences.getExcludedDirectories()).toBeNull();
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
