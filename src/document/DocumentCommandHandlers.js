@@ -528,10 +528,12 @@ define(function (require, exports, module) {
      * Text selection and cursor position from the orignal document
      * are preserved in the new document.
      * When saving to the original document the document is saved as if save was called.
-     * 
+     * @param {Document} doc
+     * @param {Settings} proeprties of the orignal document's editor that need to be carried over to the new document
+     *      i.e. scrollPos, cursorPos and text selection
      * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
      */
-    function _doSaveAs(doc, sel, cursorPos) {
+    function _doSaveAs(doc, settings) {
         var fullPath,
             saveAsDefaultPath,
             defaultName,
@@ -542,8 +544,11 @@ define(function (require, exports, module) {
             function _configureEditorAndResolve() {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
-                    editor.setCursorPos(cursorPos);
-                    editor.setSelection(sel.start, sel.end);
+                    if (settings) {
+                        editor.setCursorPos(settings.cursorPos);
+                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+                    }
                 }
                 result.resolve();
             }
@@ -611,26 +616,23 @@ define(function (require, exports, module) {
         // Default to current document if doc is null
         var doc = null,
             activeEditor,
-            selection,
-            cursorPos;
+            selection = {},
+            cursorPos,
+            settings = {};
         
         if (commandData) {
             doc = commandData.doc;
-        }
-        
-        activeEditor = EditorManager.getActiveEditor();
-        selection = activeEditor.getSelection();
-        cursorPos = activeEditor.getCursorPos();
-        
-        if (!doc) {
-            if (activeEditor) {
-                doc = activeEditor.document;
-            }
-        }
+        }else{
+            activeEditor = EditorManager.getActiveEditor();
+            doc = activeEditor.document;
+            settings.selection = activeEditor.getSelection();
+            settings.cursorPos = activeEditor.getCursorPos();
+            settings.scrollPos = activeEditor.getScrollPos();
+        } 
             
         // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
         // doc.
-        return _doSaveAs(doc, selection, cursorPos);
+        return _doSaveAs(doc, settings);
   
     }
 
