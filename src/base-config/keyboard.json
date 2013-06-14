@@ -20,6 +20,9 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
+    "file.saveAs":  [
+        "Ctrl-Shift-S"
+    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
