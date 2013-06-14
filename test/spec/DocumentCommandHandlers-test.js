@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         DocumentManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        StringUtils         = require("utils/StringUtils");
     
     
     describe("DocumentCommandHandlers", function () {
@@ -146,7 +147,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Revert test file");
                 });
             });
-            
+
             // Regardless of platform, files with CRLF should be saved with CRLF and files with LF should be saved with LF
             it("should preserve line endings when saving changes", function () {
                 var crlfText = "line1\r\nline2\r\nline3",
@@ -214,6 +215,87 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = SpecRunnerUtils.deletePath(lfPath);
                     waitsForDone(promise, "Remove LF test file");
+                });
+            });
+        });
+
+        describe("Save As", function () {
+            it("should close the original file, reopen the saved file and add it to the Working Set", function () {
+                var filePath    = testPath + "/test.js",
+                    newFilename = "testname.js",
+                    newFilePath = testPath + "/" + newFilename,
+                    promise;
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(filePath);
+                });
+
+                runs(function () {
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, initialPath + newFilename);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Provide new filename", 1000);
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(newFilePath);
+                });
+
+                runs(function () {
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+                    // old file will appear in working set
+                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                });
+
+                runs(function () {
+                    promise = SpecRunnerUtils.deletePath(newFilePath);
+                    waitsForDone(promise, "Remove the testfile");
+                });
+            });
+
+            it("should leave Working Set untouched when operation is canceled", function () {
+                var filePath    = testPath + "/test.js",
+                    newFilename = "testname.js",
+                    newFilePath = testPath + "/" + newFilename,
+                    promise;
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(filePath);
+                });
+
+                runs(function () {
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback("Error", undefined);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForFail(promise, "Provide new filename", 1000);
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(filePath);
+                });
+
+                runs(function () {
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
                 });
             });
         });
