@@ -21,6 +21,23 @@
  * 
  */
 
+/* 
+ * Changes to always show scrollbars on OS X 10.8.2 with scrollbars hidden on auto mode
+ * This also changes the appearence of scrollbars on Windows such that they look like OSX scrollbars.
+ * Recipe for fixing courtesy http://htmlr.tumblr.com/post/33295456846/fixing-chromes-disappearing-scrollbar-on-mac-os-lion
+ */
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
+
+
 /* Temporary implementation of unobtrusive scrollbars. 
    FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior. 
    Longer-term, we'll need to implement custom scrollbars. */
