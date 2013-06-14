@@ -190,7 +190,8 @@ define(function RemoteAgent(require, exports, module) {
         "attr", "removeAttr",
         "before", "after", "append", "prepend",
         "text",
-        "detach", "remove"
+        "detach", "remove",
+        "html"
     ];
 
     function RemoteElement(dataBracketsId) {
