@@ -50,7 +50,10 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away). 
+ *          eventually go away).
+ *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
+ *          is a string containing the editor option that is changing. The 3rd arg, which can be any
+ *          data type, is the new value for the editor option.
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -447,8 +450,9 @@ define(function (require, exports, module) {
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
+        var self = this;
         this._inlineWidgets.forEach(function (inlineWidget) {
-            inlineWidget.onClosed();
+            self._removeInlineWidgetInternal(inlineWidget);
         });
     };
     
@@ -1004,7 +1008,6 @@ define(function (require, exports, module) {
                                                            { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
-            inlineWidget.onClosed();
         });
         this._inlineWidgets.push(inlineWidget);
 
@@ -1016,7 +1019,7 @@ define(function (require, exports, module) {
      * Removes all inline widgets
      */
     Editor.prototype.removeAllInlineWidgets = function () {
-        // copy the array because _removeInlineWidgetInternal will modifying the original
+        // copy the array because _removeInlineWidgetInternal will modify the original
         var widgets = [].concat(this.getInlineWidgets());
         
         widgets.forEach(function (widget) {
@@ -1033,7 +1036,6 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
-        inlineWidget.onClosed();
     };
     
     /**
@@ -1066,13 +1068,17 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
-        var i;
-        var l = this._inlineWidgets.length;
-        for (i = 0; i < l; i++) {
-            if (this._inlineWidgets[i] === inlineWidget) {
-                this._inlineWidgets.splice(i, 1);
-                break;
+        if (!inlineWidget.isClosed) {
+            var i;
+            var l = this._inlineWidgets.length;
+            for (i = 0; i < l; i++) {
+                if (this._inlineWidgets[i] === inlineWidget) {
+                    this._inlineWidgets.splice(i, 1);
+                    break;
+                }
             }
+            inlineWidget.onClosed();
+            inlineWidget.isClosed = true;
         }
     };
 
@@ -1329,6 +1335,7 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }
     

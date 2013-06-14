@@ -166,6 +166,42 @@ define(function (require, exports, module) {
         },
 
         /**
+         * Shows a modal dialog for selecting a new file name
+         *
+         * @param {string} title The title of the dialog.
+         * @param {string} initialPath The folder opened inside the window initially. If initialPath
+         *                          is not set, or it doesn't exist, the window would show the last
+         *                          browsed folder depending on the OS preferences.
+         * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
+         *                          on the current file name plus an additional suffix
+         * @param {function(string} successCallback Callback function for successful operations.
+                                    Receives the path of the selected file name.
+         * @param {function(DOMError)=} errorCallback Callback function for error operations.
+         */
+        showSaveDialog: function (title,
+                                    initialPath,
+                                    proposedNewFilename,
+                                    successCallback,
+                                    errorCallback) {
+            if (!successCallback) {
+                return;
+            }
+
+            var newFile = brackets.fs.showSaveDialog(
+                title,
+                initialPath,
+                proposedNewFilename,
+                function (err, data) {
+                    if (!err) {
+                        successCallback(data);
+                    } else if (errorCallback) {
+                        errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                    }
+                }
+            );
+        },
+
+        /**
          * Implementation of w3 requestFileSystem entry point
          * @param {string} path Path to a directory. This directory will serve as the root of the 
          *                          FileSystem instance.

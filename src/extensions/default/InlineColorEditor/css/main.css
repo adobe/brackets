@@ -25,7 +25,7 @@
     font-size: 12px;
     min-width: 450px;
     height: 190px;
-    padding: 16px 16px 14px 38px;
+    padding: 16px 16px 14px 46px;
 }
 .color-editor:focus {
     outline: none;
@@ -80,7 +80,7 @@
 }
 .color-editor aside ul.swatches li:focus {
     outline: none;
-    box-shadow: 0 0 4px rgba(0,136,255,0.8);
+    box-shadow: 0 0 0 2px #6fb5f1;
     border-radius: 2px;
 }
 .color-editor aside ul.swatches li .swatch-bg {
@@ -102,8 +102,9 @@
     top: 0;
 }
 .color-editor aside ul.swatches li .value {
+    left: -3px;
     position: relative;
-    top: -2px;
+    top: -1px;
 }
 .color-editor section {
     display: inline-block;
@@ -119,15 +120,16 @@
     width: 100%;
     height: 100%;
     border-radius: 3px;
+    border-bottom: 1px solid #fff;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
 }
 .color-editor section .color-selection-field {
     width: 181px;
     height: 156px;
     margin-right: 13px;
     display: block;
-    border-radius: 5px 3px 3px 3px;
+    border-radius: 4px;
     position: relative;
-    box-shadow: 0 1px 0 #fff, inset 0 1px 0 rgba(0,0,0,0.2);
     float: left;
 }
 .color-editor section .color-selection-field .saturation-gradient {
@@ -146,8 +148,8 @@
 }
 .color-editor section .color-selection-field .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 4px 4px rgba(0,136,255,0.8);
-    border-radius: 6px;
+    box-shadow: 0 0 0 5px #6fb5f1;
+    border-radius: 10px;
 }
 .color-editor section .color-selection-field .selector {
     width: 19px;
@@ -159,6 +161,8 @@
 }
 .color-editor section .slider {
     border-radius: 3px;
+    border-bottom: 1px solid #fff;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);      
     width: 12px;
     height: 156px;
     margin-right: 13px;
@@ -177,8 +181,8 @@
 }
 .color-editor section .slider .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 4px 4px rgba(0,136,255,0.8);
-    border-radius: 3px;
+    box-shadow: 0 0 0 5px #6fb5f1;
+    border-radius: 1px;
 }
 .color-editor section .slider .selector {
     width: 20px;
@@ -191,7 +195,7 @@
 .color-editor section .slider.opacity-slider {
     background-image: url("../img/color_thumb_back.png");
     background-size: 8px;
-    margin-right: 0px;
+    margin-right: 0px;  
 }
 .color-editor section .hue-slider {
     background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
@@ -200,12 +204,12 @@
     font-size: 100%;
     clear: both;
     line-height: normal;
-    padding-top: 9px;
+    padding-top: 10px;
 }
 .color-editor section footer .color-value {
-    width: 114px;
+    width: 118px;
     height: 23px;
-    margin-right: 6px;
+    margin-right: 5px;
     border-color: #aaa;
     box-sizing: border-box;
     display: inline-block;
@@ -215,22 +219,21 @@
     display: inline-block;
     height: 23px;
     padding: 0 0 0 4px;
-    border: 1px solid rgba(0,0,0,0.53);
-    box-shadow: inset 0px 1px 0px rgba(0,0,0,0.15);
+    border: 1px solid #9c9e9e;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
     background: #fff;
     font-family: "SourceSansPro";
     font-size: 12px;
-    color: rgba(255,255,255,0.6);
+    color: #454545;
     border-radius: 3px;
-    margin: 1px 0 0 0;
-    vertical-align: center;
+    margin: 0;
+    vertical-align: middle;
 }
 .color-editor section footer input:focus {
     background: #fff;
     outline: none;
-    outline: none;
-    box-shadow: 0 0 4px 0 rgba(0,136,255,0.8), inset 0 2px 4px rgba(0,0,0,0.15);
-    border: 1px solid #1b1d1d;
+    box-shadow: 0 0 0 2px #6fb5f1;
+    border: 1px solid #0940fd;
     z-index: 911;
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
@@ -258,15 +261,12 @@
     border: 0;
     outline: 0;
     font-size: 100%;
-    vertical-align: baseline;
+    vertical-align: middle;
     background: transparent;
-    -webkit-font-smoothing: subpixel-antialiased;
+    -webkit-font-smoothing: antialiased;
 }
 .color-editor ul.button-bar {
     list-style: none;
-    border: 1px solid rgba(0,0,0,0.3);
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
     border-radius: 3px;
     display: inline-block;
     font-size: 12px;
@@ -274,71 +274,57 @@
 }
 .color-editor .button-bar li {
     display: inline-block;
-    margin-left: -3px;
+    margin-left: -4px;
 }
 .color-editor .button-bar a {
     text-decoration: none;
     color: #454545;
+    cursor: default;
     display: block;
     padding: 2px 4px 4px;
     height: 15px;
     font-size: 12px;
     text-shadow: 0 1px #fff;
-    background-color: #f5f9fa;
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#f5f9fa), to(#e3e5e6));
-    background-image: -webkit-linear-gradient(top, #f5f9fa, #e3e5e6);
-    background-image: linear-gradient(top, #f5f9fa, #e3e5e6);
-    border-right: 1px solid #bcbcbc;
+    background-color: #e5e9e9;
+    border: 1px solid #9c9e9e;
+    border-right: 1px solid transparent;
     margin-left: -3px;
-    -moz-box-shadow: inset 0 1px 1px #fff;
-    -webkit-box-shadow: inset 0 1px 1px #fff;
-    box-shadow: inset 0 1px 1px #fff;
+    
+    box-shadow: inset 0 1px 0 #fff;
 }
-.color-editor .button-bar a:hover {
-    background-color: #fff;
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f4f6f7));
-    background-image: -webkit-linear-gradient(top, #fff, #f4f6f7);
-    background-image: linear-gradient(top, #fff, #f4f6f7);
-}
+
 .color-editor .button-bar a:focus, .color-editor .button-bar li.selected a:focus{
     outline: none;
-    box-shadow: 0 0 4px rgba(0,136,255,0.8);
+    position: relative;
+    border: 1px solid #0940fd;
+    border-right: 1px solid #063dfa !important; /* we need this !important, sorry! */
+    box-shadow: 0 0 0 2px #65aeed;
+    z-index: 999;
 }
 .color-editor .button-bar li:first-child {
     margin-left: 0;
 }
 .color-editor .button-bar li:first-child a {
     margin-left: 0;
-    -webkit-border-top-left-radius: 3px;
-    -webkit-border-bottom-left-radius: 3px;
-    -moz-border-radius-topleft: 3px;
-    -moz-border-radius-bottomleft: 3px;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
 }
 .color-editor .button-bar li:last-child a {
-    border-right: none;
-    -webkit-border-top-right-radius: 3px;
-    -webkit-border-bottom-right-radius: 3px;
-    -moz-border-radius-topright: 3px;
-    -moz-border-radius-bottomright: 3px;
+    border-right: 1px solid #9c9e9e;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
 .color-editor .button-bar li.selected a {
-    background-color: #d7d7d7;
-    box-shadow: none;
-    cursor: default;
+    background-color: #d3d7d7;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
     background-image: none;
 }
 .color-editor .button-bar li.disabled a {
     cursor: default;
-    color: rgba(69,69,69,0.4);
-    background-color: rgba(245,249,250,0.4);
-    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(245,249,250,0.4)), to(rgba(227,229,230,0.4)));
-    background-image: -webkit-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
-    background-image: -moz-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
-    background-image: -o-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
-    background-image: -ms-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
-    background-image: linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+    opacity: 0.3;
+}
+
+
+.color-editor .platform-mac .CodeMirror {
+    font-family: "SourceSansPro" !important;
 }

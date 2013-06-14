@@ -27,12 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs               = require("widgets/Dialogs"),
-        Strings               = require("strings"),
-        Commands              = require("command/Commands"),
-        CommandManager        = require("command/CommandManager"),
-        AppInit               = require("utils/AppInit"),
-        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+    var Dialogs                = require("widgets/Dialogs"),
+        Strings                = require("strings"),
+        Commands               = require("command/Commands"),
+        CommandManager         = require("command/CommandManager"),
+        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
+        AppInit                = require("utils/AppInit"),
+        ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
@@ -86,7 +87,7 @@ define(function (require, exports, module) {
                 // Handle the install button.                
                 $(".extension-manager-dialog .install-from-url")
                     .click(function () {
-                        CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+                        InstallExtensionDialog.showDialog().done(view.model.updateFromDownload.bind(view.model));
                     });
                 
                 updateSearch();

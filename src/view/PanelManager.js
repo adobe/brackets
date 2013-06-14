@@ -107,6 +107,12 @@ define(function (require, exports, module) {
     
     /** Trigger editor area resize whenever the window is resized */
     function handleWindowResize() {
+        // These are not initialized in Jasmine Spec Runner window until a test
+        // is run that creates a mock document.
+        if (!$windowContent || !$editorHolder) {
+            return;
+        }
+        
         // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
         // itself when it sees the window resize event
         triggerEditorResize("skip");
@@ -205,11 +211,9 @@ define(function (require, exports, module) {
         $windowContent = $(".content");
         $editorHolder = $("#editor-holder");
         
-        // Sidebar is a special case: a side panel rather than a bottom panel. It could still affect the
-        // editor-holder's height if changing .content's width causes the inBrowser titlebar to wrap/unwrap.
-        if (brackets.inBrowser) {
-            listenToResize($("#sidebar"));
-        }
+        // Sidebar is a special case: it isn't a Panel, and is not created dynamically. Need to explicitly
+        // listen for resize here.
+        listenToResize($("#sidebar"));
     });
     
     // Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor()
