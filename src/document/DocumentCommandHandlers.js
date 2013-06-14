@@ -538,7 +538,7 @@ define(function (require, exports, module) {
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
-        
+                
         function _doSaveAfterSaveDialog(path) {
             
             function _configureEditorAndResolve() {
@@ -551,6 +551,24 @@ define(function (require, exports, module) {
                     }
                 }
                 result.resolve();
+            }
+            
+            function updateProject() {
+                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                    FileViewController
+                        .openAndSelectDocument(path,
+                                          FileViewController.PROJECT_MANAGER)
+                        .always(_configureEditorAndResolve);
+                } else { // Working set  has file selection focus
+                    // replace original file in working set with new file
+                    //  remove old file from working set.
+                    DocumentManager.removeFromWorkingSet(doc.file);
+                    //add new file to working set
+                    FileViewController
+                        .addToWorkingSetAndSelect(path,
+                                        FileViewController.WORKING_SET_VIEW)
+                        .always(_configureEditorAndResolve);
+                }
             }
             
             if (path === fullPath) {
@@ -566,23 +584,17 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                         FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
-                                doRevert(doc).always(function () {
-                                    if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                                        FileViewController
-                                            .openAndSelectDocument(path,
-                                                              FileViewController.PROJECT_MANAGER)
-                                            .always(_configureEditorAndResolve);
-                                    } else { // Working set  has file selection focus
-                                        // replace original file in working set with new file
-                                        //  remove old file from working set.
-                                        DocumentManager.removeFromWorkingSet(doc.file);
-                                        //add new file to working set
-                                        FileViewController
-                                            .addToWorkingSetAndSelect(path,
-                                                            FileViewController.WORKING_SET_VIEW)
-                                            .always(_configureEditorAndResolve);
-                                    }
-                                });
+                                // do not call doRevert unless the file is dirty.
+                                // doRevert on a file that is not dirty and not in the working set
+                                // has the side effect of adding the file to the working set.
+                                // we don't want that.
+                                if (doc.isDirty) {
+                                    // if the file is dirty it must be in the working set
+                                    // doRevert is side effect free in this case
+                                    doRevert(doc).always(updateProject);
+                                } else {
+                                    updateProject();
+                                }
                             });
                         });
                     });
