@@ -521,14 +521,16 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
-    function _setTextSelectionAndCursor(sel) {
-        var editor = EditorManager.getActiveEditor();
-        if (editor) {
-            editor.setSelection(sel.start, sel.end);
-        }
-    }
- 
+
+     /**
+     * Opens the native OS save as dialog and saves document.
+     * The original document is reverted in case it was dirty.
+     * Text selection and cursor position from the orignal document
+     * are preserved in the new document.
+     * When saving to the original document the document is saved as if save was called.
+     * 
+     * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
+     */
     function _doSaveAs(doc, sel, cursorPos) {
         var fullPath,
             saveAsDefaultPath,
@@ -537,8 +539,12 @@ define(function (require, exports, module) {
         
         function _doSaveAfterSaveDialog(path) {
             
-            function configureEditorAndResolve(result) {
-                _setTextSelectionAndCursor(sel, cursorPos);
+            function _configureEditorAndResolve() {
+                var editor = EditorManager.getActiveEditor();
+                if (editor) {
+                    editor.setCursorPos(cursorPos);
+                    editor.setSelection(sel.start, sel.end);
+                }
                 result.resolve();
             }
             
@@ -560,7 +566,7 @@ define(function (require, exports, module) {
                                     FileViewController
                                         .openAndSelectDocument(path,
                                                               FileViewController.PROJECT_MANAGER)
-                                        .always(configureEditorAndResolve(result));
+                                        .always(_configureEditorAndResolve);
                                 } else { // Working set  has file selection focus
                                     // replace original file in working set with new file
                                     //  remove old file from working set.
@@ -569,7 +575,7 @@ define(function (require, exports, module) {
                                     FileViewController
                                         .addToWorkingSetAndSelect(path,
                                                         FileViewController.WORKING_SET_VIEW)
-                                        .always(configureEditorAndResolve(result));
+                                        .always(_configureEditorAndResolve);
                                 }
     
                             });
