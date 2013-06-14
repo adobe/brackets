@@ -610,7 +610,7 @@ define(function (require, exports, module) {
     
     /**
      * Prompts user with save as dialog and saves document.
-     * @return {$.Promise} a promise that is resolved once the save  has been completed; or rejected
+     * @return {$.Promise} a promise that is resolved once the save has been completed
      */
     function handleFileSaveAs(commandData) {
         // Default to current document if doc is null
@@ -629,7 +629,7 @@ define(function (require, exports, module) {
             settings.scrollPos = activeEditor.getScrollPos();
         }
             
-        // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
+        // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
   
