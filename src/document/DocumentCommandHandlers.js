@@ -616,19 +616,18 @@ define(function (require, exports, module) {
         // Default to current document if doc is null
         var doc = null,
             activeEditor,
-            selection = {},
-            cursorPos,
-            settings = {};
+            settings;
         
         if (commandData) {
             doc = commandData.doc;
-        }else{
+        } else {
             activeEditor = EditorManager.getActiveEditor();
             doc = activeEditor.document;
+            settings = {};
             settings.selection = activeEditor.getSelection();
             settings.cursorPos = activeEditor.getCursorPos();
             settings.scrollPos = activeEditor.getScrollPos();
-        } 
+        }
             
         // doc may still be null, e.g. if no editors are open, but doOpenSave() does a null check on
         // doc.
