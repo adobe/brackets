@@ -292,7 +292,7 @@ define(function (require, exports, module) {
             offset = TokenUtils.offsetInToken(ctx),
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos),
+            testToken = editor._codeMirror.getTokenAt(testPos, true),
             propName;
         
         // Get property name first. If we don't have a valid property name, then 
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
             propValues = [],
             offset = TokenUtils.offsetInToken(ctx),
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos);
+            testToken = editor._codeMirror.getTokenAt(testPos, true);
 
         // Currently only support url. May be null if starting to type
         if (ctx.token.className && ctx.token.className !== "string") {
@@ -454,7 +454,7 @@ define(function (require, exports, module) {
                 propName = ctx.token.string;
             } else {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                    testToken = editor._codeMirror.getTokenAt(testPos);
+                    testToken = editor._codeMirror.getTokenAt(testPos, true);
                 
                 if (testToken.type === "property" || testToken.type === "property error" || testToken.type === "tag") {
                     propName = testToken.string;
