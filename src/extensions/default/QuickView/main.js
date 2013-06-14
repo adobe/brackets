@@ -248,7 +248,7 @@ define(function (require, exports, module) {
         
         // simple css property splitter (used to find color stop arguments in gradients)
         function splitStyleProperty(property) {
-            var token = /((?:[^""]|".*?"|".*?')*?)([(,)]|$)/g;
+            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g;
             var recurse = function () {
                 var array = [];
                 for (;;) {
@@ -299,6 +299,7 @@ define(function (require, exports, module) {
                     if (hasLengthInPixels(args)) {
                         thisSize = parseFloat(args[1]);
 
+                        upperBound = Math.max(upperBound, thisSize);
                         // we really only care about converting negative
                         //  pixel values -- so take the smallest negative pixel 
                         //  value and use that as baseline for display purposes
@@ -312,17 +313,8 @@ define(function (require, exports, module) {
                 //  so that -20px is now 0px and 100px is now 120px 
                 lowerBound = Math.abs(lowerBound);
                 
-                // find upper bound 
-                for (i = 0; i < params.length; i++) {
-                    args = params[i].split(" ");
-                    
-                    // find the biggest pixel value to use for our context size
-                    //  this is the value we use to compute percentages
-                    if (hasLengthInPixels(args)) {
-                        thisSize = parseFloat(args[1]) + lowerBound;
-                        upperBound = Math.max(upperBound, thisSize);
-                    }
-                }
+                // Offset the upperbound by the lowerBound to give us a corrected context
+                upperBound += lowerBound;
                 
                 // convert to %
                 for (i = 0; i < params.length; i++) {
