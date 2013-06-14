@@ -7,11 +7,11 @@
             <label>
                 {{PROJECT_SETTING_BASE_URL}}: <input type="text" placeholder="{{PROJECT_SETTING_BASE_URL_HINT}}" value="{{baseUrl}}" class="url" />
             </label>
-            {{#errorMessage}}<div class="alert-message" style="margin-bottom: 0">{{{errorMessage}}}</div>{{/errorMessage}}
+            {{#errorMessage}}<div class="alert" style="margin-bottom: 0">{{{errorMessage}}}</div>{{/errorMessage}}
          </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>
-        <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>
+        <button class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</button>
+        <button class="dialog-button btn primary" data-button-id="ok">{{OK}}</button>
     </div>
 </div>

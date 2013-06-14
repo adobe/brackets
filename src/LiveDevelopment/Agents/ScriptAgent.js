@@ -122,15 +122,23 @@ define(function ScriptAgent(require, exports, module) {
         _urlToScript = {};
         _idToScript = {};
         _load = new $.Deferred();
-        Inspector.Debugger.enable();
-        Inspector.Debugger.setPauseOnExceptions("uncaught");
+
+        var enableResult = new $.Deferred();
+
+        Inspector.Debugger.enable().done(function () {
+            Inspector.Debugger.setPauseOnExceptions("uncaught").done(function () {
+                enableResult.resolve();
+            });
+        });
+
         $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
         $(Inspector.Debugger)
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
         $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
-        return _load;
+
+        return $.when(_load.promise(), enableResult.promise());
     }
 
     /** Clean up */

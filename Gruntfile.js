@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     var common = require("./tasks/lib/common")(grunt);
-
+    
     // Project configuration.
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
@@ -64,9 +64,21 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
+            all : {
+                files: ['**/*', '!**/node_modules/**'],
+                tasks: ['jshint']
+            },
+            grunt : {
+                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+                tasks: ['jshint:grunt']
+            },
+            src : {
+                files: ['<%= meta.src %>', 'src/**/*'],
+                tasks: ['jshint:src']
+            },
             test : {
-                files: ['Gruntfile.js', '<%= meta.src %>', '<%= meta.test %>'],
-                tasks: 'test'
+                files: ['<%= meta.test %>', 'test/**/*'],
+                tasks: ['jshint:test']
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -101,20 +113,27 @@ module.exports = function (grunt) {
                             'test' : '../test',
                             'perf' : '../test/perf',
                             'spec' : '../test/spec',
-                            'text' : 'thirdparty/text',
-                            'i18n' : 'thirdparty/i18n'
+                            'text' : 'thirdparty/text/text',
+                            'i18n' : 'thirdparty/i18n/i18n'
                         }
                     }
                 }
             }
         },
+        'jasmine-node': {
+            run: {
+                spec: 'src/extensibility/node/spec/'
+            }
+        },
         jshint: {
             all: [
-                'Gruntfile.js',
+                '<%= meta.grunt %>',
                 '<%= meta.src %>',
                 '<%= meta.test %>'
             ],
-            grunt: "<%= meta.grunt %>",
+            grunt:  '<%= meta.grunt %>',
+            src:    '<%= meta.src %>',
+            test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
                 jshintrc: '.jshintrc'
@@ -132,13 +151,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
-
+    grunt.loadNpmTasks('grunt-contrib-jasmine-node');
+    
     // task: install
     grunt.registerTask('install', ['write-config']);
 
     // task: test
     //grunt.registerTask('test', ['jshint', 'jasmine']);
-    grunt.registerTask('test', ['jshint']);
+    grunt.registerTask('test', ['jshint', 'jasmine-node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json

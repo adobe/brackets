@@ -28,7 +28,8 @@ define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        ColorEditor          = require("ColorEditor").ColorEditor;
+        ColorEditor          = require("ColorEditor").ColorEditor,
+        ColorUtils           = brackets.getModule("utils/ColorUtils");
         
 
     /** @const @type {number} */
@@ -56,13 +57,6 @@ define(function (require, exports, module) {
         
         InlineWidget.call(this);
     }
-
-    /**
-     * Regular expression that matches reasonably well-formed colors in hex format (3 or 6 digits),
-     * rgb()/rgba() function format, or hsl()/hsla() function format.
-     * @const @type {RegExp}
-     */
-    InlineColorEditor.COLOR_REGEX = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)/gi;
     
     InlineColorEditor.prototype = Object.create(InlineWidget.prototype);
     InlineColorEditor.prototype.constructor = InlineColorEditor;
@@ -124,7 +118,7 @@ define(function (require, exports, module) {
         // CodeMirror v2, markText() isn't robust enough for this case.)
         
         var line = this.hostEditor.document.getLine(start.line),
-            matches = line.substr(start.ch).match(InlineColorEditor.COLOR_REGEX);
+            matches = line.substr(start.ch).match(ColorUtils.COLOR_REGEX);
         
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
@@ -177,7 +171,7 @@ define(function (require, exports, module) {
         InlineColorEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Create color picker control
-        var allColorsInDoc = this.hostEditor.document.getText().match(InlineColorEditor.COLOR_REGEX);
+        var allColorsInDoc = this.hostEditor.document.getText().match(ColorUtils.COLOR_REGEX);
         var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
     };
@@ -193,7 +187,8 @@ define(function (require, exports, module) {
         doc.addRef();
         $(doc).on("change", this._handleHostDocumentChange);
         
-        window.setTimeout(this._sizeEditorToContent.bind(this), 0);
+        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
+        
         this.colorEditor.focus();
     };
     
@@ -214,10 +209,6 @@ define(function (require, exports, module) {
         var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
-    };
-
-    InlineColorEditor.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
     };
 
     /** Comparator to sort by which colors are used the most */

@@ -39,13 +39,20 @@
  *         mode: "haskell",
  *         fileExtensions: ["hs"],
  *         blockComment: ["{-", "-}"],
- *         lineComment: "--"
+ *         lineComment: ["--"]
  *     });
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
+ *
+ * The extension can also contain dots:
+ *     LanguageManager.defineLanguage("literatecoffeescript", {
+ *         name: "Literate CoffeeScript",
+ *         mode: "coffeescript",
+ *         fileExtensions: ["litcoffee", "coffee.md"]
+ *     }); 
  *
  * You can also specify file names:
  *     LanguageManager.defineLanguage("makefile", {
@@ -55,10 +62,11 @@
  *     });
  * You can combine file names and extensions, or not define them at all.
  *
- * You can also refine an existing language. Currently you can only set the comment styles:
+ * You can also refine an existing language:
  *     var language = LanguageManager.getLanguage("haskell");
- *     language.setLineComment("--");
- *     language.setBlockComment("{-", "-}");
+ *     language.setLineCommentSyntax(["--"]);
+ *     language.setBlockCommentSyntax("{-", "-}");
+ *     language.addFileExtension("lhs");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
@@ -134,21 +142,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Lowercases the file extension and ensures it doesn't start with a dot.
-     * @param {!string} extension The file extension
-     * @return {string} The normalized file extension
-     */
-    function _normalizeFileExtension(extension) {
-        // Remove a leading dot if present
-        if (extension.charAt(0) === ".") {
-            extension = extension.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        return extension.toLowerCase();
-    }
-    
-    /**
      * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
      * We may rely on the tokens provided by some of these modes.
      */
@@ -180,7 +173,8 @@ define(function (require, exports, module) {
 
     /**
      * Resolves a language ID to a Language object.
-     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * File names have a higher priority than file extensions. 
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -193,12 +187,52 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
-            filename  = PathUtils.filename(path).toLowerCase(),
-            language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
+        var fileName  = PathUtils.filename(path).toLowerCase(),
+            language  = _fileNameToLanguageMap[fileName],
+            extension,
+            parts;
         
+        // If no language was found for the file name, use the file extension instead
         if (!language) {
-            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
+            // Split the file name into parts:
+            //   "foo.coffee.md"   => ["foo", "coffee", "md"]
+            //   ".profile.bak"    => ["", "profile", "bak"]
+            //   "1. Vacation.txt" => ["1", " Vacation", "txt"]
+            parts = fileName.split(".");
+            
+            // A leading dot does not indicate a file extension, but marks the file as hidden => remove it
+            if (parts[0] === "") {
+                // ["", "profile", "bak"] => ["profile", "bak"]
+                parts.shift();
+            }
+            
+            // The first part is assumed to be the title, not the extension => remove it
+            //   ["foo", "coffee", "md"]   => ["coffee", "md"]
+            //   ["profile", "bak"]        => ["bak"]
+            //   ["1", " Vacation", "txt"] => [" Vacation", "txt"]
+            parts.shift();
+            
+            // Join the remaining parts into a file extension until none are left or a language was found
+            while (!language && parts.length) {
+                // First iteration:
+                //   ["coffee", "md"]     => "coffee.md"
+                //   ["bak"]              => "bak"
+                //   [" Vacation", "txt"] => " Vacation.txt"
+                // Second iteration (assuming no language was found for "coffee.md"):
+                //   ["md"]  => "md"
+                //   ["txt"] => "txt"
+                extension = parts.join(".");
+                language  = _fileExtensionToLanguageMap[extension];
+                // Remove the first part
+                // First iteration:
+                //   ["coffee", "md"]     => ["md"]
+                //   ["bak"]              => []
+                //   [" Vacation", "txt"] => ["txt"]
+                // Second iteration:
+                //   ["md"]  => []
+                //   ["txt"] => []
+                parts.shift();
+            }
         }
         
         return language || _fallbackLanguage;
@@ -287,7 +321,7 @@ define(function (require, exports, module) {
     
     /**
      * Sets the identifier for this language or prints an error to the console.
-     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @return {boolean} Whether the ID was valid and set or not
      */
     Language.prototype._setId = function (id) {
@@ -376,12 +410,6 @@ define(function (require, exports, module) {
                     result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
                     return;
                 }
-                
-                // modeConfig can be a string or mode object
-                if (modeConfig !== mode && modeConfig.name !== mode) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                    return;
-                }
             }
             
             // This mode is now only about what to tell CodeMirror
@@ -425,7 +453,14 @@ define(function (require, exports, module) {
      * @return {boolean} Whether adding the file extension was successful or not
      */
     Language.prototype.addFileExtension = function (extension) {
-        extension = _normalizeFileExtension(extension);
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
@@ -446,6 +481,7 @@ define(function (require, exports, module) {
      * @return {boolean} Whether adding the file name was successful or not
      */
     Language.prototype.addFileName = function (name) {
+        // Make checks below case-INsensitive
         name = name.toLowerCase();
         
         if (this._fileNames.indexOf(name) === -1) {
@@ -481,7 +517,7 @@ define(function (require, exports, module) {
 
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
-     * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
+     * @param {!string|Array.<string>} prefix Prefix string or an array of prefix strings
      *   to use for line comments (i.e. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
@@ -600,7 +636,7 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}               id                        Unique identifier for this language, use only letters a-z, numbers and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!string}               id                        Unique identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @param {!Object}               definition                An object describing the language
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])

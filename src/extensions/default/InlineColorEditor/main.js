@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        InlineColorEditor   = require("InlineColorEditor").InlineColorEditor;
+        InlineColorEditor   = require("InlineColorEditor").InlineColorEditor,
+        ColorUtils          = brackets.getModule("utils/ColorUtils");
     
     
     /**
@@ -51,7 +52,7 @@ define(function (require, exports, module) {
             return null;
         }
         
-        colorRegEx = new RegExp(InlineColorEditor.COLOR_REGEX);
+        colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
         cursorLine = hostEditor.document.getLine(pos.line);
         
         // Loop through each match of colorRegEx and stop when the one that contains pos is found.

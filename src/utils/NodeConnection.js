@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         
         brackets.app.getNodeState(function (err, nodePort) {
-            if (!err && nodePort && !deferred.isRejected()) {
+            if (!err && nodePort && deferred.state() !== "rejected") {
                 port = nodePort;
                 ws = new WebSocket("ws://localhost:" + port);
                 
@@ -486,8 +486,8 @@ define(function (require, exports, module) {
         
         if (this.connected()) {
             $.getJSON("http://localhost:" + this._port + "/api")
-                .success(refreshInterfaceCallback)
-                .error(function () { deferred.reject(); });
+                .done(refreshInterfaceCallback)
+                .fail(function () { deferred.reject(); });
         } else {
             deferred.reject();
         }

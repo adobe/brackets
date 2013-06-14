@@ -31,8 +31,8 @@ require.config({
         "test"      : "../test",
         "perf"      : "../test/perf",
         "spec"      : "../test/spec",
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n"
     }
 });
 
@@ -51,11 +51,11 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
+        ColorUtils              = require("utils/ColorUtils");
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
-    
     
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
@@ -64,12 +64,18 @@ define(function (require, exports, module) {
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
+
+    // Load JUnitXMLReporter
+    require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
-    var suite,
-        params = new UrlParams(),
+    var selectedSuites,
+        params                  = new UrlParams(),
         reporter,
         _nodeConnectionDeferred = new $.Deferred(),
-        reporterView;
+        reporterView,
+        _writeResults           = new $.Deferred(),
+        _writeResultsPromise    = _writeResults.promise(),
+        resultsPath;
     
     /**
      * @const
@@ -79,9 +85,11 @@ define(function (require, exports, module) {
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
+    // parse URL parameters
     params.parse();
+    resultsPath = params.get("resultsPath");
     
-    function _loadExtensionTests(suite) {
+    function _loadExtensionTests() {
         // augment jasmine to identify extension unit tests
         var addSuite = jasmine.Runner.prototype.addSuite;
         jasmine.Runner.prototype.addSuite = function (suite) {
@@ -93,7 +101,7 @@ define(function (require, exports, module) {
             paths = ["default"];
         
         // load dev and user extensions only when running the extension test suite
-        if (suite === "ExtensionTestSuite") {
+        if (selectedSuites.indexOf("extension") >= 0) {
             paths.push("dev");
             paths.push(ExtensionLoader.getUserExtensionPath());
         }
@@ -127,43 +135,97 @@ define(function (require, exports, module) {
             window.location.reload(true);
         });
         
-        $("#" + suite).closest("li").toggleClass("active", true);
+        if (selectedSuites.length === 1) {
+            $("#" + (selectedSuites[0])).closest("li").toggleClass("active", true);
+        }
         
         AppInit._dispatchReady(AppInit.APP_READY);
         
         jasmine.getEnv().execute();
     }
-    
-    /**
-     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
-     * "resultsPath" URL parameter exists. Does not overwrite existing file.
-     * Writes UnitTestReporter spec results as formatted JSON.
-     * @param {!$.Event} event
-     * @param {!UnitTestReporter} reporter
-     */
-    function _runnerEndHandler(event, reporter) {
-        var resultsPath = params.get("resultsPath"),
-            json = reporter.toJSON(),
-            deferred = new $.Deferred();
-        
+
+    function writeResults(path, text) {
         // check if the file already exists
-        brackets.fs.stat(resultsPath, function (err, stat) {
+        brackets.fs.stat(path, function (err, stat) {
             if (err === brackets.fs.ERR_NOT_FOUND) {
-                // file not found, write the new file with JSON content
-                brackets.fs.writeFile(resultsPath, json, NativeFileSystem._FSEncodings.UTF8, function (err) {
+                // file not found, write the new file with xml content
+                brackets.fs.writeFile(path, text, NativeFileSystem._FSEncodings.UTF8, function (err) {
                     if (err) {
-                        deferred.reject();
+                        _writeResults.reject();
                     } else {
-                        deferred.resolve();
+                        _writeResults.resolve();
                     }
                 });
             } else {
                 // file exists, do not overwrite
-                deferred.reject();
+                _writeResults.reject();
             }
         });
+    }
+    
+    /**
+     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
+     * "resultsPath" URL parameter exists. Does not overwrite existing file.
+     * 
+     * @param {!$.Event} event
+     * @param {!UnitTestReporter} reporter
+     */
+    function _runnerEndHandler(event, reporter) {
+        if (resultsPath && resultsPath.substr(-5) === ".json") {
+            writeResults(resultsPath, reporter.toJSON());
+        }
+
+        _writeResults.always(function () { window.close(); });
+    }
+
+    /**
+     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * into a single file.
+     */
+    function _patchJUnitReporter() {
+        jasmine.JUnitXmlReporter.prototype.reportSpecResultsOriginal = jasmine.JUnitXmlReporter.prototype.reportSpecResults;
+        jasmine.JUnitXmlReporter.prototype.getNestedOutputOriginal = jasmine.JUnitXmlReporter.prototype.getNestedOutput;
+
+        jasmine.JUnitXmlReporter.prototype.reportSpecResults = function (spec) {
+            if (spec.results().skipped) {
+                return;
+            }
+
+            this.reportSpecResultsOriginal(spec);
+        };
+
+        jasmine.JUnitXmlReporter.prototype.getNestedOutput = function (suite) {
+            if (suite.results().totalCount === 0) {
+                return "";
+            }
+
+            return this.getNestedOutputOriginal(suite);
+        };
+
+        jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
+            var suites = runner.suites(),
+                output = '<?xml version="1.0" encoding="UTF-8" ?>',
+                i;
+
+            output += "\n<testsuites>";
+
+            for (i = 0; i < suites.length; i++) {
+                var suite = suites[i];
+                if (!suite.parentSuite) {
+                    output += this.getNestedOutput(suite);
+                }
+            }
+
+            output += "\n</testsuites>";
+            writeResults(resultsPath, output);
+
+            // When all done, make it known on JUnitXmlReporter
+            jasmine.JUnitXmlReporter.finished_at = (new Date()).getTime();
+        };
         
-        deferred.always(function () { window.close(); });
+        jasmine.JUnitXmlReporter.prototype.writeFile = function (path, filename, text) {
+            // do nothing
+        };
     }
     
     function init() {
@@ -200,58 +262,36 @@ define(function (require, exports, module) {
                 );
         });
 
-        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
         
         // Create a top-level filter to show/hide performance and extensions tests
-        var isPerfSuite = (suite === "PerformanceTestSuite"),
-            isExtSuite = (suite === "ExtensionTestSuite"),
-            isIntegrationSuite = (suite === "IntegrationTestSuite");
+        var runAll = (selectedSuites.indexOf("all") >= 0);
         
         var topLevelFilter = function (spec) {
-            var suite = spec.suite;
-            
-            // unit test suites have no category
-            if (!isPerfSuite && !isExtSuite && !isIntegrationSuite) {
-                if (spec.category !== undefined) {
-                    // if an individualy spec has a category, filter it out
-                    return false;
-                }
-                
-                while (suite) {
-                    if (suite.category !== undefined) {
-                        // any suite in the hierarchy may specify a category
-                        return false;
+            // special case "all" suite to run unit, perf, extension, and integration tests
+            if (runAll) {
+                return true;
+            }
+
+            var currentSuite = spec.suite,
+                category = spec.category;
+
+            if (!category) {
+                // find the category from the closest suite
+                while (currentSuite) {
+                    if (currentSuite.category) {
+                        category = currentSuite.category;
+                        break;
                     }
-                    
-                    suite = suite.parentSuite;
+
+                    currentSuite = currentSuite.parentSuite;
                 }
-                
-                return true;
             }
             
-            var category;
-            
-            if (isPerfSuite) {
-                category = "performance";
-            } else if (isIntegrationSuite) {
-                category = "integration";
-            } else {
-                category = "extension";
-            }
-            
-            if (spec.category === category) {
-                return true;
-            }
-            
-            while (suite) {
-                if (suite.category === category) {
-                    return true;
-                }
-                
-                suite = suite.parentSuite;
-            }
-            
-            return false;
+            // if unit tests are selected, make sure there is no category in the heirarchy
+            // if not a unit test, make sure the category is selected
+            return (selectedSuites.indexOf("unit") >= 0 && category === undefined) ||
+                (selectedSuites.indexOf(category) >= 0);
         };
         
         /*
@@ -261,9 +301,9 @@ define(function (require, exports, module) {
          */
         
         // configure spawned test windows to load extensions
-        SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
+        SpecRunnerUtils.setLoadExtensionsInTestWindow(selectedSuites.indexOf("extension") >= 0);
         
-        _loadExtensionTests(suite).done(function () {
+        _loadExtensionTests(selectedSuites).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
             // Initiailize unit test preferences for each spec
@@ -283,9 +323,17 @@ define(function (require, exports, module) {
             // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
             
-            // Optionally emit JSON for automated runs
-            if (params.get("resultsPath")) {
+            // Optionally emit JUnit XML file for automated runs
+            if (resultsPath) {
+                if (resultsPath.substr(-4) === ".xml") {
+                    _patchJUnitReporter();
+                    jasmineEnv.addReporter(new jasmine.JUnitXmlReporter(null, true, false));
+                }
+
+                // Close the window
                 $(reporter).on("runnerEnd", _runnerEndHandler);
+            } else {
+                _writeResults.resolve();
             }
             
             jasmineEnv.addReporter(reporter);
@@ -297,7 +345,7 @@ define(function (require, exports, module) {
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", suite);
+            localStorage.setItem("SpecRunner.suite", selectedSuites);
             
             $(window.document).ready(_documentReadyHandler);
         });

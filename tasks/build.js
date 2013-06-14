@@ -36,7 +36,8 @@ module.exports = function (grunt) {
             num,
             branch,
             sha,
-            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 };
+            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 },
+            version = grunt.config("pkg").version;
         
         qexec("git log --format=%h", opts).then(function (stdout, stderr) {
             num = stdout.toString().match(/[0-9a-f]\n/g).length;
@@ -47,6 +48,7 @@ module.exports = function (grunt) {
         }).then(function (stdout, stderr) {
             sha = /commit (.*)/.exec(stdout.toString().trim())[1];
 
+            out += "build.version=" + version.substr(0, version.lastIndexOf("-") + 1) + num + "\n";
             out += "build.number=" + num + "\n";
             out += "build.branch=" + branch + "\n";
             out += "build.sha=" + sha + "\n";

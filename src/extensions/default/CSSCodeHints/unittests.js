@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
@@ -32,8 +55,8 @@ define(function (require, exports, module) {
         var testDocument, testEditor;
     
         // Ask provider for hints at current cursor position; expect it to return some
-        function expectHints(provider) {
-            expect(provider.hasHints(testEditor, null)).toBe(true);
+        function expectHints(provider, implicitChar) {
+            expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
             var hintsObj = provider.getHints();
             expect(hintsObj).not.toBeNull();
             return hintsObj.hints; // return just the array of hints
@@ -49,8 +72,8 @@ define(function (require, exports, module) {
             expect(hintList[0]).toBe(expectedFirstHint);
         }
             
-        function selectHint(provider, expectedHint) {
-            var hintList = expectHints(provider);
+        function selectHint(provider, expectedHint, implicitChar) {
+            var hintList = expectHints(provider, implicitChar);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
             return provider.insertHint(expectedHint);
         }
@@ -151,7 +174,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("CSS attribute insertHint", function () {
+        describe("CSS property hint insertion", function () {
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
                 var mock = SpecRunnerUtils.createMockEditor(defaultContent, "css");
@@ -196,6 +219,30 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 16, ch: 7 });
             });
             
+            it("should insert prop-name before an existing one", function () {
+                testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor before border-color:
+                selectHint(CSSCodeHints.cssPropHintProvider, "float");
+                expect(testDocument.getLine(10)).toBe(" float: border-color: red;");
+                expectCursorAt({ line: 10, ch: 7 });
+            });
+            
+            it("should insert prop-name before an existing one when invoked with an implicit character", function () {
+                testDocument.replaceRange("f", { line: 10, ch: 1 }); // insert "f" before border-color:
+                testEditor.setCursorPos({ line: 10, ch: 2 });        // set cursor before border-color:
+                selectHint(CSSCodeHints.cssPropHintProvider, "float", "f");
+                expect(testDocument.getLine(10)).toBe(" float: border-color: red;");
+                expectCursorAt({ line: 10, ch: 7 });
+            });
+            
+            it("should replace the existing prop-value with the new selection", function () {
+                testDocument.replaceRange(";", { line: 12, ch: 5 });
+                testDocument.replaceRange("block", { line: 13, ch: 10 });
+                testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor before block
+                selectHint(CSSCodeHints.cssPropHintProvider, "none");
+                expect(testDocument.getLine(13)).toBe(" display: none");
+                expectCursorAt({ line: 13, ch: 14 });
+            });
+
             xit("should start new hinting whenever there is a whitespace last stringliteral", function () {
                 // topic: multi-value properties
                 // this needs to be discussed, whether or not this behaviour is aimed for
