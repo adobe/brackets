@@ -525,11 +525,11 @@ define(function (require, exports, module) {
      /**
      * Opens the native OS save as dialog and saves document.
      * The original document is reverted in case it was dirty.
-     * Text selection and cursor position from the orignal document
+     * Text selection and cursor position from the original document
      * are preserved in the new document.
      * When saving to the original document the document is saved as if save was called.
      * @param {Document} doc
-     * @param {Settings} proeprties of the orignal document's editor that need to be carried over to the new document
+     * @param {Settings} properties of the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
      * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
      */
