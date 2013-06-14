@@ -675,12 +675,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
+     * Sets the contents of the editor, clears the undo/redo history and marks the document clean. Dispatches a change event.
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
-        var perfTimerName = PerfUtils.markStart("Edtitor._resetText()\t" + (!this.document || this.document.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
 
         var cursorPos = this.getCursorPos(),
             scrollPos = this.getScrollPos();
@@ -688,8 +688,10 @@ define(function (require, exports, module) {
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
-        // Make sure we can't undo back to the empty state before setValue()
+        // Make sure we can't undo back to the empty state before setValue(), and mark
+        // the document clean.
         this._codeMirror.clearHistory();
+        this._codeMirror.markClean();
         
         // restore cursor and scroll positions
         this.setCursorPos(cursorPos);

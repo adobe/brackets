@@ -570,13 +570,6 @@ define(function (require, exports, module) {
             expect(myDocument.getText()).toEqual(expectedCommentedText);
             expectSel(expectedCommentedSel);
             
-            // Toggle comment off
-            // Can't immediately call BLOCK_COMMENT again to uncomment because CodeMirror might not
-            // be done re-tokenizing in response to the first toggle, and BLOCK_COMMENT depends on
-            // getting correct tokens. See #2335. Ideally we'd listen for onHighlightComplete() but
-            // it's not clear that will always get called (if CM decides no async work was needed).
-            // So we just wait until after the async tokenization must have been run.
-            waits(200);
             runs(function () {
                 CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
                 expect(myDocument.getText()).toEqual(startingContent);
