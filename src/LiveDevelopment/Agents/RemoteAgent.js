@@ -39,10 +39,14 @@ define(function RemoteAgent(require, exports, module) {
 
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        jQueryRemoteSrc = require("text!thirdparty/jQuery-2.0.1.min.js");
+
+    var $REMOTE = "window._LDjQuery";
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
+    var _jQueryRemoteObjectId;
     var _intervalId; // interval used to send keepAlive events
 
     // WebInspector Event: DOM.attributeModified
@@ -54,40 +58,61 @@ define(function RemoteAgent(require, exports, module) {
         }
     }
 
+    function _call(objectId, method, varargs) {
+        console.assert(objectId, "Attempted to call remote method without objectId set.");
+        var args = Array.prototype.slice.call(arguments, 2),
+            callback,
+            deferred = new $.Deferred();
+
+        // if the last argument is a function it is the callback function
+        if (typeof args[args.length - 1] === "function") {
+            callback = args.pop();
+        }
+
+        // Resolve node parameters
+        args = args.map(function (arg) {
+            if (arg && arg.nodeId) {
+                return arg.resolve();
+            }
+
+            return arg;
+        });
+
+        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
+            var params = [];
+
+            args.forEach(function (arg) {
+                if (arg.objectId) {
+                    params.push({objectId: arg.objectId});
+                } else {
+                    params.push({value: arg});
+                }
+            });
+
+            Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
+                .then(deferred.resolve, deferred.reject);
+        });
+
+        return deferred.promise();
+    }
+
     /** Call a remote function
      * The parameters are passed on to the remote functions. Nodes are resolved
      * and sent as objectIds.
      * @param {string} function name
      */
     function call(method, varargs) {
-        console.assert(_objectId, "Attempted to call remote method without objectId set.");
-        var args = Array.prototype.slice.call(arguments, 1);
+        var argsArray = [_objectId, "_LD." + method];
 
-        // if the last argument is a function it is the callback function
-        var callback;
-        if (typeof args[args.length - 1] === "function") {
-            callback = args.pop();
+        if (arguments.length > 1) {
+            argsArray = argsArray.concat(Array.prototype.slice.call(arguments, 1));
         }
 
-        // Resolve node parameters
-        var i;
-        for (i in args) {
-            if (args[i].nodeId) {
-                args[i] = args[i].resolve();
-            }
-        }
-        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
-            var i, arg, params = [];
-            for (i in arguments) {
-                arg = args[i];
-                if (arg.objectId) {
-                    params.push({objectId: arg.objectId});
-                } else {
-                    params.push({value: arg});
-                }
-            }
-            Inspector.Runtime.callFunctionOn(_objectId, "_LD." + method, params, undefined, callback);
-        });
+        return _call.apply(null, argsArray);
+    }
+
+    function jQueryRemote(method, varargs) {
+        return _call(_jQueryRemoteObjectId, "_LDjQuery." + method, varargs);
     }
 
     function _stopKeepAliveInterval() {
@@ -116,7 +141,9 @@ define(function RemoteAgent(require, exports, module) {
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ")";
+
+        // inject RemoteFunctions
+        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
@@ -126,6 +153,17 @@ define(function RemoteAgent(require, exports, module) {
                 _load.resolve();
 
                 _startKeepAliveInterval();
+            }
+        });
+
+        // inject jQuery
+        command = jQueryRemoteSrc + "window._LDjQuery=jQuery.noConflict(true);";
+
+        Inspector.Runtime.evaluate(command, function onEvaluate(response) {
+            if (response.error || response.wasThrown) {
+                _load.reject(null, response.error);
+            } else {
+                _jQueryRemoteObjectId = response.result.objectId;
             }
         });
     }
@@ -147,8 +185,49 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
     }
 
+    // Prototype DOM manipulation
+    var REMOTE_ELEMENT_METHODS = [
+        "attr", "removeAttr",
+        "before", "after", "append", "prepend",
+        "text",
+        "detach", "remove"
+    ];
+
+    function RemoteElement(dataBracketsId) {
+        var self = this;
+
+        this._dataBracketsId = dataBracketsId;
+        this._evalFind = $REMOTE + '("[data-brackets-id=\\"' + this._dataBracketsId + '\\"]").';
+
+        REMOTE_ELEMENT_METHODS.forEach(function (methodName) {
+            self[methodName] = self._eval.bind(self, methodName);
+        });
+    }
+
+    RemoteElement.prototype._eval = function (method, varargs) {
+        var argsArray = Array.prototype.slice.call(arguments, 1);
+
+        argsArray = argsArray.map(function (arg) {
+            // TODO all basic types: boolean, array, etc.
+            if (typeof arg === "string") {
+                // add quotes to stirngs
+                return '"' + arg + '"';
+            }
+
+            return arg;
+        });
+
+        return Inspector.Runtime.evaluate(this._evalFind + method + "(" + argsArray.join(",") + ")");
+    };
+
+    function remoteElement(dataBracketsId) {
+        return new RemoteElement(dataBracketsId);
+    }
+
     // Export public functions
     exports.call = call;
+    exports.jQuery = jQueryRemote;
     exports.load = load;
     exports.unload = unload;
+    exports.remoteElement = remoteElement;
 });
