@@ -69,7 +69,7 @@ define(function (require, exports, module) {
                 token;
 
             editor.setCursorPos(pos);
-            token = cm.getTokenAt(pos);
+            token = cm.getTokenAt(pos, true);
 
             return QuickView._queryPreviewProviders(editor, pos, token);
         }

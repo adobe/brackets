@@ -70,6 +70,16 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async");
     
+    
+    /**
+     * @private
+     * File and Folder names which are not displayed or searched
+     * TODO: We should add the rest of the file names that TAR excludes:
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -646,14 +656,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
-            return false;
-        }
-        var extension = entry.name.split('.').pop();
-        if (["pyc"].indexOf(extension) > -1) {
-            return false;
-        }
-        return true;
+        return !entry.name.match(_exclusionListRegEx);
     }
 
     /**
