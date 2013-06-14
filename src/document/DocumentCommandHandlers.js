@@ -566,23 +566,23 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                         FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
-                                doRevert(doc);
-                                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                                    FileViewController
-                                        .openAndSelectDocument(path,
+                                doRevert(doc).always(function () {
+                                    if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                                        FileViewController
+                                            .openAndSelectDocument(path,
                                                               FileViewController.PROJECT_MANAGER)
-                                        .always(_configureEditorAndResolve);
-                                } else { // Working set  has file selection focus
-                                    // replace original file in working set with new file
-                                    //  remove old file from working set.
-                                    DocumentManager.removeFromWorkingSet(doc.file);
-                                    //add new file to working set
-                                    FileViewController
-                                        .addToWorkingSetAndSelect(path,
-                                                        FileViewController.WORKING_SET_VIEW)
-                                        .always(_configureEditorAndResolve);
-                                }
-    
+                                            .always(_configureEditorAndResolve);
+                                    } else { // Working set  has file selection focus
+                                        // replace original file in working set with new file
+                                        //  remove old file from working set.
+                                        DocumentManager.removeFromWorkingSet(doc.file);
+                                        //add new file to working set
+                                        FileViewController
+                                            .addToWorkingSetAndSelect(path,
+                                                            FileViewController.WORKING_SET_VIEW)
+                                            .always(_configureEditorAndResolve);
+                                    }
+                                });
                             });
                         });
                     });

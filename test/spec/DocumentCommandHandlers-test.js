@@ -254,7 +254,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
                     // old file will appear in working set
-                    expect(DocumentManager.findInWorkingSet(filePath)).toBeGreaterThan(-1);
+                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
                 });
 
                 runs(function () {
