@@ -277,6 +277,13 @@ define(function (require, exports, module) {
                     checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
                 });
             });
+            
+            it("Should should convert gradients arguments from pixel to percent", function () {
+                runs(function () {
+                    // line ending in comma
+                    checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
+                });
+            });
         });
 
         describe("Quick view display", function () {
