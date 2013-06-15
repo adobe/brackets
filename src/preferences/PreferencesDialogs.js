@@ -92,11 +92,12 @@ define(function (require, exports, module) {
         }
         title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
         
-        var templateVars = $.extend({
+        var templateVars = {
             title        : title,
             baseUrl      : baseUrl,
-            errorMessage : errorMessage
-        }, Strings);
+            errorMessage : errorMessage,
+            Strings      : Strings
+        };
         
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
         
