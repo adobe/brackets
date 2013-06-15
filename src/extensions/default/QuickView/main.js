@@ -346,7 +346,7 @@ define(function (require, exports, module) {
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
                 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member 
