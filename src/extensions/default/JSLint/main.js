@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         Resizer                 = brackets.getModule("utils/Resizer"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         StatusBar               = brackets.getModule("widgets/StatusBar"),
+        NativeApp               = brackets.getModule("utils/NativeApp"),
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
     
@@ -163,6 +164,13 @@ define(function (require, exports, module) {
                         editor.setCursorPos(line - 1, character - 1, true);
                         EditorManager.focusEditor();
                     });
+
+                $lintResults.on("click", ".lint-url", function (e) {
+                    var reason = $(this).data("reason");
+                    var url = "https://www.google.com/search?q=" + encodeURIComponent(reason);
+                    NativeApp.openURLInDefaultBrowser(url);
+                    return false;
+                });
                 
                 if (!_collapsed) {
                     Resizer.show($lintResults);

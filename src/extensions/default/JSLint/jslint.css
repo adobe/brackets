@@ -27,3 +27,20 @@
 #jslint-results .line { /* To make the line number line up with editor line numbers */
     text-align: right;
 }
+
+.jslint-info {
+    width:15px;   
+}
+
+.row-highlight tr:hover > .jslint-info a {    
+    display:block; 
+    width:15px; 
+    height:15px;
+    cursor: pointer;
+    background: transparent url(images/info-icon.svg) no-repeat;
+    opacity: 0.6;
+}
+
+.row-highlight tr:hover > .jslint-info a:hover {    
+    opacity: 1;
+}
