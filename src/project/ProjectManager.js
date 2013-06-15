@@ -70,6 +70,16 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async");
     
+    
+    /**
+     * @private
+     * File and Folder names which are not displayed or searched
+     * TODO: We should add the rest of the file names that TAR excludes:
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -139,6 +149,13 @@ define(function (require, exports, module) {
      * Used to initialize jstree state
      */
     var _projectInitialLoad = null;
+    
+    /**
+     * @private
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.  
+     */
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
     /**
      * @private
@@ -639,14 +656,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
-            return false;
-        }
-        var extension = entry.name.split('.').pop();
-        if (["pyc"].indexOf(extension) > -1) {
-            return false;
-        }
-        return true;
+        return !entry.name.match(_exclusionListRegEx);
     }
 
     /**
@@ -1104,12 +1114,12 @@ define(function (require, exports, module) {
 
     /**
      * Invoke project settings dialog.
-     * @return {Dialog}
+     * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
-
+    
     /**
      * @private
      *
@@ -1118,10 +1128,9 @@ define(function (require, exports, module) {
      */
     function _checkForValidFilename(filename) {
         // Validate file name
-        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
+        // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
@@ -1507,7 +1516,7 @@ define(function (require, exports, module) {
             DocumentManager.notifyPathDeleted(entry.fullPath);
 
             _redraw(true);
-            result.promise();
+            result.resolve();
         }, function (err) {
             // Show an error alert
             Dialogs.showModalDialog(
@@ -1523,7 +1532,7 @@ define(function (require, exports, module) {
             result.reject(err);
         });
 
-        return result;
+        return result.promise();
     }
     
     /**
@@ -1550,23 +1559,6 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
-    
-    if (!_prefs.getValue("welcomeProjectsFixed")) {
-        // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
-        // we would add lots of duplicate entries here.
-        var welcomeProjects = _prefs.getValue("welcomeProjects");
-        if (welcomeProjects) {
-            var newWelcomeProjects = [];
-            var i;
-            for (i = 0; i < welcomeProjects.length; i++) {
-                if (newWelcomeProjects.indexOf(welcomeProjects[i]) === -1) {
-                    newWelcomeProjects.push(welcomeProjects[i]);
-                }
-            }
-            _prefs.setValue("welcomeProjects", newWelcomeProjects);
-            _prefs.setValue("welcomeProjectsFixed", true);
-        }
-    }
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

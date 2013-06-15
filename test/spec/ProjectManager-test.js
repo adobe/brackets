@@ -175,13 +175,47 @@ define(function (require, exports, module) {
                     runs(assertFile);
                 }
             });
+            it("should fail when file name is invalid", function () {
+                var files = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+                              'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+                              'nul', 'con', 'prn', 'aux', '.', '..', '...'];
+                var i = 0;
+                var len = files.length;
+                var fileAt, didCreate, gotError;
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+                function createFile() {
+                    // skip rename
+                    ProjectManager.createNewItem(testPath, fileAt, true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                }
+                
+                function waitForFileCreate() {
+                    return didCreate || gotError;
+                }
+                
+                function assertFile() {
+                    expect(gotError).toBeTruthy();
+                    expect(didCreate).toBeFalsy();
+                }
+                
+                for (i = 0; i < len; i++) {
+                    didCreate = false;
+                    gotError = false;
+                    fileAt = files[i];
+
+                    runs(createFile);
+                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
+                    runs(assertFile);
+                }
+            });
         });
         
         describe("deleteItem", function () {
             it("should delete the selected file in the project tree", function () {
-                var didCreate   = false,
-                    gotError    = false,
-                    complete    = false,
+                var complete    = false,
                     newFileName = testPath + "/delete_me.js",
                     selectedFile,
                     error,
@@ -201,11 +235,11 @@ define(function (require, exports, module) {
 
                 // Create a file and select it in the project tree.
                 runs(function () {
+                    complete = false;
                     ProjectManager.createNewItem(testPath, "delete_me.js", true)
-                        .done(function () { didCreate = true; })
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
-                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
                     complete = false;
@@ -217,22 +251,23 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return complete; }, 1000);
 
-                // Verify the existence of the new file and select it in the project tree.
+                // Verify the existence of the new file and make sure it is selected in the project tree.
                 runs(function () {
                     expect(error).toBeFalsy();
                     expect(stat.isFile()).toBe(true);
                     selectedFile = ProjectManager.getSelectedItem();
+                    expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
                 });
 
                 // Delete the selected file.
                 runs(function () {
-                    gotError = false;
+                    complete = false;
                     // delete the new file
                     ProjectManager.deleteItem(selectedFile)
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
 
-                waitsFor(function () { return !gotError; }, "ProjectManager.deleteItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
 
                 // Verify that file no longer exists.
                 runs(function () {
@@ -255,9 +290,7 @@ define(function (require, exports, module) {
             });
 
             it("should delete the selected folder and all items in it.", function () {
-                var didCreate      = false,
-                    gotError       = false,
-                    complete       = false,
+                var complete       = false,
                     newFolderName  = testPath + "/toDelete/",
                     rootFolderName = newFolderName,
                     rootFolderEntry,
@@ -278,11 +311,11 @@ define(function (require, exports, module) {
 
                 // Create a folder
                 runs(function () {
+                    complete = false;
                     ProjectManager.createNewItem(testPath, "toDelete", true, true)
-                        .done(function () { didCreate = true; })
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
-                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
                     complete = false;
@@ -299,17 +332,16 @@ define(function (require, exports, module) {
                     expect(stat.isDirectory()).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
+                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
                 });
 
                 // Create a sub folder
                 runs(function () {
-                    didCreate = false;
-                    gotError  = false;
+                    complete = false;
                     ProjectManager.createNewItem(newFolderName, "toDelete1", true, true)
-                        .done(function () { didCreate = true; })
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
-                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
                     newFolderName += "toDelete1/";
@@ -329,13 +361,11 @@ define(function (require, exports, module) {
 
                 // Create a file in the sub folder just created.
                 runs(function () {
-                    didCreate = false;
-                    gotError  = false;
+                    complete = false;
                     ProjectManager.createNewItem(newFolderName, "toDelete2.txt", true)
-                        .done(function () { didCreate = true; })
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
-                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
                     complete = false;
@@ -354,12 +384,12 @@ define(function (require, exports, module) {
                 
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
-                    gotError = false;
+                    complete = false;
 
                     ProjectManager.deleteItem(rootFolderEntry)
-                        .fail(function () { gotError = true; });
+                        .always(function () { complete = true; });
                 });
-                waitsFor(function () { return !gotError; }, "ProjectManager.deleteItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
 
                 // Verify that the root folder no longer exists.
                 runs(function () {
@@ -515,10 +545,22 @@ define(function (require, exports, module) {
                     return { name: name };
                 };
                 
+                expect(shouldShow(makeEntry(".git"))).toBe(false);
+                expect(shouldShow(makeEntry(".svn"))).toBe(false);
+                expect(shouldShow(makeEntry(".DS_Store"))).toBe(false);
+                expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
+                expect(shouldShow(makeEntry(".hg"))).toBe(false);
                 expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitignore"))).toBe(false);
                 expect(shouldShow(makeEntry("foobar"))).toBe(true);
                 expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
                 expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
+                expect(shouldShow(makeEntry("CVS"))).toBe(false);
+                expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
+                
             });
         });
 
