@@ -244,14 +244,16 @@ define(function (require, exports, module) {
                 } else {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 }
-            } else if (moved) {
+            
+            } else {
+                // Update the file selection
                 if (selected) {
-                    // Update the file selection
                     _fireSelectionChanged();
                     ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
                 }
+                
+                // Restore the shadow
                 if (addBottomShadow) {
-                    // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
@@ -544,7 +546,6 @@ define(function (require, exports, module) {
      */
     function _handleWorkingSetSort() {
         _rebuildWorkingSet(true);
-        _scrollSelectedDocIntoView();
     }
 
     /** 

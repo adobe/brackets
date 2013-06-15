@@ -321,7 +321,7 @@ define(function (require, exports, module) {
             // EOL, it uses EOL, same token is returned, and the following condition fails,
             // so we don't need to worry about testPos being valid.
             var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                testToken = editor._codeMirror.getTokenAt(testPos);
+                testToken = editor._codeMirror.getTokenAt(testPos, true);
 
             if (testToken.string.length > 0 && testToken.string.trim().length > 0 &&
                     testToken.string.charAt(0) !== ">") {

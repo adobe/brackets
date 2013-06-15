@@ -559,7 +559,7 @@ define(function (require, exports, module) {
             }
             
             // Query providers for a new popoverState
-            var token = cm.getTokenAt(pos);
+            var token = cm.getTokenAt(pos, true);
             popoverState = queryPreviewProviders(editor, pos, token);
             
             if (popoverState) {
