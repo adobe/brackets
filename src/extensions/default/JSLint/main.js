@@ -165,12 +165,14 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
 
-                $lintResults.on("click", ".lint-url", function (e) {
-                    var reason = $(this).data("reason");
-                    var url = "https://www.google.com/search?q=" + encodeURIComponent(reason);
-                    NativeApp.openURLInDefaultBrowser(url);
-                    return false;
-                });
+                
+                $lintResults.find(".lint-url")
+                    .on("click", function (e) {
+                        var reason = $(this).data("reason");
+                        var url = "https://www.google.com/search?q=" + encodeURIComponent(reason);
+                        NativeApp.openURLInDefaultBrowser(url);
+                        return false;
+                    });
                 
                 if (!_collapsed) {
                     Resizer.show($lintResults);
