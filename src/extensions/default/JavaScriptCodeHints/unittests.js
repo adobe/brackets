@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints         = require("main"),
         Preferences         = require("Preferences"),
-        ScopeManager        = require("ScopeManager");
+        ScopeManager        = require("ScopeManager"),
+        HintUtils           = require("HintUtils");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -311,7 +312,10 @@ define(function (require, exports, module) {
         
         /**
          * Trigger a jump to definition, and verify that the editor jumped to 
-         * the expected location.
+         * the expected location. The new location is the variable definition
+         * or function definition of the variable or function at the current
+         * cursor location. Jumping to the new location will cause a new editor
+         * to be opened or open an existing editor.
          *
          * @param {{line:number, ch:number, file:string}} expectedLocation - the 
          *  line, column, and optionally the new file the editor should jump to.  If the
@@ -358,7 +362,6 @@ define(function (require, exports, module) {
             // The following call ensures that the document is reloaded
             // from disk before each test
             DocumentManager.closeAll();
-
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;
@@ -717,9 +720,10 @@ define(function (require, exports, module) {
 
             it("should list hints for string, as string assigned to 's', 's' assigned to 'r' and 'r' assigned to 't'", function () {
                 var start = { line: 26, ch: 0 },
-                    middle = { line: 26, ch: 2 };
+                    middle = { line: 26, ch: 6 };
                 
-                testDoc.replaceRange("t.", start, start);
+                // pad spaces here as tern has issue,without space, no code hint
+                testDoc.replaceRange("    t.", start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
@@ -1475,6 +1479,171 @@ define(function (require, exports, module) {
                     expect(preferences.getMaxFileSize()).toBe(100000);
                 });
             });
+        });
+        
+        describe("regression tests", function () {
+
+            // Test maybe valid javascript identifier
+            // FIXME (issue #3558)
+            xit("should return true for valid identifier, false for invalid one", function () {
+                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
+                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
+                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                var invalidIdentifierList = [" break", "\tif", "\ntrade"];
+                
+                invalidIdentifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(false);
+                });
+                
+                identifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(true);
+                });
+            });
+        });
+        
+        describe("JavaScript Code Hinting with test.html file", function () {
+            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
+
+            beforeEach(function () {
+                setupTest(testFile, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+                
+            });
+
+            // FIXME (issue #3915)
+            xit("should read function name has double byte chars", function () {
+                var start   = { line: 15, ch: 8 },
+                    testPos = { line: 15, ch: 10 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试"]);
+                });
+                runs(function () {
+                    testEditor.setCursorPos(testPos);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试()"]);
+                });
+            });
+            
+            it("should jump to function name with double byte chars", function () {
+                var start        = { line: 16, ch: 9 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+
+            // FIXME (issue #3915)
+            xit("should read function name has non ascii chars", function () {
+                var start = { line: 16, ch: 16 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["frenchçProp()"]);
+                });
+            });
+            
+            it("should jump to function name with non ascii chars", function () {
+                var start        = { line: 16, ch: 12 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+        });
+        
+        describe("regression tests", function () {
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            // Test maybe valid javascript identifier
+            // FIXME (issue #3558)
+            xit("should return true for valid identifier, false for invalid one", function () {
+                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
+                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
+                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                var invalidIdentifierList = [" break", "\tif", "\ntrade"];
+                
+                invalidIdentifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(false);
+                });
+                
+                identifierList.forEach(function (element) {
+                    var result = HintUtils.maybeIdentifier(element);
+                    expect(result).toBe(true);
+                });
+            });
+        });
+        
+        describe("JavaScript Code Hinting with test.html file", function () {
+            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
+
+            beforeEach(function () {
+                setupTest(testFile, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+                
+            });
+            // FIXME (issue #3915)
+            xit("should read function name has double byte chars", function () {
+                var start   = { line: 15, ch: 8 },
+                    testPos = { line: 15, ch: 10 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试"]);
+                });
+                runs(function () {
+                    testEditor.setCursorPos(testPos);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["fun測试()"]);
+                });
+            });
+            
+            it("should jump to function name with double byte chars", function () {
+                var start        = { line: 16, ch: 9 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+            // FIXME (issue #3915)
+            xit("should read function name has non ascii chars", function () {
+                var start = { line: 16, ch: 16 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["frenchçProp()"]);
+                });
+            });
+            
+            it("should jump to function name with non ascii chars", function () {
+                var start        = { line: 16, ch: 12 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 12, ch: 20});
+                });
+            });
+
         });
     });
 });
