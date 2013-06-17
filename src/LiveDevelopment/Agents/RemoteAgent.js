@@ -191,14 +191,15 @@ define(function RemoteAgent(require, exports, module) {
         "before", "after", "append", "prepend",
         "text",
         "detach", "remove",
-        "html"
+        "html",
+        "replaceWith"
     ];
 
     function RemoteElement(dataBracketsId) {
         var self = this;
 
+        this._queryBracketsId = "var $result = " + $REMOTE + '("[data-brackets-id=\\"' + dataBracketsId + '\\"]");';
         this._dataBracketsId = dataBracketsId;
-        this._evalFind = $REMOTE + '("[data-brackets-id=\\"' + this._dataBracketsId + '\\"]").';
 
         REMOTE_ELEMENT_METHODS.forEach(function (methodName) {
             self[methodName] = self._eval.bind(self, methodName);
@@ -206,19 +207,12 @@ define(function RemoteAgent(require, exports, module) {
     }
 
     RemoteElement.prototype._eval = function (method, varargs) {
-        var argsArray = Array.prototype.slice.call(arguments, 1);
+        // Convert method arguments to JSON string to escape string args
+        var argsArray       = JSON.stringify(Array.prototype.slice.call(arguments, 1)).replace(/\\/g, "\\\\").replace(/\"/g, "\\\""),
+            argsAssign      = "var args = JSON.parse(\"" + argsArray + "\");",
+            fnApply         = "$result." + method + ".apply($result, args)";
 
-        argsArray = argsArray.map(function (arg) {
-            // TODO all basic types: boolean, array, etc.
-            if (typeof arg === "string") {
-                // add quotes to stirngs
-                return '"' + arg + '"';
-            }
-
-            return arg;
-        });
-
-        return Inspector.Runtime.evaluate(this._evalFind + method + "(" + argsArray.join(",") + ")");
+        return Inspector.Runtime.evaluate(argsAssign + this._queryBracketsId + fnApply);
     };
 
     function remoteElement(dataBracketsId) {
