@@ -7,4 +7,10 @@ define(function (require, exports, module) {
         return "a string";
     };
     exports.j = "hi";
+    
+
+    function c() {
+    }
+    
+    exports.c = c;
 });
