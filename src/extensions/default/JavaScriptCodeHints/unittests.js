@@ -241,6 +241,7 @@ define(function (require, exports, module) {
         function hintsPresentExact(hintObj, expectedHints) {
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
+                expect(hintList.length).toBe(expectedHints.length);
                 expectedHints.forEach(function (expectedHint, index) {
                     expect(hintList[index].data("token").value).toBe(expectedHint);
                 });
@@ -1224,6 +1225,7 @@ define(function (require, exports, module) {
         describe("JavaScript Code Hinting without modules", function () {
             var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
             ScopeManager.handleProjectOpen(extensionPath + "/unittest-files/non-module-test-files/");
+
             beforeEach(function () {
                 setupTest(testPath, true);
             });
