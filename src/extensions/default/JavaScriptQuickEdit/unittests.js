@@ -404,7 +404,7 @@ define(function (require, exports, module) {
                         testEditor = EditorManager.getActiveEditor();
                         testEditor.setCursorPos(testPos);
                         var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                        hintsPresentExact(hintObj, ["getMonthName(mo: number)"]);
+                        hintsPresentExact(hintObj, ["getMonthName(mo: number) -> string"]);
 
                     });
                 });
