@@ -104,6 +104,16 @@ define(function (require, exports, module) {
     Session.prototype.getOffset = function () {
         var cursor = this.getCursor();
         
+        return this.getOffsetFromCursor(cursor);
+    };
+    
+    /**
+     * Get the offset of a cursor position
+     *
+     * @param {{line: number, ch: number}} the line/col info
+     * @return {number} - the offset into the current document of the cursor
+     */
+    Session.prototype.getOffsetFromCursor = function (cursor) {
         return this.editor.indexFromPos(cursor);
     };
 
@@ -191,6 +201,36 @@ define(function (require, exports, module) {
         } while (prev.string.trim() === "");
         
         return prev;
+    };
+
+    /**
+     * Get the token after the one at the given cursor position
+     * 
+     * @param {{line: number, ch: number}} cursor - cursor position after
+     *      which a token should be retrieved
+     * @return {Object} - the CodeMirror token after the one at the given
+     *      cursor position
+     */
+    Session.prototype.getNextToken = function (cursor, skipWhitespace) {
+        var token   = this.getToken(cursor),
+            next    = token,
+            doc     = this.editor.document;
+
+        do {
+            if (next.start > cursor.ch) {
+                cursor.ch = next.end;
+            } else if (next.end > 0) {
+                cursor.ch = next.end + 1;
+            } else if (cursor.line > 0) {
+                cursor.ch = doc.getLine(cursor.line + 1).length;
+                cursor.line++;
+            } else {
+                break;
+            }
+            next = this.getToken(cursor);
+        } while (skipWhitespace && next.string.trim() === "");
+        
+        return next;
     };
     
     /**
