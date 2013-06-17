@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
@@ -68,7 +69,7 @@ define(function (require, exports, module) {
     var _$titleContainerToolbar = null;
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
-    
+
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             windowTitle = brackets.config.app_title;
@@ -497,15 +498,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves all unsaved documents.
-     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
-     *      after all operations completed if any ONE of them failed.
-     */
-    function handleFileSaveAll() {
-        return saveAll();
-    }
-    
-    /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
@@ -529,7 +521,128 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+
+     /**
+     * Opens the native OS save as dialog and saves document.
+     * The original document is reverted in case it was dirty.
+     * Text selection and cursor position from the original document
+     * are preserved in the new document.
+     * When saving to the original document the document is saved as if save was called.
+     * @param {Document} doc
+     * @param {Settings} properties of the original document's editor that need to be carried over to the new document
+     *      i.e. scrollPos, cursorPos and text selection
+     * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
+     */
+    function _doSaveAs(doc, settings) {
+        var fullPath,
+            saveAsDefaultPath,
+            defaultName,
+            result = new $.Deferred();
+        
+        function _doSaveAfterSaveDialog(path) {
+            
+            function _configureEditorAndResolve() {
+                var editor = EditorManager.getActiveEditor();
+                if (editor) {
+                    if (settings) {
+                        editor.setCursorPos(settings.cursorPos);
+                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+                    }
+                }
+                result.resolve();
+            }
+            
+            if (path === fullPath) {
+                return doSave(doc);
+            }
+            // now save new document
+            var newPath = PathUtils.parseUrl(path).directory;
+            // create empty file,  FileUtils.writeText will create content.
+            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
+                if (error) {
+                    result.reject(error);
+                } else {
+                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
+                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                            ProjectManager.refreshFileTree().done(function () {
+                                doRevert(doc).always(function () {
+                                    if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                                        FileViewController
+                                            .openAndSelectDocument(path,
+                                                              FileViewController.PROJECT_MANAGER)
+                                            .always(_configureEditorAndResolve);
+                                    } else { // Working set  has file selection focus
+                                        // replace original file in working set with new file
+                                        //  remove old file from working set.
+                                        DocumentManager.removeFromWorkingSet(doc.file);
+                                        //add new file to working set
+                                        FileViewController
+                                            .addToWorkingSetAndSelect(path,
+                                                            FileViewController.WORKING_SET_VIEW)
+                                            .always(_configureEditorAndResolve);
+                                    }
+                                });
+                            });
+                        });
+                    });
+                }
+            });
+        }
+                
+        // In the future we'll have to check wether the document is an unsaved
+        // untitled focument. If so, we should default to project root.
+        // If the there is no project, default to desktop.
+        if (doc) {
+            fullPath = doc.file.fullPath;
+            saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+            defaultName = PathUtils.parseUrl(fullPath).filename;
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
+                _doSaveAfterSaveDialog,
+                function (error) {
+                    result.reject(error);
+                });
+        } else {
+            result.reject();
+        }
+        return result.promise();
+    }
     
+    /**
+     * Prompts user with save as dialog and saves document.
+     * @return {$.Promise} a promise that is resolved once the save has been completed
+     */
+    function handleFileSaveAs(commandData) {
+        // Default to current document if doc is null
+        var doc = null,
+            activeEditor,
+            settings;
+        
+        if (commandData) {
+            doc = commandData.doc;
+        } else {
+            activeEditor = EditorManager.getActiveEditor();
+            doc = activeEditor.document;
+            settings = {};
+            settings.selection = activeEditor.getSelection();
+            settings.cursorPos = activeEditor.getCursorPos();
+            settings.scrollPos = activeEditor.getScrollPos();
+        }
+            
+        // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
+        // doc.
+        return _doSaveAs(doc, settings);
+  
+    }
+
+    /**
+     * Saves all unsaved documents.
+     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
+     *      after all operations completed if any ONE of them failed.
+     */
+    function handleFileSaveAll() {
+        return saveAll();
+    }
     
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
@@ -917,6 +1030,7 @@ define(function (require, exports, module) {
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
+        
     });
 
     // Register global commands
@@ -929,6 +1043,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
     CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
     

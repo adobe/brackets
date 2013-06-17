@@ -1383,7 +1383,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(preferences.getExcludedDirectories()).toBeNull();
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1400,7 +1400,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(preferences.getExcludedDirectories()).toBeNull();
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$|^ember.*\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1449,6 +1449,7 @@ define(function (require, exports, module) {
                     expect(excludedFiles.test("file4z.js")).toBeTruthy();
                     expect(excludedFiles.test("file4b.js")).toBeFalsy();
                     expect(excludedFiles.test("file4xyz.js")).toBeFalsy();
+                    expect(excludedFiles.test("xfile4.js")).toBeTruthy();
 
                     // test builtin exclusions are also present
                     expect(excludedFiles.test("require.js")).toBeTruthy();
