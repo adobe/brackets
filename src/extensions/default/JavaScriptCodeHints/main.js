@@ -633,7 +633,7 @@ define(function (require, exports, module) {
              * @param {number} start - the start of the selection
              * @param {number} end - the end of the selection
              */
-            function setJumpSelection(start, end) {
+            function setJumpSelection(start, end, isFunction) {
                 
                 /**
                  * helper function to decide if the tokens on the RHS of an assignment
@@ -653,29 +653,35 @@ define(function (require, exports, module) {
                 
                 // set the selection
                 session.editor.setSelection(start, end, true);
-                var cursor = session.getCursor(),
-                    prev = session._getPreviousToken(cursor),
-                    next,
-                    token,
-                    offset,
-                    madeNewRequest;
-
-                // see if the selection is preceded by a '.', indicating we're in a member expr
-                if (prev.string === ".") {
-                    cursor = session.getCursor();
-                    next = session.getNextToken(cursor, true);
-                    // check if the next token indicates an assignment
-                    if (next.string === "=") {
+                
+                var madeNewRequest = false;
+                
+                if (isFunction) {
+                    // When jumping to function defs, follow the chain back
+                    // to get to the original function def
+                    var cursor = session.getCursor(),
+                        prev = session._getPreviousToken(cursor),
+                        next,
+                        token,
+                        offset;
+    
+                    // see if the selection is preceded by a '.', indicating we're in a member expr
+                    if (prev.string === ".") {
+                        cursor = session.getCursor();
                         next = session.getNextToken(cursor, true);
-                        // find the last token of the identifier, or member expr
-                        while (validIdOrProp(next)) {
-                            offset = session.getOffsetFromCursor({line: cursor.line, ch: next.end});
-                            next = session.getNextToken(cursor, false);
-                        }
-                        if (offset) {
-                            // trigger another jump to def based on the offset of the RHS
-                            requestJumpToDef(session, offset);
-                            madeNewRequest = true;
+                        // check if the next token indicates an assignment
+                        if (next.string === "=") {
+                            next = session.getNextToken(cursor, true);
+                            // find the last token of the identifier, or member expr
+                            while (validIdOrProp(next)) {
+                                offset = session.getOffsetFromCursor({line: cursor.line, ch: next.end});
+                                next = session.getNextToken(cursor, false);
+                            }
+                            if (offset) {
+                                // trigger another jump to def based on the offset of the RHS
+                                requestJumpToDef(session, offset);
+                                madeNewRequest = true;
+                            }
                         }
                     }
                 }
@@ -698,11 +704,11 @@ define(function (require, exports, module) {
                         if (resolvedPath) {
                             CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                 .done(function () {
-                                    setJumpSelection(jumpResp.start, jumpResp.end);
+                                    setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
                                 });
                         }
                     } else {
-                        setJumpSelection(jumpResp.start, jumpResp.end);
+                        setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
                     }
                 } else {
                     result.reject();
