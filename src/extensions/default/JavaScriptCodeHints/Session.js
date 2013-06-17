@@ -208,6 +208,7 @@ define(function (require, exports, module) {
      * 
      * @param {{line: number, ch: number}} cursor - cursor position after
      *      which a token should be retrieved
+     * @param {boolean} skipWhitespace - true if this should skip over whitespace tokens 
      * @return {Object} - the CodeMirror token after the one at the given
      *      cursor position
      */

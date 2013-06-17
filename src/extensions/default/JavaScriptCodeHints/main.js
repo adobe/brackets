@@ -632,6 +632,7 @@ define(function (require, exports, module) {
              *
              * @param {number} start - the start of the selection
              * @param {number} end - the end of the selection
+             * @param {boolean} isFunction - true if we are jumping to the source of a function def
              */
             function setJumpSelection(start, end, isFunction) {
                 
