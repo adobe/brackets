@@ -291,13 +291,18 @@ define(function (require, exports, module) {
          * @param {{line:number, ch:number}} oldLocation - the original line/col
          * @param {Function} callback - the callback to apply once the editor has changed position
          */
-        function _waitForJump(oldLocation, callback) {
-            var cursor = null;
+        function _waitForJump(jumpPromise, callback) {
+            var cursor = null,
+                complete = false;
+            
+            jumpPromise.done(function () {
+                complete = true;
+            });
+            
             waitsFor(function () {
                 var activeEditor = EditorManager.getActiveEditor();
                 cursor = activeEditor.getCursorPos();
-                return (cursor.line !== oldLocation.line) ||
-                        (cursor.ch !== oldLocation.ch);
+                return complete;
             }, "Expected jump did not occur", 3000);
 
             runs(function () { callback(cursor); });
@@ -314,10 +319,10 @@ define(function (require, exports, module) {
         function editorJumped(expectedLocation) {
             var oldLocation = testEditor.getCursorPos();
             
-            JSCodeHints.handleJumpToDefinition();
+            var jumpPromise = JSCodeHints.handleJumpToDefinition();
             
             
-            _waitForJump(oldLocation, function (newCursor) {
+            _waitForJump(jumpPromise, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);
                 expect(newCursor.ch).toBe(expectedLocation.ch);
                 if (expectedLocation.file) {
@@ -739,7 +744,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["a", "b", "j"]);
+                    hintsPresentExact(hintObj, ["a", "b", "c", "j"]);
                 });
             });
 
@@ -998,7 +1003,7 @@ define(function (require, exports, module) {
                     editorJumped({line: 4, ch: 13, file: "MyModule.js"}); //jump to another file
                 });
             });
-            
+
             it("should jump to the method definition in .prototype", function () {
                 var start = { line: 59, ch: 8 };
                 
@@ -1035,6 +1040,15 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should jump to the actual function definition, and not the exports line", function () {
+                var start = { line: 159, ch: 22 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 11, ch: 14, file: "MyModule.js"}); //jump to another file
+                });
+            });
+            
             it("should not hint function, variable, or param decls", function () {
                 var func = { line: 7, ch: 12 },
                     param = { line: 7, ch: 18 },
