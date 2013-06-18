@@ -456,6 +456,49 @@ define(function (require, exports, module) {
             });
         }
     }
+    
+    /**
+     * @private
+     * Reopens a set of nodes in the tree by ID.
+     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
+     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
+     *     be sorted by depth within the tree.
+     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
+     *     reopened.
+     */
+    function _reopenNodes(nodesByDepth, resultDeferred) {
+        if (nodesByDepth.length === 0) {
+            // resolve after all paths are opened and fully rendered
+            _whenRenderedResolve(resultDeferred);
+        } else {
+            var toOpenPaths = nodesByDepth.shift(),
+                toOpenIds   = [],
+                node        = null;
+
+            // use path to lookup ID
+            toOpenPaths.forEach(function (value, index) {
+                node = _projectInitialLoad.fullPathToIdMap[value];
+                
+                if (node) {
+                    toOpenIds.push(node);
+                }
+            });
+            
+            Async.doInParallel(
+                toOpenIds,
+                function (id) {
+                    var result = new $.Deferred();
+                    _projectTree.jstree("open_node", "#" + id, function () {
+                        result.resolve();
+                    }, true);
+                    return result.promise();
+                },
+                false
+            ).always(function () {
+                _reopenNodes(nodesByDepth, resultDeferred);
+            });
+        }
+    }
 
     /**
      * @private
@@ -544,31 +587,12 @@ define(function (require, exports, module) {
             ).bind(
                 "reopen.jstree",
                 function (event, data) {
-                    // This handler fires for the initial load and subsequent
-                    // reload_nodes events. For each depth level of the tree, we open
-                    // the saved nodes by a fullPath lookup.
-                    if (_projectInitialLoad.previous.length > 0) {
-                        // load previously open nodes by increasing depth
-                        var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [],
-                            node        = null;
-        
-                        // use path to lookup ID
-                        toOpenPaths.forEach(function (value, index) {
-                            node = _projectInitialLoad.fullPathToIdMap[value];
-                            
-                            if (node) {
-                                toOpenIds.push(node);
-                            }
-                        });
-        
-                        // specify nodes to open and load
-                        data.inst.data.core.to_open = toOpenIds;
-                        _projectTree.jstree("reload_nodes", false);
-                    }
-                    if (_projectInitialLoad.previous.length === 0) {
-                        // resolve after all paths are opened and fully rendered
-                        _whenRenderedResolve(result);
+                    if (_projectInitialLoad.previous) {
+                        // Start reopening nodes that were previously open, starting
+                        // with the first recorded depth level. As each level completes,
+                        // it will trigger the next level to finish.
+                        _reopenNodes(_projectInitialLoad.previous, result);
+                        _projectInitialLoad.previous = null;
                     }
                 }
             ).bind(
