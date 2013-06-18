@@ -423,17 +423,24 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
+    
+    /**
+     * Sets the language of this document to the given language.
+     * @param {!Language} language The language to be set for this document
+     */
+    Document.prototype.setLanguage = function (language) {
+        var oldLanguage = this.language;
+        this.language = language;
+        if (oldLanguage && oldLanguage !== this.language) {
+            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        }
+    };
 
     /**
      * Updates the language according to the file extension
      */
     Document.prototype._updateLanguage = function () {
-        var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
-        
-        if (oldLanguage && oldLanguage !== this.language) {
-            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
-        }
+        this.setLanguage(LanguageManager.getLanguageForPath(this.file.fullPath));
     };
     
     /** Called when Document.file has been modified (due to a rename) */

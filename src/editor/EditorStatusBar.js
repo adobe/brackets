@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Mustache */
 
 /**
  * Manages parts of the status bar related to the current editor's state.
@@ -32,13 +32,18 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        EditorManager       = require("editor/EditorManager"),
-        Editor              = require("editor/Editor").Editor,
-        KeyEvent            = require("utils/KeyEvent"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var AppInit                      = require("utils/AppInit"),
+        CollectionUtils              = require("utils/CollectionUtils"),
+        DefaultDialogs               = require("widgets/DefaultDialogs"),
+        Dialogs                      = require("widgets/Dialogs"),
+        EditorManager                = require("editor/EditorManager"),
+        Editor                       = require("editor/Editor").Editor,
+        KeyEvent                     = require("utils/KeyEvent"),
+        LanguageManager              = require("language/LanguageManager"),
+        StatusBar                    = require("widgets/StatusBar"),
+        Strings                      = require("strings"),
+        StringUtils                  = require("utils/StringUtils"),
+        SwitchLanguageDialogTemplate = require("text!htmlContent/switch-language-dialog.html");
     
     /* StatusBar indicators */
     var $languageInfo,
@@ -147,6 +152,48 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Open a dialog allowing user to switch the language mode for the current
+     * document.
+     * Currently this is only triggered when the language name in the status
+     * bar is clicked, but it could easily become a menu option in the future.
+     * @param {!Editor} editor The editor for which to switch the language
+     */
+    function _handleSwitchLanguage(editor) {
+        var languages = [],
+            selectedLanguage = editor.document.getLanguage().getId(),
+            template;
+        // populate list of languages
+        CollectionUtils.forEach(LanguageManager.getLanguages(),
+            function (lang) {
+                languages.push({
+                    label: lang.getName(),
+                    language: lang.getId()
+                });
+            });
+        // sort list alphabetically (ignoring case)
+        languages = languages.sort(function (a, b) {
+            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+        });
+        // render switch-language-dialog.html using the languages list
+        template = Mustache.render(SwitchLanguageDialogTemplate, // TODO: add file name to dialog title
+            $.extend({languages: languages}, Strings));
+        // show the dialog and set the handler for OK button
+        Dialogs.showModalDialogUsingTemplate(template)
+            .done(function (btnId) {
+                if (btnId === Dialogs.DIALOG_BTN_OK) {
+                    editor.document.setLanguage(
+                        LanguageManager.getLanguage(selectedLanguage)
+                    ); // TODO: persist the language setting?
+                }
+            });
+        // set initial value and change handler for select box
+        $(".switch-language-dialog select").val(selectedLanguage)
+            .on("change", function () {
+                selectedLanguage = $(this).val();
+            });
+    }
+    
     function _init() {
         $languageInfo       = $("#status-language");
         $cursorInfo         = $("#status-cursor");
@@ -180,7 +227,12 @@ define(function (require, exports, module) {
             });
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
+        
+        // when language name clicked, open switch language dialog
+        $languageInfo.on("click", function () {
+            _handleSwitchLanguage(EditorManager.getActiveEditor());
+        });
+        
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 

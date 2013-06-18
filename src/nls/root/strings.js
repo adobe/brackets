@@ -393,6 +393,9 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
+    "SWITCH_LANGUAGE_TITLE"                     : "Switch Language",
+    "SWITCH_LANGUAGE_MESSAGE"                   : "Language:",
+    
     /**
      * Locales
      */
