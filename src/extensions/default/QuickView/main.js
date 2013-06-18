@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                 } else {
                     // If it was a linear-gradient or radial-gradient variant, prefix with
                     // "-webkit-" so it shows up correctly in Brackets.
-                    if (gradientMatch[0].match(/-o-|-moz-|-ms-|-webkit-/i) || gradientMatch[0].indexOf("to ") === -1) {
+                    if (!gradientMatch[0].match(/to|circle|ellipse/i) && gradientMatch[0].match(/-o-|-moz-|-ms-|-webkit-/i)) {
                         prefix = "-webkit-";
                     }
                     
