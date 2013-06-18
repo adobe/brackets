@@ -56,7 +56,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
-	"INVALID_FILENAME_MESSAGE": "[6307152] !é=Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.=!",
+	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
@@ -113,6 +113,7 @@ define({
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
+	"SAVE_FILE_AS": "Enregistrer le fichier",
 	"CHOOSE_FOLDER": "Choisir un dossier",
 
 	"RELEASE_NOTES": "Notes de mise à jour",
@@ -176,6 +177,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
+	"CMD_FILE_SAVE_AS": "[7022287] !é=Save As\u2026=!",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",

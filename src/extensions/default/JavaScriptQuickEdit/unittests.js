@@ -265,9 +265,205 @@ define(function (require, exports, module) {
                     expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[2]);
                 });
             });
+
+            describe("Code hints tests within quick edit window ", function () {
+                var JSCodeHints;
+
+                /*
+                 * Ask provider for hints at current cursor position; expect it to
+                 * return some
+                 *
+                 * @param {Object} provider - a CodeHintProvider object
+                 * @param {string} key - the charCode of a key press that triggers the
+                 *      CodeHint provider
+                 * @return {boolean} - whether the provider has hints in the context of
+                 *      the test editor
+                 */
+                function expectHints(provider, key) {
+                    if (key === undefined) {
+                        key = null;
+                    }
+
+                    expect(provider.hasHints(EditorManager.getActiveEditor(), key)).toBe(true);
+                    return provider.getHints(null);
+                }
+
+                /*
+                 * Wait for a hint response object to resolve, then apply a callback
+                 * to the result
+                 *
+                 * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+                 *      possibly deferred
+                 * @param {Function} callback - the callback to apply to the resolved
+                 *      hint response object
+                 */
+                function _waitForHints(hintObj, callback) {
+                    var complete = false,
+                        hintList = null;
+
+                    if (hintObj.hasOwnProperty("hints")) {
+                        complete = true;
+                        hintList = hintObj.hints;
+                    } else {
+                        hintObj.done(function (obj) {
+                            complete = true;
+                            hintList = obj.hints;
+                        });
+                    }
+
+                    waitsFor(function () {
+                        return complete;
+                    }, "Expected hints did not resolve", 3000);
+
+                    runs(function () { callback(hintList); });
+                }
+
+                /*
+                 * Expect a given list of hints to be present in a given hint
+                 * response object, and no more.
+                 *
+                 * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+                 *      possibly deferred
+                 * @param {Array.<string>} expectedHints - a list of hints that should be
+                 *      present in the hint response, and no more.
+                 */
+                function hintsPresentExact(hintObj, expectedHints) {
+                    _waitForHints(hintObj, function (hintList) {
+                        expect(hintList).not.toBeNull();
+                        expect(hintList.length).toBe(expectedHints.length);
+                        expectedHints.forEach(function (expectedHint, index) {
+                            expect(hintList[index].data("token").value).toBe(expectedHint);
+                        });
+                    });
+                }
+
+                /**
+                 * Wait for the editor to change positions, such as after a jump to
+                 * definition has been triggered.  Will timeout after 3 seconds
+                 *
+                 * @param {{line:number, ch:number}} oldLocation - the original line/col
+                 * @param {Function} callback - the callback to apply once the editor has changed position
+                 */
+                function _waitForJump(oldLocation, callback) {
+                    var cursor = null;
+                    waitsFor(function () {
+                        var activeEditor = EditorManager.getActiveEditor();
+                        cursor = activeEditor.getCursorPos();
+                        return (cursor.line !== oldLocation.line) ||
+                            (cursor.ch !== oldLocation.ch);
+                    }, "Expected jump did not occur", 3000);
+
+                    runs(function () { callback(cursor); });
+                }
+
+                /**
+                 * Trigger a jump to definition, and verify that the editor jumped to
+                 * the expected location.
+                 *
+                 * @param {{line:number, ch:number, file:string}} expectedLocation - the
+                 *  line, column, and optionally the new file the editor should jump to.  If the
+                 *  editor is expected to stay in the same file, then file may be omitted.
+                 */
+                function editorJumped(jsCodeHints, testEditor, expectedLocation) {
+                    var oldLocation = testEditor.getCursorPos();
+
+                    jsCodeHints.handleJumpToDefinition();
+
+
+                    _waitForJump(oldLocation, function (newCursor) {
+                        expect(newCursor.line).toBe(expectedLocation.line);
+                        expect(newCursor.ch).toBe(expectedLocation.ch);
+                        if (expectedLocation.file) {
+                            var activeEditor = EditorManager.getActiveEditor();
+                            expect(activeEditor.document.file.name).toBe(expectedLocation.file);
+                        }
+                    });
+                }
+
+                function initJSCodeHints() {
+                    var extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").
+                                getRequireContextForExtension("JavaScriptCodeHints");
+                    JSCodeHints = extensionRequire("main");
+                }
+
+
+                it("should see code hint lists in quick editor", function () {
+                    var start        = {line: 13, ch: 11 },
+                        testPos      = {line: 5, ch: 29},
+                        testEditor;
+
+                    initInlineTest("test.html");
+                    initJSCodeHints();
+
+                    runs(function () {
+                        var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
+                        waitsForDone(openQuickEditor, "Open quick editor");
+                    });
+
+                    runs(function () {
+                        testEditor = EditorManager.getActiveEditor();
+                        testEditor.setCursorPos(testPos);
+                        var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                        hintsPresentExact(hintObj, ["getMonthName(mo: number) -> string"]);
+
+                    });
+                });
+
+                it("should see jump to definition on variable working in quick editor", function () {
+                    var start        = {line: 13, ch: 10 },
+                        testPos      = {line: 6, ch: 7},
+                        testJumpPos  = {line: 6, ch: 5},
+                        jumpPos      = {line: 3, ch: 6},
+                        testEditor;
+
+                    initInlineTest("test.html");
+                    initJSCodeHints();
+
+                    runs(function () {
+                        var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
+                        waitsForDone(openQuickEditor, "Open quick editor");
+                    });
+
+                    runs(function () {
+                        testEditor = EditorManager.getActiveEditor();
+                        testEditor.setCursorPos(testPos);
+                        var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                        hintsPresentExact(hintObj, ["propA"]);
+                    });
+
+                    runs(function () {
+                        testEditor = EditorManager.getActiveEditor();
+                        testEditor.setCursorPos(testJumpPos);
+                        editorJumped(JSCodeHints, testEditor, jumpPos);
+                    });
+                });
+
+                // FIXME (issue #3951): jump to method inside quick editor doesn't jump
+                xit("should see jump to definition on method working in quick editor", function () {
+                    var start        = {line: 13, ch: 13 },
+                        testPos      = {line: 5,  ch: 25},
+                        jumpPos      = {line: 9, ch: 21},
+                        testEditor;
+
+                    initInlineTest("test.html");
+                    initJSCodeHints();
+
+                    runs(function () {
+                        var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
+                        waitsForDone(openQuickEditor, "Open quick editor");
+                    });
+
+                    runs(function () {
+                        testEditor = EditorManager.getActiveEditor();
+                        testEditor.setCursorPos(testPos);
+                        editorJumped(jumpPos);
+                    });
+
+                });
+
+            });
         });
-        
-       
+
         describe("Performance suite", function () {
             
             this.category = "performance";
@@ -361,7 +557,6 @@ define(function (require, exports, module) {
                     runs(logPerf);
                 }
             });
-            
         });
     });
 });
