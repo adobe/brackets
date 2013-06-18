@@ -177,7 +177,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
-	"CMD_FILE_SAVE_AS": "[7022287] !é=Save As\u2026=!",
+	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
@@ -264,7 +264,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
-	"CMD_BEFORE_MENUPOPUP": "[7018403] !é=Before Menu Popup=!",
+	"CMD_BEFORE_MENUPOPUP": "Fenêtre avant le menu",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
