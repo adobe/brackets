@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
         Async            = require("utils/Async"),
+        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils");
 
     /**
@@ -52,6 +53,7 @@ define(function (require, exports, module) {
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
         this._idsToRemove = {};
+        this._idsToUpdate = {};
         
         // Listen for extension status changes.
         $(ExtensionManager).on("statusChange", this._handleStatusChange);
@@ -91,7 +93,7 @@ define(function (require, exports, module) {
      * @type {Object}
      * The list of all ids from the extension list, sorted with the current sort.
      */
-    ExtensionManagerViewModel.prototype._sortedFullSet = null;
+    ExtensionManagerViewModel.prototype.sortedFullSet = null;
     
     /**
      * @private
@@ -108,10 +110,30 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._idsToRemove = null;
         
     /**
+     * @private
+     * @type {Object.<string, boolean>}
+     * Map of extensions marked for update when the view is closed.
+     */
+    ExtensionManagerViewModel.prototype._idsToUpdate = null;
+        
+    /**
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
         $(ExtensionManager).off("statusChange", this._handleStatusChange);
+    };
+    
+    /**
+     * Deletes any temporary files left behind by extensions that
+     * were marked for update.
+     */
+    ExtensionManagerViewModel.prototype.cleanupUpdates = function () {
+        Object.keys(this._idsToUpdate).forEach(function (id) {
+            var filename = this._idsToUpdate[id].localPath;
+            if (filename) {
+                brackets.fs.unlink(filename, function () { });
+            }
+        }.bind(this));
     };
 
     /**
@@ -120,7 +142,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype._setInitialFilter = function () {
         // Initial filtered list is the same as the sorted list.
-        this.filterSet = this._sortedFullSet.slice(0);
+        this.filterSet = this.sortedFullSet.slice(0);
         $(this).triggerHandler("filter");
     };
     
@@ -136,7 +158,7 @@ define(function (require, exports, module) {
                 self.extensions = ExtensionManager.extensions;
                 
                 // Sort the registry by last published date and store the sorted list of IDs.
-                self._sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
+                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
                     .filter(function (entry) {
                         return entry.registryInfo !== undefined;
                     })
@@ -157,7 +179,7 @@ define(function (require, exports, module) {
         // Currently, we never need to re-sort the registry view since it's always sorted when we
         // grab it, and items are never added to the view. That might change in the future.
         if (this.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
-            this._sortedFullSet = this._sortedFullSet.sort(function (key1, key2) {
+            this.sortedFullSet = this.sortedFullSet.sort(function (key1, key2) {
                 var metadata1 = self.extensions[key1].installInfo.metadata,
                     metadata2 = self.extensions[key2].installInfo.metadata,
                     id1 = (metadata1.title || metadata1.name).toLowerCase(),
@@ -181,7 +203,7 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
         var self = this;
         this.extensions = ExtensionManager.extensions;
-        this._sortedFullSet = Object.keys(this.extensions)
+        this.sortedFullSet = Object.keys(this.extensions)
             .filter(function (key) {
                 return self.extensions[key].installInfo &&
                     self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
@@ -214,15 +236,15 @@ define(function (require, exports, module) {
         // remove this extension from the full set. If the full set has changed,
         // then we also need to refilter.
         if (this.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
-            var index = this._sortedFullSet.indexOf(id),
+            var index = this.sortedFullSet.indexOf(id),
                 refilter = false;
             if (index !== -1 && !this.extensions[id].installInfo) {
                 // This was in our set, but was uninstalled. Remove it.
-                this._sortedFullSet.splice(index, 1);
+                this.sortedFullSet.splice(index, 1);
                 refilter = true;
             } else if (index === -1 && this.extensions[id].installInfo) {
                 // This was not in our set, but is now installed. Add it and resort.
-                this._sortedFullSet.push(id);
+                this.sortedFullSet.push(id);
                 this._sortFullSet();
                 refilter = true;
             }
@@ -249,7 +271,7 @@ define(function (require, exports, module) {
             initialList = this.filterSet;
         } else {
             // This is a new query, so start with the full list.
-            initialList = this._sortedFullSet;
+            initialList = this.sortedFullSet;
         }
         
         query = query.toLowerCase();
@@ -330,6 +352,60 @@ define(function (require, exports, module) {
     };
     
     /**
+     * If a downloaded package appears to be an update, mark the extension for update.
+     * If an extension was previously marked for removal, marking for update will
+     * turn off the removal mark.
+     * @param {Object} installationResult info about the install provided by the Package.download function
+     */
+    ExtensionManagerViewModel.prototype.updateFromDownload = function (installationResult) {
+        var installationStatus = installationResult.installationStatus;
+        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
+                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
+                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
+            var id = installationResult.name;
+            delete this._idsToRemove[id];
+            this._idsToUpdate[id] = installationResult;
+            $(this).triggerHandler("change", [id]);
+        }
+    };
+    
+    /**
+     * Removes the mark for an extension to be updated on restart. Also deletes the
+     * downloaded package file.
+     * @param {string} id The id of the extension for which the update is being removed
+     */
+    ExtensionManagerViewModel.prototype.removeUpdate = function (id) {
+        var installationResult = this._idsToUpdate[id];
+        if (!installationResult) {
+            return;
+        }
+        if (installationResult.localPath) {
+            brackets.fs.unlink(installationResult.localPath, function () {
+            });
+        }
+        delete this._idsToUpdate[id];
+        $(this).triggerHandler("change", [id]);
+    };
+    
+    /**
+     * Returns true if an extension is marked for update.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for update, false otherwise.
+     */
+    ExtensionManagerViewModel.prototype.isMarkedForUpdate = function (id) {
+        return !!(this._idsToUpdate[id]);
+    };
+    
+    /**
+     * Returns true if there are any extensions marked for update.
+     * @return {boolean} true if there are extensions to update
+     */
+    ExtensionManagerViewModel.prototype.hasExtensionsToUpdate = function () {
+        return Object.keys(this._idsToUpdate).length > 0;
+    };
+    
+    /**
      * Removes extensions previously marked for removal.
      * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
      *     if one or more extensions can't be removed. When rejected, the argument will be an
@@ -345,5 +421,23 @@ define(function (require, exports, module) {
         );
     };
     
+    /**
+     * Updates extensions previously marked for update.
+     * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
+     *     if one or more extensions can't be updated. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    ExtensionManagerViewModel.prototype.updateExtensions = function () {
+        var self = this;
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(self._idsToUpdate),
+            function (id) {
+                var installationResult = self._idsToUpdate[id];
+                return ExtensionManager.update(installationResult.name, installationResult.localPath);
+            }
+        );
+    };
+
     exports.ExtensionManagerViewModel = ExtensionManagerViewModel;
 });

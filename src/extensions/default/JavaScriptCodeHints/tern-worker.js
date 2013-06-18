@@ -185,15 +185,26 @@ importScripts("thirdparty/requirejs/require.js");
                         self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                         return;
                     }
-                    
-                    // Post a message back to the main thread with the definition
-                    self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG,
-                                      file: fileInfo.name,
-                                      resultFile: data.file,
-                                      offset: offset,
-                                      start: data.start,
-                                      end: data.end
-                                     });
+                    var isFunc = false,
+                        response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                                          file: fileInfo.name,
+                                          resultFile: data.file,
+                                          offset: offset,
+                                          start: data.start,
+                                          end: data.end
+                                         };
+
+                    request = buildRequest(fileInfo, "type", offset);
+                    // See if we can tell if the reference is to a Function type
+                    ternServer.request(request, function (error, data) {
+                        if (!error) {
+                            response.isFunction = data.type.length > 2 && data.type.substring(0, 2) === "fn";
+                        }
+                        
+                        // Post a message back to the main thread with the definition
+                        self.postMessage(response);
+                    });
+
                 });
             }
         

@@ -60,9 +60,18 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguage(expected.id)).toBe(actual);
             }
             
+            var i = 0,
+                expectedFileExtensions = expected.fileExtensions || [],
+                expectedFileExtensionsLength = expectedFileExtensions.length,
+                actualFileExtensions = actual.getFileExtensions();
+            
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            
+            for (i; i < expectedFileExtensionsLength; i++) {
+                expect(actualFileExtensions).toContain(expectedFileExtensions[i]);
+            }
+            
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
@@ -99,7 +108,7 @@ define(function (require, exports, module) {
                     "id": "html",
                     "name": "HTML",
                     "mode": ["htmlmixed", "text/x-brackets-html"],
-                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "ejs", "jsp"],
+                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml"],
                     "blockComment": {prefix: "<!--", suffix: "-->"}
                 };
                 

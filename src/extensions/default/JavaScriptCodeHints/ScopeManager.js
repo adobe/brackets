@@ -43,30 +43,24 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         HintUtils           = require("HintUtils"),
-        MessageIds          = require("MessageIds");
+        MessageIds          = require("MessageIds"),
+        Preferences         = require("Preferences");
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        builtinFiles       = ["ecma5.json", "browser.json", "jquery.json"],
+        builtinFiles        = ["ecma5.json", "browser.json", "jquery.json"],
         builtinLibraryNames = [],
-        // exclude require and jquery since we have special knowledge of those
-        // temporarily exclude less*min.js because it is causing instability in tern.
-        // exclude ember*.js as it is currently causing problems
-        excludedFilesRegEx  = /require\.js$|jquery[\w.\-]*\.js$|less[\w.\-]*\.min\.js$|ember[\w.\-]*\.js$/,
         isDocumentDirty     = false,
         _hintCount          = 0,
-        _lastPrimePump      = false,
         currentWorker       = null,
-        documentChanges     = null;     // bounds of document changes
+        documentChanges     = null,     // bounds of document changes
+        preferences         = null,
+        deferredPreferences = null;
 
-    var MAX_TEXT_LENGTH      = 512 * 1024,
-        MAX_FILES_IN_DIR     = 100,
-        MAX_FILES_IN_PROJECT = 100,
-        // how often to reset the tern server
-        MAX_HINTS           = 30,
-        LARGE_LINE_CHANGE    = 100,
-        LARGE_LINE_COUNT     = 250,
-        OFFSET_ZERO          = {line: 0, ch: 0};
+    var MAX_HINTS           = 30,  // how often to reset the tern server
+        LARGE_LINE_CHANGE   = 100,
+        LARGE_LINE_COUNT    = 250,
+        OFFSET_ZERO         = {line: 0, ch: 0};
 
     /**
      *  An array of library names that contain JavaScript builtins definitions.
@@ -101,7 +95,70 @@ define(function (require, exports, module) {
     }
 
     initTernEnv();
-    
+
+    /**
+     *  Init preferences from a file in the project root or builtin
+     *  defaults if no file is found;
+     *
+     *  @param {string=} projectRootPath - new project root path. Only needed
+     *  for unit tests.
+     */
+    function initPreferences(projectRootPath) {
+
+        // Reject the old preferences if they have not completed.
+        if (deferredPreferences && deferredPreferences.state() === "pending") {
+            deferredPreferences.reject();
+        }
+
+        deferredPreferences = $.Deferred();
+        var pr = ProjectManager.getProjectRoot();
+
+        // Open preferences relative to the project root
+        // Normally there is a project root, but for unit tests we need to
+        // pass in a project root.
+        if (pr) {
+            projectRootPath = pr.fullPath;
+        } else if (!projectRootPath) {
+            console.log("initPreferences: projectRootPath has no value");
+        }
+
+        var path = projectRootPath + Preferences.FILE_NAME;
+
+        NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
+            FileUtils.readAsText(fileEntry).done(function (text) {
+                var configObj = null;
+                try {
+                    configObj = JSON.parse(text);
+                } catch (e) {
+                    // continue with null configObj which will result in
+                    // default settings.
+                    console.log("Error parsing preference file: " + path);
+                    if (e instanceof SyntaxError) {
+                        console.log(e.message);
+                    }
+                }
+                preferences = new Preferences(configObj);
+                deferredPreferences.resolve();
+            }).fail(function (error) {
+                preferences = new Preferences();
+                deferredPreferences.resolve();
+            });
+        }, function (error) {
+            preferences = new Preferences();
+            deferredPreferences.resolve();
+        });
+    }
+
+    /**
+     * Will initialize preferences only if they do not exist.
+     *
+     */
+    function ensurePreferences() {
+        if (!deferredPreferences) {
+            initPreferences();
+        }
+    }
+
     /**
      * Send a message to the tern worker - if the worker is being initialized,
      * the message will not be posted until initialization is complete
@@ -132,7 +189,7 @@ define(function (require, exports, module) {
             var reader = dirEntry.createReader();
 
             reader.readEntries(function (entries) {
-                entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
+                entries.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
                         file    = split.file;
@@ -168,6 +225,43 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test if the directory should be excluded from analysis.
+     *
+     * @param {!string} path - full directory path.
+     * @returns {boolean} true if excluded, false otherwise.
+     */
+    function isDirectoryExcluded(path) {
+        var excludes = preferences.getExcludedDirectories();
+
+        if (!excludes) {
+            return false;
+        }
+
+        var testPath = ProjectManager.makeProjectRelativeIfPossible(path);
+        testPath = FileUtils.canonicalizeFolderPath(testPath);
+
+        return excludes.test(testPath);
+    }
+
+    /**
+     * Test if the file should be excluded from analysis.
+     *
+     * @param {!string} path - full directory path.
+     * @returns {boolean} true if excluded, false otherwise.
+     */
+    function isFileExcluded(path) {
+        var excludes = preferences.getExcludedFiles();
+
+        if (!excludes) {
+            return false;
+        }
+
+        var file = HintUtils.splitPath(path).file;
+
+        return excludes.test(file);
+    }
+
+    /**
      *  Get a list of javascript files in a given directory.
      *
      * @param {string} dir - directory to list the files of.
@@ -192,7 +286,7 @@ define(function (require, exports, module) {
          * @param path - full path of file.
          */
         function fileCallback(path) {
-            if (!excludedFilesRegEx.test(path)) {
+            if (!isFileExcluded(path)) {
                 files.push(path);
             }
         }
@@ -286,7 +380,7 @@ define(function (require, exports, module) {
      */
     function filterText(text) {
         var newText = text;
-        if (text.length > MAX_TEXT_LENGTH) {
+        if (text.length > preferences.getMaxFileSize()) {
             newText = "";
         }
         return newText;
@@ -296,6 +390,7 @@ define(function (require, exports, module) {
      * Get the text of a document, applying any size restrictions
      * if necessary
      * @param {Document} document - the document to get the text from
+     * @return {string} the text, or the empty text if the original was too long
      */
     function getTextFromDocument(document) {
         var text = document.getText();
@@ -413,12 +508,14 @@ define(function (require, exports, module) {
             document  = session.editor.document,
             p,
             min,
-            indent;
+            indent,
+            line;
 
         // expand range backwards
-        for (p = start.line - 1, min = Math.max(0, p - 50); p >= min; --p) {
-            var line = session.getLine(p),
-                fn = line.search(/\bfunction\b/);
+        for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
+            line = session.getLine(p);
+            var fn = line.search(/\bfunction\b/);
+            
             if (fn >= 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
                 if (minIndent === null || minIndent > indent) {
@@ -438,16 +535,23 @@ define(function (require, exports, module) {
             minLine = min;
         }
 
-        var max = Math.min(cm.lastLine(), start.line + 90);
+        var max = Math.min(cm.lastLine(), start.line + 100),
+            endCh = 0;
+
         for (endLine = start.line + 1; endLine < max; ++endLine) {
-            indent = CodeMirror.countColumn(cm.getLine(endLine), null, tabSize);
-            if (indent <= minIndent) {
-                break;
+            line = cm.getLine(endLine);
+
+            if (line.length > 0) {
+                indent = CodeMirror.countColumn(line, null, tabSize);
+                if (indent <= minIndent) {
+                    endCh = line.length;
+                    break;
+                }
             }
         }
 
         var from = {line: minLine, ch: 0},
-            to   = {line: endLine, ch: 0};
+            to   = {line: endLine, ch: endCh};
 
         return {type: MessageIds.TERN_FILE_INFO_TYPE_PART,
             name: document.file.fullPath,
@@ -812,8 +916,9 @@ define(function (require, exports, module) {
          */
         function addFilesToTern(files) {
             // limit the number of files added to tern.
-            if (numResolvedFiles + numAddedFiles < MAX_FILES_IN_PROJECT) {
-                var available = MAX_FILES_IN_PROJECT - numResolvedFiles - numAddedFiles;
+            var maxFileCount = preferences.getMaxFileCount();
+            if (numResolvedFiles + numAddedFiles < maxFileCount) {
+                var available = maxFileCount - numResolvedFiles - numAddedFiles;
     
                 if (available < files.length) {
                     files = files.slice(0, available);
@@ -888,7 +993,7 @@ define(function (require, exports, module) {
                  * @param path - full path of file.
                  */
                 function fileCallback(path) {
-                    if (!excludedFilesRegEx.test(path)) {
+                    if (!isFileExcluded(path)) {
                         files.push(path);
                     }
                 }
@@ -899,7 +1004,8 @@ define(function (require, exports, module) {
                  * @param path
                  */
                 function directoryCallback(path) {
-                    if (path !== rootTernDir) {
+                    if (!isDirectoryExcluded(path) &&
+                            path !== rootTernDir) {
                         dirs.push(path);
                     }
                 }
@@ -996,9 +1102,8 @@ define(function (require, exports, module) {
          * @param {Session} session - the active hinting session
          * @param {Document} document - the document the editor has changed to
          * @param {Document} previousDocument - the document the editor has changed from
-         * @param {boolean} shouldPrimePump - true if the pump should be primed.
          */
-        function doEditorChange(session, document, previousDocument, shouldPrimePump) {
+        function doEditorChange(session, document, previousDocument) {
             var path        = document.file.fullPath,
                 split       = HintUtils.splitPath(path),
                 dir         = split.dir,
@@ -1008,9 +1113,7 @@ define(function (require, exports, module) {
     
             var addFilesDeferred = $.Deferred();
     
-            _lastPrimePump = shouldPrimePump;
             documentChanges = null;
-
             addFilesPromise = addFilesDeferred.promise();
             pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
     
@@ -1034,12 +1137,13 @@ define(function (require, exports, module) {
     
             isDocumentDirty = false;
             resolvedFiles = {};
-    
             projectRoot = pr;
-            getFilesInDirectory(dir, function (files) {
-                initTernServer(dir, files);
-    
-                if (shouldPrimePump) {
+
+            ensurePreferences();
+            deferredPreferences.done(function () {
+                getFilesInDirectory(dir, function (files) {
+                    initTernServer(dir, files);
+
                     var hintsPromise = primePump(path);
                     hintsPromise.done(function () {
                         if (!usingModules()) {
@@ -1056,7 +1160,7 @@ define(function (require, exports, module) {
                                         // prime the pump again but this time don't wait
                                         // for completion.
                                         primePump(path);
-    
+
                                         addFilesDeferred.resolveWith(null, [_ternWorker]);
                                     });
                                 } else {
@@ -1067,13 +1171,10 @@ define(function (require, exports, module) {
                             addFilesDeferred.resolveWith(null, [_ternWorker]);
                         }
                     });
-                } else {
-                    addFilesDeferred.resolveWith(null, [_ternWorker]);
-                }
-    
-            }, function () {
-                addFilesDeferred.resolveWith(null);
-            });
+                }, function () {
+                    addFilesDeferred.resolveWith(null);
+                });
+            }).fail(function () {});
         }
 
         /**
@@ -1082,14 +1183,13 @@ define(function (require, exports, module) {
          * @param {Session} session - the active hinting session
          * @param {Document} document - the document of the editor that has changed
          * @param {Document} previousDocument - the document of the editor is changing from
-         * @param {boolean} shouldPrimePump - true if the pump should be primed.
          */
-        function handleEditorChange(session, document, previousDocument, shouldPrimePump) {
+        function handleEditorChange(session, document, previousDocument) {
             if (addFilesPromise === null) {
-                doEditorChange(session, document, previousDocument, shouldPrimePump);
+                doEditorChange(session, document, previousDocument);
             } else {
                 addFilesPromise.done(function () {
-                    doEditorChange(session, document, previousDocument, shouldPrimePump);
+                    doEditorChange(session, document, previousDocument);
                 });
             }
         }
@@ -1154,7 +1254,7 @@ define(function (require, exports, module) {
             if (++_hintCount > MAX_HINTS) {
                 reseting = true;
                 newWorker = new TernWorker();
-                newWorker.handleEditorChange(session, document, null, _lastPrimePump);
+                newWorker.handleEditorChange(session, document, null);
                 newWorker.whenReady(function () {
                     // tell the old worker to shut down
                     currentWorker.closeWorker();
@@ -1267,14 +1367,13 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {Document} previousDocument - the document of the editor is changing from
-     * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleEditorChange(session, document, previousDocument, shouldPrimePump) {
+    function handleEditorChange(session, document, previousDocument) {
 
         if (!currentWorker) {
             currentWorker = new TernWorker();
         }
-        return currentWorker.handleEditorChange(session, document, previousDocument, shouldPrimePump);
+        return currentWorker.handleEditorChange(session, document, previousDocument);
     }
 
     /**
@@ -1290,6 +1389,17 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     *  Read in project preferences when a new project is opened.
+     *  Look in the project root directory for a preference file.
+     *
+     *  @param {string=} projectRootPath - new project root path(optional).
+     *  Only needed for unit tests.
+     */
+    function handleProjectOpen(projectRootPath) {
+        initPreferences(projectRootPath);
+    }
+
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
@@ -1299,4 +1409,6 @@ define(function (require, exports, module) {
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
     exports.handleProjectClose = handleProjectClose;
+    exports.handleProjectOpen = handleProjectOpen;
+
 });

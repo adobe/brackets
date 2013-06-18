@@ -44,12 +44,12 @@ define(function (require, exports, module) {
      * @return {String} token string at the specified position
      */
     function _getFunctionName(hostEditor, pos) {
-        var token = hostEditor._codeMirror.getTokenAt(pos);
+        var token = hostEditor._codeMirror.getTokenAt(pos, true);
         
         // If the pos is at the beginning of a name, token will be the 
         // preceding whitespace or dot. In that case, try the next pos.
         if (token.string.trim().length === 0 || token.string === ".") {
-            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1});
+            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
         
         // Return valid function expressions only (function call or reference)
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
                     // Use QuickEdit search now that we know which file to look at.
                     var fileInfos = [];
                     fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
-                    JSUtils.findMatchingFunctions(functionName, fileInfos)
+                    JSUtils.findMatchingFunctions(functionName, fileInfos, true)
                         .done(function (functions) {
                             if (functions && functions.length > 0) {
                                 var jsInlineEditor = new MultiRangeInlineEditor(functions);

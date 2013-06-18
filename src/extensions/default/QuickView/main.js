@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings");
+        Strings             = brackets.getModule("strings"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -175,7 +176,7 @@ define(function (require, exports, module) {
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
-            colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*\)|\brgba\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi;
+            colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
         function execGradientMatch(line) {
             var gradientMatch = gradientRegEx.exec(line),
@@ -244,6 +245,92 @@ define(function (require, exports, module) {
 
             return colorMatch;
         }
+        
+        // simple css property splitter (used to find color stop arguments in gradients)
+        function splitStyleProperty(property) {
+            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g;
+            var recurse = function () {
+                var array = [];
+                for (;;) {
+                    var result = token.exec(property);
+                    if (result[2] === "(") {
+                        var str = result[1].trim() + "(" + recurse().join(",") + ")";
+                        result = token.exec(property);
+                        str += result[1];
+                        array.push(str);
+                    } else {
+                        array.push(result[1].trim());
+                    }
+                    if (result[2] !== ",") {
+                        return array;
+                    }
+                }
+            };
+            return (recurse());
+        }
+        
+        // color stop helpers
+        function isGradientColorStop(args) {
+            return (args.length > 0 && args[0].match(colorRegEx) !== null);
+        }
+        
+        function hasLengthInPixels(args) {
+            return (args.length > 1 && args[1].indexOf("px") > 0);
+        }
+        
+        // Normalizes px color stops to % 
+        function normalizeGradientExpressionForQuickview(expression) {
+            if (expression.indexOf("px") > 0) {
+                var paramStart = expression.indexOf("(") + 1,
+                    paramEnd = expression.lastIndexOf(")"),
+                    parameters = expression.substring(paramStart, paramEnd),
+                    params = splitStyleProperty(parameters),
+                    lowerBound = 0,
+                    upperBound = $previewContainer.width(),
+                    args,
+                    thisSize,
+                    i;
+
+
+                // find lower bound                
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    
+                    if (hasLengthInPixels(args)) {
+                        thisSize = parseFloat(args[1]);
+
+                        upperBound = Math.max(upperBound, thisSize);
+                        // we really only care about converting negative
+                        //  pixel values -- so take the smallest negative pixel 
+                        //  value and use that as baseline for display purposes
+                        if (thisSize < 0) {
+                            lowerBound = Math.min(lowerBound, thisSize);
+                        }
+                    }
+                }
+                
+                // convert negative lower bound to positive and adjust all pixel values
+                //  so that -20px is now 0px and 100px is now 120px 
+                lowerBound = Math.abs(lowerBound);
+                
+                // Offset the upperbound by the lowerBound to give us a corrected context
+                upperBound += lowerBound;
+                
+                // convert to %
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    if (isGradientColorStop(args) && hasLengthInPixels(args)) {
+                        thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        args[1] = thisSize + "%";
+                    }
+                    params[i] = args.join(" ");
+                }
+
+                // put it back together.                
+                expression = expression.substring(0, paramStart) + params.join(", ") + expression.substring(paramEnd);
+            }
+            return expression;
+        }
 
         var gradientMatch = execGradientMatch(line),
             match = gradientMatch.match || execColorMatch(line),
@@ -251,7 +338,14 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+                // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                
+                // normalize the arguments to something that we can display to the user
+                // NOTE: we need both the div and the popover's _previewCSS member 
+                //          (used by unit tests) to match so normalize the css for both
+                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
+                    
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
@@ -465,7 +559,7 @@ define(function (require, exports, module) {
             }
             
             // Query providers for a new popoverState
-            var token = cm.getTokenAt(pos);
+            var token = cm.getTokenAt(pos, true);
             popoverState = queryPreviewProviders(editor, pos, token);
             
             if (popoverState) {

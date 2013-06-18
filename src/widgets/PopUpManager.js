@@ -31,8 +31,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager"),
-        KeyEvent      = require("utils/KeyEvent");
+    var AppInit       = require("utils/AppInit"),
+        EditorManager = require("editor/EditorManager"),
+        KeyEvent      = require("utils/KeyEvent"),
+        Menus         = require("command/Menus");
     
     var _popUps = [];
         
@@ -82,11 +84,13 @@ define(function (require, exports, module) {
         }
     }
     
-    function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
-            return;
-        }
-        
+    /**
+     * Remove Esc key handling for a pop-up. Removes the pop-up from the DOM
+     * if the pop-up is currently visible and was not originally attached.
+     *
+     * @param {KeyboardEvent=} keyEvent (optional)
+     */
+    function removeCurrentPopUp(keyEvent) {
         // allow the popUp to prevent closing
         var $popUp,
             i,
@@ -100,7 +104,9 @@ define(function (require, exports, module) {
                 
                 if (!event.isDefaultPrevented()) {
                     // Stop the DOM event from propagating
-                    keyEvent.stopImmediatePropagation();
+                    if (keyEvent) {
+                        keyEvent.stopImmediatePropagation();
+                    }
                     
                     removePopUp($popUp);
 
@@ -118,8 +124,46 @@ define(function (require, exports, module) {
         }
     }
     
-    window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
+    function _keydownCaptureListener(keyEvent) {
+         // Escape key or Alt key (Windows-only)
+        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE &&
+                !(keyEvent.keyCode === KeyEvent.DOM_VK_ALT && brackets.platform === "win")) {
+            return;
+        }
+
+        // Don't dismiss the popup if both Ctrl and Alt keys are pressed.
+        if (keyEvent.keyCode === KeyEvent.DOM_VK_ALT && keyEvent.ctrlKey) {
+            return;
+        }
+        
+        removeCurrentPopUp(keyEvent);
+    }
     
-    exports.addPopUp        = addPopUp;
-    exports.removePopUp     = removePopUp;
+    /**
+     * A menu is being popped up, so remove any menu that is currently popped up
+     */
+    function _beforeMenuPopup() {
+        removeCurrentPopUp();
+    }
+    
+    /**
+     * Context menus are also created in AppInit.htmlReady(), so they may not
+     * yet have been created when we get our AppInit.htmlReady() callback, so
+     * we provide this method to tell us when to start listening for their events
+     *
+     * @param {ContextMenu} contextMenu
+     */
+    function listenToContextMenu(contextMenu) {
+        $(contextMenu).on("beforeContextMenuOpen", _beforeMenuPopup);
+    }
+
+    AppInit.htmlReady(function () {
+        // Register for events
+        window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
+        $(exports).on("beforeMenuPopup", _beforeMenuPopup);
+    });
+    
+    exports.addPopUp            = addPopUp;
+    exports.removePopUp         = removePopUp;
+    exports.listenToContextMenu = listenToContextMenu;
 });
