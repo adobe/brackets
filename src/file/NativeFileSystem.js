@@ -654,9 +654,11 @@ define(function (require, exports, module) {
      * @param {FileSystem} fs File system that contains this entry
      * @extends {FileEntry}
      */
-    NativeFileSystem.InaccessibleFileEntry = function (name, fs) {
-        NativeFileSystem.FileEntry.call(this, name, false, fs);
+    NativeFileSystem.InaccessibleFileEntry = function (name, mtime) {
+        NativeFileSystem.FileEntry.call(this, name, false);
+        this.mtime = mtime;
     };
+    
     NativeFileSystem.InaccessibleFileEntry.prototype = Object.create(NativeFileSystem.FileEntry.prototype);
     NativeFileSystem.InaccessibleFileEntry.prototype.constructor = NativeFileSystem.InaccessibleFileEntry;
     NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
@@ -669,8 +671,8 @@ define(function (require, exports, module) {
         errorCallback(new NativeFileError(NativeFileError.NOT_READABLE_ERR));
     };
     
-    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallBack, errorCallback) {
-        errorCallback(new NativeFileError(NativeFileSystem.NOT_READABLE_ERR));
+    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
+        successCallback(new NativeFileSystem.Metadata(this.mtime));
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {

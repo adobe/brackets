@@ -592,8 +592,9 @@ define(function (require, exports, module) {
 
             var fileEntry;
             if (fullPath.indexOf(_tempPath) === 0) {
-                fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath);
-                doc = new DocumentModule.Document(fileEntry, Date.now(), "");
+                var now = new Date();
+                fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
+                doc = new DocumentModule.Document(fileEntry, now, "");
 
                 _gcDocuments();
 
