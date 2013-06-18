@@ -517,6 +517,7 @@ define(function (require, exports, module) {
         describe("StaticServerProvider", function () {
             var brackets,
                 ProjectManager,
+                extensionRequire,
                 StaticServer;
             
             beforeEach(function () {
@@ -525,9 +526,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test
-                        brackets        = testWindow.brackets;
-                        ProjectManager  = testWindow.brackets.test.ProjectManager;
-                        StaticServer    = brackets.getModule("utils/ExtensionLoader")._getExtensionByName("StaticServer");
+                        brackets            = testWindow.brackets;
+                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                        extensionRequire    = brackets.test.ExtensionLoader.getRequireContextForExtension("StaticServer");
+                        StaticServer        = extensionRequire("main");
                     });
                 });
                 

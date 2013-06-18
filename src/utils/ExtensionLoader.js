@@ -319,13 +319,6 @@ define(function (require, exports, module) {
         
         return promise;
     }
-
-    function _getExtensionByName(name) {
-        return _extensions[name];
-    }
-
-    // unit tests
-    exports._getExtensionByName = _getExtensionByName;
     
     // public API
     exports.init = init;
