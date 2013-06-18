@@ -233,8 +233,12 @@ define(function (require, exports, module) {
         }
         
         // Add to _workingSet making sure we store a different instance from the
-        // one in the Document. See issue #1971 for more details.        
-        file = new NativeFileSystem.FileEntry(file.fullPath);
+        // one in the Document. See issue #1971 for more details.
+        if (file.fullPath.indexOf(_tempPath) === 0) {
+            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, new Date());
+        } else {
+            file = new NativeFileSystem.FileEntry(file.fullPath);
+        }
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
@@ -700,17 +704,19 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
-            // flag the currently active editor
-            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-            
-            // save editor UI state for just the working set
-            var viewState = EditorManager._getViewState(file.fullPath);
-            
-            files.push({
-                file: file.fullPath,
-                active: isActive,
-                viewState: viewState
-            });
+            if (file.fullPath.indexOf(_tempPath) !== 0) {
+                // flag the currently active editor
+                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+                
+                // save editor UI state for just the working set
+                var viewState = EditorManager._getViewState(file.fullPath);
+                
+                files.push({
+                    file: file.fullPath,
+                    active: isActive,
+                    viewState: viewState
+                });
+            }
         });
 
         // append file root to make file list unique for each project
