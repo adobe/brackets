@@ -200,8 +200,8 @@ define(function (require, exports, module) {
                     // "-webkit-" will be added before this value
                     if (gradientMatch[1]) {
                         colorValue = gradientMatch[1] + gradientMatch[5];    // linear gradiant
-                    } else if (gradientMatch[2]) {
-                        colorValue = gradientMatch[2] + gradientMatch[5];    // radial gradiant
+                    } else if (gradientMatch[3]) {
+                        colorValue = gradientMatch[3] + gradientMatch[5];    // radial gradiant
                     }
                 }
             }
