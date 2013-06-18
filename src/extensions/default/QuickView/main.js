@@ -202,6 +202,9 @@ define(function (require, exports, module) {
                         colorValue = gradientMatch[1] + gradientMatch[5];    // linear gradiant
                     } else if (gradientMatch[3]) {
                         colorValue = gradientMatch[3] + gradientMatch[5];    // radial gradiant
+                    } else if (gradientMatch[0]) {
+                        colorValue = gradientMatch[0];                       // -webkit-gradient
+                        prefix = "";
                     }
                 }
             }
