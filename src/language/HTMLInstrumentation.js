@@ -178,19 +178,8 @@ define(function (require, exports, module) {
         
         _markTextFromDOM(editor, dom);
     }
-    
-    /**
-     * Get the instrumented tagID at the specified position. Returns -1 if
-     * there are no instrumented tags at the location.
-     * The _markText() function must be called before calling this function.
-     *
-     * NOTE: This function is "private" for now (has a leading underscore), since
-     * the API is likely to change in the future.
-     *
-     * @param {Editor} editor The editor to scan. 
-     * @return {number} tagID at the specified position, or -1 if there is no tag
-     */
-    function _getTagIDAtDocumentPos(editor, pos) {
+
+    function _getMarkerAtDocumentPos(editor, pos) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
@@ -216,11 +205,24 @@ define(function (require, exports, module) {
             }
         }
         
-        if (match) {
-            return match.tagID;
-        }
-        
-        return -1;
+        return match;
+    }
+    
+    /**
+     * Get the instrumented tagID at the specified position. Returns -1 if
+     * there are no instrumented tags at the location.
+     * The _markText() function must be called before calling this function.
+     *
+     * NOTE: This function is "private" for now (has a leading underscore), since
+     * the API is likely to change in the future.
+     *
+     * @param {Editor} editor The editor to scan. 
+     * @return {number} tagID at the specified position, or -1 if there is no tag
+     */
+    function _getTagIDAtDocumentPos(editor, pos) {
+        var match = _getMarkerAtDocumentPos(editor, pos);
+
+        return (match) ? match.tagID : -1;
     }
     
     var voidElements = {
@@ -407,6 +409,7 @@ define(function (require, exports, module) {
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;
     exports._markText = _markText;
+    exports._getMarkerAtDocumentPos = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
     exports._buildSimpleDOM = _buildSimpleDOM;
     exports._markTextFromDOM = _markTextFromDOM;
