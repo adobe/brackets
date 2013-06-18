@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror */
+/*unittests: HTML Instrumentation*/
 
 /**
  * HTMLInstrumentation
@@ -43,7 +44,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
-        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
+        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers"),
+        Tokenizer       = require("language/HTMLTokenizer").Tokenizer;
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and tags. Timestamp is the document timestamp,
@@ -78,6 +80,8 @@ define(function (require, exports, module) {
         }
     }
     
+    var tagID = 1;
+    
     /**
      * Scan a document to prepare for HTMLInstrumentation
      * @param {Document} doc The doc to scan. 
@@ -104,8 +108,7 @@ define(function (require, exports, module) {
             }
         }
         
-        var text = doc.getText(),
-            tagID = 1;
+        var text = doc.getText();
         
         // Scan 
         var tags = [];
@@ -313,6 +316,175 @@ define(function (require, exports, module) {
         
         return -1;
     }
+    var voidElements = {
+        area: true,
+        base: true,
+        basefont: true,
+        br: true,
+        col: true,
+        command: true,
+        embed: true,
+        frame: true,
+        hr: true,
+        img: true,
+        input: true,
+        isindex: true,
+        keygen: true,
+        link: true,
+        meta: true,
+        param: true,
+        source: true,
+        track: true,
+        wbr: true
+    };
+    
+    function SimpleDOMBuilder(text) {
+        this.stack = [];
+        this.t = new Tokenizer(text);
+        this.lastTag = null;
+        this.currentTag = null;
+    }
+    
+    SimpleDOMBuilder.prototype.build = function () {
+        var token;
+        var stack = this.stack;
+        var attributeName = null;
+        
+        while ((token = this.t.nextToken()) !== null) {
+            if (!token.contents) {
+                console.error("Token has no contents: ", token);
+            } else if (token.type === "opentagname") {
+                var newTag = {
+                    tag: token.contents,
+                    children: [],
+                    attributes: {},
+                    start: token.start - 1
+                };
+                newTag.tagID = this.getID(newTag);
+                if (stack.length) {
+                    stack[stack.length - 1].children.push(newTag);
+                }
+                this.currentTag = newTag;
+                if (!voidElements.hasOwnProperty(this.currentTag.tag)) {
+                    stack.push(this.currentTag);
+                }
+            } else if (token.type === "closetag") {
+                this.lastTag = stack.pop();
+                this.lastTag.end = token.end + 1;
+                if (this.lastTag.tag !== token.contents) {
+                    console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
+                }
+            } else if (token.type === "attribname") {
+                attributeName = token.contents;
+            } else if (token.type === "attribvalue" && attributeName !== null) {
+                this.currentTag.attributes[attributeName] = token.contents;
+                attributeName = null;
+            } else if (token.type === "text") {
+                if (stack.length) {
+                    stack[stack.length - 1].children.push(token.contents);
+                }
+            }
+        }
+        
+        return stack.length ? stack[0] : this.lastTag;
+    };
+    
+    SimpleDOMBuilder.prototype.getID = function () {
+        return tagID++;
+    };
+    
+    function _buildSimpleDOM(text) {
+        var builder = new SimpleDOMBuilder(text);
+        return builder.build();
+    }
+    
+    // TODO: I'd be worried about stack overflows here
+    function _markTags(cm, node) {
+        node.children.forEach(function (childNode) {
+            if (childNode.tagID) {
+                _markTags(cm, childNode);
+            }
+        });
+        var mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+        mark.tagID = node.tagID;
+    }
+    
+    function _markTextFromDOM(editor, dom) {
+        var cm = editor._codeMirror;
+        
+        // Remove existing marks
+        var marks = cm.getAllMarks();
+        cm.operation(function () {
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID")) {
+                    mark.clear();
+                }
+            });
+        });
+                
+        // Mark
+        _markTags(cm, dom);
+    }
+    
+    function DOMUpdater(previousDOM, editor) {
+        var text = editor.document.getText();
+        this.constructor(text);
+        this.editor = editor;
+        this.cm = editor._codeMirror;
+    }
+    
+    DOMUpdater.prototype = new SimpleDOMBuilder();
+    
+    DOMUpdater.prototype.getID = function (newTag) {
+        // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
+        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start));
+        if (currentTagID === -1) {
+            currentTagID = tagID++;
+        }
+        return currentTagID;
+    };
+    
+    function attributeCompare(edits, oldNode, newNode) {
+        // shallow copy the old attributes object so that we can modify it
+        var oldAttributes = $.extend({}, oldNode.attributes),
+            newAttributes = newNode.attributes;
+        Object.keys(newNode.attributes).forEach(function (attributeName) {
+            if (oldAttributes[attributeName] !== newAttributes[attributeName]) {
+                edits.push({
+                    type: "attrChange",
+                    tagID: oldNode.tagID,
+                    attribute: attributeName,
+                    value: newAttributes[attributeName]
+                });
+            }
+        });
+    }
+    
+    function domdiff(edits, oldNode, newNode) {
+        attributeCompare(edits, oldNode, newNode);
+        var oldChildNum, newChildNum,
+            oldChildren = oldNode.children,
+            newChildren = newNode.children;
+        
+        for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
+            var oldChild = oldChildren[oldChildNum];
+            var newChild = newChildren[newChildNum];
+            if (newChild.tagID) {
+                domdiff(edits, oldChild, newChild);
+            }
+        }
+    }
+    
+    function _updateDOM(previousDOM, editor) {
+        var edits = [];
+        var updater = new DOMUpdater(previousDOM, editor);
+        var newDOM = updater.build();
+        domdiff(edits, previousDOM, newDOM);
+        return {
+            dom: newDOM,
+            edits: edits
+        };
+    }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
@@ -320,4 +492,7 @@ define(function (require, exports, module) {
     exports.generateInstrumentedHTML = generateInstrumentedHTML;
     exports._markText = _markText;
     exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
+    exports._buildSimpleDOM = _buildSimpleDOM;
+    exports._markTextFromDOM = _markTextFromDOM;
+    exports._updateDOM = _updateDOM;
 });

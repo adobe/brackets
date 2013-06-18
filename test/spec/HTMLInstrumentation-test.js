@@ -23,7 +23,8 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xdescribe, jasmine */
+/*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -101,7 +102,7 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
-        describe("HTML Instrumentation in wellformed HTML", function () {
+        xdescribe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, WellFormedFileEntry);
@@ -214,7 +215,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("HTML Instrumentation in valid but not wellformed HTML", function () {
+        xdescribe("HTML Instrumentation in valid but not wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, NotWellFormedFileEntry);
@@ -358,7 +359,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
+        xdescribe("HTML Instrumentation in an HTML page with some invalid markups", function () {
                 
             beforeEach(function () {
                 init(this, InvalidHTMLFileEntry);
@@ -529,6 +530,68 @@ define(function (require, exports, module) {
                     expect(newElementCount).toBe(elementCount + 1);
                 });
             });
+            
+            it("should build simple DOM", function () {
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    expect(dom.tagID).toEqual(jasmine.any(Number));
+                    expect(dom.tag).toEqual("html");
+                    expect(dom.start).toEqual(16);
+                    expect(dom.end).toEqual(5366);
+                    expect(dom.children.length).toEqual(5);
+                    var meta = dom.children[1].children[1];
+                    expect(Object.keys(meta.attributes).length).toEqual(1);
+                    expect(meta.attributes.charset).toEqual("utf-8");
+                    expect(dom.children[1].children[5].children[0]).toEqual("GETTING STARTED WITH BRACKETS");
+                });
+            });
+            
+            it("should mark editor text based on the simple DOM", function () {
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, dom);
+                    expect(editor._codeMirror.getAllMarks().length).toEqual(49);
+                });
+            });
+            
+            it("should handle no diff", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits).toEqual([]);
+                    expect(result.dom).toEqual(previousDOM);
+                });
+            });
+            
+            it("should handle attribute change", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.edits[0]).toEqual({
+                        type: "attrChange",
+                        tagID: jasmine.any(Number),
+                        attribute: "content",
+                        value: "An interactive, awesome getting started guide for Brackets."
+                    });
+                });
+            });
+//            
+//            it("should show new tag insert", function () {
+//                runs(function () {
+//                    var previousTags = HTMLInstrumentation.scanDocument(editor.document),
+//                        previousText = editor.document.getText();
+//                    HTMLInstrumentation._markText(editor);
+//                    var pos = {line: 15, ch: 0};
+//                    editor.document.replaceRange("<div>New Content</div>", pos);
+//                    var tags = HTMLInstrumentation._convertMarksToTags(editor);
+//                    var edits = HTMLInstrumentation._generateDiff(previousTags, previousText, tags, editor.document.getText());
+//                    expect(edits.length).toEqual(1);
+//                });
+//            });
         });
     });
 });
