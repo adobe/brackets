@@ -98,7 +98,11 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
+
+    var _untitledDocumentCounter = 0;
     
+    var _tempPath = "/imaginary-directory-name";
+
     /**
      * @private
      * @see DocumentManager.getCurrentDocument()
@@ -1001,13 +1005,9 @@ define(function (require, exports, module) {
         } else {
             var result = new $.Deferred(),
                 promise = result.promise();
-            
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
@@ -1015,18 +1015,29 @@ define(function (require, exports, module) {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
 
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new Document(fileEntry, readTimestamp, rawText);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+            var fileEntry;
+            if (fullPath.indexOf(_tempPath) === 0) {
+                fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath);
+                doc = new Document(fileEntry, Date.now(), "");
+                result.resolve(doc);
+            } else {
+                // log this document's Promise as pending
+                getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+
+                fileEntry = new NativeFileSystem.FileEntry(fullPath);
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            }
             
             return promise;
         }
@@ -1054,6 +1065,9 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
+    function nextUntitledDocumentPath() {
+        return _tempPath + "/Untitled " + _untitledDocumentCounter++ + ".txt";
+    }
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
@@ -1265,6 +1279,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.nextUntitledDocumentPath    = nextUntitledDocumentPath;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;

@@ -372,7 +372,10 @@ define(function (require, exports, module) {
      * Create a new file in the project tree.
      */
     function handleFileNewInProject() {
-        _handleNewItemInProject(false);
+        //_handleNewItemInProject(false);
+        var fullPath = DocumentManager.nextUntitledDocumentPath();
+        return _doOpenWithOptionalPath(fullPath)
+            .always(EditorManager.focusEditor);
     }
     
     /**
@@ -447,57 +450,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves the given file. If no file specified, assumes the current document.
-     * @param {?{doc: Document}} commandData  Document to close, or null
-     * @return {$.Promise} a promise that is resolved after the save completes
-     */
-    function handleFileSave(commandData) {
-        // Default to current document if doc is null
-        var doc = null;
-        if (commandData) {
-            doc = commandData.doc;
-        }
-        if (!doc) {
-            var activeEditor = EditorManager.getActiveEditor();
-            
-            if (activeEditor) {
-                doc = activeEditor.document;
-            }
-            
-            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
-            // doc and makes sure the document is dirty before saving.
-        }
-        
-        return doSave(doc);
-    }
-    
-    /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
-     *
-     * @return {$.Promise}
-     */
-    function saveAll() {
-        // Do in serial because doSave shows error UI for each file, and we don't want to stack
-        // multiple dialogs on top of each other
-        return Async.doSequentially(
-            DocumentManager.getWorkingSet(),
-            function (file) {
-                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                if (doc) {
-                    return doSave(doc);
-                } else {
-                    // working set entry that was never actually opened - ignore
-                    return (new $.Deferred()).resolve().promise();
-                }
-            },
-            false
-        );
-    }
-    
-    /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
@@ -521,8 +473,8 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-
-     /**
+    
+    /**
      * Opens the native OS save as dialog and saves document.
      * The original document is reverted in case it was dirty.
      * Text selection and cursor position from the original document
@@ -618,6 +570,68 @@ define(function (require, exports, module) {
             result.reject();
         }
         return result.promise();
+    }
+    
+    /**
+     * Saves the given file. If no file specified, assumes the current document.
+     * @param {?{doc: Document}} commandData  Document to close, or null
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
+    function handleFileSave(commandData) {
+        // Default to current document if doc is null
+        var doc = null,
+            settings = {};
+        
+        if (commandData) {
+            doc = commandData.doc;
+        }
+        if (!doc) {
+            var activeEditor = EditorManager.getActiveEditor();
+            
+            if (activeEditor) {
+                doc = activeEditor.document;
+                settings.selection = activeEditor.getSelection();
+                settings.cursorPos = activeEditor.getCursorPos();
+                settings.scrollPos = activeEditor.getScrollPos();
+            }
+            
+            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
+            // doc and makes sure the document is dirty before saving.
+        }
+        
+        if (doc.file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            return _doSaveAs(doc, settings);
+        } else {
+            return doSave(doc);
+        }
+        
+        
+    }
+    
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
+     *
+     * @return {$.Promise}
+     */
+    function saveAll() {
+        // Do in serial because doSave shows error UI for each file, and we don't want to stack
+        // multiple dialogs on top of each other
+        return Async.doSequentially(
+            DocumentManager.getWorkingSet(),
+            function (file) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (doc) {
+                    return doSave(doc);
+                } else {
+                    // working set entry that was never actually opened - ignore
+                    return (new $.Deferred()).resolve().promise();
+                }
+            },
+            false
+        );
     }
     
     /**
