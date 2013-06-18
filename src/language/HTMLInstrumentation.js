@@ -44,12 +44,11 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
-        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers"),
         Tokenizer       = require("language/HTMLTokenizer").Tokenizer;
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
-    // with two properties: timestamp and tags. Timestamp is the document timestamp,
-    // tags is an array of tag info with start, length, and tagID properties.
+    // with two properties: timestamp and dom. Timestamp is the document timestamp,
+    // dom is the root node of a simple DOM tree.
     var _cachedValues = {};
 
     /**
@@ -85,7 +84,7 @@ define(function (require, exports, module) {
     /**
      * Scan a document to prepare for HTMLInstrumentation
      * @param {Document} doc The doc to scan. 
-     * @return {Array} Array of tag info, or null if no tags were found
+     * @return {Object} Root DOM node of the scanned document.
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
@@ -104,104 +103,20 @@ define(function (require, exports, module) {
             var cachedValue = _cachedValues[doc.file.fullPath];
             
             if (cachedValue.timestamp === doc.diskTimestamp) {
-                return cachedValue.tags;
+                return cachedValue.dom;
             }
         }
         
-        var text = doc.getText();
-        
-        // Scan 
-        var tags = [];
-        var tagStack = [];
-        var tag;
-        
-        DOMHelpers.eachNode(text, function (payload) {
-            // Ignore closing empty tags like </input> since they're invalid.
-            if (payload.closing && _isEmptyTag(payload)) {
-                return;
-            }
-            if (payload.nodeType === 1 && payload.nodeName) {
-                // Set unclosedLength for the last tag
-                if (tagStack.length > 0) {
-                    tag = tagStack[tagStack.length - 1];
-                    
-                    if (!tag.unclosedLength) {
-                        if (tag.nodeName === "HTML" || tag.nodeName === "BODY") {
-                            tag.unclosedLength = text.length - tag.sourceOffset;
-                        } else {
-                            tag.unclosedLength = payload.sourceOffset - tag.sourceOffset;
-                        }
-                    }
-                }
-                
-                // Empty tag
-                if (_isEmptyTag(payload)) {
-                    tags.push({
-                        name:   payload.nodeName,
-                        tagID:  tagID++,
-                        offset: payload.sourceOffset,
-                        length: payload.sourceLength
-                    });
-                } else if (payload.closing) {
-                    // Closing tag
-                    var i,
-                        startTag;
-                    
-                    for (i = tagStack.length - 1; i >= 0; i--) {
-                        if (tagStack[i].nodeName === payload.nodeName) {
-                            startTag = tagStack[i];
-                            tagStack.splice(i, 1);
-                            break;
-                        }
-                    }
-                    
-                    if (startTag) {
-                        tags.push({
-                            name:   startTag.nodeName,
-                            tagID:  tagID++,
-                            offset: startTag.sourceOffset,
-                            length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
-                        });
-                    } else {
-                        console.error("Unmatched end tag: " + payload.nodeName);
-                    }
-                } else {
-                    // Opening tag
-                    tagStack.push(payload);
-                }
-            }
-        });
-        
-        // Remaining tags in tagStack are unclosed.
-        while (tagStack.length) {
-            tag = tagStack.pop();
-            // Push the unclosed tag with the "unclosed" length. 
-            tags.push({
-                name:   tag.nodeName,
-                tagID:  tagID++,
-                offset: tag.sourceOffset,
-                length: tag.unclosedLength || tag.sourceLength
-            });
-        }
-        
-        // Sort by initial offset
-        tags.sort(function (a, b) {
-            if (a.offset < b.offset) {
-                return -1;
-            }
-            if (a.offset === b.offset) {
-                return 0;
-            }
-            return 1;
-        });
+        var text = doc.getText(),
+            dom = _buildSimpleDOM(text);
         
         // Cache results
         _cachedValues[doc.file.fullPath] = {
             timestamp: doc.diskTimestamp,
-            tags: tags
+            dom: dom
         };
         
-        return tags;
+        return dom;
     }
     
     /**
@@ -213,21 +128,31 @@ define(function (require, exports, module) {
      * @return {string} instrumented html content
      */
     function generateInstrumentedHTML(doc) {
-        var tags = scanDocument(doc).slice(),
+        var dom = scanDocument(doc),
             gen = doc.getText();
         
-        // Walk through the tags and insert the 'data-brackets-id' attribute at the
+        // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var i, insertCount = 0;
-        tags.forEach(function (tag) {
-            var attrText = " data-brackets-id='" + tag.tagID + "'";
-
-            // Insert the attribute as the first attribute in the tag.
-            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
-            gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
-            insertCount += attrText.length;
-        });
+        var insertCount = 0;
         
+        function walk(node) {
+            if (node.tag) {
+                var attrText = " data-brackets-id='" + node.tagID + "'";
+                
+                // Insert the attribute as the first attribute in the tag.
+                var insertIndex = node.start + node.tag.length + 1 + insertCount;
+                gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
+                insertCount += attrText.length;
+            }
+            
+            if (node.children) {
+                node.children.forEach(function (child) {
+                    walk(child);
+                });
+            }
+        }
+        
+        walk(dom);
         return gen;
     }
     
@@ -243,34 +168,15 @@ define(function (require, exports, module) {
      * @return none
      */
     function _markText(editor) {
-        var cache = _cachedValues[editor.document.file.fullPath];
+        var cache = _cachedValues[editor.document.file.fullPath],
+            dom = cache && cache.dom;
         
-        var cm = editor._codeMirror,
-            tags = cache && cache.tags;
-        
-        if (!tags) {
-            console.error("Couldn't find the tag information for " + editor.document.file.fullPath);
+        if (!dom) {
+            console.error("Couldn't find the dom for " + editor.document.file.fullPath);
             return;
         }
         
-        // Remove existing marks
-        var marks = cm.getAllMarks();
-        cm.operation(function () {
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    mark.clear();
-                }
-            });
-        });
-                
-        // Mark
-        tags.forEach(function (tag) {
-            var startPos = cm.posFromIndex(tag.offset),
-                endPos = cm.posFromIndex(tag.offset + tag.length),
-                mark = cm.markText(startPos, endPos);
-            
-            mark.tagID = tag.tagID;
-        });
+        _markTextFromDOM(editor, dom);
     }
     
     /**
@@ -316,6 +222,7 @@ define(function (require, exports, module) {
         
         return -1;
     }
+    
     var voidElements = {
         area: true,
         base: true,

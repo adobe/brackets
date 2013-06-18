@@ -102,7 +102,7 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
-        xdescribe("HTML Instrumentation in wellformed HTML", function () {
+        describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, WellFormedFileEntry);
@@ -169,14 +169,14 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
+            xit("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 58, ch: 1 }, "a");    // before "   <img"
                     checkTagIdAtPos({ line: 59, ch: 0 }, "a");    // before </a>
                 });
             });
 
-            it("No tag at cursor positions outside of the 'html' tag", function () {
+            xit("No tag at cursor positions outside of the 'html' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 0, ch: 4 }, "");    // inside 'doctype' tag
                     checkTagIdAtPos({ line: 146, ch: 0 }, "");  // after </html>
