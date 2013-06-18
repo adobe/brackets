@@ -113,7 +113,7 @@ define({
 	"BUTTON_STOP": "終了",
 
 	"OPEN_FILE": "ファイルを開く",
-	"SAVE_FILE_AS": "ファイルの保存",
+	"SAVE_FILE_AS": "ファイルを保存",
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
@@ -177,7 +177,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
 	"CMD_FILE_SAVE": "保存",
 	"CMD_FILE_SAVE_ALL": "すべて保存",
-	"CMD_FILE_SAVE_AS": "!能=[7022287] Save As\u2026_=!",
+	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
@@ -264,7 +264,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
 	"CMD_ABORT_QUIT": "強制終了する",
-	"CMD_BEFORE_MENUPOPUP": "!能=[7018403] Before Menu Popup_=!",
+	"CMD_BEFORE_MENUPOPUP": "ポップアップメニュー表示前",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
