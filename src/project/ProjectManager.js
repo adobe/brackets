@@ -157,13 +157,6 @@ define(function (require, exports, module) {
      */
     var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
-    /**
-     * @private
-     * While initially rendering the tree, stores a list of promises for folders waiting to be read.
-     * Is null when tree is not doing its initial rendering.
-     */
-    var _renderPromises = null;
-    
     var suppressToggleOpen = false;
     
     /**
@@ -419,44 +412,7 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
-    
-    /**
-     * Resolves the given deferred when all renderPromises have been resolved. This is necessary in order
-     * to determine when iniital rendering is really finished; we don't actually get a callback from jstree 
-     * once it's handled all of its "reopen" callbacks, so we instead track all of our own async file requests
-     * (which should be the only asynchronicity involved in rendering the tree). Since new requests might get
-     * added in the course of recursing the tree, we can't just do a simple $.when.apply() here.
-     *
-     * @param {$.Deferred} the deferred to resolve when rendering is finished
-     */
-    function _whenRenderedResolve(deferred) {
-        if (_renderPromises) {
-            _renderPromises.forEach(function (promise) {
-                // Only listen to each promise once.
-                if (!promise._project_listening) {
-                    promise._project_listening = true;
-                    promise.always(function () {
-                        // One of the promises is completed (either resolved or rejected;
-                        // in either case we want to move on).
-                        // Remove it from the list, then see if we have any more left.
-                        var index = _renderPromises.indexOf(promise);
-                        if (index !== -1) {
-                            _renderPromises.splice(index, 1);
-                        }
-                        if (_renderPromises.length === 0) {
-                            // All done.
-                            deferred.resolve();
-                            _renderPromises = null;
-                        } else {
-                            // Add listeners to any new promises that have shown up.
-                            _whenRenderedResolve(deferred);
-                        }
-                    });
-                }
-            });
-        }
-    }
-    
+        
     /**
      * @private
      * Reopens a set of nodes in the tree by ID.
@@ -468,8 +424,8 @@ define(function (require, exports, module) {
      */
     function _reopenNodes(nodesByDepth, resultDeferred) {
         if (nodesByDepth.length === 0) {
-            // resolve after all paths are opened and fully rendered
-            _whenRenderedResolve(resultDeferred);
+            // All paths are opened and fully rendered.
+            resultDeferred.resolve();
         } else {
             var toOpenPaths = nodesByDepth.shift(),
                 toOpenIds   = [],
@@ -510,8 +466,6 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred();
 
-        _renderPromises = [];
-        
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
         // doesn't seem to work properly. 
@@ -784,10 +738,6 @@ define(function (require, exports, module) {
             dirEntry = treeNode.data("entry");
         }
         
-        if (_renderPromises) {
-            _renderPromises.push(deferred.promise());
-        }
-
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             processEntries,
