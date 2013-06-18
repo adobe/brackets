@@ -448,15 +448,24 @@ define(function (require, exports, module) {
         // shallow copy the old attributes object so that we can modify it
         var oldAttributes = $.extend({}, oldNode.attributes),
             newAttributes = newNode.attributes;
-        Object.keys(newNode.attributes).forEach(function (attributeName) {
+        Object.keys(newAttributes).forEach(function (attributeName) {
             if (oldAttributes[attributeName] !== newAttributes[attributeName]) {
+                var type = oldAttributes.hasOwnProperty(attributeName) ? "attrChange" : "attrAdd";
                 edits.push({
-                    type: "attrChange",
+                    type: type,
                     tagID: oldNode.tagID,
                     attribute: attributeName,
                     value: newAttributes[attributeName]
                 });
             }
+            delete oldAttributes[attributeName];
+        });
+        Object.keys(oldAttributes).forEach(function (attributeName) {
+            edits.push({
+                type: "attrDel",
+                tagID: oldNode.tagID,
+                attribute: attributeName
+            });
         });
     }
     

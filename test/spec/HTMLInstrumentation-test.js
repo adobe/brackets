@@ -573,9 +573,40 @@ define(function (require, exports, module) {
                     expect(result.edits.length).toEqual(1);
                     expect(result.edits[0]).toEqual({
                         type: "attrChange",
-                        tagID: jasmine.any(Number),
+                        tagID: previousDOM.children[1].children[7].tagID,
                         attribute: "content",
                         value: "An interactive, awesome getting started guide for Brackets."
+                    });
+                });
+            });
+            
+            it("should handle new attributes", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.edits[0]).toEqual({
+                        type: "attrAdd",
+                        tagID: previousDOM.children[3].children[1].tagID,
+                        attribute: "class",
+                        value: "supertitle"
+                    });
+                });
+            });
+            
+            it("should handle deleted attributes", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.edits[0]).toEqual({
+                        type: "attrDel",
+                        tagID: previousDOM.children[1].children[7].tagID,
+                        attribute: "content"
                     });
                 });
             });
