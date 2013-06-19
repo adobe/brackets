@@ -651,12 +651,6 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
-
-    AppInit.appReady(function () {
-        if (brackets.test) {
-            brackets.test.extensions.QuickView = module.exports;
-        }
-    });
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;

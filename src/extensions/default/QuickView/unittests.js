@@ -32,7 +32,16 @@ define(function (require, exports, module) {
 
     describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, CommandManager, Commands, EditorManager, QuickView, editor;
+
+        // load from testWindow
+        var testWindow,
+            brackets,
+            extensionRequire,
+            CommandManager,
+            Commands,
+            EditorManager,
+            QuickView,
+            editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -42,10 +51,11 @@ define(function (require, exports, module) {
                         testWindow = w;
                         // Load module instances from brackets.test
                         brackets = testWindow.brackets;
-                        CommandManager = testWindow.brackets.test.CommandManager;
-                        Commands = testWindow.brackets.test.Commands;
+                        CommandManager = brackets.test.CommandManager;
+                        Commands = brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        QuickView = brackets.test.extensions.QuickView;
+                        extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("QuickView");
+                        QuickView = extensionRequire("main");
                     });
                 });
 
