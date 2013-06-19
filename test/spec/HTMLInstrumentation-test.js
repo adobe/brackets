@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xdescribe, jasmine */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
@@ -543,6 +543,7 @@ define(function (require, exports, module) {
                     expect(Object.keys(meta.attributes).length).toEqual(1);
                     expect(meta.attributes.charset).toEqual("utf-8");
                     expect(dom.children[1].children[5].children[0]).toEqual("GETTING STARTED WITH BRACKETS");
+                    expect(dom.children[1].parent).toEqual(dom);
                 });
             });
             

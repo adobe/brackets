@@ -158,15 +158,13 @@ define(function HTMLDocumentModule(require, exports, module) {
             // Silly naming convention: $$ = remote $
             var $$target = RemoteAgent.remoteElement(edit.tagID);
             switch (edit.type) {
-                case "attrChange":
-                case "attrAdd":
-                    console.log("setting attribute on " + edit.tagID + ": " + edit.attribute + "=" + edit.value);
-                    $$target.attr(edit.attribute, edit.value);
-                    break;
-                case "attrDel":
-                    console.log("setting attribute on " + edit.tagID + ": " + edit.attribute);
-                    $$target.removeAttr(edit.attribute);
-                    break;
+            case "attrChange":
+            case "attrAdd":
+                $$target.attr(edit.attribute, edit.value);
+                break;
+            case "attrDel":
+                $$target.removeAttr(edit.attribute);
+                break;
             }
         });
         

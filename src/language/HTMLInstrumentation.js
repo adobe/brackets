@@ -88,23 +88,19 @@ define(function (require, exports, module) {
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
-//            $(doc).on("change.htmlInstrumentation", function () {
-//                // Clear cached values on doc change, but keep the entry
-//                // in the _cachedValues hash. Keeping the entry means
-//                // the event handlers (like this one) won't be added again.
-//                _cachedValues[doc.file.fullPath] = null;
-//            });
+            $(doc).on("change.htmlInstrumentation", function () {
+                if (_cachedValues[doc.file.fullPath]) {
+                    _cachedValues[doc.file.fullPath].dirty = true;
+                }
+            });
             
             // Assign to cache, but don't set a value yet
             _cachedValues[doc.file.fullPath] = null;
         }
         
-        if (_cachedValues[doc.file.fullPath]) {
-            var cachedValue = _cachedValues[doc.file.fullPath];
-            
-            if (cachedValue.timestamp === doc.diskTimestamp) {
-                return cachedValue.dom;
-            }
+        var cachedValue = _cachedValues[doc.file.fullPath];
+        if (cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
+            return cachedValue.dom;
         }
         
         var text = doc.getText(),
@@ -113,7 +109,8 @@ define(function (require, exports, module) {
         // Cache results
         _cachedValues[doc.file.fullPath] = {
             timestamp: doc.diskTimestamp,
-            dom: dom
+            dom: dom,
+            dirty: false
         };
         
         return dom;
@@ -267,11 +264,12 @@ define(function (require, exports, module) {
                     tag: token.contents,
                     children: [],
                     attributes: {},
+                    parent: (stack.length ? stack[stack.length - 1] : null),
                     start: token.start - 1
                 };
                 newTag.tagID = this.getID(newTag);
-                if (stack.length) {
-                    stack[stack.length - 1].children.push(newTag);
+                if (newTag.parent) {
+                    newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
                 if (!voidElements.hasOwnProperty(this.currentTag.tag)) {
