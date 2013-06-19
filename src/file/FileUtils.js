@@ -80,6 +80,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
