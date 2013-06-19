@@ -74,7 +74,8 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        return Inspector.Console.enable().done(function () {
+        // FIXME Windows only: Somtimes enable() isn't acknowledged
+        return Inspector.retry(Inspector.Console.enable).done(function () {
             $(Inspector.Console)
                 .on("messageAdded.ConsoleAgent", _onMessageAdded)
                 .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
