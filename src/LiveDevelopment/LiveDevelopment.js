@@ -818,9 +818,11 @@ define(function LiveDevelopment(require, exports, module) {
                     _openDeferred.reject(err);
                     return;
                 }
+
                 if (retryCount > 6) {
                     _setStatus(STATUS_ERROR);
-                    Dialogs.showModalDialog(
+
+                    var dialogPromise = Dialogs.showModalDialog(
                         DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                         Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
                         Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
@@ -836,7 +838,9 @@ define(function LiveDevelopment(require, exports, module) {
                                 text:      Strings.RELAUNCH_CHROME
                             }
                         ]
-                    ).done(function (id) {
+                    );
+
+                    dialogPromise.done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
                             _setStatus(STATUS_INACTIVE);
@@ -857,6 +861,7 @@ define(function LiveDevelopment(require, exports, module) {
                             _openDeferred.reject("CANCEL");
                         }
                     });
+
                     return;
                 }
                 retryCount++;
