@@ -121,14 +121,14 @@ define(function (require, exports, module) {
         // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
-            var file = newDocument.file;
+            var fullPath = newDocument.file.fullPath;
             
-            if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            if (newDocument.isUntitled()) {
                 // In the main toolbar, show the project-relative path (if the file is inside the current project)
                 // or the full absolute path (if it's not in the project).
-                _currentTitlePath = file.fullPath.substring(file.fullPath.lastIndexOf("/") + 1);
+                _currentTitlePath = fullPath.substring(fullPath.lastIndexOf("/") + 1);
             } else {
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(file.fullPath);
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
             }
         } else {
             _currentTitlePath = null;
@@ -595,7 +595,7 @@ define(function (require, exports, module) {
                                 // doRevert on a file that is not dirty and not in the working set
                                 // has the side effect of adding the file to the working set.
                                 // we don't want that.
-                                if (doc.isDirty && !(doc.file instanceof NativeFileSystem.InaccessibleFileEntry)) {
+                                if (doc.isDirty && !(doc.isUntitled())) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
                                     doRevert(doc).always(updateProject);
@@ -613,7 +613,7 @@ define(function (require, exports, module) {
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
-            if (doc.file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            if (doc.isUntitled()) {
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
                 saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
@@ -658,7 +658,7 @@ define(function (require, exports, module) {
             // doc and makes sure the document is dirty before saving.
         }
         
-        if (doc.file instanceof NativeFileSystem.InaccessibleFileEntry) {
+        if (doc.isUntitled()) {
             return _doSaveAs(doc, settings);
         } else {
             return doSave(doc);
