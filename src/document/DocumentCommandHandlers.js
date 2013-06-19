@@ -682,7 +682,21 @@ define(function (require, exports, module) {
             function (file) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
-                    return doSave(doc);
+                    if (doc.isUntitled()) {
+                        var activeEditor = EditorManager.getActiveEditor(),
+                            settings = null;
+                        
+                        if (activeEditor.document === doc) {
+                            settings = {
+                                selection: activeEditor.getSelection(),
+                                cursorPos: activeEditor.getCursorPos(),
+                                scrollPos: activeEditor.getScrollPos()
+                            };
+                        }
+                        return _doSaveAs(doc, settings);
+                    } else {
+                        return doSave(doc);
+                    }
                 } else {
                     // working set entry that was never actually opened - ignore
                     return (new $.Deferred()).resolve().promise();
