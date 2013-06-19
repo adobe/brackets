@@ -1,7 +1,7 @@
 <tr>
     <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
-        <span class="muted ext-version">{{metadata.version}}</span> 
+        <span class="muted ext-version">{{metadata.version}}</span>
         {{#authorInfo}}
             <span class="muted ext-author">
                 &mdash; {{{authorInfo}}}
@@ -23,7 +23,7 @@
             <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
         {{/metadata.description}}
         {{#metadata.homepage}}
-            <p><a href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
+            <p><a title="{{metadata.homepage}}" href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
         {{/metadata.homepage}}
         {{#metadata.keywords.length}}
             <br/>
