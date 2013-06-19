@@ -51,6 +51,6 @@ define(function (require, exports, module) {
         "ru": true,
         "sv": true,
         "zh-cn": true,
-		"hu" : true
+        "hu" : true
     };
 });
