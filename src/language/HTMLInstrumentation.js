@@ -88,12 +88,12 @@ define(function (require, exports, module) {
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
-            $(doc).on("change.htmlInstrumentation", function () {
-                // Clear cached values on doc change, but keep the entry
-                // in the _cachedValues hash. Keeping the entry means
-                // the event handlers (like this one) won't be added again.
-                _cachedValues[doc.file.fullPath] = null;
-            });
+//            $(doc).on("change.htmlInstrumentation", function () {
+//                // Clear cached values on doc change, but keep the entry
+//                // in the _cachedValues hash. Keeping the entry means
+//                // the event handlers (like this one) won't be added again.
+//                _cachedValues[doc.file.fullPath] = null;
+//            });
             
             // Assign to cache, but don't set a value yet
             _cachedValues[doc.file.fullPath] = null;
@@ -384,11 +384,13 @@ define(function (require, exports, module) {
             oldChildren = oldNode.children,
             newChildren = newNode.children;
         
-        for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
-            var oldChild = oldChildren[oldChildNum];
-            var newChild = newChildren[newChildNum];
-            if (newChild.tagID) {
-                domdiff(edits, oldChild, newChild);
+        if (oldChildren && newChildren) { // TODO: not sure why this wasn't failing before, so don't know how to create test for it
+            for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
+                var oldChild = oldChildren[oldChildNum];
+                var newChild = newChildren[newChildNum];
+                if (newChild.tagID) {
+                    domdiff(edits, oldChild, newChild);
+                }
             }
         }
     }
@@ -404,10 +406,26 @@ define(function (require, exports, module) {
         };
     }
     
+    function getUnappliedEditList(editor) {
+        var cachedValue = _cachedValues[editor.document.file.fullPath];
+        if (!cachedValue || !cachedValue.dom) {
+            console.warn("No previous DOM to compare change against");
+            return [];
+        } else {
+            var result = _updateDOM(cachedValue.dom, editor);
+            _cachedValues[editor.document.file.fullPath] = {
+                timestamp: editor.document.diskTimestamp, // TODO: update?
+                dom: result.dom
+            };
+            return result.edits;
+        }
+    }
+    
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;
+    exports.getUnappliedEditList = getUnappliedEditList;
     exports._markText = _markText;
     exports._getMarkerAtDocumentPos = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;

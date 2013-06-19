@@ -150,22 +150,41 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
-        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
-            this.editor,
-            editor.getCursorPos()
-        );
-
-        // HACK, replace the whole tag
-        if (marker && marker.tagID) {
-            var range   = marker.find(),
-                text    = marker.doc.getRange(range.from, range.to);
-
-            // HACK maintain ID
-            text = text.replace(">", " data-brackets-id='" + marker.tagID + "'>");
-
-            // FIXME incorrectly replaces body elements with content only, missing body element
-            RemoteAgent.remoteElement(marker.tagID).replaceWith(text);
-        }
+        // Only handles attribute changes currently.
+        // TODO: text changes should be easy to add
+        // TODO: if new tags are added, need to instrument them
+        var edits = HTMLInstrumentation.getUnappliedEditList(editor);
+        edits.forEach(function (edit) {
+            // Silly naming convention: $$ = remote $
+            var $$target = RemoteAgent.remoteElement(edit.tagID);
+            switch (edit.type) {
+                case "attrChange":
+                case "attrAdd":
+                    console.log("setting attribute on " + edit.tagID + ": " + edit.attribute + "=" + edit.value);
+                    $$target.attr(edit.attribute, edit.value);
+                    break;
+                case "attrDel":
+                    console.log("setting attribute on " + edit.tagID + ": " + edit.attribute);
+                    $$target.removeAttr(edit.attribute);
+                    break;
+            }
+        });
+        
+//        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
+//            this.editor,
+//            editor.getCursorPos()
+//        );
+//
+//        if (marker && marker.tagID) {
+//            var range   = marker.find(),
+//                text    = marker.doc.getRange(range.from, range.to);
+//
+//            // HACK maintain ID
+//            text = text.replace(">", " data-brackets-id='" + marker.tagID + "'>");
+//
+//            // FIXME incorrectly replaces body elements with content only, missing body element
+//            RemoteAgent.remoteElement(marker.tagID).replaceWith(text);
+//        }
 
         // if (!this.editor) {
         //     return;
