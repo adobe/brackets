@@ -629,13 +629,17 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should represent simple new tag insert", function () {
+            it("should represent simple new tag insert", function () {
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     var pos = {line: 15, ch: 0};
                     editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
                     var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    var newDOM = result.dom;
+                    expect(newDOM.children[3].children[5].tag).toEqual("div");
+                    expect(newDOM.children[3].children[5].tagID).not.toEqual(newDOM.children[3].tagID);
+                    expect(newDOM.children[3].children[5].children[0]).toEqual("New Content");
                     expect(result.edits.length).toEqual(1);
                 });
             });

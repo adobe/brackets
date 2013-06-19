@@ -345,7 +345,7 @@ define(function (require, exports, module) {
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start));
-        if (currentTagID === -1) {
+        if (currentTagID === -1 || (newTag.parent && currentTagID === newTag.parent.tagID)) {
             currentTagID = tagID++;
         }
         return currentTagID;
