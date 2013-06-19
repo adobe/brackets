@@ -821,7 +821,24 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
-                        doSave(doc)
+                        var savePromise;
+                        if (doc.isUntitled()) {
+                            var activeEditor = EditorManager.getActiveEditor(),
+                                settings = null;
+                            
+                            if (EditorManager.getActiveEditor() === doc) {
+                                settings = {
+                                    selection: activeEditor.getSelection(),
+                                    cursorPos: activeEditor.getCursorPos(),
+                                    scrollPos: activeEditor.getScrollPos()
+                                };
+                            }
+                            savePromise = _doSaveAs(doc, settings);
+                        } else {
+                            savePromise = doSave(doc);
+                        }
+                            
+                        savePromise
                             .done(function () {
                                 doClose(file);
                                 result.resolve();
