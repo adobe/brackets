@@ -102,7 +102,7 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
-        describe("HTML Instrumentation in wellformed HTML", function () {
+        xdescribe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, WellFormedFileEntry);
@@ -611,19 +611,51 @@ define(function (require, exports, module) {
                     });
                 });
             });
-//            
-//            it("should show new tag insert", function () {
-//                runs(function () {
-//                    var previousTags = HTMLInstrumentation.scanDocument(editor.document),
-//                        previousText = editor.document.getText();
-//                    HTMLInstrumentation._markText(editor);
-//                    var pos = {line: 15, ch: 0};
-//                    editor.document.replaceRange("<div>New Content</div>", pos);
-//                    var tags = HTMLInstrumentation._convertMarksToTags(editor);
-//                    var edits = HTMLInstrumentation._generateDiff(previousTags, previousText, tags, editor.document.getText());
-//                    expect(edits.length).toEqual(1);
-//                });
-//            });
+            
+            it("should handle simple altered text", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits.length).toEqual(1);
+                    expect(previousDOM.children[3].children[1].tag).toEqual("h1");
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        tagID: previousDOM.children[3].children[1].tagID,
+                        child: 0,
+                        content: "GETTING AWESOMER WITH BRACKETS"
+                    });
+                });
+            });
+            
+            xit("should represent simple new tag insert", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    var pos = {line: 15, ch: 0};
+                    editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits.length).toEqual(1);
+                });
+            });
+        });
+        
+        describe("DOMNavigator", function () {
+            it("implements easy depth-first traversal", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<html><body><div>Here is <strong>my text</strong></div></body></html>");
+                var nav = new HTMLInstrumentation._DOMNavigator(dom);
+                expect(nav.next().tag).toEqual("body");
+                expect(nav.next().tag).toEqual("div");
+                expect(nav.next()).toEqual("Here is ");
+                expect(nav.getPosition()).toEqual({
+                    tagID: dom.children[0].children[0].tagID,
+                    child: 0
+                });
+                expect(nav.next().tag).toEqual("strong");
+                expect(nav.next()).toEqual("my text");
+                expect(nav.next()).toBeNull();
+            });
         });
     });
 });

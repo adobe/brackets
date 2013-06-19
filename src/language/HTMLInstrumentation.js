@@ -376,20 +376,78 @@ define(function (require, exports, module) {
         });
     }
     
+    function NodeState(node) {
+        this.node = node;
+        this.childPointer = 0;
+    }
+    
+    NodeState.prototype.toJSON = function () {
+        return {
+            tagID: this.node.tagID,
+            childPointer: this.childPointer
+        };
+    };
+    
+    function DOMNavigator(root) {
+        this.stack = [new NodeState(root)];
+    }
+    
+    DOMNavigator.prototype.next = function () {
+        var parentState = this.stack[this.stack.length - 1];
+        var children = parentState.node.children;
+        if (parentState.childPointer > children.length - 1) {
+            this.stack.pop();
+            if (this.stack.length === 0) {
+                return null;
+            }
+            this.stack[this.stack.length - 1].childPointer++;
+            return this.next();
+        }
+        var child = children[parentState.childPointer];
+        if (child.children) {
+            this.stack.push(new NodeState(child));
+            return child;
+        } else {
+            parentState.childPointer++;
+            return child;
+        }
+    };
+    
+    DOMNavigator.prototype.getPosition = function () {
+        var parentState = this.stack[this.stack.length - 1];
+        return {
+            tagID: parentState.node.tagID,
+            child: parentState.childPointer - 1
+        };
+    };
+    
     function domdiff(edits, oldNode, newNode) {
-        attributeCompare(edits, oldNode, newNode);
-        var oldChildNum, newChildNum,
-            oldChildren = oldNode.children,
-            newChildren = newNode.children;
+        var oldNav = new DOMNavigator(oldNode),
+            newNav = new DOMNavigator(newNode);
         
-        if (oldChildren && newChildren) { // TODO: not sure why this wasn't failing before, so don't know how to create test for it
-            for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
-                var oldChild = oldChildren[oldChildNum];
-                var newChild = newChildren[newChildNum];
-                if (newChild.tagID) {
-                    domdiff(edits, oldChild, newChild);
+        attributeCompare(edits, oldNode, newNode);
+        
+        var oldChild = oldNav.next(),
+            newChild = newNav.next();
+        
+        while (oldChild && newChild) {
+            if (oldChild.tag && newChild.tag) {
+                attributeCompare(edits, oldChild, newChild);
+            
+            // Check to see if they're both text nodes
+            } else if (!oldChild.tag && !newChild.tag) {
+                if (oldChild !== newChild) {
+                    var position = oldNav.getPosition();
+                    edits.push({
+                        type: "textReplace",
+                        tagID: position.tagID,
+                        child: position.child,
+                        content: newChild
+                    });
                 }
             }
+            oldChild = oldNav.next();
+            newChild = newNav.next();
         }
     }
     
@@ -430,4 +488,5 @@ define(function (require, exports, module) {
     exports._buildSimpleDOM = _buildSimpleDOM;
     exports._markTextFromDOM = _markTextFromDOM;
     exports._updateDOM = _updateDOM;
+    exports._DOMNavigator = DOMNavigator;
 });
