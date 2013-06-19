@@ -121,12 +121,15 @@ define(function (require, exports, module) {
         // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
-            var fullPath = newDocument.file.fullPath;
-    
-            // In the main toolbar, show the project-relative path (if the file is inside the current project)
-            // or the full absolute path (if it's not in the project).
-            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            var file = newDocument.file;
             
+            if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+                // In the main toolbar, show the project-relative path (if the file is inside the current project)
+                // or the full absolute path (if it's not in the project).
+                _currentTitlePath = file.fullPath.substring(file.fullPath.lastIndexOf("/") + 1);
+            } else {
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(file.fullPath);
+            }
         } else {
             _currentTitlePath = null;
         }
