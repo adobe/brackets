@@ -40,9 +40,9 @@ define({
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Hiba a projekt betöltése közben",
-    "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
+    "OPEN_DIALOG_ERROR"                 : "Hiba történt a \"fájl megnyitása\" ablak megjelenítésekor. (hiba {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Hiba történt a <span class='dialog-filename'>{0}</span> könyvtár megnyitása közben. (hiba {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Hiba történt a könyvtár tartalmának beolvasása közben. <span class='dialog-filename'>{0}</span>. (hiba {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
