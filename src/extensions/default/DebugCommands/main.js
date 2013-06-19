@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                var template = Mustache.render(LanguageDialogTemplate, $.extend({languages: languages}, Strings));
+                var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
                 Dialogs.showModalDialogUsingTemplate(template).done(function () {
                     if (locale === undefined) {
                         return;
