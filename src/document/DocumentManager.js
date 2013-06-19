@@ -95,14 +95,11 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
+        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
-
-    var _untitledDocumentCounter = 0;
-    
-    var _tempPath = "/imaginary-directory-name";
 
     /**
      * @private
@@ -126,6 +123,10 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
+    var _untitledDocumentCounter = 0;
+    
+    var _untitledDocumentPath = "/" + NumberUtils.getRandomInt(10000000, 99999999);
+
     /**
      * @private
      * @type {Array.<FileEntry>}
@@ -234,7 +235,7 @@ define(function (require, exports, module) {
         
         // Add to _workingSet making sure we store a different instance from the
         // one in the Document. See issue #1971 for more details.
-        if (file.fullPath.indexOf(_tempPath) === 0) {
+        if (file.fullPath.indexOf(_untitledDocumentPath) === 0) {
             file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, new Date());
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
@@ -595,7 +596,7 @@ define(function (require, exports, module) {
             });
 
             var fileEntry;
-            if (fullPath.indexOf(_tempPath) === 0) {
+            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 var now = new Date();
                 fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
                 doc = new DocumentModule.Document(fileEntry, now, "");
@@ -653,7 +654,10 @@ define(function (require, exports, module) {
     }
     
     function nextUntitledDocumentPath() {
-        return _tempPath + "/Untitled " + _untitledDocumentCounter++ + ".txt";
+        var counter = _untitledDocumentCounter++;
+        
+        return _untitledDocumentPath + "/" + Strings.UNTITLED_DOC_TITLE +
+            " " + counter + ".txt";
     }
     
     /**
@@ -704,7 +708,7 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
-            if (file.fullPath.indexOf(_tempPath) !== 0) {
+            if (file.fullPath.indexOf(_untitledDocumentPath) !== 0) {
                 // flag the currently active editor
                 isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
                 
