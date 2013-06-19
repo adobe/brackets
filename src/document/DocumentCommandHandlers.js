@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
@@ -415,13 +415,19 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a new file in the project tree.
+     * Create a new untitled document
      */
-    function handleFileNewInProject() {
-        //_handleNewItemInProject(false);
+    function handleFileNew() {
         var fullPath = DocumentManager.nextUntitledDocumentPath();
         return _doOpenWithOptionalPath(fullPath)
             .always(EditorManager.focusEditor);
+    }
+    
+    /**
+     * Create a new file in the project tree.
+     */
+    function handleFileNewInProject() {
+        _handleNewItemInProject(false);
     }
     
     /**
@@ -1114,7 +1120,8 @@ define(function (require, exports, module) {
     // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
     // File > New should open a new blank tab, and handleFileNewInProject should
     // be called from a "+" button in the project
-    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_DOC,       Commands.FILE_NEW_DOC, handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW_FILE,      Commands.FILE_NEW_FILE, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);

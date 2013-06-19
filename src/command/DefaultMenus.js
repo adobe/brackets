@@ -43,7 +43,7 @@ define(function (require, exports, module) {
          */
         var menu;
         menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW);
+        menu.addMenuItem(Commands.FILE_NEW_DOC);
         menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN);
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
-        project_cmenu.addMenuItem(Commands.FILE_NEW);
+        project_cmenu.addMenuItem(Commands.FILE_NEW_FILE);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
         project_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
@@ -192,6 +192,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
+        working_set_cmenu.addMenuItem(Commands.FILE_NEW_DOC);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
