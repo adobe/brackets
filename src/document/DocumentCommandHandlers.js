@@ -595,7 +595,7 @@ define(function (require, exports, module) {
                                 // doRevert on a file that is not dirty and not in the working set
                                 // has the side effect of adding the file to the working set.
                                 // we don't want that.
-                                if (doc.isDirty) {
+                                if (doc.isDirty && !(doc.file instanceof NativeFileSystem.InaccessibleFileEntry)) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
                                     doRevert(doc).always(updateProject);
@@ -613,8 +613,12 @@ define(function (require, exports, module) {
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
+            if (doc.file instanceof NativeFileSystem.InaccessibleFileEntry) {
+                saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
+            } else {
+                saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+            }
             fullPath = doc.file.fullPath;
-            saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
             defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
@@ -659,8 +663,7 @@ define(function (require, exports, module) {
         } else {
             return doSave(doc);
         }
-        
-        
+
     }
     
     /**
