@@ -157,11 +157,11 @@ define(function (require, exports, module) {
      * document.
      * Currently this is only triggered when the language name in the status
      * bar is clicked, but it could easily become a menu option in the future.
-     * @param {!Editor} editor The editor for which to switch the language
+     * @param {!Document} document The document for which to switch the language
      */
-    function _handleSwitchLanguage(editor) {
+    function _handleSwitchLanguage(document) {
         var languages = [],
-            selectedLanguage = editor.document.getLanguage().getId(),
+            selectedLanguage = document.getLanguage().getId(),
             template;
         // populate list of languages
         CollectionUtils.forEach(LanguageManager.getLanguages(),
@@ -175,16 +175,23 @@ define(function (require, exports, module) {
         languages = languages.sort(function (a, b) {
             return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
         });
-        // render switch-language-dialog.html using the languages list
-        template = Mustache.render(SwitchLanguageDialogTemplate, // TODO: add file name to dialog title
-            $.extend({languages: languages}, Strings));
-        // show the dialog and set the handler for OK button
+        // render the dialog using the languages list and document file name
+        template = Mustache.render(SwitchLanguageDialogTemplate,
+            $.extend({
+                languages: languages,
+                fileName: document.file.name
+            }, Strings));
+        // show the dialog and set handler for when it's closed
         Dialogs.showModalDialogUsingTemplate(template)
             .done(function (btnId) {
                 if (btnId === Dialogs.DIALOG_BTN_OK) {
-                    editor.document.setLanguage(
+                    document.setLanguage(
                         LanguageManager.getLanguage(selectedLanguage)
-                    ); // TODO: persist the language setting?
+                    );
+                } else if (btnId === "reset") {
+                    document.setLanguage( // set to default lang for this file
+                        LanguageManager.getLanguageForPath(document.file.fullPath)
+                    );
                 }
             });
         // set initial value and change handler for select box
@@ -230,7 +237,7 @@ define(function (require, exports, module) {
         
         // when language name clicked, open switch language dialog
         $languageInfo.on("click", function () {
-            _handleSwitchLanguage(EditorManager.getActiveEditor());
+            _handleSwitchLanguage(EditorManager.getActiveEditor().document);
         });
         
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);

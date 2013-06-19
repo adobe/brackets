@@ -1,7 +1,7 @@
 <div class="switch-language-dialog modal">
     <div class="modal-header">
         <a href="#" class="close" data-dismiss="modal">&times;</a>
-        <h1 class="dialog-title">{{SWITCH_LANGUAGE_TITLE}}</h1>
+        <h1 class="dialog-title">{{SWITCH_LANGUAGE_TITLE}}{{fileName}}</h1>
     </div>
     <div class="modal-body">
         <p class="dialog-message">
@@ -14,7 +14,8 @@
         </p>
     </div>
     <div class="modal-footer">
+        <button class="dialog-button btn left" data-button-id="reset">{{SWITCH_LANGUAGE_RESET}}</button>
+        <button class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</button>
         <button class="dialog-button btn primary" data-button-id="ok">{{OK}}</button>
-        <button class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</button>
     </div>
 </div>
