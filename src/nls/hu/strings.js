@@ -411,7 +411,7 @@ define({
     "LOCALE_SV"                                 : "Svéd",
     "LOCALE_TR"                                 : "Torök",
     "LOCALE_ZH_CN"                              : "Kínai, egyszerűsített",
-    "LOCALE_HU" 	                            : "Magyar",
+    "LOCALE_HU"                                 : "Magyar",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Jelenlegi szín",
