@@ -44,12 +44,11 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
-        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers"),
         Tokenizer       = require("language/HTMLTokenizer").Tokenizer;
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
-    // with two properties: timestamp and tags. Timestamp is the document timestamp,
-    // tags is an array of tag info with start, length, and tagID properties.
+    // with two properties: timestamp and dom. Timestamp is the document timestamp,
+    // dom is the root node of a simple DOM tree.
     var _cachedValues = {};
 
     /**
@@ -85,123 +84,36 @@ define(function (require, exports, module) {
     /**
      * Scan a document to prepare for HTMLInstrumentation
      * @param {Document} doc The doc to scan. 
-     * @return {Array} Array of tag info, or null if no tags were found
+     * @return {Object} Root DOM node of the scanned document.
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
             $(doc).on("change.htmlInstrumentation", function () {
-                // Clear cached values on doc change, but keep the entry
-                // in the _cachedValues hash. Keeping the entry means
-                // the event handlers (like this one) won't be added again.
-                _cachedValues[doc.file.fullPath] = null;
+                if (_cachedValues[doc.file.fullPath]) {
+                    _cachedValues[doc.file.fullPath].dirty = true;
+                }
             });
             
             // Assign to cache, but don't set a value yet
             _cachedValues[doc.file.fullPath] = null;
         }
         
-        if (_cachedValues[doc.file.fullPath]) {
-            var cachedValue = _cachedValues[doc.file.fullPath];
-            
-            if (cachedValue.timestamp === doc.diskTimestamp) {
-                return cachedValue.tags;
-            }
+        var cachedValue = _cachedValues[doc.file.fullPath];
+        if (cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
+            return cachedValue.dom;
         }
         
-        var text = doc.getText();
-        
-        // Scan 
-        var tags = [];
-        var tagStack = [];
-        var tag;
-        
-        DOMHelpers.eachNode(text, function (payload) {
-            // Ignore closing empty tags like </input> since they're invalid.
-            if (payload.closing && _isEmptyTag(payload)) {
-                return;
-            }
-            if (payload.nodeType === 1 && payload.nodeName) {
-                // Set unclosedLength for the last tag
-                if (tagStack.length > 0) {
-                    tag = tagStack[tagStack.length - 1];
-                    
-                    if (!tag.unclosedLength) {
-                        if (tag.nodeName === "HTML" || tag.nodeName === "BODY") {
-                            tag.unclosedLength = text.length - tag.sourceOffset;
-                        } else {
-                            tag.unclosedLength = payload.sourceOffset - tag.sourceOffset;
-                        }
-                    }
-                }
-                
-                // Empty tag
-                if (_isEmptyTag(payload)) {
-                    tags.push({
-                        name:   payload.nodeName,
-                        tagID:  tagID++,
-                        offset: payload.sourceOffset,
-                        length: payload.sourceLength
-                    });
-                } else if (payload.closing) {
-                    // Closing tag
-                    var i,
-                        startTag;
-                    
-                    for (i = tagStack.length - 1; i >= 0; i--) {
-                        if (tagStack[i].nodeName === payload.nodeName) {
-                            startTag = tagStack[i];
-                            tagStack.splice(i, 1);
-                            break;
-                        }
-                    }
-                    
-                    if (startTag) {
-                        tags.push({
-                            name:   startTag.nodeName,
-                            tagID:  tagID++,
-                            offset: startTag.sourceOffset,
-                            length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
-                        });
-                    } else {
-                        console.error("Unmatched end tag: " + payload.nodeName);
-                    }
-                } else {
-                    // Opening tag
-                    tagStack.push(payload);
-                }
-            }
-        });
-        
-        // Remaining tags in tagStack are unclosed.
-        while (tagStack.length) {
-            tag = tagStack.pop();
-            // Push the unclosed tag with the "unclosed" length. 
-            tags.push({
-                name:   tag.nodeName,
-                tagID:  tagID++,
-                offset: tag.sourceOffset,
-                length: tag.unclosedLength || tag.sourceLength
-            });
-        }
-        
-        // Sort by initial offset
-        tags.sort(function (a, b) {
-            if (a.offset < b.offset) {
-                return -1;
-            }
-            if (a.offset === b.offset) {
-                return 0;
-            }
-            return 1;
-        });
+        var text = doc.getText(),
+            dom = _buildSimpleDOM(text);
         
         // Cache results
         _cachedValues[doc.file.fullPath] = {
             timestamp: doc.diskTimestamp,
-            tags: tags
+            dom: dom,
+            dirty: false
         };
         
-        return tags;
+        return dom;
     }
     
     /**
@@ -213,21 +125,31 @@ define(function (require, exports, module) {
      * @return {string} instrumented html content
      */
     function generateInstrumentedHTML(doc) {
-        var tags = scanDocument(doc).slice(),
+        var dom = scanDocument(doc),
             gen = doc.getText();
         
-        // Walk through the tags and insert the 'data-brackets-id' attribute at the
+        // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var i, insertCount = 0;
-        tags.forEach(function (tag) {
-            var attrText = " data-brackets-id='" + tag.tagID + "'";
-
-            // Insert the attribute as the first attribute in the tag.
-            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
-            gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
-            insertCount += attrText.length;
-        });
+        var insertCount = 0;
         
+        function walk(node) {
+            if (node.tag) {
+                var attrText = " data-brackets-id='" + node.tagID + "'";
+                
+                // Insert the attribute as the first attribute in the tag.
+                var insertIndex = node.start + node.tag.length + 1 + insertCount;
+                gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
+                insertCount += attrText.length;
+            }
+            
+            if (node.children) {
+                node.children.forEach(function (child) {
+                    walk(child);
+                });
+            }
+        }
+        
+        walk(dom);
         return gen;
     }
     
@@ -243,48 +165,18 @@ define(function (require, exports, module) {
      * @return none
      */
     function _markText(editor) {
-        var cache = _cachedValues[editor.document.file.fullPath];
+        var cache = _cachedValues[editor.document.file.fullPath],
+            dom = cache && cache.dom;
         
-        var cm = editor._codeMirror,
-            tags = cache && cache.tags;
-        
-        if (!tags) {
-            console.error("Couldn't find the tag information for " + editor.document.file.fullPath);
+        if (!dom) {
+            console.error("Couldn't find the dom for " + editor.document.file.fullPath);
             return;
         }
         
-        // Remove existing marks
-        var marks = cm.getAllMarks();
-        cm.operation(function () {
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    mark.clear();
-                }
-            });
-        });
-                
-        // Mark
-        tags.forEach(function (tag) {
-            var startPos = cm.posFromIndex(tag.offset),
-                endPos = cm.posFromIndex(tag.offset + tag.length),
-                mark = cm.markText(startPos, endPos);
-            
-            mark.tagID = tag.tagID;
-        });
+        _markTextFromDOM(editor, dom);
     }
-    
-    /**
-     * Get the instrumented tagID at the specified position. Returns -1 if
-     * there are no instrumented tags at the location.
-     * The _markText() function must be called before calling this function.
-     *
-     * NOTE: This function is "private" for now (has a leading underscore), since
-     * the API is likely to change in the future.
-     *
-     * @param {Editor} editor The editor to scan. 
-     * @return {number} tagID at the specified position, or -1 if there is no tag
-     */
-    function _getTagIDAtDocumentPos(editor, pos) {
+
+    function _getMarkerAtDocumentPos(editor, pos) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
@@ -310,12 +202,26 @@ define(function (require, exports, module) {
             }
         }
         
-        if (match) {
-            return match.tagID;
-        }
-        
-        return -1;
+        return match;
     }
+    
+    /**
+     * Get the instrumented tagID at the specified position. Returns -1 if
+     * there are no instrumented tags at the location.
+     * The _markText() function must be called before calling this function.
+     *
+     * NOTE: This function is "private" for now (has a leading underscore), since
+     * the API is likely to change in the future.
+     *
+     * @param {Editor} editor The editor to scan. 
+     * @return {number} tagID at the specified position, or -1 if there is no tag
+     */
+    function _getTagIDAtDocumentPos(editor, pos) {
+        var match = _getMarkerAtDocumentPos(editor, pos);
+
+        return (match) ? match.tagID : -1;
+    }
+    
     var voidElements = {
         area: true,
         base: true,
@@ -358,11 +264,12 @@ define(function (require, exports, module) {
                     tag: token.contents,
                     children: [],
                     attributes: {},
+                    parent: (stack.length ? stack[stack.length - 1] : null),
                     start: token.start - 1
                 };
                 newTag.tagID = this.getID(newTag);
-                if (stack.length) {
-                    stack[stack.length - 1].children.push(newTag);
+                if (newTag.parent) {
+                    newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
                 if (!voidElements.hasOwnProperty(this.currentTag.tag)) {
@@ -475,11 +382,13 @@ define(function (require, exports, module) {
             oldChildren = oldNode.children,
             newChildren = newNode.children;
         
-        for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
-            var oldChild = oldChildren[oldChildNum];
-            var newChild = newChildren[newChildNum];
-            if (newChild.tagID) {
-                domdiff(edits, oldChild, newChild);
+        if (oldChildren && newChildren) { // TODO: not sure why this wasn't failing before, so don't know how to create test for it
+            for (oldChildNum = 0, newChildNum = 0; oldChildNum < oldChildren.length && newChildNum < newChildren.length; oldChildNum++, newChildNum++) {
+                var oldChild = oldChildren[oldChildNum];
+                var newChild = newChildren[newChildNum];
+                if (newChild.tagID) {
+                    domdiff(edits, oldChild, newChild);
+                }
             }
         }
     }
@@ -495,11 +404,28 @@ define(function (require, exports, module) {
         };
     }
     
+    function getUnappliedEditList(editor) {
+        var cachedValue = _cachedValues[editor.document.file.fullPath];
+        if (!cachedValue || !cachedValue.dom) {
+            console.warn("No previous DOM to compare change against");
+            return [];
+        } else {
+            var result = _updateDOM(cachedValue.dom, editor);
+            _cachedValues[editor.document.file.fullPath] = {
+                timestamp: editor.document.diskTimestamp, // TODO: update?
+                dom: result.dom
+            };
+            return result.edits;
+        }
+    }
+    
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;
+    exports.getUnappliedEditList = getUnappliedEditList;
     exports._markText = _markText;
+    exports._getMarkerAtDocumentPos = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
     exports._buildSimpleDOM = _buildSimpleDOM;
     exports._markTextFromDOM = _markTextFromDOM;
