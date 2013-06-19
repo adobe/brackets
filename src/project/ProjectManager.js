@@ -606,7 +606,7 @@ define(function (require, exports, module) {
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
-                    if (event.which === 3) {
+                    if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
                         var treenode = $(event.target).closest("li");
                         if (treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
