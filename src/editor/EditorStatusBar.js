@@ -176,11 +176,11 @@ define(function (require, exports, module) {
             return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
         });
         // render the dialog using the languages list and document file name
-        template = Mustache.render(SwitchLanguageDialogTemplate,
-            $.extend({
-                languages: languages,
-                fileName: document.file.name
-            }, Strings));
+        template = Mustache.render(SwitchLanguageDialogTemplate, {
+            languages : languages,
+            fileName  : document.file.name,
+            Strings   : Strings
+        });
         // show the dialog and set handler for when it's closed
         Dialogs.showModalDialogUsingTemplate(template)
             .done(function (btnId) {
