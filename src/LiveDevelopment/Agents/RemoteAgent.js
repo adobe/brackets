@@ -214,6 +214,11 @@ define(function RemoteAgent(require, exports, module) {
 
         return Inspector.Runtime.evaluate(argsAssign + this._queryBracketsId + fnApply);
     };
+    
+    RemoteElement.prototype.replaceChildText = function (pos, text) {
+        var doReplace = "$result.contents()[" + pos + "].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "'";
+        return Inspector.Runtime.evaluate(this._queryBracketsId + doReplace);
+    };
 
     function remoteElement(dataBracketsId) {
         return new RemoteElement(dataBracketsId);
