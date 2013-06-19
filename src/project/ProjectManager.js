@@ -157,13 +157,6 @@ define(function (require, exports, module) {
      */
     var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
-    /**
-     * @private
-     * While initially rendering the tree, stores a list of promises for folders waiting to be read.
-     * Is null when tree is not doing its initial rendering.
-     */
-    var _renderPromises = null;
-    
     var suppressToggleOpen = false;
     
     /**
@@ -419,40 +412,46 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
-    
+        
     /**
-     * Resolves the given deferred when all renderPromises have been resolved. This is necessary in order
-     * to determine when iniital rendering is really finished; we don't actually get a callback from jstree 
-     * once it's handled all of its "reopen" callbacks, so we instead track all of our own async file requests
-     * (which should be the only asynchronicity involved in rendering the tree). Since new requests might get
-     * added in the course of recursing the tree, we can't just do a simple $.when.apply() here.
-     *
-     * @param {$.Deferred} the deferred to resolve when rendering is finished
+     * @private
+     * Reopens a set of nodes in the tree by ID.
+     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
+     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
+     *     be sorted by depth within the tree.
+     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
+     *     reopened.
      */
-    function _whenRenderedResolve(deferred) {
-        if (_renderPromises) {
-            _renderPromises.forEach(function (promise) {
-                // Only listen to each promise once.
-                if (!promise._project_listening) {
-                    promise._project_listening = true;
-                    promise.always(function () {
-                        // One of the promises is completed (either resolved or rejected;
-                        // in either case we want to move on).
-                        // Remove it from the list, then see if we have any more left.
-                        var index = _renderPromises.indexOf(promise);
-                        if (index !== -1) {
-                            _renderPromises.splice(index, 1);
-                        }
-                        if (_renderPromises.length === 0) {
-                            // All done.
-                            deferred.resolve();
-                            _renderPromises = null;
-                        } else {
-                            // Add listeners to any new promises that have shown up.
-                            _whenRenderedResolve(deferred);
-                        }
-                    });
+    function _reopenNodes(nodesByDepth, resultDeferred) {
+        if (nodesByDepth.length === 0) {
+            // All paths are opened and fully rendered.
+            resultDeferred.resolve();
+        } else {
+            var toOpenPaths = nodesByDepth.shift(),
+                toOpenIds   = [],
+                node        = null;
+
+            // use path to lookup ID
+            toOpenPaths.forEach(function (value, index) {
+                node = _projectInitialLoad.fullPathToIdMap[value];
+                
+                if (node) {
+                    toOpenIds.push(node);
                 }
+            });
+            
+            Async.doInParallel(
+                toOpenIds,
+                function (id) {
+                    var result = new $.Deferred();
+                    _projectTree.jstree("open_node", "#" + id, function () {
+                        result.resolve();
+                    }, true);
+                    return result.promise();
+                },
+                false
+            ).always(function () {
+                _reopenNodes(nodesByDepth, resultDeferred);
             });
         }
     }
@@ -467,8 +466,6 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred();
 
-        _renderPromises = [];
-        
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
         // doesn't seem to work properly. 
@@ -544,31 +541,12 @@ define(function (require, exports, module) {
             ).bind(
                 "reopen.jstree",
                 function (event, data) {
-                    // This handler fires for the initial load and subsequent
-                    // reload_nodes events. For each depth level of the tree, we open
-                    // the saved nodes by a fullPath lookup.
-                    if (_projectInitialLoad.previous.length > 0) {
-                        // load previously open nodes by increasing depth
-                        var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [],
-                            node        = null;
-        
-                        // use path to lookup ID
-                        toOpenPaths.forEach(function (value, index) {
-                            node = _projectInitialLoad.fullPathToIdMap[value];
-                            
-                            if (node) {
-                                toOpenIds.push(node);
-                            }
-                        });
-        
-                        // specify nodes to open and load
-                        data.inst.data.core.to_open = toOpenIds;
-                        _projectTree.jstree("reload_nodes", false);
-                    }
-                    if (_projectInitialLoad.previous.length === 0) {
-                        // resolve after all paths are opened and fully rendered
-                        _whenRenderedResolve(result);
+                    if (_projectInitialLoad.previous) {
+                        // Start reopening nodes that were previously open, starting
+                        // with the first recorded depth level. As each level completes,
+                        // it will trigger the next level to finish.
+                        _reopenNodes(_projectInitialLoad.previous, result);
+                        _projectInitialLoad.previous = null;
                     }
                 }
             ).bind(
@@ -606,7 +584,7 @@ define(function (require, exports, module) {
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
-                    if (event.which === 3) {
+                    if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
                         var treenode = $(event.target).closest("li");
                         if (treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
@@ -760,10 +738,6 @@ define(function (require, exports, module) {
             dirEntry = treeNode.data("entry");
         }
         
-        if (_renderPromises) {
-            _renderPromises.push(deferred.promise());
-        }
-
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             processEntries,

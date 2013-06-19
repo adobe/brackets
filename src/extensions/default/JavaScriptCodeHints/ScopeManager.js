@@ -133,6 +133,9 @@ define(function (require, exports, module) {
                     // continue with null configObj which will result in
                     // default settings.
                     console.log("Error parsing preference file: " + path);
+                    if (e instanceof SyntaxError) {
+                        console.log(e.message);
+                    }
                 }
                 preferences = new Preferences(configObj);
                 deferredPreferences.resolve();
