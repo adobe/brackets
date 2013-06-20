@@ -393,11 +393,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    // Switch language (syntax) dialog
-    "SWITCH_LANGUAGE_TITLE"                     : "Switch Language for ",
-    "SWITCH_LANGUAGE_MESSAGE"                   : "Language:",
-    "SWITCH_LANGUAGE_RESET"                     : "Reset to Default",
-    
     /**
      * Locales
      */

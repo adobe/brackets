@@ -42,11 +42,10 @@ define(function (require, exports, module) {
         LanguageManager              = require("language/LanguageManager"),
         StatusBar                    = require("widgets/StatusBar"),
         Strings                      = require("strings"),
-        StringUtils                  = require("utils/StringUtils"),
-        SwitchLanguageDialogTemplate = require("text!htmlContent/switch-language-dialog.html");
+        StringUtils                  = require("utils/StringUtils");
     
     /* StatusBar indicators */
-    var $languageInfo,
+    var $languageSelect,
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -55,7 +54,11 @@ define(function (require, exports, module) {
     
     
     function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().getName());
+        var lang = editor.document.getLanguage();
+        $languageSelect.empty();
+        $("<option />").val(lang.getId()).text(lang.getName())
+            .appendTo($languageSelect);
+        $languageSelect.val(lang.getId());
     }
     
     function _updateFileInfo(editor) {
@@ -153,55 +156,45 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Open a dialog allowing user to switch the language mode for the current
-     * document.
-     * Currently this is only triggered when the language name in the status
-     * bar is clicked, but it could easily become a menu option in the future.
+     * Setup and populate a custom <select> dropdown for switching the language
+     * mode for the given document.
      * @param {!Document} document The document for which to switch the language
      */
-    function _handleSwitchLanguage(document) {
-        var languages = [],
-            selectedLanguage = document.getLanguage().getId(),
-            template;
-        // populate list of languages
-        CollectionUtils.forEach(LanguageManager.getLanguages(),
-            function (lang) {
-                languages.push({
-                    label: lang.getName(),
-                    language: lang.getId()
-                });
-            });
-        // sort list alphabetically (ignoring case)
-        languages = languages.sort(function (a, b) {
-            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+    function _setupLanguageSelect(document) {
+        // Lazy load the languages in the dropdown to avoid having to receive
+        // updates from LanguageManager (not to mention unnecessary processing
+        // since most users will not need to manually set the language).
+        var languages = LanguageManager.getLanguages();
+        
+        // lock width of <select>, else it changes when it's populated
+        $languageSelect.css("width", $languageSelect.css("width"));
+        
+        // fill the dropbown using the languages list
+        $languageSelect.empty();
+        CollectionUtils.forEach(languages, function (lang) {
+            $("<option />").val(lang.getId()).text(lang.getName())
+                .appendTo($languageSelect);
         });
-        // render the dialog using the languages list and document file name
-        template = Mustache.render(SwitchLanguageDialogTemplate, {
-            languages : languages,
-            fileName  : document.file.name,
-            Strings   : Strings
+        $languageSelect.val(document.getLanguage().getId());
+        
+        // sort dropdown alphabetically
+        $languageSelect.html($languageSelect.find("option").sort(
+            function (a, b) {
+                return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
+            }
+        ));
+        
+        // set change handler for select box
+        $languageSelect.on("change", function () {
+            document.forceLanguage(
+                LanguageManager.getLanguage($(this).val())
+            );
+            $languageSelect.css("width", "auto"); // unlock width
         });
-        // show the dialog and set handler for when it's closed
-        Dialogs.showModalDialogUsingTemplate(template)
-            .done(function (btnId) {
-                if (btnId === Dialogs.DIALOG_BTN_OK) {
-                    document.forceLanguage(
-                        LanguageManager.getLanguage(selectedLanguage)
-                    );
-                } else if (btnId === "reset") {
-                    // set to default lang for this file
-                    document.forceLanguage(null);
-                }
-            });
-        // set initial value and change handler for select box
-        $(".switch-language-dialog select").val(selectedLanguage)
-            .on("change", function () {
-                selectedLanguage = $(this).val();
-            });
     }
     
     function _init() {
-        $languageInfo       = $("#status-language");
+        $languageSelect     = $("#language-select");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
@@ -234,9 +227,10 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
         
-        // when language name clicked, open switch language dialog
-        $languageInfo.on("click", function () {
-            _handleSwitchLanguage(EditorManager.getActiveEditor().document);
+        // When language select clicked, set up dropdown.
+        // Using mousedown because the dropdown opens before mouseup.
+        $languageSelect.on("mousedown", function () {
+            _setupLanguageSelect(EditorManager.getActiveEditor().document);
         });
         
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
