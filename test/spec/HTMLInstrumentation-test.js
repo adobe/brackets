@@ -103,7 +103,7 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
-        xdescribe("HTML Instrumentation in wellformed HTML", function () {
+        describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, WellFormedFileEntry);
@@ -532,12 +532,12 @@ define(function (require, exports, module) {
                 
                 // full test
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                expectationFn(result, previousDOM);
+                expectationFn(result, previousDOM, false);
                 
                 // incremental test
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
                 // TODO: how to test that only an appropriate subtree was reparsed/diffed?
-                expectationFn(result, previousDOM);
+                expectationFn(result, previousDOM, true);
             }
             
             it("should re-instrument after document is dirtied", function () {
@@ -596,13 +596,14 @@ define(function (require, exports, module) {
             
             it("should handle attribute change", function () {
                 runs(function () {
-                    var tagID;
+                    var tagID, origParent;
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
                             tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
                         },
-                        function (result, previousDOM) {
+                        function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(result.edits[0]).toEqual({
                                 type: "attrChange",
@@ -610,6 +611,14 @@ define(function (require, exports, module) {
                                 attribute: "content",
                                 value: "An interactive, awesome getting started guide for Brackets."
                             });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
                         }
                     );
                 });
@@ -617,13 +626,14 @@ define(function (require, exports, module) {
             
             it("should handle new attributes", function () {
                 runs(function () {
-                    var tagID;
+                    var tagID, origParent;
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
                             tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
                         },
-                        function (result, previousDOM) {
+                        function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(result.edits[0]).toEqual({
                                 type: "attrAdd",
@@ -631,6 +641,14 @@ define(function (require, exports, module) {
                                 attribute: "class",
                                 value: "supertitle"
                             });
+
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
                         }
                     );
                 });
@@ -638,19 +656,28 @@ define(function (require, exports, module) {
             
             it("should handle deleted attributes", function () {
                 runs(function () {
-                    var tagID;
+                    var tagID, origParent;
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
                             tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
                         },
-                        function (result, previousDOM) {
+                        function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(result.edits[0]).toEqual({
                                 type: "attrDel",
                                 tagID: tagID,
                                 attribute: "content"
                             });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
                         }
                     );
                 });
@@ -658,13 +685,14 @@ define(function (require, exports, module) {
             
             it("should handle simple altered text", function () {
                 runs(function () {
-                    var tagID;
+                    var tagID, origParent;
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
                             tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
                         },
-                        function (result, previousDOM) {
+                        function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(previousDOM.children[3].children[1].tag).toEqual("h1");
                             expect(result.edits[0]).toEqual({
@@ -673,8 +701,65 @@ define(function (require, exports, module) {
                                 child: 0,
                                 content: "GETTING AWESOMER WITH BRACKETS"
                             });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
                         }
                     );
+                });
+            });
+            
+            it("should handle two incremental text edits in a row", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        changeList,
+                        tagID = previousDOM.children[3].children[1].tagID,
+                        result,
+                        origParent = previousDOM.children[3];
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    $(editor).on("change.instrtest", function (event, editor, change) {
+                        changeList = change;
+                    });
+                    
+                    editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        tagID: tagID,
+                        child: 0,
+                        content: "GETTING AWESOMER WITH BRACKETS"
+                    });
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                    
+                    editor.document.replaceRange("MOAR AWESOME", {line: 12, ch: 12}, {line: 12, ch: 20});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        tagID: tagID,
+                        child: 0,
+                        content: "GETTING MOAR AWESOME WITH BRACKETS"
+                    });
+                    
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                 });
             });
             

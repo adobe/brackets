@@ -248,12 +248,48 @@ define(function (require, exports, module) {
         wbr: true
     };
     
-    function SimpleDOMBuilder(text) {
+    function SimpleDOMBuilder(text, startOffset) {
         this.stack = [];
-        this.t = new Tokenizer(text);
+        this.t = new Tokenizer(text, {}, {
+            onopentagend: this._handleOpenTagEnd.bind(this),
+            onselfclosingtag: function () { },
+            oncomment: function () { },
+            ontext: function () { }
+        });
         this.lastTag = null;
         this.currentTag = null;
+        this.startOffset = startOffset || 0;
     }
+    
+    function _updateHash(node) {
+        if (node.children) {
+            var i,
+                weight = 0,
+                hashes = "";
+            for (i = 0; i < node.children.length; i++) {
+                weight += node.children[i].weight;
+                hashes += node.children[i].signature;
+            }
+            node.weight = weight;
+            node.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
+        } else {
+            // TODO: should this ever happen?
+            node.weight = 0;
+            node.signature = null;
+        }
+    }
+    
+    SimpleDOMBuilder.prototype._handleOpenTagEnd = function () {
+        if (this.currentTag) {
+            // We're closing an open tag. Record the end of the open tag as the end of the
+            // range. (If we later find a close tag for this tag, the end will get overwritten
+            // with the end of the close tag.)
+            // TODO: current index is private in the tokenizer right now
+            this.currentTag.end = this.startOffset + this.t._index + 1;
+            this.lastTag = this.currentTag;
+            this.currentTag = null;
+        }
+    };
     
     SimpleDOMBuilder.prototype.build = function () {
         var token;
@@ -270,7 +306,7 @@ define(function (require, exports, module) {
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
-                    start: token.start - 1,
+                    start: this.startOffset + token.start - 1,
                     weight: 0
                 };
                 newTag.tagID = this.getID(newTag);
@@ -284,19 +320,8 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "closetag") {
                 this.lastTag = stack.pop();
-                var children = this.lastTag.children;
-                if (children) {
-                    var i,
-                        weight = 0,
-                        hashes = "";
-                    for (i = 0; i < children.length; i++) {
-                        weight += children[i].weight;
-                        hashes += children[i].signature
-                    }
-                    this.lastTag.weight = weight;
-                    this.lastTag.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
-                }
-                this.lastTag.end = token.end + 1;
+                _updateHash(this.lastTag);
+                this.lastTag.end = this.startOffset + token.end + 1;
                 if (this.lastTag.tag !== token.contents) {
                     console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
                 }
@@ -306,6 +331,9 @@ define(function (require, exports, module) {
                 this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
             } else if (token.type === "text") {
+                // TODO: Not clear why we need this since it should already have been nulled out in
+                // _handleOpenTagEnd, but that doesn't seem to be sufficient for some reason.
+                this.currentTag = null;
                 if (stack.length) {
                     var parent = stack[stack.length - 1];
                     var newNode = {
@@ -361,22 +389,114 @@ define(function (require, exports, module) {
         _markTags(cm, dom);
     }
     
-    function DOMUpdater(previousDOM, editor) {
-        var text = editor.document.getText();
-        this.constructor(text);
+    function DOMUpdater(previousDOM, editor, changeList) {
+        var text, startOffset = 0;
+
+        // TODO: if there's more than one change in the changelist, we need to figure out how
+        // to find all the affected ranges since we can't directly map the ranges of intermediate
+        // changes to marked ranges after the fact. 
+        //
+        // Probably the best we can do is try to determine what the first and last affected positions
+        // are in the whole changelist, then figure out what marks those positions are in, and walk
+        // up the tree to the common parent. However, that's not trivial since each change's position
+        // is specified in terms of the document's state after the previous change. It's probably easy
+        // to find the first affected position, but harder to find the last. Perhaps we could just
+        // dirty the whole doc after the first affected position.
+        //
+        // For now, just punt and redo the whole doc if there's more than one change.
+        if (changeList && !changeList.next) {
+            // If both the beginning and end of the change are still within the same marked
+            // range after the change, then assume we can just dirty the tag containing them,
+            // otherwise punt. (TODO: We could chase upward in the tree to find the common parent if
+            // the tags for the beginning and end of the change are different.)
+            var startMark = _getMarkerAtDocumentPos(editor, changeList.from),
+                endMark = _getMarkerAtDocumentPos(editor, changeList.to);
+            if (startMark && startMark === endMark) {
+                var newMarkRange = startMark.find();
+                if (newMarkRange) {
+                    text = editor._codeMirror.getRange(newMarkRange.from, newMarkRange.to);
+                    console.log("incremental update: " + text);
+                    this.changedTagID = startMark.tagID;
+                    startOffset = editor._codeMirror.indexFromPos(newMarkRange.from);
+                }
+            }
+        }
+        
+        if (!this.changedTagID) {
+            // We weren't able to incrementally update, so just rebuild and diff everything.
+            text = editor.document.getText();
+        } 
+        
+        this.constructor(text, startOffset);
         this.editor = editor;
         this.cm = editor._codeMirror;
+        this.previousDOM = previousDOM;
     }
     
     DOMUpdater.prototype = new SimpleDOMBuilder();
     
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
-        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start));
+        // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
+        // actually inside the parent).
+        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1));
         if (currentTagID === -1 || (newTag.parent && currentTagID === newTag.parent.tagID)) {
             currentTagID = tagID++;
         }
         return currentTagID;
+    };
+    
+    DOMUpdater.prototype.update = function () {
+        var newSubtree = this.build(),
+            result = {
+                // default result if we didn't identify a changed portion
+                newDOM: newSubtree,
+                oldSubtree: this.previousDOM,
+                newSubtree: newSubtree,
+                subtreeOffset: 0
+            };
+
+        if (this.changedTagID) {
+            // Find the old subtree that's going to get swapped out.
+            var oldSubtree = this.previousDOM.nodeMap[this.changedTagID],
+                parent = oldSubtree.parent;
+            
+            // If we didn't have a parent, then the whole tree changed anyway, so
+            // we'll just return the default result.
+            if (parent) {
+                var childIndex = parent.children.indexOf(oldSubtree);
+                if (childIndex === -1) {
+                    // This should never happen...
+                    console.error("DOMUpdater.update(): couldn't locate old subtree in tree");
+                } else {
+                    // Swap the new subtree in place of the old subtree.
+                    oldSubtree.parent = null;
+                    newSubtree.parent = parent;
+                    parent.children[childIndex] = newSubtree;
+                    
+                    // Overwrite any node mappings in the parent DOM with the
+                    // mappings for the new subtree.
+                    $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
+                    newSubtree.nodeMap = null;
+                    
+                    // Update the signatures for all parents of the new subtree.
+                    var curParent = parent;
+                    while (curParent) {
+                        _updateHash(curParent);
+                        curParent = curParent.parent;
+                    }
+                    
+                    // TODO: add/update marked ranges for any nodes inside subtree
+                    // (will need to offset the start/end of each node by the offset
+                    // of the beginning of the changed range)
+                    
+                    result.newDOM = this.previousDOM;
+                    result.oldSubtree = oldSubtree;
+                }
+            }
+        }
+        
+        return result;
     };
     
     function attributeCompare(edits, oldNode, newNode) {
@@ -479,24 +599,25 @@ define(function (require, exports, module) {
         }
     }
     
-    function _updateDOM(previousDOM, editor) {
+    function _updateDOM(previousDOM, editor, changeList) {
         var edits = [];
-        var updater = new DOMUpdater(previousDOM, editor);
-        var newDOM = updater.build();
-        domdiff(edits, previousDOM, newDOM);
+        var updater = new DOMUpdater(previousDOM, editor, changeList);
+        var result = updater.update();
+        domdiff(edits, result.oldSubtree, result.newSubtree);
+        console.log("edits: " + JSON.stringify(edits));
         return {
-            dom: newDOM,
+            dom: result.newDOM,
             edits: edits
         };
     }
     
-    function getUnappliedEditList(editor) {
+    function getUnappliedEditList(editor, changeList) {
         var cachedValue = _cachedValues[editor.document.file.fullPath];
         if (!cachedValue || !cachedValue.dom) {
             console.warn("No previous DOM to compare change against");
             return [];
         } else {
-            var result = _updateDOM(cachedValue.dom, editor);
+            var result = _updateDOM(cachedValue.dom, editor, changeList);
             _cachedValues[editor.document.file.fullPath] = {
                 timestamp: editor.document.diskTimestamp, // TODO: update?
                 dom: result.dom
