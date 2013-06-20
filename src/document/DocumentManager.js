@@ -662,8 +662,6 @@ define(function (require, exports, module) {
                 counter = 1;
             }
             
-            title += ".txt";
-            
             return title;
         };
     }());
