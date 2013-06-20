@@ -218,14 +218,15 @@ define(function (require, exports, module) {
             doc     = this.editor.document;
 
         do {
-            if (next.start > cursor.ch) {
+            if (next.end > cursor.ch) {
                 cursor.ch = next.end;
-            } else if (next.end > 0) {
+            } else if (next.end < doc.getLine(cursor.line).length) {
                 cursor.ch = next.end + 1;
-            } else if (cursor.line > 0) {
-                cursor.ch = doc.getLine(cursor.line + 1).length;
+            } else if (doc.getLine(cursor.line + 1)) {
+                cursor.ch = 0;
                 cursor.line++;
             } else {
+                next = null;
                 break;
             }
             next = this.getToken(cursor);
