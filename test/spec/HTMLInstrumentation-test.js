@@ -519,6 +519,27 @@ define(function (require, exports, module) {
                 elementIds = {};
             });
             
+            function doFullAndIncrementalEditTest(editFn, expectationFn) {
+                var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    changeList,
+                    result;
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                $(editor).on("change.instrtest", function (event, editor, change) {
+                    changeList = change;
+                });
+                editFn(editor, previousDOM);
+                $(editor).off(".instrtest");
+                
+                // full test
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                expectationFn(result, previousDOM);
+                
+                // incremental test
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                expectationFn(result, previousDOM);
+            }
+            
             it("should re-instrument after document is dirtied", function () {
                 runs(function () {
                     var pos = {line: 15, ch: 0};
@@ -551,6 +572,7 @@ define(function (require, exports, module) {
                     expect(titleContents.parent.weight).toEqual(29);
                     expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
+                    expect(dom.nodeMap[meta.tagID]).toBe(meta);
                 });
             });
             
@@ -574,65 +596,85 @@ define(function (require, exports, module) {
             
             it("should handle attribute change", function () {
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
-                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                    editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
-                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    expect(result.edits.length).toEqual(1);
-                    expect(result.edits[0]).toEqual({
-                        type: "attrChange",
-                        tagID: previousDOM.children[1].children[7].tagID,
-                        attribute: "content",
-                        value: "An interactive, awesome getting started guide for Brackets."
-                    });
+                    var tagID;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
+                            tagID = previousDOM.children[1].children[7].tagID;
+                        },
+                        function (result, previousDOM) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrChange",
+                                tagID: tagID,
+                                attribute: "content",
+                                value: "An interactive, awesome getting started guide for Brackets."
+                            });
+                        }
+                    );
                 });
             });
             
             it("should handle new attributes", function () {
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
-                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                    editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
-                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    expect(result.edits.length).toEqual(1);
-                    expect(result.edits[0]).toEqual({
-                        type: "attrAdd",
-                        tagID: previousDOM.children[3].children[1].tagID,
-                        attribute: "class",
-                        value: "supertitle"
-                    });
+                    var tagID;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
+                            tagID = previousDOM.children[3].children[1].tagID;
+                        },
+                        function (result, previousDOM) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrAdd",
+                                tagID: tagID,
+                                attribute: "class",
+                                value: "supertitle"
+                            });
+                        }
+                    );
                 });
             });
             
             it("should handle deleted attributes", function () {
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
-                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                    editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
-                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    expect(result.edits.length).toEqual(1);
-                    expect(result.edits[0]).toEqual({
-                        type: "attrDel",
-                        tagID: previousDOM.children[1].children[7].tagID,
-                        attribute: "content"
-                    });
+                    var tagID;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
+                            tagID = previousDOM.children[1].children[7].tagID;
+                        },
+                        function (result, previousDOM) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrDel",
+                                tagID: tagID,
+                                attribute: "content"
+                            });
+                        }
+                    );
                 });
             });
             
             it("should handle simple altered text", function () {
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
-                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                    editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
-                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    expect(result.edits.length).toEqual(1);
-                    expect(previousDOM.children[3].children[1].tag).toEqual("h1");
-                    expect(result.edits[0]).toEqual({
-                        type: "textReplace",
-                        tagID: previousDOM.children[3].children[1].tagID,
-                        child: 0,
-                        content: "GETTING AWESOMER WITH BRACKETS"
-                    });
+                    var tagID;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                            tagID = previousDOM.children[3].children[1].tagID;
+                        },
+                        function (result, previousDOM) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(previousDOM.children[3].children[1].tag).toEqual("h1");
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                tagID: tagID,
+                                child: 0,
+                                content: "GETTING AWESOMER WITH BRACKETS"
+                            });
+                        }
+                    );
                 });
             });
             
