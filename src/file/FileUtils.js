@@ -351,6 +351,18 @@ define(function (require, exports, module) {
 
         return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
+    
+    /**
+     * Determine the parent directory of a file or folder.
+     * @param {string} full path to a file or directory
+     * @return {string} Returns the path to the parent directory
+     */
+    function getParent(fullPath) {
+        var i = fullPath.lastIndexOf("/"),
+            parent = (i === -1 || i >= fullPath.length - 1) ? fullPath : fullPath.substr(0, i + 1);
+
+        return parent;
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -371,4 +383,5 @@ define(function (require, exports, module) {
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
+    exports.getParent                      = getParent;
 });
