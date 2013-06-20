@@ -130,7 +130,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "[6318990] !é=line: {0}=!",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
