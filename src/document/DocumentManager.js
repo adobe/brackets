@@ -123,8 +123,6 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
-    var _untitledDocumentCounter = 0;
-    
     var _untitledDocumentPath = "/" + NumberUtils.getRandomInt(10000000, 99999999);
 
     /**
@@ -653,12 +651,23 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
-    function nextUntitledDocumentPath() {
-        var counter = _untitledDocumentCounter++;
-        
-        return _untitledDocumentPath + "/" + Strings.UNTITLED_DOC_TITLE +
-            " " + counter + ".txt";
-    }
+    var nextUntitledDocumentPath = (function () {
+        var counter = null;
+
+        return function () {
+            var title = _untitledDocumentPath + "/" + Strings.UNTITLED_DOC_TITLE;
+            
+            if (counter) {
+                title += " " + counter++;
+            } else {
+                counter = 1;
+            }
+            
+            title += ".txt";
+            
+            return title;
+        };
+    }());
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
