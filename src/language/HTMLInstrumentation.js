@@ -259,6 +259,7 @@ define(function (require, exports, module) {
         var token;
         var stack = this.stack;
         var attributeName = null;
+        var nodeMap = {};
         
         while ((token = this.t.nextToken()) !== null) {
             if (!token.contents) {
@@ -273,6 +274,7 @@ define(function (require, exports, module) {
                     weight: 0
                 };
                 newTag.tagID = this.getID(newTag);
+                nodeMap[newTag.tagID] = newTag;
                 if (newTag.parent) {
                     newTag.parent.children.push(newTag);
                 }
@@ -317,7 +319,9 @@ define(function (require, exports, module) {
             }
         }
         
-        return stack.length ? stack[0] : this.lastTag;
+        var dom = (stack.length ? stack[0] : this.lastTag);
+        dom.nodeMap = nodeMap;
+        return dom;
     };
     
     SimpleDOMBuilder.prototype.getID = function () {

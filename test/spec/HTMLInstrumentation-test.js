@@ -551,6 +551,7 @@ define(function (require, exports, module) {
                     expect(titleContents.parent.weight).toEqual(29);
                     expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
+                    expect(dom.nodeMap[meta.tagID]).toBe(meta);
                 });
             });
             
