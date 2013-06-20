@@ -36,7 +36,17 @@ define(function (require, exports, module) {
     function setFileSystemImpl(impl) {
         _impl = impl;
     }
-        
+    
+    /**
+     * Set the root directory for the project. This clears any existing file cache
+     * and starts indexing on a new worker.
+     *
+     * @param {string} rootPath The new project root.
+     */
+    function setProjectRoot(rootPath) {
+        FileIndex.setRoot(rootPath);
+    }
+    
     /**
      * Return a File object for the specified path.
      *
