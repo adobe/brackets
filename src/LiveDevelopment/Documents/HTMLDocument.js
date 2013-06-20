@@ -153,7 +153,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         // Only handles attribute changes currently.
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
-        var edits = HTMLInstrumentation.getUnappliedEditList(editor);
+        var edits = HTMLInstrumentation.getUnappliedEditList(editor, change);
         edits.forEach(function (edit) {
             // Silly naming convention: $$ = remote $
             var $$target = RemoteAgent.remoteElement(edit.tagID);
