@@ -47,8 +47,8 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Hiba történt a fájl megnyitása közben.",
     "ERROR_OPENING_FILE"                : "Hiba történt a fájl megnyitása közben: <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RELOADING_FILE_TITLE"        : "Hiba történt a változások merevlemezről való ujratöltése közben.",
-    "ERROR_RELOADING_FILE"              : "Hiba történt a fájl ujratöltése közben: <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE_TITLE"        : "Hiba történt a változások merevlemezről való újratöltése közben.",
+    "ERROR_RELOADING_FILE"              : "Hiba történt a fájl újratöltése közben: <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Hiba történt a fájl mentése közben",
     "ERROR_SAVING_FILE"                 : "Hiba történt a fájl mentése közben: <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Hiba történt a fájl átnevezése közben",
@@ -81,7 +81,7 @@ define({
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Nyiss meg egy HTML fájlt az Élő Előnézet indításához.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Az Élő Előnézet használatához szerver-oldali fájlokkal meg kell adni az alap URL-t a projekthez.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Hiba a HTTP szerver indításakor az Élő Fejlesztéshez. Kérlek próbáld újra később.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Üdv az Élő Előnézet-ben!",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Üdv az Élő Előnézetben!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Az Élő Előnézet összeköti a {APP_NAME}-et a böngésződdel. Megnyitja a HTML fájl előnézetét a Böngészőben, majd rögtön frissül amikor szerkeszted a kódodat.<br /><br />Ebben a kezdetleges {APP_NAME} verzióban, az Élő Előnézet csak a <strong>Google Chrome</strong>-ban működik és élőben változik<strong>CSS fájlok</strong> szerkesztésekor. A HTML vagy JavaScript változások automatikusan frissülnek mentéskor.<br /><br />(Ezt az üzenetet csak egyszer fogod látni.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "További információért lásd: <a class=\"clickable-link\" data-href=\"{0}\">Élő Előnézet csatlakozási hibák kiküszöbölése</a>.",
     
@@ -93,7 +93,7 @@ define({
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Az Élő Előnézet lecsatlakozott mert a bongésző fejlesztő eszközei meg lettek nyitva",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Az Élő Előnézet lecsatlakozott mert az oldal be lett zárva a böngészőben",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Az Élő Előnézet lecsatlakozott mert a böngésző olyan oldalra lépett amely nem része a jelenlegi projeknek",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Az Élő Előnézet lecsatlakozott mert a böngésző olyan oldalra lépett amely nem része a jelenlegi projektnek",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Az Élő Előnézet lecsatlakozott ismeretlen ok miatt ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Változtatások mentése",
@@ -109,7 +109,7 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} találat",
     "WITH"                              : "",
     "BUTTON_YES"                        : "Igen",
-    "BUTTON_NO"                         : "Neb",
+    "BUTTON_NO"                         : "Nem",
     "BUTTON_STOP"                       : "Leállítás",
 
     "OPEN_FILE"                         : "Fájl megnyitása",
@@ -117,8 +117,8 @@ define({
     "CHOOSE_FOLDER"                     : "Válassz mappát",
 
     "RELEASE_NOTES"                     : "Kiadási megjegyzések",
-    "NO_UPDATE_TITLE"                   : "A legfrisseb verziót használod!",
-    "NO_UPDATE_MESSAGE"                 : "A legfrisseb {APP_NAME} fut.",
+    "NO_UPDATE_TITLE"                   : "A legfrissebb verziót használod!",
+    "NO_UPDATE_MESSAGE"                 : "A legfrissebb {APP_NAME} fut.",
     
     "FIND_IN_FILES_TITLE"               : "a \"{4}\" {5} - {0} {1} a {2} {3}-ban",
     "FIND_IN_FILES_SCOPED"              : "a <span class='dialog-filename'>{0}</span>-ban",
@@ -133,7 +133,7 @@ define({
     "FIND_IN_FILES_LINE"                : "sor:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Hiba a frissítési infó lekérdezése közben",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Hiba történt a legfrisseb frissítési infó lekérdezése közben. Győződj meg arról hogy van internet kapcsolatod, majd próbáld meg újra.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Hiba történt a legfrissebb frissítési infó lekérdezése közben. Győződj meg arról hogy van internet kapcsolatod, majd próbáld meg újra.",
 
     /**
      * ProjectManager
@@ -185,7 +185,7 @@ define({
     "CMD_FILE_DELETE"                     : "Töröl",
     "CMD_INSTALL_EXTENSION"               : "Bővítmény Telepítése\u2026",
     "CMD_EXTENSION_MANAGER"               : "Bővítménykezelő\u2026",
-    "CMD_FILE_REFRESH"                    : "Ujratöltés",
+    "CMD_FILE_REFRESH"                    : "Újratöltés",
     "CMD_QUIT"                            : "Bezár",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Kilépés",
@@ -264,7 +264,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Ablak bezárása",
     "CMD_ABORT_QUIT"                      : "Kilépés Megakadályozása",
-    "CMD_BEFORE_MENUPOPUP"                : "A Felugró Menüablak Elött",
+    "CMD_BEFORE_MENUPOPUP"                : "A Felugró Menüablak Előtt",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kísérleti verzió",
@@ -274,10 +274,10 @@ define({
     "DONT_SAVE"                            : "Ne Mentse",
     "SAVE"                                 : "Mentés",
     "CANCEL"                               : "Mégse",
-    "RELOAD_FROM_DISK"                     : "Ujratöltés a lemezről",
+    "RELOAD_FROM_DISK"                     : "Újratöltés a lemezről",
     "KEEP_CHANGES_IN_EDITOR"               : "Változtatások megtartása a szerkesztőben",
     "CLOSE_DONT_SAVE"                      : "Bezárás (Ne Mentse)",
-    "RELAUNCH_CHROME"                      : "Chrome Ujraindítása",
+    "RELAUNCH_CHROME"                      : "Chrome Újraindítása",
     "ABOUT"                                : "Rólunk",
     "CLOSE"                                : "Bezárás",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
@@ -285,7 +285,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Készítve \u2764 és JavaScript-el a következők által:",
     "ABOUT_TEXT_LINE6"                     : "Sok ember (de ezt az adatot nem tudjuk megjeleníteni jelenleg).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "A Web Platform Dokumentáció és a  Web Platform grafikai logó a Creative Commons Attribution license alatt vannak licenszelve, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "A Web Platform Dokumentáció és a  Web Platform grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Új {APP_NAME} verzió elérhető! Kattints ide a részletekért.",
     "UPDATE_AVAILABLE_TITLE"               : "Új verzió elérhető",
     "UPDATE_MESSAGE"                       : "Hé, új {APP_NAME} verzió elérhető. Íme néhány kulcsfontosságú frissítés:",
@@ -325,7 +325,7 @@ define({
     "API_NOT_COMPATIBLE"                   : "A Bővítmény nem kompatibilis a jelenlegi {APP_NAME} verzióval. A letiltott bővítmények közé lett telepítve.",
     "MISSING_MAIN"                         : "A csomag nem tartalmaz main.js fájlt.",
     "EXTENSION_ALREADY_INSTALLED"          : "A csomag telepítésével felülíródik egy előzőleg telepített bővítmény. Folytatod?",
-    "EXTENSION_SAME_VERSION"               : "A csomag verziója megeggyezik a jelenleg telepítettével. Felülírod?",
+    "EXTENSION_SAME_VERSION"               : "A csomag verziója megegyezik a jelenleg telepítettével. Felülírod?",
     "EXTENSION_OLDER_VERSION"              : "A csomag verziója {0} ami régebbi mint a jelenlegi ({1}). Felülírod a jelenlegit?",
     "DOWNLOAD_ID_IN_USE"                   : "Belső hiba: letöltő ID már használatban van.",
     "NO_SERVER_RESPONSE"                   : "Nem lehet csatlakozni a szerverhez.",
@@ -336,7 +336,7 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "Az URL muszáj http vagy https URL legyen.",
     "UNKNOWN_ERROR"                        : "Ismeretlen belső hiba.",
     // For NOT_FOUND_ERR, see generic strings above
-    "EXTENSION_MANAGER_TITLE"              : "Bővitménykezelő",
+    "EXTENSION_MANAGER_TITLE"              : "Bővítménykezelő",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Nem lehet elérni a bővítmény adatbázist. Kérlek próbáld meg később.",
     "INSTALL_FROM_URL"                     : "Telepítés URL-ről\u2026",
     "EXTENSION_AUTHOR"                     : "Szerző",
@@ -360,7 +360,7 @@ define({
     "UNDO_REMOVE"                          : "Mégsem",
     "MARKED_FOR_UPDATE"                    : "Frissítéshez megjelölve",
     "UNDO_UPDATE"                          : "Mégsem",
-    "CHANGE_AND_QUIT_TITLE"                : "Bővítmények megvátoztatása",
+    "CHANGE_AND_QUIT_TITLE"                : "Bővítmények megváltoztatása",
     "CHANGE_AND_QUIT_MESSAGE"              : "A megjelölt bővítmények frissítéséhez/eltávolításához ki kell lépni a {APP_NAME}-ből, majd újraindítani. A mentetlen változásokról meg fog jelenni egy ablak ahol elmentheted.",
     "REMOVE_AND_QUIT"                      : "Bővítmények eltávolítása és kilépés",
     "CHANGE_AND_QUIT"                      : "Bővítmények megváltoztatása és kilépés",
@@ -402,14 +402,14 @@ define({
     "LOCALE_ES"                                 : "Spanyol",
     "LOCALE_FR"                                 : "Francia",
     "LOCALE_IT"                                 : "Olasz",
-    "LOCALE_JA"                                 : "Japám",
+    "LOCALE_JA"                                 : "Japán",
     "LOCALE_NB"                                 : "Norvég",
     "LOCALE_PL"                                 : "Lengyel",
     "LOCALE_PT_BR"                              : "Portugál, Brazil",
     "LOCALE_PT_PT"                              : "Portugál",
     "LOCALE_RU"                                 : "Orosz",
     "LOCALE_SV"                                 : "Svéd",
-    "LOCALE_TR"                                 : "Torök",
+    "LOCALE_TR"                                 : "Török",
     "LOCALE_ZH_CN"                              : "Kínai, egyszerűsített",
     "LOCALE_HU"                                 : "Magyar",
     
@@ -426,7 +426,7 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Ugrás a Definícióhoz",
     
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "JSLint engedélyzése",
+    "CMD_JSLINT"                                : "JSLint engedélyezése",
     "CMD_JSLINT_FIRST_ERROR"                    : "Ugrás az első JSLint Hibához",
     "JSLINT_ERRORS"                             : "JSLint Hibák",
     "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Hiba",
