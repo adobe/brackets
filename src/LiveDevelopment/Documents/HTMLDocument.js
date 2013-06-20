@@ -165,6 +165,9 @@ define(function HTMLDocumentModule(require, exports, module) {
             case "attrDel":
                 $$target.removeAttr(edit.attribute);
                 break;
+            case "textReplace":
+                $$target.replaceChildText(edit.child, edit.content);
+                break;
             }
         });
         
