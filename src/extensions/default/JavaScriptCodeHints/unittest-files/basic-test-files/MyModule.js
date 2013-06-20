@@ -12,5 +12,6 @@ define(function (require, exports, module) {
     function c() {
     }
     
-    exports.c = c;
+    exports.c = 
+        c;
 });
