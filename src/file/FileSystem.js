@@ -23,10 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var FileIndex       = require("file/FileIndex");
     
     // FileSystemImpl 
     var _impl;
@@ -45,6 +47,12 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function getFileForPath(path, options) {
+        var cachedEntry = FileIndex.getEntryForPath(path);
+        
+        if (cachedEntry) {
+            return new $.Deferred().resolve(cachedEntry).promise();
+        }
+        
         return _impl.getFileForPath(path, options);
     }
      
@@ -71,6 +79,12 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function getDirectoryForPath(path, options) {
+        var cachedEntry = FileIndex.getEntryForPath(path);
+        
+        if (cachedEntry) {
+            return new $.Deferred().resolve(cachedEntry).promise();
+        }
+
         return _impl.getDirectoryForPath(path, options);
     }
     
