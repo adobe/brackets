@@ -915,9 +915,15 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>" +
-                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
-                    "</span></li>";
+                var fullPath = doc.file.fullPath;
+                
+                message += "<li><span class='dialog-filename'>";
+                if (doc.isUntitled()) {
+                    message += fullPath.substring(fullPath.lastIndexOf("/") + 1);
+                } else {
+                    message += StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(fullPath));
+                }
+                message += "</span></li>";
             });
             message += "</ul>";
             

@@ -172,8 +172,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet;
-        // TODO: (issue #297) return a clone to prevent meddling?
+        return _workingSet.slice(0);
     }
 
     /** 
