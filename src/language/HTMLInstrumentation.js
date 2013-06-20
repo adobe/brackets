@@ -44,7 +44,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
-        Tokenizer       = require("language/HTMLTokenizer").Tokenizer;
+        Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
+        PriorityQueue   = require("thirdparty/priority_queue").PriorityQueue;
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and dom. Timestamp is the document timestamp,
@@ -288,7 +289,12 @@ define(function (require, exports, module) {
                 attributeName = null;
             } else if (token.type === "text") {
                 if (stack.length) {
-                    stack[stack.length - 1].children.push(token.contents);
+                    var parent = stack[stack.length - 1];
+                    var newNode = {
+                        parent: stack[stack.length - 1],
+                        content: token.contents
+                    };
+                    parent.children.push(newNode);
                 }
             }
         }
@@ -436,13 +442,13 @@ define(function (require, exports, module) {
             
             // Check to see if they're both text nodes
             } else if (!oldChild.tag && !newChild.tag) {
-                if (oldChild !== newChild) {
+                if (oldChild.content !== newChild.content) {
                     var position = oldNav.getPosition();
                     edits.push({
                         type: "textReplace",
                         tagID: position.tagID,
                         child: position.child,
-                        content: newChild
+                        content: newChild.content
                     });
                 }
             }
