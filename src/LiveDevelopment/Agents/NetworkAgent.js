@@ -54,23 +54,37 @@ define(function NetworkAgent(require, exports, module) {
         return _urlRequested && _urlRequested[url];
     }
 
+    function _logURL(url) {
+        _urlRequested[_urlWithoutQueryString(url)] = true;
+    }
+
     // WebInspector Event: Network.requestWillBeSent
     function _onRequestWillBeSent(event, res) {
         // res = {requestId, frameId, loaderId, documentURL, request, timestamp, initiator, stackTrace, redirectResponse}
-        var url = _urlWithoutQueryString(res.request.url);
-        _urlRequested[url] = true;
+        _logURL(res.request.url);
+    }
+
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        _logURL(res.frame.url);
     }
 
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
-        return Inspector.Network.enable().done(function () {
+
+        $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
+
+        // FIXME Windows only: Somtimes enable() isn't acknowledged
+        return Inspector.retry(Inspector.Network.enable).done(function () {
             $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
         });
     }
 
     /** Unload the agent */
     function unload() {
+        $(Inspector.Page).off(".NetworkAgent");
         $(Inspector.Network).off(".NetworkAgent");
     }
 
