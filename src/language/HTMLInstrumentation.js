@@ -45,7 +45,10 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
-        PriorityQueue   = require("thirdparty/priority_queue").PriorityQueue;
+        PriorityQueue   = require("thirdparty/priority_queue").PriorityQueue,
+        MurmurHash3     = require("thirdparty/murmurhash3_gc");
+    
+    var seed = Math.floor(Math.random()*65535);
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and dom. Timestamp is the document timestamp,
@@ -266,7 +269,8 @@ define(function (require, exports, module) {
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
-                    start: token.start - 1
+                    start: token.start - 1,
+                    weight: 0
                 };
                 newTag.tagID = this.getID(newTag);
                 if (newTag.parent) {
@@ -278,6 +282,18 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "closetag") {
                 this.lastTag = stack.pop();
+                var children = this.lastTag.children;
+                if (children) {
+                    var i,
+                        weight = 0,
+                        hashes = "";
+                    for (i = 0; i < children.length; i++) {
+                        weight += children[i].weight;
+                        hashes += children[i].signature
+                    }
+                    this.lastTag.weight = weight;
+                    this.lastTag.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
+                }
                 this.lastTag.end = token.end + 1;
                 if (this.lastTag.tag !== token.contents) {
                     console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
@@ -292,7 +308,9 @@ define(function (require, exports, module) {
                     var parent = stack[stack.length - 1];
                     var newNode = {
                         parent: stack[stack.length - 1],
-                        content: token.contents
+                        content: token.contents,
+                        weight: token.contents.length,
+                        signature: MurmurHash3.hashString(token.contents, token.contents.length, seed)
                     };
                     parent.children.push(newNode);
                 }
@@ -495,4 +513,5 @@ define(function (require, exports, module) {
     exports._markTextFromDOM = _markTextFromDOM;
     exports._updateDOM = _updateDOM;
     exports._DOMNavigator = DOMNavigator;
+    exports._seed = seed;
 });

@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        MurmurHash3         = require("thirdparty/murmurhash3_gc");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
         WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
@@ -538,11 +539,17 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(5366);
+                    expect(dom.weight).toEqual(4131);
+                    expect(dom.signature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
                     expect(Object.keys(meta.attributes).length).toEqual(1);
                     expect(meta.attributes.charset).toEqual("utf-8");
-                    expect(dom.children[1].children[5].children[0].content).toEqual("GETTING STARTED WITH BRACKETS");
+                    var titleContents = dom.children[1].children[5].children[0];
+                    expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
+                    expect(titleContents.weight).toEqual(29);
+                    expect(titleContents.parent.weight).toEqual(29);
+                    expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
                 });
             });
