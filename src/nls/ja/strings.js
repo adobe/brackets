@@ -130,7 +130,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "少なくとも ",
 	"FIND_IN_FILES_MAX": " (先頭 {0} 件を表示しています)",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "行 :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "!能=[6318990] line: {0}_=!",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
