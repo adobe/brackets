@@ -246,6 +246,26 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
     }
+    
+    /**
+     * Replaces oldFile in the the working set with newFile. Completes synchronously.
+     * @param {FileEntry, FileEntry} oldFile, newFile
+     */
+    function replaceInWorkingSet(newFile, oldFile) {
+        var targetIndex = findInWorkingSet(oldFile.fullPath);
+        
+        // Add to _workingSet making sure we store a different instance from the
+        // one in the Document. See issue #1971 for more details.        
+        newFile = new NativeFileSystem.FileEntry(newFile.fullPath);
+        var filePair = [newFile, oldFile];
+        // Dispatch event
+        $(exports).triggerHandler("workingSetReplace", [filePair]);
+        
+        var temp = _workingSet[targetIndex];
+        temp.fullPath = newFile.fullPath;
+        temp.name = newFile.name;
+        _workingSet[targetIndex] = temp;
+    }
 
     /**
      * Adds the given file list to the end of the working set list.
@@ -886,6 +906,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.replaceInWorkingSet         = replaceInWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;

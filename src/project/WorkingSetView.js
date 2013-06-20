@@ -500,6 +500,20 @@ define(function (require, exports, module) {
         });
         _redraw();
     }
+    
+    /**
+     * @private
+     */
+    function _handleFileReplace(newFile, oldFile) {
+        var $listItem = _findListItemFromFile(oldFile);
+        
+        if ($listItem) {
+            var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(newFile));
+            $listItem.html($link);
+        }
+        _redraw();
+    }
+    
 
     /** 
      * @private
@@ -590,6 +604,10 @@ define(function (require, exports, module) {
 
         $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {
             _handleFileListAdded(addedFiles);
+        });
+        
+        $(DocumentManager).on("workingSetReplace", function (event, filePair) {
+            _handleFileReplace(filePair[0], filePair[1]);
         });
 
         $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
