@@ -185,13 +185,12 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(template)
             .done(function (btnId) {
                 if (btnId === Dialogs.DIALOG_BTN_OK) {
-                    document.setLanguage(
+                    document.forceLanguage(
                         LanguageManager.getLanguage(selectedLanguage)
                     );
                 } else if (btnId === "reset") {
-                    document.setLanguage( // set to default lang for this file
-                        LanguageManager.getLanguageForPath(document.file.fullPath)
-                    );
+                    // set to default lang for this file
+                    document.forceLanguage(null);
                 }
             });
         // set initial value and change handler for select box

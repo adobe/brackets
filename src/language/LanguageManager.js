@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      * languages currently defined.
      */
     function getLanguages() {
-        return _languages;
+        return $.extend({}, _languages); // copy to prevent modification
     }
     
     /**

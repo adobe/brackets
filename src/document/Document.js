@@ -425,22 +425,38 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the language of this document to the given language.
-     * @param {!Language} language The language to be set for this document
+     * Overrides the default language of this document and sets it to the given
+     * language.
+     * @param {?Language} language The language to be set for this document; if
+     * null, the language will be set back to the default.
      */
-    Document.prototype.setLanguage = function (language) {
+    Document.prototype.forceLanguage = function (language) {
         var oldLanguage = this.language;
-        this.language = language;
-        if (oldLanguage && oldLanguage !== this.language) {
+        if (language) {
+            language.forced = true;
+            this.language = language;
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        } else { // if language was null, reset to default language
+            if (oldLanguage.forced) {
+                delete oldLanguage.forced;
+            }
+            this._updateLanguage();
         }
     };
 
     /**
-     * Updates the language according to the file extension
+     * Updates the language according to the file extension. If the current
+     * language was forced (set manually by user), don't change it.
      */
     Document.prototype._updateLanguage = function () {
-        this.setLanguage(LanguageManager.getLanguageForPath(this.file.fullPath));
+        var oldLanguage = this.language;
+        if (oldLanguage && oldLanguage.forced) {
+            return;
+        }
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
+        if (oldLanguage && oldLanguage !== this.language) {
+            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        }
     };
     
     /** Called when Document.file has been modified (due to a rename) */
