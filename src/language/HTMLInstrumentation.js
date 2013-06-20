@@ -452,8 +452,7 @@ define(function (require, exports, module) {
                 // default result if we didn't identify a changed portion
                 newDOM: newSubtree,
                 oldSubtree: this.previousDOM,
-                newSubtree: newSubtree,
-                subtreeOffset: 0
+                newSubtree: newSubtree
             };
 
         if (this.changedTagID) {
