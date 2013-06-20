@@ -53,9 +53,11 @@ define(function (require, exports, module) {
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
         FileIndexManager      = require("project/FileIndexManager"),
+        FileViewController    = require("project/FileViewController"),
         FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
+        CollectionUtils       = require("utils/CollectionUtils"),
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
@@ -63,23 +65,44 @@ define(function (require, exports, module) {
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
+	/** @cost Constants used to define the maximum results show per page and found in a single file */
+	var RESULTS_PER_PAGE = 100,
+        FIND_IN_FILE_MAX = 300;
+	
+    /**
+     * Map of all the last search results
+     * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
+     */
+    var searchResults = {};
+    
+    /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
+    var searchResultsPanel;
+    
+    /** @type {number} The index of the first result that is displayed */
+    var currentStart = 0;
+    
+    /** @type {string} The current search query */
+    var currentQuery = "";
+    
+    /** @type {Array.<FileEntry>} An array of the files where it should look or null/empty to search the entire project */
+    var currentScope = null;
+    
+    /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
+    var maxHitsFoundInFile = false;
+    
     /** @type {$.Element} jQuery elements used in the search results */
     var $searchResults,
         $searchSummary,
         $searchContent,
         $selectedRow;
     
-    var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 100,
-        maxHitsFoundInFile = false,
-        currentQuery = "",
-        currentScope;
-    
-    // Bottom panel holding the search results. Initialized in htmlReady().
-    var searchResultsPanel;
-    
-    
+    /**
+     * @private
+     * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
+     * @param {!string} query - The query from the modal-bar input
+     * @return {RegExp}
+     */
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
         $(".modal-bar .message").css("display", "inline-block");
@@ -176,20 +199,21 @@ define(function (require, exports, module) {
         var that = this;
         
         $searchField.get(0).select();
-        $searchField.bind("keydown", function (event) {
-            if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
-                event.stopPropagation();
-                event.preventDefault();
-                
-                var query = $searchField.val();
-                
-                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    query = null;
+        $searchField
+            .bind("keydown", function (event) {
+                if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
+                    event.stopPropagation();
+                    event.preventDefault();
+                    
+                    var query = $searchField.val();
+                    
+                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                        query = null;
+                    }
+                    
+                    that._close(query);
                 }
-                
-                that._close(query);
-            }
-        })
+            })
             .bind("input", function (event) {
                 // Check the query expression on every input event. This way the user is alerted
                 // to any RegEx syntax errors immediately.
@@ -248,7 +272,7 @@ define(function (require, exports, module) {
 
             // We have the max hits in just this 1 file. Stop searching this file.
             // This fixed issue #1829 where code hangs on too many hits.
-            if (matches.length >= FIND_IN_FILES_MAX) {
+            if (matches.length >= FIND_IN_FILE_MAX) {
                 queryExpr.lastIndex = 0;
                 maxHitsFoundInFile = true;
                 break;
@@ -257,15 +281,44 @@ define(function (require, exports, module) {
 
         return matches;
     }
+    
+    /**
+     * @private
+     * Searches and stores the match results for the given file, if there are matches
+     * @param {string} fullPath
+     * @param {string} contents
+     * @param {RegExp} queryExpr
+     */
+    function _addSearchMatches(fullPath, contents, queryExpr) {
+        var matches = _getSearchMatches(contents, queryExpr);
         
-    function _showSearchResults(searchResults, query, scope) {
-        if (searchResults && searchResults.length) {
+        if (matches && matches.length) {
+            searchResults[fullPath] = {
+                matches:   matches,
+                collapsed: false
+            };
+        }
+    }
+    
+    
+    /**
+     * @private
+     * Shows the results in a table and adds the necesary event listeners
+     */
+    function _showSearchResults() {
+        if (!$.isEmptyObject(searchResults)) {
             
             // Count the total number of matches
-            var numMatches = 0;
-            searchResults.forEach(function (item) {
+            var numFiles = 0, numMatches = 0;
+            CollectionUtils.forEach(searchResults, function (item) {
+                numFiles++;
                 numMatches += item.matches.length;
             });
+            
+            // No more pages to show
+            if (currentStart > numMatches || currentStart < 0) {
+                return;
+            }
             
             // Show result summary in header
             var numMatchesStr = "";
@@ -279,16 +332,21 @@ define(function (require, exports, module) {
                 Strings.FIND_IN_FILES_TITLE,
                 numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                searchResults.length,
-                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                StringUtils.htmlEscape(query),
-                scope ? _labelForScope(scope) : ""
+                numFiles,
+                (numFiles > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
+                StringUtils.htmlEscape(currentQuery),
+                currentScope ? _labelForScope(currentScope) : ""
             );
+            
+            // The last result index displayed
+            var last = currentStart + RESULTS_PER_PAGE > numMatches ? numMatches : currentStart + RESULTS_PER_PAGE;
             
             // Insert the search summary
             $searchSummary
                 .html(summary +
-                     (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
+                     (numMatches > RESULTS_PER_PAGE ? StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last) : "") +
+                     (currentStart > 0 ? Strings.FIND_IN_FILES_LESS : "") +
+                     (last < numMatches ? Strings.FIND_IN_FILES_MORE : ""))
                 .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             
             // Create the results template search list
@@ -296,13 +354,30 @@ define(function (require, exports, module) {
             var resultsDisplayed = 0, i;
             var searchItems, match;
             
-            searchResults.forEach(function (item) {
-                if (item && resultsDisplayed < FIND_IN_FILES_MAX) {
-                    i = 0;
+            CollectionUtils.some(searchResults, function (item, fullPath) {
+                // Skip the items that will not fit in the results page
+                if (resultsDisplayed + item.matches.length < currentStart) {
+                    resultsDisplayed += item.matches.length;
+                    i = -1;
+                
+                // Only the first matches will be displayed filling the remaining space of the table 
+                } else if (resultsDisplayed < currentStart) {
+                    i = currentStart - resultsDisplayed;
+                    resultsDisplayed = currentStart;
                     
+                // All the matches can be displayed
+                } else if (resultsDisplayed < last) {
+                    i = 0;
+                
+                // We can't display more items by now. Break the loop
+                } else {
+                    return true;
+                }
+                
+                if (i >= 0 && i < item.matches.length) {
                     // Add a row for each match in the file
                     searchItems = [];
-                    while (i < item.matches.length && resultsDisplayed < FIND_IN_FILES_MAX) {
+                    while (i < item.matches.length && resultsDisplayed < last) {
                         match = item.matches[i];
                         searchItems.push({
                             file:      searchList.length,
@@ -321,16 +396,15 @@ define(function (require, exports, module) {
                     // Add a row for each file
                     var displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(item.fullPath)
+                        StringUtils.breakableUrl(fullPath)
                     );
 
                     searchList.push({
                         file:     searchList.length,
                         filename: displayFileName,
-                        fullPath: item.fullPath,
+                        fullPath: fullPath,
                         items:    searchItems
                     });
-                    
                 }
             });
             
@@ -343,6 +417,20 @@ define(function (require, exports, module) {
             $searchResults.find(".close")
                 .one("click", function () {
                     _hideSearchResults();
+                });
+            
+            // The link to go the previous page
+            $searchResults.find(".find-less")
+                .one("click", function () {
+                    currentStart -= RESULTS_PER_PAGE;
+                    _showSearchResults();
+                });
+            
+            // The link to go to the next page
+            $searchResults.find(".find-more")
+                .one("click", function () {
+                    currentStart += RESULTS_PER_PAGE;
+                    _showSearchResults();
                 });
             
             // Add the click event listener directly on the table parent
@@ -368,6 +456,8 @@ define(function (require, exports, module) {
                             
                             var $triangle = $(".disclosure-triangle", $row);
                             $triangle.toggleClass("expanded").toggleClass("collapsed");
+                            
+                            searchResults[fullPath].collapsed = !searchResults[fullPath].collapsed;
                         
                         // This is a file row, show the result on click
                         } else {
@@ -381,9 +471,33 @@ define(function (require, exports, module) {
                                 });
                         }
                     }
+                })
+                // Add the file to the working set on double click
+                .on("dblclick.searchList", function (e) {
+                    var $row = $(e.target).closest("tr");
+                    if ($row.length && !$row.hasClass("file-section")) {
+                        // Grab the required item data
+                        var item = searchList[$row.data("file")];
+                        
+                        FileViewController.addToWorkingSetAndSelect(item.fullPath);
+                    }
+                })
+                // Restore the collapsed files
+                .find(".file-section").each(function () {
+                    var fullPath = searchList[$(this).data("file")].fullPath;
+                    
+                    if (searchResults[fullPath].collapsed) {
+                        searchResults[fullPath].collapsed = false;
+                        $(this).trigger("click");
+                    }
                 });
             
+            if ($selectedRow) {
+                $selectedRow.removeClass("selected");
+                $selectedRow = null;
+            }
             searchResultsPanel.show();
+        
         } else {
             _hideSearchResults();
         }
@@ -413,16 +527,15 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
     function doFindInFiles(scope) {
-
         var dialog = new FindInFilesDialog();
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
 
-        currentQuery = "";
-        currentScope = scope;
-        searchResults = [];
+        searchResults      = {};
+        currentQuery       = "";
+        currentScope       = scope;
         maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString, scope)
@@ -445,14 +558,7 @@ define(function (require, exports, module) {
                                     // Search one file
                                     DocumentManager.getDocumentForPath(fileInfo.fullPath)
                                         .done(function (doc) {
-                                            var matches = _getSearchMatches(doc.getText(), queryExpr);
-                                            
-                                            if (matches && matches.length) {
-                                                searchResults.push({
-                                                    fullPath: fileInfo.fullPath,
-                                                    matches: matches
-                                                });
-                                            }
+                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), queryExpr);
                                             result.resolve();
                                         })
                                         .fail(function (error) {
@@ -465,7 +571,7 @@ define(function (require, exports, module) {
                             })
                                 .done(function () {
                                     // Done searching all files: show results
-                                    _showSearchResults(searchResults, query, scope);
+                                    _showSearchResults();
                                     StatusBar.hideBusyIndicator();
                                 })
                                 .fail(function () {
@@ -483,25 +589,73 @@ define(function (require, exports, module) {
         doFindInFiles(selectedEntry);
     }
     
-    function _fileNameChangeHandler(event, oldName, newName) {
-        if (searchResultsPanel.isVisible()) {
-            // Update the search results
-            searchResults.forEach(function (item) {
-                item.fullPath = item.fullPath.replace(oldName, newName);
-            });
-            _showSearchResults(searchResults, currentQuery, currentScope);
+    
+    /**
+     * @private
+     * Shows the search results and tryes to restore the previous scroll and selection
+     */
+    function _restoreSearchResults() {
+        var scrollTop = $searchContent.scrollTop();
+        var index     = $selectedRow ? $selectedRow.index() : null;
+        
+        _showSearchResults();
+        
+        $searchContent.scrollTop(scrollTop);
+        if ($selectedRow) {
+            $selectedRow = $searchContent.find("tr:eq(" + index + ")");
+            $selectedRow.addClass("selected");
         }
     }
-  
-    function _pathDeletedHandler(event, path) {
+    
+    /**
+     * @private
+     * Moves the search results from the previous path to the new one and updates the results list, if required
+     * @param {$.Event} event
+     * @param {string} oldName
+     * @param {string} newName
+     */
+    function _fileNameChangeHandler(event, oldName, newName) {
+        var resultsChanged = false;
+        
         if (searchResultsPanel.isVisible()) {
             // Update the search results
-            searchResults.forEach(function (item, idx) {
-                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
-                    searchResults.splice(idx, 1);
+            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+                if (fullPath.match(oldName)) {
+                    searchResults[fullPath.replace(oldName, newName)] = item;
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
                 }
             });
-            _showSearchResults(searchResults, currentQuery, currentScope);
+            
+            // Restore the reesults if needed
+            if (resultsChanged) {
+                _restoreSearchResults();
+            }
+        }
+    }
+    
+    /**
+     * @private
+     * Deletes the results from the deleted file and updates the results list, if required
+     * @param {$.Event} event
+     * @param {string} path
+     */
+    function _pathDeletedHandler(event, path) {
+        var resultsChanged = false;
+        
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+                if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
+            });
+            
+            // Restore the reesults if needed
+            if (resultsChanged) {
+                _restoreSearchResults();
+            }
         }
     }
     
