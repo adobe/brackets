@@ -65,10 +65,10 @@ define(function (require, exports, module) {
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
-	/** @cost Constants used to define the maximum results show per page and found in a single file */
-	var RESULTS_PER_PAGE = 100,
+    /** @cost Constants used to define the maximum results show per page and found in a single file */
+    var RESULTS_PER_PAGE = 100,
         FIND_IN_FILE_MAX = 300;
-	
+    
     /**
      * Map of all the last search results
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
