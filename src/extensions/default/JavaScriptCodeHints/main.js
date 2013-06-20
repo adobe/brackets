@@ -641,6 +641,9 @@ define(function (require, exports, module) {
                  * look like an identifier, or member expr.
                  */
                 function validIdOrProp(token) {
+                    if (!token) {
+                        return false;
+                    }
                     if (token.string === ".") {
                         return true;
                     }
@@ -652,15 +655,12 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                // set the selection
-                session.editor.setSelection(start, end, true);
-                
                 var madeNewRequest = false;
                 
                 if (isFunction) {
                     // When jumping to function defs, follow the chain back
                     // to get to the original function def
-                    var cursor = session.getCursor(),
+                    var cursor = {line: end.line, ch: end.ch},
                         prev = session._getPreviousToken(cursor),
                         next,
                         token,
@@ -668,10 +668,10 @@ define(function (require, exports, module) {
     
                     // see if the selection is preceded by a '.', indicating we're in a member expr
                     if (prev.string === ".") {
-                        cursor = session.getCursor();
+                        cursor = {line: end.line, ch: end.ch};
                         next = session.getNextToken(cursor, true);
                         // check if the next token indicates an assignment
-                        if (next.string === "=") {
+                        if (next && next.string === "=") {
                             next = session.getNextToken(cursor, true);
                             // find the last token of the identifier, or member expr
                             while (validIdOrProp(next)) {
@@ -687,7 +687,10 @@ define(function (require, exports, module) {
                     }
                 }
                 // We didn't make a new jump-to-def request, so we can resolve the promise
+                // and set the selection
                 if (!madeNewRequest) {
+                    // set the selection
+                    session.editor.setSelection(start, end, true);
                     result.resolve(true);
                 }
             }
