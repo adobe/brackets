@@ -54,7 +54,9 @@ define(function (require, exports, module) {
                 return false;
             }
 
-            $dlg.trigger($.Event("shellCommand", { commandName: eventName }));
+            if ($dlg.length) {
+                $dlg.trigger($.Event("shellCommand", { commandName: eventName }));
+            }
             
             // Return false for all commands except file.close_window command for 
             // which we have to return true (issue #3152).
