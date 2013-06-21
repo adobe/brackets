@@ -779,6 +779,7 @@ define(function (require, exports, module) {
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
                             expect(newElement.children[0].content).toEqual("New Content");
                             expect(result.edits.length).toEqual(2);
+                            console.log(JSON.stringify(result.edits));
                             expect(result.edits[0]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",

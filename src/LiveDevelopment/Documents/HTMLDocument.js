@@ -156,7 +156,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         var edits = HTMLInstrumentation.getUnappliedEditList(editor, change);
         edits.forEach(function (edit) {
             // Silly naming convention: $$ = remote $
-            var $$target = RemoteAgent.remoteElement(edit.tagID);
+            var $$target = RemoteAgent.remoteElement(edit.type === "textReplace" ? edit.parentID : edit.tagID);
             switch (edit.type) {
             case "attrChange":
             case "attrAdd":
@@ -166,7 +166,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                 $$target.removeAttr(edit.attribute);
                 break;
             case "textReplace":
-                $$target.replaceChildText(edit.child, edit.content);
+                $$target.replaceChildText(edit.afterID, edit.content);
                 break;
             }
         });

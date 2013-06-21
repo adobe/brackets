@@ -215,8 +215,14 @@ define(function RemoteAgent(require, exports, module) {
         return Inspector.Runtime.evaluate(argsAssign + this._queryBracketsId + fnApply);
     };
     
-    RemoteElement.prototype.replaceChildText = function (pos, text) {
-        var doReplace = "$result.contents()[" + pos + "].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "'";
+    RemoteElement.prototype.replaceChildText = function (afterID, text) {
+        var doReplace = "var pos = 0, $afterNode, children = $result.contents(), afterID = " + (afterID || "null") + ";" +
+            "if (afterID) {" +
+            "  $afterNode = " + $REMOTE + '("[data-brackets-id=\\"' + afterID + '\\"]");' +
+            "  pos = children.indexOf($afterNode[0]) + 1;" +
+            "}" +
+            "children[pos].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "';";
+        console.log("eval: " + this._queryBracketsId + doReplace);
         return Inspector.Runtime.evaluate(this._queryBracketsId + doReplace);
     };
 
