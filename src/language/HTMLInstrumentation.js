@@ -426,22 +426,6 @@ define(function (require, exports, module) {
         _markTags(cm, dom);
     }
     
-    function _buildNodeMap(root) {
-        var nodeMap = {};
-        
-        function walk(node) {
-            if (node.tagID) {
-                nodeMap[node.tagID] = node;
-            }
-            if (node.children) {
-                node.children.forEach(walk);
-            }
-        }
-        
-        walk(root);
-        root.nodeMap = nodeMap;
-    }
-    
     function DOMUpdater(previousDOM, editor, changeList) {
         var text, startOffset = 0;
 
@@ -499,6 +483,63 @@ define(function (require, exports, module) {
         return currentTagID;
     };
     
+    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap) {
+        // TODO: this is really inefficient - should we cache the mark for each node?
+        var updateIDs = Object.keys(nodeMap),
+            cm = this.cm,
+            marks = cm.getAllMarks();
+        marks.forEach(function (mark) {
+            if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
+                var node = nodeMap[mark.tagID];
+                mark.clear();
+                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+                mark.tagID = node.tagID;
+                updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+            }
+        });
+        
+        // Any remaining updateIDs are new.
+        updateIDs.forEach(function (id) {
+            var node = nodeMap[id],
+                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+            mark.tagID = id;
+        });
+    }
+    
+    DOMUpdater.prototype._buildNodeMap = function (root) {
+        var nodeMap = {};
+        
+        function walk(node) {
+            if (node.tagID) {
+                nodeMap[node.tagID] = node;
+            }
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(root);
+        root.nodeMap = nodeMap;
+    }
+    
+    DOMUpdater.prototype._handleDeletions = function (nodeMap, oldSubtreeMap, newSubtreeMap) {
+        var deletedIDs = [];
+        Object.keys(oldSubtreeMap).forEach(function (key) {
+            if (!newSubtreeMap.hasOwnProperty(key)) {
+                deletedIDs.push(key);
+                delete nodeMap[key];
+            }
+        });
+        
+        // TODO: again, really inefficient - should we cache the mark for each node?
+        var marks = this.cm.getAllMarks();
+        marks.forEach(function (mark) {
+            if (mark.hasOwnProperty("tagID") && deletedIDs.indexOf(mark.tagID) !== -1) {
+                mark.clear();
+            }
+        });
+    }
+    
     DOMUpdater.prototype.update = function () {
         var newSubtree = this.build(),
             result = {
@@ -530,13 +571,18 @@ define(function (require, exports, module) {
                     // mappings for the new subtree. We keep the nodeMap around
                     // on the new subtree so that the differ can use it later.
                     // TODO: should we ever null out the nodeMap on the subtree?
-                    // TODO: this leaves garbage around if nodes are deleted in
-                    // newSubtree
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
+                    
+                    // Update marked ranges for all items in the new subtree.
+                    this._updateMarkedRanges(newSubtree.nodeMap);
                     
                     // Build a local nodeMap for the old subtree so the differ can
                     // use it.
-                    _buildNodeMap(oldSubtree);
+                    this._buildNodeMap(oldSubtree);
+                    
+                    // Clean up the info for any deleted nodes that are no longer in
+                    // the new tree.
+                    this._handleDeletions(this.previousDOM.nodeMap, oldSubtree.nodeMap, newSubtree.nodeMap);
                     
                     // Update the signatures for all parents of the new subtree.
                     var curParent = parent;
