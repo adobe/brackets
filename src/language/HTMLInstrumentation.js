@@ -675,7 +675,7 @@ define(function (require, exports, module) {
                 while (currentElement = nav.next()) {
                     var currentTagID = currentElement.tagID;
                     if (!oldNode.nodeMap[currentTagID]) {
-                        console.error("Bogus subtree match:", currentElement);
+                        // this condition can happen for new elements
                         continue;
                     }
                     matches[currentTagID] = true;
