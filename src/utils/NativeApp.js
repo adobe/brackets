@@ -108,7 +108,7 @@ define(function (require, exports, module) {
      * Opens a URL in the system default browser
      */
     function openURLInDefaultBrowser(url) {
-        brackets.app.openURLInDefaultBrowser(function (err) {}, url);
+        brackets.app.openURLInDefaultBrowser(url);
     }
     
 
