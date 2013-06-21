@@ -1110,7 +1110,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
+    CommandManager.register(null,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
@@ -1118,8 +1118,8 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
-    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
+    CommandManager.register(null,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    CommandManager.register(null,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);

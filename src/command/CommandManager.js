@@ -163,7 +163,7 @@ define(function (require, exports, module) {
 
     /**
      * Registers a global command.
-     * @param {string} name - text that will be displayed in the UI to represent command
+     * @param {?string} name - optional text that will be displayed in the UI to represent command
      * @param {string} id - unique identifier for command.
      *      Core commands in Brackets use a simple command title as an id, for example "open.file".
      *      Extensions should use the following format: "author.myextension.mycommandname". 
@@ -179,8 +179,8 @@ define(function (require, exports, module) {
             console.log("Attempting to register an already-registered command: " + id);
             return null;
         }
-        if (!name || !id || !commandFn) {
-            console.error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+        if (!id || !commandFn) {
+            console.error("Attempting to register a command with a missing id, or command function:" + name + " " + id);
             return null;
         }
 
