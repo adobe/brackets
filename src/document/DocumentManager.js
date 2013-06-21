@@ -654,7 +654,7 @@ define(function (require, exports, module) {
         var counter = null;
 
         return function () {
-            var title = _untitledDocumentPath + "/" + Strings.UNTITLED_DOC_TITLE;
+            var title = _untitledDocumentPath + "/" + Strings.UNTITLED;
             
             if (counter) {
                 title += " " + counter++;
