@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/JSUtils-test-files"),
-        testWindow;
+        testWindow,
+        doneLoading = false;
 
     // Verifies whether one of the results returned by JSUtils.findAllMatchingFunctionsInText()
     // came from the expected function name or not.
@@ -59,16 +60,15 @@ define(function (require, exports, module) {
         if (fileEntry) {
             spec.addMatchers({toMatchFunctionName: toMatchFunctionName});
             
-            var doneLoading = false;
-            
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
                         spec.fileJsContent = text;
+                    })
+                    .always(function (text) {
+                        doneLoading = true;
                     });
             });
-            
-            waitsFor(function () { return (spec.fileJsContent !== null); }, 1000);
         }
     }
 
@@ -79,14 +79,6 @@ define(function (require, exports, module) {
 
     describe("JSUtils", function () {
 
-        beforeEach(function () {
-            init(this);
-        });
-        
-        afterEach(function () {
-            cleanup(this);
-        });
-        
         describe("basics", function () {
             
             it("should parse an empty string", function () {
@@ -99,6 +91,10 @@ define(function (require, exports, module) {
         
         // TODO (jason-sanjose): use offset markup in these test files
         describe("line offsets", function () {
+            
+            afterEach(function () {
+                cleanup(this);
+            });
             
             // Checks the lines ranges of the results returned by JSUtils. Expects the numbers of
             // results to equal the length of 'ranges'; each entry in range gives the {start, end}
@@ -120,78 +116,80 @@ define(function (require, exports, module) {
             
             it("should return correct start and end line numbers for simple functions", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  0, end:  2} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple2", [ {start:  7, end:  9} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple3", [ {start: 11, end: 13} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should return correct start and end line numbers for parameterized functions", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "param1", [ {start: 18, end: 19} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param2", [ {start: 24, end: 26} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param3", [ {start: 28, end: 32} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should return correct start and end line numbers for single line functions", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "single1", [ {start: 35, end: 35} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single2", [ {start: 36, end: 36} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single3", [ {start: 37, end: 37} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should return correct start and end line numbers for nested functions", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "nested1", [ {start: 42, end: 50} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested2", [ {start: 44, end: 49} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested3", [ {start: 47, end: 48} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should return correct start and end line numbers for functions with keyword 'function' in name", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     //expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
                     expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
                     expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should ignore identifiers with whitespace", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     var negativeTests = ["invalid", "identifier", "invalid identifier"],
@@ -202,27 +200,27 @@ define(function (require, exports, module) {
                         result = JSUtils.findAllMatchingFunctionsInText(content, name);
                         expect(result.length).toBe(0);
                     });
-
-                    cleanup(this);
                 });
             });
             
             it("should return correct start and end line numbers for prototype method declarations", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "myMethod", [ {start: 66, end: 68} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should handle various whitespace variations", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceBeforeFunc", [ {start: 71, end: 71} ]);
@@ -232,86 +230,88 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction", [ {start: 86, end: 88} ]);
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction2", [ {start: 90, end: 92} ]);
                     expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should work with high-ascii characters in function names", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "highAscÍÍChars", [ {start: 95, end: 97} ]);
                     expectFunctionRanges(this, this.fileJsContent, "moreHighAscÍÍChars", [ {start: 99, end: 101} ]);
                     expectFunctionRanges(this, this.fileJsContent, "ÅsciiExtendedIdentifierStart", [ {start: 103, end: 104} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should work with unicode characters in or around function names", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "ʸUnicodeModifierLettervalidIdentifierStart", [ {start: 106, end: 107} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeModifierLettervalidIdentifierPartʸ", [ {start: 112, end: 113} ]);
-
-                    cleanup(this);
                 });
             });
             
             // TODO (issue #1125): support escaped unicode
             xit("FAIL should work with unicode characters in or around function names", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "\u02b8UnicodeEscapedIdentifierStart", [ {start: 109, end: 110} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeEscapedIdentifierPart\u02b8", [ {start: 115, end: 116} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabBefore", [ {start: 118, end: 119} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabAfter", [ {start: 121, end: 122} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should work when colliding with prototype properties", function () { // #1390, #2813
                 runs(function () {
+                    doneLoading = false;
                     init(this, trickyJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
                     expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
                     expectFunctionRanges(this, this.fileJsContent, "hasOwnProperty", [ {start: 11, end: 13} ]);
-
-                    cleanup(this);
                 });
             });
             
             it("should fail with invalid function names", function () {
                 runs(function () {
+                    doneLoading = false;
                     init(this, invalidJsFileEntry);
                 });
+                waitsFor(function () { return doneLoading; }, 1000);
                 
                 runs(function () {
                     expectNoFunction(this.fileJsContent, "0digitIdentifierStart");
                     expectNoFunction(this.fileJsContent, ".punctuationIdentifierStart");
                     expectNoFunction(this.fileJsContent, "punctuation.IdentifierPart");
-
-                    cleanup(this);
                 });
             });
         });
         
         describe("brace ends of functions", function () {
             beforeEach(function () {
-                init(this, braceEndJsFileEntry);
+                runs(function () {
+                    doneLoading = false;
+                    init(this, braceEndJsFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
             });
             
             afterEach(function () {
@@ -367,7 +367,12 @@ define(function (require, exports, module) {
         
         describe("brace end of function that ends at end of file", function () {
             it("should find the end of a function that ends exactly at the end of the file", function () {
-                init(this, eofJsFileEntry);
+                runs(function () {
+                    doneLoading = false;
+                    init(this, eofJsFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
                 runs(function () {
                     expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
                     cleanup(this);
@@ -377,7 +382,12 @@ define(function (require, exports, module) {
         
         describe("end of function that's unclosed at end of file", function () {
             it("should find the end of a function that is unclosed at the end of the file", function () {
-                init(this, eof2JsFileEntry);
+                runs(function () {
+                    doneLoading = false;
+                    init(this, eof2JsFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
                 runs(function () {
                     expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
                     cleanup(this);
@@ -388,7 +398,11 @@ define(function (require, exports, module) {
         describe("with real-world jQuery JS code", function () {
             
             beforeEach(function () {
-                init(this, jQueryJsFileEntry);
+                runs(function () {
+                    doneLoading = false;
+                    init(this, jQueryJsFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
             });
             
             afterEach(function () {
