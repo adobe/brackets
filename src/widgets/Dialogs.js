@@ -209,7 +209,6 @@ define(function (require, exports, module) {
                 keydownEvent.metaKey = true;
                 keydownEvent.target = $dlg;
                 keydownHook(keydownEvent);
-                // $dlg.trigger(keydownEvent);
             }
         };
 
