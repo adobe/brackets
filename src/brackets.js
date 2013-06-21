@@ -282,13 +282,16 @@ define(function (require, exports, module) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "none";
+                    event.originalEvent.dataTransfer.dropEffect = "copy";
                 }
             })
             .on("drop", function (event) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
+                    if (brackets.app.openDroppedFiles) {
+                        var files = brackets.app.openDroppedFiles();
+                    }
                 }
             });
         
