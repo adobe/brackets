@@ -657,7 +657,7 @@ define(function (require, exports, module) {
             var title = _untitledDocumentPath + "/" + Strings.UNTITLED;
             
             if (counter) {
-                title += " " + counter++;
+                title += "-" + counter++;
             } else {
                 counter = 1;
             }
