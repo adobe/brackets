@@ -443,6 +443,9 @@ define(function (require, exports, module) {
         this._updateLanguage();
     };
     
+    /**
+     * Is this an untitled document?
+     */
     Document.prototype.isUntitled = function () {
         return this.file instanceof NativeFileSystem.InaccessibleFileEntry;
     };

@@ -123,6 +123,10 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
+    /**
+     * @private
+     * Random path prefix for untitled documents
+     */
     var _untitledDocumentPath = "/" + NumberUtils.getRandomInt(10000000, 99999999);
 
     /**
@@ -646,6 +650,13 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
+    /**
+     * Get the next untitled document fullPath, which looks like
+     * /random-string/Untitled or /random-string/Untitled-n, for
+     * n > 0. Each call returns a new fullPath.
+     * 
+     * @return {string} fullPath
+     */
     var nextUntitledDocumentPath = (function () {
         var counter = null;
 
@@ -710,6 +721,7 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
+            // Do not persist untitled document paths
             if (file.fullPath.indexOf(_untitledDocumentPath) !== 0) {
                 // flag the currently active editor
                 isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
