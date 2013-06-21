@@ -501,7 +501,72 @@ define(function (require, exports, module) {
                     expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
                 });
             });
-
+            
+            it("should remove a directory", function () {
+                var isDirectory,
+                    delDirName = baseDir + "/unlink_dir";
+                
+                complete = false;
+                runs(function () {
+                    brackets.fs.makedir(delDirName, parseInt("777", 0), function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify directory was created
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(delDirName, function (err, stat) {
+                        error = err;
+                        isDirectory = stat.isDirectory();
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                    expect(isDirectory).toBe(true);
+                });
+                
+                // Delete the directory
+                runs(function () {
+                    complete = false;
+                    brackets.fs.unlink(delDirName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify it is gone
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(delDirName, function (err, stat) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+            
+                waitsFor(function () { return complete; }, 1000);
+            
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+            });
         }); // describe("unlink")
         
         describe("makedir", function () {
@@ -850,92 +915,5 @@ define(function (require, exports, module) {
                 });
             });
         }); // moveToTrash
-        
-        describe("optional arguments", function () {
-            var complete,
-                content,
-                optName = baseDir + "/optional_dir",
-                newName = baseDir + "/renamed_optional_dir",
-                fileName = baseDir + "/optional.txt",
-                contents = "This content was generated from LowLevelFileIO-test.js";
-            
-            it("should be able to call the brackets filesystem without a callback", function () {
-            
-                beforeEach(function () {
-                    complete = false;
-                });
-                
-                runs(function () {
-                    brackets.fs.makedir(optName, parseInt("777", 0));
-
-                    setTimeout(function () {
-                        brackets.fs.stat(optName, function (err, stat) {
-                            expect(stat.isDirectory()).toBeTruthy();
-                            complete = true;
-                        });
-                    }, 1000);
-        
-                });
-                
-                waitsFor(function () { return complete; }, "creating folder without a callback", 2000);
-                   
-                runs(function () {
-                    brackets.fs.rename(optName, newName);
-
-                    setTimeout(function () {
-                        brackets.fs.stat(optName, function (err, stat) {
-                            expect(stat.isDirectory()).toBeTruthy();
-                            complete = true;
-                        });
-                    }, 1000);
-    
-                });
-        
-                waitsFor(function () { return complete; }, "renaming folder without a callback", 2000);
-                
-                runs(function () {
-                    brackets.fs.unlink(newName);
-                    
-                    setTimeout(function () {
-                        brackets.fs.stat(newName, function (err, stat) {
-                            expect(err).toBe(brackets.fs.ERR_NOT_FOUND);
-                            complete = true;
-                        });
-                    }, 1000);
-                });
-                
-                    
-                waitsFor(function () { return complete; }, "deleting folder without a callback", 2000);
-                
-                runs(function () {
-                    brackets.fs.writeFile(fileName, contents, _FSEncodings.UTF8);
-                    
-                    setTimeout(function () {
-                        brackets.fs.stat(fileName, function (err, stat) {
-                            expect(err).toBe(brackets.fs.NO_ERROR);
-                            complete = true;
-                        });
-                    }, 3000);
-                });
-            
-                
-                waitsFor(function () { return complete; }, "creating a file without a callback", 4000);
-    
-                runs(function () {
-                    brackets.fs.moveToTrash(fileName);
-                    
-                    setTimeout(function () {
-                        brackets.fs.stat(fileName, function (err, stat) {
-                            expect(err).toBe(brackets.fs.ERR_NOT_FOUND);
-                            complete = true;
-                        });
-                    }, 1000);
-                        
-                });
-                
-                waitsFor(function () { return complete; }, "recycling a file without a callback", 2000);
-            });
-        });
-                
     });
 });
