@@ -45,13 +45,17 @@ define(function (require, exports, module) {
     function executeCommand(eventName) {
         // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
         // This should really be fixed with proper menu enabling.
-        if ($(".modal.instance").length || !appReady) {
+        var $dlg = $(".modal.instance");
+        if ($dlg.length || !appReady) {
             // Another hack to fix issue #3219 so that all test windows are closed 
             // as before the fix for #3152 has been introduced. isBracketsTestWindow 
             // property is explicitly set in createTestWindowAndRun() in SpecRunnerUtils.js.
             if (window.isBracketsTestWindow) {
                 return false;
             }
+
+            $dlg.trigger($.Event("shellCommand", { commandName: eventName }));
+            
             // Return false for all commands except file.close_window command for 
             // which we have to return true (issue #3152).
             return (eventName === Commands.FILE_CLOSE_WINDOW);
