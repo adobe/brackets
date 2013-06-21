@@ -43,10 +43,10 @@ define(function (require, exports, module) {
     
         beforeEach(function () {
             runs(function () {
+                // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
                 waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir));
             });
-
             runs(function () {
                 // Pre-test setup - set permissions on special directories 
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "222"));
@@ -55,10 +55,14 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            // Restore directory permissions
             runs(function () {
+                // Restore directory permissions
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "777"));
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "777"));
+            });
+            runs(function () {
+                // Remove the test data and anything else left behind from tests
+                waitsForDone(SpecRunnerUtils.deletePath(baseDir));
             });
         });
 
@@ -487,21 +491,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should return an error if the a directory is specified", function () {
-                runs(function () {
-                    brackets.fs.unlink(baseDir, function (err) {
-                        error = err;
-                        complete = true;
-                    });
-                });
-            
-                waitsFor(function () { return complete; }, 1000);
-            
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FILE);
-                });
-            });
-
             it("should return an error if called with invalid parameters", function () {
                 runs(function () {
                     brackets.fs.unlink(42, function (err) {
@@ -516,7 +505,72 @@ define(function (require, exports, module) {
                     expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
                 });
             });
-
+            
+            it("should remove a directory", function () {
+                var isDirectory,
+                    delDirName = baseDir + "/unlink_dir";
+                
+                complete = false;
+                runs(function () {
+                    brackets.fs.makedir(delDirName, parseInt("777", 0), function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify directory was created
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(delDirName, function (err, stat) {
+                        error = err;
+                        isDirectory = stat.isDirectory();
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                    expect(isDirectory).toBe(true);
+                });
+                
+                // Delete the directory
+                runs(function () {
+                    complete = false;
+                    brackets.fs.unlink(delDirName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify it is gone
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(delDirName, function (err, stat) {
+                        error = err;
+                        complete = true;
+                    });
+                });
+            
+                waitsFor(function () { return complete; }, 1000);
+            
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+            });
         }); // describe("unlink")
         
         describe("makedir", function () {
