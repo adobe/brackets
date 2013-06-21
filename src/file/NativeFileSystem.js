@@ -664,11 +664,11 @@ define(function (require, exports, module) {
     NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
     
     NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
-        errorCallback(new NativeFileError(NativeFileError.NO_MODIFICATION_ALLOWED_ERR));
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
-        errorCallback(new NativeFileError(NativeFileError.NOT_READABLE_ERR));
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
-        errorCallback(new NativeFileError(NativeFileSystem.NO_MODIFICATION_ALLOWED_ERR));
+        errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
     };
 
     /**
