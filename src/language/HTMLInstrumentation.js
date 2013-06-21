@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         PriorityQueue   = require("thirdparty/priority_queue").PriorityQueue,
         MurmurHash3     = require("thirdparty/murmurhash3_gc");
     
-    var seed = Math.floor(Math.random()*65535);
+    var seed = Math.floor(Math.random() * 65535);
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and dom. Timestamp is the document timestamp,
@@ -273,9 +273,8 @@ define(function (require, exports, module) {
             node.weight = weight;
             node.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
         } else {
-            // TODO: should this ever happen?
-            node.weight = 0;
-            node.signature = null;
+            var tagLabel = node.tag + node.tagID;
+            node.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
         }
     }
     
@@ -291,11 +290,20 @@ define(function (require, exports, module) {
         }
     };
     
+    function getTextNodeID(textNode) {
+        var childIndex = textNode.parent.children.indexOf(textNode);
+        if (childIndex === 0) {
+            return textNode.parent.tagID + ".0";
+        }
+        return textNode.parent.children[childIndex - 1] + "t";
+    }
+    
     SimpleDOMBuilder.prototype.build = function () {
-        var token;
+        var token, tagLabel;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
+        var signatureMap = {};
         
         while ((token = this.t.nextToken()) !== null) {
             if (!token.contents) {
@@ -315,13 +323,19 @@ define(function (require, exports, module) {
                     newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
-                if (!voidElements.hasOwnProperty(this.currentTag.tag)) {
-                    stack.push(this.currentTag);
+                if (voidElements.hasOwnProperty(newTag.tag)) {
+                    tagLabel = newTag.tag + newTag.tagID;
+                    newTag.weight = 0;
+                    newTag.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
+                    signatureMap[newTag.signature] = newTag;
+                } else {
+                    stack.push(newTag);
                 }
             } else if (token.type === "closetag") {
                 this.lastTag = stack.pop();
                 _updateHash(this.lastTag);
                 this.lastTag.end = this.startOffset + token.end + 1;
+                signatureMap[this.lastTag.signature] = this.lastTag;
                 if (this.lastTag.tag !== token.contents) {
                     console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
                 }
@@ -343,12 +357,16 @@ define(function (require, exports, module) {
                         signature: MurmurHash3.hashString(token.contents, token.contents.length, seed)
                     };
                     parent.children.push(newNode);
+                    newNode.tagID = getTextNodeID(newNode);
+                    nodeMap[newNode.tagID] = newNode;
+                    signatureMap[newNode.signature] = newNode;
                 }
             }
         }
         
         var dom = (stack.length ? stack[0] : this.lastTag);
         dom.nodeMap = nodeMap;
+        dom.signatureMap = signatureMap;
         return dom;
     };
     
@@ -364,7 +382,7 @@ define(function (require, exports, module) {
     // TODO: I'd be worried about stack overflows here
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
-            if (childNode.tagID) {
+            if (childNode.tag) {
                 _markTags(cm, childNode);
             }
         });
@@ -425,7 +443,7 @@ define(function (require, exports, module) {
         if (!this.changedTagID) {
             // We weren't able to incrementally update, so just rebuild and diff everything.
             text = editor.document.getText();
-        } 
+        }
         
         this.constructor(text, startOffset);
         this.editor = editor;
@@ -475,6 +493,8 @@ define(function (require, exports, module) {
                     
                     // Overwrite any node mappings in the parent DOM with the
                     // mappings for the new subtree.
+                    // TODO: this leaves garbage around if nodes are deleted in
+                    // newSubtree
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
                     newSubtree.nodeMap = null;
                     
@@ -568,7 +588,7 @@ define(function (require, exports, module) {
         };
     };
     
-    function domdiff(edits, oldNode, newNode) {
+    function domdiffOld(edits, oldNode, newNode) {
         var oldNav = new DOMNavigator(oldNode),
             newNav = new DOMNavigator(newNode);
         
@@ -598,12 +618,147 @@ define(function (require, exports, module) {
         }
     }
     
+    function compareByWeight(a, b) {
+        return b.weight - a.weight;
+    }
+    
+    function domdiff(oldNode, newNode) {
+        var queue = new PriorityQueue(compareByWeight),
+            edits = [],
+            matches = {},
+            elementInserts = {},
+            textInserts = {},
+            textChanges = {},
+            currentElement,
+            oldElement,
+            elementDeletes = {};
+        
+        queue.push(newNode);
+        
+        while (currentElement = queue.shift()) {
+            oldElement = oldNode.nodeMap[currentElement.tagID];
+            if (oldElement) {
+                matches[currentElement.tagID] = true;
+                if (oldElement.children) {
+                    if (oldElement.signature !== currentElement.signature) {
+                        if (currentElement.children) {
+                            currentElement.children.forEach(function (child) {
+                                queue.push(child);
+                            });
+                        }
+                    }
+                } else {
+                    if (oldElement.signature !== currentElement.signature) {
+                        textChanges[currentElement.tagID] = true;
+                    }
+                }
+            } else {
+                if (currentElement.children) {
+                    elementInserts[currentElement.tagID] = true;
+                } else {
+                    textInserts[currentElement.tagID] = true;
+                }
+                if (currentElement.children) {
+                    currentElement.children.forEach(function (child) {
+                        queue.push(child);
+                    });
+                }
+            }
+        }
+        
+        Object.keys(matches).forEach(function (tagID) {
+            var currentElement;
+            var subtreeRoot = newNode.nodeMap[tagID];
+            if (subtreeRoot.children) {
+                attributeCompare(edits, oldNode.nodeMap[tagID], subtreeRoot);
+                var nav = new DOMNavigator(subtreeRoot);
+                while (currentElement = nav.next()) {
+                    var currentTagID = currentElement.tagID;
+                    if (!oldNode.nodeMap[currentTagID]) {
+                        console.error("Bogus subtree match:", currentElement);
+                        continue;
+                    }
+                    matches[currentTagID] = true;
+                    if (currentElement.children) {
+                        attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
+                    }
+                }
+            }
+        });
+        
+        var initializeTextEdit = function (element) {
+            var edit = {
+                parentID: element.parent.tagID
+            };
+            
+            var match = /(\d+)t/.exec(element.tagID);
+            if (match) {
+                edit.afterID = match[1];
+            } else {
+                edit.firstChild = true;
+            }
+            return edit;
+        }
+        
+        var findDeletions = function (element) {
+            if (!matches[element.tagID]) {
+                if (element.children) {
+                    edits.push({
+                        type: "elementDelete",
+                        tagID: element.tagID
+                    });
+                } else {
+                    var edit = initializeTextEdit(element);
+                    edit.type = "textDelete";
+                    edits.push(edit);
+                }
+            } else if (element.children) {
+                var i;
+                for (i = 0; i < element.children.length; i++) {
+                    findDeletions(element.children[i]);
+                }
+            }
+        };
+        
+        findDeletions(oldNode);
+        
+        Object.keys(elementInserts).forEach(function (nonMatchingID) {
+            var newElement = newNode.nodeMap[nonMatchingID];
+            var childIndex = newElement.parent.children.indexOf(newElement);
+            edits.push({
+                type: "elementInsert",
+                tagID: newElement.tagID,
+                tag: newElement.tag,
+                attributes: newElement.attributes,
+                parentID: newElement.parent.tagID,
+                child: childIndex
+            });
+        });
+        
+        Object.keys(textInserts).forEach(function (nonMatchingID) {
+            var newElement = newNode.nodeMap[nonMatchingID];
+            edits.push({
+                type: "textInsert",
+                tagID: newElement.parent.tagID,
+                child: newElement.parent.children.indexOf(newElement),
+                content: newElement.content
+            });
+        });
+        
+        Object.keys(textChanges).forEach(function (changedID) {
+            var changedElement = newNode.nodeMap[changedID];
+            var edit = initializeTextEdit(changedElement);
+            edit.type = "textReplace";
+            edit.content = changedElement.content;            
+            edits.push(edit);
+        });
+        return edits;
+    }
+    
     function _updateDOM(previousDOM, editor, changeList) {
-        var edits = [];
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
-        domdiff(edits, result.oldSubtree, result.newSubtree);
-        console.log("edits: " + JSON.stringify(edits));
+        var edits = domdiff(result.oldSubtree, result.newSubtree);
         return {
             dom: result.newDOM,
             edits: edits
