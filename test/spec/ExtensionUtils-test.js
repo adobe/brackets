@@ -48,6 +48,8 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow      = null;
+            ExtensionUtils  = null;
             SpecRunnerUtils.closeTestWindow();
         });
 

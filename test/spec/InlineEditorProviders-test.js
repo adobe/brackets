@@ -836,9 +836,10 @@ define(function (require, exports, module) {
                 });
 
                 afterEach(function () {
-                    fullEditor = hostEditor = inlineEditor = null;
+                    fullEditor   = null;
+                    hostEditor   = null;
+                    inlineEditor = null;
                 });
-                
                 
                 it("should insert new line at start of range, and stay open on undo", function () {
                     // insert new line at start of inline range--the new line should be included in 
@@ -1157,11 +1158,11 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
                     });
                 });
-
+            
                 afterEach(function () {
-                    hostEditor = inlineEditor = null;
+                    hostEditor   = null;
+                    inlineEditor = null;
                 });
-
 
                 it("should keep range consistent after undo/redo (bug #1031)", function () {
                     var secondInlineOpen = false, secondInlineEditor;
@@ -1218,11 +1219,13 @@ define(function (require, exports, module) {
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
-            
+                
                 afterEach(function () {
-                    fullEditor = hostEditor = inlineEditor = null;
+                    fullEditor   = null;
+                    hostEditor   = null;
+                    inlineEditor = null;
                 });
-
+                
                 it("should delete line at bottom and not close on undo", function () {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
                     

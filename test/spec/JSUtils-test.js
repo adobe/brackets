@@ -56,8 +56,6 @@ define(function (require, exports, module) {
     var eof2JsFileEntry     = new NativeFileSystem.FileEntry(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
-        spec.fileJsContent = null;
-        
         if (fileEntry) {
             spec.addMatchers({toMatchFunctionName: toMatchFunctionName});
             
@@ -74,11 +72,19 @@ define(function (require, exports, module) {
         }
     }
 
+    function cleanup(spec) {
+        spec.fileJsContent = null;
+    }
+
 
     describe("JSUtils", function () {
 
         beforeEach(function () {
             init(this);
+        });
+        
+        afterEach(function () {
+            cleanup(this);
         });
         
         describe("basics", function () {
@@ -121,6 +127,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  0, end:  2} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple2", [ {start:  7, end:  9} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple3", [ {start: 11, end: 13} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -133,6 +141,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "param1", [ {start: 18, end: 19} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param2", [ {start: 24, end: 26} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param3", [ {start: 28, end: 32} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -145,6 +155,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "single1", [ {start: 35, end: 35} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single2", [ {start: 36, end: 36} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single3", [ {start: 37, end: 37} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -157,6 +169,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "nested1", [ {start: 42, end: 50} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested2", [ {start: 44, end: 49} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested3", [ {start: 47, end: 48} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -169,6 +183,8 @@ define(function (require, exports, module) {
                     //expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
                     expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
                     expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -186,6 +202,8 @@ define(function (require, exports, module) {
                         result = JSUtils.findAllMatchingFunctionsInText(content, name);
                         expect(result.length).toBe(0);
                     });
+
+                    cleanup(this);
                 });
             });
             
@@ -196,6 +214,8 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "myMethod", [ {start: 66, end: 68} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -212,6 +232,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction", [ {start: 86, end: 88} ]);
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction2", [ {start: 90, end: 92} ]);
                     expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -224,6 +246,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "highAscÍÍChars", [ {start: 95, end: 97} ]);
                     expectFunctionRanges(this, this.fileJsContent, "moreHighAscÍÍChars", [ {start: 99, end: 101} ]);
                     expectFunctionRanges(this, this.fileJsContent, "ÅsciiExtendedIdentifierStart", [ {start: 103, end: 104} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -235,6 +259,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "ʸUnicodeModifierLettervalidIdentifierStart", [ {start: 106, end: 107} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeModifierLettervalidIdentifierPartʸ", [ {start: 112, end: 113} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -249,6 +275,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "unicodeEscapedIdentifierPart\u02b8", [ {start: 115, end: 116} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabBefore", [ {start: 118, end: 119} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabAfter", [ {start: 121, end: 122} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -261,6 +289,8 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
                     expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
                     expectFunctionRanges(this, this.fileJsContent, "hasOwnProperty", [ {start: 11, end: 13} ]);
+
+                    cleanup(this);
                 });
             });
             
@@ -273,6 +303,8 @@ define(function (require, exports, module) {
                     expectNoFunction(this.fileJsContent, "0digitIdentifierStart");
                     expectNoFunction(this.fileJsContent, ".punctuationIdentifierStart");
                     expectNoFunction(this.fileJsContent, "punctuation.IdentifierPart");
+
+                    cleanup(this);
                 });
             });
         });
@@ -282,6 +314,10 @@ define(function (require, exports, module) {
                 init(this, braceEndJsFileEntry);
             });
             
+            afterEach(function () {
+                cleanup(this);
+            });
+
             function expectEndBrace(spec, funcName) {
                 var startPos = spec.fileJsContent.indexOf("function " + funcName);
                 expect(startPos).toNotBe(-1);
@@ -334,6 +370,7 @@ define(function (require, exports, module) {
                 init(this, eofJsFileEntry);
                 runs(function () {
                     expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
+                    cleanup(this);
                 });
             });
         });
@@ -343,6 +380,7 @@ define(function (require, exports, module) {
                 init(this, eof2JsFileEntry);
                 runs(function () {
                     expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
+                    cleanup(this);
                 });
             });
         });
@@ -353,6 +391,10 @@ define(function (require, exports, module) {
                 init(this, jQueryJsFileEntry);
             });
             
+            afterEach(function () {
+                cleanup(this);
+            });
+
             it("should find the first instance of the pushStack function", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
                 expect(funcNames).not.toBe(null);
@@ -405,6 +447,10 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            DocumentManager     = null;
+            FileIndexManager    = null;
+            FileViewController  = null;
+            JSUtils             = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
