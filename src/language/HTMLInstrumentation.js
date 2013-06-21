@@ -377,6 +377,27 @@ define(function (require, exports, module) {
         return builder.build();
     }
     
+    function _dumpDOM(root) {
+        var result = "",
+            indent = "";
+        
+        function walk(node) {
+            if (node.tag) {
+                result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
+            } else {
+                result += indent + "TEXT " + node.tagID + " " + node.content + "\n";
+            }
+            if (node.children) {
+                indent += "  ";
+                node.children.forEach(walk);
+                indent = indent.slice(2);
+            }
+        }
+        walk(root);
+        
+        return result;
+    }
+    
     // TODO: I'd be worried about stack overflows here
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
