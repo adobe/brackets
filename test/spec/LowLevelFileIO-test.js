@@ -43,10 +43,12 @@ define(function (require, exports, module) {
     
         beforeEach(function () {
             runs(function () {
+                // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
                 waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir));
             });
             runs(function () {
+                // Pre-test setup - set permissions on special directories 
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "222"));
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "444"));
             });
@@ -54,10 +56,12 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             runs(function () {
+                // Restore directory permissions
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "777"));
                 waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "777"));
             });
             runs(function () {
+                // Remove the test data and anything else left behind from tests
                 waitsForDone(SpecRunnerUtils.deletePath(baseDir));
             });
         });
