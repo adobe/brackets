@@ -50,11 +50,15 @@ define(function (require, exports, module) {
                     DocumentManager = brackets.test.DocumentManager;
                 });
             });
-
-
         });
 
         afterEach(function () {
+            testWindow      = null;
+            brackets        = null;
+            test$           = null;
+            executeCommand  = null;
+            EditorManager   = null;
+            DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
