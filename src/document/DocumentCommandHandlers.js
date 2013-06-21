@@ -613,12 +613,12 @@ define(function (require, exports, module) {
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
+            fullPath = doc.file.fullPath;
             if (doc.isUntitled()) {
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
                 saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
             }
-            fullPath = doc.file.fullPath;
             defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
