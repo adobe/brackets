@@ -110,12 +110,14 @@ define(function (require, exports, module) {
         var text = doc.getText(),
             dom = _buildSimpleDOM(text);
         
-        // Cache results
-        _cachedValues[doc.file.fullPath] = {
-            timestamp: doc.diskTimestamp,
-            dom: dom,
-            dirty: false
-        };
+        if (dom) {
+            // Cache results
+            _cachedValues[doc.file.fullPath] = {
+                timestamp: doc.diskTimestamp,
+                dom: dom,
+                dirty: false
+            };
+        }
         
         return dom;
     }
@@ -131,6 +133,10 @@ define(function (require, exports, module) {
     function generateInstrumentedHTML(doc) {
         var dom = scanDocument(doc),
             gen = doc.getText();
+        
+        if (!dom) {
+            return null;
+        }
         
         // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
         // end of the open tag
@@ -306,6 +312,7 @@ define(function (require, exports, module) {
         while ((token = this.t.nextToken()) !== null) {
             if (!token.contents) {
                 console.error("Token has no contents: ", token);
+                return null;
             } else if (token.type === "opentagname") {
                 var newTag = {
                     tag: token.contents,
@@ -331,11 +338,16 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "closetag") {
                 this.lastTag = stack.pop();
+                if (!this.lastTag) {
+                    console.error("Close tag with no matching open tag: " + token.contents);
+                    return null;
+                }
                 _updateHash(this.lastTag);
                 this.lastTag.end = this.startOffset + token.end + 1;
                 signatureMap[this.lastTag.signature] = this.lastTag;
                 if (this.lastTag.tag !== token.contents) {
                     console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
+                    return null;
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents;
@@ -548,6 +560,10 @@ define(function (require, exports, module) {
                 oldSubtree: this.previousDOM,
                 newSubtree: newSubtree
             };
+        
+        if (!newSubtree) {
+            return null;
+        }
 
         if (this.changedTagID) {
             // Find the old subtree that's going to get swapped out.
@@ -844,6 +860,10 @@ define(function (require, exports, module) {
     function _updateDOM(previousDOM, editor, changeList) {
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
+        if (!result) {
+            return null;
+        }
+        
         var edits = domdiff(result.oldSubtree, result.newSubtree);
         return {
             dom: result.newDOM,
@@ -857,12 +877,22 @@ define(function (require, exports, module) {
             console.warn("No previous DOM to compare change against");
             return [];
         } else {
+            if (_cachedValues[editor.document.file.fullPath].invalid) {
+                // We were in an invalid state, so do a full rebuild.
+                changeList = null;
+            }
             var result = _updateDOM(cachedValue.dom, editor, changeList);
-            _cachedValues[editor.document.file.fullPath] = {
-                timestamp: editor.document.diskTimestamp, // TODO: update?
-                dom: result.dom
-            };
-            return result.edits;
+            if (result) {
+                _cachedValues[editor.document.file.fullPath] = {
+                    timestamp: editor.document.diskTimestamp, // TODO: update?
+                    dom: result.dom
+                };
+                return result.edits;
+            }
+            else {
+                _cachedValues[editor.document.file.fullPath].invalid = true;
+                return [];
+            }
         }
     }
     

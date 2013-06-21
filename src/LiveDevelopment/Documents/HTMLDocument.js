@@ -100,11 +100,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @returns {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
-        var body = (this._instrumentationEnabled) ?
-                HTMLInstrumentation.generateInstrumentedHTML(this.doc) : this.doc.getText();
+        var body;
+        if (this._instrumentationEnabled) {
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc);
+        }
         
         return {
-            body: body
+            body: body || this.doc.getText()
         };
     };
 
