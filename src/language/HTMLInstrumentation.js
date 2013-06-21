@@ -147,9 +147,7 @@ define(function (require, exports, module) {
             }
             
             if (node.children) {
-                node.children.forEach(function (child) {
-                    walk(child);
-                });
+                node.children.forEach(walk);
             }
         }
         
@@ -407,6 +405,22 @@ define(function (require, exports, module) {
         _markTags(cm, dom);
     }
     
+    function _buildNodeMap(root) {
+        var nodeMap = {};
+        
+        function walk(node) {
+            if (node.tagID) {
+                nodeMap[node.tagID] = node;
+            }
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(root);
+        root.nodeMap = nodeMap;
+    }
+    
     function DOMUpdater(previousDOM, editor, changeList) {
         var text, startOffset = 0;
 
@@ -492,11 +506,16 @@ define(function (require, exports, module) {
                     parent.children[childIndex] = newSubtree;
                     
                     // Overwrite any node mappings in the parent DOM with the
-                    // mappings for the new subtree.
+                    // mappings for the new subtree. We keep the nodeMap around
+                    // on the new subtree so that the differ can use it later.
+                    // TODO: should we ever null out the nodeMap on the subtree?
                     // TODO: this leaves garbage around if nodes are deleted in
                     // newSubtree
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
-                    newSubtree.nodeMap = null;
+                    
+                    // Build a local nodeMap for the old subtree so the differ can
+                    // use it.
+                    _buildNodeMap(oldSubtree);
                     
                     // Update the signatures for all parents of the new subtree.
                     var curParent = parent;
