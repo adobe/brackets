@@ -58338,7 +58338,7 @@ define('utils/NativeApp',['require','exports','module','utils/Async'],function (
      * Opens a URL in the system default browser
      */
     function openURLInDefaultBrowser(url) {
-        brackets.app.openURLInDefaultBrowser(url);
+        brackets.app.openURLInDefaultBrowser(function (err) {}, url);
     }
     
 
