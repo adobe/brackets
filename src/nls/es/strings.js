@@ -129,7 +129,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_MAX"                 : " (mostrando las primeras {0} coincidencias)",
     "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
-    "FIND_IN_FILES_LINE"                : "línea:&nbsp;{0}",
+    "FIND_IN_FILES_LINE"                : "línea: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
@@ -264,7 +264,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
-    "CMD_BEFORE_MENUPOPUP"                : "Antes de popup",
+    "CMD_BEFORE_MENUPOPUP"                : "Antes del Menu Emergente",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
