@@ -250,7 +250,8 @@ define(function (require, exports, module) {
                 });
                 
                 // revert files to original content with offset markup
-                testWindow = null;
+                initInlineTest      = null;
+                testWindow          = null;
                 Commands            = null;
                 EditorManager       = null;
                 FileSyncManager     = null;
@@ -269,6 +270,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+
+                    inlineWidget = null;
                 });
             });
             
@@ -281,6 +284,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -293,6 +298,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -305,6 +312,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -317,6 +326,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.html"].offsets[11]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -329,6 +340,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[2]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -358,7 +371,7 @@ define(function (require, exports, module) {
                     expect(savedPos).toEqual(hostEditor.getCursorPos());
                     expect(hostEditor.hasFocus()).toEqual(true);
 
-                    hostEditor = null;
+                    hostEditor = inlineWidget = null;
                 });
             });
 
@@ -382,8 +395,7 @@ define(function (require, exports, module) {
                     // verify no inline widgets
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
 
-                    doc = null;
-                    hostEditor = null;
+                    doc = hostEditor = inlineWidget = null;
                 });
             });
 
