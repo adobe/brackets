@@ -597,9 +597,6 @@ define(function (require, exports, module) {
                 var now = new Date();
                 fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
                 doc = new DocumentModule.Document(fileEntry, now, "");
-
-                _gcDocuments();
-
                 result.resolve(doc);
             } else {
                 // log this document's Promise as pending
@@ -613,16 +610,15 @@ define(function (require, exports, module) {
                     })
                     .done(function (rawText, readTimestamp) {
                         doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-
-                        // This is a good point to clean up any old dangling Documents
-                        _gcDocuments();
-
                         result.resolve(doc);
                     })
                     .fail(function (fileError) {
                         result.reject(fileError);
                     });
             }
+            
+            // This is a good point to clean up any old dangling Documents
+            result.done(_gcDocuments);
             
             return promise;
         }
