@@ -411,6 +411,7 @@ define({
     "LOCALE_SV"                                 : "Sueco",
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",
+    "LOCALE_HU"                                 : "Húngaro",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
