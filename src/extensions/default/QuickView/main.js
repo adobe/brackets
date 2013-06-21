@@ -175,7 +175,7 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
         function execGradientMatch(line) {
@@ -189,24 +189,22 @@ define(function (require, exports, module) {
                     // sass variable. Ignore it since it won't be displayed correctly.
                     gradientMatch = null;
     
-                } else if (gradientMatch[0].indexOf("to ") !== -1) {
-                    // If the gradient match has "to " in it, it's most likely the new gradient
-                    // syntax which is not supported until Chrome 26, so we can't yet preview it
-                    gradientMatch = null;
-
                 } else {
-                    // If it was a linear-gradient or radial-gradient variant, prefix with
-                    // "-webkit-" so it shows up correctly in Brackets.
-                    if (gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
+                    // If it was a linear-gradient or radial-gradient variant with a vendor prefix 
+                    // add "-webkit-" so it shows up correctly in Brackets.
+                    if (gradientMatch[0].match(/-o-|-moz-|-ms-|-webkit-/i)) {
                         prefix = "-webkit-";
                     }
                     
                     // For prefixed gradients, use the non-prefixed value as the color value.
-                    // "-webkit-" will be added before this value
+                    // "-webkit-" will be added before this value later
                     if (gradientMatch[1]) {
-                        colorValue = gradientMatch[1] + gradientMatch[3];    // linear gradiant
-                    } else if (gradientMatch[2]) {
-                        colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
+                        colorValue = gradientMatch[1] + gradientMatch[5];    // linear gradiant
+                    } else if (gradientMatch[3]) {
+                        colorValue = gradientMatch[3] + gradientMatch[5];    // radial gradiant
+                    } else if (gradientMatch[0]) {
+                        colorValue = gradientMatch[0];                       // -webkit-gradient
+                        prefix = "";                                         // do not prefix
                     }
                 }
             }
@@ -651,12 +649,6 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
-
-    AppInit.appReady(function () {
-        if (brackets.test) {
-            brackets.test.extensions.QuickView = module.exports;
-        }
-    });
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;

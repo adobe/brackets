@@ -56,7 +56,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
-	"INVALID_FILENAME_MESSAGE": "[6307152] !é=Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.=!",
+	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
@@ -113,6 +113,7 @@ define({
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
+	"SAVE_FILE_AS": "Enregistrer le fichier",
 	"CHOOSE_FOLDER": "Choisir un dossier",
 
 	"RELEASE_NOTES": "Notes de mise à jour",
@@ -129,7 +130,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "[6318990] !é=line: {0}=!",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
@@ -176,6 +177,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
+	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
@@ -262,7 +264,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
-	"CMD_BEFORE_MENUPOPUP": "[7018403] !é=Before Menu Popup=!",
+	"CMD_BEFORE_MENUPOPUP": "Fenêtre avant le menu",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
@@ -409,6 +411,7 @@ define({
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
+	"LOCALE_HU": "Hongrois",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

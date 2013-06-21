@@ -55,12 +55,13 @@ define(function (require, exports, module) {
             return { value: valueInfo.TITLE, description: valueInfo.DESCRIPTION };
         });
         
-        var templateVars = $.extend({
-            propName: cssPropName,
-            summary: cssPropDetails.SUMMARY,
-            propValues: propValues,
-            url: cssPropDetails.URL
-        }, Strings);
+        var templateVars = {
+            propName    : cssPropName,
+            summary     : cssPropDetails.SUMMARY,
+            propValues  : propValues,
+            url         : cssPropDetails.URL,
+            Strings     : Strings
+        };
         
         var html = Mustache.render(inlineEditorTemplate, templateVars);
         

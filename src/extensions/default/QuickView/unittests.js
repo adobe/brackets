@@ -32,7 +32,16 @@ define(function (require, exports, module) {
 
     describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, CommandManager, Commands, EditorManager, QuickView, editor;
+
+        // load from testWindow
+        var testWindow,
+            brackets,
+            extensionRequire,
+            CommandManager,
+            Commands,
+            EditorManager,
+            QuickView,
+            editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -42,10 +51,11 @@ define(function (require, exports, module) {
                         testWindow = w;
                         // Load module instances from brackets.test
                         brackets = testWindow.brackets;
-                        CommandManager = testWindow.brackets.test.CommandManager;
-                        Commands = testWindow.brackets.test.Commands;
+                        CommandManager = brackets.test.CommandManager;
+                        Commands = brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        QuickView = brackets.test.extensions.QuickView;
+                        extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("QuickView");
+                        QuickView = extensionRequire("main");
                     });
                 });
 
@@ -201,19 +211,17 @@ define(function (require, exports, module) {
 
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC)",                  99, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(135deg, #333, #CCC)",          101, 50);
+                    checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
+                    checkGradientAtPos("linear-gradient(135deg, #333, #CCC)",          101, 50);
 
-                    // TODO (#3458): Keyword "to" not supported until Brackets upgrades to Chrome 26
-                    //checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
-                    //checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
-                    expectNoPreviewAtPos(98, 50);
-                    expectNoPreviewAtPos(100, 50);
+                    checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
+                    checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+
 
                     // multiple colors
-                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC, #333)",             104, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
+                    checkGradientAtPos("linear-gradient(#333, #CCC, #333)",             104, 50);
+                    checkGradientAtPos("linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
+                    checkGradientAtPos("linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
                 });
             });
 
@@ -231,57 +239,45 @@ define(function (require, exports, module) {
 
             it("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    // TODO (#3458): support new W3C syntax
-//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 35);
-//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
-
-                    // For now the color stops are just previewed in isolation
-                    expectNoPreviewAtPos(118, 35);
-                    checkColorAtPos("yellow", 118, 40);
+                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 35);
+                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 40);
                 });
             });
 
             it("Should show repeating linear gradient preview", function () {
                 runs(function () {
-                    // TODO (#3458): support repeat
-//                    checkGradientAtPos("repeating-linear-gradient(red, blue 20px, red 40px)", 122, 50);
-//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white 0px, blue 0px)", 123, 50);
-//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white .1px, blue .2px)", 124, 50);
-
-                    // For now the color stops are just previewed in isolation
-                    expectNoPreviewAtPos(122, 35);
-                    expectNoPreviewAtPos(123, 35);
-                    expectNoPreviewAtPos(124, 35);
-                    checkColorAtPos("red", 122, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
                 });
             });
 
             it("Should show repeating radial gradient preview", function () {
                 runs(function () {
-                    // TODO (#3458): support repeat
-//                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
-//                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
-
-                    expectNoPreviewAtPos(128, 40);
-                    expectNoPreviewAtPos(129, 40);
+                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
+                    checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 129, 40);
                 });
             });
 
             it("Should show comma-separated gradients", function () {
                 runs(function () {
                     // line ending in comma
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
+                    checkGradientAtPos("linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
 
                     // multiple gradients on a line
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
+                    checkGradientAtPos("linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
+                    checkGradientAtPos("linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
                 });
             });
             
             it("Should should convert gradients arguments from pixel to percent", function () {
                 runs(function () {
-                    // line ending in comma
+                    // linear gradient in px
                     checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
+                    // repeating linear-gradient in pixels (no prefix)
+                    checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 164, 40);
+                    // repeating radial-gradient in pixels (no prefix)
+                    checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
                 });
             });
         });

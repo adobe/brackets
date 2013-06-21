@@ -283,6 +283,7 @@ define(function Inspector(require, exports, module) {
 
         return promise;
     }
+    
     /**
      * Connect to the remote debugger WebSocket at the given URL.
      * Clients must listen for the `connect` event.
@@ -332,6 +333,33 @@ define(function Inspector(require, exports, module) {
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
+    function retry(fn, interval, retryCount) {
+        var deferred = new $.Deferred(),
+            countdown = retryCount || 4;
+
+        interval = interval || 250;
+
+        function _doRetry() {
+            // FIXME Windows only: Somtimes methods (e.g. Console.enable()) aren't acknowledged
+            Async.withTimeout(fn.call(), interval).done(function () {
+                deferred.resolve();
+            }).fail(function () {
+                countdown--;
+
+                if (countdown <= 0) {
+                    deferred.reject("Failed after " + retryCount + " tries");
+                    return;
+                }
+
+                _doRetry();
+            });
+        }
+
+        _doRetry();
+
+        return deferred.promise();
+    }
+
     /** Initialize the Inspector
      * Read the Inspector.json configuration and define the command objects
      * -> Inspector.domain.command()
@@ -361,5 +389,6 @@ define(function Inspector(require, exports, module) {
     exports.connect = connect;
     exports.connectToURL = connectToURL;
     exports.connected = connected;
+    exports.retry = retry;
     exports.init = init;
 });

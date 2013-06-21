@@ -80,13 +80,27 @@ define(function (require, exports, module) {
      *      of the clicked button when the dialog is dismissed. Never rejected.
      */
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
-        var $dlg,
-            $title,
-            $baseUrlControl,
+        var $baseUrlControl,
             dialog;
-
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings));
-
+        
+        // Title
+        var projectName = "",
+            projectRoot = ProjectManager.getProjectRoot(),
+            title;
+        if (projectRoot) {
+            projectName = projectRoot.name;
+        }
+        title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
+        
+        var templateVars = {
+            title        : title,
+            baseUrl      : baseUrl,
+            errorMessage : errorMessage,
+            Strings      : Strings
+        };
+        
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
+        
         dialog.done(function (id) {
             if (id === Dialogs.DIALOG_BTN_OK) {
                 var baseUrlValue = $baseUrlControl.val();
@@ -100,32 +114,8 @@ define(function (require, exports, module) {
             }
         });
 
-        // Populate project settings
-        $dlg = dialog.getElement();
-
-        // Title
-        $title = $dlg.find(".dialog-title");
-        var projectName = "",
-            projectRoot = ProjectManager.getProjectRoot(),
-            title;
-        if (projectRoot) {
-            projectName = projectRoot.name;
-        }
-        title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-        $title.text(title);
-
-        // Base URL
-        $baseUrlControl = $dlg.find(".url");
-        if (baseUrl) {
-            $baseUrlControl.val(baseUrl);
-        }
-
-        // Error message
-        if (errorMessage) {
-            $dlg.find(".field-container").append("<div class='alert' style='margin-bottom: 0'>" + errorMessage + "</div>");
-        }
-
         // Give focus to first control
+        $baseUrlControl = dialog.getElement().find(".url");
         $baseUrlControl.focus();
 
         return dialog;

@@ -242,17 +242,63 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Splits a decorated file path into its parts.
+     * @param {?string} path - a string of the form "fullpath[:lineNumber[:columnNumber]]"
+     * @return {{path: string, line: ?number, column: ?number}} 
+     */
+    function _parseDecoratedPath(path) {
+        var result = {path: path, line: null, column: null};
+        if (path) {
+            // If the path has a trailing :lineNumber and :columnNumber, strip 
+            // these off and assign to result.line and result.column.
+            var matchResult = /(.+?):([0-9]+)(:([0-9]+))?$/.exec(path);
+            if (matchResult) {
+                result.path = matchResult[1];
+                if (matchResult[2]) {
+                    result.line = parseInt(matchResult[2], 10);
+                }
+                if (matchResult[4]) {
+                    result.column = parseInt(matchResult[4], 10);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Opens the given file and makes it the current document. Does NOT add it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     * @param {!{fullPath:string}} Params for FILE_OPEN command;
+     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
      */
     function handleFileOpen(commandData) {
-        var fullPath = null;
-        if (commandData) {
-            fullPath = commandData.fullPath;
-        }
-        
-        return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null);
+        return _doOpenWithOptionalPath(fileInfo.path)
+            .always(function () {
+                // If a line and column number were given, position the editor accordingly.
+                if (fileInfo.line !== null) {
+                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                        fileInfo.column = 1;
+                    }
+                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                }
+                
+                // Give the editor focus
+                EditorManager.focusEditor();
+            });
+        // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
+        // Do all tests with brackets already running, and also with brackets not already running.
+        //
+        // drag a file onto brackets icon in desktop (this uses undecorated paths)
+        // drag a file onto brackets icon in taskbar (this uses undecorated paths)
+        // open a file from brackets sidebar (this uses undecorated paths)
+        // from command line: ...../Brackets.app/Contents path         - where 'path' is undecorated
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line"
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line:column"
+        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated 
+        // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
     /**
@@ -538,7 +584,7 @@ define(function (require, exports, module) {
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
-        
+                
         function _doSaveAfterSaveDialog(path) {
             
             function _configureEditorAndResolve() {
@@ -551,6 +597,24 @@ define(function (require, exports, module) {
                     }
                 }
                 result.resolve();
+            }
+            
+            function updateProject() {
+                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                    FileViewController
+                        .openAndSelectDocument(path,
+                                          FileViewController.PROJECT_MANAGER)
+                        .always(_configureEditorAndResolve);
+                } else { // Working set  has file selection focus
+                    // replace original file in working set with new file
+                    //  remove old file from working set.
+                    DocumentManager.removeFromWorkingSet(doc.file);
+                    //add new file to working set
+                    FileViewController
+                        .addToWorkingSetAndSelect(path,
+                                        FileViewController.WORKING_SET_VIEW)
+                        .always(_configureEditorAndResolve);
+                }
             }
             
             if (path === fullPath) {
@@ -566,23 +630,17 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
                         FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
-                                doRevert(doc).always(function () {
-                                    if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                                        FileViewController
-                                            .openAndSelectDocument(path,
-                                                              FileViewController.PROJECT_MANAGER)
-                                            .always(_configureEditorAndResolve);
-                                    } else { // Working set  has file selection focus
-                                        // replace original file in working set with new file
-                                        //  remove old file from working set.
-                                        DocumentManager.removeFromWorkingSet(doc.file);
-                                        //add new file to working set
-                                        FileViewController
-                                            .addToWorkingSetAndSelect(path,
-                                                            FileViewController.WORKING_SET_VIEW)
-                                            .always(_configureEditorAndResolve);
-                                    }
-                                });
+                                // do not call doRevert unless the file is dirty.
+                                // doRevert on a file that is not dirty and not in the working set
+                                // has the side effect of adding the file to the working set.
+                                // we don't want that.
+                                if (doc.isDirty) {
+                                    // if the file is dirty it must be in the working set
+                                    // doRevert is side effect free in this case
+                                    doRevert(doc).always(updateProject);
+                                } else {
+                                    updateProject();
+                                }
                             });
                         });
                     });
@@ -1032,6 +1090,9 @@ define(function (require, exports, module) {
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
         
     });
+
+    // Exported for unit testing only
+    exports._parseDecoratedPath = _parseDecoratedPath;
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);

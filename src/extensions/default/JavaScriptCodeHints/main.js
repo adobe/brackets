@@ -591,8 +591,9 @@ define(function (require, exports, module) {
          */
         function handleJumpToDefinition() {
             var offset,
-                response;
+                handleJumpResponse;
 
+                        
             // Only provide jump-to-definition results when cursor is in JavaScript content
             if (session.editor.getModeForSelection() !== "javascript") {
                 return null;
@@ -600,34 +601,128 @@ define(function (require, exports, module) {
 
             var result = new $.Deferred();
 
-            offset = session.getOffset();
-            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
-
-            if (response.hasOwnProperty("promise")) {
-                response.promise.done(function (jumpResp) {
-
-                    if (jumpResp.resultFile) {
-                        if (jumpResp.resultFile !== jumpResp.file) {
-                            var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
-                            if (resolvedPath) {
-                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
-                                    .done(function () {
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
-                                    });
-                            }
-                        } else {
-                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
-                        }
-                        result.resolve(true);
-                    } else {
+            /**
+             * Make a jump-to-def request based on the session and offset passed in.
+             * @param {Session} session - the session
+             * @param {number} offset - the offset of where to jump from
+             */
+            function requestJumpToDef(session, offset) {
+                var response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+    
+                if (response.hasOwnProperty("promise")) {
+                    response.promise.done(handleJumpResponse).fail(function () {
                         result.reject();
-                    }
+                    });
+                }
+            }
+            
 
-                }).fail(function () {
-                    result.reject();
-                });
+            /**
+             * Sets the selection to move the cursor to the result position.
+             * Assumes that the editor has already changed files, if necessary.
+             *
+             * Additionally, this will check to see if the selection looks like an
+             * assignment to a member expression - if it is, and the type is a function,
+             * then we will attempt to jump to the RHS of the expression.
+             *
+             * 'exports.foo = foo'
+             *
+             * if the selection is 'foo' in 'exports.foo', then we will attempt to jump to def
+             * on the rhs of the assignment.
+             *
+             * @param {number} start - the start of the selection
+             * @param {number} end - the end of the selection
+             * @param {boolean} isFunction - true if we are jumping to the source of a function def
+             */
+            function setJumpSelection(start, end, isFunction) {
+                
+                /**
+                 * helper function to decide if the tokens on the RHS of an assignment
+                 * look like an identifier, or member expr.
+                 */
+                function validIdOrProp(token) {
+                    if (!token) {
+                        return false;
+                    }
+                    if (token.string === ".") {
+                        return true;
+                    }
+                    var type = token.type;
+                    if (type === "variable-2" || type === "variable" || type === "property") {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                
+                var madeNewRequest = false;
+                
+                if (isFunction) {
+                    // When jumping to function defs, follow the chain back
+                    // to get to the original function def
+                    var cursor = {line: end.line, ch: end.ch},
+                        prev = session._getPreviousToken(cursor),
+                        next,
+                        token,
+                        offset;
+    
+                    // see if the selection is preceded by a '.', indicating we're in a member expr
+                    if (prev.string === ".") {
+                        cursor = {line: end.line, ch: end.ch};
+                        next = session.getNextToken(cursor, true);
+                        // check if the next token indicates an assignment
+                        if (next && next.string === "=") {
+                            next = session.getNextToken(cursor, true);
+                            // find the last token of the identifier, or member expr
+                            while (validIdOrProp(next)) {
+                                offset = session.getOffsetFromCursor({line: cursor.line, ch: next.end});
+                                next = session.getNextToken(cursor, false);
+                            }
+                            if (offset) {
+                                // trigger another jump to def based on the offset of the RHS
+                                requestJumpToDef(session, offset);
+                                madeNewRequest = true;
+                            }
+                        }
+                    }
+                }
+                // We didn't make a new jump-to-def request, so we can resolve the promise
+                // and set the selection
+                if (!madeNewRequest) {
+                    // set the selection
+                    session.editor.setSelection(start, end, true);
+                    result.resolve(true);
+                }
             }
 
+            /**
+             * handle processing of the completed jump-to-def request.              
+             * will open the appropriate file, and set the selection based
+             * on the response.
+             */
+            handleJumpResponse = function (jumpResp) {
+
+                if (jumpResp.resultFile) {
+                    if (jumpResp.resultFile !== jumpResp.file) {
+                        var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                        if (resolvedPath) {
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
+                                .done(function () {
+                                    setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                                });
+                        }
+                    } else {
+                        setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                    }
+                } else {
+                    result.reject();
+                }
+            };
+            
+            offset = session.getOffset();
+            // request a jump-to-def
+            requestJumpToDef(session, offset);
+            
             return result.promise();
         }
 

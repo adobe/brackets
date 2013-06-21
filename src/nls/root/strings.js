@@ -130,7 +130,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
+    "FIND_IN_FILES_LINE"                : "line: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
@@ -411,6 +411,7 @@ define({
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
+    "LOCALE_HU"                                 : "Hungarian",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

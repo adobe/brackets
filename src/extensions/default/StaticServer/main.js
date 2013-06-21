@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      * A deferred which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */
-    var _nodeConnectionDeferred = $.Deferred();
+    var _nodeConnectionDeferred = new $.Deferred();
     
     /**
      * @private
@@ -228,10 +228,7 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred;
     }
     
-    AppInit.appReady(function () {
-        // Register as a Live Development server provider
-        LiveDevServerManager.registerProvider(_staticServerProvider, 5);
-        
+    function init() {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
         // _nodeConnectionDeferred.done() to access it.
@@ -260,6 +257,10 @@ define(function (require, exports, module) {
                     });
 
                     clearTimeout(connectionTimeout);
+
+                    // Register as a Live Development server provider
+                    LiveDevServerManager.registerProvider(_staticServerProvider, 5);
+
                     _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
                 },
                 function () { // Failed to connect
@@ -268,11 +269,11 @@ define(function (require, exports, module) {
                 }
             );
         });
-        
-        if (brackets.test) {
-            brackets.test.extensions.StaticServer = module.exports;
-        }
-    });
+
+        return _nodeConnectionDeferred.promise();
+    }
+
+    exports.init = init;
 
     // For unit tests only
     exports._getStaticServerProvider = _getStaticServerProvider;

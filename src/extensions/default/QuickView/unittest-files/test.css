@@ -162,4 +162,6 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
 
 .pixelGradient {
     background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 300px, red 600px); 
+    background-image: repeating-linear-gradient(red, blue 20px, red 40px);
+    background-image: repeating-radial-gradient(red, blue 20px, red 40px);    
 }
