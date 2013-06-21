@@ -55,7 +55,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nombre de archivo inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\| o usar palabras reservadas del sistema",
     "FILE_ALREADY_EXISTS"               : "El archivo <span class='dialog-filename'>{0}</span> ya existe.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando archivo",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el archivo <span class='dialog-filename'>{0}</span>. {1}",
@@ -99,6 +99,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
+    "FILE_DELETED_TITLE"                : "Archivo eliminado",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
@@ -111,6 +112,7 @@ define({
     "BUTTON_STOP"                       : "Parar",
 
     "OPEN_FILE"                         : "Abrir archivo",
+    "SAVE_FILE_AS"                      : "Guardar archivo",
     "CHOOSE_FOLDER"                     : "Elige una carpeta",
 
     "RELEASE_NOTES"                     : "Notas de versión",
@@ -127,7 +129,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_MAX"                 : " (mostrando las primeras {0} coincidencias)",
     "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
-    "FIND_IN_FILES_LINE"                : "línea:&nbsp;{0}",
+    "FIND_IN_FILES_LINE"                : "línea: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
@@ -157,8 +159,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Haz click para cambiar el ancho de las tabulaciones",
     "STATUSBAR_SPACES"                      : "Espacios",
     "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Línea",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Líneas",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Línea",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Líneas",
     
     /**
      * Command Name Constants
@@ -175,6 +177,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Cerrar todo",
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
+    "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
@@ -261,6 +264,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
+    "CMD_BEFORE_MENUPOPUP"                : "Antes del Menu Emergente",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
@@ -298,6 +302,7 @@ define({
     // Extension Management strings
     "INSTALL"                              : "Instalar",
     "REMOVE"                               : "Eliminar",
+    "OVERWRITE"                            : "Sobreescribir",
     "CANT_REMOVE_DEV"                      : "Las extensiones en la carpeta \"dev\" se deben eliminar manualmente.",
     "INSTALL_EXTENSION_TITLE"              : "Instalar extensión",
     "INSTALL_EXTENSION_LABEL"              : "URL de la extensión",
@@ -319,7 +324,9 @@ define({
     "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
-    "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
+    "EXTENSION_ALREADY_INSTALLED"          : "Instalar este paquete sobreescribirá una extensión instalada previamente. ¿Deseas sobreescribir la antigua extensión?",
+    "EXTENSION_SAME_VERSION"               : "La versión de este paquete es la misma que el que está instalado actualmente. ¿Deseas sobreescribir la instalación actual?",
+    "EXTENSION_OLDER_VERSION"              : "La versión {0} de este paquete es más antigua que la instalada actualmente ({1}). ¿Deseas sobreescribir la instalación actual?",
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
@@ -341,18 +348,26 @@ define({
     "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
+    "EXTENSION_UPDATE_INSTALLED"           : "La actualización de esta extensión se ha descargado y se instalará cuando cierres {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
     "EXTENSION_MANAGER_REMOVE"             : "Eliminar extensión",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {{0}}. {APP_NAME} se cerrará igualmente.",
+    "EXTENSION_MANAGER_UPDATE"             : "Actualizar extensión",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "No se pudo actualizar una o más extensiones: {{0}}. {APP_NAME} se cerrará igualmente.",
     "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
     "UNDO_REMOVE"                          : "Deshacer",
-    "REMOVE_AND_QUIT_TITLE"                : "Eliminar extensiones",
-    "REMOVE_AND_QUIT_MESSAGE"              : "Para eliminar las extensiones marcadas, debes cerrar y reiniciar {APP_NAME}. Serás avisado para guardar los cambios existentes.",
+    "MARKED_FOR_UPDATE"                    : "Marcada para actualizar",
+    "UNDO_UPDATE"                          : "Deshacer",
+    "CHANGE_AND_QUIT_TITLE"                : "Cambiar extensiones",
+    "CHANGE_AND_QUIT_MESSAGE"              : "Para actualizar o eliminar las extensiones marcadas, necesitas cerrar y reiniciar {APP_NAME}. Se solicitará confirmación para guardar los cambios pendientes.",
     "REMOVE_AND_QUIT"                      : "Eliminar extensiones y salir",
+    "CHANGE_AND_QUIT"                      : "Cambiar extensiones y salir",
+    "UPDATE_AND_QUIT"                      : "Actualizar extensiones y salir",
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
     "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en el botón Instalar desde URL para empezar.",
+    "NO_EXTENSION_MATCHES"                 : "No hay extensiones que coincidan con tu búsqueda.",
 
     /**
      * Unit names
@@ -396,6 +411,7 @@ define({
     "LOCALE_SV"                                 : "Sueco",
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",
+    "LOCALE_HU"                                 : "Húngaro",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
