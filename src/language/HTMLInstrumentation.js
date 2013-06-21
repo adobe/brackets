@@ -293,7 +293,7 @@ define(function (require, exports, module) {
         if (childIndex === 0) {
             return textNode.parent.tagID + ".0";
         }
-        return textNode.parent.children[childIndex - 1] + "t";
+        return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
     SimpleDOMBuilder.prototype.build = function () {
