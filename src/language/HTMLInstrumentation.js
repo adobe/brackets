@@ -452,7 +452,7 @@ define(function (require, exports, module) {
                 var newMarkRange = startMark.find();
                 if (newMarkRange) {
                     text = editor._codeMirror.getRange(newMarkRange.from, newMarkRange.to);
-                    console.log("incremental update: " + text);
+                    //console.log("incremental update: " + text);
                     this.changedTagID = startMark.tagID;
                     startOffset = editor._codeMirror.indexFromPos(newMarkRange.from);
                 }

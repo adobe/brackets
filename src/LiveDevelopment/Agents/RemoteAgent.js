@@ -207,7 +207,7 @@ define(function RemoteAgent(require, exports, module) {
     }
     
     function _doEval(script) {
-        console.log("eval: " + script);
+        //console.log("eval: " + script);
         Inspector.Runtime.evaluate(script);
     }
 
