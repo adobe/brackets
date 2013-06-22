@@ -270,7 +270,7 @@ define(function (require, exports, module) {
 
         // Enable/Disable HTML Menus
         if (brackets.platform !== "linux") {
-            $("body").addClass("has-appshell-menu");
+            $("body").addClass("has-appshell-menus");
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
