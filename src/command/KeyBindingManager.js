@@ -555,9 +555,9 @@ define(function (require, exports, module) {
             results = [];
             
             keyBindings.sort(function (a, b) {
-                if(a.platform === brackets.platform) {
+                if (a.platform === brackets.platform) {
                     return 1;
-                } else  if(!a.platform) {
+                } else  if (!a.platform) {
                     return 0;
                 } else {
                     return -1;
