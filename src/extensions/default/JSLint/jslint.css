@@ -29,13 +29,14 @@
 }
 
 .jslint-info {
-    width:15px;   
+    width: 15px;
+    padding-top:5px !important;
 }
 
 .row-highlight tr:hover > .jslint-info a {    
-    display:block; 
-    width:15px; 
-    height:15px;
+    display: block; 
+    width: 15px; 
+    height: 15px;
     cursor: pointer;
     background: transparent url(images/info-icon.svg) no-repeat;
     opacity: 0.6;

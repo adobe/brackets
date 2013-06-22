@@ -169,7 +169,7 @@ define(function (require, exports, module) {
                 $lintResults.find(".lint-url")
                     .on("click", function (e) {
                         var reason = $(this).data("reason");
-                        var url = "https://www.google.com/search?q=" + encodeURIComponent(reason);
+                        var url = "https://www.google.com/search?q=" + encodeURIComponent(reason + " jslint");
                         NativeApp.openURLInDefaultBrowser(url);
                         return false;
                     });
