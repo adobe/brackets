@@ -11,7 +11,6 @@
         "blockComment": ["/*", "*/"]
     },
 
-
     "scss": {
         "name": "SCSS",
         "mode": ["css", "text/x-scss"],
@@ -123,6 +122,12 @@
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"]
+    },
+
+	"erb": {
+        "name": "Embedded Ruby",
+        "mode": ["htmlembedded", "application/x-erb"],
+        "fileExtensions": ["erb", "erb.html"]
     },
 
     "python": {
