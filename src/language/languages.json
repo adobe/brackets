@@ -124,7 +124,7 @@
         "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
 
-	"erb": {
+    "erb": {
         "name": "Embedded Ruby",
         "mode": ["htmlembedded", "application/x-erb"],
         "fileExtensions": ["erb", "erb.html"]
