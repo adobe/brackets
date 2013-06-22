@@ -110,12 +110,14 @@ define(function (require, exports, module) {
         var text = doc.getText(),
             dom = _buildSimpleDOM(text);
         
-        // Cache results
-        _cachedValues[doc.file.fullPath] = {
-            timestamp: doc.diskTimestamp,
-            dom: dom,
-            dirty: false
-        };
+        if (dom) {
+            // Cache results
+            _cachedValues[doc.file.fullPath] = {
+                timestamp: doc.diskTimestamp,
+                dom: dom,
+                dirty: false
+            };
+        }
         
         return dom;
     }
@@ -132,6 +134,10 @@ define(function (require, exports, module) {
         var dom = scanDocument(doc),
             gen = doc.getText();
         
+        if (!dom) {
+            return null;
+        }
+        
         // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
         // end of the open tag
         var insertCount = 0;
@@ -147,9 +153,7 @@ define(function (require, exports, module) {
             }
             
             if (node.children) {
-                node.children.forEach(function (child) {
-                    walk(child);
-                });
+                node.children.forEach(walk);
             }
         }
         
@@ -295,7 +299,7 @@ define(function (require, exports, module) {
         if (childIndex === 0) {
             return textNode.parent.tagID + ".0";
         }
-        return textNode.parent.children[childIndex - 1] + "t";
+        return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
     SimpleDOMBuilder.prototype.build = function () {
@@ -308,6 +312,7 @@ define(function (require, exports, module) {
         while ((token = this.t.nextToken()) !== null) {
             if (!token.contents) {
                 console.error("Token has no contents: ", token);
+                return null;
             } else if (token.type === "opentagname") {
                 var newTag = {
                     tag: token.contents,
@@ -333,11 +338,16 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "closetag") {
                 this.lastTag = stack.pop();
+                if (!this.lastTag) {
+                    console.error("Close tag with no matching open tag: " + token.contents);
+                    return null;
+                }
                 _updateHash(this.lastTag);
                 this.lastTag.end = this.startOffset + token.end + 1;
                 signatureMap[this.lastTag.signature] = this.lastTag;
                 if (this.lastTag.tag !== token.contents) {
                     console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
+                    return null;
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents;
@@ -377,6 +387,27 @@ define(function (require, exports, module) {
     function _buildSimpleDOM(text) {
         var builder = new SimpleDOMBuilder(text);
         return builder.build();
+    }
+    
+    function _dumpDOM(root) {
+        var result = "",
+            indent = "";
+        
+        function walk(node) {
+            if (node.tag) {
+                result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
+            } else {
+                result += indent + "TEXT " + node.tagID + " " + node.content + "\n";
+            }
+            if (node.children) {
+                indent += "  ";
+                node.children.forEach(walk);
+                indent = indent.slice(2);
+            }
+        }
+        walk(root);
+        
+        return result;
     }
     
     // TODO: I'd be worried about stack overflows here
@@ -433,7 +464,7 @@ define(function (require, exports, module) {
                 var newMarkRange = startMark.find();
                 if (newMarkRange) {
                     text = editor._codeMirror.getRange(newMarkRange.from, newMarkRange.to);
-                    console.log("incremental update: " + text);
+                    //console.log("incremental update: " + text);
                     this.changedTagID = startMark.tagID;
                     startOffset = editor._codeMirror.indexFromPos(newMarkRange.from);
                 }
@@ -464,6 +495,63 @@ define(function (require, exports, module) {
         return currentTagID;
     };
     
+    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap) {
+        // TODO: this is really inefficient - should we cache the mark for each node?
+        var updateIDs = Object.keys(nodeMap),
+            cm = this.cm,
+            marks = cm.getAllMarks();
+        marks.forEach(function (mark) {
+            if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
+                var node = nodeMap[mark.tagID];
+                mark.clear();
+                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+                mark.tagID = node.tagID;
+                updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+            }
+        });
+        
+        // Any remaining updateIDs are new.
+        updateIDs.forEach(function (id) {
+            var node = nodeMap[id],
+                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+            mark.tagID = id;
+        });
+    }
+    
+    DOMUpdater.prototype._buildNodeMap = function (root) {
+        var nodeMap = {};
+        
+        function walk(node) {
+            if (node.tagID) {
+                nodeMap[node.tagID] = node;
+            }
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(root);
+        root.nodeMap = nodeMap;
+    }
+    
+    DOMUpdater.prototype._handleDeletions = function (nodeMap, oldSubtreeMap, newSubtreeMap) {
+        var deletedIDs = [];
+        Object.keys(oldSubtreeMap).forEach(function (key) {
+            if (!newSubtreeMap.hasOwnProperty(key)) {
+                deletedIDs.push(key);
+                delete nodeMap[key];
+            }
+        });
+        
+        // TODO: again, really inefficient - should we cache the mark for each node?
+        var marks = this.cm.getAllMarks();
+        marks.forEach(function (mark) {
+            if (mark.hasOwnProperty("tagID") && deletedIDs.indexOf(mark.tagID) !== -1) {
+                mark.clear();
+            }
+        });
+    }
+    
     DOMUpdater.prototype.update = function () {
         var newSubtree = this.build(),
             result = {
@@ -472,6 +560,10 @@ define(function (require, exports, module) {
                 oldSubtree: this.previousDOM,
                 newSubtree: newSubtree
             };
+        
+        if (!newSubtree) {
+            return null;
+        }
 
         if (this.changedTagID) {
             // Find the old subtree that's going to get swapped out.
@@ -492,11 +584,21 @@ define(function (require, exports, module) {
                     parent.children[childIndex] = newSubtree;
                     
                     // Overwrite any node mappings in the parent DOM with the
-                    // mappings for the new subtree.
-                    // TODO: this leaves garbage around if nodes are deleted in
-                    // newSubtree
+                    // mappings for the new subtree. We keep the nodeMap around
+                    // on the new subtree so that the differ can use it later.
+                    // TODO: should we ever null out the nodeMap on the subtree?
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
-                    newSubtree.nodeMap = null;
+                    
+                    // Update marked ranges for all items in the new subtree.
+                    this._updateMarkedRanges(newSubtree.nodeMap);
+                    
+                    // Build a local nodeMap for the old subtree so the differ can
+                    // use it.
+                    this._buildNodeMap(oldSubtree);
+                    
+                    // Clean up the info for any deleted nodes that are no longer in
+                    // the new tree.
+                    this._handleDeletions(this.previousDOM.nodeMap, oldSubtree.nodeMap, newSubtree.nodeMap);
                     
                     // Update the signatures for all parents of the new subtree.
                     var curParent = parent;
@@ -758,6 +860,10 @@ define(function (require, exports, module) {
     function _updateDOM(previousDOM, editor, changeList) {
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
+        if (!result) {
+            return null;
+        }
+        
         var edits = domdiff(result.oldSubtree, result.newSubtree);
         return {
             dom: result.newDOM,
@@ -771,12 +877,22 @@ define(function (require, exports, module) {
             console.warn("No previous DOM to compare change against");
             return [];
         } else {
+            if (_cachedValues[editor.document.file.fullPath].invalid) {
+                // We were in an invalid state, so do a full rebuild.
+                changeList = null;
+            }
             var result = _updateDOM(cachedValue.dom, editor, changeList);
-            _cachedValues[editor.document.file.fullPath] = {
-                timestamp: editor.document.diskTimestamp, // TODO: update?
-                dom: result.dom
-            };
-            return result.edits;
+            if (result) {
+                _cachedValues[editor.document.file.fullPath] = {
+                    timestamp: editor.document.diskTimestamp, // TODO: update?
+                    dom: result.dom
+                };
+                return result.edits;
+            }
+            else {
+                _cachedValues[editor.document.file.fullPath].invalid = true;
+                return [];
+            }
         }
     }
     

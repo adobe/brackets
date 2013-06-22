@@ -535,9 +535,8 @@ define(function (require, exports, module) {
                 expectationFn(result, previousDOM, false);
                 
                 // incremental test
-//                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-                // TODO: how to test that only an appropriate subtree was reparsed/diffed?
-//                expectationFn(result, previousDOM, true);
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                expectationFn(result, previousDOM, true);
             }
             
             it("should re-instrument after document is dirtied", function () {
@@ -695,6 +694,7 @@ define(function (require, exports, module) {
                             origParent = previousDOM.children[3];
                         },
                         function (result, previousDOM, incremental) {
+                            console.log("should handle simple altered text - edits: " + JSON.stringify(result.edits));
                             expect(result.edits.length).toEqual(1);
                             expect(previousDOM.children[3].children[1].tag).toEqual("h1");
                             expect(result.edits[0]).toEqual({
@@ -716,7 +716,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should handle two incremental text edits in a row", function () {
+            it("should handle two incremental text edits in a row", function () {
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         changeList,
@@ -738,8 +738,8 @@ define(function (require, exports, module) {
                     expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
                     expect(result.edits[0]).toEqual({
                         type: "textReplace",
-                        tagID: tagID,
-                        child: 0,
+                        parentID: tagID,
+                        firstChild: true,
                         content: "GETTING AWESOMER WITH BRACKETS"
                     });
                     // make sure the parent of the change is still the same node as in the old tree
@@ -755,8 +755,8 @@ define(function (require, exports, module) {
                     expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
                     expect(result.edits[0]).toEqual({
                         type: "textReplace",
-                        tagID: tagID,
-                        child: 0,
+                        parentID: tagID,
+                        firstChild: true,
                         content: "GETTING MOAR AWESOME WITH BRACKETS"
                     });
                     
@@ -779,6 +779,7 @@ define(function (require, exports, module) {
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
                             expect(newElement.children[0].content).toEqual("New Content");
                             expect(result.edits.length).toEqual(2);
+                            console.log(JSON.stringify(result.edits));
                             expect(result.edits[0]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",

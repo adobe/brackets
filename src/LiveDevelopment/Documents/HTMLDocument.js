@@ -50,7 +50,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
-        RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent");
+        RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
+        StringUtils         = require("utils/StringUtils");
 
     /** Constructor
      *
@@ -99,11 +100,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @returns {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
-        var body = (this._instrumentationEnabled) ?
-                HTMLInstrumentation.generateInstrumentedHTML(this.doc) : this.doc.getText();
+        var body;
+        if (this._instrumentationEnabled) {
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc);
+        }
         
         return {
-            body: body
+            body: body || this.doc.getText()
         };
     };
 
@@ -156,7 +159,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         var edits = HTMLInstrumentation.getUnappliedEditList(editor, change);
         edits.forEach(function (edit) {
             // Silly naming convention: $$ = remote $
-            var $$target = RemoteAgent.remoteElement(edit.tagID);
+            var html,
+                $$target = RemoteAgent.remoteElement(edit.type === "textReplace" || edit.type === "textDelete" || edit.type === "elementInsert" ? edit.parentID : edit.tagID);
             switch (edit.type) {
             case "attrChange":
             case "attrAdd":
@@ -165,8 +169,24 @@ define(function HTMLDocumentModule(require, exports, module) {
             case "attrDel":
                 $$target.removeAttr(edit.attribute);
                 break;
+            case "elementDelete":
+                $$target.remove();
+                break;
+            case "elementInsert":
+                html = "<" + edit.tag;
+                Object.keys(edit.attributes).forEach(function (attr) {
+                    html += " " + attr + "='" + StringUtils.htmlEscape(edit.attributes[attr]) + "'";
+                });
+                html += " data-brackets-id='" + edit.tagID + "'/>";
+                $$target.insertChild(edit.child, html, false);
+                break;
+            case "textInsert":
+                $$target.insertChild(edit.child, edit.content, true);
             case "textReplace":
-                $$target.replaceChildText(edit.child, edit.content);
+                $$target.replaceChildText(edit.afterID, edit.content);
+                break;
+            case "textDelete":
+                $$target.deleteChildText(edit.afterID);
                 break;
             }
         });
