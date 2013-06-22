@@ -564,13 +564,16 @@ define(function (require, exports, module) {
                 }
             });
             
-            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
+            keyBindings.some(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
+                    return true;
                 }
+
+                return false;
             });
         } else {
             results = _addBinding(commandID, keyBindings, platform);
