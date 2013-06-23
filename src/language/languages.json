@@ -3,8 +3,14 @@
         "name": "Text",
         "mode": ["null", "text/plain"]
     },
-
-    "css": {
+    
+    "groovy": {
+        "name": "Groovy",
+        "mode": "groovy",
+        "fileExtensions": ["groovy"]
+    },
+   
+   "css": {
         "name": "CSS",
         "mode": "css",
         "fileExtensions": ["css"],
