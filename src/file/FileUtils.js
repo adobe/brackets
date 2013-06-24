@@ -357,11 +357,8 @@ define(function (require, exports, module) {
      * @param {string} full path to a file or directory
      * @return {string} Returns the path to the parent directory
      */
-    function getParent(fullPath) {
-        var i = fullPath.lastIndexOf("/"),
-            parent = (i === -1 || i >= fullPath.length - 1) ? fullPath : fullPath.substr(0, i + 1);
-
-        return parent;
+    function getDirectoryPath(fullPath) {
+        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
     }
 
     // Define public API
@@ -383,5 +380,5 @@ define(function (require, exports, module) {
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
-    exports.getParent                      = getParent;
+    exports.getDirectoryPath               = getDirectoryPath;
 });
