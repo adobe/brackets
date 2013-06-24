@@ -150,9 +150,12 @@ describe("Package Installation", function () {
             expect(err).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
+                expect(result.installationStatus).toBe("NEEDS_UPDATE");
                 ExtensionsDomain._cmdUpdate(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                     expect(err).toBeNull();
                     expect(result.installationStatus).toBe("INSTALLED");
+                    expect(result.installedTo.substr(0, installDirectory.length)).toEqual(installDirectory);
+                    expect(fs.existsSync(result.installedTo)).toBe(true);
                     var packageInfo = fs.readJsonSync(path.join(result.installedTo, "package.json"));
                     expect(packageInfo.version).toBe("2.0.0");
                     done();
