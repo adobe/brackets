@@ -27,4 +27,96 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    
+    function File(fullPath, impl) {
+        FileSystemEntry.call(this, fullPath);
+        this._impl = impl;
+    }
+    
+    File.prototype = Object.create(FileSystemEntry.prototype);
+    File.prototype.constructor = File;
+    File.prototype.parentClass = FileSystemEntry.prototype;
+    
+    /**
+     * Low level file system implementation.
+     */
+    File.prototype._impl = null;
+    
+    /**
+     * Cached stat object for this file.
+     */
+    File.prototype._stat = null;
+    
+    File.prototype.isFile = function () {
+        return true;
+    };
+    
+    /**
+     * Returns the stats for the file.
+     *
+     * @return {$.Promise} Promise that is resolved with the file's stats, or rejected
+     *        if an error occurred.
+     */
+    File.prototype.stat = function () {
+        var result = new $.Deferred();
+        
+        if (this._stat) {
+            result.resolve(this._stat);
+        } else {
+            this._impl.stat(this._path, function (err, stat) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    this._stat = stat;
+                    result.resolve(this._stat);
+                }
+            }.bind(this));
+        }
+        
+        return result.promise();
+    };
+    
+    /**
+     * Read a file as text. 
+     *
+     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
+     *
+     * @return {$.Promise} Promise that is resolved with the text and stats from the file,
+     *        or rejected if an error occurred.
+     */
+    File.prototype.readAsText = function (encoding) {
+        var result = new $.Deferred();
+        
+        this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+            if (err) {
+                result.reject(err);
+            } else {
+                this._stat = stat;
+                result.resolve(data, stat);
+            }
+        }.bind(this));
+        
+        return result.promise();
+    };
+    
+    /**
+     * Write a file.
+     *
+     * @param {string} data Data to write.
+     * @param {string=} encoding Encoding for data. Defaults to UTF-8.
+     *
+     * @return {$.Promise} Promise that is resolved with the file's new stats when the 
+     *        writing is complete, or rejected if an error occurred.
+     */
+    File.prototype.write = function (data, encoding) {
+        var result = new $.Deferred();
+        
+        //this._impl.writeFile(this._path, encoding
+        return result.promise();
+    };
+    
+    // Export this class
+    module.exports = File;
 });

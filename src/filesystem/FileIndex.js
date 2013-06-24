@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     var _rootPath;
     
     // Master index
-    var _index;
+    var _index = {};
     
     /**
      * Clear the file index cache.
@@ -57,6 +57,10 @@ define(function (require, exports, module) {
         // TODO: Start indexing on worker thread
     }
     
+    function addEntry(entry) {
+        _index[entry.getPath()] = entry;
+    }
+    
     /**
      * Returns the cached entry for the specified path, or undefined
      * if the path has not been cached.
@@ -69,5 +73,9 @@ define(function (require, exports, module) {
         return _index[path];
     }
     
-    
+    // Export public API
+    exports.clear       = clear;
+    exports.setRoot     = setRoot;
+    exports.addEntry    = addEntry;
+    exports.getEntry    = getEntry;
 });

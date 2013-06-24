@@ -45,6 +45,13 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._path = null;
     
     /**
+     * Returns the path for this file entry.
+     */
+    FileSystemEntry.prototype.getPath = function () {
+        return this._path;
+    };
+    
+    /**
      * Returns true if this entry is a file.
      * @return {boolean}
      */
@@ -61,5 +68,5 @@ define(function (require, exports, module) {
     };
     
     // Export this class
-    exports = FileSystemEntry;
+    module.exports = FileSystemEntry;
 });

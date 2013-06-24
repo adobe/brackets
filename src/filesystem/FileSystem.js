@@ -28,10 +28,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileIndex       = require("file/FileIndex");
+    var Directory       = require("filesystem/Directory"),
+        File            = require("filesystem/File"),
+        FileIndex       = require("filesystem/FileIndex");
     
     // FileSystemImpl 
-    var _impl;
+    var _impl = require("filesystem/impls/AppshellFileSystem");  // Temp - force appshell impl for now
     
     function setFileSystemImpl(impl) {
         _impl = impl;
@@ -57,13 +59,19 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function getFileForPath(path, options) {
-        var cachedEntry = FileIndex.getEntryForPath(path);
+        var cachedEntry = FileIndex.getEntry(path);
         
         if (cachedEntry) {
             return new $.Deferred().resolve(cachedEntry).promise();
         }
         
-        return _impl.getFileForPath(path, options);
+        var file = new File(path, _impl);
+        
+        // TODO: Options
+        
+        FileIndex.addEntry(file);
+        
+        return new $.Deferred().resolve(file).promise();
     }
      
     /**
@@ -76,7 +84,9 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function newUnsavedFile(options) {
-        return _impl.newUnsavedFile(options);
+        // TODO: Implement me
+        
+        // return _impl.newUnsavedFile(options);
     }
     
     /**
@@ -89,7 +99,7 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function getDirectoryForPath(path, options) {
-        var cachedEntry = FileIndex.getEntryForPath(path);
+        var cachedEntry = FileIndex.getEntry(path);
         
         if (cachedEntry) {
             return new $.Deferred().resolve(cachedEntry).promise();
@@ -121,5 +131,14 @@ define(function (require, exports, module) {
     function showSaveDialog(options) {
         return _impl.showSaveDialog(options);
     }
+    
+    // Export public API
+    exports.setFileSystemImpl   = setFileSystemImpl;
+    exports.setProjectRoot      = setProjectRoot;
+    exports.getFileForPath      = getFileForPath;
+    exports.newUnsavedFile      = newUnsavedFile;
+    exports.getDirectoryForPath = getDirectoryForPath;
+    exports.showOpenDialog      = showOpenDialog;
+    exports.showSaveDialog      = showSaveDialog;
 });
 
