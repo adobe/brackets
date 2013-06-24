@@ -205,6 +205,11 @@ define(function RemoteAgent(require, exports, module) {
             self[methodName] = self._eval.bind(self, methodName);
         });
     }
+    
+    function _doEval(script) {
+        //console.log("eval: " + script);
+        Inspector.Runtime.evaluate(script);
+    }
 
     RemoteElement.prototype._eval = function (method, varargs) {
         // Convert method arguments to JSON string to escape string args
@@ -212,12 +217,45 @@ define(function RemoteAgent(require, exports, module) {
             argsAssign      = "var args = JSON.parse(\"" + argsArray + "\");",
             fnApply         = "$result." + method + ".apply($result, args)";
 
-        return Inspector.Runtime.evaluate(argsAssign + this._queryBracketsId + fnApply);
+        return _doEval(argsAssign + this._queryBracketsId + fnApply);
     };
     
-    RemoteElement.prototype.replaceChildText = function (pos, text) {
-        var doReplace = "$result.contents()[" + pos + "].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "'";
-        return Inspector.Runtime.evaluate(this._queryBracketsId + doReplace);
+    RemoteElement.prototype._getTextLocateScript = function (afterID) {
+        var result = this._queryBracketsId +
+            'var pos = 0, children = $result.contents();';
+        if (afterID) {
+            result += 
+                'var $afterNode = ' + $REMOTE + '("[data-brackets-id=\\"' + afterID + '\\"]");' +
+                "pos = children.indexOf($afterNode[0]) + 1;";
+        }
+        return result;
+    };
+    
+    RemoteElement.prototype.insertChild = function (childPos, content, isText) {
+        var escapedContent = content.replace(/\\/g, "\\\\").replace(/'/g, "\\\'"),
+            doInsert = this._queryBracketsId +
+                "var children = $result.contents()," +
+                "    toInsert = " + (isText 
+                                     ? "document.createTextNode('" + escapedContent + "');"
+                                     : "'" + escapedContent + "';") +
+                "if (" + childPos + " >= children.length) {" +
+                "    $result.append(toInsert);" +
+                "} else {" +
+                "    $($result.contents()[" + childPos + "]).before(toInsert);" +
+                "}";
+        return _doEval(doInsert);
+    };
+    
+    RemoteElement.prototype.replaceChildText = function (afterID, text) {
+        var doReplace = this._getTextLocateScript(afterID) +
+            "children[pos].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "';";
+        return _doEval(doReplace);
+    };
+
+    RemoteElement.prototype.deleteChildText = function (afterID) {
+        var doDelete = this._getTextLocateScript(afterID) +
+            "children[pos].parentNode.removeChild(children[pos])";
+        return _doEval(doDelete);
     };
 
     function remoteElement(dataBracketsId) {
