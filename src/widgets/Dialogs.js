@@ -62,6 +62,7 @@ define(function (require, exports, module) {
         dlg.data("buttonId", buttonId);
         $(".clickable-link", dlg).off("click");
         dlg.modal("hide");
+        brackets.app.setModal(false);
     }
     
     function _hasButton(dlg, buttonId) {
@@ -175,6 +176,7 @@ define(function (require, exports, module) {
      * @return {Dialog}
      */
     function showModalDialogUsingTemplate(template, autoDismiss) {
+        brackets.app.setModal(true);
         if (autoDismiss === undefined) {
             autoDismiss = true;
         }
