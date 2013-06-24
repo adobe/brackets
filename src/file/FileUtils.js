@@ -353,9 +353,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determine the parent directory of a file or folder.
+     * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} full path to a file or directory
-     * @return {string} Returns the path to the parent directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory 
      */
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
