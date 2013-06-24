@@ -136,6 +136,8 @@ define(function LiveDevelopment(require, exports, module) {
         "css"       : true,
         "highlight" : true
     };
+    
+    var _agentsToLoad;
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
@@ -480,47 +482,65 @@ define(function LiveDevelopment(require, exports, module) {
         });
         _loadedAgentNames = [];
     }
+    
+    /**
+     * @private
+     * Invoke a no-arg method on an inspector agent
+     * @param {string} name Agent name
+     * @param {stirng} methodName Method name to call on the agent
+     */
+    function _invokeAgentMethod(name, methodName) {
+        var oneAgentPromise;
+
+        if (agents[name] && agents[name][methodName]) {
+            oneAgentPromise = agents[name][methodName].call();
+        }
+
+        if (!oneAgentPromise) {
+            oneAgentPromise = new $.Deferred().resolve().promise();
+        } else {
+            oneAgentPromise.fail(function () {
+                console.error(methodName + " failed on agent", name);
+            });
+        }
+
+        return oneAgentPromise;
+    }
+    
+    /**
+     * @private
+     * Setup agents that need inspector domains enabled before loading
+     */
+    function _enableAgents() {
+        // enable agents in parallel
+        return Async.doInParallel(
+            _agentsToLoad,
+            function (name) {
+                return _invokeAgentMethod(name, "enable");
+            },
+            true
+        );
+    }
 
     /** Load the agents */
     function loadAgents() {
         var result = new $.Deferred(),
             promises = [],
-            agentsToLoad,
-            allAgentsPromise,
-            loadOneAgent;
+            enableAgentsPromise,
+            allAgentsPromise;
 
         _setStatus(STATUS_LOADING_AGENTS);
 
-        if (exports.config.experimental) {
-            // load all agents
-            agentsToLoad = agents;
-        } else {
-            // load only enabled agents
-            agentsToLoad = _enabledAgentNames;
-        }
-
-        loadOneAgent = function (name) {
-            var oneAgentPromise;
-
-            if (agents[name] && agents[name].load) {
-                oneAgentPromise = agents[name].load();
-            }
-
-            if (!oneAgentPromise) {
-                oneAgentPromise = new $.Deferred().resolve().promise();
-            } else {
-                oneAgentPromise.fail(function () {
-                    console.error("Failed to load agent", name);
-                });
-            }
-
-            _loadedAgentNames.push(name);
-
-            return oneAgentPromise;
-        };
-
         // load agents in parallel
-        allAgentsPromise = Async.doInParallel(Object.keys(agentsToLoad), loadOneAgent, true);
+        allAgentsPromise = Async.doInParallel(
+            _agentsToLoad,
+            function (name) {
+                return _invokeAgentMethod(name, "load").done(function () {
+                    _loadedAgentNames.push(name);
+                });
+            },
+            true
+        );
 
         // wrap agent loading with a timeout
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
@@ -556,7 +576,7 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         allAgentsPromise.fail(result.reject);
-
+        
         // show error loading live dev dialog
         result.fail(function () {
             _setStatus(STATUS_ERROR);
@@ -721,8 +741,10 @@ define(function LiveDevelopment(require, exports, module) {
          * interstitial page has finished loading.
          */
         function onInterstitialPageLoad() {
-            // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable().done(function () {
+            // Domains for some agents must be enabled first before loading
+            var enablePromise = Inspector.Page.enable().then(_enableAgents);
+            
+            enablePromise.done(function () {
                 // Some agents (e.g. DOMAgent and RemoteAgent) require us to
                 // navigate to the page first before loading can complete.
                 // To accomodate this, we load all agents and navigate in
@@ -1074,6 +1096,17 @@ define(function LiveDevelopment(require, exports, module) {
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
         LiveDevServerManager.registerProvider(userServerProvider, 99);
+
+        // Select agents to use
+        if (exports.config.experimental) {
+            // load all agents
+            _agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            _agentsToLoad = _enabledAgentNames;
+        }
+        
+        _agentsToLoad = Object.keys(_agentsToLoad);
 
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
