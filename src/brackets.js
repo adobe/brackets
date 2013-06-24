@@ -267,6 +267,11 @@ define(function (require, exports, module) {
         } else {
             $("body").addClass("in-appshell");
         }
+
+        // Enable/Disable HTML Menus
+        if (brackets.platform !== "linux") {
+            $("body").addClass("has-appshell-menus");
+        }
         
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));
