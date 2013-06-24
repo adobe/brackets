@@ -52,9 +52,7 @@ define(function (require, exports, module) {
                 expect(FileUtils.convertWindowsPathToUnixPath("/some/back\\slash/path.txt")).toBe("/some/back\\slash/path.txt");
             });
         });
-    });
-    
-    describe("FileUtils", function () {
+
         describe("getDirectoryPath", function () {
             
             it("should get the parent directory of a normalized win file path", function () {
