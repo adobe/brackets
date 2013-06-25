@@ -69,6 +69,9 @@ define(function (require, exports, module) {
     var _$titleContainerToolbar = null;
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
+    
+    /** @type {Number} index to use for next, new Untitled document */
+    var _nextUntitledIndexToUse = 1;
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -327,11 +330,11 @@ define(function (require, exports, module) {
      */
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
-        var suggestedName = baseFileName + fileExt;
+        var suggestedName = baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt;
         var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
 
-        result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
-            if (nextIndexToUse > 99) {
+        result.progress(function attemptNewName(suggestedName) {
+            if (_nextUntitledIndexToUse > 99) {
                 //we've tried this enough
                 result.reject();
                 return;
@@ -340,7 +343,7 @@ define(function (require, exports, module) {
             //check this name
             var successCallback = function (entry) {
                 //file exists, notify to the next progress
-                result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+                result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
             };
             var errorCallback = function (error) {
                 //most likely error is FNF, user is better equiped to handle the rest
@@ -365,7 +368,7 @@ define(function (require, exports, module) {
         });
 
         //kick it off
-        result.notify(baseFileName + fileExt, 1);
+        result.notify(suggestedName);
 
         return result.promise();
     }
@@ -392,11 +395,14 @@ define(function (require, exports, module) {
         // Determine the directory to put the new file
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
-        // If nothing is selected in the tree, put it at the root of the project
+        // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
-            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+            selected = ProjectManager.getSelectedItem();
+        if ((selected == undefined) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
+            selected = ProjectManager.getProjectRoot();
+        }
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
@@ -421,7 +427,7 @@ define(function (require, exports, module) {
      * Create a new untitled document
      */
     function handleFileNew() {
-        var fullPath = DocumentManager.nextUntitledDocumentPath();
+        var fullPath = DocumentManager.nextUntitledDocumentPath(_nextUntitledIndexToUse++, ".js");
         return _doOpenWithOptionalPath(fullPath)
             .always(EditorManager.focusEditor);
     }

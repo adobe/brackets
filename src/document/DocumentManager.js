@@ -657,19 +657,9 @@ define(function (require, exports, module) {
      * 
      * @return {string} fullPath
      */
-    var nextUntitledDocumentPath = (function () {
-        var counter = null;
-
-        return function () {
-            var title = _untitledDocumentPath + "/" + Strings.UNTITLED;
-            
-            if (counter) {
-                title += "-" + counter++;
-            } else {
-                counter = 1;
-            }
-            
-            return title;
+    var nextUntitledDocumentPath = (function (counter, fileExt) {
+        return function (counter, fileExt) {
+            return _untitledDocumentPath + "/" + Strings.UNTITLED + "-" + counter + fileExt;
         };
     }());
     
