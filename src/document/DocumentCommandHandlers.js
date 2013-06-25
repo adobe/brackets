@@ -400,7 +400,7 @@ define(function (require, exports, module) {
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
             selected = ProjectManager.getSelectedItem();
-        if ((selected == undefined) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
+        if ((selected === undefined) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
             selected = ProjectManager.getProjectRoot();
         }
         
