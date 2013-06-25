@@ -50,6 +50,8 @@ define(function (require, exports, module) {
     
     var seed = Math.floor(Math.random() * 65535);
     
+    var allowIncremental = true;
+    
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and dom. Timestamp is the document timestamp,
     // dom is the root node of a simple DOM tree.
@@ -516,7 +518,7 @@ define(function (require, exports, module) {
                 mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
             mark.tagID = id;
         });
-    }
+    };
     
     DOMUpdater.prototype._buildNodeMap = function (root) {
         var nodeMap = {};
@@ -532,7 +534,7 @@ define(function (require, exports, module) {
         
         walk(root);
         root.nodeMap = nodeMap;
-    }
+    };
     
     DOMUpdater.prototype._handleDeletions = function (nodeMap, oldSubtreeMap, newSubtreeMap) {
         var deletedIDs = [];
@@ -550,7 +552,7 @@ define(function (require, exports, module) {
                 mark.clear();
             }
         });
-    }
+    };
     
     DOMUpdater.prototype.update = function () {
         var newSubtree = this.build(),
@@ -615,6 +617,8 @@ define(function (require, exports, module) {
                     result.oldSubtree = oldSubtree;
                 }
             }
+        } else {
+            _markTextFromDOM(this.editor, result.newDOM);
         }
         
         return result;
@@ -800,7 +804,7 @@ define(function (require, exports, module) {
                 edit.firstChild = true;
             }
             return edit;
-        }
+        };
         
         var findDeletions = function (element) {
             if (!matches[element.tagID]) {
@@ -851,13 +855,16 @@ define(function (require, exports, module) {
             var changedElement = newNode.nodeMap[changedID];
             var edit = initializeTextEdit(changedElement);
             edit.type = "textReplace";
-            edit.content = changedElement.content;            
+            edit.content = changedElement.content;
             edits.push(edit);
         });
         return edits;
     }
     
     function _updateDOM(previousDOM, editor, changeList) {
+        if (!allowIncremental) {
+            changeList = undefined;
+        }
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
         if (!result) {
@@ -888,8 +895,7 @@ define(function (require, exports, module) {
                     dom: result.dom
                 };
                 return result.edits;
-            }
-            else {
+            } else {
                 _cachedValues[editor.document.file.fullPath].invalid = true;
                 return [];
             }
@@ -909,4 +915,5 @@ define(function (require, exports, module) {
     exports._updateDOM = _updateDOM;
     exports._DOMNavigator = DOMNavigator;
     exports._seed = seed;
+    exports._allowIncremental = allowIncremental;
 });

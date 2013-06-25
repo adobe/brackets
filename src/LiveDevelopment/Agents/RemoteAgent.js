@@ -224,7 +224,7 @@ define(function RemoteAgent(require, exports, module) {
         var result = this._queryBracketsId +
             'var pos = 0, children = $result.contents();';
         if (afterID) {
-            result += 
+            result +=
                 'var $afterNode = ' + $REMOTE + '("[data-brackets-id=\\"' + afterID + '\\"]");' +
                 "pos = children.indexOf($afterNode[0]) + 1;";
         }
@@ -235,13 +235,13 @@ define(function RemoteAgent(require, exports, module) {
         var escapedContent = content.replace(/\\/g, "\\\\").replace(/'/g, "\\\'"),
             doInsert = this._queryBracketsId +
                 "var children = $result.contents()," +
-                "    toInsert = " + (isText 
+                "    toInsert = " + (isText
                                      ? "document.createTextNode('" + escapedContent + "');"
-                                     : "'" + escapedContent + "';") +
+                                     : "window._LDjQuery('" + escapedContent + "');") +
                 "if (" + childPos + " >= children.length) {" +
                 "    $result.append(toInsert);" +
                 "} else {" +
-                "    $($result.contents()[" + childPos + "]).before(toInsert);" +
+                "    window._LDjQuery($result.contents()[" + childPos + "]).before(toInsert);" +
                 "}";
         return _doEval(doInsert);
     };

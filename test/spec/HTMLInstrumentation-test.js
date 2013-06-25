@@ -534,9 +534,11 @@ define(function (require, exports, module) {
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                 expectationFn(result, previousDOM, false);
                 
-                // incremental test
-                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-                expectationFn(result, previousDOM, true);
+                if (HTMLInstrumentation._allowIncremental) {
+                    // incremental test
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    expectationFn(result, previousDOM, true);
+                }
             }
             
             it("should re-instrument after document is dirtied", function () {
@@ -717,6 +719,11 @@ define(function (require, exports, module) {
             });
             
             it("should handle two incremental text edits in a row", function () {
+                // Short-circuit this test if we're running without incremental updates
+                if (!HTMLInstrumentation._allowIncremental) {
+                    return;
+                }
+                
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         changeList,
@@ -767,8 +774,11 @@ define(function (require, exports, module) {
             
             it("should represent simple new tag insert", function () {
                 runs(function () {
+                    var ed;
+                    
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
+                            ed = editor;
                             var pos = {line: 15, ch: 0};
                             editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
                         },
@@ -778,9 +788,8 @@ define(function (require, exports, module) {
                             expect(newElement.tag).toEqual("div");
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
                             expect(newElement.children[0].content).toEqual("New Content");
-                            expect(result.edits.length).toEqual(2);
-                            console.log(JSON.stringify(result.edits));
-                            expect(result.edits[0]).toEqual({
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -788,12 +797,22 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 child: 5
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 tagID: newElement.tagID,
                                 child: 0,
                                 content: "New Content"
                             });
+                            
+//                            editor.document.replaceRange(" and Newer", {line: 15, ch: 8});
+//                            var result2 = HTMLInstrumentation._updateDOM(result.dom, ed);
+//                            expect(result2.edits.length).toEqual(1);
+//                            expect(result2.edits[0]).toEqual({
+//                                type: "textReplace",
+//                                parentID: newElement.tagID,
+//                                firstChild: true,
+//                                content: "New and Newer Content"
+//                            });
                         }
                     );
                 });
