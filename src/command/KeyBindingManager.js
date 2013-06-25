@@ -594,7 +594,7 @@ define(function (require, exports, module) {
 
                 errors.forEach(function (error) {
                     if (error.errorType === ADD_BINDING_ERROR.EXPLICIT_BINDING_EXISTS) {
-                        console[logType]("Cannot assign " + error.keyBinding + " to " + commandID + ". It is already assigned to " + _keyMap[error.keyBinding].commandID);   
+                        console[logType]("Cannot assign " + error.keyBinding + " to " + commandID + ". It is already assigned to " + _keyMap[error.keyBinding].commandID);
                     }
                 });
             }
