@@ -105,8 +105,15 @@ define(function (require, exports, module) {
                 }
             }
 
-            var centerOptions = (isFindFirst) ? Editor.BOUNDARY_IGNORE_TOP : Editor.BOUNDARY_CHECK_NORMAL;
-            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
+            var determineResultCenteringHeuristic = function () {
+                if (isFindFirst && editor.isLineVisible(cursor.from().line)) {
+                    // no need to scroll if the line with the match is in view
+                    return Editor.BOUNDARY_IGNORE_TOP;
+                }
+                return Editor.BOUNDARY_CHECK_NORMAL;    
+            };
+            
+            editor.setSelection(cursor.from(), cursor.to(), true, determineResultCenteringHeuristic());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
