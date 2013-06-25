@@ -893,6 +893,18 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Deterines if the line is visible
+     * @param {number} zero-based index of the line to test
+     * @returns {boolean} true if it's visible, false if not
+     */
+    Editor.prototype.isLineVisible = function (line) {
+        var $scrollerElement = $(this.getScrollerElement()),
+            coords = this._codeMirror.charCoords({line: line, ch: 0}),
+            editorHeight = $scrollerElement.height();
+        return (coords.bottom >= 0 && coords.top < editorHeight);
+    };
+    
+    /**
      * Gets the number of the first visible line in the editor.
      * @returns {number} The 0-based index of the first visible line.
      */
