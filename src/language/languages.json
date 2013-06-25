@@ -10,13 +10,12 @@
         "fileExtensions": ["groovy"]
     },
    
-   "css": {
+    "css": {
         "name": "CSS",
         "mode": "css",
         "fileExtensions": ["css"],
         "blockComment": ["/*", "*/"]
     },
-
 
     "scss": {
         "name": "SCSS",
