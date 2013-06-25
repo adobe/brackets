@@ -62,7 +62,6 @@ define(function (require, exports, module) {
         dlg.data("buttonId", buttonId);
         $(".clickable-link", dlg).off("click");
         dlg.modal("hide");
-        brackets.app.setModal(false);
     }
     
     function _hasButton(dlg, buttonId) {
@@ -218,6 +217,7 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             $dlg.remove();
+            brackets.app.setModal(false);
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
