@@ -31,51 +31,15 @@ define(function (require, exports, module) {
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
     function File(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath);
-        this._impl = impl;
+        FileSystemEntry.call(this, fullPath, impl);
     }
     
     File.prototype = Object.create(FileSystemEntry.prototype);
     File.prototype.constructor = File;
     File.prototype.parentClass = FileSystemEntry.prototype;
     
-    /**
-     * Low level file system implementation.
-     */
-    File.prototype._impl = null;
-    
-    /**
-     * Cached stat object for this file.
-     */
-    File.prototype._stat = null;
-    
     File.prototype.isFile = function () {
         return true;
-    };
-    
-    /**
-     * Returns the stats for the file.
-     *
-     * @return {$.Promise} Promise that is resolved with the file's stats, or rejected
-     *        if an error occurred.
-     */
-    File.prototype.stat = function () {
-        var result = new $.Deferred();
-        
-        if (this._stat) {
-            result.resolve(this._stat);
-        } else {
-            this._impl.stat(this._path, function (err, stat) {
-                if (err) {
-                    result.reject(err);
-                } else {
-                    this._stat = stat;
-                    result.resolve(this._stat);
-                }
-            }.bind(this));
-        }
-        
-        return result.promise();
     };
     
     /**

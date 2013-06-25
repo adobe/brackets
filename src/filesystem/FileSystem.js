@@ -53,35 +53,25 @@ define(function (require, exports, module) {
      * Return a File object for the specified path.
      *
      * @param {string} path Path of file. 
-     * TODO: @param options. At least create. Probably permissions. Possibly others.
      *
-     * @return {$.Promise} Promise that will be resolved with the File object, 
-     *                     or rejected if an error occurred.
+     * @return {File} The File object. This file may not yet exist on disk.
      */
-    function getFileForPath(path, options) {
-        var cachedEntry = FileIndex.getEntry(path);
+    function getFileForPath(path) {
+        var file = FileIndex.getEntry(path);
         
-        if (cachedEntry) {
-            return new $.Deferred().resolve(cachedEntry).promise();
+        if (!file) {
+            file = new File(path, _impl);
+            FileIndex.addEntry(file);
         }
-        
-        var file = new File(path, _impl);
-        
-        // TODO: Options
-        
-        FileIndex.addEntry(file);
-        
-        return new $.Deferred().resolve(file).promise();
+                
+        return file;
     }
      
     /**
      * Return an File object that does *not* exist on disk. Any attempts to write to this
      * file will result in a Save As dialog.
      *
-     * TODO: @param options. Mode? Others?
-     *
-     * @return {$.Promise} Promise that will be resolved with the File object, 
-     *                     or rejected if an error occurred.
+     * @return {File} The File object.
      */
     function newUnsavedFile(options) {
         // TODO: Implement me
@@ -93,20 +83,57 @@ define(function (require, exports, module) {
      * Return a Directory object for the specified path.
      *
      * @param {string} path Path of directory. Pass NULL to get the root directory.
-     * TODO: @param options. At least create. Probably permissions. Possibly others.
      *
-     * @return {$.Promise} Promise that will be resolved with the Directory object, 
-     *                     or rejected if an error occurred.
+     * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
-    function getDirectoryForPath(path, options) {
-        var cachedEntry = FileIndex.getEntry(path);
+    function getDirectoryForPath(path) {
+        var directory = FileIndex.getEntry(path);
         
-        if (cachedEntry) {
-            return new $.Deferred().resolve(cachedEntry).promise();
+        if (!directory) {
+            directory = new Directory(path, _impl);
+            FileIndex.addEntry(directory);
         }
-
-        return _impl.getDirectoryForPath(path, options);
+        
+        return directory;
     }
+    
+    /**
+     * Read the contents of a Directory. 
+     *
+     * @param {Directory} directory Directory whose contents you want to get
+     *
+     * @return {$.Promise} Promise that is resolved with the contents of the directory.
+     *         Contents is an Array of File and Directory objects.
+     */
+    function getDirectoryContents(directory) {
+        var i, entryPath, entry, result = new $.Deferred();
+        
+        if (directory._contents) {
+            result.resolve(directory._contents);
+            return;
+        }
+        
+        _impl.readdir(directory.getPath(), function (err, contents, stats) {
+            directory._contents = [];
+            
+            // Instantiate content objects
+            for (i = 0; i < stats.length; i++) {
+                entryPath = directory.getPath() + "/" + contents[i];
+                
+                if (stats[i].isFile()) {
+                    entry = getFileForPath(entryPath);
+                } else {
+                    entry = getDirectoryForPath(entryPath);
+                }
+                
+                directory._contents.push(entry);
+            }
+            
+            result.resolve(directory._contents);
+        }.bind(this));
+        
+        return result.promise();
+    };
     
     /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
@@ -133,12 +160,13 @@ define(function (require, exports, module) {
     }
     
     // Export public API
-    exports.setFileSystemImpl   = setFileSystemImpl;
-    exports.setProjectRoot      = setProjectRoot;
-    exports.getFileForPath      = getFileForPath;
-    exports.newUnsavedFile      = newUnsavedFile;
-    exports.getDirectoryForPath = getDirectoryForPath;
-    exports.showOpenDialog      = showOpenDialog;
-    exports.showSaveDialog      = showSaveDialog;
+    exports.setFileSystemImpl       = setFileSystemImpl;
+    exports.setProjectRoot          = setProjectRoot;
+    exports.getFileForPath          = getFileForPath;
+    exports.newUnsavedFile          = newUnsavedFile;
+    exports.getDirectoryForPath     = getDirectoryForPath;
+    exports.getDirectoryContents    = getDirectoryContents;
+    exports.showOpenDialog          = showOpenDialog;
+    exports.showSaveDialog          = showSaveDialog;
 });
 

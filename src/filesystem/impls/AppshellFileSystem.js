@@ -36,12 +36,47 @@ define(function (require, exports, module) {
         // TODO
     }
     
+    function stat(path, callback) {
+        appshell.fs.stat(path, callback);
+    }
+    
     function isNetworkDrive(path, callback) {
         appshell.fs.isNetworkDrive(path, callback);
     }
     
+    function exists(path, callback) {
+        stat(path, function (err) {
+            if (err) {
+                callback(false);
+            } else {
+                callback(true);
+            }
+        });
+    }
+    
     function readdir(path, callback) {
-        appshell.fs.readdir(path, callback);
+        var stats = [];
+        
+        appshell.fs.readdir(path, function (err, contents) {
+            var i, count = contents.length;
+            
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            contents.forEach(function (val, idx) {
+                stat(path + "/" + val, function (err, stat) {
+                    if (!err) {
+                        stats[idx] = stat;
+                    }
+                    count--;
+                    if (count <= 0) {
+                        callback(err, contents, stats);
+                    }
+                });
+            });
+        });
     }
     
     function mkdir(path, mode, callback) {
@@ -49,15 +84,19 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0777", 8);
         }
-        appshell.fs.makedir(path, mode, callback);
+        appshell.fs.makedir(path, mode, function (err) {
+            if (err) {
+                callback(err);
+            } else {
+                stat(path, function (err, stat) {
+                    callback(err, stat);
+                });
+            }
+        });
     }
     
     function rename(oldPath, newPath, callback) {
         appshell.fs.rename(oldPath, newPath, callback);
-    }
-    
-    function stat(path, callback) {
-        appshell.fs.stat(path, callback);
     }
     
     function readFile(path, options, callback) {
@@ -116,6 +155,7 @@ define(function (require, exports, module) {
     exports.showOpenDialog  = showOpenDialog;
     exports.showSavedialog  = showSaveDialog;
     exports.isNetworkDrive  = isNetworkDrive;
+    exports.exists          = exists;
     exports.readdir         = readdir;
     exports.mkdir           = mkdir;
     exports.rename          = rename;

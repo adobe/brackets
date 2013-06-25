@@ -27,4 +27,52 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    
+    function Directory(fullPath, impl) {
+        FileSystemEntry.call(this, fullPath, impl);
+        this._impl = impl;
+    }
+    
+    Directory.prototype = Object.create(FileSystemEntry.prototype);
+    Directory.prototype.constructor = Directory;
+    Directory.prototype.parentClass = FileSystemEntry.prototype;
+    
+    /**
+     * The contents of this directory. This "private" property is used by FileSystem.
+     * @type {Array<FileSystemEntry>}
+     */
+    Directory.prototype._contents = null;
+    
+    Directory.prototype.isDirectory = function () {
+        return true;
+    };
+    
+    /**
+     * Create a directory
+     *
+     * @param {int=} mode The mode for the directory.
+     *
+     * @return {$.Promise} Promise that is resolved with the stat from the new directory.
+     */
+    Directory.prototype.create = function (mode) {
+        var result = new $.Deferred();
+        
+        // TODO: support mode
+        
+        this._impl.mkdir(this._path, function (err, stat) {
+            if (err) {
+                result.reject(err);
+            } else {
+                this._stat = stat;
+                result.resolve(stat);
+            }
+        }.bind(this));
+        
+        return result.promise();
+    };
+    
+    // Export this class
+    module.exports = Directory;
 });

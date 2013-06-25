@@ -12,6 +12,7 @@
 // showOpenDialog(TODO: args)
 // showSaveDialog(TODO: args)
 // [isNetworkDrive(path, callback)]
+// exists(path, callback)
 // readdir(path, callback)
 // mkdir(path, [mode], callback)
 // rename(oldPath, newPath, callback)
