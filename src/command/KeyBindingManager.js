@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
         }
         normalized = normalizeKeyDescriptorString(key);
         
-        // skip if the key binding is invalid 
+        // skip if the key binding is invalid
         if (!normalized) {
             console.log("Failed to normalize " + key);
             return null;
@@ -554,13 +554,34 @@ define(function (require, exports, module) {
             var keyBinding;
             results = [];
             
-            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
+            keyBindings.sort(function (a, b) {
+                if (a.platform === brackets.platform) {
+                    // "a" is platform specific and matches
+                    return -1;
+                } else if (b.platform === brackets.platform) {
+                    // "b" is platform specific and matches
+                    return 1;
+                } else if (!a.platform && b.platform) {
+                    // "a" is generic and "b" is not matching
+                    return -1;
+                } else if (!b.platform && a.platform) {
+                    // "b" is generic and "a" is not matching
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            
+            keyBindings.some(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
+                    return true;
                 }
+
+                return false;
             });
         } else {
             results = _addBinding(commandID, keyBindings, platform);
@@ -609,27 +630,27 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Adds a global keydown hook that gets first crack at keydown events 
-     * before standard keybindings do. This is intended for use by modal or 
-     * semi-modal UI elements like dialogs or the code hint list that should 
-     * execute before normal command bindings are run. 
-     * 
-     * The hook is passed one parameter, the original keyboard event. If the 
-     * hook handles the event (or wants to block other global hooks from 
+     * Adds a global keydown hook that gets first crack at keydown events
+     * before standard keybindings do. This is intended for use by modal or
+     * semi-modal UI elements like dialogs or the code hint list that should
+     * execute before normal command bindings are run.
+     *
+     * The hook is passed one parameter, the original keyboard event. If the
+     * hook handles the event (or wants to block other global hooks from
      * handling the event), it should return true. Note that this will *only*
      * stop other global hooks and KeyBindingManager from handling the
      * event; to prevent further event propagation, you will need to call
      * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
      * as usual.
      *
-     * Multiple keydown hooks can be registered, and are executed in order, 
+     * Multiple keydown hooks can be registered, and are executed in order,
      * most-recently-added first.
-     * 
+     *
      * (We have to have a special API for this because (1) handlers are normally
-     * called in least-recently-added order, and we want most-recently-added; 
-     * (2) native DOM events don't have a way for us to find out if 
+     * called in least-recently-added order, and we want most-recently-added;
+     * (2) native DOM events don't have a way for us to find out if
      * stopImmediatePropagation()/stopPropagation() has been called on the
-     * event, so we have to have some other way for one of the hooks to 
+     * event, so we have to have some other way for one of the hooks to
      * indicate that it wants to block the other hooks from running.)
      *
      * @param {function(Event): boolean} hook The global hook to add.
