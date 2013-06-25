@@ -105,7 +105,7 @@ define(function (require, exports, module) {
                 }
             }
 
-            var determineResultCenteringHeuristic = function () {
+            var computeResultCenteringHeuristic = function () {
                 if (isFindFirst && editor.isLineVisible(cursor.from().line)) {
                     // no need to scroll if the line with the match is in view
                     return Editor.BOUNDARY_IGNORE_TOP;
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
                 return Editor.BOUNDARY_CHECK_NORMAL;    
             };
             
-            editor.setSelection(cursor.from(), cursor.to(), true, determineResultCenteringHeuristic());
+            editor.setSelection(cursor.from(), cursor.to(), true, computeResultCenteringHeuristic());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
