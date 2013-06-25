@@ -243,9 +243,6 @@ define(function (require, exports, module) {
             afterEach(function () {
                 //debug visual confirmation of inline editor
                 //waits(1000);
-                runs(function () {
-                    SpecRunnerUtils.deletePath(tempPath);
-                });
                 
                 // revert files to original content with offset markup
                 SpecRunnerUtils.closeTestWindow();
@@ -1193,7 +1190,13 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
                 });
             });
-            
+        
+            it("should delete the temp directory", function () {
+                // Delete the temp directory once we've run all of the tests
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.deletePath(tempPath));
+                });
+            });
         });
     });
 });
