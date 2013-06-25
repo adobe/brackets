@@ -232,6 +232,17 @@ define(function (require, exports, module) {
         return (match) ? match.tagID : -1;
     }
     
+    var openImpliesClose = {
+        tr      : { tr: true, th: true, td: true },
+        th      : { th: true },
+        td      : { thead: true, td: true },
+        body    : { head: true, link: true, script: true },
+        li      : { li: true },
+        p       : { p: true },
+        option  : { option: true },
+        optgroup: { optgroup: true }
+    };
+
     var voidElements = {
         area: true,
         base: true,
@@ -312,10 +323,7 @@ define(function (require, exports, module) {
         var signatureMap = {};
         
         while ((token = this.t.nextToken()) !== null) {
-            if (!token.contents) {
-                console.error("Token has no contents: ", token);
-                return null;
-            } else if (token.type === "opentagname") {
+            if (token.type === "opentagname") {
                 var newTag = {
                     tag: token.contents,
                     children: [],
@@ -348,7 +356,7 @@ define(function (require, exports, module) {
                 this.lastTag.end = this.startOffset + token.end + 1;
                 signatureMap[this.lastTag.signature] = this.lastTag;
                 if (this.lastTag.tag !== token.contents) {
-                    console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
+                    // console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
                     return null;
                 }
             } else if (token.type === "attribname") {

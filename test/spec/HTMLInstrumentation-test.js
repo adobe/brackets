@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
         NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
         InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
+        BigFileEntry = new NativeFileSystem.FileEntry(testPath + "/REC-widgets-20121127.html"),
         editor,
         instrumentedHTML,
         elementCount,
@@ -779,7 +780,6 @@ define(function (require, exports, module) {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             ed = editor;
-                            var pos = {line: 15, ch: 0};
                             editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
                         },
                         function (result, previousDOM, incremental) {
@@ -819,7 +819,234 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("DOMNavigator", function () {
+        var benchmarker = {
+            starts: {},
+            timings: {},
+            start: function (name) {
+                this.starts[name] = window.performance.webkitNow();
+            },
+            end: function (name) {
+                var end = window.performance.webkitNow();
+                var timeList = this.timings[name];
+                if (timeList === undefined) {
+                    timeList = this.timings[name] = [];
+                }
+                timeList.push(end - this.starts[name]);
+                delete this.starts[name];
+            },
+            report: function () {
+                console.log(this.heading);
+                var timingNames = Object.keys(this.timings);
+                timingNames.forEach(function (name) {
+                    var timings = this.timings[name];
+                    timings.sort(function (a, b) {
+                        return a - b;
+                    });
+                    var min = timings[0];
+                    var max = timings[timings.length - 1];
+                    var med = timings[Math.floor(timings.length / 2)];
+                    console.log(name, "Min:", min.toFixed(2), "ms, Max:", max.toFixed(2), "ms, Median:", med.toFixed(2), "ms (" + timings.length + " runs)");
+                }.bind(this));
+            },
+            reset: function () {
+                this.starts = {};
+                this.timings = {};
+                this.heading = "Test Results";
+            }
+        };
+        
+        function doFullAndIncrementalBenchmarkTest(runs, editFn) {
+            var i;
+            var previousText = editor.document.getText();
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Base edit");
+                editFn(editor);
+                benchmarker.end("Base edit");
+                editor.document.setText(previousText);
+            }
+            
+            benchmarker.start("Initial DOM build");
+            var previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText),
+                changeList,
+                result;
+            benchmarker.end("Initial DOM build");
+            benchmarker.start("Mark text");
+            HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            benchmarker.end("Mark text");
+            
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Edit with marks");
+                editFn(editor);
+                benchmarker.end("Edit with marks");
+                editor.document.setText(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            }
+            
+            var changeFunction = function (event, editor, change) {
+                changeList = change;
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.instrtest", changeFunction);
+                benchmarker.start("Incremental");
+                editFn(editor);
+                benchmarker.end("Incremental");
+                $(editor).off(".instrtest");
+            }
+            
+            var fullChangeFunction = function (event, editor, change) {
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.instrtest", fullChangeFunction);
+                benchmarker.start("Full");
+                // full test
+                editFn(editor);
+                benchmarker.end("Full");
+                $(editor).off(".instrtest");
+            }
+            
+            benchmarker.report();
+        }
+        
+        xdescribe("Performance Tests", function () {
+            beforeEach(function () {
+                init(this, WellFormedFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                benchmarker.reset();
+            });
+            
+            it("measure performance of text replacement", function () {
+                benchmarker.heading = "Text Replacement";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of simulated typing of text", function () {
+                benchmarker.heading = "Simulated Typing of Text";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("A", {line: 12, ch: 12});
+                            editor.document.replaceRange("W", {line: 12, ch: 13});
+                            editor.document.replaceRange("E", {line: 12, ch: 14});
+                            editor.document.replaceRange("S", {line: 12, ch: 15});
+                            editor.document.replaceRange("O", {line: 12, ch: 16});
+                            editor.document.replaceRange("M", {line: 12, ch: 17});
+                            editor.document.replaceRange("E", {line: 12, ch: 18});
+                            editor.document.replaceRange("R", {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of new tag insertion", function () {
+                benchmarker.heading = "New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of typing a new tag", function () {
+                benchmarker.heading = "Typing New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        5,
+                        function (editor) {
+                            editor.document.replaceRange("<", {line: 15, ch: 0});
+                            editor.document.replaceRange("d", {line: 15, ch: 1});
+                            editor.document.replaceRange("i", {line: 15, ch: 2});
+                            editor.document.replaceRange("v", {line: 15, ch: 3});
+                            editor.document.replaceRange(">", {line: 15, ch: 4});
+                            editor.document.replaceRange("</div>", {line: 15, ch: 5});
+                            editor.document.replaceRange("N", {line: 15, ch: 5});
+                            editor.document.replaceRange("e", {line: 15, ch: 6});
+                            editor.document.replaceRange("w", {line: 15, ch: 7});
+                            editor.document.replaceRange(" ", {line: 15, ch: 8});
+                            editor.document.replaceRange("C", {line: 15, ch: 9});
+                            editor.document.replaceRange("o", {line: 15, ch: 10});
+                            editor.document.replaceRange("n", {line: 15, ch: 11});
+                            editor.document.replaceRange("t", {line: 15, ch: 12});
+                            editor.document.replaceRange("e", {line: 15, ch: 13});
+                            editor.document.replaceRange("n", {line: 15, ch: 14});
+                            editor.document.replaceRange("t", {line: 15, ch: 15});
+                        }
+                    );
+                });
+            });
+        });
+        
+        xdescribe("Big File Performance Tests", function () {
+            beforeEach(function () {
+                init(this, BigFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                benchmarker.reset();
+            });
+            
+            it("should handle a big file", function () {
+                benchmarker.heading = "Big Text Replacement";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        1,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+        });
+
+        xdescribe("DOMNavigator", function () {
             it("implements easy depth-first traversal", function () {
                 var dom = HTMLInstrumentation._buildSimpleDOM("<html><body><div>Here is <strong>my text</strong></div></body></html>");
                 var nav = new HTMLInstrumentation._DOMNavigator(dom);
