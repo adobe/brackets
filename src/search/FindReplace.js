@@ -105,15 +105,14 @@ define(function (require, exports, module) {
                 }
             }
 
-            var computeResultCenteringHeuristic = function () {
-                if (isFindFirst && editor.isLineVisible(cursor.from().line)) {
-                    // no need to scroll if the line with the match is in view
-                    return Editor.BOUNDARY_IGNORE_TOP;
-                }
-                return Editor.BOUNDARY_CHECK_NORMAL;    
-            };
+            var resultVisible = editor.isLineVisible(cursor.from().line),
+                centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
             
-            editor.setSelection(cursor.from(), cursor.to(), true, computeResultCenteringHeuristic());
+            if (isFindFirst && resultVisible) {
+                // no need to scroll if the line with the match is in view
+                centerOptions = Editor.BOUNDARY_IGNORE_TOP;
+            }
+            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
