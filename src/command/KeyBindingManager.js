@@ -556,11 +556,19 @@ define(function (require, exports, module) {
             
             keyBindings.sort(function (a, b) {
                 if (a.platform === brackets.platform) {
-                    return 1;
-                } else  if (!a.platform) {
-                    return 0;
-                } else {
+                    // "a" is platform specific and matches
                     return -1;
+                } else if (b.platform === brackets.platform) {
+                    // "b" is platform specific and matches
+                    return 1;
+                } else if (!a.platform && b.platform) {
+                    // "a" is generic and "b" is not matching
+                    return -1;
+                } else if (!b.platform && a.platform) {
+                    // "b" is generic and "a" is not matching
+                    return 1;
+                } else {
+                    return 0;
                 }
             });
             
