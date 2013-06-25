@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true*/
 /*global define, $, brackets, window */
 /*unittests: KeyBindingManager */
 
@@ -40,6 +40,10 @@ define(function (require, exports, module) {
         Strings        = require("strings");
 
     var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+
+    var ADD_BINDING_ERROR = {
+        EXPLICIT_BINDING_EXISTS: 1
+    };
     
     /**
      * @private
@@ -415,8 +419,7 @@ define(function (require, exports, module) {
                 removeBinding(normalized);
             } else {
                 // do not re-assign a key binding
-                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
-                return null;
+                return { errorType: ADD_BINDING_ERROR.EXPLICIT_BINDING_EXISTS, keyBinding: normalized };
             }
         }
         
@@ -551,7 +554,7 @@ define(function (require, exports, module) {
         }
         
         if (Array.isArray(keyBindings)) {
-            var keyBinding;
+            var keyBinding, errors = [];
             results = [];
             
             keyBindings.sort(function (a, b) {
@@ -572,17 +575,29 @@ define(function (require, exports, module) {
                 }
             });
             
-            keyBindings.some(function addSingleBinding(keyBindingRequest) {
+            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
-                    results.push(keyBinding);
-                    return true;
+                    if (keyBinding.errorType) {
+                        errors.push(keyBinding);
+                    } else {
+                        results.push(keyBinding);
+                    }
                 }
-
-                return false;
             });
+
+            if (errors.length) {
+                // only use console.error if no bindings were assigned
+                var logType = (results.length === 0) ? "error" : "log";
+
+                errors.forEach(function (error) {
+                    if (error.errorType === ADD_BINDING_ERROR.EXPLICIT_BINDING_EXISTS) {
+                        console[logType]("Cannot assign " + error.keyBinding + " to " + commandID + ". It is already assigned to " + _keyMap[error.keyBinding].commandID);   
+                    }
+                });
+            }
         } else {
             results = _addBinding(commandID, keyBindings, platform);
         }
