@@ -59,8 +59,6 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 Dialogs             = testWindow.brackets.test.Dialogs;
-               
-//                testWindow.brackets.app.showDeveloperTools();
             });
         });
 
