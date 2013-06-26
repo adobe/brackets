@@ -898,10 +898,12 @@ define(function (require, exports, module) {
      * @returns {boolean} true if it's visible, false if not
      */
     Editor.prototype.isLineVisible = function (line) {
-        var $scrollerElement = $(this.getScrollerElement()),
-            coords = this._codeMirror.charCoords({line: line, ch: 0}),
-            editorHeight = $scrollerElement.height();
-        return (coords.bottom >= 0 && coords.top < editorHeight);
+        var coords = this._codeMirror.charCoords({line: line, ch: 0}, "local"),
+            scrollInfo = this._codeMirror.getScrollInfo(),
+            top = scrollInfo.top,
+            bottom = scrollInfo.top + scrollInfo.clientHeight;
+        
+        return (coords.top >= top && coords.bottom <= bottom);
     };
     
     /**
