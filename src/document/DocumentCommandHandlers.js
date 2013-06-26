@@ -669,7 +669,6 @@ define(function (require, exports, module) {
         } else {
             return doSave(doc);
         }
-
     }
     
     /**
@@ -736,7 +735,6 @@ define(function (require, exports, module) {
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
-  
     }
 
     /**
