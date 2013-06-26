@@ -138,6 +138,7 @@ define(function (require, exports, module) {
                 if ($dlg.length) {
                     SpecRunnerUtils.clickDialogButton("dontsave");
                 }
+                $dlg = null;
             });
         }
         
@@ -146,7 +147,10 @@ define(function (require, exports, module) {
             runs(function () {
                 this.after(function () {
                     SpecRunnerUtils.closeTestWindow();
-                    testWindow = null;
+                    testWindow      = null;
+                    CommandManager  = null;
+                    Commands        = null;
+                    EditorManager   = null;
                 });
             });
         }
