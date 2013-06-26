@@ -125,6 +125,10 @@ define(function (require, exports, module) {
         });
     }
 
+    function enableAgent(liveDevModule, name) {
+        liveDevModule.enableAgent(name);
+    }
+
     describe("Live Development", function () {
         
         this.category = "integration";
@@ -330,6 +334,8 @@ define(function (require, exports, module) {
                 
                 var cssOpened = false;
                 runs(function () {
+                    enableAgent(LiveDevelopment, "dom");
+
                     SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
                         expect("Failed To Open").toBe("simple1.css");
                     }).always(function () {
