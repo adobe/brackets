@@ -189,6 +189,12 @@ define(function (require, exports, module) {
                 //waits(1000);
                 
                 // revert files to original content with offset markup
+                initInlineTest      = null;
+                testWindow          = null;
+                EditorManager       = null;
+                CommandManager      = null;
+                FileIndexManager    = null;
+                JSUtils             = null;
                 SpecRunnerUtils.closeTestWindow();
             });
 
@@ -386,14 +392,19 @@ define(function (require, exports, module) {
                     JSCodeHints = extensionRequire("main");
                 }
 
+                beforeEach(function () {
+                    initInlineTest("test.html");
+                    initJSCodeHints();
+                });
+                
+                afterEach(function () {
+                    JSCodeHints = null;
+                });
 
                 it("should see code hint lists in quick editor", function () {
                     var start        = {line: 13, ch: 11 },
                         testPos      = {line: 5, ch: 29},
                         testEditor;
-
-                    initInlineTest("test.html");
-                    initJSCodeHints();
 
                     runs(function () {
                         var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
@@ -415,9 +426,6 @@ define(function (require, exports, module) {
                         testJumpPos  = {line: 6, ch: 5},
                         jumpPos      = {line: 3, ch: 6},
                         testEditor;
-
-                    initInlineTest("test.html");
-                    initJSCodeHints();
 
                     runs(function () {
                         var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
@@ -444,9 +452,6 @@ define(function (require, exports, module) {
                         testPos      = {line: 5,  ch: 25},
                         jumpPos      = {line: 9, ch: 21},
                         testEditor;
-
-                    initInlineTest("test.html");
-                    initJSCodeHints();
 
                     runs(function () {
                         var openQuickEditor = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), start);
@@ -480,6 +485,10 @@ define(function (require, exports, module) {
             });
     
             afterEach(function () {
+                testWindow      = null;
+                CommandManager  = null;
+                EditorManager   = null;
+                PerfUtils       = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

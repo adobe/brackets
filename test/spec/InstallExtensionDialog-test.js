@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         Strings         = require("strings");
 
     describe("Install Extension Dialog", function () {
-        var testWindow, dialog, fields, goodInstaller, badInstaller, InstallExtensionDialog, closed,
+        var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
             url = "http://brackets.io/extensions/myextension.zip";
         
         beforeEach(function () {
@@ -717,6 +717,7 @@ define(function (require, exports, module) {
         
         // THIS MUST BE THE LAST SPEC IN THE SUITE
         it("should close the test window", function () {
+            testWindow = null;
             SpecRunnerUtils.closeTestWindow();
         });
     });

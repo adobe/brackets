@@ -588,7 +588,7 @@ define(function (require, exports, module) {
                 return doSave(doc);
             }
             // now save new document
-            var newPath = PathUtils.parseUrl(path).directory;
+            var newPath = FileUtils.getDirectoryPath(path);
             // create empty file,  FileUtils.writeText will create content.
             brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
                 if (error) {
@@ -623,7 +623,7 @@ define(function (require, exports, module) {
             if (doc.isUntitled()) {
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
-                saveAsDefaultPath = PathUtils.parseUrl(fullPath).directory;
+                saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             }
             defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,

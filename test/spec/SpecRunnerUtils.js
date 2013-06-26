@@ -313,6 +313,8 @@ define(function (require, exports, module) {
                 }
             });
             _testWindow.close();
+            _testWindow.executeCommand = null;
+            _testWindow = null;
         });
     }
     
@@ -516,6 +518,9 @@ define(function (require, exports, module) {
             result.resolve(docs);
         }).fail(function () {
             result.reject();
+        }).always(function () {
+            docs = null;
+            FileViewController = null;
         });
         
         return result.promise();

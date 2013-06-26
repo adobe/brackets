@@ -71,16 +71,21 @@ define(function ConsoleAgent(require, exports, module) {
     function _onMessagesCleared(event, res) {
         // res = {}
     }
+    
+    /**
+     * Enable the inspector Console domain
+     * @return {jQuery.Promise} A promise resolved when the Console.enable() command is successful.
+     */
+    function enable() {
+        return Inspector.Console.enable();
+    }
 
     /** Initialize the agent */
     function load() {
-        // FIXME Windows only: Somtimes enable() isn't acknowledged
-        return Inspector.retry(Inspector.Console.enable).done(function () {
-            $(Inspector.Console)
-                .on("messageAdded.ConsoleAgent", _onMessageAdded)
-                .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
-                .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
-        });
+        $(Inspector.Console)
+            .on("messageAdded.ConsoleAgent", _onMessageAdded)
+            .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
+            .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
     }
 
     /** Clean up */
@@ -89,6 +94,7 @@ define(function ConsoleAgent(require, exports, module) {
     }
 
     // Export public functions
+    exports.enable = enable;
     exports.load = load;
     exports.unload = unload;
 });
