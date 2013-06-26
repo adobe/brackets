@@ -893,7 +893,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deterines if the line is visible
+     * Deterines if line is fully visible.
      * @param {number} zero-based index of the line to test
      * @returns {boolean} true if it's visible, false if not
      */
@@ -902,7 +902,8 @@ define(function (require, exports, module) {
             scrollInfo = this._codeMirror.getScrollInfo(),
             top = scrollInfo.top,
             bottom = scrollInfo.top + scrollInfo.clientHeight;
-        
+
+        // Check top and bottom and return false for partially visible lines.
         return (coords.top >= top && coords.bottom <= bottom);
     };
     
