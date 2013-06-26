@@ -62,6 +62,11 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentCommandHandlers = null;
+            DocumentManager         = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
