@@ -130,6 +130,8 @@ define(function (require, exports, module) {
                     inlineOpened = isOpened;
                 }).fail(function () {
                     inlineOpened = false;
+                }).always(function () {
+                    editor = null;
                 });
             });
             
@@ -245,6 +247,13 @@ define(function (require, exports, module) {
                 //waits(1000);
                 
                 // revert files to original content with offset markup
+                initInlineTest      = null;
+                testWindow          = null;
+                Commands            = null;
+                EditorManager       = null;
+                FileSyncManager     = null;
+                DocumentManager     = null;
+                FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
             });
 
@@ -258,6 +267,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+
+                    inlineWidget = null;
                 });
             });
             
@@ -270,6 +281,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -282,6 +295,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -294,6 +309,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -306,6 +323,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.html"].offsets[11]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -318,6 +337,8 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[2]);
+
+                    inlineWidget = null;
                 });
             });
 
@@ -346,6 +367,8 @@ define(function (require, exports, module) {
                     // verify full editor cursor & focus restored
                     expect(savedPos).toEqual(hostEditor.getCursorPos());
                     expect(hostEditor.hasFocus()).toEqual(true);
+
+                    hostEditor = inlineWidget = null;
                 });
             });
 
@@ -368,6 +391,8 @@ define(function (require, exports, module) {
 
                     // verify no inline widgets
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
+
+                    doc = hostEditor = inlineWidget = null;
                 });
             });
 
@@ -414,6 +439,8 @@ define(function (require, exports, module) {
                     // verify widget resizes when contents is changed
                     expect(inlineEditor.lineCount()).toBe(17);
                     expect(inlineEditor.totalHeight()).toBeGreaterThan(widgetHeight);
+                    
+                    inlineEditor = null;
                 });
             });
             
@@ -440,6 +467,8 @@ define(function (require, exports, module) {
                     // verify widget resizes when contents is changed
                     expect(inlineEditor.lineCount()).toBe(10);
                     expect(inlineEditor.totalHeight()).toBeLessThan(widgetHeight);
+
+                    inlineEditor = null;
                 });
             });
             
@@ -501,6 +530,8 @@ define(function (require, exports, module) {
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeFalsy();
                     expect(hostEditor.document.isDirty).toBeFalsy();
+
+                    inlineEditor = hostEditor = null;
                 });
             });
             
@@ -572,6 +603,8 @@ define(function (require, exports, module) {
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeFalsy();
                     expect(hostEditor.document.isDirty).toBeTruthy();
+
+                    inlineEditor = hostEditor = null;
                 });
             });
             
@@ -669,6 +702,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         // verify inline is closed
                         expect(hostEditor.getInlineWidgets().length).toBe(0);
+
+                        inlineEditor = hostEditor = null;
                     });
                 });
             });
@@ -707,6 +742,8 @@ define(function (require, exports, module) {
                         
                         var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(1);
+
+                        inlineEditor = null;
                     });
                 });
             
@@ -748,6 +785,8 @@ define(function (require, exports, module) {
                             inlineEditor.getCursorPos()
                         );
                         expectTextToBeEqual(inlineEditor, fullEditor);
+
+                        inlineEditor = fullEditor = null;
                     });
                 });
             });
@@ -792,7 +831,12 @@ define(function (require, exports, module) {
                         wayafter = this.infos["test1.css"].offsets[2];
                     });
                 });
-            
+
+                afterEach(function () {
+                    fullEditor   = null;
+                    hostEditor   = null;
+                    inlineEditor = null;
+                });
                 
                 it("should insert new line at start of range, and stay open on undo", function () {
                     // insert new line at start of inline range--the new line should be included in 
@@ -1112,6 +1156,10 @@ define(function (require, exports, module) {
                     });
                 });
             
+                afterEach(function () {
+                    hostEditor   = null;
+                    inlineEditor = null;
+                });
 
                 it("should keep range consistent after undo/redo (bug #1031)", function () {
                     var secondInlineOpen = false, secondInlineEditor;
@@ -1142,6 +1190,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         inlineEditor._codeMirror.undo();
                         expect(inlineEditor).toHaveInlineEditorRange(toRange(10, 12));
+
+                        secondInlineEditor = null;
                     });
                 });
             });
@@ -1166,7 +1216,13 @@ define(function (require, exports, module) {
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
-            
+                
+                afterEach(function () {
+                    fullEditor   = null;
+                    hostEditor   = null;
+                    inlineEditor = null;
+                });
+                
                 it("should delete line at bottom and not close on undo", function () {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
                     

@@ -53,6 +53,10 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow     = null;
+            brackets       = null;
+            ProjectManager = null;
+            CommandManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
 

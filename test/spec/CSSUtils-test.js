@@ -1379,6 +1379,7 @@ define(function (require, exports, module) {
                 });
             });
             afterEach(function () {
+                CSSUtils = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             
@@ -1424,6 +1425,11 @@ define(function (require, exports, module) {
             });
 
             afterEach(function () {
+                brackets            = null;
+                CSSUtils            = null;
+                DocumentManager     = null;
+                FileViewController  = null;
+                ProjectManager      = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             
@@ -1450,6 +1456,8 @@ define(function (require, exports, module) {
                     // Look for ".FIRSTGRADE"
                     CSSUtils.findMatchingRules(".FIRSTGRADE")
                         .done(function (result) { rules = result; });
+                    
+                    doc = null;
                 });
                 
                 waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
@@ -1484,6 +1492,8 @@ define(function (require, exports, module) {
                     // Look for the selector we just created
                     CSSUtils.findMatchingRules(".TESTSELECTOR")
                         .done(function (result) { rules = result; });
+
+                    doc = null;
                 });
                 
                 waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
