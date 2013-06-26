@@ -135,8 +135,6 @@ define(function LiveDevelopment(require, exports, module) {
         "css"       : true,
         "highlight" : true
     };
-    
-    var _agentsToLoad;
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
@@ -505,6 +503,21 @@ define(function LiveDevelopment(require, exports, module) {
 
         return oneAgentPromise;
     }
+
+    function getEnabledAgents() {
+        var enabledAgents;
+
+        // Select agents to use
+        if (exports.config.experimental) {
+            // load all agents
+            enabledAgents = agents;
+        } else {
+            // load only enabled agents
+            enabledAgents = _enabledAgentNames;
+        }
+        
+        return Object.keys(enabledAgents);
+    }
     
     /**
      * @private
@@ -513,7 +526,7 @@ define(function LiveDevelopment(require, exports, module) {
     function _enableAgents() {
         // enable agents in parallel
         return Async.doInParallel(
-            _agentsToLoad,
+            getEnabledAgents(),
             function (name) {
                 return _invokeAgentMethod(name, "enable");
             },
@@ -532,7 +545,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // load agents in parallel
         allAgentsPromise = Async.doInParallel(
-            _agentsToLoad,
+            getEnabledAgents(),
             function (name) {
                 return _invokeAgentMethod(name, "load").done(function () {
                     _loadedAgentNames.push(name);
@@ -1115,17 +1128,6 @@ define(function LiveDevelopment(require, exports, module) {
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
         LiveDevServerManager.registerProvider(userServerProvider, 99);
-
-        // Select agents to use
-        if (exports.config.experimental) {
-            // load all agents
-            _agentsToLoad = agents;
-        } else {
-            // load only enabled agents
-            _agentsToLoad = _enabledAgentNames;
-        }
-        
-        _agentsToLoad = Object.keys(_agentsToLoad);
 
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
