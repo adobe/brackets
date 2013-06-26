@@ -81,6 +81,30 @@ define(function (require, exports, module) {
         _commandMap = {};
         _globalKeydownHooks = [];
     }
+    
+    /**
+     * @private
+     * Sort key bindings in priority order based on platform
+     * @param {Object} a Key binding request
+     * @param {Object} b Key binding request
+     */
+    function _sortKeyBindings(a, b) {
+        if (a.platform === brackets.platform) {
+            // "a" is platform specific and matches
+            return -1;
+        } else if (b.platform === brackets.platform) {
+            // "b" is platform specific and matches
+            return 1;
+        } else if (!a.platform && b.platform) {
+            // "a" is generic and "b" is not matching
+            return -1;
+        } else if (!b.platform && a.platform) {
+            // "b" is generic and "a" is not matching
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
     /**
      * @private
@@ -464,7 +488,9 @@ define(function (require, exports, module) {
             explicitPlatform    : explicitPlatform
         };
         
+        // add the new bindings and re-sort based on priority
         _commandMap[commandID].push(result);
+        _commandMap[commandID].sort(_sortKeyBindings);
         
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {
@@ -557,23 +583,7 @@ define(function (require, exports, module) {
             var keyBinding, errors = [];
             results = [];
             
-            keyBindings.sort(function (a, b) {
-                if (a.platform === brackets.platform) {
-                    // "a" is platform specific and matches
-                    return -1;
-                } else if (b.platform === brackets.platform) {
-                    // "b" is platform specific and matches
-                    return 1;
-                } else if (!a.platform && b.platform) {
-                    // "a" is generic and "b" is not matching
-                    return -1;
-                } else if (!b.platform && a.platform) {
-                    // "b" is generic and "a" is not matching
-                    return 1;
-                } else {
-                    return 0;
-                }
-            });
+            keyBindings.sort(_sortKeyBindings);
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
