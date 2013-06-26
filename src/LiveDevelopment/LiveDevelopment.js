@@ -132,7 +132,6 @@ define(function LiveDevelopment(require, exports, module) {
         "console"   : true,
         "remote"    : true,
         "network"   : true,
-        "dom"       : true,
         "css"       : true,
         "highlight" : true
     };
