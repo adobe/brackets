@@ -824,11 +824,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _openInterstitialPage() {
         var browserStarted  = false,
             retryCount      = 0;
-        
-        // !!!HACK
-        if (brackets.inBrowser) {
-            launcherUrl = doc.root.url;
-        }
 
         // Open the live browser if the connection fails, retry 6 times
         Inspector.connectToURL(launcherUrl).fail(function onConnectFail(err) {
@@ -997,6 +992,11 @@ define(function LiveDevelopment(require, exports, module) {
             _showWrongDocError();
             _openDeferred.reject();
         } else {
+            // !!!HACK
+            if (brackets.inBrowser) {
+                launcherUrl = doc.root.url;
+            }
+            
             // wait for server (StaticServer or file:)
             _prepareServer(doc).then(_doLaunchAfterServerReady, _openDeferred.reject);
         }
@@ -1025,92 +1025,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (Inspector.connected() && agents.highlight) {
             agents.highlight.redraw();
         }
-    }
-    
-    /** Triggered by Inspector.connect */
-    function _onConnect(event) {
-        
-        if (brackets.inBrowser) {
-            // Load agents
-            _setStatus(STATUS_LOADING_AGENTS);
-            var promises = loadAgents();
-            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
-            return;
-        }
-        
-        /* 
-         * Create a promise that resolves when the interstitial page has
-         * finished loading.
-         * 
-         * @return {jQuery.Promise}
-         */
-        function waitForInterstitialPageLoad() {
-            var deferred    = $.Deferred(),
-                keepPolling = true,
-                timer       = window.setTimeout(function () {
-                    keepPolling = false;
-                    deferred.reject();
-                }, 10000); // 10 seconds
-            
-            /* 
-             * Asynchronously check to see if the interstitial page has
-             * finished loading; if not, check again until timing out.
-             */
-            function pollInterstitialPage() {
-                if (keepPolling && Inspector.connected()) {
-                    Inspector.Runtime.evaluate("window.isBracketsLiveDevelopmentInterstitialPageLoaded", function (response) {
-                        var result = response.result;
-                        
-                        if (result.type === "boolean" && result.value) {
-                            window.clearTimeout(timer);
-                            deferred.resolve();
-                        } else {
-                            window.setTimeout(pollInterstitialPage, 100);
-                        }
-                    });
-                } else {
-                    deferred.reject();
-                }
-            }
-            
-            pollInterstitialPage();
-            return deferred.promise();
-        }
-        
-        /*
-         * Load agents and navigate to the target document once the 
-         * interstitial page has finished loading.
-         */
-        function onInterstitialPageLoad() {
-            // Page domain must be enabled first before loading other agents
-            Inspector.Page.enable().done(function () {
-                // Load the right document (some agents are waiting for the page's load event)
-                var doc = _getCurrentDocument();
-                if (doc) {
-                    Inspector.Page.navigate(doc.root.url);
-                } else {
-                    close();
-                }
-            });
-
-            // Load agents
-            _setStatus(STATUS_LOADING_AGENTS);
-            var promises = loadAgents();
-            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
-        }
-        
-        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
-		
-        waitForInterstitialPageLoad()
-            .fail(function () {
-                close();
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-                );
-            })
-            .done(onInterstitialPageLoad);
     }
 
     /** Triggered by a document change from the DocumentManager */
