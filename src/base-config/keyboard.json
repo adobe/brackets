@@ -8,6 +8,9 @@
     "file.close":  [
         "Ctrl-W"
     ],
+    "file.openFolder": [
+        "Ctrl-Alt-O"
+    ],
     "file.close_all":  [
         "Ctrl-Shift-W"
     ],
@@ -17,6 +20,9 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
+    "file.saveAs":  [
+        "Ctrl-Shift-S"
+    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -215,6 +221,9 @@
     ],
     "navigate.gotoDefinition":  [
         "Ctrl-T"
+    ],
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
     ],
     "navigate.nextDoc":  [
         {

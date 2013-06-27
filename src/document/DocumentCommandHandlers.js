@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
@@ -34,17 +34,18 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileViewController  = require("project/FileViewController"),
         FileUtils           = require("file/FileUtils"),
+        FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
+        PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent");
@@ -68,7 +69,7 @@ define(function (require, exports, module) {
     var _$titleContainerToolbar = null;
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
-    
+
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             windowTitle = brackets.config.app_title;
@@ -209,8 +210,6 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (paths) {
-                    var i;
-                    
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
@@ -229,7 +228,7 @@ define(function (require, exports, module) {
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
                             // Send the resulting document that was opened
-                            .pipe(result.resolve, result.reject);
+                            .then(result.resolve, result.reject);
                     } else {
                         // Reject if the user canceled the dialog
                         result.reject();
@@ -243,17 +242,63 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Splits a decorated file path into its parts.
+     * @param {?string} path - a string of the form "fullpath[:lineNumber[:columnNumber]]"
+     * @return {{path: string, line: ?number, column: ?number}} 
+     */
+    function _parseDecoratedPath(path) {
+        var result = {path: path, line: null, column: null};
+        if (path) {
+            // If the path has a trailing :lineNumber and :columnNumber, strip 
+            // these off and assign to result.line and result.column.
+            var matchResult = /(.+?):([0-9]+)(:([0-9]+))?$/.exec(path);
+            if (matchResult) {
+                result.path = matchResult[1];
+                if (matchResult[2]) {
+                    result.line = parseInt(matchResult[2], 10);
+                }
+                if (matchResult[4]) {
+                    result.column = parseInt(matchResult[4], 10);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Opens the given file and makes it the current document. Does NOT add it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     * @param {!{fullPath:string}} Params for FILE_OPEN command;
+     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
      */
     function handleFileOpen(commandData) {
-        var fullPath = null;
-        if (commandData) {
-            fullPath = commandData.fullPath;
-        }
-        
-        return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null);
+        return _doOpenWithOptionalPath(fileInfo.path)
+            .always(function () {
+                // If a line and column number were given, position the editor accordingly.
+                if (fileInfo.line !== null) {
+                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                        fileInfo.column = 1;
+                    }
+                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                }
+                
+                // Give the editor focus
+                EditorManager.focusEditor();
+            });
+        // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
+        // Do all tests with brackets already running, and also with brackets not already running.
+        //
+        // drag a file onto brackets icon in desktop (this uses undecorated paths)
+        // drag a file onto brackets icon in taskbar (this uses undecorated paths)
+        // open a file from brackets sidebar (this uses undecorated paths)
+        // from command line: ...../Brackets.app/Contents path         - where 'path' is undecorated
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line"
+        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line:column"
+        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated 
+        // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
     /**
@@ -360,7 +405,7 @@ define(function (require, exports, module) {
         var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
-                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .then(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; });
         };
 
@@ -383,9 +428,16 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(name, path) {
+    /**
+     * @private
+     * Shows an Error modal dialog
+     * @param {string} name
+     * @param {string} path
+     * @return {Dialog}
+     */
+    function _showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
@@ -400,8 +452,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.name, fileEntry.fullPath)
-                .always(function () {
+            _showSaveFileError(error.name, fileEntry.fullPath)
+                .done(function () {
                     result.reject(error);
                 });
         }
@@ -492,15 +544,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves all unsaved documents.
-     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
-     *      after all operations completed if any ONE of them failed.
-     */
-    function handleFileSaveAll() {
-        return saveAll();
-    }
-    
-    /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
@@ -517,14 +560,147 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 FileUtils.showFileOpenError(error.name, doc.file.fullPath)
-                    .always(function () {
+                    .done(function () {
                         result.reject(error);
                     });
             });
         
         return result.promise();
     }
+
+     /**
+     * Opens the native OS save as dialog and saves document.
+     * The original document is reverted in case it was dirty.
+     * Text selection and cursor position from the original document
+     * are preserved in the new document.
+     * When saving to the original document the document is saved as if save was called.
+     * @param {Document} doc
+     * @param {Settings} properties of the original document's editor that need to be carried over to the new document
+     *      i.e. scrollPos, cursorPos and text selection
+     * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
+     */
+    function _doSaveAs(doc, settings) {
+        var fullPath,
+            saveAsDefaultPath,
+            defaultName,
+            result = new $.Deferred();
+                
+        function _doSaveAfterSaveDialog(path) {
+            
+            function _configureEditorAndResolve() {
+                var editor = EditorManager.getActiveEditor();
+                if (editor) {
+                    if (settings) {
+                        editor.setCursorPos(settings.cursorPos);
+                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+                    }
+                }
+                result.resolve();
+            }
+            
+            function updateProject() {
+                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                    FileViewController
+                        .openAndSelectDocument(path,
+                                          FileViewController.PROJECT_MANAGER)
+                        .always(_configureEditorAndResolve);
+                } else { // Working set  has file selection focus
+                    // replace original file in working set with new file
+                    //  remove old file from working set.
+                    DocumentManager.removeFromWorkingSet(doc.file);
+                    //add new file to working set
+                    FileViewController
+                        .addToWorkingSetAndSelect(path,
+                                        FileViewController.WORKING_SET_VIEW)
+                        .always(_configureEditorAndResolve);
+                }
+            }
+            
+            if (path === fullPath) {
+                return doSave(doc);
+            }
+            // now save new document
+            var newPath = FileUtils.getDirectoryPath(path);
+            // create empty file,  FileUtils.writeText will create content.
+            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
+                if (error) {
+                    result.reject(error);
+                } else {
+                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
+                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                            ProjectManager.refreshFileTree().done(function () {
+                                // do not call doRevert unless the file is dirty.
+                                // doRevert on a file that is not dirty and not in the working set
+                                // has the side effect of adding the file to the working set.
+                                // we don't want that.
+                                if (doc.isDirty) {
+                                    // if the file is dirty it must be in the working set
+                                    // doRevert is side effect free in this case
+                                    doRevert(doc).always(updateProject);
+                                } else {
+                                    updateProject();
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        }
+                
+        // In the future we'll have to check wether the document is an unsaved
+        // untitled focument. If so, we should default to project root.
+        // If the there is no project, default to desktop.
+        if (doc) {
+            fullPath = doc.file.fullPath;
+            saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
+            defaultName = PathUtils.parseUrl(fullPath).filename;
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
+                _doSaveAfterSaveDialog,
+                function (error) {
+                    result.reject(error);
+                });
+        } else {
+            result.reject();
+        }
+        return result.promise();
+    }
     
+    /**
+     * Prompts user with save as dialog and saves document.
+     * @return {$.Promise} a promise that is resolved once the save has been completed
+     */
+    function handleFileSaveAs(commandData) {
+        // Default to current document if doc is null
+        var doc = null,
+            activeEditor,
+            settings;
+        
+        if (commandData) {
+            doc = commandData.doc;
+        } else {
+            activeEditor = EditorManager.getActiveEditor();
+            doc = activeEditor.document;
+            settings = {};
+            settings.selection = activeEditor.getSelection();
+            settings.cursorPos = activeEditor.getCursorPos();
+            settings.scrollPos = activeEditor.getScrollPos();
+        }
+            
+        // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
+        // doc.
+        return _doSaveAs(doc, settings);
+  
+    }
+
+    /**
+     * Saves all unsaved documents.
+     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
+     *      after all operations completed if any ONE of them failed.
+     */
+    function handleFileSaveAll() {
+        return saveAll();
+    }
     
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
@@ -576,41 +752,59 @@ define(function (require, exports, module) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 StringUtils.format(
                     Strings.SAVE_CLOSE_MESSAGE,
                     StringUtils.breakableUrl(filename)
-                )
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // "Save" case: wait until we confirm save has succeeded before closing
-                    doSave(doc)
-                        .done(function () {
-                            doClose(file);
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
-                } else {
-                    // "Don't Save" case: even though we're closing the main editor, other views of
-                    // the Document may remain in the UI. So we need to revert the Document to a clean
-                    // copy of whatever's on disk.
-                    doClose(file);
-                    
-                    // Only reload from disk if we've executed the Close for real,
-                    // *and* if at least one other view still exists
-                    if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                        doRevert(doc)
-                            .pipe(result.resolve, result.reject);
-                    } else {
-                        result.resolve();
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
                     }
-                }
-            });
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // "Save" case: wait until we confirm save has succeeded before closing
+                        doSave(doc)
+                            .done(function () {
+                                doClose(file);
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                result.reject();
+                            });
+                    } else {
+                        // "Don't Save" case: even though we're closing the main editor, other views of
+                        // the Document may remain in the UI. So we need to revert the Document to a clean
+                        // copy of whatever's on disk.
+                        doClose(file);
+                        
+                        // Only reload from disk if we've executed the Close for real,
+                        // *and* if at least one other view still exists
+                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                            doRevert(doc)
+                                .then(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
+                        }
+                    }
+                });
             result.always(function () {
                 EditorManager.focusEditor();
             });
@@ -671,24 +865,42 @@ define(function (require, exports, module) {
             message += "</ul>";
             
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_SAVE_CLOSE,
+                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                message
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                    result.reject();
-                } else if (id === Dialogs.DIALOG_BTN_OK) {
-                    // Save all unsaved files, then if that succeeds, close all
-                    saveAll().done(function () {
-                        result.resolve();
-                    }).fail(function () {
+                message,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                        text      : Strings.DONT_SAVE
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
                         result.reject();
-                    });
-                } else {
-                    // "Don't Save" case--we can just go ahead and close all  files.
-                    result.resolve();
-                }
-            });
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Save all unsaved files, then if that succeeds, close all
+                        saveAll().done(function () {
+                            result.resolve();
+                        }).fail(function () {
+                            result.reject();
+                        });
+                    } else {
+                        // "Don't Save" case--we can just go ahead and close all  files.
+                        result.resolve();
+                    }
+                });
         }
         
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
@@ -749,6 +961,14 @@ define(function (require, exports, module) {
      */
     function _handleAbortQuit() {
         _windowGoingAway = false;
+    }
+    
+    /**
+     * @private
+     * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
+     */
+    function _handleBeforeMenuPopup() {
+        $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
     
     /** Confirms any unsaved changes, then closes the window */
@@ -864,12 +1084,15 @@ define(function (require, exports, module) {
     
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#titlebar");
-        _$titleContainerToolbar = $titleContainerToolbar;
+        _$titleContainerToolbar = $("#titlebar");
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
+        
     });
+
+    // Exported for unit testing only
+    exports._parseDecoratedPath = _parseDecoratedPath;
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
@@ -881,6 +1104,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
     CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
     
@@ -895,6 +1119,7 @@ define(function (require, exports, module) {
     }
 
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);

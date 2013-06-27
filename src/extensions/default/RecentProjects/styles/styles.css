@@ -64,6 +64,10 @@
     white-space: nowrap;
 }
 
+#project-dropdown.dropdown-menu li a {
+    padding: 5px 15px;
+}
+
 #project-dropdown.dropdown-menu .recent-folder-link
 {
 	display: block;
@@ -78,6 +82,6 @@
     color: #aaa;
 }
 
-.dropdown-menu a:hover {
+#project-dropdown.dropdown-menu a:hover {
     background: #E0F0FA;
 }

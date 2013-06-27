@@ -56,7 +56,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
@@ -100,6 +100,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
+    "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
@@ -112,6 +113,7 @@ define({
     "BUTTON_STOP"                       : "Stop",
 
     "OPEN_FILE"                         : "Open File",
+    "SAVE_FILE_AS"                      : "Save File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
@@ -128,7 +130,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
+    "FIND_IN_FILES_LINE"                : "line: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
@@ -157,8 +159,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
     /**
      * Command Name Constants
@@ -175,6 +177,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
+    "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
@@ -261,6 +264,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
     "CMD_ABORT_QUIT"                      : "Abort Quit",
+    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -298,6 +302,7 @@ define({
     // Extension Management strings
     "INSTALL"                              : "Install",
     "REMOVE"                               : "Remove",
+    "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
@@ -315,11 +320,13 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
-    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
-    "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
+    "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
+    "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
-    "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
+    "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
+    "EXTENSION_SAME_VERSION"               : "This package is the same version as the one that is currently installed. Overwrite the existing installation?",
+    "EXTENSION_OLDER_VERSION"              : "This package is version {0} which is older than the currently installed ({1}). Overwrite the existing installation?",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
@@ -341,17 +348,26 @@ define({
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_INSTALLED"                  : "Installed",
+    "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed when you quit {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {{0}}. Brackets will still quit.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {0}. {APP_NAME} will still quit.",
+    "EXTENSION_MANAGER_UPDATE"             : "Update Extension",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Unable to update one or more extensions: {0}. {APP_NAME} will still quit.",
     "MARKED_FOR_REMOVAL"                   : "Marked for removal",
     "UNDO_REMOVE"                          : "Undo",
-    "REMOVE_AND_QUIT_TITLE"                : "Remove Extensions",
-    "REMOVE_AND_QUIT_MESSAGE"              : "To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "MARKED_FOR_UPDATE"                    : "Marked for update",
+    "UNDO_UPDATE"                          : "Undo",
+    "CHANGE_AND_QUIT_TITLE"                : "Change Extensions",
+    "CHANGE_AND_QUIT_MESSAGE"              : "To update or remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
     "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
-    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
+    "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
+    "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
+    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
+    "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     
     /**
      * Unit names
@@ -395,6 +411,7 @@ define({
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
+    "LOCALE_HU"                                 : "Hungarian",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

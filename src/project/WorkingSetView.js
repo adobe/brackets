@@ -244,14 +244,16 @@ define(function (require, exports, module) {
                 } else {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 }
-            } else if (moved) {
+            
+            } else {
+                // Update the file selection
                 if (selected) {
-                    // Update the file selection
                     _fireSelectionChanged();
                     ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
                 }
+                
+                // Restore the shadow
                 if (addBottomShadow) {
-                    // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
@@ -343,6 +345,16 @@ define(function (require, exports, module) {
         return (docIfOpen && docIfOpen.isDirty);
     }
     
+    /**
+     * @private
+     * @param {$.Event} event The Click Event to respond to.
+     */
+    function _handleMiddleMouseClick(event) {
+        var file = $(event.target).closest("li").data(_FILE_KEY);
+
+        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
+    }
+    
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
@@ -361,13 +373,20 @@ define(function (require, exports, module) {
         $openFilesContainer.find("ul").append($newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
-
+        
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
             _reorderListItem(e, $(this));
+            e.preventDefault();
+        });
+        
+        $newItem.click(function (e) {
+            if (e.which === 2) {
+                _handleMiddleMouseClick(e);
+            }
             e.preventDefault();
         });
 
@@ -527,7 +546,6 @@ define(function (require, exports, module) {
      */
     function _handleWorkingSetSort() {
         _rebuildWorkingSet(true);
-        _scrollSelectedDocIntoView();
     }
 
     /** 
@@ -553,17 +571,6 @@ define(function (require, exports, module) {
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
         _rebuildWorkingSet(true);
-    }
-    
-    /**
-     * @private
-     * @param {string} path
-     */
-    function _handlePathDeleted(path) {
-        // Rebuild the working set if any file or folder was deleted.
-        // We could be smarter about this and only delete affected
-        // items.
-        _rebuildWorkingSet(false);
     }
     
     function refresh() {
@@ -603,10 +610,6 @@ define(function (require, exports, module) {
     
         $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
             _handleFileNameChanged(oldName, newName);
-        });
-        
-        $(DocumentManager).on("pathDeleted", function (event, path) {
-            _handlePathDeleted(path);
         });
         
         $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);

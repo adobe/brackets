@@ -36,7 +36,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
-	"FILE_EXISTS_ERR": "[6484476] !é=The file or directory already exists.=!",
+	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -53,10 +53,10 @@ define({
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du fichier",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_DELETING_FILE_TITLE": "[6967025] !é=Error deleting file=!",
-	"ERROR_DELETING_FILE": "[6967024] !é=An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}=!",
+	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
+	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
-	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
+	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
@@ -100,6 +100,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
+	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
@@ -112,6 +113,7 @@ define({
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
+	"SAVE_FILE_AS": "Enregistrer le fichier",
 	"CHOOSE_FOLDER": "Choisir un dossier",
 
 	"RELEASE_NOTES": "Notes de mise à jour",
@@ -128,7 +130,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "ligne : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
@@ -157,8 +159,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     /**
      * Command Name Constants
@@ -175,13 +177,14 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
+	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
+	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -213,7 +216,7 @@ define({
 	"CMD_OPEN_LINE_ABOVE": "Ouvrir une ligne au-dessus",
 	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
-	"CMD_SHOW_CODE_HINTS": "[6967023] !é=Show Code Hints=!",
+	"CMD_SHOW_CODE_HINTS": "Afficher les indicateurs de code",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -244,7 +247,7 @@ define({
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
-	"CMD_SHOW_IN_OS": "[6966943] !é=Show in OS=!",
+	"CMD_SHOW_IN_OS": "Afficher dans le SE",
     
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -261,6 +264,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
+	"CMD_BEFORE_MENUPOPUP": "Fenêtre avant le menu",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
@@ -288,7 +292,7 @@ define({
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "Pour utiliser un serveur local, indiquez une URL telle que http://localhost:8000/",
+	"PROJECT_SETTING_BASE_URL_HINT": "Pour utiliser un serveur local, entrez une URL comme http://localhost:8000/",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
@@ -298,6 +302,7 @@ define({
     // Extension Management strings
 	"INSTALL": "Installer",
 	"REMOVE": "Supprimer",
+	"OVERWRITE": "Remplacer",
 	"CANT_REMOVE_DEV": "Les extensions du dossier \"dev\" doivent être supprimées manuellement.",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
@@ -315,11 +320,13 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
-	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
-	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
+	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} ({0}) n’est pas valide.",
+	"DISALLOWED_WORDS": "Le champ {0} ne peut pas contenir les mots ({1}).",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
-	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
+	"EXTENSION_ALREADY_INSTALLED": "L’installation de ce pack remplacera une extension installée précédemment. Voulez-vous remplacer l’extension installée ?",
+	"EXTENSION_SAME_VERSION": "Ce pack correspond à la même version que celle installée actuellement. Voulez-vous remplacer l’installation actuelle ?",
+	"EXTENSION_OLDER_VERSION": "Ce pack correspond à la version {0}, qui est antérieure à la version actuellement installée ({1}). Voulez-vous remplacer l’installation actuelle ?",
 	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
 	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
 	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
@@ -329,7 +336,7 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
-	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_TITLE": "Le gestionnaire d'extensions",
 	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
 	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
 	"EXTENSION_AUTHOR": "Auteur",
@@ -337,21 +344,30 @@ define({
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
-	"EXTENSION_MORE_INFO": "Plus d'infos...",
-	"EXTENSION_ERROR": "[6967026] !é=Extension error=!",
+	"EXTENSION_MORE_INFO": "Plus d’infos...",
+	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
 	"EXTENSION_INSTALLED": "Installée",
+	"EXTENSION_UPDATE_INSTALLED": "Cette mise à jour d’extension a été téléchargée et sera installée lorsque vous quitterez {APP_NAME}.",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
 	"EXTENSION_MANAGER_REMOVE": "Supprimer l’extension",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "[6958948] !é=Unable to remove one or more extensions: {{0}}. Brackets will still quit.=!",
-	"MARKED_FOR_REMOVAL": "[6966720] !é=Marked for removal=!",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {0}. {APP_NAME} va être fermé malgré tout.",
+	"EXTENSION_MANAGER_UPDATE": "Mettre à jour l’extension",
+	"EXTENSION_MANAGER_UPDATE_ERROR": "Impossible de mettre à jour une ou plusieurs extensions : {0}. {APP_NAME} va être fermé malgré tout.",
+	"MARKED_FOR_REMOVAL": "Marquée pour suppression",
 	"UNDO_REMOVE": "Annuler",
-	"REMOVE_AND_QUIT_TITLE": "[6966723] !é=Remove Extensions=!",
-	"REMOVE_AND_QUIT_MESSAGE": "[6966722] !é=To remove the marked extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.=!",
-	"REMOVE_AND_QUIT": "[6966721] !é=Remove Extensions and Quit=!",
-	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {{0}} car elle n’est pas installée.",
+	"MARKED_FOR_UPDATE": "Marquée pour mise à jour",
+	"UNDO_UPDATE": "Annuler",
+	"CHANGE_AND_QUIT_TITLE": "Modifier les extensions",
+	"CHANGE_AND_QUIT_MESSAGE": "Pour mettre à jour ou supprimer les extensions marquées, vous devez quitter puis relancer {APP_NAME}. Vous serez invité à enregistrer vos modifications.",
+	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
+	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
+	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
+	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
+	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur le bouton Installer à partir de l’URL se trouvant ci-dessous pour démarrer.",
+	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
     
     /**
      * Unit names
@@ -395,6 +411,7 @@ define({
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
+	"LOCALE_HU": "Hongrois",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

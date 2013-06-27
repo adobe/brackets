@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,13 +26,22 @@
 
 define(function (require, exports, module) {
     "use strict";
-   
+
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils       = brackets.getModule("file/FileUtils");
 
     describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, CommandManager, Commands, EditorManager, QuickView, editor;
+
+        // load from testWindow
+        var testWindow,
+            brackets,
+            extensionRequire,
+            CommandManager,
+            Commands,
+            EditorManager,
+            QuickView,
+            editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -42,13 +51,14 @@ define(function (require, exports, module) {
                         testWindow = w;
                         // Load module instances from brackets.test
                         brackets = testWindow.brackets;
-                        CommandManager = testWindow.brackets.test.CommandManager;
-                        Commands = testWindow.brackets.test.Commands;
+                        CommandManager = brackets.test.CommandManager;
+                        Commands = brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        QuickView = brackets.test.extensions.QuickView;
+                        extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("QuickView");
+                        QuickView = extensionRequire("main");
                     });
                 });
-                
+
                 runs(function () {
                     SpecRunnerUtils.loadProjectInTestWindow(testFolder);
                 });
@@ -62,41 +72,46 @@ define(function (require, exports, module) {
                 });
             }
         });
-        
+
         function getPopoverAtPos(lineNum, columnNum) {
             var cm = editor._codeMirror,
                 pos = { line: lineNum, ch: columnNum },
                 token;
-            
+
             editor.setCursorPos(pos);
-            token = cm.getTokenAt(pos);
-            
+            token = cm.getTokenAt(pos, true);
+
             return QuickView._queryPreviewProviders(editor, pos, token);
         }
-        
+
         function expectNoPreviewAtPos(line, ch) {
             var popoverInfo = getPopoverAtPos(line, ch);
             expect(popoverInfo).toBeFalsy();
         }
-        
+
         function checkColorAtPos(expectedColor, line, ch) {
             var popoverInfo = getPopoverAtPos(line, ch);
             expect(popoverInfo._previewCSS).toBe(expectedColor);
         }
-        
+
         function checkGradientAtPos(expectedGradient, line, ch) {
             // Just call checkColorAtPos since both have the same function calls.
             checkColorAtPos(expectedGradient, line, ch);
         }
-        
+
         function checkImagePathAtPos(expectedPathEnding, line, ch) {
             var popoverInfo = getPopoverAtPos(line, ch),
                 imagePath = popoverInfo._imgPath;
-            
+
             // Just check end of path - local drive location prefix unimportant
             expect(imagePath.substr(imagePath.length - expectedPathEnding.length)).toBe(expectedPathEnding);
         }
-        
+
+        function checkImageDataAtPos(expectedData, line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo._imgPath).toBe(expectedData);
+        }
+
         describe("Quick view colors", function () {
             it("should show preview of hex colors either in 3 digit hex or or 6-digit hex", function () {
                 runs(function () {
@@ -117,8 +132,8 @@ define(function (require, exports, module) {
                     checkColorAtPos("rgb(255,0,0)",           12, 12);  // no whitespace
                     checkColorAtPos("rgb(100%,   0%,   0%)",  13, 17);  // extra whitespace
                     checkColorAtPos("rgb(50%, 75%, 25%)",     14, 24);
-                    
-                    // rgba with values of 0-255 
+
+                    // rgba with values of 0-255
                     checkColorAtPos("rgba(255, 0, 0, 0.5)", 15, 23);
                     checkColorAtPos("rgba(255, 0, 0, 1)",   16, 22);
                     checkColorAtPos("rgba(255, 0, 0, .5)",  17, 19);
@@ -177,7 +192,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-            
+
         describe("Quick view gradients", function () {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
@@ -193,22 +208,20 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
                 });
             });
-            
+
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC)",                  99, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(135deg, #333, #CCC)",          101, 50);
-                    
-                    // TODO (#3458): Keyword "to" not supported until Brackets upgrades to Chrome 26
-                    //checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
-                    //checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
-                    expectNoPreviewAtPos(98, 50);
-                    expectNoPreviewAtPos(100, 50);
+                    checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
+                    checkGradientAtPos("linear-gradient(135deg, #333, #CCC)",          101, 50);
+
+                    checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
+                    checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+
 
                     // multiple colors
-                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC, #333)",             104, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
+                    checkGradientAtPos("linear-gradient(#333, #CCC, #333)",             104, 50);
+                    checkGradientAtPos("linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
+                    checkGradientAtPos("linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
                 });
             });
 
@@ -223,64 +236,59 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient2, 114, 36);   // -0- prefix gets stripped
                 });
             });
-            
+
             it("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    // TODO (#3458): support new W3C syntax
-//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 35);
-//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
-                    
-                    // For now the color stops are just previewed in isolation
-                    expectNoPreviewAtPos(118, 35);
-                    checkColorAtPos("yellow", 118, 40);
+                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 35);
+                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 40);
                 });
             });
 
             it("Should show repeating linear gradient preview", function () {
                 runs(function () {
-                    // TODO (#3458): support repeat
-//                    checkGradientAtPos("repeating-linear-gradient(red, blue 20px, red 40px)", 122, 50);
-//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white 0px, blue 0px)", 123, 50);
-//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white .1px, blue .2px)", 124, 50);
-                    
-                    // For now the color stops are just previewed in isolation
-                    expectNoPreviewAtPos(122, 35);
-                    expectNoPreviewAtPos(123, 35);
-                    expectNoPreviewAtPos(124, 35);
-                    checkColorAtPos("red", 122, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
                 });
             });
 
             it("Should show repeating radial gradient preview", function () {
                 runs(function () {
-                    // TODO (#3458): support repeat
-//                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
-//                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
-                    
-                    expectNoPreviewAtPos(128, 40);
-                    expectNoPreviewAtPos(129, 40);
+                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
+                    checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 129, 40);
                 });
             });
-            
+
             it("Should show comma-separated gradients", function () {
                 runs(function () {
                     // line ending in comma
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
-                    
+                    checkGradientAtPos("linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
+
                     // multiple gradients on a line
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
-                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
+                    checkGradientAtPos("linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
+                    checkGradientAtPos("linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
+                });
+            });
+            
+            it("Should should convert gradients arguments from pixel to percent", function () {
+                runs(function () {
+                    // linear gradient in px
+                    checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
+                    // repeating linear-gradient in pixels (no prefix)
+                    checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 164, 40);
+                    // repeating radial-gradient in pixels (no prefix)
+                    checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
                 });
             });
         });
 
         describe("Quick view display", function () {
-            
+
             function showPopoverAtPos(line, ch) {
                 var popoverInfo = getPopoverAtPos(line, ch);
                 QuickView._forceShow(popoverInfo);
             }
-            
+
             function getBounds(object) {
                 return {
                     left:   object.offset().left,
@@ -309,7 +317,7 @@ define(function (require, exports, module) {
             it("popover is positioned within window bounds", function () {
                 var $popover  = testWindow.$("#quick-view-container");
                 expect($popover.length).toEqual(1);
-                
+
                 runs(function () {
                     // Popover should be below item
                     showPopoverAtPos(3, 12);
@@ -342,7 +350,7 @@ define(function (require, exports, module) {
                     toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 });
             });
-            
+
             it("highlight matched text when popover shown", function () {
                 showPopoverAtPos(4, 14);
                 var markers = editor._codeMirror.findMarksAt({line: 4, ch: 14});
@@ -351,7 +359,7 @@ define(function (require, exports, module) {
                 expect(range.from.ch).toBe(11);
                 expect(range.to.ch).toBe(18);
             });
-            
+
         });
 
         describe("Quick view images", function () {
@@ -363,13 +371,13 @@ define(function (require, exports, module) {
                     checkImagePathAtPos("img/update_large_icon.svg",  143, 26);
                 });
             });
-            
+
             it("Should show image preview for urls with http/https", function () {
                 runs(function () {
                     checkImagePathAtPos("https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png", 145, 26);
                 });
             });
-            
+
             it("Should show image preview for file path inside single or double quotes", function () {
                 runs(function () {
                     checkImagePathAtPos("img/med_hero.jpg",  147, 26);
@@ -377,17 +385,30 @@ define(function (require, exports, module) {
                     checkImagePathAtPos("img/specials.jpeg", 149, 26);
                 });
             });
-            
+
             it("Should show image preview for subsequent images in a line", function () {
                 runs(function () {
                     checkImagePathAtPos("img/Gradient.png", 153, 80);    // url("")
                     checkImagePathAtPos("img/Gradient.png", 154, 80);    // url()
                     checkImagePathAtPos("img/Gradient.png", 155, 80);    // ""
                 });
-                
+            });
+
+            it("Should show image preview for a data URI inside url()", function () {
+                runs(function () {
+                    checkImageDataAtPos("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABq0lEQVQoU11RPUgcURD+Zt/unnrcCf4QIugRMcS7a2xjmmArRlRIFRBFgrVtGgmBRFCwTBoLsQiBGMxiJ4iksLRSFEzQRC2EAwm5g727feP3LpyFy1tm5s33zcz7RnDvG4x0zFgMJRY/jiewhy/w8FKSJkyaTuG7Fumvi+ARbQiLpcMDvH/Qj1S6Bf6vI5SxKPUG4fGm5kMf6wr08MKHILCKldoZlk0OIeuHjNuDBBcNAqvvENTLwKii1ZFoF/7G2PQDpNo8dFUt1AcSGfymz42PVfI8ghxht1bHh9MpucCiegMFdJoUOtSD+MxLPtI5T/GaHWhg+NjRk3G5utPikwb5bjzhq40JSChs6Sx1eOYAojg/fCFv7yvnBLGCLPMqxS2dZrtXnDthhySuYebnpFw3ST2RtmUVIx5z1sIKdX9qgDcOTJAj7WsNa8eTUhrY0Gwqg2FldeZiduH5r9JHvqEDigzDS/4VJvYJfMh9VLmbNO9+s9hNg5D/qjkJ8I6uW0yFtkrwHydCg+AhVgsp/8Pnu00XI+0jYJ7gjANRiEsmQ3aNOXuJhG035i1QA6g+uONCrgAAAABJRU5ErkJggg==",  159, 26);
+                });
+
                 // This must be in the last spec in the suite.
                 runs(function () {
                     this.after(function () {
+                        testWindow       = null;
+                        brackets         = null;
+                        CommandManager   = null;
+                        Commands         = null;
+                        EditorManager    = null;
+                        extensionRequire = null;
+                        QuickView        = null;
                         SpecRunnerUtils.closeTestWindow();
                     });
                 });

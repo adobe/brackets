@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
@@ -69,6 +70,16 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async");
     
+    
+    /**
+     * @private
+     * File and Folder names which are not displayed or searched
+     * TODO: We should add the rest of the file names that TAR excludes:
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -141,10 +152,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * While initially rendering the tree, stores a list of promises for folders waiting to be read.
-     * Is null when tree is not doing its initial rendering.
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.  
      */
-    var _renderPromises = null;
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
     var suppressToggleOpen = false;
     
@@ -401,40 +412,46 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
-    
+        
     /**
-     * Resolves the given deferred when all renderPromises have been resolved. This is necessary in order
-     * to determine when iniital rendering is really finished; we don't actually get a callback from jstree 
-     * once it's handled all of its "reopen" callbacks, so we instead track all of our own async file requests
-     * (which should be the only asynchronicity involved in rendering the tree). Since new requests might get
-     * added in the course of recursing the tree, we can't just do a simple $.when.apply() here.
-     *
-     * @param {$.Deferred} the deferred to resolve when rendering is finished
+     * @private
+     * Reopens a set of nodes in the tree by ID.
+     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
+     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
+     *     be sorted by depth within the tree.
+     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
+     *     reopened.
      */
-    function _whenRenderedResolve(deferred) {
-        if (_renderPromises) {
-            _renderPromises.forEach(function (promise) {
-                // Only listen to each promise once.
-                if (!promise._project_listening) {
-                    promise._project_listening = true;
-                    promise.always(function () {
-                        // One of the promises is completed (either resolved or rejected;
-                        // in either case we want to move on).
-                        // Remove it from the list, then see if we have any more left.
-                        var index = _renderPromises.indexOf(promise);
-                        if (index !== -1) {
-                            _renderPromises.splice(index, 1);
-                        }
-                        if (_renderPromises.length === 0) {
-                            // All done.
-                            deferred.resolve();
-                            _renderPromises = null;
-                        } else {
-                            // Add listeners to any new promises that have shown up.
-                            _whenRenderedResolve(deferred);
-                        }
-                    });
+    function _reopenNodes(nodesByDepth, resultDeferred) {
+        if (nodesByDepth.length === 0) {
+            // All paths are opened and fully rendered.
+            resultDeferred.resolve();
+        } else {
+            var toOpenPaths = nodesByDepth.shift(),
+                toOpenIds   = [],
+                node        = null;
+
+            // use path to lookup ID
+            toOpenPaths.forEach(function (value, index) {
+                node = _projectInitialLoad.fullPathToIdMap[value];
+                
+                if (node) {
+                    toOpenIds.push(node);
                 }
+            });
+            
+            Async.doInParallel(
+                toOpenIds,
+                function (id) {
+                    var result = new $.Deferred();
+                    _projectTree.jstree("open_node", "#" + id, function () {
+                        result.resolve();
+                    }, true);
+                    return result.promise();
+                },
+                false
+            ).always(function () {
+                _reopenNodes(nodesByDepth, resultDeferred);
             });
         }
     }
@@ -449,8 +466,6 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred();
 
-        _renderPromises = [];
-        
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
         // doesn't seem to work properly. 
@@ -526,31 +541,12 @@ define(function (require, exports, module) {
             ).bind(
                 "reopen.jstree",
                 function (event, data) {
-                    // This handler fires for the initial load and subsequent
-                    // reload_nodes events. For each depth level of the tree, we open
-                    // the saved nodes by a fullPath lookup.
-                    if (_projectInitialLoad.previous.length > 0) {
-                        // load previously open nodes by increasing depth
-                        var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [],
-                            node        = null;
-        
-                        // use path to lookup ID
-                        toOpenPaths.forEach(function (value, index) {
-                            node = _projectInitialLoad.fullPathToIdMap[value];
-                            
-                            if (node) {
-                                toOpenIds.push(node);
-                            }
-                        });
-        
-                        // specify nodes to open and load
-                        data.inst.data.core.to_open = toOpenIds;
-                        _projectTree.jstree("reload_nodes", false);
-                    }
-                    if (_projectInitialLoad.previous.length === 0) {
-                        // resolve after all paths are opened and fully rendered
-                        _whenRenderedResolve(result);
+                    if (_projectInitialLoad.previous) {
+                        // Start reopening nodes that were previously open, starting
+                        // with the first recorded depth level. As each level completes,
+                        // it will trigger the next level to finish.
+                        _reopenNodes(_projectInitialLoad.previous, result);
+                        _projectInitialLoad.previous = null;
                     }
                 }
             ).bind(
@@ -588,7 +584,7 @@ define(function (require, exports, module) {
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
-                    if (event.which === 3) {
+                    if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
                         var treenode = $(event.target).closest("li");
                         if (treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
@@ -638,14 +634,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
-            return false;
-        }
-        var extension = entry.name.split('.').pop();
-        if (["pyc"].indexOf(extension) > -1) {
-            return false;
-        }
-        return true;
+        return !entry.name.match(_exclusionListRegEx);
     }
 
     /**
@@ -749,10 +738,6 @@ define(function (require, exports, module) {
             dirEntry = treeNode.data("entry");
         }
         
-        if (_renderPromises) {
-            _renderPromises.push(deferred.promise());
-        }
-
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             processEntries,
@@ -763,7 +748,7 @@ define(function (require, exports, module) {
                     processEntries(entries);
                 } else {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.READ_DIRECTORY_ENTRIES_ERROR,
@@ -909,7 +894,7 @@ define(function (require, exports, module) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                            $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
                             result.resolve();
                         }
@@ -924,7 +909,7 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
@@ -1075,7 +1060,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path, false).pipe(result.resolve, result.reject);
+                    _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
@@ -1083,14 +1068,14 @@ define(function (require, exports, module) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
-                                _loadProject(files[0]).pipe(result.resolve, result.reject);
+                                _loadProject(files[0]).then(result.resolve, result.reject);
                             } else {
                                 result.reject();
                             }
                         },
                         function (error) {
                             Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
+                                DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
                                 StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
@@ -1109,11 +1094,12 @@ define(function (require, exports, module) {
 
     /**
      * Invoke project settings dialog.
+     * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
-
+    
     /**
      * @private
      *
@@ -1122,12 +1108,11 @@ define(function (require, exports, module) {
      */
     function _checkForValidFilename(filename) {
         // Validate file name
-        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
+        // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.INVALID_FILENAME_TITLE,
                 Strings.INVALID_FILENAME_MESSAGE
             );
@@ -1251,7 +1236,7 @@ define(function (require, exports, module) {
                     if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
                             (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
-                            Dialogs.DIALOG_ID_ERROR,
+                            DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
                             StringUtils.format(
                                 Strings.FILE_ALREADY_EXISTS,
@@ -1264,7 +1249,7 @@ define(function (require, exports, module) {
                                          StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
                         Dialogs.showModalDialog(
-                            Dialogs.DIALOG_ID_ERROR,
+                            DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_CREATING_FILE_TITLE,
                             StringUtils.format(
                                 Strings.ERROR_CREATING_FILE,
@@ -1391,7 +1376,7 @@ define(function (require, exports, module) {
             } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
+                    DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_RENAMING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
@@ -1511,7 +1496,7 @@ define(function (require, exports, module) {
             DocumentManager.notifyPathDeleted(entry.fullPath);
 
             _redraw(true);
-            result.promise();
+            result.resolve();
         }, function (err) {
             // Show an error alert
             Dialogs.showModalDialog(
@@ -1527,7 +1512,7 @@ define(function (require, exports, module) {
             result.reject(err);
         });
 
-        return result;
+        return result.promise();
     }
     
     /**
@@ -1554,23 +1539,6 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
-    
-    if (!_prefs.getValue("welcomeProjectsFixed")) {
-        // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
-        // we would add lots of duplicate entries here.
-        var welcomeProjects = _prefs.getValue("welcomeProjects");
-        if (welcomeProjects) {
-            var newWelcomeProjects = [];
-            var i;
-            for (i = 0; i < welcomeProjects.length; i++) {
-                if (newWelcomeProjects.indexOf(welcomeProjects[i]) === -1) {
-                    newWelcomeProjects.push(welcomeProjects[i]);
-                }
-            }
-            _prefs.setValue("welcomeProjects", newWelcomeProjects);
-            _prefs.setValue("welcomeProjectsFixed", true);
-        }
-    }
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

@@ -1,29 +1,30 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true*/
 /*global define, $, brackets, window */
+/*unittests: KeyBindingManager */
 
 /**
  * Manages the mapping of keyboard inputs to commands.
@@ -39,23 +40,38 @@ define(function (require, exports, module) {
         Strings        = require("strings");
 
     var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+
+    var ADD_BINDING_ERROR = {
+        EXPLICIT_BINDING_EXISTS: 1
+    };
     
     /**
+     * @private
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     var _keyMap = {};
 
     /**
+     * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
     var _commandMap = {};
 
     /**
+     * @private
      * Allow clients to toggle key binding
+     * @type {boolean}
      */
     var _enabled = true;
+    
+    /**
+     * @private
+     * Stack of registered global keydown hooks.
+     * @type {Array.<function(Event): boolean>}
+     */
+    var _globalKeydownHooks = [];
 
     /**
      * @private
@@ -63,6 +79,31 @@ define(function (require, exports, module) {
     function _reset() {
         _keyMap = {};
         _commandMap = {};
+        _globalKeydownHooks = [];
+    }
+    
+    /**
+     * @private
+     * Sort key bindings in priority order based on platform
+     * @param {Object} a Key binding request
+     * @param {Object} b Key binding request
+     */
+    function _sortKeyBindings(a, b) {
+        if (a.platform === brackets.platform) {
+            // "a" is platform specific and matches
+            return -1;
+        } else if (b.platform === brackets.platform) {
+            // "b" is platform specific and matches
+            return 1;
+        } else if (!a.platform && b.platform) {
+            // "a" is generic and "b" is not matching
+            return -1;
+        } else if (!b.platform && a.platform) {
+            // "b" is generic and "a" is not matching
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -363,7 +404,7 @@ define(function (require, exports, module) {
         }
         normalized = normalizeKeyDescriptorString(key);
         
-        // skip if the key binding is invalid 
+        // skip if the key binding is invalid
         if (!normalized) {
             console.log("Failed to normalize " + key);
             return null;
@@ -402,8 +443,7 @@ define(function (require, exports, module) {
                 removeBinding(normalized);
             } else {
                 // do not re-assign a key binding
-                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
-                return null;
+                return { errorType: ADD_BINDING_ERROR.EXPLICIT_BINDING_EXISTS, keyBinding: normalized };
             }
         }
         
@@ -448,7 +488,9 @@ define(function (require, exports, module) {
             explicitPlatform    : explicitPlatform
         };
         
+        // add the new bindings and re-sort based on priority
         _commandMap[commandID].push(result);
+        _commandMap[commandID].sort(_sortKeyBindings);
         
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {
@@ -482,13 +524,13 @@ define(function (require, exports, module) {
      * @param {string} A key-description string.
      * @return {boolean} true if the key was processed, false otherwise
      */
-    function handleKey(key) {
+    function _handleKey(key) {
         if (_enabled && _keyMap[key]) {
             // The execute() function returns a promise because some commands are async.
             // Generally, commands decide whether they can run or not synchronously,
             // and reject immediately, so we can test for that synchronously.
             var promise = CommandManager.execute(_keyMap[key].commandID);
-            return (promise.state() === "rejected") ? false : true;
+            return (promise.state() !== "rejected");
         }
         return false;
     }
@@ -522,7 +564,6 @@ define(function (require, exports, module) {
      */
     function addBinding(command, keyBindings, platform) {
         var commandID           = "",
-            normalizedBindings  = [],
             results;
         
         if (!command) {
@@ -539,17 +580,34 @@ define(function (require, exports, module) {
         }
         
         if (Array.isArray(keyBindings)) {
-            var keyBinding;
+            var keyBinding, errors = [];
             results = [];
+            
+            keyBindings.sort(_sortKeyBindings);
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
-                    results.push(keyBinding);
+                    if (keyBinding.errorType) {
+                        errors.push(keyBinding);
+                    } else {
+                        results.push(keyBinding);
+                    }
                 }
             });
+
+            if (errors.length) {
+                // only use console.error if no bindings were assigned
+                var logType = (results.length === 0) ? "error" : "log";
+
+                errors.forEach(function (error) {
+                    if (error.errorType === ADD_BINDING_ERROR.EXPLICIT_BINDING_EXISTS) {
+                        console[logType]("Cannot assign " + error.keyBinding + " to " + commandID + ". It is already assigned to " + _keyMap[error.keyBinding].commandID);
+                    }
+                });
+            }
         } else {
             results = _addBinding(commandID, keyBindings, platform);
         }
@@ -595,17 +653,74 @@ define(function (require, exports, module) {
             addBinding(commandId, defaults);
         }
     }
+    
+    /**
+     * Adds a global keydown hook that gets first crack at keydown events
+     * before standard keybindings do. This is intended for use by modal or
+     * semi-modal UI elements like dialogs or the code hint list that should
+     * execute before normal command bindings are run.
+     *
+     * The hook is passed one parameter, the original keyboard event. If the
+     * hook handles the event (or wants to block other global hooks from
+     * handling the event), it should return true. Note that this will *only*
+     * stop other global hooks and KeyBindingManager from handling the
+     * event; to prevent further event propagation, you will need to call
+     * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
+     * as usual.
+     *
+     * Multiple keydown hooks can be registered, and are executed in order,
+     * most-recently-added first.
+     *
+     * (We have to have a special API for this because (1) handlers are normally
+     * called in least-recently-added order, and we want most-recently-added;
+     * (2) native DOM events don't have a way for us to find out if
+     * stopImmediatePropagation()/stopPropagation() has been called on the
+     * event, so we have to have some other way for one of the hooks to
+     * indicate that it wants to block the other hooks from running.)
+     *
+     * @param {function(Event): boolean} hook The global hook to add.
+     */
+    function addGlobalKeydownHook(hook) {
+        _globalKeydownHooks.push(hook);
+    }
+    
+    /**
+     * Removes a global keydown hook added by `addGlobalKeydownHook`.
+     * Does not need to be the most recently added hook.
+     *
+     * @param {function(Event): boolean} hook The global hook to remove.
+     */
+    function removeGlobalKeydownHook(hook) {
+        var index = _globalKeydownHooks.indexOf(hook);
+        if (index !== -1) {
+            _globalKeydownHooks.splice(index, 1);
+        }
+    }
+    
+    /**
+     * Handles a given keydown event, checking global hooks first before
+     * deciding to handle it ourselves.
+     * @param {Event} The keydown event to handle.
+     */
+    function _handleKeyEvent(event) {
+        var i, handled = false;
+        for (i = _globalKeydownHooks.length - 1; i >= 0; i--) {
+            if (_globalKeydownHooks[i](event)) {
+                handled = true;
+                break;
+            }
+        }
+        if (!handled && _handleKey(_translateKeyboardEvent(event))) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
 
     AppInit.htmlReady(function () {
         // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
-            function (event) {
-                if (handleKey(_translateKeyboardEvent(event))) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            },
+            _handleKeyEvent,
             true
         );
         
@@ -620,12 +735,13 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    exports.addGlobalKeydownHook = addGlobalKeydownHook;
+    exports.removeGlobalKeydownHook = removeGlobalKeydownHook;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
@@ -636,4 +752,8 @@ define(function (require, exports, module) {
      * not Linux.
      */
     exports.useWindowsCompatibleBindings = false;
+    
+    // For unit testing only
+    exports._handleKey = _handleKey;
+    exports._handleKeyEvent = _handleKeyEvent;
 });

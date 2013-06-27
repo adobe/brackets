@@ -48,6 +48,8 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow      = null;
+            ExtensionUtils  = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
@@ -59,7 +61,7 @@ define(function (require, exports, module) {
                 // attach style sheet
                 runs(function () {
                     var promise = ExtensionUtils.loadStyleSheet(module, path);
-                    promise.pipe(deferred.resolve, deferred.reject);
+                    promise.then(deferred.resolve, deferred.reject);
                     waitsForDone(promise, "loadStyleSheet: " + path);
                 });
                 

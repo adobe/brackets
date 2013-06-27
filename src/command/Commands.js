@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
     exports.FILE_SAVE_ALL               = "file.saveAll";
+    exports.FILE_SAVE_AS                = "file.saveAs";
     exports.FILE_CLOSE                  = "file.close";
     exports.FILE_CLOSE_ALL              = "file.close_all";
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
@@ -48,7 +49,6 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_DELETE                 = "file.delete";
-    exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_REFRESH                = "file.refresh";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
@@ -101,6 +101,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
@@ -118,7 +119,8 @@ define(function (require, exports, module) {
     exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
-    // File shell callbacks
-    exports.APP_ABORT_QUIT              = "app.abort_quit"; // string must MATCH string in native code (appshell_extensions)
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.APP_ABORT_QUIT              = "app.abort_quit";
+    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";
 });
 

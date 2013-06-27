@@ -36,338 +36,383 @@ importScripts("thirdparty/requirejs/require.js");
         var ternRequire = require.config({baseUrl: "./thirdparty"});
         ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
             Tern = tern;
-        });
-    });
 
-    var ternServer  = null;
-
-    // Save the tern callbacks for when we get the contents of the file
-    var fileCallBacks = {};
-    
-    /**
-     * Provide the contents of the requested file to tern
-     * @param {string} name - the name of the file
-     * @param {Function} next - the function to call with the text of the file
-     *  once it has been read in.
-     */
-    function getFile(name, next) {
-        // save the callback
-        fileCallBacks[name] = next;
+            var ternServer  = null;
         
-        // post a message back to the main thread to get the file contents 
-        self.postMessage({
-            type: MessageIds.TERN_GET_FILE_MSG,
-            file: name
-        });
-    }
-
-    /**
-     * Handle a response from the main thread providing the contents of a file
-     * @param {string} file - the name of the file
-     * @param {string} text - the contents of the file
-     */
-    function handleGetFile(file, text) {
-        var next = fileCallBacks[file];
-        if (next) {
-            next(null, text);
-        }
-        delete fileCallBacks[file];
-    }
-    
-    /**
-     * Create a new tern server.
-     *
-     * @param {Object} env - an Object with the environment, as read in from
-     *  the json files in thirdparty/tern/defs
-     * @param {string} dir - the current directory
-     * @param {Array.<string>} files - a list of filenames tern should be aware of
-     */
-    function initTernServer(env, dir, files) {
-        var ternOptions = {
-            defs: env,
-            async: true,
-            getFile: getFile,
-            plugins: {requirejs: {}, doc_comment: true}
-        };
-        ternServer = new Tern.Server(ternOptions);
+            // Save the tern callbacks for when we get the contents of the file
+            var fileCallBacks = {};
+            
+            /**
+             * Provide the contents of the requested file to tern
+             * @param {string} name - the name of the file
+             * @param {Function} next - the function to call with the text of the file
+             *  once it has been read in.
+             */
+            function getFile(name, next) {
+                // save the callback
+                fileCallBacks[name] = next;
+                
+                // post a message back to the main thread to get the file contents 
+                self.postMessage({
+                    type: MessageIds.TERN_GET_FILE_MSG,
+                    file: name
+                });
+            }
         
-        files.forEach(function (file) {
-            ternServer.addFile(file);
-        });
-        
-    }
-
-    /**
-     * Build an object that can be used as a request to tern
-     * @param {string} dir - the current directory
-     * @param {string} file - the filename the request is in
-     * @param {string} query - the type of request being made
-     * @param {number} offset - the offset in the file the request is at
-     * @param {string} text - the text of the file
-     */
-    function buildRequest(dir, file, query, offset, text) {
-        query = {type: query};
-        query.start = offset;
-        query.end = offset;
-        query.file = file;
-        query.filter = false;
-        query.sort = false;
-        query.depths = true;
-        query.guess = true;
-        query.origins = true;
-        query.expandWordForward = false;
-
-        var request = {query: query, files: [], offset: offset};
-        request.files.push({type: "full", name: file, text: text});
-
-        return request;
-    }
-
-    /**
-     * Send a log message back from the worker to the main thread
-     * 
-     * @param {string} msg - the log message
-     */
-    function _log(msg) {
-        self.postMessage({log: msg });
-    }
-    
-    /**
-     * Get definition location
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {number} offset   - the offset into the file for cursor
-     * @param {string} text     - the text of the file
-     */
-    function getJumptoDef(dir, file, offset, text) {
-        
-        var request = buildRequest(dir, file, "definition", offset, text);
-        request.query.lineCharPositions = true;
-        ternServer.request(request, function (error, data) {
-            if (error) {
-                _log("Error returned from Tern 'definition' request: " + error);
-                self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG});
-                return;
+            /**
+             * Handle a response from the main thread providing the contents of a file
+             * @param {string} file - the name of the file
+             * @param {string} text - the contents of the file
+             */
+            function handleGetFile(file, text) {
+                var next = fileCallBacks[file];
+                if (next) {
+                    next(null, text);
+                }
+                delete fileCallBacks[file];
             }
             
-            // Post a message back to the main thread with the definition
-            self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG,
-                              file: file,
-                              resultFile: data.file,
-                              offset: offset,
-                              start: data.start,
-                              end: data.end
-                             });
-        });
-    }
-
-    /**
-     * Get all the known properties for guessing.
-     *
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {number} offset   - the offset into the file where we want completions for
-     * @param {string} text     - the text of the file
-     * @param {string} type     - the type of the message to reply with.
-     */
-    function getTernProperties(dir, file, offset, text, type) {
-
-        var request = buildRequest(dir, file, "properties", undefined, text),
-            i;
-        //_log("tern properties: request " + request.type + dir + " " + file);
-        ternServer.request(request, function (error, data) {
-            var properties = [];
-            if (error) {
-                _log("Error returned from Tern 'properties' request: " + error);
-            } else {
-                //_log("tern properties: completions = " + data.completions.length);
-                for (i = 0; i < data.completions.length; ++i) {
-                    var property = data.completions[i];
-                    properties.push({value: property, guess: true});
-                }
-            }
-
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: type,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              properties: properties
+            /**
+             * Create a new tern server.
+             *
+             * @param {Object} env - an Object with the environment, as read in from
+             *  the json files in thirdparty/tern/defs
+             * @param {Array.<string>} files - a list of filenames tern should be aware of
+             */
+            function initTernServer(env, files) {
+                var ternOptions = {
+                    defs: env,
+                    async: true,
+                    getFile: getFile,
+                    plugins: {requirejs: {}, doc_comment: true}
+                };
+                ternServer = new Tern.Server(ternOptions);
+                
+                files.forEach(function (file) {
+                    ternServer.addFile(file);
                 });
-        });
-    }
-        
-    /**
-     * Get the completions for the given offset
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {number} offset   - the offset into the file where we want completions for
-     * @param {string} text     - the text of the file
-     * @param {boolean} isProperty - true if getting a property hint,
-     * otherwise getting an identifier hint.
-     */
-    function getTernHints(dir, file, offset, text, isProperty) {
-        
-        var request = buildRequest(dir, file, "completions", offset, text),
-            i;
-
-        //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-        ternServer.request(request, function (error, data) {
-            var completions = [];
-            if (error) {
-                _log("Error returned from Tern 'completions' request: " + error);
-            } else {
-                //_log("found " + data.completions.length + " for " + file + "@" + offset);
-                for (i = 0; i < data.completions.length; ++i) {
-                    var completion = data.completions[i];
-                    completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                        guess: completion.guess, origin: completion.origin});
-                }
+                
             }
 
-            if (completions.length > 0 || !isProperty) {
-                // Post a message back to the main thread with the completions
-                self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
-                    dir: dir,
-                    file: file,
-                    offset: offset,
-                    completions: completions
+            /**
+             * Create a "full" update object.
+             *
+             * @param {string} path - full path of the file.
+             * @param {string} text - full text of the file.
+             * @return {{type: string, name: string, offsetLines: number, text: string}} -
+             * "full" update.
+
+             */
+            function createFullUpdate(path, text) {
+                return {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
+                        name: path,
+                        offsetLines: 0,
+                        text: text};
+            }
+
+            /**
+             * Create a "empty" update object.
+             *
+             * @param {string} path - full path of the file.
+             * @return {{type: string, name: string, offsetLines: number, text: string}} -
+             * "empty" update.
+
+             */
+            function createEmptyUpdate(path) {
+                return {type: MessageIds.TERN_FILE_INFO_TYPE_EMPTY,
+                    name: path,
+                    offsetLines: 0,
+                    text: ""};
+            }
+
+            /**
+             * Build an object that can be used as a request to tern.
+             *
+             * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+             * - type of update, name of file, and the text of the update.
+             * For "full" updates, the whole text of the file is present. For "part" updates,
+             * the changed portion of the text. For "empty" updates, the file has not been modified
+             * and the text is empty.
+             * @param {string} query - the type of request being made
+             * @param {{line: number, ch: number}} offset -
+             */
+            function buildRequest(fileInfo, query, offset) {
+                query = {type: query};
+                query.start = offset;
+                query.end = offset;
+                query.file = (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) ? "#0" : fileInfo.name;
+                query.filter = false;
+                query.sort = false;
+                query.depths = true;
+                query.guess = true;
+                query.origins = true;
+                query.expandWordForward = false;
+                query.lineCharPositions = true;
+
+                var request = {query: query, files: [], offset: offset};
+                if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
+                    request.files.push(fileInfo);
+                }
+
+                return request;
+            }
+
+            /**
+             * Send a log message back from the worker to the main thread
+             * 
+             * @param {string} msg - the log message
+             */
+            function _log(msg) {
+                self.postMessage({log: msg });
+            }
+            
+            /**
+             * Get definition location
+             * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+             * - type of update, name of file, and the text of the update.
+             * For "full" updates, the whole text of the file is present. For "part" updates,
+             * the changed portion of the text. For "empty" updates, the file has not been modified
+             * and the text is empty.
+             * @param {{line: number, ch: number}} offset - the offset into the
+             * file for cursor
+             */
+            function getJumptoDef(fileInfo, offset) {
+                var request = buildRequest(fileInfo, "definition", offset);
+                // request.query.typeOnly = true;       // FIXME: tern doesn't work exactly right yet.
+                ternServer.request(request, function (error, data) {
+                    if (error) {
+                        _log("Error returned from Tern 'definition' request: " + error);
+                        self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
+                        return;
+                    }
+                    var isFunc = false,
+                        response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                                          file: fileInfo.name,
+                                          resultFile: data.file,
+                                          offset: offset,
+                                          start: data.start,
+                                          end: data.end
+                                         };
+
+                    request = buildRequest(fileInfo, "type", offset);
+                    // See if we can tell if the reference is to a Function type
+                    ternServer.request(request, function (error, data) {
+                        if (!error) {
+                            response.isFunction = data.type.length > 2 && data.type.substring(0, 2) === "fn";
+                        }
+                        
+                        // Post a message back to the main thread with the definition
+                        self.postMessage(response);
                     });
-            } else {
-                // if there are no completions, then get all the properties
-                getTernProperties(dir, file, offset, text, MessageIds.TERN_COMPLETIONS_MSG);
-            }
-        });
-    }
 
-    /**
-     * Get the function type for the given offset
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {number} offset   - the offset into the file where we want completions for
-     * @param {string} text     - the text of the file
-     */
-    function handleFunctionType(dir, file, pos, offset, text) {
-        
-        var request = buildRequest(dir, file, "type", pos, text);
-            
-        request.preferFunction = true;
-        
-        //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-        ternServer.request(request, function (error, data) {
-            var fnType = "";
-            if (error) {
-                _log("Error returned from Tern 'type' request: " + error);
-            } else {
-                fnType = data.type;
-            }
-
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              fnType: fnType
-                             });
-        });
-    }
-
-    /**
-     *  Add an array of files to tern.
-     *
-     * @param {Array.<string>} files - each string in the array is the full
-     * path of a file.
-     */
-    function handleAddFiles(files) {
-        files.forEach(function (file) {
-            ternServer.addFile(file);
-        });
-    }
-
-    /**
-     *  Update the context of a file in tern.
-     *
-     * @param {string} path - full path of file.
-     * @param {string} text - content of the file.
-     */
-    function handleUpdateFile(path, text) {
-
-        ternServer.addFile(path, text);
-
-        self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
-            path: path
-            });
-
-        // reset to get the best hints with the updated file.
-        ternServer.reset();
-    }
-
-    /**
-     *  Make a completions request to tern to force tern to resolve files
-     *  and create a fast first lookup for the user.
-     * @param {string} path     - the path of the file
-     * @param {string} text     - the text of the file
-     */
-    function handlePrimePump(path, text) {
-        var request = buildRequest("", path, "completions", 0, text);
-
-        ternServer.request(request, function (error, data) {
-            // Post a message back to the main thread
-            self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
-                path: path
                 });
-        });
-    }
-    
-    self.addEventListener("message", function (e) {
-        var dir, file, text, offset,
-            request = e.data,
-            type = request.type;
-
-        if (type === MessageIds.TERN_INIT_MSG) {
+            }
+        
+            /**
+             * Get all the known properties for guessing.
+             *
+             * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+             * - type of update, name of file, and the text of the update.
+             * For "full" updates, the whole text of the file is present. For "part" updates,
+             * the changed portion of the text. For "empty" updates, the file has not been modified
+             * and the text is empty.
+             * @param {{line: number, ch: number}} offset -
+             * the offset into the file where we want completions for
+             * @param {string} type     - the type of the message to reply with.
+             */
+            function getTernProperties(fileInfo, offset, type) {
+        
+                var request = buildRequest(fileInfo, "properties", offset),
+                    i;
+                //_log("tern properties: request " + request.type + dir + " " + file);
+                ternServer.request(request, function (error, data) {
+                    var properties = [];
+                    if (error) {
+                        _log("Error returned from Tern 'properties' request: " + error);
+                    } else {
+                        //_log("tern properties: completions = " + data.completions.length);
+                        for (i = 0; i < data.completions.length; ++i) {
+                            var property = data.completions[i];
+                            properties.push({value: property, guess: true});
+                        }
+                    }
+        
+                    // Post a message back to the main thread with the completions
+                    self.postMessage({type: type,
+                                      file: fileInfo.name,
+                                      offset: offset,
+                                      properties: properties
+                        });
+                });
+            }
+                
+            /**
+             * Get the completions for the given offset
+             *
+             * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+             * - type of update, name of file, and the text of the update.
+             * For "full" updates, the whole text of the file is present. For "part" updates,
+             * the changed portion of the text. For "empty" updates, the file has not been modified
+             * and the text is empty.
+             * @param {{line: number, ch: number}} offset -
+             * the offset into the file where we want completions for
+             * @param {boolean} isProperty - true if getting a property hint,
+             * otherwise getting an identifier hint.
+             */
+            function getTernHints(fileInfo, offset, isProperty) {
+                
+                var request = buildRequest(fileInfo, "completions", offset),
+                    i;
+        
+                //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
+                ternServer.request(request, function (error, data) {
+                    var completions = [];
+                    if (error) {
+                        _log("Error returned from Tern 'completions' request: " + error);
+                    } else {
+                        //_log("found " + data.completions.length + " for " + file + "@" + offset);
+                        for (i = 0; i < data.completions.length; ++i) {
+                            var completion = data.completions[i];
+                            completions.push({value: completion.name, type: completion.type, depth: completion.depth,
+                                guess: completion.guess, origin: completion.origin});
+                        }
+                    }
+        
+                    if (completions.length > 0 || !isProperty) {
+                        // Post a message back to the main thread with the completions
+                        self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
+                            file: fileInfo.name,
+                            offset: offset,
+                            completions: completions
+                            });
+                    } else {
+                        // if there are no completions, then get all the properties
+                        getTernProperties(fileInfo, offset, MessageIds.TERN_COMPLETIONS_MSG);
+                    }
+                });
+            }
+        
+            /**
+             * Get the function type for the given offset
+             *
+             * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+             * - type of update, name of file, and the text of the update.
+             * For "full" updates, the whole text of the file is present. For "part" updates,
+             * the changed portion of the text. For "empty" updates, the file has not been modified
+             * and the text is empty.
+             * @param {{line: number, ch: number}} offset -
+             * the offset into the file where we want completions for
+             */
+            function handleFunctionType(fileInfo, offset) {
+                
+                var request = buildRequest(fileInfo, "type", offset);
+                    
+                request.preferFunction = true;
+                
+                //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
+                ternServer.request(request, function (error, data) {
+                    var fnType = "";
+                    if (error) {
+                        _log("Error returned from Tern 'type' request: " + error);
+                    } else {
+                        fnType = data.type;
+                    }
+        
+                    // Post a message back to the main thread with the completions
+                    self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
+                                      file: fileInfo.name,
+                                      offset: offset,
+                                      fnType: fnType
+                                     });
+                });
+            }
+        
+            /**
+             *  Add an array of files to tern.
+             *
+             * @param {Array.<string>} files - each string in the array is the full
+             * path of a file.
+             */
+            function handleAddFiles(files) {
+                files.forEach(function (file) {
+                    ternServer.addFile(file);
+                });
+            }
+        
+            /**
+             *  Update the context of a file in tern.
+             *
+             * @param {string} path - full path of file.
+             * @param {string} text - content of the file.
+             */
+            function handleUpdateFile(path, text) {
+        
+                ternServer.addFile(path, text);
+        
+                self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
+                    path: path
+                    });
+        
+                // reset to get the best hints with the updated file.
+                ternServer.reset();
+            }
+        
+            /**
+             *  Make a completions request to tern to force tern to resolve files
+             *  and create a fast first lookup for the user.
+             * @param {string} path     - the path of the file
+             */
+            function handlePrimePump(path) {
+                var fileInfo = createEmptyUpdate(path);
+                var request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
+        
+                ternServer.request(request, function (error, data) {
+                    // Post a message back to the main thread
+                    self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
+                        path: path
+                        });
+                });
+            }
             
-            dir         = request.dir;
-            var env     = request.env,
-                files   = request.files;
-            initTernServer(env, dir, files);
-        } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
-            dir = request.dir;
-            file = request.file;
-            text    = request.text;
-            offset  = request.offset;
-            getTernHints(dir, file, offset, text, request.isProperty);
-        } else if (type === MessageIds.TERN_GET_FILE_MSG) {
-            file = request.file;
-            text = request.text;
-            handleGetFile(file, text);
-        } else if (type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
-            dir     = request.dir;
-            file    = request.file;
-            text    = request.text;
-            offset  = request.offset;
-            var pos = request.pos;
-            handleFunctionType(dir, file, pos, offset, text);
-        } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
-            file    = request.file;
-            dir     = request.dir;
-            text    = request.text;
-            offset  = request.offset;
-            getJumptoDef(dir, file, offset, text);
-        } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
-            handleAddFiles(request.files);
-        } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
-            handlePrimePump(request.path, request.text);
-        } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
-            dir     = request.dir;
-            file    = request.file;
-            text    = request.text;
-            offset  = request.offset;
-            getTernProperties(dir, file, offset, text, MessageIds.TERN_GET_GUESSES_MSG);
-        } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
-            handleUpdateFile(request.path, request.text);
-        } else {
-            _log("Unknown message: " + JSON.stringify(request));
-        }
+            self.addEventListener("message", function (e) {
+                var file, text, offset,
+                    request = e.data,
+                    type = request.type;
+                
+                if (type === MessageIds.TERN_INIT_MSG) {
+                    
+                    var env     = request.env,
+                        files   = request.files;
+                    initTernServer(env, files);
+                } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
+                    offset  = request.offset;
+                    getTernHints(request.fileInfo, offset, request.isProperty);
+                } else if (type === MessageIds.TERN_GET_FILE_MSG) {
+                    file = request.file;
+                    text = request.text;
+                    handleGetFile(file, text);
+                } else if (type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
+                    offset  = request.offset;
+                    handleFunctionType(request.fileInfo, offset);
+                } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
+                    offset  = request.offset;
+                    getJumptoDef(request.fileInfo, offset);
+                } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
+                    handleAddFiles(request.files);
+                } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+                    handlePrimePump(request.path);
+                } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
+                    offset  = request.offset;
+                    getTernProperties(request.fileInfo, offset, MessageIds.TERN_GET_GUESSES_MSG);
+                } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
+                    handleUpdateFile(request.path, request.text);
+                } else {
+                    _log("Unknown message: " + JSON.stringify(request));
+                }
+            });
+            // tell the main thread we're ready to start processing messages
+            self.postMessage({type: MessageIds.TERN_WORKER_READY});
+        });
     });
 
 }());
