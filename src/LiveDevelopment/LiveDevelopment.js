@@ -852,6 +852,7 @@ define(function LiveDevelopment(require, exports, module) {
                             .done(function () {
                                 browserStarted = false;
                                 window.setTimeout(function () {
+                                    // After browser closes, try to open the interstitial page again
                                     _openInterstitialPage();
                                 });
                             })
@@ -937,8 +938,8 @@ define(function LiveDevelopment(require, exports, module) {
                 PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
                     .done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
-                            // If base url is specifed, then re-invoke open() to continue
-                            deferred.resolve();
+                            // If base url is specifed, then re-invoke _prepareServer() to continue
+                            _prepareServer(doc).then(deferred.resolve, deferred.reject);
                         } else {
                             deferred.reject();
                         }
@@ -970,8 +971,7 @@ define(function LiveDevelopment(require, exports, module) {
     function open() {
         _openDeferred = new $.Deferred();
 
-        var promise = _openDeferred.promise(),
-            doc = _getCurrentDocument();
+        var doc = _getCurrentDocument();
 
         _closeReason = null;
         
@@ -980,11 +980,11 @@ define(function LiveDevelopment(require, exports, module) {
             _showWrongDocError();
             _openDeferred.reject();
         } else {
-            // wait for server (StaticServer or file:)
+            // wait for server (StaticServer, Base URL or file:)
             _prepareServer(doc).then(_doLaunchAfterServerReady, _openDeferred.reject);
         }
 
-        return promise;
+        return _openDeferred.promise();
     }
     
     /** Enable highlighting */
