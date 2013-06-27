@@ -645,6 +645,39 @@ define(function (require, exports, module) {
 
         // TODO (issue #241): errorCallback
     };
+    
+    /**
+     * An InaccessibleFileEntry represents an inaccessible file on a file system.
+     *
+     * @constructor
+     * @param {string} name Full path of the file in the file system
+     * @param {FileSystem} fs File system that contains this entry
+     * @extends {FileEntry}
+     */
+    NativeFileSystem.InaccessibleFileEntry = function (name, mtime) {
+        NativeFileSystem.FileEntry.call(this, name, false);
+        this.mtime = mtime;
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype = Object.create(NativeFileSystem.FileEntry.prototype);
+    NativeFileSystem.InaccessibleFileEntry.prototype.constructor = NativeFileSystem.InaccessibleFileEntry;
+    NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
+        successCallback(new NativeFileSystem.Metadata(this.mtime));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
+        errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
+    };
 
     /**
      * This class extends the FileException interface described in to add

@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager       = require("editor/EditorManager"),
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager");
@@ -440,6 +441,13 @@ define(function (require, exports, module) {
     Document.prototype._notifyFilePathChanged = function () {
         // File extension may have changed
         this._updateLanguage();
+    };
+    
+    /**
+     * Is this an untitled document?
+     */
+    Document.prototype.isUntitled = function () {
+        return this.file instanceof NativeFileSystem.InaccessibleFileEntry;
     };
 
 

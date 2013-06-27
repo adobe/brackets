@@ -69,6 +69,9 @@ define(function (require, exports, module) {
     var _$titleContainerToolbar = null;
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
+    
+    /** @type {Number} index to use for next, new Untitled document */
+    var _nextUntitledIndexToUse = 1;
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -122,11 +125,14 @@ define(function (require, exports, module) {
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
-    
-            // In the main toolbar, show the project-relative path (if the file is inside the current project)
-            // or the full absolute path (if it's not in the project).
-            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
             
+            if (newDocument.isUntitled()) {
+                // In the main toolbar, show the project-relative path (if the file is inside the current project)
+                // or the full absolute path (if it's not in the project).
+                _currentTitlePath = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+            } else {
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            }
         } else {
             _currentTitlePath = null;
         }
@@ -324,11 +330,11 @@ define(function (require, exports, module) {
      */
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
-        var suggestedName = baseFileName + fileExt;
+        var suggestedName = baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt;
         var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
 
-        result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
-            if (nextIndexToUse > 99) {
+        result.progress(function attemptNewName(suggestedName) {
+            if (_nextUntitledIndexToUse > 99) {
                 //we've tried this enough
                 result.reject();
                 return;
@@ -337,7 +343,7 @@ define(function (require, exports, module) {
             //check this name
             var successCallback = function (entry) {
                 //file exists, notify to the next progress
-                result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+                result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
             };
             var errorCallback = function (error) {
                 //most likely error is FNF, user is better equiped to handle the rest
@@ -362,7 +368,7 @@ define(function (require, exports, module) {
         });
 
         //kick it off
-        result.notify(baseFileName + fileExt, 1);
+        result.notify(suggestedName);
 
         return result.promise();
     }
@@ -389,11 +395,14 @@ define(function (require, exports, module) {
         // Determine the directory to put the new file
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
-        // If nothing is selected in the tree, put it at the root of the project
+        // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
-            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+            selected = ProjectManager.getSelectedItem();
+        if ((selected === undefined) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
+            selected = ProjectManager.getProjectRoot();
+        }
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
@@ -414,6 +423,15 @@ define(function (require, exports, module) {
         return deferred;
     }
 
+    /**
+     * Create a new untitled document
+     */
+    function handleFileNew() {
+        var fullPath = DocumentManager.nextUntitledDocumentPath(_nextUntitledIndexToUse++, ".js");
+        return _doOpenWithOptionalPath(fullPath)
+            .always(EditorManager.focusEditor);
+    }
+    
     /**
      * Create a new file in the project tree.
      */
@@ -493,57 +511,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves the given file. If no file specified, assumes the current document.
-     * @param {?{doc: Document}} commandData  Document to close, or null
-     * @return {$.Promise} a promise that is resolved after the save completes
-     */
-    function handleFileSave(commandData) {
-        // Default to current document if doc is null
-        var doc = null;
-        if (commandData) {
-            doc = commandData.doc;
-        }
-        if (!doc) {
-            var activeEditor = EditorManager.getActiveEditor();
-            
-            if (activeEditor) {
-                doc = activeEditor.document;
-            }
-            
-            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
-            // doc and makes sure the document is dirty before saving.
-        }
-        
-        return doSave(doc);
-    }
-    
-    /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
-     *
-     * @return {$.Promise}
-     */
-    function saveAll() {
-        // Do in serial because doSave shows error UI for each file, and we don't want to stack
-        // multiple dialogs on top of each other
-        return Async.doSequentially(
-            DocumentManager.getWorkingSet(),
-            function (file) {
-                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                if (doc) {
-                    return doSave(doc);
-                } else {
-                    // working set entry that was never actually opened - ignore
-                    return (new $.Deferred()).resolve().promise();
-                }
-            },
-            false
-        );
-    }
-    
-    /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
@@ -567,8 +534,8 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-
-     /**
+    
+    /**
      * Opens the native OS save as dialog and saves document.
      * The original document is reverted in case it was dirty.
      * Text selection and cursor position from the original document
@@ -634,7 +601,7 @@ define(function (require, exports, module) {
                                 // doRevert on a file that is not dirty and not in the working set
                                 // has the side effect of adding the file to the working set.
                                 // we don't want that.
-                                if (doc.isDirty) {
+                                if (doc.isDirty && !(doc.isUntitled())) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
                                     doRevert(doc).always(updateProject);
@@ -653,7 +620,11 @@ define(function (require, exports, module) {
         // If the there is no project, default to desktop.
         if (doc) {
             fullPath = doc.file.fullPath;
-            saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
+            if (doc.isUntitled()) {
+                saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
+            } else {
+                saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
+            }
             defaultName = PathUtils.parseUrl(fullPath).filename;
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
@@ -664,6 +635,80 @@ define(function (require, exports, module) {
             result.reject();
         }
         return result.promise();
+    }
+    
+    /**
+     * Saves the given file. If no file specified, assumes the current document.
+     * @param {?{doc: Document}} commandData  Document to close, or null
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
+    function handleFileSave(commandData) {
+        // Default to current document if doc is null
+        var doc = null,
+            settings = {};
+        
+        if (commandData) {
+            doc = commandData.doc;
+        }
+        if (!doc) {
+            var activeEditor = EditorManager.getActiveEditor();
+            
+            if (activeEditor) {
+                doc = activeEditor.document;
+                settings.selection = activeEditor.getSelection();
+                settings.cursorPos = activeEditor.getCursorPos();
+                settings.scrollPos = activeEditor.getScrollPos();
+            }
+            
+            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
+            // doc and makes sure the document is dirty before saving.
+        }
+        
+        if (doc.isUntitled()) {
+            return _doSaveAs(doc, settings);
+        } else {
+            return doSave(doc);
+        }
+    }
+    
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
+     *
+     * @return {$.Promise}
+     */
+    function saveAll() {
+        // Do in serial because doSave shows error UI for each file, and we don't want to stack
+        // multiple dialogs on top of each other
+        return Async.doSequentially(
+            DocumentManager.getWorkingSet(),
+            function (file) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (doc) {
+                    if (doc.isUntitled()) {
+                        var activeEditor = EditorManager.getActiveEditor(),
+                            settings = null;
+                        
+                        if (activeEditor.document === doc) {
+                            settings = {
+                                selection: activeEditor.getSelection(),
+                                cursorPos: activeEditor.getCursorPos(),
+                                scrollPos: activeEditor.getScrollPos()
+                            };
+                        }
+                        return _doSaveAs(doc, settings);
+                    } else {
+                        return doSave(doc);
+                    }
+                } else {
+                    // working set entry that was never actually opened - ignore
+                    return (new $.Deferred()).resolve().promise();
+                }
+            },
+            false
+        );
     }
     
     /**
@@ -690,7 +735,6 @@ define(function (require, exports, module) {
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
-  
     }
 
     /**
@@ -781,7 +825,24 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
-                        doSave(doc)
+                        var savePromise;
+                        if (doc.isUntitled()) {
+                            var activeEditor = EditorManager.getActiveEditor(),
+                                settings = null;
+                            
+                            if (EditorManager.getActiveEditor() === doc) {
+                                settings = {
+                                    selection: activeEditor.getSelection(),
+                                    cursorPos: activeEditor.getCursorPos(),
+                                    scrollPos: activeEditor.getScrollPos()
+                                };
+                            }
+                            savePromise = _doSaveAs(doc, settings);
+                        } else {
+                            savePromise = doSave(doc);
+                        }
+                            
+                        savePromise
                             .done(function () {
                                 doClose(file);
                                 result.resolve();
@@ -858,9 +919,15 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>" +
-                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
-                    "</span></li>";
+                var fullPath = doc.file.fullPath;
+                
+                message += "<li><span class='dialog-filename'>";
+                if (doc.isUntitled()) {
+                    message += fullPath.substring(fullPath.lastIndexOf("/") + 1);
+                } else {
+                    message += StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(fullPath));
+                }
+                message += "</span></li>";
             });
             message += "</ul>";
             
@@ -1100,7 +1167,8 @@ define(function (require, exports, module) {
     // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
     // File > New should open a new blank tab, and handleFileNewInProject should
     // be called from a "+" button in the project
-    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_DOC,       Commands.FILE_NEW_DOC, handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW_FILE,      Commands.FILE_NEW_FILE, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
     CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
     CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
