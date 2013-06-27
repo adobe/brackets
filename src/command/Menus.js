@@ -211,8 +211,8 @@ define(function (require, exports, module) {
             binding = null;
         
         if (bindings.length > 0) {
-            // add the highest priority key binding
-            binding = bindings[0];
+            // add the latest key binding
+            binding = bindings[bindings.length - 1];
             _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
         }
         
@@ -545,8 +545,7 @@ define(function (require, exports, module) {
                 displayStr = "";
             
             if (bindings && bindings.length > 0) {
-                // Bindings are already sorted in priority order based on platform
-                binding = bindings[0];
+                binding = bindings[bindings.length - 1];
                 bindingStr = binding.displayKey || binding.key;
             }
             
@@ -742,13 +741,9 @@ define(function (require, exports, module) {
      * @private
      * Updates MenuItem DOM with a keyboard shortcut label
      */
-    MenuItem.prototype._keyBindingAdded = function (event, newKeyBinding) {
-        // always use the highest priority key binding for menus
-        var keyBindings = KeyBindingManager.getKeyBindings(this.getCommand().getID()),
-            keyBinding  = keyBindings[0] || newKeyBinding,
-            shortcutKey = keyBinding.displayKey || keyBinding.key;
-        
+    MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
         if (this.isNative) {
+            var shortcutKey = keyBinding.displayKey || keyBinding.key;
             brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
