@@ -1255,25 +1255,16 @@ define(function (require, exports, module) {
                 var errorCallback = function (error) {
                     if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
                             (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
-                        if (selectionEntry.isFile) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.INVALID_FILENAME_TITLE,
-                                StringUtils.format(
-                                    Strings.FILE_ALREADY_EXISTS,
-                                    StringUtils.breakableUrl(data.rslt.name)
-                                )
-                            );
-                        } else {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.INVALID_DIRECTORYNAME_TITLE,
-                                StringUtils.format(
-                                    Strings.DIRECTORY_ALREADY_EXISTS,
-                                    StringUtils.breakableUrl(data.rslt.name)
-                                )
-                            );
-                        }
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            selectionEntry.isFile ?
+                                    StringUtils.format(Strings.INVALID_FILENAME_TITLE,
+                                                   Strings.FILE) :
+                                    StringUtils.format(Strings.INVALID_FILENAME_TITLE,
+                                                   Strings.DIRECTORY),
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
+                                               StringUtils.breakableUrl(data.rslt.name))
+                        );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
