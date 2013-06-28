@@ -31,6 +31,9 @@ define(function (require, exports, module) {
     // Master index
     var _index = {};
     
+    // Array of all files in the index
+    var _allFiles = [];
+    
     /**
      * Clear the file index cache.
      */
@@ -45,6 +48,10 @@ define(function (require, exports, module) {
      */
     function addEntry(entry) {
         _index[entry.getPath()] = entry;
+        
+        if (entry.isFile()) {
+            _allFiles.push(entry);
+        }
     }
     
     /**
@@ -59,8 +66,13 @@ define(function (require, exports, module) {
         return _index[path];
     }
     
+    function getAllFiles() {
+        return _allFiles;   // TODO: Return a copy?
+    }
+    
     // Export public API
     exports.clear       = clear;
     exports.addEntry    = addEntry;
     exports.getEntry    = getEntry;
+    exports.getAllFiles = getAllFiles;
 });

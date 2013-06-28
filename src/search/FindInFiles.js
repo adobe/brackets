@@ -52,8 +52,8 @@ define(function (require, exports, module) {
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
-        FileIndexManager      = require("project/FileIndexManager"),
-        FileUtils             = require("file/FileUtils"),
+        FileSystem            = require("filesystem/FileSystem"),
+        //FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
@@ -390,18 +390,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @param {!FileInfo} fileInfo File in question
+     * @param {!File} file File in question
      * @param {?Entry} scope Search scope, or null if whole project
      * @return {boolean}
      */
-    function inScope(fileInfo, scope) {
+    function inScope(file, scope) {
         if (scope) {
             if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
-                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
+                return file.getPath().indexOf(scope.fullPath) === 0;
             } else {
-                return fileInfo.fullPath === scope.fullPath;
+                return file.getPath() === scope.fullPath;
             }
         }
         return true;
@@ -434,44 +434,42 @@ define(function (require, exports, module) {
                         return;
                     }
                     StatusBar.showBusyIndicator(true);
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (fileListResult) {
-                            Async.doInParallel(fileListResult, function (fileInfo) {
-                                var result = new $.Deferred();
-                                
-                                if (!inScope(fileInfo, scope)) {
-                                    result.resolve();
-                                } else {
-                                    // Search one file
-                                    DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                                        .done(function (doc) {
-                                            var matches = _getSearchMatches(doc.getText(), queryExpr);
-                                            
-                                            if (matches && matches.length) {
-                                                searchResults.push({
-                                                    fullPath: fileInfo.fullPath,
-                                                    matches: matches
-                                                });
-                                            }
-                                            result.resolve();
-                                        })
-                                        .fail(function (error) {
-                                            // Error reading this file. This is most likely because the file isn't a text file.
-                                            // Resolve here so we move on to the next file.
-                                            result.resolve();
+                    var fileList = FileSystem.getFileList();
+                    Async.doInParallel(fileList, function (file) {
+                        var result = new $.Deferred();
+                        
+                        if (!inScope(file, scope)) {
+                            result.resolve();
+                        } else {
+                            // Search one file
+                            file.readAsText()
+                                .done(function (contents) {
+                                    var matches = _getSearchMatches(contents, queryExpr);
+                                    
+                                    if (matches && matches.length) {
+                                        searchResults.push({
+                                            fullPath: file.getPath(),
+                                            matches: matches
                                         });
-                                }
-                                return result.promise();
-                            })
-                                .done(function () {
-                                    // Done searching all files: show results
-                                    _showSearchResults(searchResults, query, scope);
-                                    StatusBar.hideBusyIndicator();
+                                    }
+                                    result.resolve();
                                 })
-                                .fail(function () {
-                                    console.log("find in files failed.");
-                                    StatusBar.hideBusyIndicator();
+                                .fail(function (err) {
+                                    // Error reading this file. This is most likely because the file isn't a text file.
+                                    // Resolve here so we move on to the next file.
+                                    result.resolve();
                                 });
+                        }
+                        return result.promise();
+                    })
+                        .done(function () {
+                            // Done searching all files: show results
+                            _showSearchResults(searchResults, query, scope);
+                            StatusBar.hideBusyIndicator();
+                        })
+                        .fail(function () {
+                            console.log("find in files failed.");
+                            StatusBar.hideBusyIndicator();
                         });
                 }
             });
@@ -494,6 +492,7 @@ define(function (require, exports, module) {
     }
   
     function _pathDeletedHandler(event, path) {
+        /* TODO: Handle path deleted
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item, idx) {
@@ -503,6 +502,7 @@ define(function (require, exports, module) {
             });
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
+        */
     }
     
     

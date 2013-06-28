@@ -135,6 +135,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Return all indexed files
+     *
+     * @return {Array<File>} Array containing all indexed files.
+     */
+    function getFileList() {
+        return FileIndex.getAllFiles();
+    }
+    
+    /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
      *
      * TODO: args. See NativeFileSystem.showOpenDialog for examples
@@ -196,6 +205,7 @@ define(function (require, exports, module) {
     exports.newUnsavedFile          = newUnsavedFile;
     exports.getDirectoryForPath     = getDirectoryForPath;
     exports.getDirectoryContents    = getDirectoryContents;
+    exports.getFileList             = getFileList;
     exports.showOpenDialog          = showOpenDialog;
     exports.showSaveDialog          = showSaveDialog;
     exports.setProjectRoot          = setProjectRoot;

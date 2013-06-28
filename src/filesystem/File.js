@@ -38,6 +38,16 @@ define(function (require, exports, module) {
     File.prototype.constructor = File;
     File.prototype.parentClass = FileSystemEntry.prototype;
     
+    /**
+     * Contents of this file.
+     */
+    File.prototype._contents = null;
+    
+    /**
+     * Override to return true.
+     *
+     * @return {boolean} True -- this is a file
+     */
     File.prototype.isFile = function () {
         return true;
     };
@@ -53,14 +63,19 @@ define(function (require, exports, module) {
     File.prototype.readAsText = function (encoding) {
         var result = new $.Deferred();
         
-        this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
-            if (err) {
-                result.reject(err);
-            } else {
-                this._stat = stat;
-                result.resolve(data, stat);
-            }
-        }.bind(this));
+        if (this._contents && this._stat) {
+            result.resolve(this._contents, this._stat);
+        } else {
+            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    this._stat = stat;
+                    this._contents = data;
+                    result.resolve(data, stat);
+                }
+            }.bind(this));
+        }
         
         return result.promise();
     };

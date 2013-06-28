@@ -68,7 +68,8 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        FileSystem          = require("filesystem/FileSystem");
     
     
     /**
@@ -837,6 +838,8 @@ define(function (require, exports, module) {
     
             // close all the old files
             DocumentManager.closeAll();
+            
+            FileSystem.setProjectRoot(rootPath);
         }
         
         // Clear project path map
@@ -896,7 +899,7 @@ define(function (require, exports, module) {
                         }
                     });
                     resultRenderTree.fail(function () {
-                        PerfUtils.terminateMeasurement(perfTimerName);
+//                        PerfUtils.terminateMeasurement(perfTimerName);
                         result.reject();
                     });
                     resultRenderTree.always(function () {
