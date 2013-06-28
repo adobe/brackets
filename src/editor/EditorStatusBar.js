@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, window */
 
 /**
  * Manages parts of the status bar related to the current editor's state.
@@ -186,8 +186,14 @@ define(function (require, exports, module) {
         
         // set change handler for select box
         $languageSelect.on("change", function () {
+            var selectedLang = LanguageManager.getLanguage($(this).val()),
+                defaultLang = LanguageManager.getLanguageForPath(
+                    document.file.fullPath
+                );
+            // if default language selected, don't "force"" it
+            // (passing in null will reset the force flag)
             document.forceLanguage(
-                LanguageManager.getLanguage($(this).val())
+                selectedLang === defaultLang ? null : selectedLang
             );
             $languageSelect.css("width", "auto"); // unlock width
         });
