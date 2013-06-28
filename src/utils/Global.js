@@ -38,16 +38,8 @@ define(function (require, exports, module) {
     
     var configJSON = require("text!config.json");
     
-    // Define core brackets namespace if it isn't already defined
-    //
-    // We can't simply do 'brackets = {}' to define it in the global namespace because
-    // we're in "use strict" mode. Most likely, 'window' will always point to the global
-    // object when this code is running. However, in case it isn't (e.g. if we're running 
-    // inside Node for CI testing) we use this trick to get the global object.
-    //
-    // Taken from:
-    //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
-    var Fn = Function, global = (new Fn("return this"))();
+    // for CPA -- just hang brackets off of the window object
+    var global = window;
     if (!global.brackets) {
         global.brackets = {};
     }
@@ -80,20 +72,20 @@ define(function (require, exports, module) {
     }
     
     global.brackets.isLocaleDefault = function () {
-        return !global.localStorage.getItem("locale");
+        return true;
     };
     
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js
-        return global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
+        return navigator.language;
     };
 
     global.brackets.setLocale = function (locale) {
-        if (locale) {
-            global.localStorage.setItem("locale", locale);
-        } else {
-            global.localStorage.removeItem("locale");
-        }
+//        if (locale) {
+//            global.localStorage.setItem("locale", locale);
+//        } else {
+//            global.localStorage.removeItem("locale");
+//        }
     };
     
     // Create empty app namespace if running in-browser

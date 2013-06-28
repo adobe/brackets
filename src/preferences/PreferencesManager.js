@@ -54,7 +54,7 @@ define(function (require, exports, module) {
     
     // Private Properties
     var preferencesKey,
-        prefStorage,
+        prefStorage = {},
         persistentStorage,
         extensionPaths,
         doLoadPreferences   = false;
@@ -142,7 +142,9 @@ define(function (require, exports, module) {
      */
     function savePreferences() {
         // save all preferences
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
+        if (persistentStorage) {
+            persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
+        }
     }
 
     /**
@@ -154,7 +156,9 @@ define(function (require, exports, module) {
 
         // Note that storage.clear() is not used. Production and unit test code
         // both rely on the same backing storage but unique item keys.
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
+        if (persistentStorage) {
+            persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
+        }
     }
 
     /**
@@ -164,7 +168,7 @@ define(function (require, exports, module) {
     function _initStorage(storage) {
         persistentStorage = storage;
 
-        if (doLoadPreferences) {
+        if (doLoadPreferences && persistentStorage) {
             prefStorage = JSON.parse(persistentStorage.getItem(preferencesKey));
         }
 
@@ -199,19 +203,20 @@ define(function (require, exports, module) {
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
-    preferencesKey = localStorage.getItem("preferencesKey");
-    
-    if (!preferencesKey) {
-        // use default key if none is found
-        preferencesKey = PREFERENCES_CLIENT_ID;
-        doLoadPreferences = true;
-    } else {
-        // using a non-default key, check for additional settings
-        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
-    }
-
-    // Use localStorage by default
-    _initStorage(localStorage);
+//    preferencesKey = localStorage.getItem("preferencesKey");
+//    
+//    if (!preferencesKey) {
+//        // use default key if none is found
+//        preferencesKey = PREFERENCES_CLIENT_ID;
+//        doLoadPreferences = true;
+//    } else {
+//        // using a non-default key, check for additional settings
+//        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
+//    }
+//
+//    // Use localStorage by default
+//    _initStorage(localStorage);
+    _initStorage();
 
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;

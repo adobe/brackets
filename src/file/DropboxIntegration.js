@@ -133,7 +133,7 @@ define(function (require, exports, module) {
             key: "sWR9wXcpXIA=|c5GZu+WL9XhxhReZMsg7QvspGpVZ80iF+Cin/xbKrQ==",
             sandbox: false
         });
-        client.authDriver(new Dropbox.Drivers.Redirect({rememberUser: true}));
+        client.authDriver(new Dropbox.Drivers.Chrome({rememberUser: true}));
         client.authenticate(function (error, client) {
             if (error) {
                 return mapError(error);
