@@ -40,16 +40,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Set the root directory for the project. This clears any existing file cache
-     * and starts indexing on a new worker.
-     *
-     * @param {string} rootPath The new project root.
-     */
-    function setProjectRoot(rootPath) {
-        FileIndex.setRoot(rootPath);
-    }
-    
-    /**
      * Return a File object for the specified path.
      *
      * @param {string} path Path of file. 
@@ -108,7 +98,13 @@ define(function (require, exports, module) {
     function getDirectoryContents(directory) {
         var i, entryPath, entry, result = new $.Deferred();
         
+        if (directory._contentsPromise) {
+            // Existing promise for this directory's contents. Return it.
+            return directory._contentsPromise;
+        }
+        
         if (directory._contents) {
+            // Return cached directory contents
             result.resolve(directory._contents);
             return;
         }
@@ -129,11 +125,14 @@ define(function (require, exports, module) {
                 directory._contents.push(entry);
             }
             
+            directory._contentsPromise = null;
             result.resolve(directory._contents);
-        }.bind(this));
+        });
+        
+        directory._contentsPromise = result.promise();
         
         return result.promise();
-    };
+    }
     
     /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
@@ -159,14 +158,46 @@ define(function (require, exports, module) {
         return _impl.showSaveDialog(options);
     }
     
+    /**
+     * @private
+     * Recursively scan and index all entries in a directory
+     */
+    function _scanDirectory(directoryPath) {
+        var directory = getDirectoryForPath(directoryPath);
+        
+        getDirectoryContents(directory).done(function (entries) {
+            var i;
+            
+            for (i = 0; i < entries.length; i++) {
+                if (entries[i].isDirectory()) {
+                    _scanDirectory(entries[i].getPath());
+                }
+            }
+        });
+    }
+    
+    /**
+     * Set the root directory for the project. This clears any existing file cache
+     * and starts indexing on a new worker.
+     *
+     * @param {string} rootPath The new project root.
+     */
+    function setProjectRoot(rootPath) {
+        // Clear file index
+        FileIndex.clear();
+        
+        // Start indexing from the new root path
+        _scanDirectory(rootPath);
+    }
+    
     // Export public API
     exports.setFileSystemImpl       = setFileSystemImpl;
-    exports.setProjectRoot          = setProjectRoot;
     exports.getFileForPath          = getFileForPath;
     exports.newUnsavedFile          = newUnsavedFile;
     exports.getDirectoryForPath     = getDirectoryForPath;
     exports.getDirectoryContents    = getDirectoryContents;
     exports.showOpenDialog          = showOpenDialog;
     exports.showSaveDialog          = showSaveDialog;
+    exports.setProjectRoot          = setProjectRoot;
 });
 

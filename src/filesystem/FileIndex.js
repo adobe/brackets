@@ -27,9 +27,6 @@
 
 define(function (require, exports, module) {
     "use strict";
-
-    // Root path
-    var _rootPath;
     
     // Master index
     var _index = {};
@@ -42,21 +39,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Set the root for the file index cache. This clears the current cache
-     * and starts a new indexing worker thread.
+     * Add an entry.
      *
-     * @param {string} rootPath The new root path.
+     * @param {FileSystemEntry} entry The entry to add.
      */
-    function setRoot(rootPath) {
-        // Clear existing index 
-        clear();
-        
-        // Set root
-        _rootPath = rootPath;
-        
-        // TODO: Start indexing on worker thread
-    }
-    
     function addEntry(entry) {
         _index[entry.getPath()] = entry;
     }
@@ -75,7 +61,6 @@ define(function (require, exports, module) {
     
     // Export public API
     exports.clear       = clear;
-    exports.setRoot     = setRoot;
     exports.addEntry    = addEntry;
     exports.getEntry    = getEntry;
 });
