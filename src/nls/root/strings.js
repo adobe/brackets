@@ -61,8 +61,8 @@ define({
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
     "DIRECTORY_ALREADY_EXISTS"          : "The directory <span class='dialog-filename'>{0}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
-    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
+    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
