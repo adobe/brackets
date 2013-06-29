@@ -90,7 +90,6 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
@@ -214,12 +213,16 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                            
-                            dirEntry.getFile("index.html", {}, function (fileEntry) {
-                                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.then(deferred.resolve, deferred.reject);
-                            }, deferred.reject);
+                            var indexFile = FileSystem.getFileForPath(initialProjectPath + "/index.html");
+
+                            indexFile.exists().done(function (exists) {
+                                if (exists) {
+                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: indexFile.getPath() });
+                                    promise.then(deferred.resolve, deferred.reject);
+                                } else {
+                                    deferred.reject();
+                                }
+                            });
                         } else {
                             deferred.resolve();
                         }
