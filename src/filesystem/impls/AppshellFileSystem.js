@@ -28,12 +28,16 @@
 define(function (require, exports, module) {
     "use strict";
 
-    function showOpenDialog() {
-        // TODO
+    function init() {
+        // Nothing to do...
     }
     
-    function showSaveDialog() {
-        // TODO
+    function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
+        appshell.fs.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
+    }
+    
+    function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
+        appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     }
     
     function stat(path, callback) {
@@ -152,8 +156,9 @@ define(function (require, exports, module) {
     }
     
     // Export public API
+    exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
-    exports.showSavedialog  = showSaveDialog;
+    exports.showSaveDialog  = showSaveDialog;
     exports.isNetworkDrive  = isNetworkDrive;
     exports.exists          = exists;
     exports.readdir         = readdir;

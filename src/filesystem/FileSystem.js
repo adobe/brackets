@@ -32,11 +32,35 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex");
     
-    // FileSystemImpl 
-    var _impl = require("filesystem/impls/AppshellFileSystem");  // Temp - force appshell impl for now
+    var appshellFileSystem  = require("filesystem/impls/AppshellFileSystem"),
+        dropboxFileSystem   = require("filesystem/impls/DropboxFileSystem");
     
+    // FileSystemImpl 
+    var _impl;
+    
+    /**
+     * Set the low-level implementation for file i/o
+     *
+     * @param {FileSystemImpl} impl File system implementation
+     */
     function setFileSystemImpl(impl) {
         _impl = impl;
+        _impl.init();
+        
+        FileIndex.clear();
+    }
+    
+    /**
+     * Returns false for files and directories that are not commonly useful to display.
+     *
+     * @param {string} path File or directory to filter
+     * @return boolean true if the file should be displayed
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+    function shouldShow(path) {
+        var name = path.substr(path.lastIndexOf("/") + 1);
+        
+        return !name.match(_exclusionListRegEx);
     }
     
     /**
@@ -116,13 +140,15 @@ define(function (require, exports, module) {
             for (i = 0; i < stats.length; i++) {
                 entryPath = directory.getPath() + "/" + contents[i];
                 
-                if (stats[i].isFile()) {
-                    entry = getFileForPath(entryPath);
-                } else {
-                    entry = getDirectoryForPath(entryPath);
+                if (shouldShow(entryPath)) {
+                    if (stats[i].isFile()) {
+                        entry = getFileForPath(entryPath);
+                    } else {
+                        entry = getDirectoryForPath(entryPath);
+                    }
+                    
+                    directory._contents.push(entry);
                 }
-                
-                directory._contents.push(entry);
             }
             
             directory._contentsPromise = null;
@@ -146,25 +172,62 @@ define(function (require, exports, module) {
     /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
      *
-     * TODO: args. See NativeFileSystem.showOpenDialog for examples
+     * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
+     * @param {boolean} chooseDirectories Allows directories to be opened
+     * @param {string} title The title of the dialog
+     * @param {string} initialPath The folder opened inside the window initially. If initialPath
+     *                          is not set, or it doesn't exist, the window would show the last
+     *                          browsed folder depending on the OS preferences
+     * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
+     *                          allows any extension to be selected.
      *
      * @return {$.Promise} Promise that will be resolved with the selected file(s)/directories, 
      *                     or rejected if an error occurred.
      */
-    function showOpenDialog(options) {
-        return _impl.showOpenDialog(options);
+    function showOpenDialog(allowMultipleSelection,
+                            chooseDirectories,
+                            title,
+                            initialPath,
+                            fileTypes) {
+        
+        var result = new $.Deferred();
+        
+        _impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(data);
+            }
+        });
+        
+        return result.promise();
     }
     
     /**
      * Show a "Save" dialog and return the path of the file to save.
      *
-     * TODO: args. See NativeFileSystem.showSaveDialog for examples
+     * @param {string} title The title of the dialog.
+     * @param {string} initialPath The folder opened inside the window initially. If initialPath
+     *                          is not set, or it doesn't exist, the window would show the last
+     *                          browsed folder depending on the OS preferences.
+     * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
+     *                          on the current file name plus an additional suffix
      *
      * @return {$.Promise} Promise that will be resolved with the name of the file to save,
      *                     or rejected if an error occurred.
      */
-    function showSaveDialog(options) {
-        return _impl.showSaveDialog(options);
+    function showSaveDialog(title, initialPath, proposedNewFilename) {
+        var result = new $.Deferred();
+        
+        _impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(selection);
+            }
+        });
+        
+        return result.promise();
     }
     
     /**
@@ -192,6 +255,12 @@ define(function (require, exports, module) {
      * @param {string} rootPath The new project root.
      */
     function setProjectRoot(rootPath) {
+        if (rootPath && rootPath.length > 1) {
+            if (rootPath[rootPath.length - 1] === "/") {
+                rootPath = rootPath.substr(0, rootPath.length - 1);
+            }
+        }
+        
         // Clear file index
         FileIndex.clear();
         
@@ -199,8 +268,12 @@ define(function (require, exports, module) {
         _scanDirectory(rootPath);
     }
     
+    // Set initial file system
+    setFileSystemImpl(appshellFileSystem);
+    
     // Export public API
     exports.setFileSystemImpl       = setFileSystemImpl;
+    exports.shouldShow              = shouldShow;
     exports.getFileForPath          = getFileForPath;
     exports.newUnsavedFile          = newUnsavedFile;
     exports.getDirectoryForPath     = getDirectoryForPath;

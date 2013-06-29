@@ -39,6 +39,7 @@ define(function (require, exports, module) {
      */
     function clear() {
         _index = {};
+        _allFiles = [];
     }
     
     /**

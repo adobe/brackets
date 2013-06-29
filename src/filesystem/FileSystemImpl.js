@@ -9,8 +9,8 @@
 // }
 //
 //
-// showOpenDialog(TODO: args)
-// showSaveDialog(TODO: args)
+// showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data))
+// showSaveDialog((title, initialPath, proposedNewFilename, callback))
 // [isNetworkDrive(path, callback)]
 // exists(path, callback)
 // readdir(path, callback)

@@ -1060,8 +1060,8 @@ define(function (require, exports, module) {
                     _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
-                        function (files) {
+                    FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
+                        .done(function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
@@ -1069,16 +1069,15 @@ define(function (require, exports, module) {
                             } else {
                                 result.reject();
                             }
-                        },
-                        function (error) {
+                        })
+                        .fail(function (error) {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
                                 StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
-                        }
-                        );
+                        });
                 }
             })
             .fail(function () {
