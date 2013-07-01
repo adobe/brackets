@@ -77,10 +77,7 @@ move it to the feature backlog for you.
 
 #### I want to help with the code!
 
-Awesome! Brackets is fairly early in development, so some of the features you would
-expect in a code editor are missing, and some existing features might be
-incomplete or not as useful as you'd want. But if you like the direction
-it's going, _there are lots of ways you can help._ See [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md)
+Awesome! _There are lots of ways you can help._ See [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md)
 and learn how to pull the repo and hack on Brackets [in the WIKI](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
 The text editor inside Brackets is based on 
