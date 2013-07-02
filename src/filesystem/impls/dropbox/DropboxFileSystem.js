@@ -138,6 +138,11 @@ define(function (require, exports, module) {
         client.unlink(path, callback);
     }
     
+    // TEMP - REMOVE ME
+    exports.pullChanges = function (cursor, callback) {
+        client.pullChanges(cursor, callback);
+    };
+    
     // Export public API
     exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;

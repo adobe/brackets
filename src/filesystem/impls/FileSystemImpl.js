@@ -22,3 +22,7 @@
 // chmod(path, mode, callback)
 // unlink(path, callback)
 // [moveToTrash(path, callback)]
+// initWatchers(callback)
+// watchDirectory(path)
+// unwatchDirectory(path)
+// unwatchAllDirectories()

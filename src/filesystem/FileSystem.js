@@ -32,8 +32,8 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex");
     
-    var appshellFileSystem  = require("filesystem/impls/AppshellFileSystem"),
-        dropboxFileSystem   = require("filesystem/impls/DropboxFileSystem");
+    var appshellFileSystem  = require("filesystem/impls/appshell/AppshellFileSystem"),
+        dropboxFileSystem   = require("filesystem/impls/dropbox/DropboxFileSystem");
     
     // FileSystemImpl 
     var _impl;
