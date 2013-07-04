@@ -23,13 +23,67 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell */
+/*global define, appshell, $, window */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var FileUtils           = require("file/FileUtils"),
+        NodeConnection      = require("utils/NodeConnection");
+    
+    /**
+     * @const
+     * Amount of time to wait before automatically rejecting the connection
+     * deferred. If we hit this timeout, we'll never have a node connection
+     * for the file watcher in this run of Brackets.
+     */
+    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer & Package?
+    
+    /**
+     * @private
+     * @type{jQuery.Deferred.<NodeConnection>}
+     * A deferred which is resolved with a NodeConnection or rejected if
+     * we are unable to connect to Node.
+     */
+    var _nodeConnectionDeferred;
+    
+    var _watcherCallback,           // Callback function for watcher events
+        _watcherMap;                // Map of directory paths to watcher objects
 
     function init() {
-        // Nothing to do...
+        if (!_nodeConnectionDeferred) {
+            _nodeConnectionDeferred = new $.Deferred();
+            
+            // TODO: This code is a copy of the AppInit function in extensibility/Package.js. This should be refactored
+            // into common code.
+            
+            
+            // Start up the node connection, which is held in the
+            // _nodeConnectionDeferred module variable. (Use 
+            // _nodeConnectionDeferred.done() to access it.
+            var connectionTimeout = window.setTimeout(function () {
+                console.error("[AppshellFileSystem] Timed out while trying to connect to node");
+                _nodeConnectionDeferred.reject();
+            }, NODE_CONNECTION_TIMEOUT);
+            
+            var _nodeConnection = new NodeConnection();
+            _nodeConnection.connect(true).then(function () {
+                var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/FileWatcherDomain";
+                
+                _nodeConnection.loadDomains(domainPath, true)
+                    .then(
+                        function () {
+                            window.clearTimeout(connectionTimeout);
+                            _nodeConnectionDeferred.resolve(_nodeConnection);
+                        },
+                        function () { // Failed to connect
+                            console.error("[AppshellFileSystem] Failed to connect to node", arguments);
+                            window.clearTimeout(connectionTimeout);
+                            _nodeConnectionDeferred.reject();
+                        }
+                    );
+            });
+        }
     }
     
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -155,6 +209,35 @@ define(function (require, exports, module) {
         appshell.fs.moveToTrash(path, callback);
     }
     
+    function initWatchers(callback) {
+        _watcherCallback = callback;
+ //       _watcherMap = {};  TODO: send message to node?
+    }
+    
+    function watchPath(path) {
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileWatcher.watchPath(path);
+            }
+        });
+    }
+    
+    function unwatchPath(path) {
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileWatcher.unwatchPath(path);
+            }
+        });
+    }
+    
+    function unwatchAll() {
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileWatcher.unwatchAll();
+            }
+        });
+    }
+    
     // Export public API
     exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
@@ -170,4 +253,8 @@ define(function (require, exports, module) {
     exports.chmod           = chmod;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
+    exports.initWatchers    = initWatchers;
+    exports.watchPath       = watchPath;
+    exports.unwatchPath     = unwatchPath;
+    exports.unwatchAll      = unwatchAll;
 });

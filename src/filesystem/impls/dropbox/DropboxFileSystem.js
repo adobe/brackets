@@ -138,6 +138,18 @@ define(function (require, exports, module) {
         client.unlink(path, callback);
     }
     
+    function initWatchers(callback) {
+    }
+    
+    function watchPath(path) {
+    }
+    
+    function unwatchPath(path) {
+    }
+    
+    function unwatchAll() {
+    }
+    
     // TEMP - REMOVE ME
     exports.pullChanges = function (cursor, callback) {
         client.pullChanges(cursor, callback);
@@ -156,4 +168,8 @@ define(function (require, exports, module) {
     exports.writeFile       = writeFile;
     exports.chmod           = chmod;
     exports.unlink          = unlink;
+    exports.initWatchers    = initWatchers;
+    exports.watchPath       = watchPath;
+    exports.unwatchPath     = unwatchPath;
+    exports.unwatchAll      = unwatchAll;
 });

@@ -44,6 +44,11 @@ define(function (require, exports, module) {
      * @param {FileSystemImpl} impl File system implementation
      */
     function setFileSystemImpl(impl) {
+        // Clear old watchers
+        if (_impl) {
+            _impl.unwatchAll();
+        }
+        
         _impl = impl;
         _impl.init();
         
@@ -246,6 +251,22 @@ define(function (require, exports, module) {
                 }
             }
         });
+        _impl.watchPath(directoryPath);
+    }
+    
+    /**
+     * @private
+     * Callback for file/directory watchers. This is called by the low-level implementation
+     * whenever a directory or file is changed. There may be multiple calls for any given
+     * directory or file, so this callback collects messages over a 100ms period of time
+     * and then handles them all at once.
+     *
+     * @param {string} path The path that changed. This could be a file or a directory.
+     * @param {stat=} stat Optional stat for the item that changed. This param is not always
+     *         passed. 
+     */
+    function _watcherCallback(path, stat) {
+        console.log("File/directory change: " + path + ", stat: " + stat);
     }
     
     /**
@@ -263,6 +284,10 @@ define(function (require, exports, module) {
         
         // Clear file index
         FileIndex.clear();
+        
+        // Initialize watchers
+        _impl.unwatchAll();
+        _impl.initWatchers(_watcherCallback);
         
         // Start indexing from the new root path
         _scanDirectory(rootPath);
