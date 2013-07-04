@@ -71,5 +71,35 @@ define(function (require, exports, module) {
                 expect(FileUtils.getDirectoryPath("C:/foo/bar/")).toBe("C:/foo/bar/");
             });
         });
+
+        describe("getBaseName", function () {
+            
+            it("should get the file name of a normalized win file path", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/baz.txt")).toBe("baz.txt");
+            });
+            
+            it("should get the file name of a posix file path", function () {
+                expect(FileUtils.getBaseName("/foo/bar/baz.txt")).toBe("baz.txt");
+            });
+            
+            it("should return the directory name of a normalized win directory path", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/")).toBe("bar");
+            });
+            
+            it("should return the directory name of a posix directory path", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/")).toBe("bar");
+            });
+
+            it("should return the file name of a path containing #", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/#baz/jaz.txt")).toBe("jaz.txt");
+                expect(FileUtils.getBaseName("C:/foo/bar/baz/#jaz.txt")).toBe("#jaz.txt");
+            });
+
+            it("should return the directory name of a path containing #", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/#baz/jaz.txt")).toBe("jaz.txt");
+                expect(FileUtils.getBaseName("C:/foo/bar/baz/#jaz")).toBe("#jaz");
+            });
+        });
+
     });
 });

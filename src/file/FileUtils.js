@@ -361,6 +361,20 @@ define(function (require, exports, module) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
     }
 
+    /**
+     * Get the base name of a file or a directory.
+     * @param {string} full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        // chop off the trailing slash of a directory
+        if (fullPath.charAt(fullPath.length - 1) === '/') {
+            fullPath = fullPath.substr(0, fullPath.length - 1);
+        }
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+    }
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -381,4 +395,5 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getBaseName                    = getBaseName;
 });

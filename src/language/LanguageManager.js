@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, PathUtils */
+/*global define, $, CodeMirror */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -103,7 +103,8 @@ define(function (require, exports, module) {
     
     // Dependencies
     var Async                 = require("utils/Async"),
-        _defaultLanguagesJSON = require("text!language/languages.json");
+        _defaultLanguagesJSON = require("text!language/languages.json"),
+        FileUtils             = require("file/FileUtils");
     
     
     // State
@@ -187,11 +188,11 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var fileName  = PathUtils.filename(path).toLowerCase(),
+        var fileName = FileUtils.getBaseName(path).toLowerCase(),
             language  = _fileNameToLanguageMap[fileName],
             extension,
             parts;
-        
+
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
