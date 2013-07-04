@@ -96,8 +96,8 @@ define(function (require, exports, module) {
             });
 
             it("should return the directory name of a path containing #", function () {
-                expect(FileUtils.getBaseName("C:/foo/bar/#baz/jaz.txt")).toBe("jaz.txt");
-                expect(FileUtils.getBaseName("C:/foo/bar/baz/#jaz")).toBe("#jaz");
+                expect(FileUtils.getBaseName("C:/foo/bar/#baz/jaz/")).toBe("jaz");
+                expect(FileUtils.getBaseName("C:/foo/bar/baz/#jaz/")).toBe("#jaz");
             });
         });
 
