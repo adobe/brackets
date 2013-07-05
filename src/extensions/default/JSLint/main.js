@@ -42,10 +42,8 @@ define(function (require, exports, module) {
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         LanguageManager         = brackets.getModule("language/LanguageManager"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
-        ProjectManager          = brackets.getModule("project/ProjectManager"),
         Strings                 = brackets.getModule("strings"),
         StringUtils             = brackets.getModule("utils/StringUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
@@ -98,19 +96,7 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _gotoEnabled = false;
-
-    /**
-     * @private
-     * @type {string}
-     */
-    var _configFileName = ".jslint.json";
-
-    /**
-     * @private
-     * @type {object}
-     */
-    var _jsLintConfig = null;
-
+    
     /**
      * Enable or disable the "Go to First JSLint Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
@@ -118,54 +104,6 @@ define(function (require, exports, module) {
     function setGotoEnabled(gotoEnabled) {
         CommandManager.get(GOTO_FIRST_ERROR).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
-    }
-
-    /**
-     * Load project-wide JSLint configuration.
-     *
-     * Brackets JSLint configuration should be in JSON format, with all the
-     * JSLint options specified according to JSLint documentation.
-     * 
-     * JSLint project file should be located at <Project Root>/.jslint.json . It
-     * is loaded each time project is changed or the configuration file is
-     * modified.
-     * 
-     * @return Promise to return JSLint configuration object.
-     *
-     * @see <a href="http://www.jslint.com/lint.html#options">JSLint option
-     * reference</a>.
-     */
-    function _loadProjectConfig() {
-
-        var projectRootEntry = ProjectManager.getProjectRoot(),
-            result = new $.Deferred(),
-            config;
-
-        projectRootEntry.getFile(_configFileName,
-                { create: false },
-                function (configFileEntry) {
-                var reader = new NativeFileSystem.FileReader();
-                configFileEntry.file(function (file) {
-                    reader.onload = function (event) {
-                        try {
-                            config = JSON.parse(event.target.result);
-                            result.resolve(config);
-                        } catch (e) {
-                            result.reject(e);
-                        }
-                    };
-                    reader.onerror = function (event) {
-                        result.reject(event.target.error);
-                    };
-                    reader.readAsText(file);
-                });
-            },
-            function (err) {
-                result.reject(err);
-            });
-
-        return result.promise();
-
     }
     
     /**
@@ -195,7 +133,7 @@ define(function (require, exports, module) {
             }
             text = arr.join("\n");
             
-            var result = JSLINT(text, _jsLintConfig);
+            var result = JSLINT(text, null);
 
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
@@ -261,9 +199,9 @@ define(function (require, exports, module) {
             setGotoEnabled(false);
         }
     }
-
+    
     /**
-     * Update DocumentManager and ProjectManager listeners.
+     * Update DocumentManager listeners.
      */
     function updateListeners() {
         if (_enabled) {
@@ -273,34 +211,12 @@ define(function (require, exports, module) {
                     run();
                 })
                 .on("documentSaved.jslint documentRefreshed.jslint", function (event, document) {
-                    // if this project's JSLint config has been updated, reload
-                    if (document.file.fullPath ===
-                                ProjectManager.getProjectRoot().fullPath + _configFileName) {
-                        _loadProjectConfig()
-                            .done(function (config) {
-                                _jsLintConfig = config;
-                            })
-                            .fail(function () {
-                                _jsLintConfig = null;
-                            });
-                    }
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
                 });
-            $(ProjectManager)
-                .on("projectOpen.jslint", function () {
-                    _loadProjectConfig()
-                        .done(function (config) {
-                            _jsLintConfig = config;
-                        })
-                        .fail(function () {
-                            _jsLintConfig = null;
-                        });
-                });
         } else {
             $(DocumentManager).off(".jslint");
-            $(ProjectManager).off(".jslint");
         }
     }
     
