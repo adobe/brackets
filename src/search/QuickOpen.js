@@ -477,6 +477,15 @@ define(function (require, exports, module) {
         var currentQuery = $("input#quickOpenSearch").val();
         return currentQuery !== query;
     }
+    
+    function filterZippedFileExtensions(fileName) {
+        var restricted = ['svgz', 'jsz', 'zip', 'gz'];
+        if ($.inArray(fileName.split('.').pop(), restricted) > -1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     function searchFileList(query, matcher) {
         // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
@@ -502,7 +511,12 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            var searchResult;
+            
+            if (filterZippedFileExtensions(fileInfo.name)) {
+                searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            }
+            
             if (searchResult) {
                 searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
@@ -518,7 +532,7 @@ define(function (require, exports, module) {
 
         return filteredList;
     }
-
+    
     /**
      * Handles changes to the current query in the search field.
      * @param {string} query The new query.
