@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         JSUtils,                // loaded from brackets.test
         
         FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
@@ -118,7 +117,7 @@ define(function (require, exports, module) {
                     testWindow          = w;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     CommandManager      = testWindow.brackets.test.CommandManager;
-                    FileIndexManager    = testWindow.brackets.test.FileIndexManager;
+                    FileIndexManager    = testWindow.brackets.test.FileIndexManager; // TODO: FileSystem - update tests
                     JSUtils             = testWindow.brackets.test.JSUtils;
                 });
                 
@@ -381,7 +380,7 @@ define(function (require, exports, module) {
                         expect(newCursor.ch).toBe(expectedLocation.ch);
                         if (expectedLocation.file) {
                             var activeEditor = EditorManager.getActiveEditor();
-                            expect(activeEditor.document.file.name).toBe(expectedLocation.file);
+                            expect(activeEditor.document.file.getName()).toBe(expectedLocation.file);
                         }
                     });
                 }

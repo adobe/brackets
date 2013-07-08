@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         FileSystem          = require("filesystem/FileSystem"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
@@ -78,7 +77,7 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             if (currentDoc) {
                 _$title.text(_currentTitlePath);
-                _$title.attr("title", currentDoc.file.fullPath);
+                _$title.attr("title", currentDoc.file.getPath());
                 // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
                 _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
             } else {
@@ -119,10 +118,10 @@ define(function (require, exports, module) {
         // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
         // exception. This code should be removed (if not needed), or updated with a unique
         // timer name (if needed).
-        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.getPath()));
         
         if (newDocument) {
-            var fullPath = newDocument.file.fullPath;
+            var fullPath = newDocument.file.getPath();
     
             // In the main toolbar, show the project-relative path (if the file is inside the current project)
             // or the full absolute path (if it's not in the project).
@@ -141,7 +140,7 @@ define(function (require, exports, module) {
     function handleDirtyChange(event, changedDoc) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
-        if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
+        if (currentDoc && changedDoc.file.getPath() === currentDoc.file.getPath()) {
             updateTitle();
         }
     }
@@ -174,7 +173,7 @@ define(function (require, exports, module) {
                 .fail(function (fileError) {
                     FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
                         // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                        DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullPath));
                         EditorManager.focusEditor();
                         result.reject();
                     });
@@ -206,7 +205,7 @@ define(function (require, exports, module) {
             
             //first time through, default to the current project path
             if (!_defaultOpenDialogFullPath) {
-                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
+                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().getPath();
             }
             // Prompt the user with a dialog
             FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
@@ -216,13 +215,13 @@ define(function (require, exports, module) {
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [];
                         paths.forEach(function (file) {
-                            filesToOpen.push(new NativeFileSystem.FileEntry(file));
+                            filesToOpen.push(FileSystem.getFileForPath(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
                         doOpen(paths[paths.length - 1])
                             .done(function (doc) {
-                                var url = PathUtils.parseUrl(doc.file.fullPath);
+                                var url = PathUtils.parseUrl(doc.file.getPath());
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
                                 
@@ -326,7 +325,6 @@ define(function (require, exports, module) {
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
         var suggestedName = baseFileName + fileExt;
-        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
 
         result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
             if (nextIndexToUse > 99) {
@@ -334,32 +332,18 @@ define(function (require, exports, module) {
                 result.reject();
                 return;
             }
-
-            //check this name
-            var successCallback = function (entry) {
-                //file exists, notify to the next progress
-                result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
-            };
-            var errorCallback = function (error) {
-                //most likely error is FNF, user is better equiped to handle the rest
-                result.resolve(suggestedName);
-            };
             
-            if (isFolder) {
-                dirEntry.getDirectory(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            } else {
-                dirEntry.getFile(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            }
+            var path = dir + "/" + suggestedName;
+            var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
+            
+            entry.exists().done(function (exists) {
+                if (exists) {
+                    //file exists, notify to the next progress
+                    result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+                } else {
+                    result.resolve(suggestedName);
+                }
+            });
         });
 
         //kick it off
@@ -396,7 +380,7 @@ define(function (require, exports, module) {
         var baseDir,
             selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
-        baseDir = selected.fullPath;
+        baseDir = selected.getPath();
         if (selected.isFile) {
             baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         }
@@ -453,37 +437,24 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            _showSaveFileError(error.name, fileEntry.fullPath)
+            _showSaveFileError(error.name, fileEntry.getPath())
                 .done(function () {
                     result.reject(error);
                 });
         }
             
         if (docToSave && docToSave.isDirty) {
-            var fileEntry = docToSave.file;
+            var file = docToSave.file;
             var writeError = false;
             
-            fileEntry.createWriter(
-                function (writer) {
-                    writer.onwriteend = function () {
-                        // Per spec, onwriteend is called after onerror too
-                        if (!writeError) {
-                            docToSave.notifySaved();
-                            result.resolve();
-                        }
-                    };
-                    writer.onerror = function (error) {
-                        writeError = true;
-                        handleError(error, fileEntry);
-                    };
-
-                    // We don't want normalized line endings, so it's important to pass true to getText()
-                    writer.write(docToSave.getText(true));
-                },
-                function (error) {
-                    handleError(error, fileEntry);
-                }
-            );
+            file.write(docToSave.getText(true))
+                .done(function () {
+                    docToSave.notifySaved();
+                    result.resolve();
+                })
+                .fail(function (err) {
+                    handleError(err, file);
+                });
         } else {
             result.resolve();
         }
@@ -532,7 +503,7 @@ define(function (require, exports, module) {
         return Async.doSequentially(
             DocumentManager.getWorkingSet(),
             function (file) {
-                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
                 if (doc) {
                     return doSave(doc);
                 } else {
@@ -554,13 +525,13 @@ define(function (require, exports, module) {
     function doRevert(doc) {
         var result = new $.Deferred();
         
-        FileUtils.readAsText(doc.file)
+        FileUtils.readAsText(doc.file.getPath())
             .done(function (text, readTimestamp) {
                 doc.refreshText(text, readTimestamp);
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
+                FileUtils.showFileOpenError(error.name, doc.file.getPath())
                     .done(function () {
                         result.reject(error);
                     });
@@ -622,14 +593,12 @@ define(function (require, exports, module) {
                 return doSave(doc);
             }
             // now save new document
-            var newPath = FileUtils.getDirectoryPath(path);
             // create empty file,  FileUtils.writeText will create content.
-            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
-                if (error) {
-                    result.reject(error);
-                } else {
+            var newFile = FileSystem.getFileForPath(path);
+            newFile.write("")
+                .done(function (stat) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                        FileUtils.writeText(newDoc.file.getPath(), doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
                                 // do not call doRevert unless the file is dirty.
                                 // doRevert on a file that is not dirty and not in the working set
@@ -645,21 +614,25 @@ define(function (require, exports, module) {
                             });
                         });
                     });
-                }
-            });
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
         }
                 
         // In the future we'll have to check wether the document is an unsaved
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
-            fullPath = doc.file.fullPath;
+            fullPath = doc.file.getPath();
             saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             defaultName = PathUtils.parseUrl(fullPath).filename;
-            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
-                _doSaveAfterSaveDialog,
-                function (error) {
-                    result.reject(error);
+            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
+                .done(function (selection) {
+                    _doSaveAfterSaveDialog(selection);
+                })
+                .fail(function (err) {
+                    result.reject(err);
                 });
         } else {
             result.reject();
@@ -746,11 +719,11 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
         
         if (doc && doc.isDirty) {
             // Document is dirty: prompt to save changes before closing
-            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            var filename = PathUtils.parseUrl(doc.file.getPath()).filename;
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -798,7 +771,7 @@ define(function (require, exports, module) {
                         
                         // Only reload from disk if we've executed the Close for real,
                         // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.getPath())) {
                             doRevert(doc)
                                 .then(result.resolve, result.reject);
                         } else {
@@ -832,7 +805,7 @@ define(function (require, exports, module) {
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
             }
@@ -860,7 +833,7 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())) +
                     "</span></li>";
             });
             message += "</ul>";
@@ -1045,7 +1018,7 @@ define(function (require, exports, module) {
         var file = DocumentManager.getNextPrevFile(inc);
         if (file) {
             DocumentManager.beginDocumentNavigation();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.getPath() });
             
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {
@@ -1075,9 +1048,9 @@ define(function (require, exports, module) {
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
-            brackets.app.showOSFolder(entry.fullPath, function (err) {
+            brackets.app.showOSFolder(entry.getPath(), function (err) {
                 if (err) {
-                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                    console.error("Error showing '" + entry.getPath() + "' in OS folder:", err);
                 }
             });
         }

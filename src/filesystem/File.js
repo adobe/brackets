@@ -92,7 +92,16 @@ define(function (require, exports, module) {
     File.prototype.write = function (data, encoding) {
         var result = new $.Deferred();
         
-        //this._impl.writeFile(this._path, encoding
+        this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
+            if (err) {
+                result.reject(err);
+            } else {
+                this._stat = stat;
+                this._contents = data;
+                result.resolve(stat);
+            }
+        }.bind(this));
+        
         return result.promise();
     };
     

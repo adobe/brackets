@@ -345,7 +345,7 @@ define(function (require, exports, module) {
      * @return {string} HTML formatted string
      */
     function getFileEntryDisplay(entry) {
-        var name = entry.name,
+        var name = entry.getName(),
             i = name.lastIndexOf(".");
         
         if (i >= 0) {

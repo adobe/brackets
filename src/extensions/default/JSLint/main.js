@@ -116,10 +116,10 @@ define(function (require, exports, module) {
         var perfTimerDOM,
             perfTimerLint;
         
-        var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
+        var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.getPath()) : "";
         
         if (_enabled && language && language.getId() === "javascript") {
-            perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
+            perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.getPath()));
             var text = currentDoc.getText();
             
             // If a line contains only whitespace, remove the whitespace
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             var result = JSLINT(text, null);
 
             PerfUtils.addMeasurement(perfTimerLint);
-            perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
+            perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.getPath()));
             
             if (!result) {
                 // Remove the null errors for the template

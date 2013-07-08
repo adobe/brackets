@@ -87,8 +87,8 @@ define(function (require, exports, module) {
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
-            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
-            if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
+            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.getPath()));
+            if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.getPath()) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && curDoc.file.fullPath === fullPath) {
+        if (curDoc && curDoc.file.getPath() === fullPath) {
             _selectCurrentDocument();
             result = (new $.Deferred()).resolve().promise();
         } else {

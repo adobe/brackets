@@ -117,6 +117,31 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Check if the specified path exists.
+     *
+     * @param {string} path The path to test
+     * @return {$.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
+     */
+    function pathExists(path) {
+        var result = new $.Deferred();
+        
+        if (_impl) {
+            _impl.exists(path, function (exists) {
+                if (exists) {
+                    result.resolve();
+                } else {
+                    result.reject();
+                }
+            });
+        } else {
+            // No impl...
+            result.reject(); /* TODO: not found error*/
+        }
+        
+        return result.promise();
+    }
+    
+    /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
@@ -135,7 +160,7 @@ define(function (require, exports, module) {
         if (directory._contents) {
             // Return cached directory contents
             result.resolve(directory._contents);
-            return;
+            return result.promise();
         }
         
         _impl.readdir(directory.getPath(), function (err, contents, stats) {
@@ -166,12 +191,22 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return all indexed files
+     * Return all indexed files, with optional filtering
+     *
+     * @param {=function (entry):boolean} filterFunc Optional filter function. If supplied,
+     *         this function is called for all entries. Return true to keep this entry,
+     *         or false to omit it.
      *
      * @return {Array<File>} Array containing all indexed files.
      */
-    function getFileList() {
-        return FileIndex.getAllFiles();
+    function getFileList(filterFunc) {
+        var result = FileIndex.getAllFiles();
+        
+        if (filterFunc) {
+            return result.filter(filterFunc);
+        }
+        
+        return result;
     }
     
     /**
@@ -257,16 +292,80 @@ define(function (require, exports, module) {
     /**
      * @private
      * Callback for file/directory watchers. This is called by the low-level implementation
-     * whenever a directory or file is changed. There may be multiple calls for any given
-     * directory or file, so this callback collects messages over a 100ms period of time
-     * and then handles them all at once.
+     * whenever a directory or file is changed. 
      *
      * @param {string} path The path that changed. This could be a file or a directory.
      * @param {stat=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
     function _watcherCallback(path, stat) {
-        console.log("File/directory change: " + path + ", stat: " + stat);
+        var entry = FileIndex.getEntry(path);
+        
+        if (entry) {
+            if (entry.isFile()) {
+                // Update stat and clear contents, but only if out of date
+                if (!stat || !entry._stat || (stat.mtime !== entry._stat.mtime)) {
+                    entry._stat = stat;
+                    entry._contents = undefined;
+                }
+            } else {
+                var oldContents = entry._contents;  // TODO: Handle pending content promise
+                
+                // Clear out old contents
+                entry._contents = entry._contentsPromise = undefined;
+                
+                // Read new contents
+                getDirectoryContents(entry)
+                    .done(function (contents) {
+                        var i, len, item, path;
+                        
+                        function _isInPath(item) {
+                            return item.getPath().indexOf(path) === 0;
+                        }
+                        
+                        // Check for deleted entries 
+                        len = oldContents ? oldContents.length : 0;
+                        for (i = 0; i < len; i++) {
+                            item = oldContents[i];
+                            if (contents.indexOf(item) === -1) {
+                                if (item.isFile()) {
+                                    // File removed, just remove from index.
+                                    FileIndex.removeEntry(item);
+                                } else {
+                                    // Remove the directory and all entries under it
+                                    path = item.getPath();
+                                    var j, itemsToDelete = getFileList(_isInPath);
+                                    
+                                    for (j = 0; j < itemsToDelete.length; j++) {
+                                        FileIndex.removeEntry(itemsToDelete[j]);
+                                    }
+                                    
+                                    FileIndex.removeEntry(item);
+                                    _impl.unwatchPath(item.getPath());
+                                    // TODO: Remove and unwatch other directories contained within this directory.
+                                    // getFileList() only returns files, and ignores directories.
+                                }
+                            }
+                        }
+                        
+                        // Check for added directories and scan to add to index
+                        // Re-scan this directory to add any new contents
+                        len = contents ? contents.length : 0;
+                        for (i = 0; i < len; i++) {
+                            item = contents[i];
+                            if (!oldContents || oldContents.indexOf(item) === -1) {
+                                if (item.isDirectory()) {
+                                    _scanDirectory(item.getPath());
+                                }
+                            }
+                        }
+                    });
+            }
+            
+            // Trigger a change event
+            $(exports).trigger("change", entry);
+        }
+        // console.log("File/directory change: " + path + ", stat: " + stat);
     }
     
     /**
@@ -302,6 +401,7 @@ define(function (require, exports, module) {
     exports.getFileForPath          = getFileForPath;
     exports.newUnsavedFile          = newUnsavedFile;
     exports.getDirectoryForPath     = getDirectoryForPath;
+    exports.pathExists              = pathExists;
     exports.getDirectoryContents    = getDirectoryContents;
     exports.getFileList             = getFileList;
     exports.showOpenDialog          = showOpenDialog;

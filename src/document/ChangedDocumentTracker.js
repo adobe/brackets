@@ -53,7 +53,7 @@ define(function (require, exports, module) {
 
         $(DocumentManager).on("afterDocumentCreate", function (event, doc) {
             // Only track documents in the current project
-            if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+            if (ProjectManager.isWithinProject(doc.file.getPath())) {
                 self._addListener(doc);
             }
         });
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
     ChangedDocumentTracker.prototype._onChange = function (event, doc) {
         // if it was already changed, and the client hasn't reset the tracker,
         // then leave it changed.
-        this._changedPaths[doc.file.fullPath] = true;
+        this._changedPaths[doc.file.getPath()] = true;
     };
     
     /**

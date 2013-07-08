@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
 
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
             return result;
         }
 
-        var docUrl = window.PathUtils.parseUrl(doc.file.fullPath);
+        var docUrl = window.PathUtils.parseUrl(doc.file.getPath());
         if (!docUrl) {
             return result;
         }
@@ -125,7 +125,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this;
+            var directory = FileSystem.getDirectoryForPath(targetDir),
+                self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -135,13 +136,12 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
-                fs.root.createReader().readEntries(function (entries) {
-
-                    entries.forEach(function (entry) {
-                        if (ProjectManager.shouldShow(entry)) {
+            FileSystem.getDirectoryContents(directory)
+                .done(function (contents) {
+                    contents.forEach(function (entry) {
+                        if (FileSystem.shouldShow(entry.getPath())) {
                             // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
+                            var entryStr = entry.getPath().replace(docDir, "");
 
                             // code hints show the same strings that are inserted into text,
                             // so strings in list will be encoded. wysiwyg, baby!
@@ -175,7 +175,6 @@ define(function (require, exports, module) {
                         }
                     }
                 });
-            });
 
             return self.cachedHints.deferred;
         }

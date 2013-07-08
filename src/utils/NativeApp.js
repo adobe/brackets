@@ -34,6 +34,7 @@ define(function (require, exports, module) {
      * Map an fs error code to a FileError.
      */
     function _browserErrToFileError(err) {
+        // TODO: FileSystem error code
         if (err === brackets.fs.ERR_NOT_FOUND) {
             return FileError.NOT_FOUND_ERR;
         }

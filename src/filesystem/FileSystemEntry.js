@@ -63,6 +63,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the name of the file or directory
+     */
+    FileSystemEntry.prototype.getName = function () {
+        return this._path.split("/").pop();
+    };
+    
+    /**
      * Returns true if this entry is a file.
      * @return {boolean}
      */

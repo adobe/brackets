@@ -272,7 +272,7 @@ define(function (require, exports, module) {
      * @return {boolean} - true if the document is a html file
      */
     function isHTMLFile(document) {
-        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        var languageID = LanguageManager.getLanguageForPath(document.file.getPath()).getId();
         return languageID === "html";
     }
     
@@ -547,7 +547,7 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.getPath()).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {

@@ -150,7 +150,7 @@ define(function (require, exports, module) {
     function unwatchAll() {
     }
     
-    // TEMP - REMOVE ME
+    // TEMP - REMOVE ME!!
     exports.pullChanges = function (cursor, callback) {
         client.pullChanges(cursor, callback);
     };

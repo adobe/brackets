@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     
     var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 100,
+    var FIND_IN_FILES_MAX = 300,
         maxHitsFoundInFile = false,
         currentQuery = "",
         currentScope;
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
             return StringUtils.format(
                 Strings.FIND_IN_FILES_SCOPED,
                 StringUtils.breakableUrl(
-                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
+                    ProjectManager.makeProjectRelativeIfPossible(scope.getPath())
                 )
             );
         } else {
@@ -396,12 +396,12 @@ define(function (require, exports, module) {
      */
     function inScope(file, scope) {
         if (scope) {
-            if (scope.isDirectory) {
+            if (scope.isDirectory()) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
-                return file.getPath().indexOf(scope.fullPath) === 0;
+                return file.getPath().indexOf(scope.getPath()) === 0;
             } else {
-                return file.getPath() === scope.fullPath;
+                return file.getPath() === scope.getPath();
             }
         }
         return true;
@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
-                item.fullPath = item.fullPath.replace(oldName, newName);
+                // TODO: FileSystem rename -- item.getPath() = item.fullPath.replace(oldName, newName);
             });
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
@@ -496,7 +496,7 @@ define(function (require, exports, module) {
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item, idx) {
-                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
+                if (FileUtils.isAffectedWhenRenaming(item.getPath(), path)) {
                     searchResults.splice(idx, 1);
                 }
             });

@@ -256,7 +256,7 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
-        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.getPath()));
 
         if (this._masterEditor) {
             this._masterEditor._resetText(text);
@@ -395,16 +395,15 @@ define(function (require, exports, module) {
         
         // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
-        this.file.getMetadata(
-            function (metadata) {
-                thisDoc.diskTimestamp = metadata.modificationTime;
+        this.file.stat()
+            .done(function (stat) {
+                thisDoc.diskTimestamp = stat.mtime;
                 $(exports).triggerHandler("_documentSaved", thisDoc);
-            },
-            function (error) {
-                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
+            })
+            .fail(function (err) {
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.getPath());
                 $(exports).triggerHandler("_documentSaved", thisDoc);
-            }
-        );
+            });
     };
     
     /* (pretty toString(), to aid debugging) */
@@ -412,7 +411,7 @@ define(function (require, exports, module) {
         var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
         var editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
         var refInfo = " refs:" + this._refCount;
-        return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
+        return "[Document " + this.file.getPath() + dirtyInfo + editorInfo + refInfo + "]";
     };
     
     /**
@@ -429,7 +428,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
+        this.language = LanguageManager.getLanguageForPath(this.file.getPath());
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);

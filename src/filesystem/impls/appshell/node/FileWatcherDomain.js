@@ -28,11 +28,12 @@
 
 var fs = require("fs");
 
-var _watcherMap = {};
+var _domainManager,
+    _watcherMap = {};
 
 function watchPath(path) {
     _watcherMap[path] = fs.watch(path, function (event, filename) {
-        console.log("Change in: " + path + " event: " + event + " filename: " + filename);
+        _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
     });
 }
 
@@ -73,17 +74,7 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the file or directory to watch"
-        }] /*,
-        [{
-            name: "errors",
-            type: "string|Array.<string>",
-            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-        }, {
-            name: "metadata",
-            type: "{name: string, version: string}",
-            description: "all package.json metadata (null if there's no package.json)"
         }]
-        */
     );
     domainManager.registerCommand(
         "fileWatcher",
@@ -95,40 +86,26 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the file or directory to unwatch"
-        }] /*,
-        [{
-            name: "errors",
-            type: "string|Array.<string>",
-            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-        }, {
-            name: "metadata",
-            type: "{name: string, version: string}",
-            description: "all package.json metadata (null if there's no package.json)"
         }]
-        */
     );
     domainManager.registerCommand(
         "fileWatcher",
         "unwatchAll",
         unwatchAll,
         false,
-        "Stop watching all files and directories"/*,
-        [{
-            name: "path",
-            type: "string",
-            description: "absolute filesystem path of the file or directory to unwatch"
-        }],
-        [{
-            name: "errors",
-            type: "string|Array.<string>",
-            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-        }, {
-            name: "metadata",
-            type: "{name: string, version: string}",
-            description: "all package.json metadata (null if there's no package.json)"
-        }]
-        */
+        "Stop watching all files and directories"
     );
+    domainManager.registerEvent(
+        "fileWatcher",
+        "change",
+        [
+            {name: "path", type: "string"},
+            {name: "event", type: "string"},
+            {name: "filename", type: "string"}
+        ]
+    );
+    
+    _domainManager = domainManager;
 }
 
 exports.init = init;

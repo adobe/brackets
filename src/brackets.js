@@ -76,7 +76,6 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        FileIndexManager        = require("project/FileIndexManager"),
         FileSystem              = require("filesystem/FileSystem"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
@@ -137,7 +136,7 @@ define(function (require, exports, module) {
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
-            FileIndexManager        : FileIndexManager,
+            //FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
@@ -303,8 +302,12 @@ define(function (require, exports, module) {
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
-            FileSyncManager.syncOpenDocuments();
-            FileIndexManager.markDirty();
+            FileSyncManager.syncOpenDocuments(); // TODO: FileSystem - remove now that we have file watchers?
+        });
+        
+        $(FileSystem).on("change", function (item) {
+            // TODO: FileSystem - only sync when window has focus?
+            FileSyncManager.syncOpenDocuments();    // TODO: Batch multiple changes into a single sync operation
         });
         
         // Prevent unhandled middle button clicks from triggering native behavior

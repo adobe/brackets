@@ -33,7 +33,6 @@ define(function (require, exports, module) {
         Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints         = require("main"),
@@ -50,7 +49,7 @@ define(function (require, exports, module) {
 
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
-        return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
+        return DocumentManager.getDocumentForPath(fileInfo.getPath()).done(function (doc) {
             DocumentManager.setCurrentDocument(doc);
         });
     });
@@ -332,7 +331,7 @@ define(function (require, exports, module) {
                 expect(newCursor.ch).toBe(expectedLocation.ch);
                 if (expectedLocation.file) {
                     var activeEditor = EditorManager.getActiveEditor();
-                    expect(activeEditor.document.file.name).toBe(expectedLocation.file);
+                    expect(activeEditor.document.file.getName()).toBe(expectedLocation.file);
                 }
             });
             
@@ -1373,23 +1372,18 @@ define(function (require, exports, module) {
             function getPreferences(path) {
                 preferences = null;
 
-                NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
-                    FileUtils.readAsText(fileEntry).done(function (text) {
-                        var configObj = null;
-                        try {
-                            configObj = JSON.parse(text);
-                        } catch (e) {
-                            // continue with null configObj
-                            console.log(e);
-                        }
-                        preferences = new Preferences(configObj);
-                    }).fail(function (error) {
-                        preferences = new Preferences();
-                    });
-                }, function (error) {
+                FileUtils.readAsText(path).done(function (text) {
+                    var configObj = null;
+                    try {
+                        configObj = JSON.parse(text);
+                    } catch (e) {
+                        // continue with null configObj
+                        console.log(e);
+                    }
+                    preferences = new Preferences(configObj);
+                }).fail(function (error) {
                     preferences = new Preferences();
                 });
-
             }
 
             // Test preferences file with no entries. Preferences should contain

@@ -38,7 +38,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils        = require("file/FileUtils"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         Strings          = require("strings"),
@@ -133,7 +132,7 @@ define(function (require, exports, module) {
      */
     function _loadPackageJson(folder) {
         var result = new $.Deferred();
-        FileUtils.readAsText(new NativeFileSystem.FileEntry(folder + "/package.json"))
+        FileUtils.readAsText(folder + "/package.json")
             .done(function (text) {
                 try {
                     var json = JSON.parse(text);

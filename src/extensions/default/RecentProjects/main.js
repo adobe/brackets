@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
     
     
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().getPath()),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
@@ -186,11 +186,13 @@ define(function (require, exports, module) {
                         var recentProjects = getRecentProjects(),
                             index = recentProjects.indexOf(path);
                         if (index !== -1) {
-                            NativeFileSystem.requestNativeFileSystem(path,
-                                function () {},
-                                function () {
+                            var directory = FileSystem.getDirectoryForPath(path);
+                            
+                            directory.exists().done(function (exists) {
+                                if (!exists) {
                                     recentProjects.splice(index, 1);
-                                });
+                                }
+                            });
                         }
                     });
                 closeDropdown();
@@ -239,7 +241,7 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().getPath()),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings

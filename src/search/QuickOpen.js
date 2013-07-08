@@ -40,9 +40,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileIndexManager    = require("project/FileIndexManager"),
-        DocumentManager     = require("document/DocumentManager"),
+    var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSystem          = require("filesystem/FileSystem"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
         // Also, see related code in _handleItemFocus
         /*
         else {
-            var fullPath = selectedItem.fullPath;
+            var fullPath = selectedItem.getPath();
             if (fullPath) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
@@ -479,7 +479,7 @@ define(function (require, exports, module) {
     }
 
     function searchFileList(query, matcher) {
-        // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
+        // The file index may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
             // Smart Autocomplete allows us to return a Promise instead...
             var asyncResult = new $.Deferred();
@@ -502,11 +502,11 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.getPath()), query);
             if (searchResult) {
-                searchResult.label = fileInfo.name;
-                searchResult.fullPath = fileInfo.fullPath;
-                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
+                searchResult.label = fileInfo.getName();
+                searchResult.fullPath = fileInfo.getPath();
+                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.getName(), false);
             }
             return searchResult;
         });
@@ -749,7 +749,7 @@ define(function (require, exports, module) {
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
-        origDocPath = curDoc ? curDoc.file.fullPath : null;
+        origDocPath = curDoc ? curDoc.file.getPath() : null;
         if (curDoc) {
             origSelection = EditorManager.getCurrentFullEditor().getSelection();
             origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
@@ -793,14 +793,19 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
+        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = FileIndexManager.getFileInfoList("all")
+        // TODO: FileSystem - use promise for getFileList()?
+        fileList = FileSystem.getFileList();
+        this._filenameMatcher.reset();
+        /* OLD CODE
+        fileListPromise = FileSystem.getFileList()
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
                 this._filenameMatcher.reset();
             }.bind(this));
+        */
     };
 
     function getCurrentEditorSelectedText() {

@@ -36,12 +36,11 @@ define(function (require, exports, module) {
 
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -80,15 +79,11 @@ define(function (require, exports, module) {
             library;
 
         files.forEach(function (i) {
-            NativeFileSystem.resolveNativeFileSystemPath(path + i, function (fileEntry) {
-                FileUtils.readAsText(fileEntry).done(function (text) {
-                    library = JSON.parse(text);
-                    builtinLibraryNames.push(library["!name"]);
-                    ternEnvironment.push(library);
-                }).fail(function (error) {
-                    console.log("failed to read tern config file " + i);
-                });
-            }, function (error) {
+            FileUtils.readAsText(path + i).done(function (text) {
+                library = JSON.parse(text);
+                builtinLibraryNames.push(library["!name"]);
+                ternEnvironment.push(library);
+            }).fail(function (error) {
                 console.log("failed to read tern config file " + i);
             });
         });
@@ -117,33 +112,28 @@ define(function (require, exports, module) {
         // Normally there is a project root, but for unit tests we need to
         // pass in a project root.
         if (pr) {
-            projectRootPath = pr.fullPath;
+            projectRootPath = pr.getPath();
         } else if (!projectRootPath) {
             console.log("initPreferences: projectRootPath has no value");
         }
 
         var path = projectRootPath + Preferences.FILE_NAME;
 
-        NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
-            FileUtils.readAsText(fileEntry).done(function (text) {
-                var configObj = null;
-                try {
-                    configObj = JSON.parse(text);
-                } catch (e) {
-                    // continue with null configObj which will result in
-                    // default settings.
-                    console.log("Error parsing preference file: " + path);
-                    if (e instanceof SyntaxError) {
-                        console.log(e.message);
-                    }
+        FileUtils.readAsText(path).done(function (text) {
+            var configObj = null;
+            try {
+                configObj = JSON.parse(text);
+            } catch (e) {
+                // continue with null configObj which will result in
+                // default settings.
+                console.log("Error parsing preference file: " + path);
+                if (e instanceof SyntaxError) {
+                    console.log(e.message);
                 }
-                preferences = new Preferences(configObj);
-                deferredPreferences.resolve();
-            }).fail(function (error) {
-                preferences = new Preferences();
-                deferredPreferences.resolve();
-            });
-        }, function (error) {
+            }
+            preferences = new Preferences(configObj);
+            deferredPreferences.resolve();
+        }).fail(function (error) {
             preferences = new Preferences();
             deferredPreferences.resolve();
         });
@@ -183,18 +173,17 @@ define(function (require, exports, module) {
      * @param {!function(string)=} errorCallback - Callback for errors (optional).
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var files = [];
+        var directory = FileSystem.getDirectoryForPath(dir),
+            files = [];
 
-        NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
-            var reader = dirEntry.createReader();
-
-            reader.readEntries(function (entries) {
-                entries.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
-                    var path    = entry.fullPath,
+        FileSystem.getDirectoryContents(directory)
+            .done(function (contents) {
+                contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
+                    var path    = entry.getPath(),
                         split   = HintUtils.splitPath(path),
                         file    = split.file;
 
-                    if (fileCallback && entry.isFile) {
+                    if (fileCallback && entry.isFile()) {
 
                         if (file.indexOf(".") > 0) { // ignore .dotfiles
                             var languageID = LanguageManager.getLanguageForPath(path).getId();
@@ -202,26 +191,21 @@ define(function (require, exports, module) {
                                 fileCallback(path);
                             }
                         }
-                    } else if (directoryCallback && entry.isDirectory) {
+                    } else if (directoryCallback && entry.isDirectory()) {
                         var dirName = HintUtils.splitPath(split.dir).file;
                         if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
-                            directoryCallback(entry.fullPath);
+                            directoryCallback(entry.getPath());
                         }
                     }
                 });
                 doneCallback();
-            }, function (err) {
+            })
+            .fail(function (err) {
                 if (errorCallback) {
                     errorCallback(err);
                 }
-                console.log("Unable to refresh directory: " + err);
+                console.log("Directory \"%s\" does not exist", dir);
             });
-        }, function (err) {
-            if (errorCallback) {
-                errorCallback(err);
-            }
-            console.log("Directory \"%s\" does not exist", dir);
-        });
     }
 
     /**
@@ -410,7 +394,7 @@ define(function (require, exports, module) {
      *      has completed.
      */
     function requestJumptoDef(session, document, offset) {
-        var path    = document.file.fullPath,
+        var path    = document.file.getPath(),
             fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 offsetLines: 0,
@@ -554,7 +538,7 @@ define(function (require, exports, module) {
             to   = {line: endLine, ch: endCh};
 
         return {type: MessageIds.TERN_FILE_INFO_TYPE_PART,
-            name: document.file.fullPath,
+            name: document.file.getPath(),
             offsetLines: from.line,
             text: document.getRange(from, to)};
     }
@@ -572,7 +556,7 @@ define(function (require, exports, module) {
         var start = session.getCursor(),
             end = start,
             document = session.editor.document,
-            path = document.file.fullPath,
+            path = document.file.getPath(),
             isHtmlFile = LanguageManager.getLanguageForPath(path).getId() === "html",
             result;
 
@@ -782,7 +766,7 @@ define(function (require, exports, module) {
          * @return {jQuery.Promise} - the promise for the request
          */
         function updateTernFile(document) {
-            var path  = document.file.fullPath;
+            var path  = document.file.getPath();
             
             _postMessageByPass({
                 type       : MessageIds.TERN_UPDATE_FILE_MSG,
@@ -838,29 +822,28 @@ define(function (require, exports, module) {
             function findNameInProject() {
                 // check for any files in project that end with the right path.
                 var fileName = HintUtils.splitPath(name).file;
-                FileIndexManager.getFilenameMatches("all", fileName)
-                    .done(function (files) {
-                        var file;
-                        files = files.filter(function (file) {
-                            var pos = file.fullPath.length - name.length;
-                            return pos === file.fullPath.lastIndexOf(name);
-                        });
-                        
-                        if (files.length === 1) {
-                            file = files[0];
-                        }
-                        if (file) {
-                            getDocText(file.fullPath).fail(function () {
-                                replyWith(name, "");
-                            });
-                        } else {
-                            replyWith(name, "");
-                        }
-                        
-                    })
-                    .fail(function () {
+                
+                var files = FileSystem.getFileList(function (file) {
+                    return file.getName() === fileName;
+                });
+                
+                var file;
+                files = files.filter(function (file) {
+                    var pos = file.getPath().length - name.length;
+                    return pos === file.getPath().lastIndexOf(name);
+                });
+                
+                if (files.length === 1) {
+                    file = files[0];
+                }
+                if (file) {
+                    getDocText(file.getPath()).fail(function () {
                         replyWith(name, "");
                     });
+                } else {
+                    replyWith(name, "");
+                }
+                        
             }
     
             getDocText(name).fail(function () {
@@ -1104,7 +1087,7 @@ define(function (require, exports, module) {
          * @param {Document} previousDocument - the document the editor has changed from
          */
         function doEditorChange(session, document, previousDocument) {
-            var path        = document.file.fullPath,
+            var path        = document.file.getPath(),
                 split       = HintUtils.splitPath(path),
                 dir         = split.dir,
                 files       = [],
@@ -1115,7 +1098,7 @@ define(function (require, exports, module) {
     
             documentChanges = null;
             addFilesPromise = addFilesDeferred.promise();
-            pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
+            pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().getPath() : null;
     
             // avoid re-initializing tern if possible.
             if (canSkipTernInitialization(path)) {

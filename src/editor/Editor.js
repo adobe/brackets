@@ -680,7 +680,7 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
-        var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.getPath()));
 
         var cursorPos = this.getCursorPos(),
             scrollPos = this.getScrollPos();

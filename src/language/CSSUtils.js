@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, _parseRuleList: true */
+/*global define, $, CodeMirror, _parseRuleList: true, PathUtils */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
 // It was added to this list to prevent JSLint warning about being used before being defined.
@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
-        FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        FileSystem          = require("filesystem/FileSystem"),
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
@@ -916,7 +915,9 @@ define(function (require, exports, module) {
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
         var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+            cssFilesResult  = FileSystem.getFileList(function (entry) {
+                return PathUtils.filenameExtension(entry.getPath()) === ".css";
+            });
         
         // Load one CSS file and search its contents
         function _loadFileAndScan(fullPath, selector) {
@@ -941,7 +942,7 @@ define(function (require, exports, module) {
         // Load index of all CSS files; then process each CSS file in turn (see above)
         cssFilesResult.done(function (fileInfos) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.fullPath, selector);
+                return _loadFileAndScan(fileInfo.getPath(), selector);
             })
                 .then(result.resolve, result.reject);
         });

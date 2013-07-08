@@ -30,7 +30,6 @@ define(function (require, exports, module) {
 
     // Core modules
     var EditorManager        = brackets.getModule("editor/EditorManager"),
-        NativeFileSystem     = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         CSSUtils             = brackets.getModule("language/CSSUtils");
@@ -53,7 +52,7 @@ define(function (require, exports, module) {
             
             var path = ExtensionUtils.getModulePath(module, "css.json");
             
-            FileUtils.readAsText(new NativeFileSystem.FileEntry(path))
+            FileUtils.readAsText(path)
                 .done(function (text) {
                     var jsonData;
                     try {

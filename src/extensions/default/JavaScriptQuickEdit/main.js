@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
-        FileIndexManager        = brackets.getModule("project/FileIndexManager"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
@@ -71,23 +71,18 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved with an array of function offset information
      */
     function _findInProject(functionName) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            files = FileSystem.getFileList();
         
-        FileIndexManager.getFileInfoList("all")
-            .done(function (fileInfos) {
-                PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                
-                JSUtils.findMatchingFunctions(functionName, fileInfos)
-                    .done(function (functions) {
-                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                        result.resolve(functions);
-                    })
-                    .fail(function () {
-                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                        result.reject();
-                    });
+        PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+        
+        JSUtils.findMatchingFunctions(functionName, files)
+            .done(function (functions) {
+                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                result.resolve(functions);
             })
             .fail(function () {
+                PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                 result.reject();
             });
         
@@ -116,7 +111,7 @@ define(function (require, exports, module) {
         var response = helper();
         if (response.hasOwnProperty("promise")) {
             response.promise.done(function (jumpResp) {
-                var resolvedPath = jumpResp.fullPath;
+                var resolvedPath = jumpResp.getPath();
                 if (resolvedPath) {
 
                     // Tern doesn't always return entire function extent.

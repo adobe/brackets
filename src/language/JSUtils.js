@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileSystem              = require("filesystem/FileSystem"),
         CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
      * @param {!$.Deferred} result Deferred to resolve with all functions found and the document
      */
     function _readFile(fileInfo, result) {
-        DocumentManager.getDocumentForPath(fileInfo.fullPath)
+        DocumentManager.getDocumentForPath(fileInfo.getPath())
             .done(function (doc) {
                 var allFunctions = _findAllFunctionsInText(doc.getText());
                 
@@ -218,26 +218,25 @@ define(function (require, exports, module) {
      */
     function _shouldGetFromCache(fileInfo) {
         var result = new $.Deferred(),
-            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
+            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.getPath());
         
         if (isChanged && fileInfo.JSUtils) {
             // See if it's dirty and in the working set first
-            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
+            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.getPath());
             
             if (doc && doc.isDirty) {
                 result.resolve(false);
             } else {
                 // If a cache exists, check the timestamp on disk
-                var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
+                var file = FileSystem.getFileForPath(fileInfo.getPath());
                 
-                file.getMetadata(
-                    function (metadata) {
-                        result.resolve(fileInfo.JSUtils.timestamp === metadata.diskTimestamp);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
+                file.stat()
+                    .done(function (stat) {
+                        result.resolve(fileInfo.JSUtils.timestamp === stat.mtime);
+                    })
+                    .fail(function (err) {
+                        result.reject(err);
+                    });
             }
         } else {
             // Use the cache if the file did not change and the cache exists
@@ -277,7 +276,7 @@ define(function (require, exports, module) {
             
             // doc will be undefined if we hit the cache
             if (!doc) {
-                DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
+                DocumentManager.getDocumentForPath(docEntry.fileInfo.getPath())
                     .done(function (fetchedDoc) {
                         _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
                     })
@@ -364,7 +363,7 @@ define(function (require, exports, module) {
      * Return all functions that have the specified name, searching across all the given files.
      *
      * @param {!String} functionName The name to match.
-     * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
+     * @param {!Array.<File>} fileInfos The array of files to search.
      * @param {boolean=} keepAllFiles If true, don't ignore non-javascript files.
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
@@ -378,7 +377,7 @@ define(function (require, exports, module) {
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.fullPath));
+                return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.getPath()));
             });
         } else {
             jsFiles = fileInfos;

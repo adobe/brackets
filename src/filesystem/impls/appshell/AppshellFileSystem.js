@@ -37,7 +37,8 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the file watcher in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer & Package?
+    var NODE_CONNECTION_TIMEOUT = 30000,    // 30 seconds - TODO: share with StaticServer & Package?
+        FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
     /**
      * @private
@@ -47,8 +48,8 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred;
     
-    var _watcherCallback,           // Callback function for watcher events
-        _watcherMap;                // Map of directory paths to watcher objects
+    var _changeTimeout,             // Timeout used to batch up file watcher changes
+        _pendingChanges = {};       // Pending file watcher changes
 
     function init() {
         if (!_nodeConnectionDeferred) {
@@ -209,9 +210,44 @@ define(function (require, exports, module) {
         appshell.fs.moveToTrash(path, callback);
     }
     
+    function _notifyChanges(callback) {
+        var change;
+        
+        for (change in _pendingChanges) {
+            if (_pendingChanges.hasOwnProperty(change)) {
+                callback(change);
+                delete _pendingChanges[change];
+            }
+        }
+    }
+    
     function initWatchers(callback) {
-        _watcherCallback = callback;
- //       _watcherMap = {};  TODO: send message to node?
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                $(nodeConnection).on("fileWatcher.change", function (evt, path, event, filename) {
+                    var change;
+                    
+                    if (event === "change") {
+                        // Only register change events if filename is passed
+                        if (filename) {
+                            change = path + "/" + filename;
+                        }
+                    } else if (event === "rename") {
+                        change = path;
+                    }
+                    if (change && !_pendingChanges.hasOwnProperty(change)) {
+                        if (!_changeTimeout) {
+                            _changeTimeout = window.setTimeout(function () {
+                                _changeTimeout = null;
+                                _notifyChanges(callback);
+                            }, FILE_WATCHER_BATCH_TIMEOUT);
+                        }
+                        
+                        _pendingChanges[change] = true;
+                    }
+                });
+            }
+        });
     }
     
     function watchPath(path) {

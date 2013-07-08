@@ -33,14 +33,13 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var FileSystem          = require("filesystem/FileSystem"),
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Encodings           = NativeFileSystem.Encodings;
+        StringUtils         = require("utils/StringUtils");
 
     
     /**
@@ -49,63 +48,46 @@ define(function (require, exports, module) {
      *  file's text content plus its timestamp, or rejected with a NativeFileError if
      *  the file can not be read.
      */
-    function readAsText(fileEntry) {
+    function readAsText(path) {
         var result = new $.Deferred(),
-            reader;
+            file = FileSystem.getFileForPath(path);
 
         // Measure performance
-        var perfTimerName = PerfUtils.markStart("readAsText:\t" + fileEntry.fullPath);
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + path);
         result.always(function () {
             PerfUtils.addMeasurement(perfTimerName);
         });
 
         // Read file
-        reader = new NativeFileSystem.FileReader();
-        fileEntry.file(function (file) {
-            reader.onload = function (event) {
-                var text = event.target.result;
-                
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        result.resolve(text, metadata.modificationTime);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
-            };
-
-            reader.onerror = function (event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, Encodings.UTF8);
-        });
+        file.readAsText()
+            .done(function (data, stat) {
+                result.resolve(data, stat.mtime);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
 
         return result.promise();
     }
     
     /**
      * Asynchronously writes a file as UTF-8 encoded text.
-     * @param {!FileEntry} fileEntry
+     * @param {!string} path
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a NativeFileError.
      */
-    function writeText(fileEntry, text) {
-        var result = new $.Deferred();
+    function writeText(path, text) {
+        var result = new $.Deferred(),
+            file = FileSystem.getFileForPath(path);
         
-        fileEntry.createWriter(function (fileWriter) {
-            fileWriter.onwriteend = function (e) {
+        file.write(text)
+            .done(function () {
                 result.resolve();
-            };
-            fileWriter.onerror = function (err) {
+            })
+            .fail(function (err) {
                 result.reject(err);
-            };
-
-            // TODO (issue #241): NativeFileSystem.BlobBulder
-            fileWriter.write(text);
-        });
+            });
         
         return result.promise();
     }
@@ -288,8 +270,9 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if the file entry was updated
      */
     function updateFileEntryPath(entry, oldName, newName, isFolder) {
-        if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
-            var oldFullPath = entry.fullPath;
+        if (isAffectedWhenRenaming(entry.getPath(), oldName, newName, isFolder)) {
+            /* TODO: FileSystem ----
+            var oldFullPath = entry.getPath();
             var fullPath = oldFullPath.replace(oldName, newName);
             entry.fullPath = fullPath;
             
@@ -305,6 +288,7 @@ define(function (require, exports, module) {
             }
             
             return true;
+            */
         }
         
         return false;

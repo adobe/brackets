@@ -105,7 +105,7 @@ define(function (require, exports, module) {
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).getPath()),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,
@@ -232,13 +232,13 @@ define(function (require, exports, module) {
             if (!moved) {
                 if (!fromClose) {
                 /***/
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).getPath(), FileViewController.WORKING_SET_VIEW);
                 /***
                     // Backing out for Sprint 18 due to issues described in #2394, #2411
                     if (selected) {
                         CommandManager.execute(Commands.FILE_RENAME);
                     } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).getPath(), FileViewController.WORKING_SET_VIEW);
                     }
                 ***/
                 } else {
@@ -335,13 +335,13 @@ define(function (require, exports, module) {
      * @param {?Document} selectedDoc
      */
     function _updateListItemSelection(listItem, selectedDoc) {
-        var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
+        var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).getPath() === selectedDoc.file.getPath());
         
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
-        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.getPath());
         return (docIfOpen && docIfOpen.isDirty);
     }
     
@@ -429,7 +429,7 @@ define(function (require, exports, module) {
             var items = $openFilesContainer.find("ul").children();
             items.each(function () {
                 var $listItem = $(this);
-                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
+                if ($listItem.data(_FILE_KEY).getPath() === file.getPath()) {
                     result = $listItem;
                     return false;
                     // breaks each

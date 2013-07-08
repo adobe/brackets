@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         Menus                  = brackets.getModule("command/Menus"),
         Editor                 = brackets.getModule("editor/Editor").Editor,
         FileUtils              = brackets.getModule("file/FileUtils"),
-        NativeFileSystem       = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        FileSystem             = brackets.getModule("filesystem/FileSystem"),
         ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         NativeApp              = brackets.getModule("utils/NativeApp"),
@@ -140,8 +140,9 @@ define(function (require, exports, module) {
     
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-        NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
-            fs.root.createReader().readEntries(function (entries) {
+        
+        FileSystem.getDirectoryContents(FileSystem.getDirectoryForPath(stringsPath))
+            .done(function (contents) {
                 var $dialog,
                     $submit,
                     $select,
@@ -170,12 +171,12 @@ define(function (require, exports, module) {
                 languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
-                entries.forEach(function (entry) {
-                    if (entry.isDirectory) {
-                        var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
+                contents.forEach(function (entry) {
+                    if (entry.isDirectory()) {
+                        var match = entry.getName().match(/^([a-z]{2})(-[a-z]{2})?$/);
                         
                         if (match) {
-                            var language = entry.name,
+                            var language = entry.getName(),
                                 label = match[1];
                             
                             if (match[2]) {
@@ -203,7 +204,6 @@ define(function (require, exports, module) {
                 
                 $select.on("change", setLanguage).val(curLocale);
             });
-        });
     }
     
     function _enableRunTestsMenuItem() {
@@ -212,18 +212,15 @@ define(function (require, exports, module) {
         }
 
         // Check for the SpecRunner.html file
-        var fileEntry = new NativeFileSystem.FileEntry(
+        var file = FileSystem.getFileForPath(
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        fileEntry.getMetadata(
-            function (metadata) {
-                // If we sucessfully got the metadata for the SpecRunner.html file, 
-                // enable the menu item
+        file.exists().done(function (exists) {
+            if (exists) {
                 CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
-            },
-            function (error) {} /* menu already disabled, ignore errors */
-        );
+            }
+        });
     }
 	
 	

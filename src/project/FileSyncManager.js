@@ -100,10 +100,10 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // Check file timestamp / existence
-            doc.file.getMetadata(
-                function (metadata) {
+            doc.file.stat()
+                .done(function (stat) {
                     // Does file's timestamp differ from last sync time on the Document?
-                    if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
+                    if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
                         if (doc.isDirty) {
                             editConflicts.push(doc);
                         } else {
@@ -111,10 +111,11 @@ define(function (require, exports, module) {
                         }
                     }
                     result.resolve();
-                },
-                function (error) {
+                })
+                .fail(function (err) {
                     // File has been deleted externally
-                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
+                    // TODO: FileSystem error...
+                    if (err.name === NativeFileError.NOT_FOUND_ERR) {
                         if (doc.isDirty) {
                             deleteConflicts.push(doc);
                         } else {
@@ -123,11 +124,11 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.fullPath, error.name);
+                        console.log("Error checking modification status of " + doc.file.getPath(), err);
                         result.reject();
                     }
-                }
-            );
+                });
+
             return result.promise();
         }
         
@@ -143,7 +144,7 @@ define(function (require, exports, module) {
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
-            return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
+            return !DocumentManager.getOpenDocumentForPath(wsFile.getPath());
         });
         
         function checkWorkingSetFile(file) {
@@ -161,7 +162,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, error.name);
+                        console.log("Error checking for deletion of " + file.getPath(), error.name);
                         result.reject();
                     }
                 }
@@ -183,13 +184,13 @@ define(function (require, exports, module) {
      */
     function reloadDoc(doc) {
         
-        var promise = FileUtils.readAsText(doc.file);
+        var promise = FileUtils.readAsText(doc.file.getPath());
         
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.fullPath, error.name);
+            console.log("Error reloading contents of " + doc.file.getPath(), error.name);
         });
         return promise;
     }
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
-                StringUtils.breakableUrl(doc.file.fullPath),
+                StringUtils.breakableUrl(doc.file.getPath()),
                 FileUtils.getFileErrorString(error.name)
             )
         );
@@ -268,7 +269,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.breakableUrl(
-                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())
                     )
                 );
                 buttons = [
@@ -290,7 +291,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.breakableUrl(
-                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())
                     )
                 );
                 buttons = [

@@ -334,7 +334,7 @@ define(function (require, exports, module) {
         
         // If outgoing editor is no longer needed, dispose it
         var isCurrentDocument = (DocumentManager.getCurrentDocument() === document);
-        var isInWorkingSet = (DocumentManager.findInWorkingSet(document.file.fullPath) !== -1);
+        var isInWorkingSet = (DocumentManager.findInWorkingSet(document.file.getPath()) !== -1);
         if (!isCurrentDocument && !isInWorkingSet) {
             // Destroy the editor widget (which un-refs the Document and reverts it to read-only mode)
             editor.destroy();
@@ -422,7 +422,7 @@ define(function (require, exports, module) {
     
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
-        _viewStateCache[editor.document.file.fullPath] = {
+        _viewStateCache[editor.document.file.getPath()] = {
             selection: editor.getSelection(),
             scrollPos: editor.getScrollPos()
         };
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
     /** Updates the given editor's actual state from _viewStateCache, if any state stored */
     function _restoreEditorViewState(editor) {
         // We want to ignore the current state of the editor, so don't call _getViewState()
-        var viewState = _viewStateCache[editor.document.file.fullPath];
+        var viewState = _viewStateCache[editor.document.file.getPath()];
         if (viewState) {
             if (viewState.selection) {
                 editor.setSelection(viewState.selection.start, viewState.selection.end);
@@ -444,7 +444,7 @@ define(function (require, exports, module) {
     
     /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
     function _getViewState(fullPath) {
-        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
+        if (_currentEditorsDocument && _currentEditorsDocument.file.getPath() === fullPath) {
             _saveEditorViewState(_currentEditor);
         }
         return _viewStateCache[fullPath];
@@ -525,7 +525,7 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getCurrentDocument(),
             container = _editorHolder.get(0);
         
-        var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.getPath()));
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
@@ -544,7 +544,7 @@ define(function (require, exports, module) {
         // didn't change: removing a document from the working set (via the "X" button). (This may
         // also cover the case where the document WAS current, if the editor-swap happens before the
         // removal from the working set.
-        var doc = DocumentManager.getOpenDocumentForPath(removedFile.fullPath);
+        var doc = DocumentManager.getOpenDocumentForPath(removedFile.getPath());
         if (doc) {
             _destroyEditorIfUnneeded(doc);
         }

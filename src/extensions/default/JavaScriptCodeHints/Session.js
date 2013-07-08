@@ -43,7 +43,7 @@ define(function (require, exports, module) {
      */
     function Session(editor) {
         this.editor = editor;
-        this.path = editor.document.file.fullPath;
+        this.path = editor.document.file.getPath();
         this.ternHints = [];
         this.ternGuesses = null;
         this.fnType = null;
@@ -593,7 +593,7 @@ define(function (require, exports, module) {
      * @return {string} - the "javascript" text that can be sent to Tern.
      */
     Session.prototype.getJavascriptText = function () {
-        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.getPath()).getId() === "html") {
             // HTML file - need to send back only the bodies of the
             // <script> tags
             var text = "",

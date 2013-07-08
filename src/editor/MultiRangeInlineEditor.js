@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.$listItem = null;
     
     function _updateRangeLabel(listItem, range) {
-        var text = range.name + " " + range.textRange.document.file.name + " : " + (range.textRange.startLine + 1);
+        var text = range.name + " " + range.textRange.document.file.getName() + " : " + (range.textRange.startLine + 1);
         listItem.text(text);
         listItem.attr("title", text);
     }

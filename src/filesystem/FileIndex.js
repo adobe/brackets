@@ -56,6 +56,21 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Remove an entry.
+     * 
+     * @param {FileSystemEntry} entry The entry to remove.
+     */
+    function removeEntry(entry) {
+        var path = entry.getPath();
+        
+        delete _index[path];
+        
+        if (entry.isFile()) {
+            _allFiles.splice(_allFiles.indexOf(path), 1);
+        }
+    }
+    
+    /**
      * Returns the cached entry for the specified path, or undefined
      * if the path has not been cached.
      * 
@@ -74,6 +89,7 @@ define(function (require, exports, module) {
     // Export public API
     exports.clear       = clear;
     exports.addEntry    = addEntry;
+    exports.removeEntry = removeEntry;
     exports.getEntry    = getEntry;
     exports.getAllFiles = getAllFiles;
 });
