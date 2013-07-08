@@ -56,6 +56,19 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Set the file system to use.
+     * @param {string} system The system to use. Supported values are "dropbox" and "appshell".
+     */
+    function setFileSystem(system) {
+        // TODO: Allow extensions to add new file systems.
+        if (system === "dropbox") {
+            setFileSystemImpl(dropboxFileSystem);
+        } else {
+            setFileSystemImpl(appshellFileSystem);
+        }
+    }
+    
+    /**
      * Returns false for files and directories that are not commonly useful to display.
      *
      * @param {string} path File or directory to filter
@@ -375,6 +388,13 @@ define(function (require, exports, module) {
      * @param {string} rootPath The new project root.
      */
     function setProjectRoot(rootPath) {
+        // !!HACK FOR DEMO - if rootPath === "/Stuff", switch to the dropbox file system
+        if (rootPath === "/Stuff") {
+            setFileSystem("dropbox");
+        } else {
+            setFileSystem("appshell");
+        }
+        
         if (rootPath && rootPath.length > 1) {
             if (rootPath[rootPath.length - 1] === "/") {
                 rootPath = rootPath.substr(0, rootPath.length - 1);
@@ -393,7 +413,7 @@ define(function (require, exports, module) {
     }
     
     // Set initial file system
-    setFileSystemImpl(appshellFileSystem);
+    setFileSystem("appshell");
     
     // Export public API
     exports.setFileSystemImpl       = setFileSystemImpl;

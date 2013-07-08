@@ -31,12 +31,21 @@ var fs = require("fs");
 var _domainManager,
     _watcherMap = {};
 
+/**
+ * Watch a file or directory.
+ * @param {string} path File or directory to watch.
+ */
 function watchPath(path) {
     _watcherMap[path] = fs.watch(path, function (event, filename) {
+        // File/directory changes are emitted as "change" events on the fileWatcher domain.
         _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
     });
 }
 
+/**
+ * Un-watch a file or directory.
+ * @param {string} path File or directory to unwatch.
+ */
 function unwatchPath(path) {
     var watcher = _watcherMap[path];
     
@@ -46,6 +55,9 @@ function unwatchPath(path) {
     }
 }
 
+/**
+ * Un-watch all files and directories.
+ */
 function unwatchAll() {
     var path;
     
@@ -57,8 +69,8 @@ function unwatchAll() {
 }
 
 /**
- * Initialize the "extensions" domain.
- * The extensions domain handles downloading, unpacking/verifying, and installing extensions.
+ * Initialize the "fileWatcher" domain.
+ * The fileWatcher domain handles watching and un-watching directories.
  */
 function init(domainManager) {
     if (!domainManager.hasDomain("fileWatcher")) {

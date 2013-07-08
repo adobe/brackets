@@ -142,6 +142,8 @@ define(function (require, exports, module) {
      * by findExternalChanges()). If any were deleted on disk, removes them from the working set.
      */
     function syncUnopenWorkingSet() {
+        /* TODO: FileSystem --
+        
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.getPath());
@@ -172,6 +174,8 @@ define(function (require, exports, module) {
         
         // Check all these files in parallel
         return Async.doInParallel(unopenWorkingSetFiles, checkWorkingSetFile, false);
+        */
+        return new $.Deferred().resolve().promise();
     }
     
     
