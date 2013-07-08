@@ -56,7 +56,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\| Auch dürfen keine vom System reservierten Wörter vorkommen.",
     "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen der Datei",
     "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
@@ -100,6 +100,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
+    "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}." +
                                                 "<br /><br />" +
                                                 "Welche Version wollen Sie weiter verwenden?",
@@ -116,6 +117,7 @@ define({
     "BUTTON_STOP"                       : "Stopp",
 
     "OPEN_FILE"                         : "Datei öffnen",
+    "SAVE_FILE_AS"                      : "Datei speichern",
     "CHOOSE_FOLDER"                     : "Ordner wählen",
 
     "RELEASE_NOTES"                     : "Release-Notes",
@@ -161,8 +163,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicken, um die Schrittweite von Tabs zu ändern",
     "STATUSBAR_SPACES"                      : "Leerzeichen",
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Zeile",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Zeilen",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
 
     /**
      * Command Name Constants
@@ -179,6 +181,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
+    "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
@@ -264,6 +267,7 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
     "CMD_ABORT_QUIT"                      : "Beenden abbrechen",
+    "CMD_BEFORE_MENUPOPUP"                : "Vor Menü-Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
@@ -301,6 +305,7 @@ define({
     // Extension Management strings
     "INSTALL"                              : "Installieren",
     "REMOVE"                               : "Entfernen",
+    "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
@@ -318,11 +323,13 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
     "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
-    "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
-    "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{0}} nicht erlaubt.",
+    "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette ({0}) ist ungültig.",
+    "DISALLOWED_WORDS"                     : "Die Wörter ({1}) sind im Feld {0} nicht erlaubt.",
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von {APP_NAME} kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
-    "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
+    "EXTENSION_ALREADY_INSTALLED"          : "Durch die Installation dieses Pakets wird eine zuvor installierte Erweiterung überschrieben. Alte Erweiterung überschreiben?",
+    "EXTENSION_SAME_VERSION"               : "Dieses Paket ist die gleiche Version wie die bereits installierte. Bestehende Installation überschreiben?",
+    "EXTENSION_OLDER_VERSION"              : "Dieses Paket ist die Version {0}, die älter ist als die aktuell installierte ({1}). Bestehende Installation überschreiben?",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
     "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
     "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
@@ -344,18 +351,26 @@ define({
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
     "EXTENSION_INSTALLED"                  : "Installiert",
+    "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn Sie {APP_NAME} beenden.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
     "EXTENSION_MORE_INFO_LINK"             : "Mehr",
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {{0}}",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {0}. {APP_NAME} wird trotzdem beendet.",
+    "EXTENSION_MANAGER_UPDATE"             : "Erweiterung aktualisieren",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Fehler beim Aktualisieren von einer oder mehreren Erweiterung(en): {0}. {APP_NAME} wird trotzdem beendet.",
     "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
     "UNDO_REMOVE"                          : "Rückgängig",
-    "REMOVE_AND_QUIT_TITLE"                : "Erweiterungen entfernen",
-    "REMOVE_AND_QUIT_MESSAGE"              : "Um die markierten Erweiterungen zu entfernen, müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "MARKED_FOR_UPDATE"                    : "Zur Aktualisierung markiert",
+    "UNDO_UPDATE"                          : "Rückgängig",
+    "CHANGE_AND_QUIT_TITLE"                : "Erweiterungen ändern",
+    "CHANGE_AND_QUIT_MESSAGE"              : "Um die markierten Erweiterungen zu aktualisieren oder zu entfernen, müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
     "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und beenden",
-    "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {{0}} konnte nicht entfernt werden, weil sie nicht installiert ist.",
-    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br />Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
+    "CHANGE_AND_QUIT"                      : "Erweiterungen ändern und beenden",
+    "UPDATE_AND_QUIT"                      : "Erweiterungen aktualisieren und beenden",
+    "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
+    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
+    "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
     /**
      * Unit names
      */

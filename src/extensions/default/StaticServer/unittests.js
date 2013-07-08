@@ -539,6 +539,10 @@ define(function (require, exports, module) {
             });
 
             afterEach(function () {
+                brackets            = null;
+                ProjectManager      = null;
+                extensionRequire    = null;
+                StaticServer        = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

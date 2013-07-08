@@ -439,9 +439,16 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
                 });
                 
-                // This must be in the last spec in the suite.
+                // This must be in the last spec in the suite. Note that it's possible to
+                // run a single test from suite, so this only works when running entire suite.
                 runs(function () {
                     this.after(function () {
+                        testWindow          = null;
+                        CommandManager      = null;
+                        Commands            = null;
+                        EditorManager       = null;
+                        DocumentManager     = null;
+                        FileViewController  = null;
                         SpecRunnerUtils.closeTestWindow();
                     });
                 });

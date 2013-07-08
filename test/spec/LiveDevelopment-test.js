@@ -125,6 +125,10 @@ define(function (require, exports, module) {
         });
     }
 
+    function enableAgent(liveDevModule, name) {
+        liveDevModule.enableAgent(name);
+    }
+
     describe("Live Development", function () {
         
         this.category = "integration";
@@ -209,7 +213,18 @@ define(function (require, exports, module) {
                     return (LiveDevelopment.status === LiveDevelopment.STATUS_INACTIVE);
                 }, "Waiting for browser to become inactive", 10000);
 
-                SpecRunnerUtils.closeTestWindow();
+                runs(function () {
+                    testWindow           = null;
+                    LiveDevelopment      = null;
+                    LiveDevServerManager = null;
+                    DOMAgent             = null;
+                    DocumentManager      = null;
+                    CommandManager       = null;
+                    Commands             = null;
+                    NativeApp            = null;
+                    ProjectManager       = null;
+                    SpecRunnerUtils.closeTestWindow();
+                });
             });
             
             it("should establish a browser connection for an opened html file", function () {
@@ -319,6 +334,8 @@ define(function (require, exports, module) {
                 
                 var cssOpened = false;
                 runs(function () {
+                    enableAgent(LiveDevelopment, "dom");
+
                     SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
                         expect("Failed To Open").toBe("simple1.css");
                     }).always(function () {
@@ -559,6 +576,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
+                testCSSDoc = null;
             });
             
             it("should toggle the highlight via a command", function () {
@@ -689,7 +707,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
-                
+                testHTMLDoc = null;
                 instrumentedHtml = "";
                 elementIds = {};
             });

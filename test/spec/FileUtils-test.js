@@ -52,5 +52,24 @@ define(function (require, exports, module) {
                 expect(FileUtils.convertWindowsPathToUnixPath("/some/back\\slash/path.txt")).toBe("/some/back\\slash/path.txt");
             });
         });
+
+        describe("getDirectoryPath", function () {
+            
+            it("should get the parent directory of a normalized win file path", function () {
+                expect(FileUtils.getDirectoryPath("C:/foo/bar/baz.txt")).toBe("C:/foo/bar/");
+            });
+            
+            it("should get the parent directory of a posix file path", function () {
+                expect(FileUtils.getDirectoryPath("/foo/bar/baz.txt")).toBe("/foo/bar/");
+            });
+            
+            it("should return the unchanged directory of a normalized win directory path", function () {
+                expect(FileUtils.getDirectoryPath("C:/foo/bar/")).toBe("C:/foo/bar/");
+            });
+            
+            it("should return the unchanged directory of a posix directory path", function () {
+                expect(FileUtils.getDirectoryPath("C:/foo/bar/")).toBe("C:/foo/bar/");
+            });
+        });
     });
 });

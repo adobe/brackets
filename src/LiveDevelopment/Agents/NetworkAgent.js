@@ -69,17 +69,21 @@ define(function NetworkAgent(require, exports, module) {
         // res = {frame}
         _logURL(res.frame.url);
     }
+    
+    /**
+     * Enable the inspector Network domain
+     * @return {jQuery.Promise} A promise resolved when the Network.enable() command is successful.
+     */
+    function enable() {
+        return Inspector.Network.enable();
+    }
 
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
 
         $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
-
-        // FIXME Windows only: Somtimes enable() isn't acknowledged
-        return Inspector.retry(Inspector.Network.enable).done(function () {
-            $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
-        });
+        $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
@@ -90,6 +94,7 @@ define(function NetworkAgent(require, exports, module) {
 
     // Export public functions
     exports.wasURLRequested = wasURLRequested;
+    exports.enable = enable;
     exports.load = load;
     exports.unload = unload;
 });
