@@ -478,8 +478,13 @@ define(function (require, exports, module) {
         return currentQuery !== query;
     }
     
-    function filterZippedFileExtensions(fileName) {
-        var restricted = ['svgz', 'jsz', 'zip', 'gz'];
+    /**
+     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @param {string} fileName
+     * @return {boolean}
+     */
+    function isBinaryFileExtension(fileName) {
+        var restricted = ['svgz', 'jsz', 'zip', 'gz', 'zip', 'htmz', 'htmlz', 'rar', 'exe', 'bin'];
         if ($.inArray(fileName.split('.').pop(), restricted) > -1) {
             return false;
         } else {
@@ -513,7 +518,7 @@ define(function (require, exports, module) {
             // match query against the full path (with gaps between query characters allowed)
             var searchResult;
             
-            if (filterZippedFileExtensions(fileInfo.name)) {
+            if (isBinaryFileExtension(fileInfo.name)) {
                 searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             }
             
