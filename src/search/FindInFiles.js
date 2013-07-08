@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     
     var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 300,
+    var FIND_IN_FILES_MAX = 100,
         maxHitsFoundInFile = false,
         currentQuery = "",
         currentScope;
