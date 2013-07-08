@@ -199,6 +199,18 @@ define(function (require, exports, module) {
         var keydownHook = function (e) {
             return _keydownHook.call($dlg, e, autoDismiss);
         };
+        
+        var shellCommandHook = function (e) {
+            var bindings = KeyBindingManager.getKeyBindings(e.commandName);
+            
+            if (bindings.length === 1 && bindings[0].key.indexOf("Cmd-") === 0) {
+                var keydownEvent = $.Event("keydown");
+                keydownEvent.which = bindings[0].key.charCodeAt(4);
+                keydownEvent.metaKey = true;
+                keydownEvent.target = $dlg;
+                keydownHook(keydownEvent);
+            }
+        };
 
         // Pipe dialog-closing notification back to client code
         $dlg.one("hidden", function () {
@@ -217,6 +229,8 @@ define(function (require, exports, module) {
             // Remove the dialog instance from the DOM.
             $dlg.remove();
 
+            $dlg.off("shellCommand");
+            
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
         }).one("shown", function () {
@@ -229,6 +243,8 @@ define(function (require, exports, module) {
 
             // Push our global keydown handler onto the global stack of handlers.
             KeyBindingManager.addGlobalKeydownHook(keydownHook);
+            
+            $dlg.on("shellCommand", shellCommandHook);
         });
         
         // Click handler for buttons
