@@ -113,7 +113,12 @@ define(function (require, exports, module) {
 
                 if (module && module.init && (typeof module.init === "function")) {
                     // optional async extension init 
-                    initPromise = module.init();
+                    try {
+                        initPromise = module.init();
+                    } catch (err) {
+                        console.error("[Extension] Error -- error thrown during extension init for " + name + ": " + err);
+                        result.reject(err);
+                    }
 
                     if (initPromise) {
                         promise = initPromise.then(result.resolve, result.reject);
