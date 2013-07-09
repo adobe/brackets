@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
+        DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils");
             
     // Load modules that self-register and just need to get included in the main project
@@ -279,19 +280,25 @@ define(function (require, exports, module) {
         // handle drops.
         $(window.document.body)
             .on("dragover", function (event) {
+                var dropEffect = "none";
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "copy";
+                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                        dropEffect = "copy";
+                    }
+                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
                 }
             })
             .on("drop", function (event) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    if (brackets.app.openDroppedFiles) {
-                        var files = brackets.app.openDroppedFiles();
-                    }
+                    brackets.app.getDroppedFiles(function (err, files) {
+                        if (!err) {
+                            DragAndDrop.openDroppedFiles(files);
+                        }
+                    });
                 }
             });
         
