@@ -4,7 +4,6 @@
   "version": "27.0.1.1",
   "manifest_version": 2,
   "permissions": [
-    "<all_urls>",
     "storage",
     "alarms",
     "experimental"

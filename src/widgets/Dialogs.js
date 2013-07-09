@@ -162,7 +162,12 @@ define(function (require, exports, module) {
         this._promise.done(callback);
     };
     
-    
+    /** 
+     * Like close but dismisses with a result
+     */
+    Dialog.prototype.dismiss = function (btnId) {
+        _dismissDialog(this._$dlg, btnId);
+    };
     
     /**
      * Creates a new modal dialog from a given template.

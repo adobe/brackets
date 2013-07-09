@@ -57,6 +57,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
+    require("file/DropboxChooserDialog");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),

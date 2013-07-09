@@ -1,0 +1,53 @@
+.dropbox-list {
+    margin-left: 0;
+}
+
+.dropbox-file-item {
+    list-style: none; 
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.dropbox-file-item:hover {
+    background-color: lightskyblue;
+}
+
+.dropbox-file-item.selected {
+    background-color: dodgerblue;
+}
+
+.dropbox-file-icon {
+    float: left; 
+    width: 40px;
+}
+
+.dropbox-file-title {
+    float: left; 
+    width: 230px; 
+    padding-top: 14px;
+}
+
+.dropbox-clear-fix {
+    clear: both; 
+    width: 0;
+}
+
+.dropbox-breadcrumbs {
+    background-color: rgba(0,0,198,.1);
+}
+
+.dropbox-breadcrumb-list {
+    margin-left: 0;
+    overflow: hidden;
+}
+
+.dropbox-breadcrumb-item {
+    list-style: none;
+    display: inline-block;
+    margin-right: 5px;
+    float: left;
+}
+
+li.child-folder:before {
+    content: " > ";
+}

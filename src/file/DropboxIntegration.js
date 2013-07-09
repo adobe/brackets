@@ -90,6 +90,7 @@ define(function (require, exports, module) {
     function stat(path, callback) {
         client.stat(path, function (error, data) {
             callback(mapError(error), {
+                path: path,
                 isFile: function () {
                     return data.isFile;
                 },
@@ -119,15 +120,6 @@ define(function (require, exports, module) {
         });
     }
     
-    function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
-        alert("File/directory chooser not implemented yet");
-        if (chooseDirectory) {
-            callback(0, "/");
-        } else {
-            callback(1);
-        }
-    }
-    
     function init() {
         client = new Dropbox.Client({
             key: "sWR9wXcpXIA=|c5GZu+WL9XhxhReZMsg7QvspGpVZ80iF+Cin/xbKrQ==",
@@ -147,7 +139,6 @@ define(function (require, exports, module) {
         brackets.fs.readFile = readFile;
         brackets.fs.writeFile = writeFile;
         brackets.fs.rename = rename;
-        brackets.fs.showOpenDialog = showOpenDialog;
         
         // Error codes
         brackets.fs.NO_ERROR                    = 0;
