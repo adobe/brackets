@@ -81,6 +81,12 @@ define(function (require, exports, module) {
         });
     
         afterEach(function () {
+            initCodeHintTest    = null;
+            testWindow          = null;
+            CodeHintManager     = null;
+            EditorManager       = null;
+            CommandManager      = null;
+            KeyBindingManager   = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -213,12 +219,13 @@ define(function (require, exports, module) {
                     
                     // and popup should auto-close
                     expectNoHints();
+
+                    editor = null;
                 });
             });
 
             it("should dismiss code hints menu with Esc key", function () {
-                var editor,
-                    pos = {line: 3, ch: 1};
+                var pos = {line: 3, ch: 1};
 
                 // minimal markup with an open '<' before IP
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
@@ -267,6 +274,8 @@ define(function (require, exports, module) {
                     
                     // verify list is no longer open
                     expectNoHints();
+
+                    editor = null;
                 });
             });
             
@@ -308,8 +317,9 @@ define(function (require, exports, module) {
                     // to move this expectNoHints() up after the click.
                     expectNoHints();
                     expect(editor.document.getText()).toEqual(text);
+
+                    editor = null;
                 });
-                
             });
         });
     });

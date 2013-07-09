@@ -91,6 +91,11 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow          = null;
+            CommandManager      = null;
+            Commands            = null;
+            DocumentManager     = null;
+            FileViewController  = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
