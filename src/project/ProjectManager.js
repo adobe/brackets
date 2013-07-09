@@ -1227,18 +1227,14 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
+                    var errorString = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
                             (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            !isFolder ?
-                                    StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.FILE) :
-                                    StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.DIRECTORY),
-                            !isFolder ?
-                                    StringUtils.format(Strings.FILE_ALREADY_EXISTS, Strings.FILE,
-                                                       StringUtils.breakableUrl(data.rslt.name)) :
-                                    StringUtils.format(Strings.FILE_ALREADY_EXISTS, Strings.DIRECTORY,
-                                                       StringUtils.breakableUrl(data.rslt.name))
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS_TILE, errorString),
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, errorString,
+                                StringUtils.breakableUrl(data.rst.name))
                         );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
@@ -1247,12 +1243,9 @@ define(function (require, exports, module) {
 
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            isFolder ? StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, Strings.DIRECTORY) :
-                                        StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, Strings.FILE),
-                            isFolder ? StringUtils.format(Strings.ERROR_CREATING_FILE, Strings.DIRECTORY,
-                                        StringUtils.breakableUrl(data.rslt.name), errString) :
-                                       StringUtils.format(Strings.ERROR_CREATING_FILE, Strings.FILE,
-                                        StringUtils.breakableUrl(data.rslt.name), errString)
+                            StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, errorString),
+                            StringUtils.format(Strings.ERROR_CREATING_FILE, errorString, 
+                                Strings.breakableUrl(data.rslt.name), errString)
                         );
                     }
 
