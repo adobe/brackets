@@ -53,6 +53,10 @@ has a list of plug-ins that have been contributed.
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
 
+#### Need help?
+
+Having problems starting Brackets the first time, or not sure how to use brackets?  Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps you to fix common problems, & find extra help if needed.
+
 
 Helping Brackets
 ----------------
@@ -60,9 +64,7 @@ Helping Brackets
 
 #### I found a bug!
 
-Issues starting Brackets the first time? Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting).
-
-If you found a repeatable bug, be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
+If you found a repeatable bug, and [troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting) tips didn't help, then be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
 Include steps to consistently reproduce the problem, actual vs. expected results, screenshots, and your OS and
 Brackets version number. Disable all extensions to verify the issue is a core Brackets bug.
 [Read more guidelines for filing good bugs...](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
