@@ -545,10 +545,18 @@ a, img {
 
 /* Styles for inline editors */
 .inline-widget {
+    position: relative;
+    overflow: hidden;
+
     background-color: @inline-background-color-1;
     min-width: 250px;
     cursor: default;
     
+    &.animating {
+        -webkit-transition: height 0.15s ease-out;
+        transition: height 0.15s ease-out;
+    }
+
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
         height: auto;

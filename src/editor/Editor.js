@@ -1015,6 +1015,12 @@ define(function (require, exports, module) {
 
         // Callback to widget once parented to the editor
         inlineWidget.onAdded();
+
+        var removeAnimation = function () {
+            inlineWidget.$htmlContent.removeClass("animating");
+            inlineWidget.$htmlContent.off("webkitTransitionEnd", removeAnimation);
+        };
+        inlineWidget.$htmlContent.on("webkitTransitionEnd", removeAnimation);
     };
     
     /**
@@ -1034,10 +1040,15 @@ define(function (require, exports, module) {
      * @param {number} inlineWidget The widget to remove.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
-        var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+        var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
+            self = this;
         
-        this._codeMirror.removeLineWidget(inlineWidget.info);
-        this._removeInlineWidgetInternal(inlineWidget);
+        inlineWidget.$htmlContent.addClass("animating")
+            .on("webkitTransitionEnd", function () {
+                self._codeMirror.removeLineWidget(inlineWidget.info);
+                self._removeInlineWidgetInternal(inlineWidget);
+            })
+            .height(0);
     };
     
     /**
@@ -1119,14 +1130,30 @@ define(function (require, exports, module) {
             changed = (oldHeight !== height),
             isAttached = inlineWidget.info !== undefined;
 
+        function updateHeight() {
+            // Notify CodeMirror for the height change.
+            if (isAttached) {
+                inlineWidget.info.changed();
+            }
+        }
+        
+        function setOuterHeight() {
+            $(node).height(height);
+            if ($(node).hasClass("animating")) {
+                $(node).on("webkitTransitionEnd", updateHeight);
+            } else {
+                updateHeight();
+            }
+        }
+
         // Make sure we set an explicit height on the widget, so children can use things like
         // min-height if they want.
         if (changed || !node.style.height) {
-            $(node).height(height);
-
-            if (isAttached) {
-                // Notify CodeMirror for the height change
-                inlineWidget.info.changed();
+            // If we're animating, set the wrapper's height on a timeout so the layout is finished before we animate.
+            if ($(node).hasClass("animating")) {
+                window.setTimeout(setOuterHeight, 0);
+            } else {
+                setOuterHeight();
             }
         }
 
