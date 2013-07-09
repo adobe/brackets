@@ -56,7 +56,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "ファイル名が不正です。",
-	"INVALID_FILENAME_MESSAGE": "!能=[6307152] Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words._=!",
+	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\| またはシステムのすべての予約語",
 	"FILE_ALREADY_EXISTS": "ファイル <span class='dialog-filename'>{0}</span> は既に存在しています。",
 	"ERROR_CREATING_FILE_TITLE": "ファイルを作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を作成する際にエラーが発生しました。{1}",
@@ -113,6 +113,7 @@ define({
 	"BUTTON_STOP": "終了",
 
 	"OPEN_FILE": "ファイルを開く",
+	"SAVE_FILE_AS": "ファイルを保存",
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
@@ -129,7 +130,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "少なくとも ",
 	"FIND_IN_FILES_MAX": " (先頭 {0} 件を表示しています)",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "行 :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "行 : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
@@ -176,6 +177,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
 	"CMD_FILE_SAVE": "保存",
 	"CMD_FILE_SAVE_ALL": "すべて保存",
+	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
@@ -262,7 +264,7 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
 	"CMD_ABORT_QUIT": "強制終了する",
-	"CMD_BEFORE_MENUPOPUP": "!能=[7018403] Before Menu Popup_=!",
+	"CMD_BEFORE_MENUPOPUP": "ポップアップメニュー表示前",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
@@ -409,6 +411,7 @@ define({
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
+	"LOCALE_HU": "ハンガリー語",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

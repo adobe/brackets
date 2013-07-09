@@ -62,6 +62,11 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentCommandHandlers = null;
+            DocumentManager         = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
@@ -442,6 +447,17 @@ define(function (require, exports, module) {
                 });
             });
 
+        });
+        
+        describe("Decorated Path Parser", function () {
+            it("should correctly parse decorated paths", function () {
+                var path = testPath + "/test.js";
+                
+                expect(DocumentCommandHandlers._parseDecoratedPath(null)).toEqual({path: null, line: null, column: null});
+                expect(DocumentCommandHandlers._parseDecoratedPath(path)).toEqual({path: path, line: null, column: null});
+                expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123")).toEqual({path: path, line: 123, column: null});
+                expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
+            });
         });
     });
 });

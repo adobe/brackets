@@ -132,6 +132,10 @@ define(function (require, exports, module) {
                 } catch (e) {
                     // continue with null configObj which will result in
                     // default settings.
+                    console.log("Error parsing preference file: " + path);
+                    if (e instanceof SyntaxError) {
+                        console.log(e.message);
+                    }
                 }
                 preferences = new Preferences(configObj);
                 deferredPreferences.resolve();
@@ -504,12 +508,14 @@ define(function (require, exports, module) {
             document  = session.editor.document,
             p,
             min,
-            indent;
+            indent,
+            line;
 
         // expand range backwards
-        for (p = start.line - 1, min = Math.max(0, p - 50); p >= min; --p) {
-            var line = session.getLine(p),
-                fn = line.search(/\bfunction\b/);
+        for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
+            line = session.getLine(p);
+            var fn = line.search(/\bfunction\b/);
+            
             if (fn >= 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
                 if (minIndent === null || minIndent > indent) {
@@ -529,16 +535,23 @@ define(function (require, exports, module) {
             minLine = min;
         }
 
-        var max = Math.min(cm.lastLine(), start.line + 90);
+        var max = Math.min(cm.lastLine(), start.line + 100),
+            endCh = 0;
+
         for (endLine = start.line + 1; endLine < max; ++endLine) {
-            indent = CodeMirror.countColumn(cm.getLine(endLine), null, tabSize);
-            if (indent <= minIndent) {
-                break;
+            line = cm.getLine(endLine);
+
+            if (line.length > 0) {
+                indent = CodeMirror.countColumn(line, null, tabSize);
+                if (indent <= minIndent) {
+                    endCh = line.length;
+                    break;
+                }
             }
         }
 
         var from = {line: minLine, ch: 0},
-            to   = {line: endLine, ch: 0};
+            to   = {line: endLine, ch: endCh};
 
         return {type: MessageIds.TERN_FILE_INFO_TYPE_PART,
             name: document.file.fullPath,

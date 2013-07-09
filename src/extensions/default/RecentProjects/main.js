@@ -240,16 +240,18 @@ define(function (require, exports, module) {
     function renderList() {
         var recentProjects = getRecentProjects(),
             currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            projectList    = [];
+            templateVars   = {
+                projectList : [],
+                Strings     : Strings
+            };
         
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
-                projectList.push(parsePath(root));
+                templateVars.projectList.push(parsePath(root));
             }
         });
-        var templateVars = {projectList: projectList, hasProject: projectList.length};
         
-        return Mustache.render(ProjectsMenuTemplate, $.extend(templateVars, Strings));
+        return Mustache.render(ProjectsMenuTemplate, templateVars);
     }
     
     /**

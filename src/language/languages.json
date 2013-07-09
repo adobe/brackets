@@ -3,14 +3,21 @@
         "name": "Text",
         "mode": ["null", "text/plain"]
     },
-
+    
+    "groovy": {
+        "name": "Groovy",
+        "mode": "groovy",
+        "fileExtensions": ["groovy"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+   
     "css": {
         "name": "CSS",
         "mode": "css",
         "fileExtensions": ["css"],
         "blockComment": ["/*", "*/"]
     },
-
 
     "scss": {
         "name": "SCSS",

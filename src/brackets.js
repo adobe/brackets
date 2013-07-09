@@ -147,10 +147,10 @@ define(function (require, exports, module) {
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
+            ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
-            extensions              : {}, // place for extensions to hang modules for unit tests
             doneLoading             : false
         };
 
@@ -266,6 +266,11 @@ define(function (require, exports, module) {
             $("body").addClass("in-browser");
         } else {
             $("body").addClass("in-appshell");
+        }
+
+        // Enable/Disable HTML Menus
+        if (brackets.platform !== "linux") {
+            $("body").addClass("has-appshell-menus");
         }
         
         // Localize MainViewHTML and inject into <BODY> tag

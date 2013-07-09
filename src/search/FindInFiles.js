@@ -42,25 +42,33 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async               = require("utils/Async"),
-        Resizer             = require("utils/Resizer"),
-        CommandManager      = require("command/CommandManager"),
-        Commands            = require("command/Commands"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        ProjectManager      = require("project/ProjectManager"),
-        DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
-        PanelManager        = require("view/PanelManager"),
-        FileIndexManager    = require("project/FileIndexManager"),
-        FileUtils           = require("file/FileUtils"),
-        KeyEvent            = require("utils/KeyEvent"),
-        AppInit             = require("utils/AppInit"),
-        StatusBar           = require("widgets/StatusBar"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+    var Async                 = require("utils/Async"),
+        Resizer               = require("utils/Resizer"),
+        CommandManager        = require("command/CommandManager"),
+        Commands              = require("command/Commands"),
+        Strings               = require("strings"),
+        StringUtils           = require("utils/StringUtils"),
+        ProjectManager        = require("project/ProjectManager"),
+        DocumentManager       = require("document/DocumentManager"),
+        EditorManager         = require("editor/EditorManager"),
+        PanelManager          = require("view/PanelManager"),
+        FileIndexManager      = require("project/FileIndexManager"),
+        FileUtils             = require("file/FileUtils"),
+        KeyEvent              = require("utils/KeyEvent"),
+        AppInit               = require("utils/AppInit"),
+        StatusBar             = require("widgets/StatusBar"),
+        ModalBar              = require("widgets/ModalBar").ModalBar;
     
-    var searchResultsTemplate = require("text!htmlContent/search-results.html");
-
+    var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
+        searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
+        searchResultsTemplate = require("text!htmlContent/search-results.html");
+    
+    /** @type {$.Element} jQuery elements used in the search results */
+    var $searchResults,
+        $searchSummary,
+        $searchContent,
+        $selectedRow;
+    
     var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100,
@@ -70,6 +78,7 @@ define(function (require, exports, module) {
     
     // Bottom panel holding the search results. Initialized in htmlReady().
     var searchResultsPanel;
+    
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -125,18 +134,17 @@ define(function (require, exports, module) {
     // class that everyone can use.
     
     /**
-    * FindInFilesDialog class
-    * @constructor
-    *
-    */
+     * FindInFilesDialog class
+     * @constructor
+     */
     function FindInFilesDialog() {
         this.closed = false;
         this.result = null; // $.Deferred
     }
 
     /**
-    * Closes the search dialog and resolves the promise that showDialog returned
-    */
+     * Closes the search dialog and resolves the promise that showDialog returned
+     */
     FindInFilesDialog.prototype._close = function (value) {
         if (this.closed) {
             return;
@@ -149,26 +157,25 @@ define(function (require, exports, module) {
     };
     
     /**
-    * Shows the search dialog 
-    * @param {?string} initialString Default text to prepopulate the search field with
-    * @param {?Entry} scope Search scope, or null to search whole proj
-    * @returns {$.Promise} that is resolved with the string to search for
-    */
+     * Shows the search dialog
+     * @param {?string} initialString Default text to prepopulate the search field with
+     * @param {?Entry} scope Search scope, or null to search whole proj
+     * @returns {$.Promise} that is resolved with the string to search for
+     */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
-        var dialogHTML = Strings.CMD_FIND +
-            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
-            "<div class='message'><span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
+        var templateVars = {
+            value: initialString || "",
+            label: _labelForScope(scope)
+        };
+        var dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings));
+        
         this.result = new $.Deferred();
         this.modalBar = new ModalBar(dialogHTML, false);
-        var $searchField = $("input#findInFilesInput");
+        var $searchField = $("input#searchInput");
         var that = this;
         
-        $searchField.val(initialString || "");
         $searchField.get(0).select();
-        
-        $("#findInFilesScope").html(_labelForScope(scope));
-        
         $searchField.bind("keydown", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
                 event.stopPropagation();
@@ -196,12 +203,21 @@ define(function (require, exports, module) {
         return this.result.promise();
     };
     
+    
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
         }
     }
-
+    
+    
+    /**
+     * @private
+     * Searches throught the contents an returns an array of matches
+     * @param {string} contents
+     * @param {RegExp} queryExpr
+     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
+     */
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found
         if (contents.search(queryExpr) === -1) {
@@ -213,13 +229,12 @@ define(function (require, exports, module) {
         var matchStart;
         var matches = [];
         
-        
         var match;
         var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum = StringUtils.offsetToLineNum(lines, match.index);
-            var line = lines[lineNum];
-            var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            var lineNum     = StringUtils.offsetToLineNum(lines, match.index);
+            var line        = lines[lineNum];
+            var ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             var matchLength = match[0].length;
             
             // Don't store more than 200 chars per line
@@ -227,8 +242,8 @@ define(function (require, exports, module) {
             
             matches.push({
                 start: {line: lineNum, ch: ch},
-                end: {line: lineNum, ch: ch + matchLength},
-                line: line
+                end:   {line: lineNum, ch: ch + matchLength},
+                line:  line
             });
 
             // We have the max hits in just this 1 file. Stop searching this file.
@@ -245,8 +260,6 @@ define(function (require, exports, module) {
         
     function _showSearchResults(searchResults, query, scope) {
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='table table-striped table-condensed row-highlight' />")
-                                .append("<tbody>");
             
             // Count the total number of matches
             var numMatches = 0;
@@ -272,75 +285,102 @@ define(function (require, exports, module) {
                 scope ? _labelForScope(scope) : ""
             );
             
-            $("#search-result-summary")
+            // Insert the search summary
+            $searchSummary
                 .html(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
                 .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             
-            var resultsDisplayed = 0;
+            // Create the results template search list
+            var searchList = [];
+            var resultsDisplayed = 0, i;
+            var searchItems, match;
             
             searchResults.forEach(function (item) {
                 if (item && resultsDisplayed < FIND_IN_FILES_MAX) {
-                    var makeCell = function (content) {
-                        return $("<td/>").html(content);
-                    };
+                    i = 0;
                     
-                    // shorthand function name
-                    var esc = StringUtils.htmlEscape;
-                    
-                    var highlightMatch = function (line, start, end) {
-                        return esc(line.substr(0, start)) + "<span class='highlight'>" + esc(line.substring(start, end)) + "</span>" + esc(line.substr(end));
-                    };
-                    
-                    // Add row for file name
+                    // Add a row for each match in the file
+                    searchItems = [];
+                    while (i < item.matches.length && resultsDisplayed < FIND_IN_FILES_MAX) {
+                        match = item.matches[i];
+                        searchItems.push({
+                            file:      searchList.length,
+                            item:      i,
+                            line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1)),
+                            pre:       match.line.substr(0, match.start.ch),
+                            highlight: match.line.substring(match.start.ch, match.end.ch),
+                            post:      match.line.substr(match.end.ch),
+                            start:     match.start,
+                            end:       match.end
+                        });
+                        resultsDisplayed++;
+                        i++;
+                    }
+                                        
+                    // Add a row for each file
                     var displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
                         StringUtils.breakableUrl(item.fullPath)
                     );
 
-                    $("<tr class='file-section' />")
-                        .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
-                        .click(function () {
-                            // Clicking file section header collapses/expands result rows for that file
-                            var $fileHeader = $(this);
-                            $fileHeader.nextUntil(".file-section").toggle();
-                            
-                            var $triangle = $(".disclosure-triangle", $fileHeader);
-                            $triangle.toggleClass("expanded").toggleClass("collapsed");
-                        })
-                        .appendTo($resultTable);
-                    
-                    // Add row for each match in file
-                    item.matches.forEach(function (match) {
-                        if (resultsDisplayed < FIND_IN_FILES_MAX) {
-                            var $row = $("<tr/>")
-                                .append(makeCell(" "))      // Indent
-                                .append(makeCell(StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1))))
-                                .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
-                                .appendTo($resultTable);
-                            
-                            $row.click(function () {
-                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
-                                    .done(function (doc) {
-                                        // Opened document is now the current main editor
-                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end, true);
-                                    });
-                            });
-                            resultsDisplayed++;
-                        }
+                    searchList.push({
+                        file:     searchList.length,
+                        filename: displayFileName,
+                        fullPath: item.fullPath,
+                        items:    searchItems
                     });
                     
                 }
             });
             
-            $("#search-results .table-container")
+            // Insert the search results
+            $searchContent
                 .empty()
-                .append($resultTable)
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
                 .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
-            $("#search-results .close")
+            $searchResults.find(".close")
                 .one("click", function () {
                     _hideSearchResults();
+                });
+            
+            // Add the click event listener directly on the table parent
+            $searchContent
+                .off(".searchList")  // Remove the old events
+                .on("click.searchList", function (e) {
+                    var $row = $(e.target).closest("tr");
+                    
+                    if ($row.length) {
+                        if ($selectedRow) {
+                            $selectedRow.removeClass("selected");
+                        }
+                        $row.addClass("selected");
+                        $selectedRow = $row;
+                        
+                        var searchItem = searchList[$row.data("file")];
+                        var fullPath   = searchItem.fullPath;
+                        
+                        // This is a file title row, expand/collapse on click
+                        if ($row.hasClass("file-section")) {
+                            // Clicking the file section header collapses/expands result rows for that file
+                            $row.nextUntil(".file-section").toggle();
+                            
+                            var $triangle = $(".disclosure-triangle", $row);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
+                        
+                        // This is a file row, show the result on click
+                        } else {
+                            // Grab the required item data
+                            var item = searchItem.items[$row.data("item")];
+                            
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
+                                .done(function (doc) {
+                                    // Opened document is now the current main editor
+                                    EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
+                                });
+                        }
+                    }
                 });
             
             searchResultsPanel.show();
@@ -368,10 +408,10 @@ define(function (require, exports, module) {
     }
     
     /**
-    * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
-    * a find operation across all files in the project.
-    * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
-    */
+     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
+     * a find operation across all files in the project.
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     */
     function doFindInFiles(scope) {
 
         var dialog = new FindInFilesDialog();
@@ -443,12 +483,6 @@ define(function (require, exports, module) {
         doFindInFiles(selectedEntry);
     }
     
-    // Initialize items dependent on HTML DOM
-    AppInit.htmlReady(function () {
-        var panelHtml = Mustache.render(searchResultsTemplate, Strings);
-        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
-    });
-
     function _fileNameChangeHandler(event, oldName, newName) {
         if (searchResultsPanel.isVisible()) {
             // Update the search results
@@ -471,10 +505,23 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        var panelHtml = Mustache.render(searchPanelTemplate, Strings);
+        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
+        
+        $searchResults = $("#search-results");
+        $searchSummary = $("#search-result-summary");
+        $searchContent = $("#search-results .table-container");
+    });
+    
+    // Initialize: register listeners
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
     $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
+    // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);
 });

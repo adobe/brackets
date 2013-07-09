@@ -92,7 +92,7 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'src/thirdparty/jquery-1.7.js',
+                    'src/thirdparty/jquery-2.0.1.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
@@ -100,7 +100,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.3.0.min.js'
+                    'src/thirdparty/less-1.3.3.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -157,9 +157,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-    //grunt.registerTask('test', ['jshint', 'jasmine']);
-    //grunt.registerTask('test', ['jshint', 'jasmine-node']);
-    grunt.registerTask('test', ['jshint']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+    //grunt.registerTask('test', ['jshint:all', 'jasmine', jasmine-node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
