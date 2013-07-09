@@ -55,7 +55,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_SAVE_AS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
-        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
@@ -116,6 +115,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_ACTIVE_LINE);
         menu.addMenuItem(Commands.TOGGLE_LINE_NUMBERS);
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
+        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
 
         /*
          * Navigate menu
