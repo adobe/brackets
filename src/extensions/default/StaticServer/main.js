@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the static server in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
+    var NODE_CONNECTION_TIMEOUT = 5000; // 5 seconds
     
     /**
      * @private

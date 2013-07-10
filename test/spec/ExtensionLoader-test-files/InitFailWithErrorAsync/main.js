@@ -1,4 +1,4 @@
-/*global define, $, window */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -6,7 +6,7 @@ define(function (require, exports, module) {
     exports.initExtension = function () {
         var deferred = new $.Deferred();
 
-        window.setTimeout(function () { deferred.resolve(); }, 100);
+        window.setTimeout(function () { deferred.reject("Didn't work"); }, 100);
 
         return deferred.promise();
     };

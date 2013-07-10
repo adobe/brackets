@@ -36,6 +36,8 @@ define(function (require, exports, module) {
     
     describe("ExtensionLoader", function () {
 
+        var origTimeout;
+
         function testLoadExtension(name, promiseState, error) {
             var promise,
                 config = {
@@ -60,11 +62,26 @@ define(function (require, exports, module) {
                     } else {
                         expect(console.error.mostRecentCall.args[0]).toMatch(error);
                     }
+                } else {
+                    expect(console.error.callCount).toBe(0);
                 }
                 
                 expect(promise.state()).toBe(promiseState);
             });
         }
+
+        beforeEach(function () {
+            runs(function () {
+                origTimeout = ExtensionLoader._getInitExtensionTimeout();
+                ExtensionLoader._setInitExtensionTimeout(500);
+            });
+        });
+
+        afterEach(function () {
+            runs(function () {
+                ExtensionLoader._setInitExtensionTimeout(origTimeout);
+            });
+        });
 
         it("should load a basic extension", function () {
             testLoadExtension("NoInit", "resolved");
@@ -82,8 +99,12 @@ define(function (require, exports, module) {
             testLoadExtension("InitFail", "rejected", "[Extension] Error -- failed initExtension for InitFail");
         });
 
-        it("should log an error with a message if an extension fails to init", function () {
+        it("should log an error with a message if an extension fails to sync init", function () {
             testLoadExtension("InitFailWithError", "rejected", "[Extension] Error -- failed initExtension for InitFailWithError: Didn't work");
+        });
+
+        it("should log an error with a message if an extension fails to async init", function () {
+            testLoadExtension("InitFailWithErrorAsync", "rejected", "[Extension] Error -- failed initExtension for InitFailWithErrorAsync: Didn't work");
         });
 
         it("should log an error if an extension init fails with a timeout", function () {
@@ -95,7 +116,7 @@ define(function (require, exports, module) {
         });
 
         it("should log an error if an extension fails during RequireJS loading", function () {
-            testLoadExtension("BadRequire", "rejected", /\[Extension\] failed to load.*/);
+            testLoadExtension("BadRequire", "rejected", /\[Extension\] failed to load.*BadRequire.*/);
         });
 
     });

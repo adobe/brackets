@@ -42,9 +42,13 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async");
+
+    // default async initExtension timeout
+    var INIT_EXTENSION_TIMEOUT = 10000;
     
     var _init       = false,
         _extensions = {},
+        _initExtensionTimeout = INIT_EXTENSION_TIMEOUT,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
@@ -77,6 +81,24 @@ define(function (require, exports, module) {
      */
     function getRequireContextForExtension(name) {
         return contexts[name];
+    }
+
+    /**
+     * @private
+     * Get timeout value for rejecting an extension's async initExtension promise.
+     * @return {number} Timeout in milliseconds
+     */
+    function _getInitExtensionTimeout() {
+        return _initExtensionTimeout;
+    }
+
+    /**
+     * @private
+     * Set timeout for rejecting an extension's async initExtension promise.
+     * @param {number} value Timeout in milliseconds
+     */
+    function _setInitExtensionTimeout(value) {
+        _initExtensionTimeout = value;
     }
 
     
@@ -114,13 +136,17 @@ define(function (require, exports, module) {
                 if (module && module.initExtension && (typeof module.initExtension === "function")) {
                     // optional async extension init 
                     try {
-                        initPromise = Async.withTimeout(module.initExtension(), 5000);
+                        initPromise = Async.withTimeout(module.initExtension(), _getInitExtensionTimeout());
                     } catch (err) {
                         console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
                         result.reject(err);
                     }
 
                     if (initPromise) {
+                        // WARNING: These calls to initPromise.fail() and initPromise.then(),
+                        // could also result in a runtime error if initPromise is not a valid
+                        // promise. Currently, the promise is wrapped via Async.withTimeout(),
+                        // so the call is safe as-is.
                         initPromise.fail(function (err) {
                             if (err === Async.ERROR_TIMEOUT) {
                                 console.error("[Extension] Error -- timeout during initExtension for " + name);
@@ -337,6 +363,10 @@ define(function (require, exports, module) {
         
         return promise;
     }
+
+    // unit tests
+    exports._setInitExtensionTimeout = _setInitExtensionTimeout;
+    exports._getInitExtensionTimeout = _getInitExtensionTimeout;
     
     // public API
     exports.init = init;
