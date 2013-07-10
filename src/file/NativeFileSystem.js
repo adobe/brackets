@@ -648,6 +648,8 @@ define(function (require, exports, module) {
     
     /**
      * An InaccessibleFileEntry represents an inaccessible file on a file system.
+     * In particular, InaccessibleFileEntry objects are used as in the representation
+     * of untitled Documents.
      *
      * @constructor
      * @param {string} name Full path of the file in the file system
