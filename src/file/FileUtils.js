@@ -107,6 +107,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();
