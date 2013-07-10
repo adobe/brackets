@@ -3,7 +3,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    exports.init = function () {
+    exports.initExtension = function () {
         var deferred = new $.Deferred();
 
         window.setTimeout(function () { deferred.resolve(); }, 1000);

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, spyOn: false, waitsForDone: false, waitsForFail: false */
+/*global define: false, describe: false, it: false, expect: false, spyOn: false, runs: false, waitsForDone: false, waitsForFail: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -79,19 +79,19 @@ define(function (require, exports, module) {
         });
 
         it("should log an error if an extension fails to init", function () {
-            testLoadExtension("InitFail", "rejected", "[Extension] Error -- failed extension init for InitFail");
+            testLoadExtension("InitFail", "rejected", "[Extension] Error -- failed initExtension for InitFail");
         });
 
         it("should log an error with a message if an extension fails to init", function () {
-            testLoadExtension("InitFailWithError", "rejected", "[Extension] Error -- failed extension init for InitFailWithError: Didn't work");
+            testLoadExtension("InitFailWithError", "rejected", "[Extension] Error -- failed initExtension for InitFailWithError: Didn't work");
         });
 
         it("should log an error if an extension init fails with a timeout", function () {
-            testLoadExtension("InitTimeout", "rejected", "[Extension] Error -- timeout during extension init for InitTimeout");
+            testLoadExtension("InitTimeout", "rejected", "[Extension] Error -- timeout during initExtension for InitTimeout");
         });
 
         it("should log an error if an extension init fails with a runtime error", function () {
-            testLoadExtension("InitRuntimeError", "rejected", "[Extension] Error -- error thrown during extension init for InitRuntimeError: ReferenceError: isNotDefined is not defined");
+            testLoadExtension("InitRuntimeError", "rejected", "[Extension] Error -- error thrown during initExtension for InitRuntimeError: ReferenceError: isNotDefined is not defined");
         });
 
         it("should log an error if an extension fails during RequireJS loading", function () {

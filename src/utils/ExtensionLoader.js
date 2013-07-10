@@ -111,21 +111,21 @@ define(function (require, exports, module) {
 
                 _extensions[name] = module;
 
-                if (module && module.init && (typeof module.init === "function")) {
+                if (module && module.initExtension && (typeof module.initExtension === "function")) {
                     // optional async extension init 
                     try {
-                        initPromise = Async.withTimeout(module.init(), 5000);
+                        initPromise = Async.withTimeout(module.initExtension(), 5000);
                     } catch (err) {
-                        console.error("[Extension] Error -- error thrown during extension init for " + name + ": " + err);
+                        console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
                         result.reject(err);
                     }
 
                     if (initPromise) {
                         initPromise.fail(function (err) {
                             if (err === Async.ERROR_TIMEOUT) {
-                                console.error("[Extension] Error -- timeout during extension init for " + name);
+                                console.error("[Extension] Error -- timeout during initExtension for " + name);
                             } else {
-                                console.error("[Extension] Error -- failed extension init for " + name + (err ? ": " + err : ""));
+                                console.error("[Extension] Error -- failed initExtension for " + name + (err ? ": " + err : ""));
                             }
                         });
 
