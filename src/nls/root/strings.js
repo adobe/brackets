@@ -47,6 +47,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error reloading changes from disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
