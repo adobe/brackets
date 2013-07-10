@@ -352,6 +352,15 @@ define(function (require, exports, module) {
 
         return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
+    
+    /**
+     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * @param {string} full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory 
+     */
+    function getDirectoryPath(fullPath) {
+        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
+    }
 
     /**
      * Determine if a file is a text file. This function is only a quick best-guess.
@@ -395,5 +404,6 @@ define(function (require, exports, module) {
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
+    exports.getDirectoryPath               = getDirectoryPath;
     exports.isTextFile                     = isTextFile;
 });

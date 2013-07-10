@@ -50,11 +50,15 @@ define(function (require, exports, module) {
                     DocumentManager = brackets.test.DocumentManager;
                 });
             });
-
-
         });
 
         afterEach(function () {
+            testWindow      = null;
+            brackets        = null;
+            test$           = null;
+            executeCommand  = null;
+            EditorManager   = null;
+            DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -96,8 +100,7 @@ define(function (require, exports, module) {
         it("can open a file and jump to a line, centering that line on the screen", function () {
             var err = false,
                 editor,
-                $scroller,
-                heightWithModal;
+                $scroller;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
@@ -125,7 +128,7 @@ define(function (require, exports, module) {
             
             waitsFor(function () {
                 editor = EditorManager.getCurrentFullEditor();
-                return editor !== null;
+                return editor !== null && getSearchBar().length === 0;
             }, "file opening timeout", 3000);
             
             runs(function () {
@@ -145,13 +148,12 @@ define(function (require, exports, module) {
             }, "goto line entry timeout", 1000);
             
             runs(function () {
-                heightWithModal = $scroller.height();
                 pressEnter();
             });
 
-            // wait for ModalBar to close, use editor height to detect change
+            // wait for ModalBar to close
             waitsFor(function () {
-                return heightWithModal !== $scroller.height();
+                return getSearchBar().length === 0;
             }, "ModalBar close", 1000);
 
             runs(function () {
