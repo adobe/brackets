@@ -114,20 +114,28 @@ define(function (require, exports, module) {
                 if (module && module.init && (typeof module.init === "function")) {
                     // optional async extension init 
                     try {
-                        initPromise = module.init();
+                        initPromise = Async.withTimeout(module.init(), 5000);
                     } catch (err) {
                         console.error("[Extension] Error -- error thrown during extension init for " + name + ": " + err);
                         result.reject(err);
                     }
 
                     if (initPromise) {
-                        promise = initPromise.then(result.resolve, result.reject);
+                        initPromise.fail(function (err) {
+                            if (err === Async.ERROR_TIMEOUT) {
+                                console.error("[Extension] Error -- timeout during extension init for " + name);
+                            } else {
+                                console.error("[Extension] Error -- failed extension init for " + name + (err ? ": " + err : ""));
+                            }
+                        });
+
+                        initPromise.then(result.resolve, result.reject);
+                    } else {
+                        result.resolve();
                     }
                 } else {
                     result.resolve();
                 }
-
-                $(exports).triggerHandler("load", config.baseUrl);
             },
             function errback(err) {
                 console.error("[Extension] failed to load " + config.baseUrl, err);
@@ -136,8 +144,13 @@ define(function (require, exports, module) {
                     console.log(err.stack);
                 }
                 result.reject();
-                $(exports).triggerHandler("loadFailed", config.baseUrl);
             });
+
+        result.done(function () {
+            $(exports).triggerHandler("load", config.baseUrl);
+        }).fail(function () {
+            $(exports).triggerHandler("loadFailed", config.baseUrl);
+        });
         
         return promise;
     }
