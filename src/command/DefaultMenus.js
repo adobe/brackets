@@ -192,7 +192,6 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_NEW_DOC);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
