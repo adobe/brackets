@@ -614,13 +614,11 @@ define(function (require, exports, module) {
                 }
             });
         }
-                
-        // In the future we'll have to check wether the document is an unsaved
-        // untitled focument. If so, we should default to project root.
-        // If the there is no project, default to desktop.
+        
         if (doc) {
             fullPath = doc.file.fullPath;
             if (doc.isUntitled()) {
+                // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
