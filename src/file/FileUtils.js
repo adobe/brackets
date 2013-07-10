@@ -378,11 +378,12 @@ define(function (require, exports, module) {
         }
         
         // All other files end up with language === "unknown", including .txt files.
-        var extension = _getFileExtension(path);
+        var extension = _getFileExtension(path),
+            textExtensionRegEx = /^(txt|gyp[i]?)$/;
         
-        // If there is no extension, or the extension is "txt", assume it is a text file.
-        // Files with other extensions, like .png or .jpg, will not 
-        return (extension === path || extension.toLowerCase() === "txt");
+        // If there is no extension, or the extension is known text extension, assume it is a text file.
+        // Files with other extensions, like .png or .jpg, will return false.
+        return (extension === path || textExtensionRegEx.test(extension.toLowerCase()));
     }
     
     // Define public API

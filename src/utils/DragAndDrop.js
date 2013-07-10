@@ -39,7 +39,9 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils");
     
     /**
-     * Returns true if the drag and drop items contains valid drop objects
+     * Returns true if the drag and drop items contains valid drop objects.
+     * @param {Array.<DataTransferItem>} items Array of items being dragged
+     * @return {boolean} True if one or more items can be dropped.
      */
     function isValidDrop(items) {
         var i;
@@ -60,11 +62,14 @@ define(function (require, exports, module) {
     
     /**
      * Open dropped files
+     * @param {Array.<string>} files Array of files dropped on the application.
+     * @return {Promise} Promise that is resolved if all files are opened, or rejected
+     *     if there was an error. 
      */
     function openDroppedFiles(files) {
         var errorFiles = [];
         
-        Async.doInParallel(files, function (file) {
+        return Async.doInParallel(files, function (file) {
             var result = new $.Deferred();
             
             // Only open text files
