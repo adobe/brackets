@@ -201,7 +201,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path. 
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
-     * @param {?boolean} silent - If true, don't show error message
+     * @param {boolean=} silent - If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
