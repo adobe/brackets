@@ -43,7 +43,7 @@ define(function (require, exports, module) {
          */
         var menu;
         menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW_DOC);
+        menu.addMenuItem(Commands.FILE_NEW_UNTITLED);
         menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN);
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
-        project_cmenu.addMenuItem(Commands.FILE_NEW_FILE);
+        project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
         project_cmenu.addMenuItem(Commands.FILE_SAVE_AS);

@@ -76,9 +76,9 @@ define(function (require, exports, module) {
                 var promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
@@ -95,9 +95,9 @@ define(function (require, exports, module) {
                     promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
@@ -131,9 +131,9 @@ define(function (require, exports, module) {
                     promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
@@ -175,9 +175,9 @@ define(function (require, exports, module) {
                 var promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
@@ -209,9 +209,9 @@ define(function (require, exports, module) {
                 var promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
@@ -239,9 +239,9 @@ define(function (require, exports, module) {
                 var promise;
 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_DOC);
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
-                    waitsForDone(promise, "FILE_NEW_DOC");
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
                 });
 
                 runs(function () {
