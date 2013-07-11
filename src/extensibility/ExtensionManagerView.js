@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     
     var Strings                   = require("strings"),
         NativeApp                 = require("utils/NativeApp"),
-        ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel,
         ExtensionManager          = require("extensibility/ExtensionManager"),
         Package                   = require("extensibility/Package"),
         registry_utils            = require("extensibility/registry_utils"),
@@ -52,15 +51,14 @@ define(function (require, exports, module) {
     
     /**
      * Initializes the view to show a set of extensions.
-     * @param {string} source Which set of extensions to view: one of the SOURCE_* constants
-     *     in ExtensionsManagerViewModel.
+     * @param {ExtensionManagerViewModel} model Model object containing extension data to view
      * @return {$.Promise} a promise that's resolved once the view has been initialized. Never
      *     rejected.
      */
-    ExtensionManagerView.prototype.initialize = function (source) {
+    ExtensionManagerView.prototype.initialize = function (model) {
         var self = this,
             result = new $.Deferred();
-        this.model = new ExtensionManagerViewModel();
+        this.model = model;
         this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
         this.$el = $("<div class='extension-list'/>");
@@ -71,7 +69,7 @@ define(function (require, exports, module) {
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        this.model.initialize(source).done(function () {
+        this.model.initialize().done(function () {
             self._setupEventHandlers();
             self._render();
         }).fail(function () {
@@ -196,7 +194,7 @@ define(function (require, exports, module) {
         // Start with the basic info from the given entry, either the installation info or the
         // registry info depending on what we're listing.
         var info, context;
-        if (this.model.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
+        if (this.model.source === this.model.SOURCE_INSTALLED) {
             info = entry.installInfo;
             context = $.extend({}, info);
             // If this is also linked to a registry item, copy over the owner info.
@@ -223,7 +221,7 @@ define(function (require, exports, module) {
         context.isCompatible = compatInfo.isCompatible;
         context.requiresNewer = compatInfo.requiresNewer;
         
-        context.showInstallButton = (this.model.source === ExtensionManagerViewModel.SOURCE_REGISTRY);
+        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY);
         context.allowInstall = context.isCompatible && !context.isInstalled;
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
