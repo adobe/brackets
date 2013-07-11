@@ -89,9 +89,8 @@ define(function (require, exports, module) {
             });
 
             it("should add the untitled document to the Working Set after saving with new name", function () {
-                var initialDirectory = testPath,
-                    newFilename = "testname.js",
-                    newFilePath = initialDirectory + "/" + newFilename,
+                var newFilename = "testname.js",
+                    newFilePath = testPath + "/" + newFilename,
                     promise;
 
                 runs(function () {
@@ -111,23 +110,20 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
-                    
+
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                });
-                
-                runs(function () {
+
                     promise = SpecRunnerUtils.deletePath(newFilePath);
                     waitsForDone(promise, "Remove the testfile");
                 });
             });
 
             it("should ask to save untitled document upon closing", function () {
-                var initialDirectory = testPath,
-                    newFilename = "testname2.js",
-                    newFilePath = initialDirectory + "/" + newFilename,
+                var newFilename = "testname2.js",
+                    newFilePath = testPath + "/" + newFilename,
                     promise;
 
                 runs(function () {
@@ -140,9 +136,7 @@ define(function (require, exports, module) {
                     // set Dirty flag
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
-                });
 
-                runs(function () {
                     spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -158,14 +152,12 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
-                    
+
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                });
-                
-                runs(function () {
+
                     promise = SpecRunnerUtils.deletePath(newFilePath);
                     waitsForDone(promise, "Remove the testfile");
                 });
@@ -184,9 +176,7 @@ define(function (require, exports, module) {
                     // set Dirty flag
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
-                });
 
-                runs(function () {
                     spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_CANCEL); } };
                     });
@@ -218,9 +208,7 @@ define(function (require, exports, module) {
                     // set Dirty flag
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
-                });
 
-                runs(function () {
                     spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_DONTSAVE); } };
                     });
