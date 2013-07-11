@@ -149,10 +149,11 @@ define(function (require, exports, module) {
      * @private
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
+     * @param {boolean=} silent If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a
      *  document for the specified file path, or rejected if the file can not be read.
      */
-    function doOpen(fullPath) {
+    function doOpen(fullPath, silent) {
         var result = new $.Deferred();
 
         if (!fullPath) {
@@ -171,12 +172,18 @@ define(function (require, exports, module) {
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
-                    FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
+                    function _cleanup() {
                         // For performance, we do lazy checking of file existence, so it may be in working set
                         DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                         EditorManager.focusEditor();
                         result.reject();
-                    });
+                    }
+                    
+                    if (silent) {
+                        _cleanup();
+                    } else {
+                        FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
+                    }
                 });
         }
 
@@ -194,10 +201,11 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path. 
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
+     * @param {boolean=} silent - If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
-    function _doOpenWithOptionalPath(fullPath) {
+    function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
         if (!fullPath) {
             // Create placeholder deferred
@@ -219,7 +227,7 @@ define(function (require, exports, module) {
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
-                        doOpen(paths[paths.length - 1])
+                        doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
                                 var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
@@ -235,7 +243,7 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            result = doOpen(fullPath);
+            result = doOpen(fullPath, silent);
         }
         
         return result.promise();
@@ -273,8 +281,9 @@ define(function (require, exports, module) {
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
      */
     function handleFileOpen(commandData) {
-        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null);
-        return _doOpenWithOptionalPath(fileInfo.path)
+        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
+            silent = commandData ? commandData.silent : false;
+        return _doOpenWithOptionalPath(fileInfo.path, silent)
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {

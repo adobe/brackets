@@ -50,7 +50,7 @@ define(function (require, exports, module) {
             if (items[i].kind === "file") {
                 var entry = items[i].webkitGetAsEntry();
                 
-                if (entry.isFile && FileUtils.isTextFile(entry.fullPath)) {
+                if (entry.isFile) {
                     return true;
                 }
             }
@@ -72,11 +72,11 @@ define(function (require, exports, module) {
         return Async.doInParallel(files, function (file) {
             var result = new $.Deferred();
             
-            // Only open text files
+            // Only open files
             brackets.fs.stat(file, function (err, stat) {
-                if (!err && stat.isFile() && FileUtils.isTextFile(file)) {
+                if (!err && stat.isFile()) {
                     CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
-                                           {fullPath: file})
+                                           {fullPath: file, silent: true})
                         .done(function () {
                             result.resolve();
                         })
