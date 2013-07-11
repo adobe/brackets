@@ -47,6 +47,7 @@ define({
     // File open/save error string
 	"ERROR_OPENING_FILE_TITLE": "ファイルを開く際にエラーが発生しました。",
 	"ERROR_OPENING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を開く際にエラーが発生しました。{1}",
+	"ERROR_OPENING_FILES": "!能=[7060616] An error occurred when trying to open the following files:_=!",
 	"ERROR_RELOADING_FILE_TITLE": "ディスクから変更を再読み込みする際にエラーが発生しました。",
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
 	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
