@@ -127,7 +127,7 @@ define(function (require, exports, module) {
      * @private
      * Random path prefix for untitled documents
      */
-    var _untitledDocumentPath = "/" + NumberUtils.getRandomInt(10000000, 99999999);
+    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
 
     /**
      * @private
