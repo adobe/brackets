@@ -236,8 +236,8 @@ define(function (require, exports, module) {
         
         // Add to _workingSet making sure we store a different instance from the
         // one in the Document. See issue #1971 for more details.
-        if (file.fullPath.indexOf(_untitledDocumentPath) === 0) {
-            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, new Date());
+        if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, file.mtime);
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
         }
