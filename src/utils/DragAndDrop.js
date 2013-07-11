@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     function isValidDrop(items) {
         var i, len = items.length;
         
-        for (i = 0; i < items.length; i++) {
+        for (i = 0; i < len; i++) {
             if (items[i].kind === "file") {
                 var entry = items[i].webkitGetAsEntry();
                 
