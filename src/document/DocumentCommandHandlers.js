@@ -654,34 +654,32 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved after the save completes
      */
     function handleFileSave(commandData) {
-        // Default to current document if doc is null
-        var doc = null,
-            settings = {};
-        
-        if (commandData) {
-            doc = commandData.doc;
-        }
-        if (!doc) {
-            var activeEditor = EditorManager.getActiveEditor();
-            
-            if (activeEditor) {
-                doc = activeEditor.document;
-                settings.selection = activeEditor.getSelection();
-                settings.cursorPos = activeEditor.getCursorPos();
-                settings.scrollPos = activeEditor.getScrollPos();
-            }
-            
-            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
-            // doc and makes sure the document is dirty before saving.
-        }
+        var activeEditor = EditorManager.getActiveEditor(),
+            activeDoc = activeEditor && activeEditor.document,
+            doc = (commandData && commandData.doc) || activeDoc,
+            settings;
         
         if (doc) {
+            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
+            // doc and makes sure the document is dirty before saving.
             if (doc.isUntitled()) {
+                if (doc === activeDoc) {
+                    settings = {
+                        selection: activeEditor.getSelection(),
+                        cursorPos: activeEditor.getCursorPos(),
+                        scrollPos: activeEditor.getScrollPos()
+                    };
+                } else {
+                    settings = null;
+                }
+                
                 return _doSaveAs(doc, settings);
             } else {
                 return doSave(doc);
             }
         }
+        
+        return $.Deferred().reject().promise();
     }
     
     /**
@@ -700,21 +698,7 @@ define(function (require, exports, module) {
             function (file) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
-                    if (doc.isUntitled()) {
-                        var activeEditor = EditorManager.getActiveEditor(),
-                            settings = null;
-                        
-                        if (activeEditor.document === doc) {
-                            settings = {
-                                selection: activeEditor.getSelection(),
-                                cursorPos: activeEditor.getCursorPos(),
-                                scrollPos: activeEditor.getScrollPos()
-                            };
-                        }
-                        return _doSaveAs(doc, settings);
-                    } else {
-                        return doSave(doc);
-                    }
+                    return handleFileSave({doc: doc});
                 } else {
                     // working set entry that was never actually opened - ignore
                     return (new $.Deferred()).resolve().promise();
@@ -838,24 +822,7 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
-                        var savePromise;
-                        if (doc.isUntitled()) {
-                            var activeEditor = EditorManager.getActiveEditor(),
-                                settings = null;
-                            
-                            if (EditorManager.getActiveEditor() === doc) {
-                                settings = {
-                                    selection: activeEditor.getSelection(),
-                                    cursorPos: activeEditor.getCursorPos(),
-                                    scrollPos: activeEditor.getScrollPos()
-                                };
-                            }
-                            savePromise = _doSaveAs(doc, settings);
-                        } else {
-                            savePromise = doSave(doc);
-                        }
-                            
-                        savePromise
+                        handleFileSave({doc: doc})
                             .done(function () {
                                 doClose(file);
                                 result.resolve();
