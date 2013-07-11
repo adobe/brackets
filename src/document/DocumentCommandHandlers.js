@@ -660,8 +660,6 @@ define(function (require, exports, module) {
             settings;
         
         if (doc) {
-            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
-            // doc and makes sure the document is dirty before saving.
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
                     settings = {
