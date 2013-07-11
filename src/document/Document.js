@@ -446,7 +446,7 @@ define(function (require, exports, module) {
     /**
      * Is this an untitled document?
      * 
-     * @return boolean - whether or not the document is untitled
+     * @return {boolean} - whether or not the document is untitled
      */
     Document.prototype.isUntitled = function () {
         return this.file instanceof NativeFileSystem.InaccessibleFileEntry;
