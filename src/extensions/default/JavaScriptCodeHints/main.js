@@ -547,7 +547,7 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            if (editor && !editor.document.isUntitled() && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
