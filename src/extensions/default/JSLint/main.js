@@ -313,4 +313,7 @@ define(function (require, exports, module) {
         toggleCollapsed(_prefs.getValue("collapsed"));
                 
     });
+    
+    // for unit tests
+    exports.setEnabled = setEnabled;
 });
