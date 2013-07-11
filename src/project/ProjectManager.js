@@ -1227,13 +1227,20 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
-                    if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
-                            (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
+                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
+                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    if (error.name === NativeFileError.PATH_EXISTS_ERR) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
                             StringUtils.format(Strings.FILE_ALREADY_EXISTS, entryType,
+                                StringUtils.breakableUrl(data.rslt.name))
+                        );
+                    } else if (error.name === NativeFileError.TYPE_MISMATCH_ERR) {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, oppositeEntryType,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
@@ -1244,7 +1251,7 @@ define(function (require, exports, module) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
-                            StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, 
+                            StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
                                 Strings.breakableUrl(data.rslt.name), errString)
                         );
                     }
