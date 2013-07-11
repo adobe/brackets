@@ -400,7 +400,7 @@ define(function (require, exports, module) {
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
             selected = ProjectManager.getSelectedItem();
-        if ((selected === undefined) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
+        if ((!selected) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
             selected = ProjectManager.getProjectRoot();
         }
         
@@ -615,11 +615,9 @@ define(function (require, exports, module) {
             });
         }
                 
-        // In the future we'll have to check wether the document is an unsaved
-        // untitled focument. If so, we should default to project root.
-        // If the there is no project, default to desktop.
         if (doc) {
             fullPath = doc.file.fullPath;
+            // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
