@@ -584,9 +584,15 @@ define(function (require, exports, module) {
                 }
             }
             
+            if (!path) {
+                // save as dialog was cancelled; workaround for #4418
+                return result.reject().promise();
+            }
+            
             if (path === fullPath) {
                 return doSave(doc);
             }
+            
             // now save new document
             var newPath = FileUtils.getDirectoryPath(path);
             // create empty file,  FileUtils.writeText will create content.
@@ -608,8 +614,14 @@ define(function (require, exports, module) {
                                 } else {
                                     updateProject();
                                 }
+                            }).fail(function () {
+                                result.reject();
                             });
+                        }).fail(function () {
+                            result.reject();
                         });
+                    }).fail(function () {
+                        result.reject();
                     });
                 }
             });
