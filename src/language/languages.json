@@ -135,7 +135,7 @@
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw"]
+        "fileExtensions": ["py", "pyw", "wsgi"]
     },
 
     "sass": {
