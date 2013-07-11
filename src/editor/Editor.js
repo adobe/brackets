@@ -895,7 +895,7 @@ define(function (require, exports, module) {
     /**
      * Deterines if line is fully visible.
      * @param {number} zero-based index of the line to test
-     * @returns {boolean} true if it's visible, false if not
+     * @return {boolean} true if the line is fully visible, false otherwise
      */
     Editor.prototype.isLineVisible = function (line) {
         var coords = this._codeMirror.charCoords({line: line, ch: 0}, "local"),
