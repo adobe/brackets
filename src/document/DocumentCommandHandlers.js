@@ -438,12 +438,9 @@ define(function (require, exports, module) {
      * Create a new untitled document
      */
     function handleFileNew() {
-        DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, ".js").done(function (doc) {
-            DocumentManager.setCurrentDocument(doc);
-            EditorManager.focusEditor();
-        }).fail(function (err) {
-            console.error("Unable to create new document", err);
-        });
+        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, ".js");
+        DocumentManager.setCurrentDocument(doc);
+        EditorManager.focusEditor();
     }
     
     /**
