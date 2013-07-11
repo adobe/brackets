@@ -53,6 +53,8 @@ define(function (require, exports, module) {
         STATE_OVERWRITE_CONFIRMED = 10,
         STATE_NEEDS_UPDATE        = 11;
     
+    var _installQueue;
+    
     /** 
      * @constructor
      * Creates a new extension installer dialog.
@@ -134,7 +136,7 @@ define(function (require, exports, module) {
             break;
             
         case STATE_INSTALLING:
-            url = this.$url.val();
+            url = _installQueue[0];
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
@@ -143,6 +145,7 @@ define(function (require, exports, module) {
             this.$okButton.prop("disabled", true);
             this._installer.install(url)
                 .done(function (result) {
+                    _installQueue.shift();
                     self._installResult = result;
                     if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                             result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
@@ -152,6 +155,9 @@ define(function (require, exports, module) {
                         self._enterState(STATE_NEEDS_UPDATE);
                     } else {
                         self._enterState(STATE_INSTALLED);
+                    }
+                    if (_installQueue.length > 0) {
+                        self._enterState(STATE_INSTALLING);
                     }
                 })
                 .fail(function (err) {
@@ -279,6 +285,7 @@ define(function (require, exports, module) {
             // success.
             this._enterState(STATE_CLOSED);
         } else if (this._state === STATE_VALID_URL) {
+            _installQueue = this.$url.val().replace(/\s/gm, '').split(',');
             this._enterState(STATE_INSTALLING);
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             this._enterState(STATE_OVERWRITE_CONFIRMED);
