@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
         FileViewController    = require("project/FileViewController"),
+        CollectionUtils       = require("utils/CollectionUtils"),
         ViewUtils             = require("utils/ViewUtils");
     
     
@@ -77,6 +78,60 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Adds directory names to elements representing passed files in working tree
+     * @private
+     * @param {Array.<FileEntry>} fileArray
+     */
+    function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+        $openFilesContainer.find("ul > li").each(function () {
+            var $li = $(this);
+            var file = $li.data(_FILE_KEY);
+            if (filesList.indexOf(file) !== -1) {
+                var dirNameEnd = file.fullPath.lastIndexOf("/");
+                var dirNameStart = file.fullPath.lastIndexOf("/", dirNameEnd - 1) + 1;
+                var dirName = file.fullPath.substring(dirNameStart, dirNameEnd);
+                var $dir = $("<span class='directory'/>").text(" | " + dirName);
+
+                var $a = $li.children("a");
+                $a.children("span.directory").remove();
+                $a.append($dir);
+            }
+        });
+    }
+
+    /**
+     * Looks for files with the same name in the working set
+     * and adds a parent directory name to them
+     * @private
+     */
+    function _checkForDuplicatesInWorkingTree() {
+        var map = {},
+            fileList = DocumentManager.getWorkingSet();
+
+        // go through files and fill map with arrays of duplicates
+        fileList.forEach(function (file) {
+            // use the same function that is used to create html for file
+            var displayHtml = ViewUtils.getFileEntryDisplay(file);
+
+            if (map[displayHtml] === undefined) {
+                map[displayHtml] = file;
+            } else {
+                if (!(map[displayHtml] instanceof Array)) {
+                    map[displayHtml] = [map[displayHtml]];
+                }
+                map[displayHtml].push(file);
+            }
+        });
+
+        // go through map and solve arrays, ignore rest
+        CollectionUtils.forEach(map, function (value) {
+            if (value instanceof Array) {
+                _addDirectoryNamesToWorkingTreeFiles(value);
+            }
+        });
+    }
+
+    /**
      * @private
      * Shows/Hides open files list based on working set content.
      */
@@ -87,6 +142,7 @@ define(function (require, exports, module) {
         } else {
             $openFilesContainer.show();
             $workingSetHeader.show();
+            _checkForDuplicatesInWorkingTree();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
