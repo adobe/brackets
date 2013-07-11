@@ -254,9 +254,6 @@ define(function (require, exports, module) {
     function replaceInWorkingSet(newFile, oldFile) {
         var targetIndex = findInWorkingSet(oldFile.fullPath);
         
-        // Add to _workingSet making sure we store a different instance from the
-        // one in the Document. See issue #1971 for more details.        
-        newFile = new NativeFileSystem.FileEntry(newFile.fullPath);
         var filePair = [newFile, oldFile];
         // Dispatch event
         $(exports).triggerHandler("workingSetReplace", [filePair]);

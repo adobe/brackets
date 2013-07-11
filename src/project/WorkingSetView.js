@@ -354,6 +354,14 @@ define(function (require, exports, module) {
 
         CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
+
+    /**
+     * Generates a new link based on the given file entry
+     * @private
+     */
+    function _createNewLink(file) {
+        return $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
+    }
     
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
@@ -365,7 +373,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
+        var $link = _createNewLink(file);
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
@@ -508,12 +516,11 @@ define(function (require, exports, module) {
         var $listItem = _findListItemFromFile(oldFile);
         
         if ($listItem) {
-            var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(newFile));
+            var $link = _createNewLink(newFile);
             $listItem.html($link);
         }
         _redraw();
     }
-    
 
     /** 
      * @private

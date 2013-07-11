@@ -591,7 +591,6 @@ define(function (require, exports, module) {
     function _doSaveAs(doc, settings) {
         var fullPath,
             saveAsDefaultPath,
-            newDoc,
             defaultName,
             result = new $.Deferred();
                 
@@ -609,7 +608,7 @@ define(function (require, exports, module) {
                 result.resolve();
             }
             
-            function updateProject() {
+            function updateProject(newDoc) {
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
                     FileViewController
                         .openAndSelectDocument(path,
@@ -639,8 +638,7 @@ define(function (require, exports, module) {
                     result.reject(error);
                 } else {
                     DocumentManager.getDocumentForPath(path).done(function (savedDoc) {
-                        newDoc = savedDoc;
-                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                        FileUtils.writeText(savedDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
                                 // do not call doRevert unless the file is dirty.
                                 // doRevert on a file that is not dirty and not in the working set
@@ -649,9 +647,9 @@ define(function (require, exports, module) {
                                 if (doc.isDirty) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
-                                    doRevert(doc).always(updateProject);
+                                    doRevert(doc).always(updateProject(savedDoc));
                                 } else {
-                                    updateProject();
+                                    updateProject(savedDoc);
                                 }
                             });
                         });
