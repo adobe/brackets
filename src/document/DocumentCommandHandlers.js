@@ -662,7 +662,7 @@ define(function (require, exports, module) {
             // doc and makes sure the document is dirty before saving.
         }
         
-        if (doc.isUntitled()) {
+        if (doc && doc.isUntitled()) {
             return _doSaveAs(doc, settings);
         } else {
             return doSave(doc);
