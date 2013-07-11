@@ -651,14 +651,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the next untitled document fullPath, which looks like
-     * /random-string/Untitled or /random-string/Untitled-n, for
-     * n > 0. Each call returns a new fullPath.
-     * 
-     * @return {string} fullPath
+     * Creates an untitled document. The associated FileEntry has a fullPath
+     * looks like /some-random-string/Untitled-counter.fileExt.
+     *
+     * @param {number} counter - used in the name of the new Document's FileEntry
+     * @param {string} fileExt - file extension of the new Document's FileEntry
+     * @return {$.Promise} - a promise that resolves with a 
      */
-    function nextUntitledDocumentPath(counter, fileExt) {
-        return _untitledDocumentPath + "/" + Strings.UNTITLED + "-" + counter + fileExt;
+    function createUntitledDocument(counter, fileExt) {
+        var filename = Strings.UNTITLED + "-" + counter + fileExt,
+            fullPath = _untitledDocumentPath + "/" + filename;
+
+        return getDocumentForPath(fullPath);
     }
     
     /**
@@ -908,7 +912,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
-    exports.nextUntitledDocumentPath    = nextUntitledDocumentPath;
+    exports.createUntitledDocument      = createUntitledDocument;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;

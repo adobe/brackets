@@ -427,9 +427,12 @@ define(function (require, exports, module) {
      * Create a new untitled document
      */
     function handleFileNew() {
-        var fullPath = DocumentManager.nextUntitledDocumentPath(_nextUntitledIndexToUse++, ".js");
-        return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+        DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, ".js").done(function (doc) {
+            DocumentManager.setCurrentDocument(doc);
+            EditorManager.focusEditor();
+        }).fail(function (err) {
+            console.error("Unable to create new document", err);
+        });
     }
     
     /**
