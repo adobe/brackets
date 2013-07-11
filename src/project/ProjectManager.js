@@ -1234,7 +1234,7 @@ define(function (require, exports, module) {
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
                             StringUtils.format(Strings.FILE_ALREADY_EXISTS, entryType,
-                                StringUtils.breakableUrl(data.rst.name))
+                                StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
