@@ -657,11 +657,9 @@ define(function (require, exports, module) {
      * 
      * @return {string} fullPath
      */
-    var nextUntitledDocumentPath = (function (counter, fileExt) {
-        return function (counter, fileExt) {
-            return _untitledDocumentPath + "/" + Strings.UNTITLED + "-" + counter + fileExt;
-        };
-    }());
+    function nextUntitledDocumentPath(counter, fileExt) {
+        return _untitledDocumentPath + "/" + Strings.UNTITLED + "-" + counter + fileExt;
+    }
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
