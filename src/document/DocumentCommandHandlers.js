@@ -617,6 +617,7 @@ define(function (require, exports, module) {
         
         if (doc) {
             fullPath = doc.file.fullPath;
+            // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
