@@ -97,47 +97,29 @@ define(function (require, exports, module) {
             
             // load project to set CSSUtils scope
             runs(function () {
-                rewriteProject(spec)
-                    .done(function () { rewriteDone = true; })
-                    .fail(function () { rewriteErr = true; });
+                waitsForDone(rewriteProject(spec), "rewriteProject timeout", 1000);
             });
-            
-            waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
             
             SpecRunnerUtils.loadProjectInTestWindow(tempPath);
             
             runs(function () {
                 workingSet.push(openFile);
-                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                    hostOpened = true;
-                }).fail(function () {
-                    err = true;
-                });
+                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout", 1000);
             });
             
-            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-            
             runs(function () {
-                var editor = EditorManager.getCurrentFullEditor();
-                
                 // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
-                    editor,
+                    EditorManager.getCurrentFullEditor(),
                     spec.infos[openFile].offsets[openOffset]
                 );
                 
-                inlineEditorResult.done(function (isOpened) {
-                    inlineOpened = isOpened;
-                }).fail(function () {
-                    inlineOpened = false;
-                }).always(function () {
-                    editor = null;
-                });
+                if (expectInline) {
+                    waitsForDone(inlineEditorResult, "inline editor opened", 1000);
+                } else {
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                }
             });
-            
-            waitsFor(function () {
-                return (inlineOpened !== null) && (inlineOpened === expectInline);
-            }, "inline editor timeout", 1000);
         };
         
         
