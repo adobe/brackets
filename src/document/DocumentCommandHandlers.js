@@ -1179,4 +1179,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
 
+    // Reset the untitled document counter before changing projects    
+    $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
 });
