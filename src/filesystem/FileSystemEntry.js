@@ -163,7 +163,7 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype.unlink = function () {
         var result = new $.Deferred();
         
-        this._impl.unlink(function (err) {
+        this._impl.unlink(this._path, function (err) {
             if (err) {
                 result.reject(err);
             } else {
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         
         var result = new $.Deferred();
         
-        this._impl.moveToTrash(function (err) {
+        this._impl.moveToTrash(this._path, function (err) {
             if (err) {
                 result.reject(err);
             } else {
