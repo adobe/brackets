@@ -44,13 +44,17 @@ define(function (require, exports, module) {
      * @return {boolean} True if one or more items can be dropped.
      */
     function isValidDrop(items) {
-        var i;
+        var i, len = items.length;
         
         for (i = 0; i < items.length; i++) {
             if (items[i].kind === "file") {
                 var entry = items[i].webkitGetAsEntry();
                 
                 if (entry.isFile) {
+                    // If any files are being dropped, this is a valid drop
+                    return true;
+                } else if (len === 1) {
+                    // If exactly one folder is being dropped, this is a valid drop
                     return true;
                 }
             }
@@ -84,6 +88,16 @@ define(function (require, exports, module) {
                             errorFiles.push(file);
                             result.reject();
                         });
+                } else if (!err && stat.isDirectory() && files.length === 1) {
+                    // One folder was dropped, open it.
+                    ProjectManager.openProject(file)
+                        .done(function () {
+                            result.resolve();
+                        })
+                        .fail(function () {
+                            // User was already notified of the error.
+                            result.reject();
+                        });
                 } else {
                     errorFiles.push(file);
                     result.reject();
@@ -93,21 +107,23 @@ define(function (require, exports, module) {
             return result.promise();
         }, false)
             .fail(function () {
-                var message = Strings.ERROR_OPENING_FILES;
-                
-                message += "<ul>";
-                errorFiles.forEach(function (file) {
-                    message += "<li><span class='dialog-filename'>" +
-                        StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
-                        "</span></li>";
-                });
-                message += "</ul>";
-                
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_OPENING_FILE_TITLE,
-                    message
-                );
+                if (errorFiles.length > 0) {
+                    var message = Strings.ERROR_OPENING_FILES;
+                    
+                    message += "<ul>";
+                    errorFiles.forEach(function (file) {
+                        message += "<li><span class='dialog-filename'>" +
+                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
+                            "</span></li>";
+                    });
+                    message += "</ul>";
+                    
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_OPENING_FILE_TITLE,
+                        message
+                    );
+                }
             });
     }
     
