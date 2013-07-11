@@ -623,7 +623,6 @@ define(function (require, exports, module) {
                     // replace original file in working set with new file
                     //  remove old file from working set.                    
                     DocumentManager.replaceInWorkingSet(new NativeFileSystem.FileEntry(path), doc.file);
-//                    doOpen(newDoc.file.fullPath);
                     _configureEditorAndResolve();
                 }
             }
