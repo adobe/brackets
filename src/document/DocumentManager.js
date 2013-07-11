@@ -598,10 +598,8 @@ define(function (require, exports, module) {
 
             var fileEntry;
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                var now = new Date();
-                fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
-                doc = new DocumentModule.Document(fileEntry, now, "");
-                result.resolve(doc);
+                console.error("getDocumentForPath called with an untitled document path!");
+                result.reject();
             } else {
                 // log this document's Promise as pending
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
@@ -656,13 +654,15 @@ define(function (require, exports, module) {
      *
      * @param {number} counter - used in the name of the new Document's FileEntry
      * @param {string} fileExt - file extension of the new Document's FileEntry
-     * @return {$.Promise} - a promise that resolves with a 
+     * @return {Document} - a new untitled Document
      */
     function createUntitledDocument(counter, fileExt) {
         var filename = Strings.UNTITLED + "-" + counter + fileExt,
-            fullPath = _untitledDocumentPath + "/" + filename;
-
-        return getDocumentForPath(fullPath);
+            fullPath = _untitledDocumentPath + "/" + filename,
+            now = new Date(),
+            fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
+        
+        return new DocumentModule.Document(fileEntry, now, "");
     }
     
     /**
