@@ -253,15 +253,14 @@ define(function (require, exports, module) {
      */
     function replaceInWorkingSet(newFile, oldFile) {
         var targetIndex = findInWorkingSet(oldFile.fullPath);
+        if (targetIndex == -1)
+            return;
         
         var filePair = [newFile, oldFile];
         // Dispatch event
         $(exports).triggerHandler("workingSetReplace", [filePair]);
         
-        var temp = _workingSet[targetIndex];
-        temp.fullPath = newFile.fullPath;
-        temp.name = newFile.name;
-        _workingSet[targetIndex] = temp;
+        _workingSet[targetIndex] = newFile;
     }
 
     /**

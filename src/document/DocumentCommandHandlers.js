@@ -617,12 +617,13 @@ define(function (require, exports, module) {
                 } else { // Working set  has file selection focus
                     // if save as replaced a file that was open in the working set, 
                     // the replaced file needs to be removed from the working set.
-                    if (DocumentManager.findInWorkingSet(newDoc.file.fullPath)) {
+                    if (DocumentManager.findInWorkingSet(newDoc.file.fullPath) !== -1) {
                         DocumentManager.removeFromWorkingSet(newDoc.file);
                     }
                     // replace original file in working set with new file
                     //  remove old file from working set.                    
                     DocumentManager.replaceInWorkingSet(new NativeFileSystem.FileEntry(path), doc.file);
+//                    doOpen(newDoc.file.fullPath);
                     _configureEditorAndResolve();
                 }
             }
