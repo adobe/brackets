@@ -115,6 +115,25 @@ define(function (require, exports, module) {
         window.document.title = windowTitle;
     }
     
+    /**
+     * Returns a short title for a given document.
+     *
+     * @param {Document} doc 
+     * @return {string} - a short title for doc.
+     */
+    function _shortTitleForDocument(doc) {
+        var fullPath = doc.file.fullPath;
+        
+        // If the document is untitled then return the filename, ("Untitled-n.ext");
+        // otherwise show the project-relative path if the file is inside the
+        // current project or the full absolute path if it's not in the project.
+        if (doc.isUntitled()) {
+            return fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        } else {
+            return ProjectManager.makeProjectRelativeIfPossible(fullPath);
+        }
+    }
+    
     function updateDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
 
@@ -124,15 +143,7 @@ define(function (require, exports, module) {
         // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
-            var fullPath = newDocument.file.fullPath;
-            
-            if (newDocument.isUntitled()) {
-                // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                // or the full absolute path (if it's not in the project).
-                _currentTitlePath = fullPath.substring(fullPath.lastIndexOf("/") + 1);
-            } else {
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
-            }
+            _currentTitlePath = _shortTitleForDocument(newDocument);
         } else {
             _currentTitlePath = null;
         }
@@ -903,11 +914,7 @@ define(function (require, exports, module) {
                 var fullPath = doc.file.fullPath;
                 
                 message += "<li><span class='dialog-filename'>";
-                if (doc.isUntitled()) {
-                    message += fullPath.substring(fullPath.lastIndexOf("/") + 1);
-                } else {
-                    message += StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(fullPath));
-                }
+                message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
                 message += "</span></li>";
             });
             message += "</ul>";
@@ -1179,4 +1186,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
 
+    // Reset the untitled document counter before changing projects    
+    $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
 });
