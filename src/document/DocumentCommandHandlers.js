@@ -608,21 +608,22 @@ define(function (require, exports, module) {
                 result.resolve();
             }
             
-            function updateProject() {
+            function updateProject(newDoc) {
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
                     FileViewController
                         .openAndSelectDocument(path,
                                           FileViewController.PROJECT_MANAGER)
                         .always(_configureEditorAndResolve);
                 } else { // Working set  has file selection focus
+                    // if save as replaced a file that was open in the working set, 
+                    // the replaced file needs to be removed from the working set.
+                    if (DocumentManager.findInWorkingSet(newDoc.file.fullPath) !== -1) {
+                        DocumentManager.removeFromWorkingSet(newDoc.file);
+                    }
                     // replace original file in working set with new file
-                    //  remove old file from working set.
-                    DocumentManager.removeFromWorkingSet(doc.file);
-                    //add new file to working set
-                    FileViewController
-                        .addToWorkingSetAndSelect(path,
-                                        FileViewController.WORKING_SET_VIEW)
-                        .always(_configureEditorAndResolve);
+                    //  remove old file from working set.                    
+                    DocumentManager.replaceInWorkingSet(new NativeFileSystem.FileEntry(path), doc.file);
+                    _configureEditorAndResolve();
                 }
             }
             
@@ -636,8 +637,8 @@ define(function (require, exports, module) {
                 if (error) {
                     result.reject(error);
                 } else {
-                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
+                    DocumentManager.getDocumentForPath(path).done(function (savedDoc) {
+                        FileUtils.writeText(savedDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
                                 // do not call doRevert unless the file is dirty.
                                 // doRevert on a file that is not dirty and not in the working set
@@ -646,9 +647,9 @@ define(function (require, exports, module) {
                                 if (doc.isDirty) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
-                                    doRevert(doc).always(updateProject);
+                                    doRevert(doc).always(updateProject(savedDoc));
                                 } else {
-                                    updateProject();
+                                    updateProject(savedDoc);
                                 }
                             });
                         });

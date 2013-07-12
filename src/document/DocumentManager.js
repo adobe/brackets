@@ -246,6 +246,23 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
     }
+    
+    /**
+     * Replaces oldFile in the the working set with newFile. Completes synchronously.
+     * @param {FileEntry, FileEntry} oldFile, newFile
+     */
+    function replaceInWorkingSet(newFile, oldFile) {
+        var targetIndex = findInWorkingSet(oldFile.fullPath);
+        if (targetIndex === -1) {
+            return;
+        }
+        
+        var filePair = [newFile, oldFile];
+        // Dispatch event
+        $(exports).triggerHandler("workingSetReplace", [filePair]);
+        
+        _workingSet[targetIndex] = newFile;
+    }
 
     /**
      * Adds the given file list to the end of the working set list.
@@ -291,17 +308,15 @@ define(function (require, exports, module) {
     function removeFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
-        if (index === -1) {
-            return;
+        if (index !== -1) {
+            // Remove
+            _workingSet.splice(index, 1);
+            _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+            _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+            
+            // Dispatch event
+            $(exports).triggerHandler("workingSetRemove", file);
         }
-        
-        // Remove
-        _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
     }
 
     /**
@@ -886,6 +901,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.replaceInWorkingSet         = replaceInWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
