@@ -312,8 +312,7 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command
-     * @param {?Number} index - insert into the working set list at this 0-based index
+     * @param {!{fullPath:string, index:number=}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {

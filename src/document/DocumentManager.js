@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
-     * @param {?Number} index - insert into the working set list at this 0-based index
+     * @param {number=} index - insert into the working set list at this 0-based index
      */
     function addToWorkingSet(file, index) {
         // If doc is already in working set, don't add it again
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         // Add to _workingSet making sure we store a different instance from the
         // one in the Document. See issue #1971 for more details.        
         file = new NativeFileSystem.FileEntry(file.fullPath);
-        if (!index || (index === -1)) {
+        if ((index === undefined) || (index === null) || (index === -1)) {
             // If no index is specified, just add the file to the end of the working set.
             _workingSet.push(file);
         } else {
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        if (!index || (index === -1)) {
+        if ((index === undefined) || (index === null) || (index === -1)) {
             $(exports).triggerHandler("workingSetAdd", file);
         } else {
             $(exports).triggerHandler("workingSetSort");

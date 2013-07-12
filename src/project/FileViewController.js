@@ -178,7 +178,7 @@ define(function (require, exports, module) {
      * @param {!fullPath}
      * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
      *      Default is WORING_SET_VIEW.
-     * @param {?Number} index - insert into the working set list at this 0-based index
+     * @param {number=} index - insert into the working set list at this 0-based index
      * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath, selectIn, index) {
