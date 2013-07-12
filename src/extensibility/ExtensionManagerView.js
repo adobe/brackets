@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                     }
                 } else {
                     // Render the item, replacing the old item if we had previously rendered it.
-                    var $newItem = self._renderItem(extensions[id]);
+                    var $newItem = self._renderItem(extensions[id], self.model._getEntry(id));
                     if ($oldItem) {
                         $oldItem.replaceWith($newItem);
                         self._itemViews[id] = $newItem;
@@ -164,11 +164,11 @@ define(function (require, exports, module) {
                 
                 var $target = $(e.target);
                 if ($target.hasClass("undo-remove")) {
-                    self.model.markForRemoval($target.attr("data-extension-id"), false);
+                    ExtensionManager.markForRemoval($target.attr("data-extension-id"), false);
                 } else if ($target.hasClass("remove")) {
-                    self.model.markForRemoval($target.attr("data-extension-id"), true);
+                    ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
-                    self.model.removeUpdate($target.attr("data-extension-id"));
+                    ExtensionManager.removeUpdate($target.attr("data-extension-id"));
                 } else {
                     // Open any other link in the external browser.
                     NativeApp.openURLInDefaultBrowser($target.attr("href"));
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                 self._installUsingDialog($(e.target).attr("data-extension-id"));
             })
             .on("click", "button.remove", function (e) {
-                self.model.markForRemoval($(e.target).attr("data-extension-id"), true);
+                ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
             });
     };
     
@@ -186,24 +186,17 @@ define(function (require, exports, module) {
      * @private
      * Renders the view for a single extension entry.
      * @param {Object} entry The extension entry to render.
+     * @param {Object} info The extension's metadata.
      * @return {jQueryObject} The rendered node as a jQuery object.
      */
-    ExtensionManagerView.prototype._renderItem = function (entry) {
+    ExtensionManagerView.prototype._renderItem = function (entry, info) {
         // Create a Mustache context object containing the entry data and our helper functions.
         
         // Start with the basic info from the given entry, either the installation info or the
         // registry info depending on what we're listing.
-        var info, context;
-        if (this.model.source === this.model.SOURCE_INSTALLED) {
-            info = entry.installInfo;
-            context = $.extend({}, info);
-            // If this is also linked to a registry item, copy over the owner info.
-            if (entry.registryInfo) {
-                context.owner = entry.registryInfo.owner;
-            }
-        } else {
-            info = entry.registryInfo;
-            context = $.extend({}, info);
+        var context = $.extend({}, info);
+        if (entry.registryInfo) {
+            context.owner = entry.registryInfo.owner;
         }
         
         // Normally we would merge the strings into the context we're passing into the template,
@@ -225,8 +218,8 @@ define(function (require, exports, module) {
         context.allowInstall = context.isCompatible && !context.isInstalled;
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
-        context.isMarkedForRemoval = this.model.isMarkedForRemoval(info.metadata.name);
-        context.isMarkedForUpdate = this.model.isMarkedForUpdate(info.metadata.name);
+        context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
+        context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         context.removalAllowed = !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
         
         // Copy over helper functions that we share with the registry app.
@@ -265,7 +258,7 @@ define(function (require, exports, module) {
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];
             if (!$item) {
-                $item = self._renderItem(self.model.extensions[id]);
+                $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
                 self._itemViews[id] = $item;
             }
             $item.appendTo(self._$table);
@@ -303,8 +296,8 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.dispose = function (_skipChanges) {
         var self = this;
         
-        var hasRemovedExtensions = this.model.hasExtensionsToRemove(),
-            hasUpdatedExtensions = this.model.hasExtensionsToUpdate();
+        var hasRemovedExtensions = ExtensionManager.hasExtensionsToRemove(),
+            hasUpdatedExtensions = ExtensionManager.hasExtensionsToUpdate();
         // If an extension was removed or updated, prompt the user to quit Brackets.
         if (!_skipChanges && (hasRemovedExtensions || hasUpdatedExtensions)) {
             var buttonLabel = Strings.CHANGE_AND_QUIT;
@@ -332,9 +325,9 @@ define(function (require, exports, module) {
             )
                 .done(function (buttonId) {
                     if (buttonId === "ok") {
-                        self.model.removeMarkedExtensions()
+                        ExtensionManager.removeMarkedExtensions()
                             .done(function () {
-                                self.model.updateExtensions()
+                                ExtensionManager.updateExtensions()
                                     .done(function () {
                                         self.model.dispose();
                                         CommandManager.execute(Commands.FILE_QUIT);

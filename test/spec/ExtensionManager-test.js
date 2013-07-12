@@ -458,38 +458,38 @@ define(function (require, exports, module) {
                         $(model).on("change", function (e, id) {
                             calledId = id;
                         });
-                        model.markForRemoval(id, true);
+                        ExtensionManager.markForRemoval(id, true);
                         expect(calledId).toBe(id);
-                        expect(model.isMarkedForRemoval(id)).toBe(true);
+                        expect(ExtensionManager.isMarkedForRemoval(id)).toBe(true);
                         expect(model.filterSet.indexOf(id)).not.toBe(-1);
-                        expect(model.hasExtensionsToRemove()).toBe(true);
+                        expect(ExtensionManager.hasExtensionsToRemove()).toBe(true);
                     });
                 });
                 
                 it("should unmark an extension previously marked for removal and raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        model.markForRemoval(id, true);
+                        ExtensionManager.markForRemoval(id, true);
                         $(model).on("change", function (e, id) {
                             calledId = id;
                         });
-                        model.markForRemoval(id, false);
+                        ExtensionManager.markForRemoval(id, false);
                         expect(calledId).toBe(id);
-                        expect(model.isMarkedForRemoval(id)).toBe(false);
-                        expect(model.hasExtensionsToRemove()).toBe(false);
+                        expect(ExtensionManager.isMarkedForRemoval(id)).toBe(false);
+                        expect(ExtensionManager.hasExtensionsToRemove()).toBe(false);
                     });
                 });
 
                 it("should remove extensions previously marked for removal", function () {
                     var removedIds = {}, removedPaths = {};
                     runs(function () {
-                        model.markForRemoval("registered-extension", true);
-                        model.markForRemoval("Z-capital-extension", false);
+                        ExtensionManager.markForRemoval("registered-extension", true);
+                        ExtensionManager.markForRemoval("Z-capital-extension", false);
                         $(model).on("change", function (e, id) {
                             removedIds[id] = true;
                             removedPaths[removedPath] = true;
                         });
-                        waitsForDone(model.removeMarkedExtensions());
+                        waitsForDone(ExtensionManager.removeMarkedExtensions());
                     });
                     runs(function () {
                         // Test a removed extension, an extension that was unmarked for removal, and an extension that was never marked.
@@ -508,14 +508,14 @@ define(function (require, exports, module) {
                         $(model).on("change", function (e, id) {
                             calledId = id;
                         });
-                        model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             localPath: "/path/to/downloaded/file.zip",
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
                         expect(calledId).toBe(id);
-                        expect(model.isMarkedForUpdate(id)).toBe(true);
-                        expect(model.hasExtensionsToUpdate()).toBe(true);
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
+                        expect(ExtensionManager.hasExtensionsToUpdate()).toBe(true);
                     });
                 });
                 
@@ -527,17 +527,17 @@ define(function (require, exports, module) {
                         $(model).on("change", function (e, id) {
                             calledId = id;
                         });
-                        model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             localPath: filename,
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
                         calledId = null;
                         spyOn(brackets.fs, "unlink");
-                        model.removeUpdate(id);
+                        ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
                         expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
-                        expect(model.isMarkedForUpdate()).toBe(false);
+                        expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
                 
@@ -547,19 +547,19 @@ define(function (require, exports, module) {
                         $(model).on("change", function (e, id) {
                             calledId = id;
                         });
-                        model.markForRemoval(id, true);
+                        ExtensionManager.markForRemoval(id, true);
                         expect(calledId).toBe(id);
                         calledId = null;
-                        model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             localPath: "/path/to/downloaded/file.zip",
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
                         expect(calledId).toBe(id);
-                        expect(model.isMarkedForRemoval()).toBe(false);
-                        expect(model.hasExtensionsToRemove()).toBe(false);
-                        expect(model.isMarkedForUpdate(id)).toBe(true);
-                        expect(model.hasExtensionsToUpdate()).toBe(true);
+                        expect(ExtensionManager.isMarkedForRemoval()).toBe(false);
+                        expect(ExtensionManager.hasExtensionsToRemove()).toBe(false);
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
+                        expect(ExtensionManager.hasExtensionsToUpdate()).toBe(true);
                     });
                 });
                 
@@ -567,17 +567,17 @@ define(function (require, exports, module) {
                     var id = "registered-extension",
                         filename = "/path/to/downloaded/file.zip";
                     runs(function () {
-                        model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             localPath: filename,
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
-                        expect(model.isMarkedForUpdate()).toBe(false);
+                        expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                         spyOn(brackets.fs, "unlink");
                         var d = $.Deferred();
                         spyOn(Package, "installUpdate").andReturn(d.promise());
                         d.resolve();
-                        waitsForDone(model.updateExtensions());
+                        waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
                         expect(brackets.fs.unlink).not.toHaveBeenCalled();
@@ -924,7 +924,7 @@ define(function (require, exports, module) {
                         expect($removeLink.prop("disabled")).toBeFalsy();
                         
                         $removeLink.click();
-                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
+                        expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(true);
                         var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
                         expect($undoLink.length).toBe(1);
                         $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
@@ -948,7 +948,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
-                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(true);
+                        expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(true);
                         var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
                         expect($undoLink.length).toBe(1);
                         $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
@@ -964,7 +964,7 @@ define(function (require, exports, module) {
                         $button.click();
                         var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
                         $undoLink.click();
-                        expect(view.model.isMarkedForRemoval("mock-extension-3")).toBe(false);
+                        expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
                         $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         expect($button.length).toBe(1);
                     });
@@ -978,7 +978,7 @@ define(function (require, exports, module) {
                         var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
                             $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
                         $button.click();
-                        expect(view.model.isMarkedForRemoval(id)).toBe(true);
+                        expect(ExtensionManager.isMarkedForRemoval(id)).toBe(true);
                     });
                 });
                 
@@ -1083,7 +1083,7 @@ define(function (require, exports, module) {
                     var installDeferred = $.Deferred();
                     spyOn(Package, "installUpdate").andReturn(installDeferred.promise());
                     runs(function () {
-                        view.model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
                             localPath: filename,
                             name: id
@@ -1110,13 +1110,13 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        view.model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             name: id,
                             localPath: filename,
                             installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
                         });
                         var model = view.model;
-                        expect(model.isMarkedForUpdate(id)).toBe(true);
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
                         spyOn(brackets.fs, "unlink");
                         // Don't expect the model to be disposed until after the dialog is dismissed.
                         cleanupView(false, false);
@@ -1133,11 +1133,11 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        view.model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             name: id,
                             installationStatus: "NEEDS_UPDATE"
                         });
-                        expect(view.model.isMarkedForUpdate(id)).toBe(true);
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         expect($undoLink.length).toBe(1);
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
@@ -1151,7 +1151,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        view.model.updateFromDownload({
+                        ExtensionManager.updateFromDownload({
                             name: id,
                             installationStatus: "NEEDS_UPDATE",
                             localPath: filename
@@ -1159,7 +1159,7 @@ define(function (require, exports, module) {
                         spyOn(brackets.fs, "unlink");
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
-                        expect(view.model.isMarkedForUpdate(id)).toBe(false);
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
                         expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
