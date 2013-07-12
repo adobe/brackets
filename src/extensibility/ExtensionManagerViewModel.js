@@ -52,6 +52,12 @@ define(function (require, exports, module) {
      *
      */
     function ExtensionManagerViewModel() {
+        this._handleStatusChange = this._handleStatusChange.bind(this);
+        this._idsToRemove = {};
+        this._idsToUpdate = {};
+        
+        // Listen for extension status changes.
+        $(ExtensionManager).on("statusChange", this._handleStatusChange);
     }
     
     /**
@@ -152,13 +158,6 @@ define(function (require, exports, module) {
      * Initializes the model from the source.
      */
     ExtensionManagerViewModel.prototype.initialize = function () {
-        this._handleStatusChange = this._handleStatusChange.bind(this);
-        this._idsToRemove = {};
-        this._idsToUpdate = {};
-        
-        // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", this._handleStatusChange);
-        
         return this._initializeFromSource();
     };
     
@@ -194,10 +193,7 @@ define(function (require, exports, module) {
         
         query = query.toLowerCase();
         initialList.forEach(function (id) {
-            var entry = self.extensions[id];
-            if (entry) {
-                entry = (self.source === self.SOURCE_INSTALLED ? entry.installInfo : entry.registryInfo);
-            }
+            var entry = self._getEntry(id);
             if (entry && self._entryMatchesQuery(entry, query)) {
                 newFilterSet.push(id);
             }
@@ -206,6 +202,17 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         this.filterSet = newFilterSet;
         $(this).triggerHandler("filter");
+    };
+    
+    /**
+     * @private
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    ExtensionManagerViewModel.prototype._getEntry = function (id) {
+        return this.extensions[id];
     };
     
     /**
@@ -368,9 +375,11 @@ define(function (require, exports, module) {
      *     filter - triggered whenever the filtered set changes (including on initialize).
      */
     function RegistryViewModel() {
+        ExtensionManagerViewModel.call(this);
     }
     
-    RegistryViewModel.prototype = new ExtensionManagerViewModel();
+    RegistryViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    RegistryViewModel.prototype.constructor = RegistryViewModel;
     
     /**
      * @type {string}
@@ -402,6 +411,21 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    RegistryViewModel.prototype._getEntry = function (id) {
+        var entry = ExtensionManagerViewModel.prototype._getEntry.call(this, id);
+        if (entry) {
+            return entry.registryInfo;
+        }
+        return entry;
+    };
+    
+    /**
      * @constructor
      * The model for the ExtensionManagerView that is responsible for handling previously-installed extensions. 
      * This extends ExtensionManagerViewModel.
@@ -412,9 +436,11 @@ define(function (require, exports, module) {
      *     filter - triggered whenever the filtered set changes (including on initialize).
      */
     function InstalledViewModel() {
+        ExtensionManagerViewModel.call(this);
     }
     
-    InstalledViewModel.prototype = new ExtensionManagerViewModel();
+    InstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    InstalledViewModel.prototype.constructor = InstalledViewModel;
     
     /**
      * @type {string}
@@ -437,7 +463,7 @@ define(function (require, exports, module) {
             });
         this._sortFullSet();
         this._setInitialFilter();
-        return new $.Deferred().resolve();
+        return new $.Deferred().resolve().promise();
     };
     
     /**
@@ -486,6 +512,21 @@ define(function (require, exports, module) {
             this.filter(this._lastQuery || "", true);
         }
         ExtensionManagerViewModel.prototype._handleStatusChange.call(this, e, id);
+    };
+    
+    /**
+     * @private
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    InstalledViewModel.prototype._getEntry = function (id) {
+        var entry = ExtensionManagerViewModel.prototype._getEntry.call(this, id);
+        if (entry) {
+            return entry.installInfo;
+        }
+        return entry;
     };
 
     exports.RegistryViewModel = RegistryViewModel;
