@@ -476,7 +476,13 @@ define(function (require, exports, module) {
         );
     }
     
-    /** Note: if there is an error, the promise is not rejected until the user has dimissed the dialog */
+    /** 
+     * Save the given document, which must not be null. Note: if there is an
+     * error, the promise is not rejected until the user has dimissed the dialog
+     * 
+     * @param {Document} docToSave 
+     * @return {$.Promise} - resolves with the file entry of the saved document
+     */
     function doSave(docToSave) {
         var result = new $.Deferred();
         
@@ -486,9 +492,9 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
         }
-            
-        if (docToSave && docToSave.isDirty) {
-            var fileEntry = docToSave.file;
+
+        var fileEntry = docToSave.file;
+        if (docToSave.isDirty) {
             var writeError = false;
             
             fileEntry.createWriter(
@@ -513,7 +519,7 @@ define(function (require, exports, module) {
                 }
             );
         } else {
-            result.resolve();
+            result.resolve(fileEntry);
         }
         result.always(function () {
             EditorManager.focusEditor();
@@ -555,7 +561,7 @@ define(function (require, exports, module) {
      * @param {Document} doc
      * @param {Settings} properties of the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
-     * @return {$.Promise} a promise that is resolved once the save has been completed; or rejected
+     * @return {$.Promise} a promise that is resolved with the file entry of the saved document
      */
     function _doSaveAs(doc, settings) {
         var fullPath,
@@ -776,10 +782,10 @@ define(function (require, exports, module) {
             promptOnly = commandData && commandData.promptOnly;
         
         // utility function for handleFileClose: closes document & removes from working set
-        function doClose(file) {
+        function doClose(fileEntry) {
             if (!promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(file);
+                DocumentManager.closeFullEditor(fileEntry);
             
                 EditorManager.focusEditor();
             }
@@ -838,10 +844,8 @@ define(function (require, exports, module) {
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
                         handleFileSave({doc: doc})
-                            .done(function (newFullPath) {
-                                if (newFullPath) {
-                                    doClose(newFullPath);
-                                }
+                            .done(function (newFileEntry) {
+                                doClose(newFileEntry);
                                 result.resolve();
                             })
                             .fail(function () {
