@@ -31,12 +31,8 @@ define(function (require, exports, module) {
     var Strings                   = require("strings"),
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
-        Package                   = require("extensibility/Package"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        Dialogs                   = require("widgets/Dialogs"),
-        DefaultDialogs            = require("widgets/DefaultDialogs"),
-        StringUtils               = require("utils/StringUtils"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
@@ -288,102 +284,6 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
-    
-    /**
-     * Disposes the view. Must be called when the view goes away.
-     * @param {boolean} _skipChanges Whether to skip changing of marked extensions. Only for unit testing.
-     */
-    ExtensionManagerView.prototype.dispose = function (_skipChanges) {
-        var self = this;
         
-        var hasRemovedExtensions = ExtensionManager.hasExtensionsToRemove(),
-            hasUpdatedExtensions = ExtensionManager.hasExtensionsToUpdate();
-        // If an extension was removed or updated, prompt the user to quit Brackets.
-        if (!_skipChanges && (hasRemovedExtensions || hasUpdatedExtensions)) {
-            var buttonLabel = Strings.CHANGE_AND_QUIT;
-            if (hasRemovedExtensions && !hasUpdatedExtensions) {
-                buttonLabel = Strings.REMOVE_AND_QUIT;
-            } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
-                buttonLabel = Strings.UPDATE_AND_QUIT;
-            }
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
-                Strings.CHANGE_AND_QUIT_TITLE,
-                Strings.CHANGE_AND_QUIT_MESSAGE,
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : buttonLabel
-                    }
-                ]
-            )
-                .done(function (buttonId) {
-                    if (buttonId === "ok") {
-                        ExtensionManager.removeMarkedExtensions()
-                            .done(function () {
-                                ExtensionManager.updateExtensions()
-                                    .done(function () {
-                                        self.model.dispose();
-                                        CommandManager.execute(Commands.FILE_QUIT);
-                                    })
-                                    .fail(function (errorArray) {
-                                        self.model.dispose();
-                                        
-                                        // This error case should be very uncommon.
-                                        // Just let the user know that we couldn't update
-                                        // this extension and log the errors to the console.
-                                        var ids = [];
-                                        errorArray.forEach(function (errorObj) {
-                                            ids.push(errorObj.item);
-                                            if (errorObj.error && errorObj.error.forEach) {
-                                                console.error("Errors for ", errorObj.item);
-                                                errorObj.error.forEach(function (error) {
-                                                    console.error(Package.formatError(error));
-                                                });
-                                            }
-                                        });
-                                        Dialogs.showModalDialog(
-                                            DefaultDialogs.DIALOG_ID_ERROR,
-                                            Strings.EXTENSION_MANAGER_UPDATE,
-                                            StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
-                                        ).done(function () {
-                                            // We still have to quit even if some of the removals failed.
-                                            CommandManager.execute(Commands.FILE_QUIT);
-                                        });
-                                    });
-                            })
-                            .fail(function (errorArray) {
-                                self.model.dispose();
-                                ExtensionManager.cleanupUpdates();
-                                
-                                var ids = [];
-                                errorArray.forEach(function (errorObj) {
-                                    ids.push(errorObj.item);
-                                });
-                                Dialogs.showModalDialog(
-                                    DefaultDialogs.DIALOG_ID_ERROR,
-                                    Strings.EXTENSION_MANAGER_REMOVE,
-                                    StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
-                                ).done(function () {
-                                    // We still have to quit even if some of the removals failed.
-                                    CommandManager.execute(Commands.FILE_QUIT);
-                                });
-                            });
-                    } else {
-                        ExtensionManager.cleanupUpdates();
-                        self.model.dispose();
-                    }
-                });
-        } else {
-            this.model.dispose();
-        }
-    };
-    
     exports.ExtensionManagerView = ExtensionManagerView;
 });

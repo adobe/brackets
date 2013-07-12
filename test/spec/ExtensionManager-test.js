@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     var ExtensionManager          = require("extensibility/ExtensionManager"),
         ExtensionManagerView      = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel"),
+        ExtensionManagerDialog    = require("extensibility/ExtensionManagerDialog"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
@@ -831,29 +832,6 @@ define(function (require, exports, module) {
             });
             
             describe("when showing installed extensions", function () {
-                var dialogClassShown, dialogDeferred, didQuit;
-                
-                beforeEach(function () {
-                    // Mock popping up dialogs
-                    dialogClassShown = null;
-                    dialogDeferred = new $.Deferred();
-                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
-                        dialogClassShown = dlgClass;
-                        // The test will resolve the promise.
-                        return dialogDeferred.promise();
-                    });
-                    
-                    // Mock quitting the app so we don't actually quit :)
-                    didQuit = false;
-                    spyOn(CommandManager, "execute").andCallFake(function (id) {
-                        if (id === Commands.FILE_QUIT) {
-                            didQuit = true;
-                        } else {
-                            CommandManager.execute.apply(this, arguments);
-                        }
-                    });
-                });
-                
                 it("should show the 'no extensions' message when there are no extensions installed", function () {
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -994,139 +972,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should not show a removal confirmation dialog if no extensions were removed", function () {
-                    mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        cleanupView(false);
-                        expect(dialogClassShown).toBeFalsy();
-                    });
-                });
-                
-                it("should not show a removal confirmation dialog if an extension was marked for removal and then unmarked", function () {
-                    mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        $button.click();
-                        var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
-                        $undoLink.click();
-                        cleanupView(false);
-                        expect(dialogClassShown).toBeFalsy();
-                    });
-                });
-                
-                it("should show a removal confirmation dialog if an extension was removed", function () {
-                    mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        $button.click();
-                    });
-                    runs(function () {
-                        var model = view.model;
-                        // Don't expect the model to be disposed until after the dialog is dismissed.
-                        cleanupView(false, false);
-                        expect(dialogClassShown).toBe("change-marked-extensions");
-                        dialogDeferred.resolve("cancel");
-                        expect(model.dispose).toHaveBeenCalled();
-                    });
-                });
-                
-                it("should remove extensions and quit if the user hits Remove and Quit on the removal confirmation dialog", function () {
-                    var model;
-                    mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        $button.click();
-                    });
-                    runs(function () {
-                        model = view.model;
-                        // Don't expect the model to be disposed until after the dialog is dismissed.
-                        cleanupView(false, false);
-                        dialogDeferred.resolve("ok");
-                    });
-                    waitsFor(function () { return didQuit; }, "mock quit");
-                    runs(function () {
-                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                        expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
-                        expect(didQuit).toBe(true);
-                        expect(model.dispose).toHaveBeenCalled();
-                    });
-                });
-                
-                it("should not remove extensions or quit if the user hits Cancel on the removal confirmation dialog", function () {
-                    mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
-                        $button.click();
-                    });
-                    runs(function () {
-                        var model = view.model;
-                        // Don't expect the model to be disposed until after the dialog is dismissed.
-                        cleanupView(false, false);
-                        dialogDeferred.resolve("cancel");
-                        expect(removedPath).toBeFalsy();
-                        expect(didQuit).toBe(false);
-                        expect(model.dispose).toHaveBeenCalled();
-                    });
-                });
-                
-                it("should update extensions and quit if the user hits Update and Quit on the removal confirmation dialog", function () {
-                    var model,
-                        id = "mock-extension-3",
-                        filename = "/path/to/downloaded/mock-extension-3.zip";
-                    mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    var installDeferred = $.Deferred();
-                    spyOn(Package, "installUpdate").andReturn(installDeferred.promise());
-                    runs(function () {
-                        ExtensionManager.updateFromDownload({
-                            installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
-                            localPath: filename,
-                            name: id
-                        });
-                        model = view.model;
-                        // Don't expect the model to be disposed until after the dialog is dismissed.
-                        cleanupView(false, false);
-                        dialogDeferred.resolve("ok");
-                        installDeferred.resolve({
-                            installationStatus: "INSTALLED"
-                        });
-                    });
-                    waitsFor(function () { return didQuit; }, "mock quit");
-                    runs(function () {
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
-                        expect(didQuit).toBe(true);
-                        expect(model.dispose).toHaveBeenCalled();
-                    });
-                });
-                
-                it("should not update extensions or quit if the user hits Cancel on the confirmation dialog", function () {
-                    var id = "mock-extension-3",
-                        filename = "/path/to/downloaded/file.zip";
-                    mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
-                    runs(function () {
-                        ExtensionManager.updateFromDownload({
-                            name: id,
-                            localPath: filename,
-                            installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
-                        });
-                        var model = view.model;
-                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
-                        spyOn(brackets.fs, "unlink");
-                        // Don't expect the model to be disposed until after the dialog is dismissed.
-                        cleanupView(false, false);
-                        dialogDeferred.resolve("cancel");
-                        expect(removedPath).toBeFalsy();
-                        expect(didQuit).toBe(false);
-                        expect(model.dispose).toHaveBeenCalled();
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
-                    });
-                });
+
                 
                 it("should mark the given extension for update, hide the remove button, and show an undo link", function () {
                     var id = "mock-extension-3";
@@ -1163,6 +1009,168 @@ define(function (require, exports, module) {
                         expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
+                    });
+                });
+            });
+            
+            describe("ExtensionManagerDialog", function () {
+                var dialogClassShown, dialogDeferred, didQuit;
+                
+                beforeEach(function () {
+                    // Mock popping up dialogs
+                    dialogClassShown = null;
+                    dialogDeferred = new $.Deferred();
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
+                        dialogClassShown = dlgClass;
+                        // The test will resolve the promise.
+                        return dialogDeferred.promise();
+                    });
+                    
+                    // Mock quitting the app so we don't actually quit :)
+                    didQuit = false;
+                    spyOn(CommandManager, "execute").andCallFake(function (id) {
+                        if (id === Commands.FILE_QUIT) {
+                            didQuit = true;
+                        } else {
+                            CommandManager.execute.apply(this, arguments);
+                        }
+                    });
+                });
+                
+                afterEach(function () {
+                    ExtensionManager._reset();
+                });
+                
+                it("should not show a removal confirmation dialog if no extensions were removed", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    runs(function () {
+                        ExtensionManagerDialog._performChanges();
+                        expect(dialogClassShown).toBeFalsy();
+                    });
+                });
+                
+                xit("should not show a removal confirmation dialog if an extension was marked for removal and then unmarked", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                        var $undoLink = $("a.undo-remove[data-extension-id=mock-extension-3]", view.$el);
+                        $undoLink.click();
+                        cleanupView(false);
+                        expect(dialogClassShown).toBeFalsy();
+                    });
+                });
+                
+                xit("should show a removal confirmation dialog if an extension was removed", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                    });
+                    runs(function () {
+                        var model = view.model;
+                        // Don't expect the model to be disposed until after the dialog is dismissed.
+                        cleanupView(false, false);
+                        expect(dialogClassShown).toBe("change-marked-extensions");
+                        dialogDeferred.resolve("cancel");
+                        expect(model.dispose).toHaveBeenCalled();
+                    });
+                });
+                
+                xit("should remove extensions and quit if the user hits Remove and Quit on the removal confirmation dialog", function () {
+                    var model;
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                    });
+                    runs(function () {
+                        model = view.model;
+                        // Don't expect the model to be disposed until after the dialog is dismissed.
+                        cleanupView(false, false);
+                        dialogDeferred.resolve("ok");
+                    });
+                    waitsFor(function () { return didQuit; }, "mock quit");
+                    runs(function () {
+                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                        expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
+                        expect(didQuit).toBe(true);
+                        expect(model.dispose).toHaveBeenCalled();
+                    });
+                });
+                
+                xit("should not remove extensions or quit if the user hits Cancel on the removal confirmation dialog", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                    });
+                    runs(function () {
+                        var model = view.model;
+                        // Don't expect the model to be disposed until after the dialog is dismissed.
+                        cleanupView(false, false);
+                        dialogDeferred.resolve("cancel");
+                        expect(removedPath).toBeFalsy();
+                        expect(didQuit).toBe(false);
+                        expect(model.dispose).toHaveBeenCalled();
+                    });
+                });
+                
+                xit("should update extensions and quit if the user hits Update and Quit on the removal confirmation dialog", function () {
+                    var model,
+                        id = "mock-extension-3",
+                        filename = "/path/to/downloaded/mock-extension-3.zip";
+                    mockLoadExtensions(["user/" + id]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    var installDeferred = $.Deferred();
+                    spyOn(Package, "installUpdate").andReturn(installDeferred.promise());
+                    runs(function () {
+                        ExtensionManager.updateFromDownload({
+                            installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
+                            localPath: filename,
+                            name: id
+                        });
+                        model = view.model;
+                        // Don't expect the model to be disposed until after the dialog is dismissed.
+                        cleanupView(false, false);
+                        dialogDeferred.resolve("ok");
+                        installDeferred.resolve({
+                            installationStatus: "INSTALLED"
+                        });
+                    });
+                    waitsFor(function () { return didQuit; }, "mock quit");
+                    runs(function () {
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
+                        expect(didQuit).toBe(true);
+                        expect(model.dispose).toHaveBeenCalled();
+                    });
+                });
+                
+                xit("should not update extensions or quit if the user hits Cancel on the confirmation dialog", function () {
+                    var id = "mock-extension-3",
+                        filename = "/path/to/downloaded/file.zip";
+                    mockLoadExtensions(["user/" + id]);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        ExtensionManager.updateFromDownload({
+                            name: id,
+                            localPath: filename,
+                            installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
+                        });
+                        var model = view.model;
+                        expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
+                        spyOn(brackets.fs, "unlink");
+                        // Don't expect the model to be disposed until after the dialog is dismissed.
+                        cleanupView(false, false);
+                        dialogDeferred.resolve("cancel");
+                        expect(removedPath).toBeFalsy();
+                        expect(didQuit).toBe(false);
+                        expect(model.dispose).toHaveBeenCalled();
+                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
                     });
                 });
             });
