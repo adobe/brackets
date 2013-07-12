@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Async            = require("utils/Async"),
         Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils");
 
@@ -104,39 +103,12 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
     /**
-     * @private
-     * @type {Object.<string, boolean>}
-     * Map of extensions marked for removal when the view is closed.
-     */
-    ExtensionManagerViewModel.prototype._idsToRemove = null;
-        
-    /**
-     * @private
-     * @type {Object.<string, boolean>}
-     * Map of extensions marked for update when the view is closed.
-     */
-    ExtensionManagerViewModel.prototype._idsToUpdate = null;
-        
-    /**
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
         $(ExtensionManager).off("statusChange", this._handleStatusChange);
     };
     
-    /**
-     * Deletes any temporary files left behind by extensions that
-     * were marked for update.
-     */
-    ExtensionManagerViewModel.prototype.cleanupUpdates = function () {
-        Object.keys(this._idsToUpdate).forEach(function (id) {
-            var filename = this._idsToUpdate[id].localPath;
-            if (filename) {
-                brackets.fs.unlink(filename, function () { });
-            }
-        }.bind(this));
-    };
-
     /**
      * @private
      * Sets up the initial filtered set based on the sorted full set.
@@ -251,12 +223,7 @@ define(function (require, exports, module) {
      * @param {boolean} mark Whether to mark or unmark it.
      */
     ExtensionManagerViewModel.prototype.markForRemoval = function (id, mark) {
-        if (mark) {
-            this._idsToRemove[id] = true;
-        } else {
-            delete this._idsToRemove[id];
-        }
-        $(this).triggerHandler("change", [id]);
+        ExtensionManager.markForRemoval(id, mark);
     };
     
     /**
@@ -265,7 +232,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if it's been marked for removal, false otherwise.
      */
     ExtensionManagerViewModel.prototype.isMarkedForRemoval = function (id) {
-        return !!(this._idsToRemove[id]);
+        return ExtensionManager.isMarkedForRemoval(id);
     };
     
     /**
@@ -273,7 +240,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if there are extensions to remove
      */
     ExtensionManagerViewModel.prototype.hasExtensionsToRemove = function () {
-        return Object.keys(this._idsToRemove).length > 0;
+        return ExtensionManager.hasExtensionsToRemove();
     };
     
     /**
@@ -283,16 +250,7 @@ define(function (require, exports, module) {
      * @param {Object} installationResult info about the install provided by the Package.download function
      */
     ExtensionManagerViewModel.prototype.updateFromDownload = function (installationResult) {
-        var installationStatus = installationResult.installationStatus;
-        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
-                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
-                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
-                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
-            var id = installationResult.name;
-            delete this._idsToRemove[id];
-            this._idsToUpdate[id] = installationResult;
-            $(this).triggerHandler("change", [id]);
-        }
+        ExtensionManager.updateFromDownload(installationResult);
     };
     
     /**
@@ -301,16 +259,7 @@ define(function (require, exports, module) {
      * @param {string} id The id of the extension for which the update is being removed
      */
     ExtensionManagerViewModel.prototype.removeUpdate = function (id) {
-        var installationResult = this._idsToUpdate[id];
-        if (!installationResult) {
-            return;
-        }
-        if (installationResult.localPath) {
-            brackets.fs.unlink(installationResult.localPath, function () {
-            });
-        }
-        delete this._idsToUpdate[id];
-        $(this).triggerHandler("change", [id]);
+        ExtensionManager.removeUpdate(id);
     };
     
     /**
@@ -319,7 +268,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if it's been marked for update, false otherwise.
      */
     ExtensionManagerViewModel.prototype.isMarkedForUpdate = function (id) {
-        return !!(this._idsToUpdate[id]);
+        return ExtensionManager.isMarkedForUpdate(id);
     };
     
     /**
@@ -327,7 +276,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if there are extensions to update
      */
     ExtensionManagerViewModel.prototype.hasExtensionsToUpdate = function () {
-        return Object.keys(this._idsToUpdate).length > 0;
+        return ExtensionManager.hasExtensionsToUpdate();
     };
     
     /**
@@ -338,12 +287,7 @@ define(function (require, exports, module) {
      *     failed extension and an "error" property with the actual error.
      */
     ExtensionManagerViewModel.prototype.removeMarkedExtensions = function () {
-        return Async.doInParallel_aggregateErrors(
-            Object.keys(this._idsToRemove),
-            function (id) {
-                return ExtensionManager.remove(id);
-            }
-        );
+        return ExtensionManager.removeMarkedExtensions();
     };
     
     /**
@@ -354,14 +298,7 @@ define(function (require, exports, module) {
      *     failed extension and an "error" property with the actual error.
      */
     ExtensionManagerViewModel.prototype.updateExtensions = function () {
-        var self = this;
-        return Async.doInParallel_aggregateErrors(
-            Object.keys(self._idsToUpdate),
-            function (id) {
-                var installationResult = self._idsToUpdate[id];
-                return ExtensionManager.update(installationResult.name, installationResult.localPath);
-            }
-        );
+        return ExtensionManager.updateExtensions();
     };
     
     /**

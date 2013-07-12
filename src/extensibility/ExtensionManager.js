@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
+        Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils");
@@ -80,6 +81,12 @@ define(function (require, exports, module) {
     var extensions = {};
     
     /**
+     * Requested changes to the installed extensions.
+     */
+    var _idsToRemove = [],
+        _idsToUpdate = [];
+        
+    /**
      * @private
      * Sets our data. For unit testing only.
      */
@@ -93,6 +100,8 @@ define(function (require, exports, module) {
      */
     function _reset() {
         exports.extensions = extensions = {};
+        _idsToRemove = [];
+        _idsToUpdate = [];
     }
 
     /**
@@ -279,6 +288,137 @@ define(function (require, exports, module) {
         return Package.installUpdate(packagePath, id);
     }
 
+    /**
+     * Deletes any temporary files left behind by extensions that
+     * were marked for update.
+     */
+    function cleanupUpdates() {
+        Object.keys(_idsToUpdate).forEach(function (id) {
+            var filename = _idsToUpdate[id].localPath;
+            if (filename) {
+                brackets.fs.unlink(filename, function () { });
+            }
+        });
+    }
+
+    /**
+     * Marks an extension for later removal, or unmarks an extension previously marked.
+     * @param {string} id The id of the extension to mark for removal.
+     * @param {boolean} mark Whether to mark or unmark it.
+     */
+    function markForRemoval(id, mark) {
+        if (mark) {
+            _idsToRemove[id] = true;
+        } else {
+            delete _idsToRemove[id];
+        }
+        $(exports).triggerHandler("statusChange", [id]);
+    }
+    
+    /**
+     * Returns true if an extension is marked for removal.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for removal, false otherwise.
+     */
+    function isMarkedForRemoval(id) {
+        return !!(_idsToRemove[id]);
+    }
+    
+    /**
+     * Returns true if there are any extensions marked for removal.
+     * @return {boolean} true if there are extensions to remove
+     */
+    function hasExtensionsToRemove() {
+        return Object.keys(_idsToRemove).length > 0;
+    }
+    
+    /**
+     * If a downloaded package appears to be an update, mark the extension for update.
+     * If an extension was previously marked for removal, marking for update will
+     * turn off the removal mark.
+     * @param {Object} installationResult info about the install provided by the Package.download function
+     */
+    function updateFromDownload(installationResult) {
+        var installationStatus = installationResult.installationStatus;
+        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
+                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
+                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
+            var id = installationResult.name;
+            delete _idsToRemove[id];
+            _idsToUpdate[id] = installationResult;
+            $(exports).triggerHandler("statusChange", [id]);
+        }
+    }
+    
+    /**
+     * Removes the mark for an extension to be updated on restart. Also deletes the
+     * downloaded package file.
+     * @param {string} id The id of the extension for which the update is being removed
+     */
+    function removeUpdate(id) {
+        var installationResult = _idsToUpdate[id];
+        if (!installationResult) {
+            return;
+        }
+        if (installationResult.localPath) {
+            brackets.fs.unlink(installationResult.localPath, function () {
+            });
+        }
+        delete _idsToUpdate[id];
+        $(exports).triggerHandler("statusChange", [id]);
+    }
+    
+    /**
+     * Returns true if an extension is marked for update.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for update, false otherwise.
+     */
+    function isMarkedForUpdate(id) {
+        return !!(_idsToUpdate[id]);
+    }
+    
+    /**
+     * Returns true if there are any extensions marked for update.
+     * @return {boolean} true if there are extensions to update
+     */
+    function hasExtensionsToUpdate() {
+        return Object.keys(_idsToUpdate).length > 0;
+    }
+    
+    /**
+     * Removes extensions previously marked for removal.
+     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
+     *     if one or more extensions can't be removed. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    function removeMarkedExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToRemove),
+            function (id) {
+                return remove(id);
+            }
+        );
+    }
+    
+    /**
+     * Updates extensions previously marked for update.
+     * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
+     *     if one or more extensions can't be updated. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    function updateExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToUpdate),
+            function (id) {
+                var installationResult = _idsToUpdate[id];
+                return update(installationResult.name, installationResult.localPath);
+            }
+        );
+    }
+    
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -291,6 +431,16 @@ define(function (require, exports, module) {
     exports.remove = remove;
     exports.update = update;
     exports.extensions = extensions;
+    exports.cleanupUpdates = cleanupUpdates;
+    exports.markForRemoval = markForRemoval;
+    exports.isMarkedForRemoval = isMarkedForRemoval;
+    exports.hasExtensionsToRemove = hasExtensionsToRemove;
+    exports.updateFromDownload = updateFromDownload;
+    exports.removeUpdate = removeUpdate;
+    exports.isMarkedForUpdate = isMarkedForUpdate;
+    exports.hasExtensionsToUpdate = hasExtensionsToUpdate;
+    exports.removeMarkedExtensions = removeMarkedExtensions;
+    exports.updateExtensions = updateExtensions;
     
     exports.ENABLED = ENABLED;
     exports.START_FAILED = START_FAILED;

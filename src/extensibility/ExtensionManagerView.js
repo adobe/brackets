@@ -367,7 +367,7 @@ define(function (require, exports, module) {
                             })
                             .fail(function (errorArray) {
                                 self.model.dispose();
-                                self.model.cleanupUpdates();
+                                ExtensionManager.cleanupUpdates();
                                 
                                 var ids = [];
                                 errorArray.forEach(function (errorObj) {
@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                                 });
                             });
                     } else {
-                        self.model.cleanupUpdates();
+                        ExtensionManager.cleanupUpdates();
                         self.model.dispose();
                     }
                 });
