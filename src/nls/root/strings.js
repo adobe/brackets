@@ -171,6 +171,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
+    "CMD_FILE_NEW_UNTITLED"               : "New",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",

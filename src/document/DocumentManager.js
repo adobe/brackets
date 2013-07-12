@@ -95,11 +95,12 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
+        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
-    
+
     /**
      * @private
      * @see DocumentManager.getCurrentDocument()
@@ -122,6 +123,12 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
+    /**
+     * @private
+     * Random path prefix for untitled documents
+     */
+    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
+
     /**
      * @private
      * @type {Array.<FileEntry>}
@@ -169,8 +176,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet;
-        // TODO: (issue #297) return a clone to prevent meddling?
+        return _workingSet.slice(0);
     }
 
     /** 
@@ -229,8 +235,12 @@ define(function (require, exports, module) {
         }
         
         // Add to _workingSet making sure we store a different instance from the
-        // one in the Document. See issue #1971 for more details.        
-        file = new NativeFileSystem.FileEntry(file.fullPath);
+        // one in the Document. See issue #1971 for more details.
+        if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, file.mtime);
+        } else {
+            file = new NativeFileSystem.FileEntry(file.fullPath);
+        }
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
@@ -440,9 +450,9 @@ define(function (require, exports, module) {
 
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
-        // If file not within project tree, add it to working set right now (don't wait for it to
-        // become dirty)
-        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+        // If file is untitled or otherwise not within project tree, add it to
+        // working set right now (don't wait for it to become dirty)
+        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
             addToWorkingSet(doc.file);
         }
         
@@ -576,13 +586,9 @@ define(function (require, exports, module) {
         } else {
             var result = new $.Deferred(),
                 promise = result.promise();
-            
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
@@ -590,22 +596,31 @@ define(function (require, exports, module) {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
 
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                            
-                    // This is a good point to clean up any old dangling Documents
-                    _gcDocuments();
-                    
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+            var fileEntry;
+            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+                console.error("getDocumentForPath called with an untitled document path!");
+                result.reject();
+            } else {
+                // log this document's Promise as pending
+                getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+
+                fileEntry = new NativeFileSystem.FileEntry(fullPath);
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            }
+            
+            // This is a good point to clean up any old dangling Documents
+            result.done(_gcDocuments);
             
             return promise;
         }
@@ -633,6 +648,22 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
+    /**
+     * Creates an untitled document. The associated FileEntry has a fullPath
+     * looks like /some-random-string/Untitled-counter.fileExt.
+     *
+     * @param {number} counter - used in the name of the new Document's FileEntry
+     * @param {string} fileExt - file extension of the new Document's FileEntry
+     * @return {Document} - a new untitled Document
+     */
+    function createUntitledDocument(counter, fileExt) {
+        var filename = Strings.UNTITLED + "-" + counter + fileExt,
+            fullPath = _untitledDocumentPath + "/" + filename,
+            now = new Date(),
+            fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
+        
+        return new DocumentModule.Document(fileEntry, now, "");
+    }
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
@@ -682,17 +713,20 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
-            // flag the currently active editor
-            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-            
-            // save editor UI state for just the working set
-            var viewState = EditorManager._getViewState(file.fullPath);
-            
-            files.push({
-                file: file.fullPath,
-                active: isActive,
-                viewState: viewState
-            });
+            // Do not persist untitled document paths
+            if (!(file instanceof NativeFileSystem.InaccessibleFileEntry)) {
+                // flag the currently active editor
+                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+                
+                // save editor UI state for just the working set
+                var viewState = EditorManager._getViewState(file.fullPath);
+                
+                files.push({
+                    file: file.fullPath,
+                    active: isActive,
+                    viewState: viewState
+                });
+            }
         });
 
         // append file root to make file list unique for each project
@@ -878,6 +912,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.createUntitledDocument      = createUntitledDocument;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
