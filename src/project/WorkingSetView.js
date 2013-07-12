@@ -512,7 +512,7 @@ define(function (require, exports, module) {
     /** 
      * @private
      * @param {FileEntry} file
-     * @param {boolean=} supporessRedraw If true, suppress redraw
+     * @param {boolean=} suppressRedraw If true, suppress redraw
      */
     function _handleFileRemoved(file, suppressRedraw) {
         if (!suppressRedraw) {
