@@ -416,6 +416,9 @@ define(function (require, exports, module) {
     function doFindInFiles(scope) {
 
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
+                CommandManager.execute(Commands.EDIT_FIND);
+            });
             return;
         }
         
