@@ -511,7 +511,8 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry, boolean=} file, flag to suppress redraw if true
+     * @param {FileEntry} file
+     * @param {boolean=} supporessRedraw If true, suppress redraw
      */
     function _handleFileRemoved(file, suppressRedraw) {
         var $listItem = _findListItemFromFile(file);
