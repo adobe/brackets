@@ -497,7 +497,7 @@ define(function (require, exports, module) {
                         // Per spec, onwriteend is called after onerror too
                         if (!writeError) {
                             docToSave.notifySaved();
-                            result.resolve();
+                            result.resolve(fileEntry);
                         }
                     };
                     writer.onerror = function (error) {
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                 
         function _doSaveAfterSaveDialog(path) {
             
-            function _configureEditorAndResolve() {
+            function _configureEditorAndResolve(file) {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
@@ -574,15 +574,17 @@ define(function (require, exports, module) {
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
-                result.resolve();
+                result.resolve(file);
             }
             
-            function updateProject() {
+            function updateProject(file) {
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
                     FileViewController
                         .openAndSelectDocument(path,
                                           FileViewController.PROJECT_MANAGER)
-                        .always(_configureEditorAndResolve);
+                        .always(function () {
+                            _configureEditorAndResolve(file);
+                        });
                 } else { // Working set  has file selection focus
                     // replace original file in working set with new file
                     //  remove old file from working set.
@@ -591,7 +593,9 @@ define(function (require, exports, module) {
                     FileViewController
                         .addToWorkingSetAndSelect(path,
                                         FileViewController.WORKING_SET_VIEW)
-                        .always(_configureEditorAndResolve);
+                        .always(function () {
+                            _configureEditorAndResolve(file);
+                        });
                 }
             }
             
@@ -621,9 +625,11 @@ define(function (require, exports, module) {
                                 if (doc.isDirty && !(doc.isUntitled())) {
                                     // if the file is dirty it must be in the working set
                                     // doRevert is side effect free in this case
-                                    doRevert(doc).always(updateProject);
+                                    doRevert(doc).always(function () {
+                                        updateProject(newDoc.file);
+                                    });
                                 } else {
-                                    updateProject();
+                                    updateProject(newDoc.file);
                                 }
                             }).fail(function () {
                                 result.reject();
@@ -832,8 +838,10 @@ define(function (require, exports, module) {
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
                         handleFileSave({doc: doc})
-                            .done(function () {
-                                doClose(file);
+                            .done(function (newFullPath) {
+                                if (newFullPath) {
+                                    doClose(newFullPath);
+                                }
                                 result.resolve();
                             })
                             .fail(function () {
