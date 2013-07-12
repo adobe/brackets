@@ -253,8 +253,9 @@ define(function (require, exports, module) {
      */
     function replaceInWorkingSet(newFile, oldFile) {
         var targetIndex = findInWorkingSet(oldFile.fullPath);
-        if (targetIndex == -1)
+        if (targetIndex === -1) {
             return;
+        }
         
         var filePair = [newFile, oldFile];
         // Dispatch event
@@ -307,17 +308,15 @@ define(function (require, exports, module) {
     function removeFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
-        if (index === -1) {
-            return;
+        if (index !== -1) {
+            // Remove
+            _workingSet.splice(index, 1);
+            _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+            _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+            
+            // Dispatch event
+            $(exports).triggerHandler("workingSetRemove", file);
         }
-        
-        // Remove
-        _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
     }
 
     /**
