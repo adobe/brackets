@@ -115,8 +115,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_ACTIVE_LINE);
         menu.addMenuItem(Commands.TOGGLE_LINE_NUMBERS);
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
-
+        
         /*
          * Navigate menu
          */
