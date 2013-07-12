@@ -221,8 +221,9 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
+     * @param {?Number} index - insert into the working set list at this 0-based index
      */
-    function addToWorkingSet(file) {
+    function addToWorkingSet(file, index) {
         // If doc is already in working set, don't add it again
         if (findInWorkingSet(file.fullPath) !== -1) {
             return;
@@ -231,7 +232,13 @@ define(function (require, exports, module) {
         // Add to _workingSet making sure we store a different instance from the
         // one in the Document. See issue #1971 for more details.        
         file = new NativeFileSystem.FileEntry(file.fullPath);
-        _workingSet.push(file);
+        if (!index || (index === -1)) {
+            // If no index is specified, just add the file to the end of the working set.
+            _workingSet.push(file);
+        } else {
+            // If specified, insert into the working set list at this 0-based index
+            _workingSet.splice(index, 0, file);
+        }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -244,9 +251,13 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", file);
+        if (!index || (index === -1)) {
+            $(exports).triggerHandler("workingSetAdd", file);
+        } else {
+            $(exports).triggerHandler("workingSetSort");
+        }
     }
-
+    
     /**
      * Adds the given file list to the end of the working set list.
      * Does not change which document is currently open in the editor.

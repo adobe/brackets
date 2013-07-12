@@ -313,11 +313,12 @@ define(function (require, exports, module) {
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
      * @param {!{fullPath:string}} Params for FILE_OPEN command
+     * @param {?Number} index - insert into the working set list at this 0-based index
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file);
+            DocumentManager.addToWorkingSet(doc.file, commandData.index);
         });
     }
 
@@ -616,12 +617,12 @@ define(function (require, exports, module) {
                         .always(_configureEditorAndResolve);
                 } else { // Working set  has file selection focus
                     // replace original file in working set with new file
+                    var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
                     //  remove old file from working set.
                     DocumentManager.removeFromWorkingSet(doc.file);
                     //add new file to working set
                     FileViewController
-                        .addToWorkingSetAndSelect(path,
-                                        FileViewController.WORKING_SET_VIEW)
+                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index)
                         .always(_configureEditorAndResolve);
                 }
             }
