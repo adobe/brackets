@@ -369,6 +369,11 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
+        if (editor && editor.document.isUntitled()) {
+            // no hints for untitled documents
+            return false;
+        }
+        
         if (session && HintUtils.hintableKey(key)) {
             
             if (isHTMLFile(session.editor.document)) {
@@ -547,7 +552,7 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            if (editor && !editor.document.isUntitled() && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {

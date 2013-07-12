@@ -81,6 +81,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
@@ -106,6 +108,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();
