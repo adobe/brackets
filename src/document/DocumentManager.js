@@ -313,9 +313,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
-        if ((suppressRedraw === undefined) || (suppressRedraw === null) || (suppressRedraw !== true)) {
-            $(exports).triggerHandler("workingSetRemove", file);
-        }
+        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
     }
 
     /**

@@ -511,9 +511,9 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file 
+     * @param {FileEntry, suppressRedraw=} file, flag to suppress redraw if true
      */
-    function _handleFileRemoved(file) {
+    function _handleFileRemoved(file, suppressRedraw) {
         var $listItem = _findListItemFromFile(file);
         if ($listItem) {
             // Make the next file in the list show the close icon, 
@@ -527,7 +527,9 @@ define(function (require, exports, module) {
             $listItem.remove();
         }
         
-        _redraw();
+        if (!suppressRedraw) {
+            _redraw();
+        }
     }
 
     function _handleRemoveList(removedFiles) {
@@ -592,8 +594,8 @@ define(function (require, exports, module) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
-            _handleFileRemoved(removedFile);
+        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+            _handleFileRemoved(removedFile, suppressRedraw);
         });
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
