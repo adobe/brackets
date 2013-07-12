@@ -37,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
+    "FILE"                              : "file",
+    "DIRECTORY"                         : "directory",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -47,6 +49,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error reloading changes from disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
@@ -55,11 +58,11 @@ define({
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid file name",
+    "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
-    "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
-    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
+    "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
+    "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
+    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",

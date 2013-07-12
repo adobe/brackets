@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError     = require("file/NativeFileError"),
+        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -360,7 +361,7 @@ define(function (require, exports, module) {
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
     }
-
+    
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
