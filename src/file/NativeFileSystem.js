@@ -666,10 +666,12 @@ define(function (require, exports, module) {
     NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
     
     NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.createWriter is unsupported");
         errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.file is unsupported");
         errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
     };
     
@@ -678,6 +680,7 @@ define(function (require, exports, module) {
     };
     
     NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.remove is unsupported");
         errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
     };
 
