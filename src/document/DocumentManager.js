@@ -298,8 +298,9 @@ define(function (require, exports, module) {
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file.
      * @param {!FileEntry} file
+     * @param {boolean=} true to suppress redraw after removal
      */
-    function removeFromWorkingSet(file) {
+    function removeFromWorkingSet(file, suppressRedraw) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -312,7 +313,9 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
+        if ((suppressRedraw === undefined) || (suppressRedraw === null) || (suppressRedraw !== true)) {
+            $(exports).triggerHandler("workingSetRemove", file);
+        }
     }
 
     /**

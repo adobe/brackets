@@ -618,7 +618,7 @@ define(function (require, exports, module) {
                     // replace original file in working set with new file
                     var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
                     //  remove old file from working set.
-                    DocumentManager.removeFromWorkingSet(doc.file);
+                    DocumentManager.removeFromWorkingSet(doc.file, true);
                     //add new file to working set
                     FileViewController
                         .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index)
