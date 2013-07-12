@@ -214,7 +214,7 @@ define(function (require, exports, module) {
                 if (errorCallback) {
                     errorCallback(err);
                 }
-                console.log("Unable to refresh directory: " + err);
+                console.log("Unable to refresh directory: ", err);
             });
         }, function (err) {
             if (errorCallback) {
