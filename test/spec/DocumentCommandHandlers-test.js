@@ -151,15 +151,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
-
-                    expect(noLongerUntitledDocument.isDirty).toBe(false);
-                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
-                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-
-                    promise = SpecRunnerUtils.deletePath(newFilePath);
-                    waitsForDone(promise, "Remove the testfile");
+                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
                 });
             });
 
