@@ -57,6 +57,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the path for this file entry.
+     * @return {string} 
      */
     FileSystemEntry.prototype.getPath = function () {
         return this._path;
@@ -64,6 +65,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the name of the file or directory
+     * @return {string}
      */
     FileSystemEntry.prototype.getName = function () {
         return this._path.split("/").pop();

@@ -32,18 +32,18 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex");
     
+    var _impls = {},    // File system implementations. Key is the string name, value is the _impl obj
+        _impl;          // Current file system implementation.
+    
     var appshellFileSystem  = require("filesystem/impls/appshell/AppshellFileSystem"),
         dropboxFileSystem   = require("filesystem/impls/dropbox/DropboxFileSystem");
-    
-    // FileSystemImpl 
-    var _impl;
     
     /**
      * Set the low-level implementation for file i/o
      *
      * @param {FileSystemImpl} impl File system implementation
      */
-    function setFileSystemImpl(impl) {
+    function _setFileSystemImpl(impl) {
         // Clear old watchers
         if (_impl) {
             _impl.unwatchAll();
@@ -56,16 +56,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Register a file system implementation
+     * @param {string} name Name of the implementation
+     * @param {object} impl File system implementation. Must implement the methods 
+     *          described in FileSystemImpl. 
+     */
+    function registerFileSystemImpl(name, impl) {
+        _impls[name] = impl;
+    }
+    
+    /**
      * Set the file system to use.
-     * @param {string} system The system to use. Supported values are "dropbox" and "appshell".
+     * @param {string} system The system to use. The system must be registered with
+     *        registerFileSystemImpl. The built-in systems are "appshell" and 
+     *        "dropbox", but extensions can register additional implementations.
      */
     function setFileSystem(system) {
-        // TODO: Allow extensions to add new file systems.
-        if (system === "dropbox") {
-            setFileSystemImpl(dropboxFileSystem);
-        } else {
-            setFileSystemImpl(appshellFileSystem);
-        }
+        var impl = _impls[system];
+        
+        _setFileSystemImpl(impl || appshellFileSystem);
     }
     
     /**
@@ -105,7 +114,7 @@ define(function (require, exports, module) {
      *
      * @return {File} The File object.
      */
-    function newUnsavedFile(options) {
+    function newUnsavedFile() {
         // TODO: Implement me
         
         // return _impl.newUnsavedFile(options);
@@ -412,11 +421,16 @@ define(function (require, exports, module) {
         _scanDirectory(rootPath);
     }
     
+    // Register built-in file systems
+    registerFileSystemImpl("appshell", appshellFileSystem);
+    registerFileSystemImpl("dropbox", dropboxFileSystem);
+    
     // Set initial file system
     setFileSystem("appshell");
     
     // Export public API
-    exports.setFileSystemImpl       = setFileSystemImpl;
+    exports.registerFileSystemImp   = registerFileSystemImpl;
+    exports.setFileSystem           = setFileSystem;
     exports.shouldShow              = shouldShow;
     exports.getFileForPath          = getFileForPath;
     exports.newUnsavedFile          = newUnsavedFile;
