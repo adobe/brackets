@@ -227,8 +227,9 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
+     * @param {number=} index - insert into the working set list at this 0-based index
      */
-    function addToWorkingSet(file) {
+    function addToWorkingSet(file, index) {
         // If doc is already in working set, don't add it again
         if (findInWorkingSet(file.fullPath) !== -1) {
             return;
@@ -241,7 +242,13 @@ define(function (require, exports, module) {
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
         }
-        _workingSet.push(file);
+        if ((index === undefined) || (index === null) || (index === -1)) {
+            // If no index is specified, just add the file to the end of the working set.
+            _workingSet.push(file);
+        } else {
+            // If specified, insert into the working set list at this 0-based index
+            _workingSet.splice(index, 0, file);
+        }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -254,9 +261,13 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", file);
+        if ((index === undefined) || (index === null) || (index === -1)) {
+            $(exports).triggerHandler("workingSetAdd", file);
+        } else {
+            $(exports).triggerHandler("workingSetSort");
+        }
     }
-
+    
     /**
      * Adds the given file list to the end of the working set list.
      * Does not change which document is currently open in the editor.
@@ -297,8 +308,9 @@ define(function (require, exports, module) {
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file.
      * @param {!FileEntry} file
+     * @param {boolean=} true to suppress redraw after removal
      */
-    function removeFromWorkingSet(file) {
+    function removeFromWorkingSet(file, suppressRedraw) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -311,7 +323,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
+        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
     }
 
     /**
