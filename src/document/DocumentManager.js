@@ -450,9 +450,9 @@ define(function (require, exports, module) {
 
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
-        // If file not within project tree, add it to working set right now (don't wait for it to
-        // become dirty)
-        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+        // If file is untitled or otherwise not within project tree, add it to
+        // working set right now (don't wait for it to become dirty)
+        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
             addToWorkingSet(doc.file);
         }
         
