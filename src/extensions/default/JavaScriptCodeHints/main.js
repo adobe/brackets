@@ -369,6 +369,11 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
+        if (editor && editor.document.isUntitled()) {
+            // no hints for untitled documents
+            return false;
+        }
+        
         if (session && HintUtils.hintableKey(key)) {
             
             if (isHTMLFile(session.editor.document)) {
