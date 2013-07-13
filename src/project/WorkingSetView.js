@@ -90,7 +90,7 @@ define(function (require, exports, module) {
                 var dirNameEnd = file.fullPath.lastIndexOf("/");
                 var dirNameStart = file.fullPath.lastIndexOf("/", dirNameEnd - 1) + 1;
                 var dirName = file.fullPath.substring(dirNameStart, dirNameEnd);
-                var $dir = $("<span class='directory'/>").text(" | " + dirName);
+                var $dir = $("<span class='directory'/>").html(" &mdash; " + dirName);
 
                 var $a = $li.children("a");
                 $a.children("span.directory").remove();
