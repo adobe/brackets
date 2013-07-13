@@ -256,6 +256,8 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+                
+                DocumentManager.triggerWorkingSetSort(true);
             }
         }
         
@@ -544,11 +546,14 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    /** 
+    /**
      * @private
+     * @param {boolean=} suppressRedraw If true, suppress redraw
      */
-    function _handleWorkingSetSort() {
-        _rebuildWorkingSet(true);
+    function _handleWorkingSetSort(suppressRedraw) {
+        if (!suppressRedraw) {
+            _rebuildWorkingSet(true);
+        }
     }
 
     /** 
@@ -603,8 +608,8 @@ define(function (require, exports, module) {
             _handleRemoveList(removedFiles);
         });
         
-        $(DocumentManager).on("workingSetSort", function (event) {
-            _handleWorkingSetSort();
+        $(DocumentManager).on("workingSetSort", function (event, suppressRedraw) {
+            _handleWorkingSetSort(suppressRedraw);
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {

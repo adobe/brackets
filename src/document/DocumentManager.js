@@ -384,6 +384,14 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("workingSetSort");
     }
     
+    /**
+     * Triggers a WorkingSet Sort event
+     * @param {boolean=} suppressRedraw If true, suppress redraw
+     */
+    function triggerWorkingSetSort(suppressRedraw) {
+        $(exports).triggerHandler("workingSetSort", suppressRedraw);
+    }
+    
     
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
@@ -936,6 +944,7 @@ define(function (require, exports, module) {
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
+    exports.triggerWorkingSetSort       = triggerWorkingSetSort;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;
