@@ -171,6 +171,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "ファイル",
+	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
