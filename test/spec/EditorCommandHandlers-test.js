@@ -2192,8 +2192,6 @@ define(function (require, exports, module) {
                 expect(myEditor.document.getText()).toEqual(expectedText);
                 expect(myEditor.getFirstVisibleLine()).toBe(0);
                 expect(myEditor.getLastVisibleLine()).toBe(2);
-                
-                closeTestWindow();
             });
         });
         
