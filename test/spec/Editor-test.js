@@ -117,13 +117,19 @@ define(function (require, exports, module) {
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForPath("file:///only/testing/the/path.html").getMode();
+                var mode = LanguageManager.getLanguageForPath("c:/only/testing/the/path.html").getMode();
                 expect(mode).toSpecifyModeNamed("text/x-brackets-html");
             });
             
-            it("should switch modes even if the url has a query string", function () {
+            it("should switch modes for UNIX absolute path", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForPath("http://only.org/testing/the/path.css?v=2").getMode();
+                var mode = LanguageManager.getLanguageForPath("/only/testing/the/path.css").getMode();
+                expect(mode).toSpecifyModeNamed(langNames.css.mode);
+            });
+
+            it("should switch modes for relative path", function () {
+                // verify editor content
+                var mode = LanguageManager.getLanguageForPath("only/testing/the/path.css").getMode();
                 expect(mode).toSpecifyModeNamed(langNames.css.mode);
             });
             
