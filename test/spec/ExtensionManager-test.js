@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     
     var ExtensionManager          = require("extensibility/ExtensionManager"),
         ExtensionManagerView      = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel,
+        ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
@@ -323,8 +323,8 @@ define(function (require, exports, module) {
                 beforeEach(function () {
                     runs(function () {
                         mockRegistry = JSON.parse(mockRegistryForSearch);
-                        model = new ExtensionManagerViewModel();
-                        waitsForDone(model.initialize(ExtensionManagerViewModel.SOURCE_REGISTRY), "model initialization");
+                        model = new ExtensionManagerViewModel.RegistryViewModel();
+                        waitsForDone(model.initialize(), "model initialization");
                     });
                     runs(function () {
                         // Mock load some extensions, so we can make sure they don't show up in the filtered model in this case.
@@ -391,8 +391,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         origExtensions = ExtensionManager.extensions;
                         ExtensionManager._setExtensions(JSON.parse(mockExtensionList));
-                        model = new ExtensionManagerViewModel();
-                        waitsForDone(model.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED));
+                        model = new ExtensionManagerViewModel.InstalledViewModel();
+                        waitsForDone(model.initialize());
                     });
                 });
                 
@@ -591,11 +591,12 @@ define(function (require, exports, module) {
             var testWindow, view, fakeLoadDeferred, modelDisposed;
             
             // Sets up the view using the normal (mock) ExtensionManager data.
-            function setupViewWithMockData(source) {
+            function setupViewWithMockData(ModelClass) {
                 runs(function () {
                     view = new ExtensionManagerView();
+                    var model = new ModelClass();
                     modelDisposed = false;
-                    waitsForDone(view.initialize(source), "view initializing");
+                    waitsForDone(view.initialize(model), "view initializing");
                 });
                 runs(function () {
                     spyOn(view.model, "dispose").andCallThrough();
@@ -610,9 +611,12 @@ define(function (require, exports, module) {
                     return fakeLoadDeferred.promise();
                 });
                 view = new ExtensionManagerView();
+                
+                var model = new ExtensionManagerViewModel.RegistryViewModel();
+                
                 // We don't wait for this to finish since the tests that use this will
                 // be manipulating the load promise.
-                view.initialize(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                view.initialize(model);
                 modelDisposed = false;
                 spyOn(view.model, "dispose").andCallThrough();
             }
@@ -657,7 +661,7 @@ define(function (require, exports, module) {
             
             describe("when showing registry entries", function () {
                 it("should populate itself with registry entries and display their fields when created", function () {
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             // Should show the title if specified, otherwise the bare name.
@@ -698,7 +702,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show an install button for each item", function () {
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
@@ -709,7 +713,7 @@ define(function (require, exports, module) {
                 
                 it("should show disabled install buttons for items that are already installed", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
                         CollectionUtils.forEach(mockRegistry, function (item) {
                             var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
@@ -744,7 +748,7 @@ define(function (require, exports, module) {
                                 ]
                             }
                         };
-                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
                         var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
@@ -754,7 +758,7 @@ define(function (require, exports, module) {
                 
                 it("should bring up the install dialog and install an item when install button is clicked", function () {
                     runs(function () {
-                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
                         var $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
@@ -768,7 +772,7 @@ define(function (require, exports, module) {
                 it("should disable the install button for an item immediately after installing it", function () {
                     var $button;
                     runs(function () {
-                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
                         $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
@@ -814,7 +818,7 @@ define(function (require, exports, module) {
                                 ]
                             }
                         };
-                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
                         var origHref = window.location.href;
@@ -851,7 +855,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show the 'no extensions' message when there are no extensions installed", function () {
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect($(".empty-message", view.$el).css("display")).not.toBe("none");
                         expect($(".empty-message", view.$el).html()).toEqual(Strings.NO_EXTENSIONS);
@@ -861,7 +865,7 @@ define(function (require, exports, module) {
                            
                 it("should show the 'no extensions' message when there are extensions installed but none match the search query", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         view.filter("DON'T_FIND_ME_IN_THE_EXTENSION_LIST");
                         expect($(".empty-message", view.$el).css("display")).not.toBe("none");
@@ -872,7 +876,7 @@ define(function (require, exports, module) {
                            
                 it("should show only items that are already installed and have a remove button for each", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect($(".empty-message", view.$el).css("display")).toBe("none");
                         expect($("table", view.$el).css("display")).not.toBe("none");
@@ -892,7 +896,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show a newly installed extension", function () {
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect(view).not.toHaveText("mock-extension-3");
                         mockLoadExtensions(["user/mock-extension-3"]);
@@ -904,7 +908,7 @@ define(function (require, exports, module) {
                 
                 it("should not show extensions in the default folder", function () {
                     mockLoadExtensions(["default/mock-extension-1"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect(view).not.toHaveText("mock-extension-1");
                     });
@@ -912,7 +916,7 @@ define(function (require, exports, module) {
                 
                 it("should show extensions that failed to load with a 'remove' link", function () {
                     mockLoadExtensions(["user/mock-extension-3"], true);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect(view).toHaveText("mock-extension-3");
                         var $removeLink = $("a.remove[data-extension-id=mock-extension-3]", view.$el);
@@ -930,7 +934,7 @@ define(function (require, exports, module) {
                 
                 it("should disable the Remove button for extensions in the dev folder", function () {
                     mockLoadExtensions(["dev/mock-extension-2"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-2]", view.$el);
                         expect($button.length).toBe(1);
@@ -940,7 +944,7 @@ define(function (require, exports, module) {
                 
                 it("should mark the given extension for removal, hide the remove button, and show an undo link", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -954,7 +958,7 @@ define(function (require, exports, module) {
                 
                 it("should undo marking an extension for removal", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -969,7 +973,7 @@ define(function (require, exports, module) {
                 it("should mark a legacy extension for removal", function () {
                     var id = "mock-legacy-extension";
                     mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
                             $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
@@ -980,7 +984,7 @@ define(function (require, exports, module) {
                 
                 it("should no longer show a fully removed extension", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         expect(view).toHaveText("mock-extension-3");
                         waitsForDone(ExtensionManager.remove("mock-extension-3"));
@@ -992,7 +996,7 @@ define(function (require, exports, module) {
                 
                 it("should not show a removal confirmation dialog if no extensions were removed", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         cleanupView(false);
                         expect(dialogClassShown).toBeFalsy();
@@ -1001,7 +1005,7 @@ define(function (require, exports, module) {
                 
                 it("should not show a removal confirmation dialog if an extension was marked for removal and then unmarked", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -1014,7 +1018,7 @@ define(function (require, exports, module) {
                 
                 it("should show a removal confirmation dialog if an extension was removed", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -1032,7 +1036,7 @@ define(function (require, exports, module) {
                 it("should remove extensions and quit if the user hits Remove and Quit on the removal confirmation dialog", function () {
                     var model;
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -1054,7 +1058,7 @@ define(function (require, exports, module) {
                 
                 it("should not remove extensions or quit if the user hits Cancel on the removal confirmation dialog", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
                         $button.click();
@@ -1075,7 +1079,7 @@ define(function (require, exports, module) {
                         id = "mock-extension-3",
                         filename = "/path/to/downloaded/mock-extension-3.zip";
                     mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     var installDeferred = $.Deferred();
                     spyOn(Package, "installUpdate").andReturn(installDeferred.promise());
                     runs(function () {
@@ -1104,7 +1108,7 @@ define(function (require, exports, module) {
                     var id = "mock-extension-3",
                         filename = "/path/to/downloaded/file.zip";
                     mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         view.model.updateFromDownload({
                             name: id,
@@ -1127,7 +1131,7 @@ define(function (require, exports, module) {
                 it("should mark the given extension for update, hide the remove button, and show an undo link", function () {
                     var id = "mock-extension-3";
                     mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         view.model.updateFromDownload({
                             name: id,
@@ -1145,7 +1149,7 @@ define(function (require, exports, module) {
                     var id = "mock-extension-3",
                         filename = "/path/to/downloaded/file.zip";
                     mockLoadExtensions(["user/" + id]);
-                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         view.model.updateFromDownload({
                             name: id,

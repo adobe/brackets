@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError     = require("file/NativeFileError"),
+        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -80,6 +81,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
@@ -105,6 +108,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();

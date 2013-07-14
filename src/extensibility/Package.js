@@ -61,7 +61,7 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the installer in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
+    var NODE_CONNECTION_TIMEOUT = 5000; // 5 seconds - TODO: share with StaticServer?
     
     /**
      * @private
