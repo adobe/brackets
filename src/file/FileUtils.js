@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError     = require("file/NativeFileError"),
-        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -373,12 +372,30 @@ define(function (require, exports, module) {
      * directory
      */
     function getBaseName(fullPath) {
-        // chop off the trailing slash of a directory
-        if (fullPath.charAt(fullPath.length - 1) === '/') {
-            fullPath = fullPath.substr(0, fullPath.length - 1);
-        }
+        fullPath = canonicalizeFolderPath(fullPath);
         return fullPath.substr(fullPath.lastIndexOf("/") + 1);
     }
+
+    /**
+     * Get the filename extension.
+     *
+     * @param {string} full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory
+     */
+    function getFilenameExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx;
+
+        idx = baseName.lastIndexOf(".");
+
+        if (idx === -1) {
+            return "";
+        } else {
+            return baseName.substr(idx);
+        }
+    }
+
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -401,4 +418,5 @@ define(function (require, exports, module) {
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
+    exports.getFilenameExtension           = getFilenameExtension;
 });
