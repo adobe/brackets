@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, CodeMirror */
+/*global define, $, brackets, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
+        FileUtils               = require("file/FileUtils"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -378,7 +379,7 @@ define(function (require, exports, module) {
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.fullPath));
+                return (/^\.js/i).test(FileUtils.getFilenameExtension(fileInfo.fullPath));
             });
         } else {
             jsFiles = fileInfos;

@@ -23,12 +23,10 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, PathUtils, window */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
-    
-    require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -246,9 +244,7 @@ define(function (require, exports, module) {
                         
                         doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
-                                var url = PathUtils.parseUrl(doc.file.fullPath);
-                                //reconstruct the url but use the directory and stop there
-                                _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
                                 
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
@@ -666,7 +662,7 @@ define(function (require, exports, module) {
             } else {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             }
-            defaultName = PathUtils.parseUrl(fullPath).filename;
+            defaultName = FileUtils.getBaseName(fullPath);
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
                 function (error) {
@@ -818,7 +814,7 @@ define(function (require, exports, module) {
         
         if (doc && doc.isDirty) {
             // Document is dirty: prompt to save changes before closing
-            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            var filename = FileUtils.getBaseName(doc.file.fullPath);
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
