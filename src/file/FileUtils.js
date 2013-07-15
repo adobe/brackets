@@ -359,12 +359,25 @@ define(function (require, exports, module) {
     
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
-     * @param {string} full path to a file or directory
-     * @return {string} Returns the path to the parent directory of a file or the path of a directory 
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory
      */
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
     }
+    
+    /**
+     * Get the file name without the extension and the file extension from a file name.
+     * @param {string} filename file name of a file or directory
+     * @return {{name: string, extension: string}} Returns the file real name and extension
+     */
+    function getFileNameExtension(filename) {
+        var extension = _getFileExtension(filename),
+            name      = filename.replace(new RegExp("." + extension + "$"), "");
+        
+        return {name: name, extension: extension};
+    }
+    
     
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -386,4 +399,5 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getFileNameExtension           = getFileNameExtension;
 });
