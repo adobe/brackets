@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     
         var baseDir = SpecRunnerUtils.getTempDirectory();
             
-        function readdirCallback() {
+        function readdirSpy() {
             var callback = function (err, content) {
                 callback.error = err;
                 callback.content = content;
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
             return callback;
         }
         
-        function statCallback() {
+        function statSpy() {
             var callback = function (err, stat) {
                 callback.error = err;
                 callback.stat = stat;
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
             return callback;
         }
         
-        function readFileCallback() {
+        function readFileSpy() {
             var callback = function (err, content) {
                 callback.error = err;
                 callback.content = content;
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
             return callback;
         }
         
-        function errCallback() {
+        function errSpy() {
             var callback = function (err) {
                 callback.error = err;
                 callback.wasCalled = true;
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
         describe("readdir", function () {
         
             it("should read a directory from disk", function () {
-                var cb = readdirCallback();
+                var cb = readdirSpy();
                 
                 runs(function () {
                     brackets.fs.readdir(baseDir, cb);
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
             });
 		
             it("should return an error if the directory doesn't exist", function () {
-                var cb = readdirCallback();
+                var cb = readdirSpy();
                 
                 runs(function () {
                     brackets.fs.readdir("/This/directory/doesnt/exist", cb);
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
 
             it("should return an error if the directory can't be read (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    var cb = readdirCallback();
+                    var cb = readdirSpy();
                     
                     runs(function () {
                         brackets.fs.readdir(baseDir + "/cant_read_here", cb);
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if invalid parameters are passed", function () {
-                var cb = readdirCallback();
+                var cb = readdirSpy();
                 
                 runs(function () {
                     brackets.fs.readdir(42, cb);
@@ -191,7 +191,7 @@ define(function (require, exports, module) {
         describe("stat", function () {
         
             it("should return correct information for a directory", function () {
-                var cb = statCallback();
+                var cb = statSpy();
                 
                 runs(function () {
                     brackets.fs.stat(baseDir, cb);
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
             });
         
             it("should return correct information for a file", function () {
-                var cb = statCallback();
+                var cb = statSpy();
                 
                 runs(function () {
                     brackets.fs.stat(baseDir + "/file_one.txt", cb);
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if the file/directory doesn't exist", function () {
-                var cb = statCallback();
+                var cb = statSpy();
                 
                 runs(function () {
                     brackets.fs.stat("/This/directory/doesnt/exist", cb);
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if incorrect parameters are passed", function () {
-                var cb = statCallback();
+                var cb = statSpy();
                 
                 runs(function () {
                     brackets.fs.stat(42, cb);
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
         describe("readFile", function () {
         
             it("should read a text file", function () {
-                var cb = readFileCallback();
+                var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF8, cb);
@@ -270,7 +270,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a non-existent file", function () {
-                var cb = readFileCallback();
+                var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, cb);
@@ -284,7 +284,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to use an unsppported encoding", function () {
-                var cb = readFileCallback();
+                var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF16, cb);
@@ -298,7 +298,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if called with invalid parameters", function () {
-                var cb = readFileCallback();
+                var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile(42, [], cb);
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a directory", function () {
-                var cb = readFileCallback();
+                var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile(baseDir, _FSEncodings.UTF8, cb);
@@ -331,8 +331,8 @@ define(function (require, exports, module) {
             var contents = "This content was generated from LowLevelFileIO-test.js";
         
             it("should write the entire contents of a file", function () {
-                var cb = errCallback(),
-                    readFileCB = readFileCallback();
+                var cb = errSpy(),
+                    readFileCB = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.writeFile(baseDir + "/write_test.txt", contents, _FSEncodings.UTF8, cb);
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
         
             it("should return an error if the file can't be written (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    var cb = errCallback();
+                    var cb = errSpy();
                 
                     runs(function () {
                         brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, cb);
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if called with invalid parameters", function () {
-                var cb = errCallback();
+                var cb = errSpy();
                 
                 runs(function () {
                     brackets.fs.writeFile(42, contents, 2, cb);
@@ -389,7 +389,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if trying to write a directory", function () {
-                var cb = errCallback();
+                var cb = errSpy();
                 
                 runs(function () {
                     brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, cb);
@@ -410,10 +410,10 @@ define(function (require, exports, module) {
         
             it("should remove a file", function () {
                 var filename    = baseDir + "/remove_me.txt",
-                    writeFileCB = errCallback(),
-                    readFileCB  = readFileCallback(),
-                    unlinkCB    = errCallback(),
-                    statCB      = statCallback();
+                    writeFileCB = errSpy(),
+                    readFileCB  = readFileSpy(),
+                    unlinkCB    = errSpy(),
+                    statCB      = statSpy();
             
                 runs(function () {
                     brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, writeFileCB);
@@ -462,7 +462,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if the file doesn't exist", function () {
-                var cb = errCallback();
+                var cb = errSpy();
                 
                 runs(function () {
                     brackets.fs.unlink("/This/file/doesnt/exist.txt", cb);
@@ -476,7 +476,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if called with invalid parameters", function () {
-                var cb = errCallback();
+                var cb = errSpy();
                 
                 runs(function () {
                     brackets.fs.unlink(42, cb);
@@ -492,9 +492,9 @@ define(function (require, exports, module) {
             it("should remove a directory", function () {
                 var isDirectory,
                     delDirName  = baseDir + "/unlink_dir",
-                    cb          = errCallback(),
-                    statCB      = statCallback(),
-                    unlinkCB    = errCallback();
+                    cb          = errSpy(),
+                    statCB      = statSpy(),
+                    unlinkCB    = errSpy();
                 
                 runs(function () {
                     brackets.fs.makedir(delDirName, parseInt("777", 0), cb);
@@ -531,7 +531,7 @@ define(function (require, exports, module) {
                 
                 // Verify it is gone
                 runs(function () {
-                    statCB = statCallback();
+                    statCB = statSpy();
                     brackets.fs.stat(delDirName, statCB);
                 });
             
@@ -547,9 +547,9 @@ define(function (require, exports, module) {
             
             it("should make a new directory", function () {
                 var newDirName  = baseDir + "/new_dir",
-                    cb          = errCallback(),
-                    statCB      = statCallback(),
-                    trashCB     = errCallback();
+                    cb          = errSpy(),
+                    statCB      = statSpy(),
+                    trashCB     = errSpy();
                 
                 runs(function () {
                     brackets.fs.makedir(newDirName, parseInt("777", 0), cb);
@@ -592,8 +592,8 @@ define(function (require, exports, module) {
             it("should rename a file", function () {
                 var oldName     = baseDir + "/file_one.txt",
                     newName     = baseDir + "/file_one_renamed.txt",
-                    renameCB    = errCallback(),
-                    statCB      = statCallback();
+                    renameCB    = errSpy(),
+                    statCB      = statSpy();
                 
                 complete = false;
                 
@@ -619,7 +619,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    statCB = statCallback();
+                    statCB = statSpy();
                     brackets.fs.stat(newName, statCB);
                 });
                 
@@ -631,7 +631,7 @@ define(function (require, exports, module) {
                 
                 // Rename the file back to the old name
                 runs(function () {
-                    renameCB = errCallback();
+                    renameCB = errSpy();
                     brackets.fs.rename(newName, oldName, renameCB);
                 });
                 
@@ -645,8 +645,8 @@ define(function (require, exports, module) {
             it("should rename a folder", function () {
                 var oldName     = baseDir + "/rename_me",
                     newName     = baseDir + "/renamed_folder",
-                    renameCB    = errCallback(),
-                    statCB      = statCallback();
+                    renameCB    = errSpy(),
+                    statCB      = statSpy();
                 
                 complete = false;
                 
@@ -672,7 +672,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    statCB = statCallback();
+                    statCB = statSpy();
                     brackets.fs.stat(newName, statCB);
                 });
                 
@@ -684,7 +684,7 @@ define(function (require, exports, module) {
                 
                 // Rename the folder back to the old name
                 runs(function () {
-                    renameCB = errCallback();
+                    renameCB = errSpy();
                     brackets.fs.rename(newName, oldName, renameCB);
                 });
                 
@@ -697,7 +697,7 @@ define(function (require, exports, module) {
             it("should return an error if the new name already exists", function () {
                 var oldName = baseDir + "/file_one.txt",
                     newName = baseDir + "/file_two.txt",
-                    cb      = errCallback();
+                    cb      = errSpy();
                 
                 complete = false;
                 
@@ -715,7 +715,7 @@ define(function (require, exports, module) {
                 if (brackets.platform === "mac") {
                     var oldName = baseDir + "/cant_write_here/readme.txt",
                         newName = baseDir + "/cant_write_here/readme_renamed.txt",
-                        cb      = errCallback();
+                        cb      = errSpy();
                     
                     complete = false;
                     
@@ -738,8 +738,8 @@ define(function (require, exports, module) {
             
             it("should move a file to the trash", function () {
                 var newFileName = baseDir + "/delete_me.txt",
-                    writeFileCB = errCallback(),
-                    trashCB     = errCallback();
+                    writeFileCB = errSpy(),
+                    trashCB     = errSpy();
                 
                 // Create a file
                 runs(function () {
@@ -765,7 +765,7 @@ define(function (require, exports, module) {
                 
                 // Make sure it's gone
                 runs(function () {
-                    trashCB = errCallback();
+                    trashCB = errSpy();
                     brackets.fs.moveToTrash(newFileName, trashCB);
                 });
                 
@@ -778,8 +778,8 @@ define(function (require, exports, module) {
             
             it("should move a folder to the trash", function () {
                 var newDirName  = baseDir + "/dir_to_delete",
-                    makedirCB   = errCallback(),
-                    trashCB     = errCallback();
+                    makedirCB   = errSpy(),
+                    trashCB     = errSpy();
                 
                 // Create a file
                 runs(function () {
@@ -805,7 +805,7 @@ define(function (require, exports, module) {
                 
                 // Make sure it's gone
                 runs(function () {
-                    trashCB = errCallback();
+                    trashCB = errSpy();
                     brackets.fs.moveToTrash(newDirName, trashCB);
                 });
                 
@@ -817,7 +817,7 @@ define(function (require, exports, module) {
             });
             
             it("should return an error if the item doesn't exsit", function () {
-                var cb = errCallback();
+                var cb = errSpy();
                 
                 // Move it to the trash
                 runs(function () {
