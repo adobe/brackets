@@ -94,7 +94,7 @@ define(function (require, exports, module) {
      *
      * @param {string} id of the extension to synchronize
      */
-    function synchronizeRegistries(id) {
+    function synchronizeEntry(id) {
         var entry = extensions[id];
         
         // Do nothing if we only have one set of data
@@ -119,7 +119,7 @@ define(function (require, exports, module) {
     function _setExtensions(newExtensions) {
         exports.extensions = extensions = newExtensions;
         Object.keys(extensions).forEach(function (id) {
-            synchronizeRegistries(id);
+            synchronizeEntry(id);
         });
     }
 
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
                         extensions[id] = {};
                     }
                     extensions[id].registryInfo = data[id];
-                    synchronizeRegistries(id);
+                    synchronizeEntry(id);
                 });
                 result.resolve();
             })
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
-            synchronizeRegistries(id);
+            synchronizeEntry(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
         
