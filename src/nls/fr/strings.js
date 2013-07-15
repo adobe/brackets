@@ -49,7 +49,7 @@ define({
     // File open/save error string
 	"ERROR_OPENING_FILE_TITLE": "Erreur lors de l’ouverture du fichier",
 	"ERROR_OPENING_FILE": "Une erreur s’est produite lors de la tentative d’ouverture du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_OPENING_FILES": "[7060616] !é=An error occurred when trying to open the following files:=!",
+	"ERROR_OPENING_FILES": "Une erreur s’est produite en tentant d’ouvrir les fichiers suivants :",
 	"ERROR_RELOADING_FILE_TITLE": "Erreur lors du rechargement des modifications à partir du disque",
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
@@ -171,6 +171,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "Fichier",
+	"CMD_FILE_NEW_UNTITLED": "Nouveau",
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
