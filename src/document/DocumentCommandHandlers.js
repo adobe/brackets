@@ -408,6 +408,7 @@ define(function (require, exports, module) {
     function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
+            return;
         }
         fileNewInProgress = true;
 
