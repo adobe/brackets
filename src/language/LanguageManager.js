@@ -103,8 +103,8 @@ define(function (require, exports, module) {
     
     // Dependencies
     var Async                 = require("utils/Async"),
-        _defaultLanguagesJSON = require("text!language/languages.json"),
-        FileUtils             = require("file/FileUtils");
+        FileUtils             = require("file/FileUtils"),
+        _defaultLanguagesJSON = require("text!language/languages.json");
     
     
     // State
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      */
     function getLanguageForPath(path) {
         var fileName = FileUtils.getBaseName(path).toLowerCase(),
-            language  = _fileNameToLanguageMap[fileName],
+            language = _fileNameToLanguageMap[fileName],
             extension,
             parts;
 

@@ -332,7 +332,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
     
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
-     * @param {string} full path to a file or directory
+     * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory 
      */
     function getDirectoryPath(fullPath) {
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
 
     /**
      * Get the base name of a file or a directory.
-     * @param {string} full path to a file or directory
+     * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
      * directory
      */
@@ -379,21 +379,19 @@ define(function (require, exports, module) {
     /**
      * Get the filename extension.
      *
-     * @param {string} full path to a file or directory
+     * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the extension of a filename or empty string if
-     * the argument is a directory
+     * the argument is a directory or a filename with no extension
      */
     function getFilenameExtension(fullPath) {
         var baseName = getBaseName(fullPath),
-            idx;
-
-        idx = baseName.lastIndexOf(".");
+            idx      = baseName.lastIndexOf(".");
 
         if (idx === -1) {
             return "";
-        } else {
-            return baseName.substr(idx);
         }
+
+        return baseName.substr(idx);
     }
 
 
