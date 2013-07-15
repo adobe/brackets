@@ -826,6 +826,8 @@ define(function (require, exports, module) {
      */
 
     function _loadProject(rootPath, isUpdating) {
+        forceFinishRename();    // in case we're in the middle of renaming a file in the project
+        
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
