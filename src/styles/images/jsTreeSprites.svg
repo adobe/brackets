@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="5px" height="21px" viewBox="0 0 5 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+<svg width="4px" height="21px" viewBox="0 0 4 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
     <title>Slice 1</title>
     <description>Created with Sketch (http://www.bohemiancoding.com/sketch)</description>
     <defs></defs>
     <g id="Page 1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Group">
-            <g id="arrow-r" fill="#555555">
-                <path d="M0,0 L0,7 L5,3.5 L0,0 Z M0,0"></path>
-            </g>
-            <g transform="translate(0.000000, 14.000000)" id="arrow-r" fill="#8E9A9D">
-                <path d="M0,0 L0,7 L5,3.5 L0,0 Z M0,0"></path>
-            </g>
-        </g>
+        <path d="M0,7 L4,3.5 L0,0 L0,7 Z M0,7" id="Shape" fill="#555555"></path>
+        <path d="M0,14 L0,21 L4,17.5 L0,14 L0,14 Z M0,14" id="Shape" fill="#8E9A9D"></path>
     </g>
 </svg>
