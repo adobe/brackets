@@ -1068,6 +1068,7 @@ define(function (require, exports, module) {
     /**
      * Removes the given inline widget.
      * @param {number} inlineWidget The widget to remove.
+     * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
         if (!inlineWidget.closePromise) {
