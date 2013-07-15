@@ -1135,8 +1135,8 @@ define(function (require, exports, module) {
      * @param {InlineWidget} inlineWidget  an inline widget.
      */
     Editor.prototype._removeInlineWidgetFromList = function (inlineWidget) {
-        var i;
-        var l = this._inlineWidgets.length;
+        var l = this._inlineWidgets.length,
+            i;
         for (i = 0; i < l; i++) {
             if (this._inlineWidgets[i] === inlineWidget) {
                 this._inlineWidgets.splice(i, 1);
