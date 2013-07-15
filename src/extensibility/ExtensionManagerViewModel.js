@@ -52,8 +52,6 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
-        this._idsToRemove = {};
-        this._idsToUpdate = {};
         
         // Listen for extension status changes.
         $(ExtensionManager).on("statusChange", this._handleStatusChange);
@@ -178,13 +176,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Finds the extension metadata by id. If there is no extension matching the given id,
-     * this returns `null`.
+     * This is to be overridden by subclasses to provide the metadata for the extension
+     * with the provided `id`.
+     *
      * @param {string} id of the extension
      * @return {Object?} extension metadata or null if there's no matching extension
      */
     ExtensionManagerViewModel.prototype._getEntry = function (id) {
-        return this.extensions[id];
+        return null;
     };
     
     /**
@@ -271,7 +270,7 @@ define(function (require, exports, module) {
      * @return {Object?} extension metadata or null if there's no matching extension
      */
     RegistryViewModel.prototype._getEntry = function (id) {
-        var entry = ExtensionManagerViewModel.prototype._getEntry.call(this, id);
+        var entry = this.extensions[id];
         if (entry) {
             return entry.registryInfo;
         }
@@ -375,7 +374,7 @@ define(function (require, exports, module) {
      * @return {Object?} extension metadata or null if there's no matching extension
      */
     InstalledViewModel.prototype._getEntry = function (id) {
-        var entry = ExtensionManagerViewModel.prototype._getEntry.call(this, id);
+        var entry = this.extensions[id];
         if (entry) {
             return entry.installInfo;
         }

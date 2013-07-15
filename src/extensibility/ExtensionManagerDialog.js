@@ -151,7 +151,6 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
         ).done(function () {
-            view.dispose();
             model.dispose();
             _performChanges();
         });

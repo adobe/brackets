@@ -88,10 +88,39 @@ define(function (require, exports, module) {
         
     /**
      * @private
+     * Synchronizes the information between the public registry and the installed
+     * extensions. Specifically, this makes the `owner` available in each and sets
+     * an `updateAvailable` flag.
+     *
+     * @param {string} id of the extension to synchronize
+     */
+    function synchronizeRegistries(id) {
+        var entry = extensions[id];
+        
+        // Do nothing if we only have one set of data
+        if (!entry || !entry.installInfo || !entry.registryInfo) {
+            return;
+        }
+        
+        entry.installInfo.owner = entry.registryInfo.owner;
+        if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+            entry.registryInfo.updateAvailable = true;
+            entry.installInfo.updateAvailable = true;
+        } else {
+            entry.installInfo.updateAvailable = false;
+            entry.registryInfo.updateAvailable = false;
+        }
+    }
+
+    /**
+     * @private
      * Sets our data. For unit testing only.
      */
     function _setExtensions(newExtensions) {
         exports.extensions = extensions = newExtensions;
+        Object.keys(extensions).forEach(function (id) {
+            synchronizeRegistries(id);
+        });
     }
 
     /**
@@ -103,7 +132,7 @@ define(function (require, exports, module) {
         _idsToRemove = [];
         _idsToUpdate = [];
     }
-
+    
     /**
      * Downloads the registry of Brackets extensions and stores the information in our
      * extension info.
@@ -124,6 +153,7 @@ define(function (require, exports, module) {
                         extensions[id] = {};
                     }
                     extensions[id].registryInfo = data[id];
+                    synchronizeRegistries(id);
                 });
                 result.resolve();
             })
@@ -191,6 +221,7 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
+            synchronizeRegistries(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
         
