@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     exports.FILE_SAVE_AS                = "file.saveAs";
     exports.FILE_CLOSE                  = "file.close";
     exports.FILE_CLOSE_ALL              = "file.close_all";
+    exports.FILE_CLOSE_OTHERS           = "file.close_others";
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
