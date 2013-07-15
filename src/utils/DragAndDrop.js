@@ -83,7 +83,7 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < files.count - 1) {
+                    if (idx < files.length - 1) {
                         if (DocumentManager.findInWorkingSet(file) !== -1) {
                             result.resolve();
                             return;
