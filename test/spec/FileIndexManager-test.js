@@ -49,15 +49,14 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     FileIndexManager  = testWindow.brackets.test.FileIndexManager;
                     ProjectManager = testWindow.brackets.test.ProjectManager;
-
-                    
                 });
             });
-
-
         });
 
         afterEach(function () {
+            brackets          = null;
+            FileIndexManager  = null;
+            ProjectManager    = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

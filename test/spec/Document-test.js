@@ -57,6 +57,11 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow      = null;
+            CommandManager  = null;
+            Commands        = null;
+            EditorManager   = null;
+            DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -118,8 +123,9 @@ define(function (require, exports, module) {
                     expect(cssDoc._masterEditor).toBeFalsy();
                     expect(testWindow.$(".CodeMirror").length).toBe(2);   // HTML editor (working set) & JS editor (current)
                 });
+
+                cssDoc = cssMasterEditor = null;
             });
-            
         });
     });
 });

@@ -60,7 +60,7 @@ define(function (require, exports, module) {
                 if (!nodeConnection) {
                     runs(function () {
                         // wait for StaticServer/main to connect and load the StaticServerDomain
-                        main.init().done(function (conn) {
+                        main.initExtension().done(function (conn) {
                             nodeConnection = conn;
                         });
 
@@ -539,6 +539,10 @@ define(function (require, exports, module) {
             });
 
             afterEach(function () {
+                brackets            = null;
+                ProjectManager      = null;
+                extensionRequire    = null;
+                StaticServer        = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

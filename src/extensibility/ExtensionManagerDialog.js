@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
         AppInit                = require("utils/AppInit"),
         ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel;
+        ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel");
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
         view = new ExtensionManagerView();
-        view.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED)
+        view.initialize(new ExtensionManagerViewModel.InstalledViewModel())
             .done(function () {
                 view.$el.appendTo($(".modal-body", $dlg));
                 

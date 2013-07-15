@@ -105,7 +105,13 @@ define(function (require, exports, module) {
                 }
             }
 
-            var centerOptions = (isFindFirst) ? Editor.BOUNDARY_IGNORE_TOP : Editor.BOUNDARY_CHECK_NORMAL;
+            var resultVisible = editor.isLineVisible(cursor.from().line),
+                centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
+            
+            if (isFindFirst && resultVisible) {
+                // no need to scroll if the line with the match is in view
+                centerOptions = Editor.BOUNDARY_IGNORE_TOP;
+            }
             editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();

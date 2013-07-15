@@ -135,11 +135,12 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForFail = function (promise, operationName) {
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, 1000);
+        }, "failure " + operationName, timeout);
     };
     
     /**
@@ -313,6 +314,8 @@ define(function (require, exports, module) {
                 }
             });
             _testWindow.close();
+            _testWindow.executeCommand = null;
+            _testWindow = null;
         });
     }
     
@@ -516,6 +519,9 @@ define(function (require, exports, module) {
             result.resolve(docs);
         }).fail(function () {
             result.reject();
+        }).always(function () {
+            docs = null;
+            FileViewController = null;
         });
         
         return result.promise();

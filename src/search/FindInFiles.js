@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         PanelManager          = require("view/PanelManager"),
         FileIndexManager      = require("project/FileIndexManager"),
         FileViewController    = require("project/FileViewController"),
+        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
@@ -527,6 +528,10 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
     function doFindInFiles(scope) {
+        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            return;
+        }
+        
         var dialog = new FindInFilesDialog();
         
         // Default to searching for the current selection
