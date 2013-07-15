@@ -7,7 +7,9 @@
     "groovy": {
         "name": "Groovy",
         "mode": "groovy",
-        "fileExtensions": ["groovy"]
+        "fileExtensions": ["groovy"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
    
     "css": {

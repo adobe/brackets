@@ -893,6 +893,21 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Deterines if line is fully visible.
+     * @param {number} zero-based index of the line to test
+     * @return {boolean} true if the line is fully visible, false otherwise
+     */
+    Editor.prototype.isLineVisible = function (line) {
+        var coords = this._codeMirror.charCoords({line: line, ch: 0}, "local"),
+            scrollInfo = this._codeMirror.getScrollInfo(),
+            top = scrollInfo.top,
+            bottom = scrollInfo.top + scrollInfo.clientHeight;
+
+        // Check top and bottom and return false for partially visible lines.
+        return (coords.top >= top && coords.bottom <= bottom);
+    };
+    
+    /**
      * Gets the number of the first visible line in the editor.
      * @returns {number} The 0-based index of the first visible line.
      */

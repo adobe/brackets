@@ -35,6 +35,8 @@ define(function (require, exports, module) {
             testWindow,
             $,
             brackets,
+            extensionRequire,
+            JSLint,
             EditorManager;
         
         var toggleJSLintResults = function (visible) {
@@ -50,6 +52,9 @@ define(function (require, exports, module) {
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
                     EditorManager = testWindow.brackets.test.EditorManager;
+                    extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("JSLint");
+                    JSLint = extensionRequire("main");
+                    JSLint.setEnabled(true);
                 });
             });
             
@@ -63,6 +68,8 @@ define(function (require, exports, module) {
             $             = null;
             brackets      = null;
             EditorManager = null;
+            extensionRequire    = null;
+            JSLint              = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

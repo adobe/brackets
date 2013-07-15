@@ -43,7 +43,7 @@ define(function (require, exports, module) {
          */
         var menu;
         menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW);
+        menu.addMenuItem(Commands.FILE_NEW_UNTITLED);
         menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN);
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
