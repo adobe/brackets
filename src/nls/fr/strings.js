@@ -38,7 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
-	"DIRECTORY": "[7061000] !é=directory=!",
+	"DIRECTORY": "répertoire",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -58,11 +58,11 @@ define({
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"INVALID_FILENAME_TITLE": "[6307153] !é=Invalid {0} name=!",
+	"INVALID_FILENAME_TITLE": "Nom de {0} incorrect",
 	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
-	"FILE_ALREADY_EXISTS": "[6307149] !é=The {0} <span class='dialog-filename'>{1}</span> already exists.=!",
-	"ERROR_CREATING_FILE_TITLE": "[6307132] !é=Error creating {0}=!",
-	"ERROR_CREATING_FILE": "[6307131] !é=An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}=!",
+	"FILE_ALREADY_EXISTS": "Le {0} <span class='dialog-filename'>{1}</span> existe déjà.",
+	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
+	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
