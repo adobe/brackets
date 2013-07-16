@@ -27,23 +27,115 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs                = require("widgets/Dialogs"),
-        Strings                = require("strings"),
-        Commands               = require("command/Commands"),
-        CommandManager         = require("command/CommandManager"),
-        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
-        AppInit                = require("utils/AppInit"),
-        ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel");
+    var Dialogs                     = require("widgets/Dialogs"),
+        DefaultDialogs              = require("widgets/DefaultDialogs"),
+        Package                     = require("extensibility/Package"),
+        Strings                     = require("strings"),
+        StringUtils                 = require("utils/StringUtils"),
+        Commands                    = require("command/Commands"),
+        CommandManager              = require("command/CommandManager"),
+        InstallExtensionDialog      = require("extensibility/InstallExtensionDialog"),
+        AppInit                     = require("utils/AppInit"),
+        ExtensionManager            = require("extensibility/ExtensionManager"),
+        ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
     /**
      * @private
+     * Triggers changes requested by the dialog UI.
+     */
+    function _performChanges() {
+        var hasRemovedExtensions = ExtensionManager.hasExtensionsToRemove(),
+            hasUpdatedExtensions = ExtensionManager.hasExtensionsToUpdate();
+        // If an extension was removed or updated, prompt the user to quit Brackets.
+        if (hasRemovedExtensions || hasUpdatedExtensions) {
+            var buttonLabel = Strings.CHANGE_AND_QUIT;
+            if (hasRemovedExtensions && !hasUpdatedExtensions) {
+                buttonLabel = Strings.REMOVE_AND_QUIT;
+            } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
+                buttonLabel = Strings.UPDATE_AND_QUIT;
+            }
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
+                Strings.CHANGE_AND_QUIT_TITLE,
+                Strings.CHANGE_AND_QUIT_MESSAGE,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : buttonLabel
+                    }
+                ]
+            )
+                .done(function (buttonId) {
+                    if (buttonId === "ok") {
+                        ExtensionManager.removeMarkedExtensions()
+                            .done(function () {
+                                ExtensionManager.updateExtensions()
+                                    .done(function () {
+                                        CommandManager.execute(Commands.FILE_QUIT);
+                                    })
+                                    .fail(function (errorArray) {
+                                        
+                                        // This error case should be very uncommon.
+                                        // Just let the user know that we couldn't update
+                                        // this extension and log the errors to the console.
+                                        var ids = [];
+                                        errorArray.forEach(function (errorObj) {
+                                            ids.push(errorObj.item);
+                                            if (errorObj.error && errorObj.error.forEach) {
+                                                console.error("Errors for ", errorObj.item);
+                                                errorObj.error.forEach(function (error) {
+                                                    console.error(Package.formatError(error));
+                                                });
+                                            }
+                                        });
+                                        Dialogs.showModalDialog(
+                                            DefaultDialogs.DIALOG_ID_ERROR,
+                                            Strings.EXTENSION_MANAGER_UPDATE,
+                                            StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
+                                        ).done(function () {
+                                            // We still have to quit even if some of the removals failed.
+                                            CommandManager.execute(Commands.FILE_QUIT);
+                                        });
+                                    });
+                            })
+                            .fail(function (errorArray) {
+                                ExtensionManager.cleanupUpdates();
+                                
+                                var ids = [];
+                                errorArray.forEach(function (errorObj) {
+                                    ids.push(errorObj.item);
+                                });
+                                Dialogs.showModalDialog(
+                                    DefaultDialogs.DIALOG_ID_ERROR,
+                                    Strings.EXTENSION_MANAGER_REMOVE,
+                                    StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                                ).done(function () {
+                                    // We still have to quit even if some of the removals failed.
+                                    CommandManager.execute(Commands.FILE_QUIT);
+                                });
+                            });
+                    } else {
+                        ExtensionManager.cleanupUpdates();
+                    }
+                });
+        }
+    }
+    
+    /**
+     * @private
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
-        var $dlg, view, $search, $searchClear;
+        var $dlg, view, model, $search, $searchClear;
         
         function updateSearch() {
             if (view.model.filterSet.length === 0) {
@@ -59,7 +151,8 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
         ).done(function () {
-            view.dispose();
+            model.dispose();
+            _performChanges();
         });
         
         // Create the view.
@@ -67,7 +160,8 @@ define(function (require, exports, module) {
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
         view = new ExtensionManagerView();
-        view.initialize(new ExtensionManagerViewModel.InstalledViewModel())
+        model = new ExtensionManagerViewModel.InstalledViewModel();
+        view.initialize(model)
             .done(function () {
                 view.$el.appendTo($(".modal-body", $dlg));
                 
@@ -80,14 +174,14 @@ define(function (require, exports, module) {
                 });
                 
                 // Disable the search field when there are no items in the view.
-                $(view.model).on("change", function () {
+                $(model).on("change", function () {
                     updateSearch();
                 });
 
                 // Handle the install button.                
                 $(".extension-manager-dialog .install-from-url")
                     .click(function () {
-                        InstallExtensionDialog.showDialog().done(view.model.updateFromDownload.bind(view.model));
+                        InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
                     });
                 
                 updateSearch();
@@ -102,4 +196,6 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         $("#toolbar-extension-manager").click(_showDialog);
     });
+    
+    exports._performChanges = _performChanges;
 });
