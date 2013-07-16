@@ -52,9 +52,9 @@ define(function (require, exports, module) {
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
-        POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
-        POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
+        POINTER_LEFT_OFFSET         = -20,  // Half of the pointer width, used to find the center of the pointer
+        POINTER_TOP_OFFSET          = -65,  // Pointer height, used to shift popover above pointer
+        POSITION_BELOW_OFFSET       = 72,   // Amount to adjust to top position when the preview bubble is below the text
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
     /**
@@ -99,11 +99,12 @@ define(function (require, exports, module) {
             
             $previewContent.empty();
             $previewContainer.hide();
+            $previewContainer.removeClass("active");
+                        
             
         } else {
             window.clearTimeout(popoverState.hoverTimer);
         }
-        
         popoverState = null;
     }
     
@@ -118,16 +119,16 @@ define(function (require, exports, module) {
         left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
-            $previewContainer.removeClass("preview-bubble-above");
-            $previewContainer.addClass("preview-bubble-below");
+            $previewContainer.removeClass("preview-bubble-above active");
+            $previewContainer.addClass("preview-bubble-below active");
             top = ybot + POSITION_BELOW_OFFSET;
             $previewContainer.offset({
                 left: left,
                 top: top
             });
         } else {
-            $previewContainer.removeClass("preview-bubble-below");
-            $previewContainer.addClass("preview-bubble-above");
+            $previewContainer.removeClass("preview-bubble-below active");
+            $previewContainer.addClass("preview-bubble-above active");
             $previewContainer.offset({
                 left: left,
                 top: top - POINTER_TOP_OFFSET
@@ -433,6 +434,7 @@ define(function (require, exports, module) {
                     var showHandler = function () {
                         // Hide the preview container until the image is loaded.
                         $previewContainer.hide();
+                                                    
                         
                         $previewContainer.find(".image-preview > img").on("load", function () {
                             $previewContent
