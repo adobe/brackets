@@ -486,9 +486,11 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, suppressRedraw) {
+        if (!suppressRedraw) {
+            _createNewListItem(file);
+            _redraw();
+        }
     }
 
     /**
@@ -587,8 +589,8 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
-            _handleFileAdded(addedFile);
+        $(DocumentManager).on("workingSetAdd", function (event, addedFile, suppressRedraw) {
+            _handleFileAdded(addedFile, suppressRedraw);
         });
 
         $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {

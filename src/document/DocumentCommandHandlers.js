@@ -325,14 +325,14 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=}} Params for FILE_OPEN command
+     * @param {!{fullPath:string, index:number=, suppressRedraw:boolean=}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
         var deferred = new $.Deferred();
 
         handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index);
+            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.suppressRedraw);
             deferred.resolve();
         }).fail(function (err) {
             deferred.reject(err);
@@ -608,12 +608,13 @@ define(function (require, exports, module) {
                     DocumentManager.removeFromWorkingSet(doc.file, true);
                     // add new file to working set
                     fileViewControllerPromise = FileViewController
-                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index);
+                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index, true);
                 }
 
                 // always configure editor after file is opened
                 fileViewControllerPromise.always(function () {
                     _configureEditorAndResolve(file);
+                    DocumentManager.refreshWorkingSet();	// since we suppressed redraw above, rebuild working set list
                 });
             }
             
