@@ -3,15 +3,18 @@ JSLint, The JavaScript Code Quality Tool
 Douglas Crockford
 douglas@crockford.com
 
-2011-12-21
+2013-04-05
 
-jslint.js contains the fully commented JSLINT function.
+jslint.js contains the fully commented global JSLINT function.
 
 jslint.html runs the JSLINT function in a web page. The page also depends
 on adsafe.js [www.ADsafe.org] and json2.js [www.JSON.org] (which are not
 included in this project) and intercept.js and init_ui.js (which are). The
 js files should all be minified, and all except init_ui.js are concatenated
 together to form web_jslint.js.
+
+adsafe.js       https://github.com/douglascrockford/ADsafe
+json2.js        https://github.com/douglascrockford/JSON-js
 
 intercept.js augments ADsafe, giving widgets access to the clock, cookies,
 and the JSLINT function.
@@ -20,10 +23,11 @@ init_ui.js hooks the HTML ui components to ADsafe.
 
 lint.html describes JSLint's usage. Please read it.
 
-Direct questions and comments to http://tech.groups.yahoo.com/group/jslint_com/.
+Please direct questions and comments to
+https://plus.google.com/communities/104441363299760713736.
 
 JSLint can be run anywhere that JavaScript (or Java) can run. See for example
-http://tech.groups.yahoo.com/group/jslint_com/database?method=reportRows&tbl=1
+https://github.com/douglascrockford/JSLint/wiki/JSLINT
 
 The place to express yourself in programming is in the quality of your ideas,
 and the efficiency of execution. The role of style is the same as in
