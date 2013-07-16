@@ -22,14 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, PathUtils, Mustache, document */
+/*global define, window, $, brackets, Mustache, document */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
     "use strict";
     
-    require("thirdparty/path-utils/path-utils.min");
-
     var Dialogs                = require("widgets/Dialogs"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),

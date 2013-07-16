@@ -515,32 +515,35 @@ define(function (require, exports, module) {
         });
         
         describe("find correct positions of selectors", function () {
-            var selectors;
                 
-            selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
-            
             it("should find selector positions when whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when no whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when '{' on the next line", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when '{' on the next line and selector is indented", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
             });
             
             it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
             });
             
             it("should find selector positions in a selector group when '{' on the next line", function () {
-                var expected = [0, 2, 4, 6, 8, 10],
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [0, 2, 4, 6, 8, 10],
                     result = [
                         selectors[5].selectorStartChar, selectors[5].selectorEndChar,
                         selectors[6].selectorStartChar, selectors[6].selectorEndChar,
@@ -551,7 +554,8 @@ define(function (require, exports, module) {
             });
             
             it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
-                var expected = [4, 6, 8, 10, 12, 14],
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [4, 6, 8, 10, 12, 14],
                     result = [
                         selectors[8].selectorStartChar, selectors[8].selectorEndChar,
                         selectors[9].selectorStartChar, selectors[9].selectorEndChar,
