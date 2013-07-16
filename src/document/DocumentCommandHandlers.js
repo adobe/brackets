@@ -328,10 +328,17 @@ define(function (require, exports, module) {
      * @param {!{fullPath:string, index:number=}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
+        var deferred = new $.Deferred();
+
+        handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
             DocumentManager.addToWorkingSet(doc.file, commandData.index);
+            deferred.resolve();
+        }).fail(function (err) {
+            deferred.reject(err);
         });
+
+        return deferred.promise();
     }
 
     /**
@@ -589,23 +596,25 @@ define(function (require, exports, module) {
             }
             
             function updateProject(file) {
+                var fileViewControllerPromise;
+
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    FileViewController
-                        .openAndSelectDocument(path,
-                                          FileViewController.PROJECT_MANAGER)
-                        .always(function () {
-                            _configureEditorAndResolve(file);
-                        });
-                } else { // Working set  has file selection focus
+                    fileViewControllerPromise = FileViewController
+                        .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+                } else { // Working set has file selection focus
                     // replace original file in working set with new file
                     var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
                     //  remove old file from working set.
                     DocumentManager.removeFromWorkingSet(doc.file, true);
-                    //add new file to working set
-                    FileViewController
-                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index)
-                        .always(_configureEditorAndResolve(file));
+                    // add new file to working set
+                    fileViewControllerPromise = FileViewController
+                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index);
                 }
+
+                // always configure editor after file is opened
+                fileViewControllerPromise.always(function () {
+                    _configureEditorAndResolve(file);
+                });
             }
             
             if (!path) {
