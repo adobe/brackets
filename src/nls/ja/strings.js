@@ -38,7 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
-	"DIRECTORY": "!能=[7061000] directory_=!",
+	"DIRECTORY": "ディレクトリ",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
@@ -58,11 +58,11 @@ define({
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
-	"INVALID_FILENAME_TITLE": "!能=[6307153] Invalid {0} name_=!",
+	"INVALID_FILENAME_TITLE": "無効な{0}名",
 	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\| またはシステムのすべての予約語",
-	"FILE_ALREADY_EXISTS": "!能=[6307149] The {0} <span class='dialog-filename'>{1}</span> already exists._=!",
-	"ERROR_CREATING_FILE_TITLE": "!能=[6307132] Error creating {0}_=!",
-	"ERROR_CREATING_FILE": "!能=[6307131] An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}_=!",
+	"FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span> は既に存在しています。",
+	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
+	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",

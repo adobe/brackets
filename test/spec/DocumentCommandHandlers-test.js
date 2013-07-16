@@ -101,7 +101,9 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
-                        callback(undefined, newFilePath);
+                        testWindow.setTimeout(function () {
+                            callback(undefined, newFilePath);
+                        }, 0);
                     });
 
                     promise = CommandManager.execute(Commands.FILE_SAVE);
