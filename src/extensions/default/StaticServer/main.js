@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the static server in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
+    var NODE_CONNECTION_TIMEOUT = 5000; // 5 seconds
     
     /**
      * @private
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred;
     }
     
-    function init() {
+    function initExtension() {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
         // _nodeConnectionDeferred.done() to access it.
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred.promise();
     }
 
-    exports.init = init;
+    exports.initExtension = initExtension;
 
     // For unit tests only
     exports._getStaticServerProvider = _getStaticServerProvider;

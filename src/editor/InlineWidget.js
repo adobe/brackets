@@ -65,9 +65,10 @@ define(function (require, exports, module) {
     
     /**
      * Closes this inline widget and all its contained Editors
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     InlineWidget.prototype.close = function () {
-        EditorManager.closeInlineWidget(this.hostEditor, this);
+        return EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     

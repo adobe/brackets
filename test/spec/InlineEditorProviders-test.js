@@ -84,9 +84,9 @@ define(function (require, exports, module) {
          */
         var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
             var allFiles,
+                editor,
                 hostOpened = false,
                 err = false,
-                inlineOpened = null,
                 spec = this,
                 rewriteDone = false,
                 rewriteErr = false;
@@ -108,9 +108,11 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+
                 // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
-                    EditorManager.getCurrentFullEditor(),
+                    editor,
                     spec.infos[openFile].offsets[openOffset]
                 );
                 
@@ -119,6 +121,19 @@ define(function (require, exports, module) {
                 } else {
                     waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
                 }
+            });
+
+            runs(function () {
+                if (expectInline) {
+                    var inlineWidgets = editor.getInlineWidgets();
+                    expect(inlineWidgets.length).toBe(1);
+                    
+                    // By the time we're called, the content of the widget should be in the DOM and have a nontrivial height.
+                    expect($.contains(testWindow.document.documentElement, inlineWidgets[0].htmlContent)).toBe(true);
+                    expect(inlineWidgets[0].$htmlContent.height()).toBeGreaterThan(50);
+                }
+
+                editor = null;
             });
         };
         
@@ -341,10 +356,16 @@ define(function (require, exports, module) {
                     expect(hostEditor.hasFocus()).toEqual(false);
                     
                     // close the editor
-                    EditorManager.closeInlineWidget(hostEditor, inlineWidget);
+                    waitsForDone(EditorManager.closeInlineWidget(hostEditor, inlineWidget), "closing inline widget");
                     
-                    // verify no inline widgets 
+                });
+                
+                runs(function () {
+                    // verify no inline widgets in list
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    
+                    // verify that the inline widget's content has been removed from the DOM
+                    expect($.contains(testWindow.document.documentElement, inlineWidget.htmlContent)).toBe(false);
                     
                     // verify full editor cursor & focus restored
                     expect(savedPos).toEqual(hostEditor.getCursorPos());

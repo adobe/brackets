@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
+        DocumentManager = require("document/DocumentManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -44,13 +45,17 @@ define(function (require, exports, module) {
      * @return {boolean} True if one or more items can be dropped.
      */
     function isValidDrop(items) {
-        var i;
+        var i, len = items.length;
         
-        for (i = 0; i < items.length; i++) {
+        for (i = 0; i < len; i++) {
             if (items[i].kind === "file") {
                 var entry = items[i].webkitGetAsEntry();
                 
                 if (entry.isFile) {
+                    // If any files are being dropped, this is a valid drop
+                    return true;
+                } else if (len === 1) {
+                    // If exactly one folder is being dropped, this is a valid drop
                     return true;
                 }
             }
@@ -69,12 +74,22 @@ define(function (require, exports, module) {
     function openDroppedFiles(files) {
         var errorFiles = [];
         
-        return Async.doInParallel(files, function (file) {
+        return Async.doInParallel(files, function (file, idx) {
             var result = new $.Deferred();
             
             // Only open files
             brackets.fs.stat(file, function (err, stat) {
                 if (!err && stat.isFile()) {
+                    // If the file is already open, and this isn't the last
+                    // file in the list, return. If this *is* the last file,
+                    // always open it so it gets selected.
+                    if (idx < files.length - 1) {
+                        if (DocumentManager.findInWorkingSet(file) !== -1) {
+                            result.resolve();
+                            return;
+                        }
+                    }
+                    
                     CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
                                            {fullPath: file, silent: true})
                         .done(function () {
@@ -82,6 +97,16 @@ define(function (require, exports, module) {
                         })
                         .fail(function () {
                             errorFiles.push(file);
+                            result.reject();
+                        });
+                } else if (!err && stat.isDirectory() && files.length === 1) {
+                    // One folder was dropped, open it.
+                    ProjectManager.openProject(file)
+                        .done(function () {
+                            result.resolve();
+                        })
+                        .fail(function () {
+                            // User was already notified of the error.
                             result.reject();
                         });
                 } else {
@@ -93,21 +118,23 @@ define(function (require, exports, module) {
             return result.promise();
         }, false)
             .fail(function () {
-                var message = Strings.ERROR_OPENING_FILES;
-                
-                message += "<ul>";
-                errorFiles.forEach(function (file) {
-                    message += "<li><span class='dialog-filename'>" +
-                        StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
-                        "</span></li>";
-                });
-                message += "</ul>";
-                
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_OPENING_FILE_TITLE,
-                    message
-                );
+                if (errorFiles.length > 0) {
+                    var message = Strings.ERROR_OPENING_FILES;
+                    
+                    message += "<ul>";
+                    errorFiles.forEach(function (file) {
+                        message += "<li><span class='dialog-filename'>" +
+                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
+                            "</span></li>";
+                    });
+                    message += "</ul>";
+                    
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_OPENING_FILE_TITLE,
+                        message
+                    );
+                }
             });
     }
     
