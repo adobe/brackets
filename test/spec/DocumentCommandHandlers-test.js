@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         testWindow.setTimeout(function () {
-                            callback(undefined, newFilePath)
+                            callback(undefined, newFilePath);
                         }, 0);
                     });
 
