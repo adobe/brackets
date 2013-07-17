@@ -400,23 +400,32 @@ define(function (require, exports, module) {
      * @param {string} filename file name of a file or directory
      * @return {string} Returns the file real name and extension
      */
-    function _getFilenameName(filename) {
-        var extension = _getFileExtension(filename);
-        return filename.replace(new RegExp("." + extension + "$"), "");
+    function _getFilenameWithoutExtension(filename) {
+        var extension = getFilenameExtension(filename);
+        return filename.replace(new RegExp(extension + "$"), "");
     }
     
     /**
-     * Compares 2 filenames in lowercases. In Windows it compares the names without the extension
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the
+     * extension first and then the extensions to fix issue #4409
      * @param {string} filename1
      * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
      * @return {number} The result of the local compare function
      */
-    function compareFilenames(filename1, filename2) {
+    function compareFilenames(filename1, filename2, extFirst) {
+        var ext1   = getFilenameExtension(filename1),
+            ext2   = getFilenameExtension(filename2),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase()),
+            cmpNames;
+        
         if (brackets.platform === "win") {
-            filename1 = _getFilenameName(filename1);
-            filename2 = _getFilenameName(filename2);
+            filename1 = _getFilenameWithoutExtension(filename1);
+            filename2 = _getFilenameWithoutExtension(filename2);
         }
-        return filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
+        
+        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
 
 

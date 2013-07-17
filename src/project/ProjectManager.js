@@ -493,7 +493,7 @@ define(function (require, exports, module) {
                         a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
                         b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
-                    return FileUtils.compareFilenames(a1, b1);
+                    return FileUtils.compareFilenames(a1, b1, false);
                 }
             }).bind(
                 "before.jstree",

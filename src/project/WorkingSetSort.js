@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, $, window */
 
 /**
  * Manages the workingSet sort methods.
@@ -301,21 +301,14 @@ define(function (require, exports, module) {
     register(
         Commands.SORT_WORKINGSET_BY_NAME,
         function (file1, file2) {
-            return FileUtils.compareFilenames(file1.name, file2.name);
+            return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
         "workingSetAdd workingSetAddList"
     );
     register(
         Commands.SORT_WORKINGSET_BY_TYPE,
         function (file1, file2) {
-            var ext1   = FileUtils.getFilenameExtension(file1.name),
-                ext2   = FileUtils.getFilenameExtension(file2.name),
-                cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase());
-            
-            if (cmpExt === 0) {
-                return FileUtils.compareFilenames(file1.name, file2.name);
-            }
-            return cmpExt;
+            return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
         "workingSetAdd workingSetAddList"
     );
