@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -30,10 +30,10 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent non-module scripts
     require("thirdparty/jslint/jslint");
-    
+
     // Load dependent modules
     var Commands                = brackets.getModule("command/Commands"),
         PanelManager            = brackets.getModule("view/PanelManager"),
@@ -52,51 +52,51 @@ define(function (require, exports, module) {
         StatusBar               = brackets.getModule("widgets/StatusBar"),
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
-    
+
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
         JSLintOptions = JSON.parse(require("text!config.json"));
-    
+
     var INDICATOR_ID = "jslint-status",
         defaultPrefs = {
             enabled: JSLintOptions.enabled_by_default,
             collapsed: false
         };
-    
-    
+
+
     /** @const {string} JSLint commands ID */
     var TOGGLE_ENABLED   = "jslint.toggleEnabled";
     var GOTO_FIRST_ERROR = "jslint.gotoFirstError";
-    
+
     /**
      * @private
      * @type {PreferenceStorage}
      */
     var _prefs = null;
-    
+
     /**
      * @private
      * @type {boolean}
      */
     var _enabled = true;
-    
+
     /**
      * @private
      * @type {boolean}
      */
     var _collapsed = false;
-    
+
     /**
      * @private
      * @type {$.Element}
      */
     var $lintResults;
-    
+
     /**
      * @private
      * @type {boolean}
      */
     var _gotoEnabled = false;
-    
+
     /**
      * Enable or disable the "Go to First JSLint Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
@@ -105,23 +105,23 @@ define(function (require, exports, module) {
         CommandManager.get(GOTO_FIRST_ERROR).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
     }
-    
+
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
      */
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument();
-        
+
         var perfTimerDOM,
             perfTimerLint;
-        
+
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
-        
+
         if (_enabled && language && language.getId() === "javascript") {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
-            
+
             // If a line contains only whitespace, remove the whitespace
             // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
             // but that doesn't work.
@@ -132,13 +132,13 @@ define(function (require, exports, module) {
                 }
             }
             text = arr.join("\n");
-            
+
             var result = JSLINT(text, null);
 
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
-            
-            if (!result) {
+
+            if (!result && JSLINT.errors) {
                 // Remove the null errors for the template
                 var errors = JSLINT.errors.filter(function (err) { return err !== null; });
                 var html   = Mustache.render(ResultsTemplate, {reportList: errors});
@@ -152,18 +152,18 @@ define(function (require, exports, module) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
                         }
-        
+
                         $selectedRow  = $(e.target).closest("tr");
                         $selectedRow.addClass("selected");
                         var lineTd    = $selectedRow.find("td.line");
                         var line      = lineTd.text();
                         var character = lineTd.data("character");
-        
+
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line - 1, character - 1, true);
                         EditorManager.focusEditor();
                     });
-                
+
                 if (!_collapsed) {
                     Resizer.show($lintResults);
                 }
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
                         StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
                 }
                 setGotoEnabled(true);
-            
+
             } else {
                 Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
             setGotoEnabled(false);
         }
     }
-    
+
     /**
      * Update DocumentManager listeners.
      */
@@ -219,24 +219,24 @@ define(function (require, exports, module) {
             $(DocumentManager).off(".jslint");
         }
     }
-    
+
     /**
      * Enable or disable JSLint.
      * @param {boolean} enabled Enabled state.
      */
     function setEnabled(enabled) {
         _enabled = enabled;
-        
+
         CommandManager.get(TOGGLE_ENABLED).setChecked(_enabled);
         updateListeners();
         _prefs.setValue("enabled", _enabled);
-    
+
         // run immediately
         run();
     }
-    
-    
-    /** 
+
+
+    /**
      * Toggle the collapsed state for the panel
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
      */
@@ -244,10 +244,10 @@ define(function (require, exports, module) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
-        
+
         _collapsed = collapsed;
         _prefs.setValue("collapsed", _collapsed);
-        
+
         if (_collapsed) {
             Resizer.hide($lintResults);
         } else {
@@ -256,12 +256,12 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /** Command to toggle enablement */
     function handleToggleEnabled() {
         setEnabled(!_enabled);
     }
-    
+
     /** Command to go to the first JSLint Error */
     function handleGotoFirstError() {
         run();
@@ -269,32 +269,32 @@ define(function (require, exports, module) {
             $lintResults.find("tr:first-child").trigger("click");
         }
     }
-    
-    
+
+
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT,             TOGGLE_ENABLED,   handleToggleEnabled);
     CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, GOTO_FIRST_ERROR, handleGotoFirstError);
-    
+
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
     menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
     menu.addMenuDivider(Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
-    
+
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
-    
-    
+
+
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
-        
+
         var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
         var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
-        
+
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
@@ -305,15 +305,15 @@ define(function (require, exports, module) {
         $("#jslint-status").click(function () {
             toggleCollapsed();
         });
-                                                                
-                                
+
+
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
-        
+
         toggleCollapsed(_prefs.getValue("collapsed"));
-                
+
     });
-    
+
     // for unit tests
     exports.setEnabled = setEnabled;
 });
