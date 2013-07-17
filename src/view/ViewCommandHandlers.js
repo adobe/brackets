@@ -113,10 +113,11 @@ define(function (require, exports, module) {
      */
     function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
         var editor      = EditorManager.getCurrentFullEditor(),
+            linesblock  = $(".CodeMirror-lines", editor.getRootElement()),
             oldWidth    = editor._codeMirror.defaultCharWidth(),
             oldHeight   = editor.getTextHeight(),
             scrollPos   = editor.getScrollPos(),
-            viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
+            viewportTop = linesblock.get(0)? linesblock.parent().position().top : 0,
             scrollTop   = scrollPos.y - viewportTop;
         
         // It's necessary to inject a new rule to address all editors.
