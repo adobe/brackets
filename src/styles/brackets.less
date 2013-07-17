@@ -702,6 +702,20 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
+#search-result-summary {
+    .left-triangle,  .right-triangle {
+        .jstree-sprite;
+        display: inline-block;
+        background-position: -2px -3px;
+    }
+    .left-triangle {
+        -webkit-transform: translateZ(0) translateY(-2px) rotate(180deg);
+    }
+    .disabled {
+        opacity: 0.3;
+    }
+}
+
 #search-results .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;

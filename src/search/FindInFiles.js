@@ -64,6 +64,7 @@ define(function (require, exports, module) {
     
     var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
+        searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
     /** @cost Constants used to define the maximum results show per page and found in a single file */
@@ -344,11 +345,13 @@ define(function (require, exports, module) {
             
             // Insert the search summary
             $searchSummary
-                .html(summary +
-                     (numMatches > RESULTS_PER_PAGE ? StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last) : "") +
-                     (currentStart > 0 ? Strings.FIND_IN_FILES_LESS : "") +
-                     (last < numMatches ? Strings.FIND_IN_FILES_MORE : ""))
-                .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
+                .html(Mustache.render(searchSummaryTemplate, {
+                    summary:  summary,
+                    hasPages: numMatches > RESULTS_PER_PAGE,
+                    results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
+                    hasLess:  currentStart > 0,
+                    hasMore:  last < numMatches
+                }));
             
             // Create the results template search list
             var searchList = [];
@@ -421,14 +424,14 @@ define(function (require, exports, module) {
                 });
             
             // The link to go the previous page
-            $searchResults.find(".find-less")
+            $searchResults.find(".left-triangle:not(.disabled)")
                 .one("click", function () {
                     currentStart -= RESULTS_PER_PAGE;
                     _showSearchResults();
                 });
             
             // The link to go to the next page
-            $searchResults.find(".find-more")
+            $searchResults.find(".right-triangle:not(.disabled)")
                 .one("click", function () {
                     currentStart += RESULTS_PER_PAGE;
                     _showSearchResults();
