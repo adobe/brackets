@@ -42,6 +42,11 @@
             </button>
         {{/showInstallButton}}
         {{#isInstalled}}
+            {{#showUpdateButton}}
+                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{Strings.CANT_UPDATE}}"{{/allowUpdate}}>
+                    {{Strings.UPDATE}}
+                </button>
+            {{/showUpdateButton}}
             {{#removalAllowed}}
                 <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
                     {{Strings.REMOVE}}

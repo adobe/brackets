@@ -190,11 +190,6 @@ define(function (require, exports, module) {
             promise.done(function () {
                 // Add the view to the dialog
                 view.$el.appendTo($(".modal-body", $dlg));
-            
-                // Disable the search field when there are no items in the view.
-                $(model).on("change", function () {
-                    toggleSearchEnabled();
-                });
                 
                 views.push(view);
             });
@@ -218,6 +213,15 @@ define(function (require, exports, module) {
                 if (toggleSearchEnabled()) {
                     $search.focus();
                 }
+            });
+            
+            // Disable the search field when there are no items in the model
+            models.forEach(function (model, index) {
+                $(model).on("change", function () {
+                    if (_activeTabIndex === index) {
+                        toggleSearchEnabled();
+                    }
+                });
             });
             
             // Update search UI before new tab is shown

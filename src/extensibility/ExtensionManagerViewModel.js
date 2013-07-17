@@ -54,7 +54,9 @@ define(function (require, exports, module) {
         this._handleStatusChange = this._handleStatusChange.bind(this);
         
         // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", this._handleStatusChange);
+        $(ExtensionManager)
+            .on("statusChange.ExtensionManagerViewModel", this._handleStatusChange)
+            .on("registryUpdate.ExtensionManagerViewModel", this._handleStatusChange);
     }
     
     /**
@@ -104,7 +106,7 @@ define(function (require, exports, module) {
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
-        $(ExtensionManager).off("statusChange", this._handleStatusChange);
+        $(ExtensionManager).off(".ExtensionManagerViewModel");
     };
     
     /**

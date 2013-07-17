@@ -123,7 +123,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._setupEventHandlers = function () {
         var self = this;
-        
+
         // Listen for model data and filter changes.
         $(this.model)
             .on("filter", function () {
@@ -173,6 +173,9 @@ define(function (require, exports, module) {
             .on("click", "button.install", function (e) {
                 self._installUsingDialog($(e.target).attr("data-extension-id"));
             })
+            .on("click", "button.update", function (e) {
+                self._installUsingDialog($(e.target).attr("data-extension-id"), true);
+            })
             .on("click", "button.remove", function (e) {
                 ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
             });
@@ -205,14 +208,18 @@ define(function (require, exports, module) {
                 
         var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
         context.isCompatible = compatInfo.isCompatible;
-        context.requiresNewer = compatInfo.requiresNewer;
-        
-        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY);
-        context.allowInstall = context.isCompatible && !context.isInstalled;
-        
-        context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
+        context.requiresNewer = compatInfo.requiresNewer;
+        
+        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY) && !context.updateAvailable;
+        context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+
+        context.allowInstall = context.isCompatible && !context.isInstalled;
+        context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        context.allowUpdate = context.isCompatible && context.isInstalled &&
+            !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+
         context.removalAllowed = !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
         
         // Copy over helper functions that we share with the registry app.
@@ -264,13 +271,17 @@ define(function (require, exports, module) {
      * Install the extension with the given ID using the install dialog.
      * @param {string} id ID of the extension to install.
      */
-    ExtensionManagerView.prototype._installUsingDialog = function (id) {
+    ExtensionManagerView.prototype._installUsingDialog = function (id, _isUpdate) {
         var entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
             var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
             // TODO: this should set .done on the returned promise
-            // and handle the case where an extension needs an update.
-            InstallExtensionDialog.installUsingDialog(url);
+
+            if (_isUpdate) {
+                InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
+            } else {
+                InstallExtensionDialog.installUsingDialog(url);
+            }
         }
     };
     

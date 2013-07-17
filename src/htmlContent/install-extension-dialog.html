@@ -1,6 +1,9 @@
 <div class="install-extension-dialog modal">
     <div class="modal-header">
-        <h1 class="dialog-title">{{INSTALL_EXTENSION_TITLE}}</h1>
+        <h1 class="dialog-title">
+            {{#isUpdate}}{{UPDATE_EXTENSION_TITLE}}{{/isUpdate}}
+            {{^isUpdate}}{{INSTALL_EXTENSION_TITLE}}{{/isUpdate}}
+        </h1>
     </div>
     <div class="modal-body">
         <div class="field-container input-field">

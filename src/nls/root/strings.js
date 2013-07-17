@@ -305,10 +305,13 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Install",
+    "UPDATE"                               : "Update",
     "REMOVE"                               : "Remove",
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
+    "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
     "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
