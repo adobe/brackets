@@ -308,9 +308,9 @@ define(function (require, exports, module) {
                 var bounds = getBounds(object, false),
                     editorBounds = getBounds(testWindow.$("#editor-holder"), true);
                 return bounds.left   >= editorBounds.left   &&
-                       bounds.right  <= editorBounds.right  &&
-                       bounds.top    >= editorBounds.top    &&
-                       bounds.bottom <= editorBounds.bottom;
+                    bounds.right  <= editorBounds.right  &&
+                    bounds.top    >= editorBounds.top    &&
+                    bounds.bottom <= editorBounds.bottom;
             }
 
             function toggleOption(commandID, text) {

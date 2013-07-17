@@ -807,10 +807,10 @@ define(function (require, exports, module) {
         if (start.line <= pos.line && end.line >= pos.line) {
             if (endInclusive) {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                       (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
+                    (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
             } else {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                       (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
             }
                    
         }
@@ -1060,10 +1060,7 @@ define(function (require, exports, module) {
 
             // Callback to widget once parented to the editor. The widget should call back to
             // setInlineWidgetHeight() in order to set its initial height and animate open.
-            // TODO: Should we make onAdded() return the desired height so that it's a
-            // required part of the API, instead of people just having to know that they
-            // need to call setInlineWidgetHeight() at least once?
-            inlineWidget.onAdded();    
+            inlineWidget.onAdded();
         });
     };
     
