@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets */
 
 /*
  * Manages a collection of FileIndexes where each index maintains a list of information about
@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
+        FileUtils           = require("file/FileUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         CollectionUtils     = require("utils/CollectionUtils"),
@@ -406,8 +407,7 @@ define(function (require, exports, module) {
     _addIndex(
         "css",
         function (entry) {
-            var filename = entry.name;
-            return PathUtils.filenameExtension(filename) === ".css";
+            return FileUtils.getFilenameExtension(entry.name) === ".css";
         }
     );
 

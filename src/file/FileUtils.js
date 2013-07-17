@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError     = require("file/NativeFileError"),
-        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -81,6 +80,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
@@ -106,6 +107,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();
@@ -329,7 +332,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
@@ -342,7 +345,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
@@ -355,7 +358,7 @@ define(function (require, exports, module) {
     
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
-     * @param {string} full path to a file or directory
+     * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory 
      */
     function getDirectoryPath(fullPath) {
@@ -363,29 +366,35 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determine if a file is a text file. This function is only a quick best-guess.
-     * @param {string} path Path to check
-     * @return {boolean} True if the path is a text file, false if not.
+     * Get the base name of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
      */
-    function isTextFile(path) {
-        // We don't have an accurate way to quickly check if a file is a text file.
-        // To make a good guess, start by looking at the language of the file.
-        var language = LanguageManager.getLanguageForPath(path);
-        
-        if (language.getId() !== "unknown") {
-            // Language is known to Brackets, this must be a text file.
-            return true;
-        }
-        
-        // All other files end up with language === "unknown", including .txt files.
-        var extension = _getFileExtension(path),
-            textExtensionRegEx = /^(txt|gyp[i]?)$/;
-        
-        // If there is no extension, or the extension is known text extension, assume it is a text file.
-        // Files with other extensions, like .png or .jpg, will return false.
-        return (extension === path || textExtensionRegEx.test(extension.toLowerCase()));
+    function getBaseName(fullPath) {
+        fullPath = canonicalizeFolderPath(fullPath);
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
     }
-    
+
+    /**
+     * Get the filename extension.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getFilenameExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx      = baseName.lastIndexOf(".");
+
+        if (idx === -1) {
+            return "";
+        }
+
+        return baseName.substr(idx);
+    }
+
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -406,5 +415,6 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
-    exports.isTextFile                     = isTextFile;
+    exports.getBaseName                    = getBaseName;
+    exports.getFilenameExtension           = getFilenameExtension;
 });

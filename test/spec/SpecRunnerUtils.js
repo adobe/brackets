@@ -135,11 +135,12 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForFail = function (promise, operationName) {
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, 1000);
+        }, "failure " + operationName, timeout);
     };
     
     /**
