@@ -351,7 +351,9 @@
 
 .modal {
     background-color: @tc-gray-panel;
-    width: auto;
+    width: 90%;
+    max-width: 600px;
+    min-width: 530px;
 }
 
 .modal .close {
@@ -366,7 +368,6 @@
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
        to allow the overall modal to take the width of the footer */
-    width: 580px;
 }
 
 .modal-footer {
@@ -407,6 +408,7 @@
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
     margin-bottom: 0;
+    list-style-type: none;
 }
 
 .dialog-title {
@@ -422,7 +424,7 @@
     color: @tc-light-weight-text;
     font-size: 16px;
     line-height: 26px;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     font-weight: @font-weight-light;
 }
 
