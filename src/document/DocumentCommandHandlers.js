@@ -328,20 +328,14 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=}} Params for FILE_OPEN command
+     * @param {!{fullPath:string, index:number=}} File to open and optional position in the working
+     *   set list (defaults to last)
      */
     function handleFileAddToWorkingSet(commandData) {
-        var deferred = new $.Deferred();
-
-        handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
             DocumentManager.addToWorkingSet(doc.file, commandData.index);
-            deferred.resolve();
-        }).fail(function (err) {
-            deferred.reject(err);
         });
-
-        return deferred.promise();
     }
 
     /**
@@ -501,16 +495,16 @@ define(function (require, exports, module) {
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            fileEntry = docToSave.file;
         
-        function handleError(error, fileEntry) {
+        function handleError(error) {
             _showSaveFileError(error.name, fileEntry.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
         }
 
-        var fileEntry = docToSave.file;
         if (docToSave.isDirty) {
             var writeError = false;
             
@@ -525,14 +519,14 @@ define(function (require, exports, module) {
                     };
                     writer.onerror = function (error) {
                         writeError = true;
-                        handleError(error, fileEntry);
+                        handleError(error);
                     };
 
                     // We don't want normalized line endings, so it's important to pass true to getText()
                     writer.write(docToSave.getText(true));
                 },
                 function (error) {
-                    handleError(error, fileEntry);
+                    handleError(error);
                 }
             );
         } else {
@@ -583,14 +577,16 @@ define(function (require, exports, module) {
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
     function _doSaveAs(doc, settings) {
-        var fullPath,
+        var origPath,
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
         
         function _doSaveAfterSaveDialog(path) {
+            var newFile = new NativeFileSystem.FileEntry(path);
             
-            function _configureEditorAndResolve(file) {
+            // Reconstruct old doc's editor's view state, & finally resolve overall promise
+            function _configureEditorAndResolve() {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
@@ -599,10 +595,11 @@ define(function (require, exports, module) {
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
-                result.resolve(file);
+                result.resolve(newFile);
             }
             
-            function updateProject(file) {
+            // Replace old document with new one in open editor & working set
+            function openNewFile() {
                 var fileViewControllerPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
@@ -620,7 +617,7 @@ define(function (require, exports, module) {
 
                 // always configure editor after file is opened
                 fileViewControllerPromise.always(function () {
-                    _configureEditorAndResolve(file);
+                    _configureEditorAndResolve();
                 });
             }
             
@@ -629,56 +626,46 @@ define(function (require, exports, module) {
                 return result.reject(USER_CANCELED).promise();
             }
             
-            if (path === fullPath) {
+            if (path === origPath) {
                 return doSave(doc);
             }
             
-            // now save new document
-            var newPath = FileUtils.getDirectoryPath(path);
-            // create empty file,  FileUtils.writeText will create content.
-            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
-                if (error) {
+            // First, write document's current text to new file
+            FileUtils.writeText(newFile, doc.getText()).done(function () {
+                // Add new file to project tree
+                ProjectManager.refreshFileTree().done(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // not in the working set has the side effect of adding it to the working set.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the working set
+                        // doRevert is side effect free in this case
+                        doRevert(doc).always(openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                }).fail(function (error) {
                     result.reject(error);
-                } else {
-                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
-                            ProjectManager.refreshFileTree().done(function () {
-                                // If there were unsaved changes before Save As, they don't stay with the old
-                                // file anymore - so must revert the old doc to match disk content.
-                                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                                // not in the working set has the side effect of adding it to the working set.
-                                if (doc.isDirty && !(doc.isUntitled())) {
-                                    // if the file is dirty it must be in the working set
-                                    // doRevert is side effect free in this case
-                                    doRevert(doc).always(function () {
-                                        updateProject(newDoc.file);
-                                    });
-                                } else {
-                                    updateProject(newDoc.file);
-                                }
-                            }).fail(function () {
-                                result.reject();
-                            });
-                        }).fail(function () {
-                            result.reject();
-                        });
-                    }).fail(function () {
-                        result.reject();
+                });
+            }).fail(function (error) {
+                _showSaveFileError(error.name, path)
+                    .done(function () {
+                        result.reject(error);
                     });
-                }
             });
         }
         
         if (doc) {
-            fullPath = doc.file.fullPath;
+            origPath = doc.file.fullPath;
             // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
-                saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
+                saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
-            defaultName = FileUtils.getBaseName(fullPath);
+            defaultName = FileUtils.getBaseName(origPath);
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
                 function (error) {

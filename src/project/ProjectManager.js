@@ -818,8 +818,8 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @param {bool} isUpdating Indicates if it's just an update attempt to the
-     *  tree or if another project is being loaded.
+     * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
+     *  if false, a different project is being loaded.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
