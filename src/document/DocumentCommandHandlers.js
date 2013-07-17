@@ -434,7 +434,7 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
+        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, "", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .then(deferred.resolve, deferred.reject, deferred.notify)
@@ -442,7 +442,7 @@ define(function (require, exports, module) {
         };
 
         deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName(isFolder ? "Untitled" : "Untitled.js"); });
+        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled"); });
         return deferred;
     }
 
@@ -450,7 +450,7 @@ define(function (require, exports, module) {
      * Create a new untitled document
      */
     function handleFileNew() {
-        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, ".js");
+        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, "");
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
     }
