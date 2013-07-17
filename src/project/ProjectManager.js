@@ -485,18 +485,15 @@ define(function (require, exports, module) {
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
                 sort :  function (a, b) {
-                    var a1, b1, a2, b2;
+                    var a1 = $(a).text(),
+                        b1 = $(b).text();
+                    
+                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                     if (brackets.platform === "win") {
-                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + $(a).text();
-                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + $(b).text();
-                        a2 = FileUtils.getFilenameAndExtension(a1).name;
-                        b2 = FileUtils.getFilenameAndExtension(b1).name;
-                    } else {
-                        a2 = $(a).text();
-                        b2 = $(b).text();
+                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
+                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
-                    return a2.toLocaleLowerCase().localeCompare(b2.toLocaleLowerCase());
+                    return FileUtils.compareFilenames(a1, b1);
                 }
             }).bind(
                 "before.jstree",

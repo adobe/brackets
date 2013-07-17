@@ -301,33 +301,21 @@ define(function (require, exports, module) {
     register(
         Commands.SORT_WORKINGSET_BY_NAME,
         function (file1, file2) {
-            var name1, name2;
-            if (brackets.platform === "win") {
-                name1 = FileUtils.getFilenameAndExtension(file1.name).name;
-                name2 = FileUtils.getFilenameAndExtension(file2.name).name;
-            } else {
-                name1 = file1.name;
-                name2 = file2.name;
-            }
-            return name1.toLocaleLowerCase().localeCompare(name2.toLocaleLowerCase());
+            return FileUtils.compareFilenames(file1.name, file2.name);
         },
         "workingSetAdd workingSetAddList"
     );
     register(
         Commands.SORT_WORKINGSET_BY_TYPE,
         function (file1, file2) {
-            var name1  = FileUtils.getFilenameAndExtension(file1.name),
-                name2  = FileUtils.getFilenameAndExtension(file2.name),
-                cmpExt = name1.extension.localeCompare(name2.extension);
-            
-            name1 = brackets.platform === "win" ? name1.name : file1.name;
-            name2 = brackets.platform === "win" ? name2.name : file2.name;
+            var ext1   = FileUtils.getFilenameExtension(file1.name),
+                ext2   = FileUtils.getFilenameExtension(file2.name),
+                cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase());
             
             if (cmpExt === 0) {
-                return name1.toLocaleLowerCase().localeCompare(name2.toLocaleLowerCase());
-            } else {
-                return cmpExt;
+                return FileUtils.compareFilenames(file1.name, file2.name);
             }
+            return cmpExt;
         },
         "workingSetAdd workingSetAddList"
     );

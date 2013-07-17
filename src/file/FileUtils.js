@@ -395,15 +395,28 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the file name without the extension and the file extension from a file name.
+     * @private
+     * Get the file name without the extension.
      * @param {string} filename file name of a file or directory
-     * @return {{name: string, extension: string}} Returns the file real name and extension
+     * @return {string} Returns the file real name and extension
      */
-    function getFilenameAndExtension(filename) {
-        var extension = _getFileExtension(filename),
-            name      = filename.replace(new RegExp("." + extension + "$"), "");
-        
-        return {name: name, extension: extension};
+    function _getFilenameName(filename) {
+        var extension = _getFileExtension(filename);
+        return filename.replace(new RegExp("." + extension + "$"), "");
+    }
+    
+    /**
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the extension
+     * @param {string} filename1
+     * @param {string} filename2
+     * @return {number} The result of the local compare function
+     */
+    function compareFilenames(filename1, filename2) {
+        if (brackets.platform === "win") {
+            filename1 = _getFilenameName(filename1);
+            filename2 = _getFilenameName(filename2);
+        }
+        return filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
     }
 
 
@@ -429,5 +442,5 @@ define(function (require, exports, module) {
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getFilenameExtension           = getFilenameExtension;
-    exports.getFilenameAndExtension        = getFilenameAndExtension;
+    exports.compareFilenames               = compareFilenames;
 });
