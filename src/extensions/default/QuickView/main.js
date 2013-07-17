@@ -51,10 +51,7 @@ define(function (require, exports, module) {
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
-        POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = -20,  // Half of the pointer width, used to find the center of the pointer
-        POINTER_TOP_OFFSET          = -65,  // Pointer height, used to shift popover above pointer
-        POSITION_BELOW_OFFSET       = 72,   // Amount to adjust to top position when the preview bubble is below the text
+        POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
     /**
@@ -72,7 +69,8 @@ define(function (require, exports, module) {
      *      start: !{line, ch},             - start of matched text range
      *      end: !{line, ch},               - end of matched text range
      *      content: !string,               - HTML content to display in popover
-     *      onShow: ?function():void,       - called once popover content added to the DOM (may never be called)
+     *      onShow: ?function():void,       - called once popover content added to the DOM (may never be called) 
+     *        - if specified, must call positionPreview()
      *      xpos: number,                   - x of center of popover
      *      ytop: number,                   - y of top of matched text (when popover placed above text, normally)
      *      ybot: number,                   - y of bottom of matched text (when popover moved below text, avoiding window top)
@@ -100,8 +98,6 @@ define(function (require, exports, module) {
             $previewContent.empty();
             $previewContainer.hide();
             $previewContainer.removeClass("active");
-                        
-            
         } else {
             window.clearTimeout(popoverState.hoverTimer);
         }
@@ -109,9 +105,9 @@ define(function (require, exports, module) {
     }
     
     function positionPreview(xpos, ypos, ybot) {
-        var previewWidth  = $previewContainer.width(),
-            top           = ypos - $previewContainer.height() - POSITION_OFFSET,
-            left          = xpos - previewWidth / 2 - POINTER_LEFT_OFFSET,
+        var previewWidth  = $previewContainer.outerWidth(),
+            top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
+            left          = xpos - previewWidth / 2,
             $editorHolder = $("#editor-holder"),
             editorLeft    = $editorHolder.offset().left;
 
@@ -119,21 +115,21 @@ define(function (require, exports, module) {
         left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
-            $previewContainer.removeClass("preview-bubble-above active");
-            $previewContainer.addClass("preview-bubble-below active");
-            top = ybot + POSITION_BELOW_OFFSET;
-            $previewContainer.offset({
+            top = ybot + POINTER_HEIGHT;
+            $previewContainer
+                .removeClass("preview-bubble-above")
+                .addClass("preview-bubble-below");
+        } else {
+            $previewContainer
+                .removeClass("preview-bubble-below")
+                .addClass("preview-bubble-above");
+        }
+        $previewContainer
+            .css({
                 left: left,
                 top: top
-            });
-        } else {
-            $previewContainer.removeClass("preview-bubble-below active");
-            $previewContainer.addClass("preview-bubble-above active");
-            $previewContainer.offset({
-                left: left,
-                top: top - POINTER_TOP_OFFSET
-            });
-        }
+            })
+            .addClass("active");
     }
     
     /**
@@ -156,9 +152,9 @@ define(function (require, exports, module) {
         
         if (popoverState.onShow) {
             popoverState.onShow();
+        } else {
+            positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
         }
-        
-        positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
     }
     
     function divContainsMouse($div, event) {
@@ -438,7 +434,7 @@ define(function (require, exports, module) {
                         
                         $previewContainer.find(".image-preview > img").on("load", function () {
                             $previewContent
-                                .append("<div class='img-size'>"                                            +
+                                .append("<div class='img-size'>" +
                                             this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
                                         "</div>"
                                     );
