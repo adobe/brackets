@@ -1098,18 +1098,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     *
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * @param {string} filename
+     * @param {boolean} isFolder
+     * @return {boolean} Returns true if no illegal characters are found
      */
-    function _checkForValidFilename(filename) {
+    function _checkForValidFilename(filename, isFolder) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.INVALID_FILENAME_TITLE,
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
                 Strings.INVALID_FILENAME_MESSAGE
             );
             return false;
@@ -1194,7 +1196,7 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!_checkForValidFilename(data.rslt.name)) {
+                if (!_checkForValidFilename(data.rslt.name, isFolder)) {
                     errorCleanup();
                     return;
                 }
@@ -1418,7 +1420,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
