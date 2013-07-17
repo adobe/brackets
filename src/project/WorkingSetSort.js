@@ -303,8 +303,8 @@ define(function (require, exports, module) {
         function (file1, file2) {
             var name1, name2;
             if (brackets.platform === "win") {
-                name1 = FileUtils.getFileNameExtension(file1.name).name;
-                name2 = FileUtils.getFileNameExtension(file2.name).name;
+                name1 = FileUtils.getFilenameAndExtension(file1.name).name;
+                name2 = FileUtils.getFilenameAndExtension(file2.name).name;
             } else {
                 name1 = file1.name;
                 name2 = file2.name;
@@ -316,8 +316,8 @@ define(function (require, exports, module) {
     register(
         Commands.SORT_WORKINGSET_BY_TYPE,
         function (file1, file2) {
-            var name1  = FileUtils.getFileNameExtension(file1.name),
-                name2  = FileUtils.getFileNameExtension(file2.name),
+            var name1  = FileUtils.getFilenameAndExtension(file1.name),
+                name2  = FileUtils.getFilenameAndExtension(file2.name),
                 cmpExt = name1.extension.localeCompare(name2.extension);
             
             name1 = brackets.platform === "win" ? name1.name : file1.name;

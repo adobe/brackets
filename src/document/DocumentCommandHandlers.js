@@ -23,12 +23,10 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, PathUtils, window */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
-    
-    require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -246,9 +244,7 @@ define(function (require, exports, module) {
                         
                         doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
-                                var url = PathUtils.parseUrl(doc.file.fullPath);
-                                //reconstruct the url but use the directory and stop there
-                                _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
                                 
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
@@ -332,10 +328,17 @@ define(function (require, exports, module) {
      * @param {!{fullPath:string, index:number=}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
+        var deferred = new $.Deferred();
+
+        handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
             DocumentManager.addToWorkingSet(doc.file, commandData.index);
+            deferred.resolve();
+        }).fail(function (err) {
+            deferred.reject(err);
         });
+
+        return deferred.promise();
     }
 
     /**
@@ -593,23 +596,25 @@ define(function (require, exports, module) {
             }
             
             function updateProject(file) {
+                var fileViewControllerPromise;
+
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    FileViewController
-                        .openAndSelectDocument(path,
-                                          FileViewController.PROJECT_MANAGER)
-                        .always(function () {
-                            _configureEditorAndResolve(file);
-                        });
-                } else { // Working set  has file selection focus
+                    fileViewControllerPromise = FileViewController
+                        .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+                } else { // Working set has file selection focus
                     // replace original file in working set with new file
                     var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
                     //  remove old file from working set.
                     DocumentManager.removeFromWorkingSet(doc.file, true);
-                    //add new file to working set
-                    FileViewController
-                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index)
-                        .always(_configureEditorAndResolve(file));
+                    // add new file to working set
+                    fileViewControllerPromise = FileViewController
+                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index);
                 }
+
+                // always configure editor after file is opened
+                fileViewControllerPromise.always(function () {
+                    _configureEditorAndResolve(file);
+                });
             }
             
             if (!path) {
@@ -666,7 +671,7 @@ define(function (require, exports, module) {
             } else {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             }
-            defaultName = PathUtils.parseUrl(fullPath).filename;
+            defaultName = FileUtils.getBaseName(fullPath);
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
                 function (error) {
@@ -818,7 +823,7 @@ define(function (require, exports, module) {
         
         if (doc && doc.isDirty) {
             // Document is dirty: prompt to save changes before closing
-            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            var filename = FileUtils.getBaseName(doc.file.fullPath);
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,

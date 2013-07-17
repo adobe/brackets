@@ -441,7 +441,7 @@ define(function (require, exports, module) {
     }); // describe("JSUtils")
     
     
-    describe("JS Indexing: ", function () {
+    describe("JS Indexing", function () {
         
         this.category = "integration";
         

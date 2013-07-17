@@ -128,6 +128,13 @@ define(function (require, exports, module) {
                 
                 inlineEditorResult.done(function (isOpened) {
                     inlineOpened = isOpened;
+                    
+                    var inlineWidgets = editor.getInlineWidgets();
+                    expect(inlineWidgets.length).toBe(1);
+                    
+                    // By the time we're called, the content of the widget should be in the DOM and have a nontrivial height.
+                    expect($.contains(testWindow.document.documentElement, inlineWidgets[0].htmlContent)).toBeTrue();
+                    expect(inlineWidgets[0].$htmlContent.height()).toBeGreaterThan(50);
                 }).fail(function () {
                     inlineOpened = false;
                 }).always(function () {
@@ -359,10 +366,16 @@ define(function (require, exports, module) {
                     expect(hostEditor.hasFocus()).toEqual(false);
                     
                     // close the editor
-                    EditorManager.closeInlineWidget(hostEditor, inlineWidget);
+                    waitsForDone(EditorManager.closeInlineWidget(hostEditor, inlineWidget), "closing inline widget");
                     
-                    // verify no inline widgets 
+                });
+                
+                runs(function () {
+                    // verify no inline widgets in list
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    
+                    // verify that the inline widget's content has been removed from the DOM
+                    expect($.contains(testWindow.document.documentElement, inlineWidget.htmlContent)).toBe(false);
                     
                     // verify full editor cursor & focus restored
                     expect(savedPos).toEqual(hostEditor.getCursorPos());

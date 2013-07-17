@@ -490,8 +490,8 @@ define(function (require, exports, module) {
                         // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                         a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + $(a).text();
                         b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + $(b).text();
-                        a2 = FileUtils.getFileNameExtension(a1).name;
-                        b2 = FileUtils.getFileNameExtension(b1).name;
+                        a2 = FileUtils.getFilenameAndExtension(a1).name;
+                        b2 = FileUtils.getFilenameAndExtension(b1).name;
                     } else {
                         a2 = $(a).text();
                         b2 = $(b).text();
@@ -768,6 +768,15 @@ define(function (require, exports, module) {
 
     }
     
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
+    }
+    
+    
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
      * @return {!string} fullPath reference
@@ -828,8 +837,9 @@ define(function (require, exports, module) {
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-
     function _loadProject(rootPath, isUpdating) {
+        forceFinishRename();    // in case we're in the middle of renaming a file in the project
+        
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
@@ -1516,13 +1526,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
