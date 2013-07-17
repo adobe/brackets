@@ -126,7 +126,11 @@ define(function (require, exports, module) {
      */
     exports.sortRegistry = function (registry, subkey) {
         function getPublishTime(entry) {
-            return new Date(entry.versions[entry.versions.length - 1].published).getTime();
+            if (entry.versions) {
+                return new Date(entry.versions[entry.versions.length - 1].published).getTime();
+            }
+            
+            return Number.NEGATIVE_INFINITY;
         }
         
         var sortedEntries = [];
@@ -136,8 +140,8 @@ define(function (require, exports, module) {
             sortedEntries.push(registry[key]);
         });
         sortedEntries.sort(function (entry1, entry2) {
-            return getPublishTime(subkey ? entry2[subkey] : entry2) -
-                getPublishTime(subkey ? entry1[subkey] : entry1);
+            return getPublishTime((subkey && entry2[subkey]) || entry2) -
+                getPublishTime((subkey && entry1[subkey]) || entry1);
         });
         
         return sortedEntries;

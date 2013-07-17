@@ -36,11 +36,17 @@ define(function (require, exports, module) {
         CommandManager              = require("command/CommandManager"),
         InstallExtensionDialog      = require("extensibility/InstallExtensionDialog"),
         AppInit                     = require("utils/AppInit"),
+        Async                       = require("utils/Async"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
+    
+    // bootstrap tabs component
+    require("widgets/bootstrap-tab");
+    
+    var _activeTabIndex;
 
     /**
      * @private
@@ -135,23 +141,32 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
-        var $dlg, view, model, $search, $searchClear;
+        var $dlg,
+            views   = [],
+            models  = [new ExtensionManagerViewModel.InstalledViewModel(),
+                       new ExtensionManagerViewModel.RegistryViewModel()],
+            $search,
+            $searchClear;
         
-        function updateSearch() {
-            if (view.model.filterSet.length === 0) {
-                $search.prop("disabled", true);
-                $searchClear.prop("disabled", true);
-            } else {
-                $search.prop("disabled", false);
-                $searchClear.prop("disabled", false);
-            }
+        function toggleSearchEnabled() {
+            var model           = models[_activeTabIndex],
+                disableSearch   = ($search.val() === "") &&
+                                  (!model.filterSet || model.filterSet.length === 0);
+            
+            $search.prop("disabled", disableSearch);
+            $searchClear.prop("disabled", disableSearch);
+            
+            return !disableSearch;
         }
         
         // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
         ).done(function () {
-            model.dispose();
+            models.forEach(function (model) {
+                model.dispose();
+            });
+            
             _performChanges();
         });
         
@@ -159,35 +174,74 @@ define(function (require, exports, module) {
         $dlg = $(".extension-manager-dialog");
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
-        view = new ExtensionManagerView();
-        model = new ExtensionManagerViewModel.InstalledViewModel();
-        view.initialize(model)
-            .done(function () {
+        
+        // Dialog tabs
+        $dlg.find(".nav-tabs a")
+            .on("click", function (event) {
+                event.preventDefault();
+                $(this).tab("show");
+            });
+        
+        // Initialize models and create a view for each model
+        var modelInitPromise = Async.doInParallel(models, function (model) {
+            var view    = new ExtensionManagerView(),
+                promise = view.initialize(model);
+            
+            promise.done(function () {
+                // Add the view to the dialog
                 view.$el.appendTo($(".modal-body", $dlg));
+            
+                // Disable the search field when there are no items in the view.
+                $(model).on("change", function () {
+                    toggleSearchEnabled();
+                });
                 
-                // Filter the view when the user types in the search field.
-                $dlg.on("input", ".search", function (e) {
-                    view.filter($(this).val());
-                }).on("click", ".search-clear", function (e) {
-                    $search.val("");
+                views.push(view);
+            });
+            
+            return promise;
+        }, true);
+        
+        modelInitPromise.done(function () {
+            // Filter the views when the user types in the search field.
+            $dlg.on("input", ".search", function (e) {
+                var query = $(this).val();
+                views.forEach(function (view) {
+                    view.filter(query);
+                });
+            }).on("click", ".search-clear", function (e) {
+                $search.val("");
+                views.forEach(function (view, index) {
                     view.filter("");
                 });
                 
-                // Disable the search field when there are no items in the view.
-                $(model).on("change", function () {
-                    updateSearch();
-                });
-
-                // Handle the install button.                
-                $(".extension-manager-dialog .install-from-url")
-                    .click(function () {
-                        InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
-                    });
-                
-                updateSearch();
-                if (!$search.prop("disabled")) {
-                    $dlg.find(".search").focus();
+                if (toggleSearchEnabled()) {
+                    $search.focus();
                 }
+            });
+            
+            // Update search UI before new tab is shown
+            $("a[data-toggle='tab']").each(function (index, tabElement) {
+                $(tabElement).on("show", function (event) {
+                    _activeTabIndex = index;
+                    
+                    toggleSearchEnabled();
+            
+                    // Focus the search input
+                    if (!$search.prop("disabled")) {
+                        $dlg.find(".search").focus();
+                    }
+                });
+            });
+            
+            // Show the first tab
+            $dlg.find(".nav-tabs a:first").tab("show");
+        });
+    
+        // Handle the install button.                
+        $(".extension-manager-dialog .install-from-url")
+            .click(function () {
+                InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
             });
     }
     

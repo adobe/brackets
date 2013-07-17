@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         this.model = model;
         this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
-        this.$el = $("<div class='extension-list'/>");
+        this.$el = $("<div class='extension-list tab-pane' id='" + this.model.source + "'/>");
         this._$emptyMessage = $("<div class='empty-message'/>")
             .appendTo(this.$el);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
