@@ -74,7 +74,8 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async");
+        Async              = require("utils/Async"),
+        Mustache           = require("thirdparty/mustache/mustache");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: false, wordWrap: true };
@@ -420,6 +421,61 @@ define(function (require, exports, module) {
                 return this._codeMirror.getScrollInfo().top;
             }
         });
+
+        /** 
+         * There's no separate viewer class at the moment, so we're tapping
+         * into the editor and replacing it with a corresponding template.
+         */
+        if (document.template) {
+
+            // temporary: storing templates in an object
+            var templates = {
+                'image': '<style> \
+                            .image-viewer { \
+                                background: #f8f8f8; \
+                                display: table; \
+                                width: 100%; \
+                                height: 100%; \
+                                vertical-align: middle; \
+                            } \
+                            .image-viewer span { \
+                                display: table-cell; \
+                                vertical-align: middle; \
+                                text-align: center; \
+                            } \
+                            .image-viewer img { \
+                                max-width: 80%; \
+                                max-height: 80%; \
+                                border-radius: 5px; \
+                            } \
+                            .image-viewer img { \
+                                max-width: 400px; \
+                                max-height: 400px; \
+                                border-radius: 5px; \
+                            } \
+                          </style> \
+                          <div class="image-viewer"> \
+                            <span><img src="file://{{file.fullPath}}" /></span> \
+                          </div>'
+            }
+            var extras = {
+                'image': function() {
+                    self = this;
+                    // dirty; would be nice to extend status bar for this, actually
+                    $('.image-viewer img').load(function () {
+                        $('#status-cursor').text(this.naturalWidth+' x '+this.naturalHeight+ ' '+Strings.UNIT_PIXELS);
+                        $('#status-file').text('— '+self.document.file.name);
+                        $('#status-language').text('Image');
+                    });
+                }
+            }
+
+            // render the template and call the function 
+            // (which should probably be remade into an event)
+            $(this._codeMirror.getWrapperElement()).html(Mustache.render(templates[document.template], document));
+            extras[document.template].call(this);
+         
+        }
     }
     
     /**
