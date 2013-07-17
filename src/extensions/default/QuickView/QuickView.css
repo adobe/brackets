@@ -2,8 +2,11 @@
     display: none;
 
     -webkit-transition: opacity 0.125s ease-in, -webkit-transform 0.125s;
-    opacity: 0;
+    transition: opacity 0.125s ease-in, transform 0.125s;
+
     -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 0;
                                             
     background: #e0e1e3;
     position: absolute;
@@ -19,6 +22,7 @@
 
 #quick-view-container.active {
     -webkit-transform: scale(1);
+    transform: scale(1);
     opacity: 1;
 }
 
