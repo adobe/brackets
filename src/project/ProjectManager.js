@@ -1102,7 +1102,7 @@ define(function (require, exports, module) {
      * dialog and return false. If no illegal characters are found, return true.
      * @param {string} filename
      * @param {boolean} isFolder
-     * @return {boolean} True if the filename has illegal characters
+     * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
         // Validate file name
