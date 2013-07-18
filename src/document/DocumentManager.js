@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      * @param {number=} index - insert into the working set list at this 0-based index
      * @param {boolean=} true to suppress redraw after removal
      */
-    function addToWorkingSet(file, index) {
+    function addToWorkingSet(file, index, suppressRedraw) {
         // If doc is already in working set, don't add it again
         if (findInWorkingSet(file.fullPath) !== -1) {
             return;
