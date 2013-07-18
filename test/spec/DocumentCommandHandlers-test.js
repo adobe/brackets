@@ -336,7 +336,6 @@ define(function (require, exports, module) {
             // Multiple untitled documents
             
             it("multiple untitled documents shouldn't conflict", function () {
-                
                 createUntitled(3);
 
                 runs(function () {
@@ -441,7 +440,6 @@ define(function (require, exports, module) {
                 createUntitled(3);
 
                 runs(function () {
-                    
                     var fileI = 0;
                     spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
@@ -545,6 +543,7 @@ define(function (require, exports, module) {
         // TODO (issue #115): test Commands.FILE_NEW. Current implementation of
         // ProjectManager.createNewItem() is tightly coupled to jstree UI and
         // events.
+
 
         describe("Close File", function () {
             it("should complete without error if no files are open", function () {
