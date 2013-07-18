@@ -28,11 +28,11 @@ window.setTimeout(function () {
     "use strict";
     var deps = { "Mustache": window.Mustache, "jQuery": window.$, "CodeMirror": window.CodeMirror, "RequireJS": window.require };
     var key, missingDeps = [];
-    CollectionUtils.forEach(deps, function (val, key) {
-        if (!deps[key]) {
+    for (key in deps) {
+        if (deps.hasOwnProperty(key) && !deps[key]) {
             missingDeps.push(key);
         }
-    });
+    }
     if (missingDeps.length === 0) {
         return;
     }
