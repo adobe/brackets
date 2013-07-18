@@ -522,14 +522,66 @@
     left: 50%;
     margin-top: -275px;
     margin-left: -350px;
+    background-color: #d4d7d7;
 
     .modal-header {
-        width: 700px;
-
+        border-bottom: none;
+        padding: 0;
+        width: auto;
+        
+        .nav-tabs {
+            margin: 0;
+            border-color: #c3c6c5;
+            
+            /* Tab styling */
+            > li > a {
+                min-width: 80px;
+                min-height: 60px;
+                color: black;
+                font-size: 12px;
+                
+                .box;
+                box-sizing: border-box;
+                .box-align(center);
+                .box-pack(center);
+                padding: 0;
+                margin: 0;
+                
+                text-align: center;
+                
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.04);
+                    border-color: rgba(0, 0, 0, 0.04);
+                }
+                
+                > img {
+                    margin-top: 5px;
+                    padding-bottom: 5px;
+                }
+            }
+            
+            /* Remove border-left from the first tab */
+            > li:nth-child(1) > a {
+                border-left: transparent;
+            }
+            
+            /* Colors for the active tab, remove bottom border */
+            > .active > a {
+                background-color: #dfe2e2;
+                border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+            }
+        }
+        
+        /* Search box */
+        > :nth-child(2) {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
         .search {
             background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
-            margin-top: 6px;
+            margin: 0;
             padding-left: 27px;
             padding-right: 20px;
         }
@@ -538,7 +590,7 @@
             display: block;
             float: right;
             left: -5px;
-            margin: 13px 0 0 -20px;
+            margin: 7px 0 0 -20px;
             opacity: 0.5;
             background: url("images/topcoat-cancel-15.svg") no-repeat;
             width: 15px;
@@ -561,17 +613,29 @@
     .modal-body {
         width: 730px;
         height: 400px;
-        text-align: center;
         overflow-y: scroll;
         padding: 0;
+        background-color: @tc-gray-panel;
 
         .empty-message {
-            display: none;
             position: absolute;
             top: 50%;
             width: 100%;
             margin-top: -1em;
             text-align: center;
+        }
+        
+        .info-message {
+            background-color: @tc-gray-panel;
+            padding: 1em;
+        }
+        
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -18px;
+            margin-left: -18px;
         }
 
         .extension-list {
@@ -616,19 +680,9 @@
                 vertical-align: middle;
                 width: 150px;
             }
-            .spinner {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                margin-top: -18px;
-                margin-left: -18px;
-            }
             .load-error {
                 display: inline-block;
                 margin-top: 240px;
-            }
-            .install {
-                width: 90px;
             }
         }
     }
