@@ -301,13 +301,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Markes all file indexes dirty
-     */
-    function markDirty() {
-        _indexListDirty = true;
-    }
-
-    /**
      * Used by syncFileIndex function to prevent reentrancy
      * @private
      */
@@ -320,12 +313,13 @@ define(function (require, exports, module) {
     function syncFileIndex() {
         if (_indexListDirty) {
             _indexListDirty = false;
-            PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
 
             // If we already had an existing scan going, we want to use its deferred for
-            // notifying when the new scan is complete (so existing callers will get notified).
+            // notifying when the new scan is complete (so existing callers will get notified),
+            // and we don't want to start a new measurement.
             if (!_scanDeferred) {
                 _scanDeferred = new $.Deferred();
+                PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
             }
             
             // If there was already a scan running, this will abort it and start a new
@@ -345,6 +339,18 @@ define(function (require, exports, module) {
         } else {
             // If we're in the middle of a scan, return its promise, otherwise resolve immediately.
             return _scanDeferred ? _scanDeferred.promise() : new $.Deferred().resolve().promise();
+        }
+    }
+
+    /**
+     * Markes all file indexes dirty
+     */
+    function markDirty() {
+        _indexListDirty = true;
+        
+        // If there's a scan already in progress, abort and restart it.
+        if (_scanDeferred) {
+            syncFileIndex();
         }
     }
 

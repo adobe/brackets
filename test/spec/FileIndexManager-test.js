@@ -109,6 +109,49 @@ define(function (require, exports, module) {
                 expect(secondProject.readEntriesSpy.callCount).toBe(1);
             });
             
+            it("should abort a running scan and start a new one when marked dirty (even before another scan is requested)", function () {
+                var firstCB, secondCB, firstFileInfoResult,
+                    firstProject = makeFakeProjectDirectory("fakeProject1", function (cb) {
+                        firstCB = cb;
+                    }),
+                    secondProject = makeFakeProjectDirectory("fakeProject2", function (cb) {
+                        secondCB = cb;
+                    });
+                
+                curProjectRoot = firstProject;
+                
+                // Ensure it's dirty to begin with
+                FileIndexManager.markDirty();
+                
+                // Request file infos for the first project. This should start a scan.
+                FileIndexManager.getFileInfoList("all").done(function (infos) {
+                    firstFileInfoResult = infos;
+                });
+                
+                // "Switch" to a new project
+                curProjectRoot = secondProject;
+                
+                // Mark it dirty again without making a new request. This should still cause the scan to restart.
+                FileIndexManager.markDirty();
+                
+                // "Complete" the first scan's read request
+                firstCB([{ isFile: true, name: "fileInFirstProject.js", fullPath: "fileInFirstProject.js" }]);
+                
+                // Since the first scan was aborted, we shouldn't have gotten any result for it.
+                expect(firstFileInfoResult).toBeUndefined();
+                
+                // "Complete" the second scan's read request
+                secondCB([{ isFile: true, name: "fileInSecondProject.js", fullPath: "fileInSecondProject.js" }]);
+                
+                // Now the initial caller should have received the info from the second project.
+                expect(firstFileInfoResult.length).toBe(1);
+                expect(firstFileInfoResult[0].name).toEqual("fileInSecondProject.js");
+                
+                // Each readEntries should only have been called once.
+                expect(firstProject.readEntriesSpy.callCount).toBe(1);
+                expect(secondProject.readEntriesSpy.callCount).toBe(1);
+            });
+            
             it("should not start a new scan if another scan is requested while not dirty", function () {
                 var firstCB, secondCB, firstFileInfoResult, secondFileInfoResult;
                 curProjectRoot = makeFakeProjectDirectory("fakeProject1", function (cb) {
