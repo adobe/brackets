@@ -891,3 +891,14 @@ dt,
 .form-stacked label {
     font-weight: @font-weight-semibold;
 }
+
+.alert {
+  text-shadow: none;
+  background-color: @tc-warning-background;
+  border: none;
+}
+.alert,
+.alert h4 {
+  // Specified for the h4 to prevent conflicts of changing @headingsColor
+  color: @tc-warning-text;
+}

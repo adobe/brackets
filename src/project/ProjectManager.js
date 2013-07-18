@@ -485,14 +485,15 @@ define(function (require, exports, module) {
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
                 sort :  function (a, b) {
+                    var a1 = $(a).text(),
+                        b1 = $(b).text();
+                    
+                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                     if (brackets.platform === "win") {
-                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                        var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
-                            b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
-                        return (a1 > b1) ? 1 : -1;
-                    } else {
-                        return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
+                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
+                    return FileUtils.compareFilenames(a1, b1, false);
                 }
             }).bind(
                 "before.jstree",
@@ -764,6 +765,15 @@ define(function (require, exports, module) {
 
     }
     
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
+    }
+    
+    
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
      * @return {!string} fullPath reference
@@ -824,7 +834,6 @@ define(function (require, exports, module) {
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-
     function _loadProject(rootPath, isUpdating) {
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
@@ -1098,18 +1107,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     *
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * @param {string} filename
+     * @param {boolean} isFolder
+     * @return {boolean} Returns true if no illegal characters are found
      */
-    function _checkForValidFilename(filename) {
+    function _checkForValidFilename(filename, isFolder) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.INVALID_FILENAME_TITLE,
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
                 Strings.INVALID_FILENAME_MESSAGE
             );
             return false;
@@ -1194,7 +1205,7 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!_checkForValidFilename(data.rslt.name)) {
+                if (!_checkForValidFilename(data.rslt.name, isFolder)) {
                     errorCleanup();
                     return;
                 }
@@ -1418,7 +1429,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -1514,13 +1525,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
