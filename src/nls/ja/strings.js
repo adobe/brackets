@@ -183,7 +183,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_LIVE_HIGHLIGHT": "!能=[6516940] Live Preview Highlight_=!",
+	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
