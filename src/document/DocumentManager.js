@@ -230,15 +230,9 @@ define(function (require, exports, module) {
      * @param {number=} index - insert into the working set list at this 0-based index
      * @param {boolean=} true to suppress redraw after removal
      */
-    function addToWorkingSet(file, index, suppressRedraw) {
-        var curIndex = findInWorkingSet(file.fullPath);
-        if (curIndex !== -1) {
-            // If doc is already in working set, don't add it again.
- //           if (index !== undefined && index >= 0 && index !== curIndex) {
- //               // If we're given a new index, just move it to the given index in the working set list
- //               var curItem = _workingSet.splice(curIndex, 1);
- //               _workingSet.splice(index, 0, curItem);
- //           }
+    function addToWorkingSet(file, index) {
+        // If doc is already in working set, don't add it again
+        if (findInWorkingSet(file.fullPath) !== -1) {
             return;
         }
         
