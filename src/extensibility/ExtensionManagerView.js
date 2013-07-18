@@ -60,6 +60,8 @@ define(function (require, exports, module) {
         this.$el = $("<div class='extension-list tab-pane' id='" + this.model.source + "'/>");
         this._$emptyMessage = $("<div class='empty-message'/>")
             .appendTo(this.$el);
+        this._$defaultMessage = $("<div class='default-message'/>")
+            .appendTo(this.$el).html(this.model.defaultMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
         this.model.initialize().done(function () {
@@ -226,14 +228,23 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Display an optional message above the extension list
+     * Display an optional message (hiding the extension list if displayed)
+     * @return {boolean} Returns true if a message is displayed
      */
     ExtensionManagerView.prototype._updateMessage = function () {
         if (this.model.message) {
             this._$emptyMessage.css("display", "block");
             this._$emptyMessage.html(this.model.message);
+            this._$defaultMessage.css("display", "none");
+            this._$table.css("display", "none");
+            
+            return true;
         } else {
             this._$emptyMessage.css("display", "none");
+            this._$defaultMessage.css("display", "block");
+            this._$table.css("display", "");
+            
+            return false;
         }
     };
     
@@ -245,16 +256,20 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._render = function () {
         var self = this,
             $item;
-        this._updateMessage();
+        
         this._$table.empty();
-        this.model.filterSet.forEach(function (id) {
-            var $item = self._itemViews[id];
-            if (!$item) {
-                $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
-                self._itemViews[id] = $item;
-            }
-            $item.appendTo(self._$table);
-        });
+        
+        if (!this._updateMessage()) {
+            this.model.filterSet.forEach(function (id) {
+                var $item = self._itemViews[id];
+                if (!$item) {
+                    $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
+                    self._itemViews[id] = $item;
+                }
+                $item.appendTo(self._$table);
+            });
+        }
+        
         $(this).triggerHandler("render");
     };
     

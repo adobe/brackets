@@ -107,7 +107,7 @@ define(function (require, exports, module) {
      * @type {string}
      * Default message to display to the user
      */
-    ExtensionManagerViewModel.prototype._defaultMessage = null;
+    ExtensionManagerViewModel.prototype.defaultMessage = null;
     
     /**
      * @type {string}
@@ -208,7 +208,7 @@ define(function (require, exports, module) {
         } else if (this.filterSet && this.filterSet.length === 0) {
             this.message = this.sortedFullSet && this.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS;
         } else {
-            this.message = this._defaultMessage;
+            this.message = null;
         }
     };
     
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
      */
     function RegistryViewModel() {
         ExtensionManagerViewModel.call(this);
-        this._defaultMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
+        this.defaultMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
     }
     
     RegistryViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);

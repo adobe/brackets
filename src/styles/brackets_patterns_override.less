@@ -611,6 +611,16 @@
 
         .empty-message {
             display: none;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            margin-top: -1em;
+            text-align: center;
+        }
+        
+        .default-message {
+            background-color: @tc-gray-panel;
+            display: none;
             padding: 1em;
         }
         
@@ -667,10 +677,6 @@
             .load-error {
                 display: inline-block;
                 margin-top: 240px;
-            }
-            .install,
-            .update {
-                width: 90px;
             }
         }
     }
