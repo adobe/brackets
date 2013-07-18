@@ -617,10 +617,10 @@ define(function (require, exports, module) {
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
-
+            
             var fileEntry;
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called with an untitled document path!");
+                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
                 result.reject();
             } else {
                 // log this document's Promise as pending
@@ -763,6 +763,8 @@ define(function (require, exports, module) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
+        
+        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
         if (!files) {
             return;

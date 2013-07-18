@@ -70,6 +70,9 @@ define(function (require, exports, module) {
     
     /** @type {Number} index to use for next, new Untitled document */
     var _nextUntitledIndexToUse = 1;
+    
+    /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
+    var USER_CANCELED = { userCanceled: true };
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -172,7 +175,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         if (!fullPath) {
-            console.log("doOpen() called without fullPath");
+            console.error("doOpen() called without fullPath");
             result.reject();
         } else {
             var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
@@ -325,20 +328,14 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=, suppressRedraw:boolean=}} Params for FILE_OPEN command
+     * @param {!{fullPath:string, index:number=, suppressRedraw:boolean=}} File to open and optional position in the working
+     *   set list (defaults to last)
      */
     function handleFileAddToWorkingSet(commandData) {
-        var deferred = new $.Deferred();
-
-        handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
             DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.suppressRedraw);
-            deferred.resolve();
-        }).fail(function (err) {
-            deferred.reject(err);
         });
-
-        return deferred.promise();
     }
 
     /**
@@ -434,7 +431,7 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
+        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, "", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .then(deferred.resolve, deferred.reject, deferred.notify)
@@ -442,17 +439,20 @@ define(function (require, exports, module) {
         };
 
         deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName(isFolder ? "Untitled" : "Untitled.js"); });
+        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled"); });
         return deferred;
     }
 
     /**
-     * Create a new untitled document
+     * Create a new untitled document in the working set, and make it the current document.
+     * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
-        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, ".js");
+        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, "");
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
+        
+        return new $.Deferred().resolve(doc).promise();
     }
     
     /**
@@ -488,24 +488,23 @@ define(function (require, exports, module) {
         );
     }
     
-    /** 
-     * Save the given document, which must not be null. Note: if there is an
-     * error, the promise is not rejected until the user has dimissed the dialog
-     * 
-     * @param {Document} docToSave 
-     * @return {$.Promise} - resolves with the file entry of the saved document
+    /**
+     * Saves a document to its existing path. Does NOT support untitled documents.
+     * @param {!Document} docToSave
+     * @return {$.Promise} a promise that is resolved with the FileEntry of docToSave (to mirror
+     *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            fileEntry = docToSave.file;
         
-        function handleError(error, fileEntry) {
+        function handleError(error) {
             _showSaveFileError(error.name, fileEntry.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
         }
 
-        var fileEntry = docToSave.file;
         if (docToSave.isDirty) {
             var writeError = false;
             
@@ -520,14 +519,14 @@ define(function (require, exports, module) {
                     };
                     writer.onerror = function (error) {
                         writeError = true;
-                        handleError(error, fileEntry);
+                        handleError(error);
                     };
 
                     // We don't want normalized line endings, so it's important to pass true to getText()
                     writer.write(docToSave.getText(true));
                 },
                 function (error) {
-                    handleError(error, fileEntry);
+                    handleError(error);
                 }
             );
         } else {
@@ -571,19 +570,23 @@ define(function (require, exports, module) {
      * are preserved in the new document.
      * When saving to the original document the document is saved as if save was called.
      * @param {Document} doc
-     * @param {Settings} properties of the original document's editor that need to be carried over to the new document
+     * @param {?{cursorPos:!Object, selection:!Object, scrollPos:!Object}} settings - properties of
+     *      the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
-     * @return {$.Promise} a promise that is resolved with the file entry of the saved document
+     * @return {$.Promise} a promise that is resolved with the saved file's FileEntry. Rejected in
+     *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
     function _doSaveAs(doc, settings) {
-        var fullPath,
+        var origPath,
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
-                
+        
         function _doSaveAfterSaveDialog(path) {
+            var newFile = new NativeFileSystem.FileEntry(path);
             
-            function _configureEditorAndResolve(file) {
+            // Reconstruct old doc's editor's view state, & finally resolve overall promise
+            function _configureEditorAndResolve() {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
@@ -592,10 +595,11 @@ define(function (require, exports, module) {
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
-                result.resolve(file);
+                result.resolve(newFile);
             }
             
-            function updateProject(file) {
+            // Replace old document with new one in open editor & working set
+            function openNewFile() {
                 var fileViewControllerPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
@@ -613,66 +617,56 @@ define(function (require, exports, module) {
 
                 // always configure editor after file is opened
                 fileViewControllerPromise.always(function () {
-                    _configureEditorAndResolve(file);
+                    _configureEditorAndResolve();
                     DocumentManager.refreshWorkingSet();	// since we suppressed redraw above, rebuild working set list
                 });
             }
             
             if (!path) {
-                // save as dialog was cancelled; workaround for #4418
-                return result.reject().promise();
+                // save as dialog was canceled; workaround for #4418
+                return result.reject(USER_CANCELED).promise();
             }
             
-            if (path === fullPath) {
+            if (path === origPath) {
                 return doSave(doc);
             }
             
-            // now save new document
-            var newPath = FileUtils.getDirectoryPath(path);
-            // create empty file,  FileUtils.writeText will create content.
-            brackets.fs.writeFile(path, "", NativeFileSystem._FSEncodings.UTF8, function (error) {
-                if (error) {
+            // First, write document's current text to new file
+            FileUtils.writeText(newFile, doc.getText()).done(function () {
+                // Add new file to project tree
+                ProjectManager.refreshFileTree().done(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // not in the working set has the side effect of adding it to the working set.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the working set
+                        // doRevert is side effect free in this case
+                        doRevert(doc).always(openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                }).fail(function (error) {
                     result.reject(error);
-                } else {
-                    DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
-                            ProjectManager.refreshFileTree().done(function () {
-                                // do not call doRevert unless the file is dirty.
-                                // doRevert on a file that is not dirty and not in the working set
-                                // has the side effect of adding the file to the working set.
-                                // we don't want that.
-                                if (doc.isDirty && !(doc.isUntitled())) {
-                                    // if the file is dirty it must be in the working set
-                                    // doRevert is side effect free in this case
-                                    doRevert(doc).always(function () {
-                                        updateProject(newDoc.file);
-                                    });
-                                } else {
-                                    updateProject(newDoc.file);
-                                }
-                            }).fail(function () {
-                                result.reject();
-                            });
-                        }).fail(function () {
-                            result.reject();
-                        });
-                    }).fail(function () {
-                        result.reject();
+                });
+            }).fail(function (error) {
+                _showSaveFileError(error.name, path)
+                    .done(function () {
+                        result.reject(error);
                     });
-                }
             });
         }
         
         if (doc) {
-            fullPath = doc.file.fullPath;
+            origPath = doc.file.fullPath;
             // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
-                saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
+                saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
-            defaultName = FileUtils.getBaseName(fullPath);
+            defaultName = FileUtils.getBaseName(origPath);
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
                 _doSaveAfterSaveDialog,
                 function (error) {
@@ -686,8 +680,11 @@ define(function (require, exports, module) {
     
     /**
      * Saves the given file. If no file specified, assumes the current document.
-     * @param {?{doc: Document}} commandData  Document to close, or null
-     * @return {$.Promise} a promise that is resolved after the save completes
+     * @param {?{doc: ?Document}} commandData  Document to close, or null
+     * @return {$.Promise} resolved with the saved file's FileEntry (which MAY DIFFER from the doc
+     *   passed in, if the doc was untitled). Rejected in case of IO error (after error dialog
+     *   dismissed), or if doc was untitled and the Save dialog was canceled (will be rejected with
+     *   USER_CANCELED object).
      */
     function handleFileSave(commandData) {
         var activeEditor = EditorManager.getActiveEditor(),
@@ -703,8 +700,6 @@ define(function (require, exports, module) {
                         cursorPos: activeEditor.getCursorPos(),
                         scrollPos: activeEditor.getScrollPos()
                     };
-                } else {
-                    settings = null;
                 }
                 
                 return _doSaveAs(doc, settings);
@@ -727,12 +722,24 @@ define(function (require, exports, module) {
     function saveAll() {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
+        var userCanceled = false;
         return Async.doSequentially(
             DocumentManager.getWorkingSet(),
             function (file) {
+                // Abort remaining saves if user canceled any Save dialog
+                if (userCanceled) {
+                    return (new $.Deferred()).reject().promise();
+                }
+                
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
-                    return handleFileSave({doc: doc});
+                    var savePromise = handleFileSave({doc: doc});
+                    savePromise.fail(function (error) {
+                        if (error === USER_CANCELED) {
+                            userCanceled = true;
+                        }
+                    });
+                    return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
                     return (new $.Deferred()).resolve().promise();
