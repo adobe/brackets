@@ -281,7 +281,7 @@ define(function (require, exports, module) {
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
                     
-                    $updateNotification.css("display", "inline-block");
+                    $updateNotification.css("display", "block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
                         $updateNotification.on("click", function () {
