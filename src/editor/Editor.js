@@ -363,6 +363,7 @@ define(function (require, exports, module) {
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
             matchBrackets: true,
+            matchTags: true,
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
