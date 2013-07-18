@@ -94,14 +94,12 @@ define(function (require, exports, module) {
     /**
      * Registers a new status indicator
      * @param {string} id Registration id of the indicator to be updated.
-     * @param {DOMNode} indicator Optional DOMNode for the indicator
-     * @param {boolean} visible Shows or hides the indicator over the statusbar.
-     * @param {string} style Sets the attribute "class" of the indicator.
-     * @param {string} tooltip Sets the attribute "title" of the indicator.
-     * @param {string} command Optional command name to execute on the indicator click.
-     * TODO Unused command parameter. Include command functionality for statusbar indicators.
+     * @param {DOMNode=} indicator Optional DOMNode for the indicator
+     * @param {boolean=} visible Shows or hides the indicator over the statusbar.
+     * @param {string=} style Sets the attribute "class" of the indicator.
+     * @param {string=} tooltip Sets the attribute "title" of the indicator.
      */
-    function addIndicator(id, indicator, visible, style, tooltip, command) {
+    function addIndicator(id, indicator, visible, style, tooltip) {
         if (!_init) {
             console.error("StatusBar API invoked before status bar created");
             return;
@@ -131,9 +129,8 @@ define(function (require, exports, module) {
      * @param {boolean} visible Shows or hides the indicator over the statusbar.
      * @param {string} style Sets the attribute "class" of the indicator.
      * @param {string} tooltip Sets the attribute "title" of the indicator.
-     * @param {string} command Optional command name to execute on the indicator click.
      */
-    function updateIndicator(id, visible, style, tooltip, command) {
+    function updateIndicator(id, visible, style, tooltip) {
         if (!_init) {
             console.error("StatusBar API invoked before status bar created");
             return;
