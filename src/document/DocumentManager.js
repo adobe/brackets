@@ -231,8 +231,14 @@ define(function (require, exports, module) {
      * @param {boolean=} true to suppress redraw after removal
      */
     function addToWorkingSet(file, index, suppressRedraw) {
-        // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // If doc is already in working set, don't add it again.
+ //           if (index !== undefined && index >= 0 && index !== curIndex) {
+ //               // If we're given a new index, just move it to the given index in the working set list
+ //               var curItem = _workingSet.splice(curIndex, 1);
+ //               _workingSet.splice(index, 0, curItem);
+ //           }
             return;
         }
         
