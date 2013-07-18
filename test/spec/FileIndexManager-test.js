@@ -90,19 +90,19 @@ define(function (require, exports, module) {
                 });
                 
                 // "Complete" the first scan's read request
-                firstCB([{ isFile: true, name: "fileInFirstProject.js", fullPath: "fileInFirstProject.js" }]);
+                firstCB([{ isFile: true, name: "test1FirstProjectFile.js", fullPath: "test1FirstProjectFile.js" }]);
                 
                 // Since the first scan was aborted, we shouldn't have gotten any result for it.
                 expect(firstFileInfoResult).toBeUndefined();
                 
                 // "Complete" the second scan's read request
-                secondCB([{ isFile: true, name: "fileInSecondProject.js", fullPath: "fileInSecondProject.js" }]);
+                secondCB([{ isFile: true, name: "test1SecondProjectFile.js", fullPath: "test1SecondProjectFile.js" }]);
                 
                 // Now both callers should have received the info from the second project.
                 expect(firstFileInfoResult.length).toBe(1);
-                expect(firstFileInfoResult[0].name).toEqual("fileInSecondProject.js");
+                expect(firstFileInfoResult[0].name).toEqual("test1SecondProjectFile.js");
                 expect(secondFileInfoResult.length).toBe(1);
-                expect(secondFileInfoResult[0].name).toEqual("fileInSecondProject.js");
+                expect(secondFileInfoResult[0].name).toEqual("test1SecondProjectFile.js");
                 
                 // Each readEntries should only have been called once.
                 expect(firstProject.readEntriesSpy.callCount).toBe(1);
@@ -135,17 +135,17 @@ define(function (require, exports, module) {
                 FileIndexManager.markDirty();
                 
                 // "Complete" the first scan's read request
-                firstCB([{ isFile: true, name: "fileInFirstProject.js", fullPath: "fileInFirstProject.js" }]);
+                firstCB([{ isFile: true, name: "test2FirstProjectFile.js", fullPath: "test2FirstProjectFile.js" }]);
                 
                 // Since the first scan was aborted, we shouldn't have gotten any result for it.
                 expect(firstFileInfoResult).toBeUndefined();
                 
                 // "Complete" the second scan's read request
-                secondCB([{ isFile: true, name: "fileInSecondProject.js", fullPath: "fileInSecondProject.js" }]);
+                secondCB([{ isFile: true, name: "test2SecondProjectFile.js", fullPath: "test2SecondProjectFile.js" }]);
                 
                 // Now the initial caller should have received the info from the second project.
                 expect(firstFileInfoResult.length).toBe(1);
-                expect(firstFileInfoResult[0].name).toEqual("fileInSecondProject.js");
+                expect(firstFileInfoResult[0].name).toEqual("test2SecondProjectFile.js");
                 
                 // Each readEntries should only have been called once.
                 expect(firstProject.readEntriesSpy.callCount).toBe(1);
@@ -180,13 +180,13 @@ define(function (require, exports, module) {
                 expect(curProjectRoot.readEntriesSpy.callCount).toBe(1);
                 
                 // "Complete" the scan's read request
-                firstCB([{ isFile: true, name: "fileInFirstProject.js", fullPath: "fileInFirstProject.js" }]);
+                firstCB([{ isFile: true, name: "test3ProjectFile.js", fullPath: "test3ProjectFile.js" }]);
                 
                 // Both callers should have received the info from the first project.
                 expect(firstFileInfoResult.length).toBe(1);
-                expect(firstFileInfoResult[0].name).toEqual("fileInFirstProject.js");
+                expect(firstFileInfoResult[0].name).toEqual("test3ProjectFile.js");
                 expect(secondFileInfoResult.length).toBe(1);
-                expect(secondFileInfoResult[0].name).toEqual("fileInFirstProject.js");
+                expect(secondFileInfoResult[0].name).toEqual("test3ProjectFile.js");
             });
         });
         
