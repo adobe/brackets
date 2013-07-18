@@ -378,6 +378,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "These extensions were created by third parties and have not been sanity checked.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     /**
      * Unit names

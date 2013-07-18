@@ -105,15 +105,21 @@ define(function (require, exports, module) {
     
     /**
      * @type {string}
-     * Default message to display to the user
+     * Info message to display to the user when listing extensions
      */
-    ExtensionManagerViewModel.prototype.defaultMessage = null;
+    ExtensionManagerViewModel.prototype.infoMessage = null;
     
     /**
      * @type {string}
      * An optional message to display to the user
      */
     ExtensionManagerViewModel.prototype.message = null;
+    
+    /**
+     * @private {$.Promise}
+     * Internal use only to track when initialization fails, see usage in _updateMessage.
+     */
+    ExtensionManagerViewModel.prototype._initializeFromSourcePromise = null;
     
     /**
      * Unregisters listeners when we're done.
@@ -266,7 +272,7 @@ define(function (require, exports, module) {
      */
     function RegistryViewModel() {
         ExtensionManagerViewModel.call(this);
-        this.defaultMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
+        this.infoMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
     }
     
     RegistryViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);

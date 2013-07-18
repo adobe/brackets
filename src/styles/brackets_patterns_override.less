@@ -533,6 +533,7 @@
             margin: 0;
             border-color: #c3c6c5;
             
+            /* Tab styling */
             > li > a {
                 min-width: 80px;
                 min-height: 60px;
@@ -559,18 +560,24 @@
                 }
             }
             
+            /* Remove border-left from the first tab */
+            > li:nth-child(1) > a {
+                border-left: transparent;
+            }
+            
+            /* Colors for the active tab, remove bottom border */
             > .active > a {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
         }
         
+        /* Search box */
         > :nth-child(2) {
             position: absolute;
             top: 15px;
             right: 15px;
         }
-
         .search {
             background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
@@ -608,9 +615,9 @@
         height: 400px;
         overflow-y: scroll;
         padding: 0;
+        background-color: @tc-gray-panel;
 
         .empty-message {
-            display: none;
             position: absolute;
             top: 50%;
             width: 100%;
@@ -618,9 +625,8 @@
             text-align: center;
         }
         
-        .default-message {
+        .info-message {
             background-color: @tc-gray-panel;
-            display: none;
             padding: 1em;
         }
         

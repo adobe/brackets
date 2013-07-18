@@ -225,7 +225,7 @@ define(function (require, exports, module) {
                     view.filter("");
                 });
                 
-                if (updateSearchDisabled()) {
+                if (!updateSearchDisabled()) {
                     $search.focus();
                 }
             });
@@ -257,4 +257,5 @@ define(function (require, exports, module) {
     });
     
     exports._performChanges = _performChanges;
+    exports._showDialog     = _showDialog;
 });
