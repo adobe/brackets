@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window, Mustache */
+/*global define, $, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -416,6 +416,9 @@ define(function (require, exports, module) {
     function doFindInFiles(scope) {
 
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
+                CommandManager.execute(Commands.EDIT_FIND);
+            });
             return;
         }
         

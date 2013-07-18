@@ -65,9 +65,10 @@ define(function (require, exports, module) {
     
     /**
      * Closes this inline widget and all its contained Editors
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     InlineWidget.prototype.close = function () {
-        EditorManager.closeInlineWidget(this.hostEditor, this);
+        return EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
@@ -88,6 +89,8 @@ define(function (require, exports, module) {
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
      * focus or measuring content, which require htmlContent to be in the DOM tree.
+     * IMPORTANT: onAdded() must ensure that hostEditor.setInlineWidgetHeight() is called at least once in order
+     * to set the initial height of the widget and animate it open.
      */
     InlineWidget.prototype.onAdded = function () {
         // Does nothing in base implementation.

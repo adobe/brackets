@@ -55,6 +55,14 @@ html, body {
     
     /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
     -webkit-font-smoothing: antialiased;
+    
+    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
+       It seems that we have to put it here rather than on the animated element in order to prevent the
+       entire window from flashing.
+       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
+    */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 body {
@@ -562,10 +570,22 @@ a, img {
 
 /* Styles for inline editors */
 .inline-widget {
+    position: relative;
+    overflow: hidden;
+
     background-color: @inline-background-color-1;
     min-width: 250px;
     cursor: default;
-    
+
+    &.animating {
+        // Make the animation use the GPU--especially important for retina.
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        
+        -webkit-transition: height 0.125s ease-out;
+        transition: height 0.125s ease-out;
+    }
+
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
         height: auto;
@@ -642,11 +662,14 @@ a, img {
         width: 100%;
         background: #d0d5d5;
         position: absolute;
-        -webkit-transition: height 0.1s ease-out;
-        -webkit-transition: top 0.1s ease-out;
         border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
         border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
         top: @top-margin;
+        
+        &.animate {
+            -webkit-transition: height 0.1s ease-out;
+            -webkit-transition: top 0.1s ease-out;
+        }
     }
     
     /*

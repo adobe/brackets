@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError     = require("file/NativeFileError"),
-        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -333,7 +332,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
@@ -346,7 +345,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
@@ -359,13 +358,77 @@ define(function (require, exports, module) {
     
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
-     * @param {string} full path to a file or directory
-     * @return {string} Returns the path to the parent directory of a file or the path of a directory 
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory
      */
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
     }
+
+    /**
+     * Get the base name of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        fullPath = canonicalizeFolderPath(fullPath);
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+    }
+
+    /**
+     * Get the filename extension.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getFilenameExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx      = baseName.lastIndexOf(".");
+
+        if (idx === -1) {
+            return "";
+        }
+
+        return baseName.substr(idx);
+    }
     
+    /**
+     * @private
+     * Get the file name without the extension.
+     * @param {string} filename File name of a file or directory
+     * @return {string} Returns the file name without the extension
+     */
+    function _getFilenameWithoutExtension(filename) {
+        var extension = getFilenameExtension(filename);
+        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
+    }
+    
+    /**
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the
+     * extension first and then the extensions to fix issue #4409
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
+     * @return {number} The result of the local compare function
+     */
+    function compareFilenames(filename1, filename2, extFirst) {
+        var ext1   = getFilenameExtension(filename1),
+            ext2   = getFilenameExtension(filename2),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase()),
+            cmpNames;
+        
+        if (brackets.platform === "win") {
+            filename1 = _getFilenameWithoutExtension(filename1);
+            filename2 = _getFilenameWithoutExtension(filename2);
+        }
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
+        
+        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+    }
+
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -386,4 +449,7 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getBaseName                    = getBaseName;
+    exports.getFilenameExtension           = getFilenameExtension;
+    exports.compareFilenames               = compareFilenames;
 });
