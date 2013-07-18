@@ -148,15 +148,15 @@ define(function (require, exports, module) {
             $search,
             $searchClear;
         
-        function toggleSearchEnabled() {
+        function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
-                disableSearch   = ($search.val() === "") &&
+                searchDisabled  = ($search.val() === "") &&
                                   (!model.filterSet || model.filterSet.length === 0);
             
-            $search.prop("disabled", disableSearch);
-            $searchClear.prop("disabled", disableSearch);
+            $search.prop("disabled", searchDisabled);
+            $searchClear.prop("disabled", searchDisabled);
             
-            return !disableSearch;
+            return searchDisabled;
         }
         
         // Open the dialog.
@@ -183,21 +183,36 @@ define(function (require, exports, module) {
             });
         
         // Initialize models and create a view for each model
-        var modelInitPromise = Async.doInParallel(models, function (model) {
+        var modelInitPromise = Async.doInParallel(models, function (model, index) {
             var view    = new ExtensionManagerView(),
                 promise = view.initialize(model);
             
-            promise.done(function () {
-                // Add the view to the dialog
-                view.$el.appendTo($(".modal-body", $dlg));
-                
-                views.push(view);
+            promise.always(function () {
+                views[index] = view;
             });
             
             return promise;
         }, true);
         
-        modelInitPromise.done(function () {
+        modelInitPromise.always(function () {
+            $(".spinner", $dlg).remove();
+            
+            views.forEach(function (view) {
+                view.$el.appendTo($(".modal-body", $dlg));
+            });
+            
+            // Update search UI before new tab is shown
+            $("a[data-toggle='tab']").each(function (index, tabElement) {
+                $(tabElement).on("show", function (event) {
+                    _activeTabIndex = index;
+                    
+                    // Focus the search input
+                    if (!updateSearchDisabled()) {
+                        $dlg.find(".search").focus();
+                    }
+                });
+            });
+            
             // Filter the views when the user types in the search field.
             $dlg.on("input", ".search", function (e) {
                 var query = $(this).val();
@@ -210,7 +225,7 @@ define(function (require, exports, module) {
                     view.filter("");
                 });
                 
-                if (toggleSearchEnabled()) {
+                if (updateSearchDisabled()) {
                     $search.focus();
                 }
             });
@@ -219,21 +234,7 @@ define(function (require, exports, module) {
             models.forEach(function (model, index) {
                 $(model).on("change", function () {
                     if (_activeTabIndex === index) {
-                        toggleSearchEnabled();
-                    }
-                });
-            });
-            
-            // Update search UI before new tab is shown
-            $("a[data-toggle='tab']").each(function (index, tabElement) {
-                $(tabElement).on("show", function (event) {
-                    _activeTabIndex = index;
-                    
-                    toggleSearchEnabled();
-            
-                    // Focus the search input
-                    if (!$search.prop("disabled")) {
-                        $dlg.find(".search").focus();
+                        updateSearchDisabled();
                     }
                 });
             });

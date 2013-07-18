@@ -548,7 +548,13 @@
                 
                 text-align: center;
                 
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.04);
+                    border-color: rgba(0, 0, 0, 0.04);
+                }
+                
                 > img {
+                    margin-top: 5px;
                     padding-bottom: 5px;
                 }
             }
@@ -600,17 +606,20 @@
     .modal-body {
         width: 730px;
         height: 400px;
-        text-align: center;
         overflow-y: scroll;
         padding: 0;
 
         .empty-message {
             display: none;
+            padding: 1em;
+        }
+        
+        .spinner {
             position: absolute;
             top: 50%;
-            width: 100%;
-            margin-top: -1em;
-            text-align: center;
+            left: 50%;
+            margin-top: -18px;
+            margin-left: -18px;
         }
 
         .extension-list {
@@ -655,18 +664,12 @@
                 vertical-align: middle;
                 width: 150px;
             }
-            .spinner {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                margin-top: -18px;
-                margin-left: -18px;
-            }
             .load-error {
                 display: inline-block;
                 margin-top: 240px;
             }
-            .install {
+            .install,
+            .update {
                 width: 90px;
             }
         }

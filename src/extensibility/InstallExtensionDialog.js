@@ -331,8 +331,10 @@ define(function (require, exports, module) {
             return this._dialogDeferred.promise();
         }
 
-        var context = $.extend({}, Strings);
-        context.isUpdate = this._isUpdate;
+        var context = {
+            Strings: Strings,
+            isUpdate: this._isUpdate
+        };
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
         // lifecycle of the dialog ourselves.

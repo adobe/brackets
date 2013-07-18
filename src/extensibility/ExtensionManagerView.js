@@ -62,20 +62,13 @@ define(function (require, exports, module) {
             .appendTo(this.$el);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
-        // Show the busy spinner and access the registry.
-        var $spinner = $("<div class='spinner large spin'/>")
-            .appendTo(this.$el);
         this.model.initialize().done(function () {
             self._setupEventHandlers();
-            self._render();
-        }).fail(function () {
-            $("<div class='alert error load-error'/>")
-                .text(Strings.EXTENSION_MANAGER_ERROR_LOAD)
-                .appendTo(self.$el);
         }).always(function () {
-            $spinner.remove();
+            self._render();
             result.resolve();
         });
+        
         return result.promise();
     };
     
@@ -132,7 +125,7 @@ define(function (require, exports, module) {
             .on("change", function (e, id) {
                 var extensions = self.model.extensions,
                     $oldItem = self._itemViews[id];
-                self._checkNoExtensions();
+                self._updateMessage();
                 if (self.model.filterSet.indexOf(id) === -1) {
                     // This extension is not in the filter set. Remove it from the view if we
                     // were rendering it previously.
@@ -220,7 +213,8 @@ define(function (require, exports, module) {
         context.allowUpdate = context.isCompatible && context.isInstalled &&
             !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
-        context.removalAllowed = !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+        context.removalAllowed = this.model.source === "installed" &&
+            !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
         
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
@@ -232,15 +226,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Checks if there are no extensions, and if so shows the "no extensions" message.
+     * Display an optional message above the extension list
      */
-    ExtensionManagerView.prototype._checkNoExtensions = function () {
-        if (this.model.filterSet.length === 0) {
+    ExtensionManagerView.prototype._updateMessage = function () {
+        if (this.model.message) {
             this._$emptyMessage.css("display", "block");
-            this._$emptyMessage.html(this.model.sortedFullSet && this.model.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS);
-            this._$table.css("display", "none");
+            this._$emptyMessage.html(this.model.message);
         } else {
-            this._$table.css("display", "");
             this._$emptyMessage.css("display", "none");
         }
     };
@@ -253,7 +245,7 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._render = function () {
         var self = this,
             $item;
-        this._checkNoExtensions();
+        this._updateMessage();
         this._$table.empty();
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];

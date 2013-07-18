@@ -375,6 +375,9 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "These extensions were created by third parties and have not been sanity checked.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     
     /**
      * Unit names
