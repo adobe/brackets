@@ -22,29 +22,27 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil:true */
-/*global window */
+/*global window, document:true, CollectionUtils:true */
 
 window.setTimeout(function () {
     "use strict";
     var deps = { "Mustache": window.Mustache, "jQuery": window.$, "CodeMirror": window.CodeMirror, "RequireJS": window.require };
-    var key, allOK = true;
-    for (key in deps) {
+    var key, missingDeps = [];
+    CollectionUtils.forEach(deps, function (val, key) {
         if (!deps[key]) {
-            allOK = false;
-            break;
+            missingDeps.push(key);
         }
-    }
-    if (allOK) {
+    });
+    if (missingDeps.length === 0) {
         return;
     }
     document.write("<h1>Missing libraries</h1>");
     document.write("<p>Oops! One or more required libraries could not be found.</p>");
     document.write("<ul>");
-    for (key in deps) {
-        if (!deps[key]) {
-            document.write("<li>" + key + "</li>");
-        }
-    }
+    missingDeps.forEach(function (key) {
+        document.write("<li>" + key + "</li>");
+    });
+
     document.write("</ul>");
     document.write("<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>");
     document.write("<pre>git submodule update --init</pre>");
