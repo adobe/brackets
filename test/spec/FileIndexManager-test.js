@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn */
+/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -48,18 +48,29 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should abort a running scan and start a new one if another scan is requested while dirty", function () {
-                var firstCB, secondCB, firstFileInfoResult, secondFileInfoResult;
-                curProjectRoot = {
-                    fullPath: "fakeProject1",
+            function makeFakeProjectDirectory(fakePath, fakeReadEntries) {
+                var readEntriesSpy = jasmine.createSpy().andCallFake(fakeReadEntries);
+                return {
+                    fullPath: fakePath,
                     createReader: function () {
                         return {
-                            readEntries: function (cb) {
-                                firstCB = cb;
-                            }
+                            readEntries: readEntriesSpy
                         };
-                    }
+                    },
+                    readEntriesSpy: readEntriesSpy
                 };
+            }
+            
+            it("should abort a running scan and start a new one if another scan is requested while dirty", function () {
+                var firstCB, secondCB, firstFileInfoResult, secondFileInfoResult,
+                    firstProject = makeFakeProjectDirectory("fakeProject1", function (cb) {
+                        firstCB = cb;
+                    }),
+                    secondProject = makeFakeProjectDirectory("fakeProject2", function (cb) {
+                        secondCB = cb;
+                    });
+                
+                curProjectRoot = firstProject;
                 
                 // Ensure it's dirty to begin with
                 FileIndexManager.markDirty();
@@ -70,16 +81,7 @@ define(function (require, exports, module) {
                 });
                 
                 // "Switch" to a new project
-                curProjectRoot = {
-                    fullPath: "fakeProject2",
-                    createReader: function () {
-                        return {
-                            readEntries: function (cb) {
-                                secondCB = cb;
-                            }
-                        };
-                    }
-                };
+                curProjectRoot = secondProject;
                 
                 // Mark it dirty again and start a second file info request before the first one has "read" its folder
                 FileIndexManager.markDirty();
@@ -101,20 +103,17 @@ define(function (require, exports, module) {
                 expect(firstFileInfoResult[0].name).toEqual("fileInSecondProject.js");
                 expect(secondFileInfoResult.length).toBe(1);
                 expect(secondFileInfoResult[0].name).toEqual("fileInSecondProject.js");
+                
+                // Each readEntries should only have been called once.
+                expect(firstProject.readEntriesSpy.callCount).toBe(1);
+                expect(secondProject.readEntriesSpy.callCount).toBe(1);
             });
             
             it("should not start a new scan if another scan is requested while not dirty", function () {
                 var firstCB, secondCB, firstFileInfoResult, secondFileInfoResult;
-                curProjectRoot = {
-                    fullPath: "fakeProject1",
-                    createReader: function () {
-                        return {
-                            readEntries: function (cb) {
-                                firstCB = cb;
-                            }
-                        };
-                    }
-                };
+                curProjectRoot = makeFakeProjectDirectory("fakeProject1", function (cb) {
+                    firstCB = cb;
+                });
                 
                 // Ensure it's dirty to begin with
                 FileIndexManager.markDirty();
@@ -135,6 +134,7 @@ define(function (require, exports, module) {
                 
                 // We shouldn't have started a second scan, so the project root should not have been requested again.
                 expect(ProjectManager.getProjectRoot.callCount).toBe(1);
+                expect(curProjectRoot.readEntriesSpy.callCount).toBe(1);
                 
                 // "Complete" the scan's read request
                 firstCB([{ isFile: true, name: "fileInFirstProject.js", fullPath: "fileInFirstProject.js" }]);
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                 expect(firstFileInfoResult.length).toBe(1);
                 expect(firstFileInfoResult[0].name).toEqual("fileInFirstProject.js");
                 expect(secondFileInfoResult.length).toBe(1);
-                expect(secondFileInfoResult[0].name).toEqual("fileInFirstProject.js");                
+                expect(secondFileInfoResult[0].name).toEqual("fileInFirstProject.js");
             });
         });
         

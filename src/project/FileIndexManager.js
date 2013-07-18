@@ -55,6 +55,7 @@ define(function (require, exports, module) {
     /**
      * Tracks whether _indexList should be considered dirty and invalid. Calls that access
      * any data in _indexList should call syncFileIndex prior to accessing the data.
+     * Note that if _scanDeferred is non-null, the index is dirty even if _indexListDirty is false.
      * @type {boolean}
      */
     var _indexListDirty = true;
@@ -62,6 +63,7 @@ define(function (require, exports, module) {
     /**
      * A serial number that we use to figure out if a scan has been restarted. When this
      * changes, any outstanding async callbacks for previous scans should no-op.
+     * @type {number}
      */
     var _scanID = 0;
 
@@ -165,6 +167,16 @@ define(function (require, exports, module) {
             Strings.ERROR_MAX_FILES_TITLE,
             Strings.ERROR_MAX_FILES
         );
+    }
+
+    /**
+     * Clears the fileInfo array for all the indexes in _indexList
+     * @private
+     */
+    function _clearIndexes() {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
+            index.fileInfos = [];
+        });
     }
 
     /* Recursively visits all files that are descendent of dirEntry and adds
@@ -280,27 +292,12 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
-    
-
-
-    
     // debug 
     function _logFileList(list) {
         list.forEach(function (fileInfo) {
             console.log(fileInfo.name);
         });
         console.log("length: " + list.length);
-    }
-    
-
-    /**
-     * Clears the fileInfo array for all the indexes in _indexList
-     * @private
-     */
-    function _clearIndexes() {
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
-            index.fileInfos = [];
-        });
     }
 
     /**
@@ -321,7 +318,6 @@ define(function (require, exports, module) {
      * @return {$.Promise} resolved when index has been updated
      */
     function syncFileIndex() {
-
         if (_indexListDirty) {
             _indexListDirty = false;
             PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
@@ -345,7 +341,7 @@ define(function (require, exports, module) {
                     //_logFileList(_indexList["all"].fileInfos);
                     //_logFileList(_indexList["css"].fileInfos);
                 });
-            return _scanDeferred;
+            return _scanDeferred.promise();
         } else {
             // If we're in the middle of a scan, return its promise, otherwise resolve immediately.
             return _scanDeferred ? _scanDeferred.promise() : new $.Deferred().resolve().promise();
