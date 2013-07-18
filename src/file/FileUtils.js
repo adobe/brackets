@@ -397,12 +397,12 @@ define(function (require, exports, module) {
     /**
      * @private
      * Get the file name without the extension.
-     * @param {string} filename file name of a file or directory
-     * @return {string} Returns the file real name and extension
+     * @param {string} filename File name of a file or directory
+     * @return {string} Returns the file name without the extension
      */
     function _getFilenameWithoutExtension(filename) {
         var extension = getFilenameExtension(filename);
-        return filename.replace(new RegExp(extension + "$"), "");
+        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
     }
     
     /**
