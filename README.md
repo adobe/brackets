@@ -48,26 +48,31 @@ You can choose a different folder to edit using *File > Open Folder*.
 Most of Brackets should be pretty self-explanatory, but for information on how
 to use its unique features, like Quick Edit and Live Development, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
-The [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions) 
-has a list of plug-ins that have been contributed.
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
 
+In addition to the core features built into Brackets, there is a large and growing
+community of developers building extensions that add all sorts of useful functionality.
+See the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions)
+for a list of extensions and instructions on how to install them.
+
 #### Need help?
 
-Having problems starting Brackets the first time, or not sure how to use brackets?  Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps you to fix common problems, & find extra help if needed.
+Having problems starting Brackets the first time, or not sure how to use brackets?  Please 
+review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
+you to fix common problems and find extra help if needed.
 
 
 Helping Brackets
 ----------------
 
-
 #### I found a bug!
 
-If you found a repeatable bug, and [troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting) tips didn't help, then be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
+If you found a repeatable bug, and [troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting) 
+tips didn't help, then be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
 Include steps to consistently reproduce the problem, actual vs. expected results, screenshots, and your OS and
 Brackets version number. Disable all extensions to verify the issue is a core Brackets bug.
-[Read more guidelines for filing good bugs...](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
+[Read more guidelines for filing good bugs.](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
 
 
 #### I have a new suggestion, but don't know how to program!
@@ -79,7 +84,9 @@ move it to the feature backlog for you.
 
 #### I want to help with the code!
 
-Awesome! _There are lots of ways you can help._ First read [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), then learn how to pull the repo and hack on Brackets [in the WIKI](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
+Awesome! _There are lots of ways you can help._ First read 
+[CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), 
+then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
