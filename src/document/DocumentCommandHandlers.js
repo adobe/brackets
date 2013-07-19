@@ -1167,14 +1167,12 @@ define(function (require, exports, module) {
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                         id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.OK
+                        text      : Strings.CMD_FILE_DELETE
                     }
                 ]
             )
                 .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        return;
-                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                    if (id === Dialogs.DIALOG_BTN_OK) {
                         ProjectManager.deleteItem(entry);
                     }
                 });
