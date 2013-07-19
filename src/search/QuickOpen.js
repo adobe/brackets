@@ -504,9 +504,7 @@ define(function (require, exports, module) {
             // match query against the full path (with gaps between query characters allowed)
             var searchResult;
             
-            if (!ProjectManager.isBinaryFile(fileInfo.name)) {
-                searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
-            }
+            searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             
             if (searchResult) {
                 searchResult.label = fileInfo.name;

@@ -85,7 +85,7 @@ define(function (require, exports, module) {
      * File names which are not showed in quick open dialog
      * @type {RegExp}
      */
-    var _binaryExclusionListRegEx = /\.svgz$|^\.jsz$|^\.zip$|^\.gz$|^\.htmz$|^\.htmlz$|^\.rar$|^\.tar$|^\.exe$|^\.bin$/;
+    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
 
     /**
      * @private
