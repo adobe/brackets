@@ -110,6 +110,8 @@ define(function (require, exports, module) {
             entry.installInfo.updateAvailable = false;
             entry.registryInfo.updateAvailable = false;
         }
+
+        $(exports).triggerHandler("registryUpdate", [id]);
     }
 
     /**
