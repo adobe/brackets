@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -37,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
+    "FILE"                              : "Datei",
+    "DIRECTORY"                         : "Ordner",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
@@ -47,6 +49,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Fehler beim Öffnen der Datei",
     "ERROR_OPENING_FILE"                : "Beim Öffnen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
+    "ERROR_OPENING_FILES"               : "Ein Fehler ist beim Öffnen der folgenden Dateien aufgetreten:",
     "ERROR_RELOADING_FILE_TITLE"        : "Fehler beim Laden der Änderungen",
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
@@ -172,6 +175,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Datei",
+    "CMD_FILE_NEW_UNTITLED"               : "Neu",
     "CMD_FILE_NEW"                        : "Neu",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
@@ -413,6 +417,7 @@ define({
     "LOCALE_SV"                                 : "Schwedisch",
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
+    "LOCALE_HU"                                 : "Ungarisch",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
@@ -435,7 +440,7 @@ define({
     "JSLINT_NO_ERRORS"                          : "Keine JSLint-Fehler – gute Arbeit!",
     "JSLINT_DISABLED"                           : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
 
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
     
     // extensions/default/WebPlatformDocs
