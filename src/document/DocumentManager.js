@@ -228,10 +228,19 @@ define(function (require, exports, module) {
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {boolean=} forceRedraw - if true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToWorkingSet(file, index) {
+    function addToWorkingSet(file, index, forceRedraw) {
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // File is in working set, but not at the specifically requested index - simple case to fix index
+            if (forceRedraw || (index !== undefined && index !== null && curIndex !== index)) {
+                var entry = _workingSet.splice(curIndex, 1)[0];
+                _workingSet.splice(index, 0, entry);
+                $(exports).triggerHandler("workingSetSort");
+            }
             return;
         }
         
@@ -305,8 +314,9 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file.
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!FileEntry} file
      * @param {boolean=} true to suppress redraw after removal
      */
@@ -495,9 +505,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
-     * expected that the UI has already confirmed with the user before calling this.
+     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
