@@ -375,7 +375,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "These extensions were created by third parties and have not been sanity checked.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",

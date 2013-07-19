@@ -1,9 +1,11 @@
 <div class="extension-manager-dialog modal">
     <div class="modal-header">
         <ul class="nav nav-tabs">
-            <li><a href="#installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{EXTENSIONS_INSTALLED_TITLE}}</a></li>
-            <li><a href="#registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{EXTENSIONS_AVAILABLE_TITLE}}</a></li>
-            <!--<li><a href="#updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{EXTENSIONS_UPDATES_TITLE}}</a></li>-->
+            <li><a href="#installed" class="installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a></li>
+            {{#showRegistry}}
+                <li><a href="#registry" class="registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{Strings.EXTENSIONS_AVAILABLE_TITLE}}</a></li>
+                <!--<li><a href="#updates" class="updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{Strings.EXTENSIONS_UPDATES_TITLE}}</a></li>-->
+            {{/showRegistry}}
         </ul>
         <div>
             <button class="search-clear"></button>
@@ -14,7 +16,7 @@
         <div class='spinner large spin'/>
     </div>
     <div class="modal-footer">
-        <button class="btn left install-from-url">{{INSTALL_FROM_URL}}</button>
-        <button class="dialog-button btn primary" data-button-id="close">{{CLOSE}}</button>
+        <button class="btn left install-from-url">{{Strings.INSTALL_FROM_URL}}</button>
+        <button class="dialog-button btn primary" data-button-id="close">{{Strings.CLOSE}}</button>
     </div>
 </div>
