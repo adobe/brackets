@@ -381,7 +381,7 @@ define(function (require, exports, module) {
                     return true;
                 }
                 
-                if (!showMatches && i < item.matches.length) {
+                if (showMatches && i < item.matches.length) {
                     // Add a row for each match in the file
                     searchItems = [];
                     
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
                         match = item.matches[i];
                         searchItems.push({
                             file:      searchList.length,
-                            item:      i,
+                            item:      searchItems.length,
                             line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1)),
                             pre:       match.line.substr(0, match.start.ch),
                             highlight: match.line.substring(match.start.ch, match.end.ch),
@@ -417,31 +417,31 @@ define(function (require, exports, module) {
                 }
             });
             
+            // Add the listeners for close, prev and next
+            $searchResults
+                .off(".searchList")  // Remove the old events
+                .one("click.searchList", ".close", function () {
+                    _hideSearchResults();
+                })
+                // The link to go the previous page
+                .one("click.searchList", ".left-triangle:not(.disabled)", function () {
+                    currentStart -= RESULTS_PER_PAGE;
+                    _showSearchResults();
+                })
+                // The link to go to the next page
+                .one("click.searchList", ".right-triangle:not(.disabled)", function () {
+                    currentStart += RESULTS_PER_PAGE;
+                    _showSearchResults();
+                });
+            
             // Insert the search results
             $searchContent
                 .empty()
                 .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
-                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
-            
-            $searchResults.one("click", ".close", function () {
-                _hideSearchResults();
-            });
-            
-            // The link to go the previous page
-            $searchResults.one("click", ".left-triangle:not(.disabled)", function () {
-                currentStart -= RESULTS_PER_PAGE;
-                _showSearchResults();
-            });
-            
-            // The link to go to the next page
-            $searchResults.one("click", ".right-triangle:not(.disabled)", function () {
-                currentStart += RESULTS_PER_PAGE;
-                _showSearchResults();
-            });
-            
-            // Add the click event listener directly on the table parent
-            $searchContent
+                .scrollTop(0)        // Otherwise scroll pos from previous contents is remembered
                 .off(".searchList")  // Remove the old events
+            
+                // Add the click event listener directly on the table parent
                 .on("click.searchList", function (e) {
                     var $row = $(e.target).closest("tr");
                     
@@ -479,14 +479,9 @@ define(function (require, exports, module) {
                     }
                 })
                 // Add the file to the working set on double click
-                .on("dblclick.searchList", function (e) {
-                    var $row = $(e.target).closest("tr");
-                    if ($row.length && !$row.hasClass("file-section")) {
-                        // Grab the required item data
-                        var item = searchList[$row.data("file")];
-                        
-                        FileViewController.addToWorkingSetAndSelect(item.fullPath);
-                    }
+                .on("dblclick.searchList", "tr:not(.file-section)", function (e) {
+                    var item = searchList[$(this).data("file")];
+                    FileViewController.addToWorkingSetAndSelect(item.fullPath);
                 })
                 // Restore the collapsed files
                 .find(".file-section").each(function () {
