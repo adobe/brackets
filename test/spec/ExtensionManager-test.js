@@ -136,6 +136,19 @@ define(function (require, exports, module) {
                     });
                 });
             });
+            
+            it("should trigger a registryUpdate event when updating the extension list from the registry", function () {
+                var registry, registryUpdateSpy;
+                runs(function () {
+                    registryUpdateSpy = jasmine.createSpy();
+                    $(ExtensionManager).on("registryUpdate", registryUpdateSpy);
+                    waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
+                });
+                mockLoadExtensions();
+                runs(function () {
+                    expect(registryUpdateSpy).toHaveBeenCalled();
+                });
+            });
     
             it("should fail if it can't access the registry", function () {
                 var gotDone = false, gotFail = false;
@@ -724,6 +737,17 @@ define(function (require, exports, module) {
                                 expect($button.prop("disabled")).toBeFalsy();
                             }
                         });
+                    });
+                });
+                
+                it("should show an update button for items that have an update available", function () {
+                    var id = "registered-extension";
+                    ExtensionManager._setExtensions(JSON.parse(mockExtensionList));
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=" + id + "]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeFalsy();
                     });
                 });
     

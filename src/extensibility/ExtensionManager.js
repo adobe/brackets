@@ -32,6 +32,8 @@
  *     statusChange - indicates that an extension has been installed/uninstalled or
  *         its status has otherwise changed. Second parameter is the id of the
  *         extension.
+ *     registryUpdate - indicates that an existing extension was synchronized
+ *         with new data from the registry.
  */
 
 define(function (require, exports, module) {
