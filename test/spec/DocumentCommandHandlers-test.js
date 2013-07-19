@@ -729,7 +729,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    // old file will appear in working set
+                    // old file will not appear in working set
                     expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
@@ -770,6 +770,58 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                });
+            });
+            
+            it("should maintain order within Working Set after Save As", function () {
+                var filePath    = testPath + "/test.js",
+                    newFilename = "testname.js",
+                    newFilePath = testPath + "/" + newFilename,
+                    index,
+                    targetDoc,
+                    promise;
+
+                runs(function () {
+                    // open the target file
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+                
+                runs(function () {
+                    index = DocumentManager.findInWorkingSet(filePath);
+                    targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
+                });
+
+                runs(function () {
+                    // create an untitled document so that the file opened above isn't the last item in the working set list
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+
+                runs(function () {
+                    // save the file opened above to a different filename
+                    DocumentManager.setCurrentDocument(targetDoc);
+                    
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Provide new filename", 1000);
+                });
+
+                runs(function () {
+                    // confirm that Save As maintains the file's same order within the working set list
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
+
+                    // close all the files
+                    var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "FILE_CLOSE_ALL");
+                    
+                    // Verify file exists & clean it up
+                    expectAndDelete(newFilePath);
                 });
             });
         });

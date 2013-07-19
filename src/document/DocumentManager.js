@@ -456,8 +456,10 @@ define(function (require, exports, module) {
      * 
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
+     * @param {number=} if defined, replace file at given index in working set list
+     * @param {boolean=} if defined, suppress redraw of working set list
      */
-    function setCurrentDocument(doc) {
+    function setCurrentDocument(doc, index, suppressRedraw) {
         
         // If this doc is already current, do nothing
         if (_currentDocument === doc) {
@@ -469,7 +471,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addToWorkingSet(doc.file);
+            addToWorkingSet(doc.file, index, suppressRedraw);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
