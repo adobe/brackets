@@ -25,7 +25,7 @@
 /*global define, $, PathUtils, window, Mustache */
 
 /*
- * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
+ * Adds a "find in files" command to allow the user to find all occurrences of a string in all files in
  * the project.
  * 
  * The keyboard shortcut is Cmd(Ctrl)-Shift-F.
@@ -34,7 +34,7 @@
  *  - Proper UI for both dialog and results
  *  - Refactor dialog class and share with Quick File Open
  *  - Search files in working set that are *not* in the project
- *  - Handle matches that span mulitple lines
+ *  - Handle matches that span multiple lines
  *  - Refactor UI from functionality to enable unit testing
  */
 
@@ -137,6 +137,7 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
      * Returns label text to indicate the search scope. Already HTML-escaped.
      * @param {?Entry} scope
      */
@@ -184,21 +185,21 @@ define(function (require, exports, module) {
     /**
      * Shows the search dialog
      * @param {?string} initialString Default text to prepopulate the search field with
-     * @param {?Entry} scope Search scope, or null to search whole proj
+     * @param {?Entry} scope Search scope, or null to search whole project
      * @returns {$.Promise} that is resolved with the string to search for
      */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
         var templateVars = {
-            value: initialString || "",
-            label: _labelForScope(scope)
-        };
-        var dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings));
+                value: initialString || "",
+                label: _labelForScope(scope)
+            },
+            dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
+            that       = this;
         
-        this.result = new $.Deferred();
-        this.modalBar = new ModalBar(dialogHTML, false);
+        this.result      = new $.Deferred();
+        this.modalBar    = new ModalBar(dialogHTML, false);
         var $searchField = $("input#searchInput");
-        var that = this;
         
         $searchField.get(0).select();
         $searchField
@@ -230,6 +231,10 @@ define(function (require, exports, module) {
     };
     
     
+    /**
+     * @private
+     * Hides the Search Results Panel
+     */
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
@@ -239,7 +244,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Searches throught the contents an returns an array of matches
+     * Searches through the contents an returns an array of matches
      * @param {string} contents
      * @param {RegExp} queryExpr
      * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
@@ -250,18 +255,15 @@ define(function (require, exports, module) {
             return null;
         }
         
-        var trimmedContents = contents;
-        var startPos = 0;
-        var matchStart;
-        var matches = [];
+        var match, lineNum, line, ch, matchLength,
+            lines   = StringUtils.getLines(contents),
+            matches = [];
         
-        var match;
-        var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum     = StringUtils.offsetToLineNum(lines, match.index);
-            var line        = lines[lineNum];
-            var ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            var matchLength = match[0].length;
+            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
+            line        = lines[lineNum];
+            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            matchLength = match[0].length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));
@@ -305,7 +307,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Shows the results in a table and adds the necesary event listeners
+     * Shows the results in a table and adds the necessary event listeners
      */
     function _showSearchResults() {
         if (!$.isEmptyObject(searchResults)) {
@@ -316,11 +318,6 @@ define(function (require, exports, module) {
                 numFiles++;
                 numMatches += item.matches.length;
             });
-            
-            // No more pages to show
-            if (currentStart > numMatches || currentStart < 0) {
-                return;
-            }
             
             // Show result summary in header
             var numMatchesStr = "";
@@ -344,33 +341,39 @@ define(function (require, exports, module) {
             var last = currentStart + RESULTS_PER_PAGE > numMatches ? numMatches : currentStart + RESULTS_PER_PAGE;
             
             // Insert the search summary
-            $searchSummary
-                .html(Mustache.render(searchSummaryTemplate, {
-                    summary:  summary,
-                    hasPages: numMatches > RESULTS_PER_PAGE,
-                    results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
-                    hasLess:  currentStart > 0,
-                    hasMore:  last < numMatches
-                }));
+            $searchSummary.html(Mustache.render(searchSummaryTemplate, {
+                summary:  summary,
+                hasPages: numMatches > RESULTS_PER_PAGE,
+                results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
+                hasPrev:  currentStart > 0,
+                hasNext:  last < numMatches
+            }));
             
             // Create the results template search list
-            var searchList = [];
-            var resultsDisplayed = 0, i;
-            var searchItems, match;
+            var searchItems, match, i,
+                searchList     = [],
+                matchesCounter = 0,
+                showMatches    = false;
             
             CollectionUtils.some(searchResults, function (item, fullPath) {
-                // Skip the items that will not fit in the results page
-                if (resultsDisplayed + item.matches.length < currentStart) {
-                    resultsDisplayed += item.matches.length;
-                    i = -1;
+                showMatches = true;
                 
-                // Only the first matches will be displayed filling the remaining space of the table 
-                } else if (resultsDisplayed < currentStart) {
-                    i = currentStart - resultsDisplayed;
-                    resultsDisplayed = currentStart;
-                    
-                // All the matches can be displayed
-                } else if (resultsDisplayed < last) {
+                // Since the amount of matches on this item plus the amount of matches we skipped until
+                // now is still smaller than the first match that we want to display, skip these.
+                if (matchesCounter + item.matches.length < currentStart) {
+                    matchesCounter += item.matches.length;
+                    showMatches = false;
+                
+                // If we still haven't skipped enough items to get to the first match, but adding the
+                // item matches to the skipped ones is greater the the first match we want to display,
+                // then we can display the matches from this item skipping the first ones
+                } else if (matchesCounter < currentStart) {
+                    i = currentStart - matchesCounter;
+                    matchesCounter = currentStart;
+                
+                // If we already skipped enough matches to get to the first match to display, we can start
+                // displaying from the first match of this item
+                } else if (matchesCounter < last) {
                     i = 0;
                 
                 // We can't display more items by now. Break the loop
@@ -378,10 +381,12 @@ define(function (require, exports, module) {
                     return true;
                 }
                 
-                if (i >= 0 && i < item.matches.length) {
+                if (!showMatches && i < item.matches.length) {
                     // Add a row for each match in the file
                     searchItems = [];
-                    while (i < item.matches.length && resultsDisplayed < last) {
+                    
+                    // Add matches until we get to the last match of this item, or filling the page
+                    while (i < item.matches.length && matchesCounter < last) {
                         match = item.matches[i];
                         searchItems.push({
                             file:      searchList.length,
@@ -393,7 +398,7 @@ define(function (require, exports, module) {
                             start:     match.start,
                             end:       match.end
                         });
-                        resultsDisplayed++;
+                        matchesCounter++;
                         i++;
                     }
                                         
@@ -418,24 +423,21 @@ define(function (require, exports, module) {
                 .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
                 .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
-            $searchResults.find(".close")
-                .one("click", function () {
-                    _hideSearchResults();
-                });
+            $searchResults.one("click", ".close", function () {
+                _hideSearchResults();
+            });
             
             // The link to go the previous page
-            $searchResults.find(".left-triangle:not(.disabled)")
-                .one("click", function () {
-                    currentStart -= RESULTS_PER_PAGE;
-                    _showSearchResults();
-                });
+            $searchResults.one("click", ".left-triangle:not(.disabled)", function () {
+                currentStart -= RESULTS_PER_PAGE;
+                _showSearchResults();
+            });
             
             // The link to go to the next page
-            $searchResults.find(".right-triangle:not(.disabled)")
-                .one("click", function () {
-                    currentStart += RESULTS_PER_PAGE;
-                    _showSearchResults();
-                });
+            $searchResults.one("click", ".right-triangle:not(.disabled)", function () {
+                currentStart += RESULTS_PER_PAGE;
+                _showSearchResults();
+            });
             
             // Add the click event listener directly on the table parent
             $searchContent
@@ -450,8 +452,8 @@ define(function (require, exports, module) {
                         $row.addClass("selected");
                         $selectedRow = $row;
                         
-                        var searchItem = searchList[$row.data("file")];
-                        var fullPath   = searchItem.fullPath;
+                        var searchItem = searchList[$row.data("file")],
+                            fullPath   = searchItem.fullPath;
                         
                         // This is a file title row, expand/collapse on click
                         if ($row.hasClass("file-section")) {
@@ -508,11 +510,12 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
      * @param {!FileInfo} fileInfo File in question
      * @param {?Entry} scope Search scope, or null if whole project
      * @return {boolean}
      */
-    function inScope(fileInfo, scope) {
+    function _inScope(fileInfo, scope) {
         if (scope) {
             if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
@@ -526,20 +529,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
      * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
      * a find operation across all files in the project.
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
-    function doFindInFiles(scope) {
+    function _doFindInFiles(scope) {
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
             return;
         }
         
-        var dialog = new FindInFilesDialog();
-        
         // Default to searching for the current selection
-        var currentEditor = EditorManager.getActiveEditor();
-        var initialString = currentEditor && currentEditor.getSelectedText();
+        var currentEditor = EditorManager.getActiveEditor(),
+            initialString = currentEditor && currentEditor.getSelectedText(),
+            dialog        = new FindInFilesDialog();
 
         searchResults      = {};
         currentQuery       = "";
@@ -560,7 +563,7 @@ define(function (require, exports, module) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
                                 var result = new $.Deferred();
                                 
-                                if (!inScope(fileInfo, scope)) {
+                                if (!_inScope(fileInfo, scope)) {
                                     result.resolve();
                                 } else {
                                     // Search one file
@@ -591,20 +594,23 @@ define(function (require, exports, module) {
             });
     }
     
-    /** Search within the file/subtree defined by the sidebar selection */
-    function doFindInSubtree() {
+    /**
+     * @private
+     * Search within the file/subtree defined by the sidebar selection
+     */
+    function _doFindInSubtree() {
         var selectedEntry = ProjectManager.getSelectedItem();
-        doFindInFiles(selectedEntry);
+        _doFindInFiles(selectedEntry);
     }
     
     
     /**
      * @private
-     * Shows the search results and tryes to restore the previous scroll and selection
+     * Shows the search results and tries to restore the previous scroll and selection
      */
     function _restoreSearchResults() {
-        var scrollTop = $searchContent.scrollTop();
-        var index     = $selectedRow ? $selectedRow.index() : null;
+        var scrollTop = $searchContent.scrollTop(),
+            index     = $selectedRow ? $selectedRow.index() : null;
         
         _showSearchResults();
         
@@ -635,7 +641,7 @@ define(function (require, exports, module) {
                 }
             });
             
-            // Restore the reesults if needed
+            // Restore the results if needed
             if (resultsChanged) {
                 _restoreSearchResults();
             }
@@ -660,7 +666,7 @@ define(function (require, exports, module) {
                 }
             });
             
-            // Restore the reesults if needed
+            // Restore the results if needed
             if (resultsChanged) {
                 _restoreSearchResults();
             }
@@ -684,6 +690,6 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
 });
