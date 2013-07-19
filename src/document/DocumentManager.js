@@ -63,7 +63,7 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
@@ -227,16 +227,18 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
-     * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {number=} index - position to add to list (defaults to end); -1 is ignored
      * @param {boolean=} forceRedraw - if true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
+        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        
         // If doc is already in working set, don't add it again
         var curIndex = findInWorkingSet(file.fullPath);
         if (curIndex !== -1) {
-            // File is in working set, but not at the specifically requested index - simple case to fix index
-            if (forceRedraw || (index !== undefined && index !== null && curIndex !== index)) {
+            // File is in working set, but not at the specifically requested index - only need to reorder
+            if (forceRedraw || (indexRequested && curIndex !== index)) {
                 var entry = _workingSet.splice(curIndex, 1)[0];
                 _workingSet.splice(index, 0, entry);
                 $(exports).triggerHandler("workingSetSort");
@@ -251,7 +253,7 @@ define(function (require, exports, module) {
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
         }
-        if ((index === undefined) || (index === null) || (index === -1)) {
+        if (!indexRequested) {
             // If no index is specified, just add the file to the end of the working set.
             _workingSet.push(file);
         } else {
@@ -270,11 +272,10 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        if ((index === undefined) || (index === null) || (index === -1)) {
-            $(exports).triggerHandler("workingSetAdd", file);
-        } else {
-            $(exports).triggerHandler("workingSetSort");
+        if (!indexRequested) {
+            index = _workingSet.length - 1;
         }
+        $(exports).triggerHandler("workingSetAdd", [file, index]);
     }
     
     /**
