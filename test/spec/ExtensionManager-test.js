@@ -802,14 +802,14 @@ define(function (require, exports, module) {
                    
                 });
                             
-                it("should show the spinner before the registry appears successfully and hide it after", function () {
+                xit("should show the spinner before the registry appears successfully and hide it after", function () {
                     setupViewWithFakeLoad();
                     expect($(".spinner", view.$el).length).toBe(1);
                     fakeLoadDeferred.resolve();
                     expect($(".spinner", view.$el).length).toBe(0);
                 });
                 
-                it("should show an error and remove the spinner if there is an error fetching the registry", function () {
+                xit("should show an error and remove the spinner if there is an error fetching the registry", function () {
                     setupViewWithFakeLoad();
                     fakeLoadDeferred.reject();
                     expect($(".spinner", view.$el).length).toBe(0);
