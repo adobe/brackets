@@ -1154,29 +1154,35 @@ define(function (require, exports, module) {
                 
                 describe("initialization", function () {
                     
-                    var $dlg, originalRegistry;
+                    var dialog, $dlg, originalRegistry;
             
                     // Sets up a view without actually loading any data--just for testing how we
                     // respond to the notifications.
                     beforeEach(function () {
-                        fakeLoadDeferred = new $.Deferred();
-                        spyOn(ExtensionManager, "downloadRegistry").andCallFake(function () {
-                            return fakeLoadDeferred.promise();
+                        runs(function () {
+                            fakeLoadDeferred = new $.Deferred();
+                            spyOn(ExtensionManager, "downloadRegistry").andCallFake(function () {
+                                return fakeLoadDeferred.promise();
+                            });
                         });
                     });
                     
                     afterEach(function () {
-                        $dlg.modal("hide");
-                        $dlg = null;
+                        runs(function () {
+                            dialog.close();
+                            waitsForDone(dialog.getPromise(), "ExtensionManagerDialog.close");
+                        });
                         
-                        brackets.config.extension_registry = originalRegistry;
+                        runs(function () {
+                            brackets.config.extension_registry = originalRegistry;
+                            dialog = null;
+                            $dlg = null;
+                        });
                     });
                     
                     function openDialog() {
-                        // Since downloadRegistry is mocked, we can assume synchronous operations
-                        // for these unit tests
-                        CommandManager.execute(Commands.FILE_EXTENSION_MANAGER);
-                        $dlg = $(".extension-manager-dialog");
+                        dialog = CommandManager.execute(Commands.FILE_EXTENSION_MANAGER);
+                        $dlg = dialog.getElement();
                     }
                     
                     function setRegistryURL(url) {
@@ -1185,31 +1191,39 @@ define(function (require, exports, module) {
                     }
                 
                     it("should show the spinner before the registry appears successfully and hide it after", function () {
-                        openDialog();
-                        expect($(".spinner", $dlg).length).toBe(1);
-                        fakeLoadDeferred.resolve();
-                        expect($(".spinner", $dlg).length).toBe(0);
+                        runs(function () {
+                            openDialog();
+                            expect($(".spinner", $dlg).length).toBe(1);
+                            fakeLoadDeferred.resolve();
+                            expect($(".spinner", $dlg).length).toBe(0);
+                        });
                     });
                     
                     it("should show an error and remove the spinner if there is an error fetching the registry", function () {
-                        openDialog();
-                        fakeLoadDeferred.reject();
-                        expect($(".spinner", $dlg).length).toBe(0);
-                        expect($("#registry .empty-message").text()).toBe(Strings.EXTENSION_MANAGER_ERROR_LOAD);
+                        runs(function () {
+                            openDialog();
+                            fakeLoadDeferred.reject();
+                            expect($(".spinner", $dlg).length).toBe(0);
+                            expect($("#registry .empty-message").text()).toBe(Strings.EXTENSION_MANAGER_ERROR_LOAD);
+                        });
                     });
                 
                     it("should hide the registry tab when no URL is specified", function () {
-                        setRegistryURL(null);
-                        openDialog();
-                        fakeLoadDeferred.resolve();
-                        expect($(".registry", $dlg).length).toBe(0);
+                        runs(function () {
+                            setRegistryURL(null);
+                            openDialog();
+                            fakeLoadDeferred.resolve();
+                            expect($(".registry", $dlg).length).toBe(0);
+                        });
                     });
                 
                     it("should show the registry tab when a URL is specified", function () {
-                        setRegistryURL("not null");
-                        openDialog();
-                        fakeLoadDeferred.resolve();
-                        expect($(".registry", $dlg).length).toBe(1);
+                        runs(function () {
+                            setRegistryURL("not null");
+                            openDialog();
+                            fakeLoadDeferred.resolve();
+                            expect($(".registry", $dlg).length).toBe(1);
+                        });
                     });
                 });
             });

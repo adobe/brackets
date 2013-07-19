@@ -141,7 +141,8 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
-        var $dlg,
+        var dialog,
+            $dlg,
             views   = [],
             $search,
             $searchClear,
@@ -164,10 +165,11 @@ define(function (require, exports, module) {
             return searchDisabled;
         }
         
-        // Open the dialog.
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(dialogTemplate, context)
-        ).done(function () {
+        // Open the dialog
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
+        
+        // When dialog closes, dismiss models and commit changes
+        dialog.done(function () {
             models.forEach(function (model) {
                 model.dispose();
             });
@@ -176,7 +178,7 @@ define(function (require, exports, module) {
         });
         
         // Create the view.
-        $dlg = $(".extension-manager-dialog");
+        $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
         
@@ -253,6 +255,8 @@ define(function (require, exports, module) {
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
             });
+        
+        return dialog;
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
@@ -261,5 +265,6 @@ define(function (require, exports, module) {
         $("#toolbar-extension-manager").click(_showDialog);
     });
     
+    // Unit tests
     exports._performChanges = _performChanges;
 });
