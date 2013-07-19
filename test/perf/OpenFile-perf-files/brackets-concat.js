@@ -36366,7 +36366,7 @@ define('utils/UpdateNotification',['require','exports','module','widgets/Dialogs
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
                     
-                    $updateNotification.css("display", "block");
+                    $updateNotification.css("display", "inline-block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
                         $updateNotification.on("click", function () {
@@ -74620,7 +74620,7 @@ define('utils/UpdateNotification',['require','exports','module','widgets/Dialogs
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
                     
-                    $updateNotification.css("display", "block");
+                    $updateNotification.css("display", "inline-block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
                         $updateNotification.on("click", function () {
