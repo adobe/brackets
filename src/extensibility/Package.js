@@ -470,7 +470,7 @@ define(function (require, exports, module) {
         // _nodeConnectionDeferred.done() to access it.
         var connectionTimeout = setTimeout(function () {
             console.error("[Extensions] Timed out while trying to connect to node");
-            _nodeConnectionDeferred.reject();
+            _nodeConnectionDeferred.reject("NodeConnection timeout");
         }, NODE_CONNECTION_TIMEOUT);
         
         var _nodeConnection = new NodeConnection();
