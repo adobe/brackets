@@ -23,7 +23,7 @@
 
 
 // FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
@@ -37,14 +37,7 @@ define(function (require, exports, module) {
         InlineWidget        = require("editor/InlineWidget").InlineWidget,
         CollectionUtils     = require("utils/CollectionUtils");
 
-    /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editor-holder").width();
-    }
-
+    
     /**
      * Shows or hides the dirty indicator
      * @private
@@ -64,7 +57,7 @@ define(function (require, exports, module) {
         var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
         
-        $dirtyIndicators.each(function (index, indicator) {
+        $dirtyIndicators.each(function () {
             $indicator = $(this);
             if ($indicator.data("fullPath") === doc.file.fullPath) {
                 _showDirtyIndicator($indicator, doc.isDirty);
@@ -147,6 +140,7 @@ define(function (require, exports, module) {
         // brackets_codemirror_overrides.css adds height:auto to CodeMirror
         // Inline editors themselves do not need to be sized, but layouts like
         // the one used in CSSInlineEditor do need some manual layout.
+        return undefined;
     };
 
     /**
@@ -276,9 +270,7 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     InlineTextEditor.prototype._updateLineRange = function (editor) {
-        var oldStartLine    = this._startLine,
-            oldEndLine      = this._endLine,
-            oldLineCount    = this._lineCount;
+        var oldStartLine = this._startLine;
 
         this._startLine = editor.getFirstVisibleLine();
         this._endLine = editor.getLastVisibleLine();

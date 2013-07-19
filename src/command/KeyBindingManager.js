@@ -21,8 +21,7 @@
  * 
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 /*unittests: KeyBindingManager */
 
@@ -144,7 +143,7 @@ define(function (require, exports, module) {
             return (left.length > 0 && left === right);
         }
         
-        origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
+        origDescriptor.split("-").forEach(function parseDescriptor(ele) {
             if (_compareModifierString("ctrl", ele)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
@@ -198,9 +197,10 @@ define(function (require, exports, module) {
         // by subtracting KeyEvent.DOM_VK_0 from keycode. ie. [48-57] --> [0-9]
         if (keycode >= KeyEvent.DOM_VK_0 && keycode <= KeyEvent.DOM_VK_9) {
             return String(keycode - KeyEvent.DOM_VK_0);
+        }
         // Do the same with the numpad numbers
         // by subtracting KeyEvent.DOM_VK_NUMPAD0 from keycode. ie. [96-105] --> [0-9]
-        } else if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
+        if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
             return String(keycode - KeyEvent.DOM_VK_NUMPAD0);
         }
         
@@ -544,7 +544,7 @@ define(function (require, exports, module) {
         
         if (!keyBindings) { return; }
         
-        if (typeof (command) === "string") {
+        if (typeof command === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
             return [];
         }
         
-        if (typeof (command) === "string") {
+        if (typeof command === "string") {
             commandID = command;
         } else {
             commandID = command.getID();

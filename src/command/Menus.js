@@ -22,15 +22,14 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, MouseEvent */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Global              = require("utils/Global"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -369,13 +368,10 @@ define(function (require, exports, module) {
                 $relativeElement = $listElem;
                 while (true) {
                     $listElem = (position === FIRST_IN_SECTION ? $listElem.prev() : $listElem.next());
-                    if ($listElem.length === 0) {
+                    if ($listElem.length === 0 || $listElem.find(".divider").length > 0) {
                         break;
-                    } else if ($listElem.find(".divider").length > 0) {
-                        break;
-                    } else {
-                        $relativeElement = $listElem;
                     }
+                    $relativeElement = $listElem;
                 }
                 
             } else {
@@ -400,7 +396,8 @@ define(function (require, exports, module) {
             
             return $relativeElement;
             
-        } else if (position && position !== FIRST && position !== LAST) {
+        }
+        if (position && position !== FIRST && position !== LAST) {
             console.error("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
             return null;
         }
@@ -423,7 +420,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (typeof (command) === "string") {
+        if (typeof command === "string") {
             var commandObj = CommandManager.get(command);
             if (!commandObj) {
                 console.error("removeMenuItem(): command not found: " + command);
@@ -481,7 +478,6 @@ define(function (require, exports, module) {
         var menuID = this.id,
             id,
             $menuItem,
-            $link,
             menuItem,
             name,
             commandID;
@@ -491,7 +487,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        if (typeof (command) === "string") {
+        if (typeof command === "string") {
             if (command === DIVIDER) {
                 name = DIVIDER;
                 commandID = _getNextMenuItemDividerID();

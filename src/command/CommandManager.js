@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
  /**
@@ -92,9 +92,8 @@ define(function (require, exports, module) {
             // If command does not return a promise, assume that it handled the
             // command and return a resolved promise
             return (new $.Deferred()).resolve().promise();
-        } else {
-            return result;
         }
+        return result;
     };
 
     /** @return {boolean} */
@@ -243,9 +242,8 @@ define(function (require, exports, module) {
             }
             
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
-        } else {
-            return (new $.Deferred()).reject().promise();
         }
+        return (new $.Deferred()).reject().promise();
     }
 
     // Define public API

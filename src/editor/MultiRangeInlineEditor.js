@@ -23,7 +23,7 @@
 
 // FUTURE: Merge part (or all) of this class with InlineTextEditor
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
 
 /**
@@ -45,8 +45,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        CommandManager      = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils");
+        CommandManager      = require("command/CommandManager");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -140,7 +139,6 @@ define(function (require, exports, module) {
         var $rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
         
         // create range list & add listeners for range textrange changes
-        var rangeItemText;
         this._ranges.forEach(function (range) {
             // Create list item UI
             var $rangeItem = $(window.document.createElement("li")).appendTo($rangeList);
@@ -222,8 +220,6 @@ define(function (require, exports, module) {
         }
         
         this._selectedRangeIndex = newIndex;
-        
-        var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
         this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
 
@@ -490,9 +486,8 @@ define(function (require, exports, module) {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
         if (focusedWidget instanceof MultiRangeInlineEditor) {
             return focusedWidget;
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**

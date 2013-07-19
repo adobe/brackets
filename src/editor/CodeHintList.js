@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window, brackets, Mustache */
 
 define(function (require, exports, module) {
@@ -359,7 +359,9 @@ define(function (require, exports, module) {
                 
                 // Let the event bubble.
                 return false;
-            } else if (keyCode === KeyEvent.DOM_VK_UP) {
+            }
+            
+            if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);

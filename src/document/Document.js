@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 define(function (require, exports, module) {
@@ -228,14 +228,14 @@ define(function (require, exports, module) {
             }
             return codeMirrorText;
             
-        } else {
-            // Optimized path that doesn't require creating master editor
-            if (useOriginalLineEndings) {
-                return this._text;
-            } else {
-                return this._text.replace(/\r\n/g, "\n");
-            }
         }
+        
+        // Optimized path that doesn't require creating master editor
+        if (useOriginalLineEndings) {
+            return this._text;
+        }
+        
+        return this._text.replace(/\r\n/g, "\n");
     };
     
     /**

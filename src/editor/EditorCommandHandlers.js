@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
             lineUncomment  = false,
             newSelection;
         
-        var result, text, line;
+        var result, line;
         
         // Move the context to the first non-empty token.
         if (!ctx.token.type && ctx.token.string.trim().length === 0) {
@@ -290,9 +290,6 @@ define(function (require, exports, module) {
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
         if (lineExp.length && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
-            var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
-            var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
-            
             // Find if we aren't actually inside a block-comment
             result = true;
             while (result && _matchExpressions(ctx.token.string, lineExp)) {
@@ -381,8 +378,9 @@ define(function (require, exports, module) {
         // Make the edit
         if (invalidComment) {
             return;
+        }
         
-        } else if (lineUncomment) {
+        if (lineUncomment) {
             lineCommentPrefix(editor, linePrefixes);
         
         } else {
@@ -851,7 +849,7 @@ define(function (require, exports, module) {
         return (new $.Deferred()).reject().promise();
     }
 	
-	function _handleSelectAll() {
+    function _handleSelectAll() {
         var result = new $.Deferred(),
             editor = EditorManager.getFocusedEditor();
 
