@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache, window */
+/*global brackets, define, $, Mustache, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -143,10 +143,15 @@ define(function (require, exports, module) {
     function _showDialog() {
         var $dlg,
             views   = [],
-            models  = [new ExtensionManagerViewModel.InstalledViewModel(),
-                       new ExtensionManagerViewModel.RegistryViewModel()],
             $search,
-            $searchClear;
+            $searchClear,
+            context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
+            models  = [new ExtensionManagerViewModel.InstalledViewModel()];
+        
+        // Load registry only if the registry URL exists
+        if (context.showRegistry) {
+            models.push(new ExtensionManagerViewModel.RegistryViewModel());
+        }
         
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
@@ -161,7 +166,7 @@ define(function (require, exports, module) {
         
         // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(dialogTemplate, Strings)
+            Mustache.render(dialogTemplate, context)
         ).done(function () {
             models.forEach(function (model) {
                 model.dispose();
@@ -257,5 +262,4 @@ define(function (require, exports, module) {
     });
     
     exports._performChanges = _performChanges;
-    exports._showDialog     = _showDialog;
 });
