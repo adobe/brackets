@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
             });
         
-        return dialog;
+        return new $.Deferred().resolve(dialog).promise();
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);

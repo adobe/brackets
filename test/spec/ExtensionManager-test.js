@@ -1205,8 +1205,12 @@ define(function (require, exports, module) {
                     });
                     
                     function openDialog() {
-                        dialog = CommandManager.execute(Commands.FILE_EXTENSION_MANAGER);
-                        $dlg = dialog.getElement();
+                        // this command is synchronous
+                        CommandManager.execute(Commands.FILE_EXTENSION_MANAGER)
+                            .done(function (dialogResult) {
+                                dialog = dialogResult;
+                                $dlg = dialog.getElement();
+                            });
                     }
                     
                     function setRegistryURL(url) {
