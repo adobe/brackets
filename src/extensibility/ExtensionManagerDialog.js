@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache, window */
+/*global brackets, define, $, Mustache, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -141,12 +141,18 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
-        var $dlg,
+        var dialog,
+            $dlg,
             views   = [],
-            models  = [new ExtensionManagerViewModel.InstalledViewModel(),
-                       new ExtensionManagerViewModel.RegistryViewModel()],
             $search,
-            $searchClear;
+            $searchClear,
+            context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
+            models  = [new ExtensionManagerViewModel.InstalledViewModel()];
+        
+        // Load registry only if the registry URL exists
+        if (context.showRegistry) {
+            models.push(new ExtensionManagerViewModel.RegistryViewModel());
+        }
         
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
@@ -159,10 +165,11 @@ define(function (require, exports, module) {
             return searchDisabled;
         }
         
-        // Open the dialog.
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(dialogTemplate, Strings)
-        ).done(function () {
+        // Open the dialog
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
+        
+        // When dialog closes, dismiss models and commit changes
+        dialog.done(function () {
             models.forEach(function (model) {
                 model.dispose();
             });
@@ -171,7 +178,7 @@ define(function (require, exports, module) {
         });
         
         // Create the view.
-        $dlg = $(".extension-manager-dialog");
+        $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
         
@@ -248,6 +255,8 @@ define(function (require, exports, module) {
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
             });
+        
+        return new $.Deferred().resolve(dialog).promise();
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
@@ -256,6 +265,6 @@ define(function (require, exports, module) {
         $("#toolbar-extension-manager").click(_showDialog);
     });
     
+    // Unit tests
     exports._performChanges = _performChanges;
-    exports._showDialog     = _showDialog;
 });
