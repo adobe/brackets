@@ -53,6 +53,14 @@ define(function (require, exports, module) {
             .html(template)
             .insertBefore("#editor-holder");
         
+        // If something *other* than an editor (like another modal bar) has focus, set the focus 
+        // to the editor here, before opening up the new modal bar. This ensures that the old
+        // focused item has time to react and close before the new modal bar is opened.
+        // See bugs #4287 and #3424
+        if (!EditorManager.getFocusedEditor()) {
+            EditorManager.focusEditor();
+        }
+        
         if (autoClose) {
             this._autoClose = true;
             var $firstInput = this._getFirstInput()

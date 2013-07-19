@@ -355,6 +355,7 @@ a, img {
     padding: 10px 0 9px 12px;
     background: #3C3F41;
     color: @project-panel-text-2;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
 
 #sidebar {
@@ -510,6 +511,20 @@ a, img {
     height: @jstree-sprite-size;
 }
 
+/** Overriding jsTreeTheme.less
+*/
+.jstree-brackets .jstree-no-dots .jstree-open > ins {
+    background-position: 7px -8px;
+    -webkit-transform: translateZ(0) rotate(90deg);
+    -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
+}
+
+.jstree-brackets .jstree-no-dots .jstree-closed > ins {
+    background-position: 7px -8px;
+    -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
+    -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
+}
+
 /** Classes for icons from bracketSprites.png 
 */
 .bracket-sprite {
@@ -562,8 +577,8 @@ a, img {
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
         
-        -webkit-transition: height 0.15s ease-out;
-        transition: height 0.15s ease-out;
+        -webkit-transition: height 0.125s ease-out;
+        transition: height 0.125s ease-out;
     }
 
     .CodeMirror {
@@ -728,10 +743,14 @@ a, img {
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: -(@jstree-sprite-size*1 - 2px) -(@jstree-sprite-size*1 - 1px);
+        background-position: 7px 5px;
+        -webkit-transform: translateZ(0) rotate(90deg);
+        -webkit-transition: -webkit-transform 0.05s;           
     }
     &.collapsed {
-        background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
+        background-position: 7px 5px;
+        -webkit-transform: translateZ(0);
+        -webkit-transition: -webkit-transform 0.05s;           
     }
 }
 

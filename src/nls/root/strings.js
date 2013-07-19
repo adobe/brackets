@@ -305,10 +305,13 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Install",
+    "UPDATE"                               : "Update",
     "REMOVE"                               : "Remove",
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
+    "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
     "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
@@ -370,8 +373,12 @@ define({
     "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
     "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     /**
      * Unit names
