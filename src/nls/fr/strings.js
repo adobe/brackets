@@ -305,10 +305,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "Installer",
+	"UPDATE": "Mettre à jour",
 	"REMOVE": "Supprimer",
 	"OVERWRITE": "Remplacer",
 	"CANT_REMOVE_DEV": "Les extensions du dossier \"dev\" doivent être supprimées manuellement.",
+	"CANT_UPDATE": "[7105473] !é=The update isn't compatible with this version of {APP_NAME}.=!",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
+	"UPDATE_EXTENSION_TITLE": "Mettre à jour l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
@@ -370,8 +373,12 @@ define({
 	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
 	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
-	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur le bouton Installer à partir de l’URL se trouvant ci-dessous pour démarrer.",
+	"NO_EXTENSIONS": "[6967841] !é=No extensions installed yet.<br>Click on the Available tab above to get started.=!",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
+	"REGISTRY_SANITY_CHECK_WARNING": "[7105477] !é=These extensions were created by third parties and have not been sanity checked.=!",
+	"EXTENSIONS_INSTALLED_TITLE": "Installée",
+	"EXTENSIONS_AVAILABLE_TITLE": "[7105474] !é=Available=!",
+	"EXTENSIONS_UPDATES_TITLE": "[7105476] !é=Updates=!",
     
     /**
      * Unit names
