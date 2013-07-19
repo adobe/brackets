@@ -307,12 +307,10 @@ a, img {
     }
 }
 
-#update-notification {
+#main-toolbar #update-notification {
+    //#main-toolbar required for specificity
     .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,14px);
-    //}
-    display:none;
+    display: none;
 }
 
 #toolbar-go-live {
