@@ -54,7 +54,7 @@ Here are some ideas:
 
 * [Starter bugs](https://github.com/adobe/brackets/issues?labels=starter+bug&state=open) can
   provide a good intro to the Brackets code.
-* [Extension ideas](https://github.com/adobe/brackets/issues?labels=Extension+Idea&state=closed)
+* [Extension ideas](https://github.com/adobe/brackets/issues?labels=Extension+Idea&state=open)
   are feature requests that we think would be best implemented as an add-on; it's up to the
   Brackets community to write them!
 * [Starter features](http://bit.ly/BracketsBacklog) are a bit larger in scope. Be sure to discuss
@@ -88,7 +88,7 @@ High quality code and a top-notch user experience are very important in Brackets
 review pull requests to keep it that way. The better you follow the guidelines above, the more likely
 we are to accept your pull request - and the faster the code review will go.
 
- 
+
 ## The Code Review Process
 
 Brackets committers are responsible for reviewing all pull requests, providing feedback, and
