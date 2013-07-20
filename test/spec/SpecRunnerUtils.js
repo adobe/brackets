@@ -738,6 +738,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                console.error(err);
                 result.reject(err);
             } else {
                 result.resolve();
