@@ -1167,7 +1167,7 @@ define(function (require, exports, module) {
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                         id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.CMD_FILE_DELETE
+                        text      : Strings.DELETE
                     }
                 ]
             )
