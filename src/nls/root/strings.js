@@ -107,7 +107,7 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     "LIVE_DEV_CONFIRM"                  : "Confirm",
-    "LIVE_DEV_FILE_DELETE_CONFIRM"      : "Are you sure you want to delete <span class='dialog-filename'>{0}</span> ?",
+    "LIVE_DEV_FOLDER_DELETE_CONFIRM"    : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span> ?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
