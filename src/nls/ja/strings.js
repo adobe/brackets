@@ -375,7 +375,7 @@ define({
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "!能=[6967841] No extensions installed yet.<br>Click on the Available tab above to get started._=!",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
-	"REGISTRY_SANITY_CHECK_WARNING": "!能=[7105477] These extensions were created by third parties and have not been sanity checked._=!",
+	"REGISTRY_SANITY_CHECK_WARNING": "!能=[7105477] Be cautious when installing extensions from an unknown source._=!",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール完了",
 	"EXTENSIONS_AVAILABLE_TITLE": "使用可能",
 	"EXTENSIONS_UPDATES_TITLE": "!能=[7105476] Updates_=!",
