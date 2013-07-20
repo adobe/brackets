@@ -1166,10 +1166,10 @@ define(function (require, exports, module) {
                 ]
             
             ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    ProjectManager.deleteItem(_entry);
+                    if (id === Dialogs.DIALOG_BTN_OK) {
+                        ProjectManager.deleteItem(_entry);
+                    }
                 }
-            }
                 );
         } else {
             ProjectManager.deleteItem(_entry);
