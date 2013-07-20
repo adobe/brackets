@@ -414,16 +414,44 @@ define(function (require, exports, module) {
      * @return {number} The result of the local compare function
      */
     function compareFilenames(filename1, filename2, extFirst) {
-        var ext1   = getFilenameExtension(filename1),
+        var cmpNames, number1, number2, trimmed1, trimmed2,
+            ext1   = getFilenameExtension(filename1),
             ext2   = getFilenameExtension(filename2),
+            name1  = _getFilenameWithoutExtension(filename1),
+            name2  = _getFilenameWithoutExtension(filename2),
             cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase()),
-            cmpNames;
+            length = Math.min(name1.length, name2.length),
+            index  = length;
         
-        if (brackets.platform === "win") {
-            filename1 = _getFilenameWithoutExtension(filename1);
-            filename2 = _getFilenameWithoutExtension(filename2);
+        // To properly sort filnames that have the same prefix and a different number suffix, we
+        // retrieve the suffix number from the filename until is no longer a positive number
+        while (length >= 0) {
+            length--;
+            number1 = name1.substr(length);
+            number2 = name2.substr(length);
+            
+            if (!$.isNumeric(number1) || !$.isNumeric(number2) || number1 < 0 || number2 < 0) {
+                trimmed1 = name1.substr(0, length);
+                trimmed2 = name2.substr(0, length);
+                number1  = name1.substr(length + 1);
+                number2  = name2.substr(length + 1);
+                break;
+            }
         }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
+        
+        // If the prefix are the same and the suffix is a number, compare the numbers
+        if (trimmed1.localeCompare(trimmed2) === 0 && $.isNumeric(number1) && $.isNumeric(number2) &&
+                number1 >= 0 && number2 >= 0) {
+            cmpNames = parseInt(number1, 10) - parseInt(number2, 10);
+        
+        // If not, compare the filenames
+        } else {
+            if (brackets.platform === "win") {
+                filename1 = name1;
+                filename2 = name2;
+            }
+            cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase());
+        }
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
