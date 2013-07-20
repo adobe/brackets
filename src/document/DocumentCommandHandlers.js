@@ -1142,8 +1142,34 @@ define(function (require, exports, module) {
     }
     
     function handleFileDelete() {
-        var entry = ProjectManager.getSelectedItem();
-        ProjectManager.deleteItem(entry);
+        var _entry = ProjectManager.getSelectedItem();
+        var _filename = FileUtils.getBaseName(_entry.fullPath);
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.LIVE_DEV_CONFIRM,
+            StringUtils.format(
+                Strings.LIVE_DEV_FILE_DELETE_CONFIRM,
+                StringUtils.breakableUrl(_filename)
+            ),
+            [
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id        : Dialogs.DIALOG_BTN_OK,
+                    text      : Strings.DELETE
+                },
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                    id        : Dialogs.DIALOG_BTN_CANCEL,
+                    text      : Strings.CANCEL
+                }
+            ]
+            
+        ).done(function (id) {
+            if (id === Dialogs.DIALOG_BTN_OK) {
+                ProjectManager.deleteItem(_entry);
+            }
+        }
+            );
     }
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
