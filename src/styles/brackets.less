@@ -313,33 +313,23 @@ a, img {
     display: none;
 }
 
-#toolbar-go-live {
+#main-toolbar #toolbar-go-live {
 	//background-position is 0 0 for 24x24 icons
-	background-position: 0 0 !important;
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
     .sprite-icon(0, 0, 24px, 24px, "images/live_development_sprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,16px);
-    //}
     // 'Connected' state
     &.success {
-        .sprite-swap(0,32px);
+        .sprite-swap(0, 24px);
     }
-    //&.success:hover {
-    //    .sprite-swap(0,48px);
-    //}
     // 'Connection in progress' state
     &.info {
-        .sprite-swap(0,64px);
+        .sprite-swap(0, 48px);
     }
     // 'Out-of-sync' state
     &.out-of-sync {
-        .sprite-swap(0,80px);
+        .sprite-swap(0, 72px);
     }
-    //&.out-of-sync:hover {
-    //    .sprite-swap(0,96px);
-    //}
 }
 
 #toolbar-extension-manager {

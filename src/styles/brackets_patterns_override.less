@@ -116,16 +116,11 @@
 
     background: @main-toolbar-background-color;
     padding: 7px 0px;
-
-    // Ensure icons are vertically stacked & horizontally centered
-    .vbox;
-    .box-flex(1);
-    text-align: center;
-
+    
     .buttons {
         text-align: center;
         margin: 0;
-
+    
         > a {
             border-radius: 3px;
             background-position: 0 0;
@@ -133,21 +128,22 @@
             display: block;
             height: 24px;
             margin: 7px 0px 0px 3px;
-            padding: 0 !important;
-            position: static !important;
-            top: 0 !important;
-            left: 0 !important;
             width: 24px;
         }
         
         > a:hover {
             background-color: rgba(0, 0, 0, 0.24) !important;
         }
-
+    
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }
+    }     
+
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
