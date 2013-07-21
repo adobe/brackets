@@ -307,13 +307,12 @@ a, img {
     }
 }
 
-#main-toolbar #update-notification {
-    //#main-toolbar required for specificity
+#update-notification {
     .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
-    display: none;
+    display: none !important;
 }
 
-#main-toolbar #toolbar-go-live {
+#toolbar-go-live {
 	//background-position is 0 0 for 24x24 icons
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
