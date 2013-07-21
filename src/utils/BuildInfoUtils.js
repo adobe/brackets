@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         } else {
             // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
             // to a file in /refs which in turn contains the SHA
-            FileUtils.readAsText(path).done(function (text) {
+            var file = brackets.appFileSystem.getFileForPath(path);
+            FileUtils.readAsText(file).done(function (text) {
                 if (text.indexOf("ref: ") === 0) {
                     // e.g. "ref: refs/heads/branchname"
                     var basePath    = path.substr(0, path.lastIndexOf("/")),

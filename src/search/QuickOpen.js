@@ -42,7 +42,6 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileSystem          = require("filesystem/FileSystem"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -796,7 +795,7 @@ define(function (require, exports, module) {
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
         // TODO: FileSystem - use promise for getFileList()?
-        fileList = FileSystem.getFileList();
+        fileList = ProjectManager.getFileSystem().getFileList();
         this._filenameMatcher.reset();
         /* OLD CODE
         fileListPromise = FileSystem.getFileList()

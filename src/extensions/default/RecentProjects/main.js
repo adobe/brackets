@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
     
     
@@ -186,7 +185,8 @@ define(function (require, exports, module) {
                         var recentProjects = getRecentProjects(),
                             index = recentProjects.indexOf(path);
                         if (index !== -1) {
-                            var directory = FileSystem.getDirectoryForPath(path);
+                            // TODO: FileSystem - is this right?
+                            var directory = ProjectManager.getFileSystem().getDirectoryForPath(path);
                             
                             directory.exists().done(function (exists) {
                                 if (!exists) {

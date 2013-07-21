@@ -28,47 +28,59 @@
 define(function (require, exports, module) {
     "use strict";
     
-    // Master index
-    var _index = {};
+    /**
+     * Constructor
+     */
+    function FileIndex() {
+        this._index = {};
+        this._allFiles = [];
+    }
     
-    // Array of all files in the index
-    var _allFiles = [];
+    /**
+     * Master index
+     */
+    FileIndex.prototype._index = {};
+        
+    /**
+     * Array of all files in the index
+     */
+    FileIndex.prototype._allFiles = [];
     
     /**
      * Clear the file index cache.
      */
-    function clear() {
-        _index = {};
-        _allFiles = [];
-    }
+    FileIndex.prototype.clear = function () {
+        this._index = {};
+        this._allFiles = [];
+    };
     
     /**
      * Add an entry.
      *
      * @param {FileSystemEntry} entry The entry to add.
      */
-    function addEntry(entry) {
-        _index[entry.getPath()] = entry;
+    FileIndex.prototype.addEntry = function (entry) {
+        this._index[entry.getPath()] = entry;
         
         if (entry.isFile()) {
-            _allFiles.push(entry);
+            this._allFiles.push(entry);
         }
-    }
+    };
     
     /**
      * Remove an entry.
      * 
      * @param {FileSystemEntry} entry The entry to remove.
      */
-    function removeEntry(entry) {
+    FileIndex.prototype.removeEntry = function (entry) {
         var path = entry.getPath();
         
-        delete _index[path];
+        delete this._index[path];
         
         if (entry.isFile()) {
-            _allFiles.splice(_allFiles.indexOf(path), 1);
+            this._allFiles.splice(this._allFiles.indexOf(path), 1);
         }
-    }
+    };
     
     /**
      * Returns the cached entry for the specified path, or undefined
@@ -78,18 +90,19 @@ define(function (require, exports, module) {
      * @return {File|Directory} The entry for the path, or undefined if it hasn't 
      *              been cached yet.
      */
-    function getEntry(path) {
-        return _index[path];
-    }
+    FileIndex.prototype.getEntry = function (path) {
+        return this._index[path];
+    };
     
-    function getAllFiles() {
-        return _allFiles;   // TODO: Return a copy?
-    }
+    /**
+     * Returns all files in the index.
+     *
+     * @return {Array.<File>} Array of files.
+     */
+    FileIndex.prototype.getAllFiles = function () {
+        return this._allFiles;   // TODO: Return a copy?
+    };
     
     // Export public API
-    exports.clear       = clear;
-    exports.addEntry    = addEntry;
-    exports.removeEntry = removeEntry;
-    exports.getEntry    = getEntry;
-    exports.getAllFiles = getAllFiles;
+    module.exports = FileIndex;
 });

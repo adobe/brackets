@@ -68,9 +68,21 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSystem          = require("filesystem/FileSystem");
+        FileSystemManager   = require("filesystem/FileSystemManager");
     
 
+    /**
+     * @private
+     * Reference to the FileSystem used by the current project
+     */
+    var _fileSystem;
+    
+    /**
+     * @private
+     * Forward declaration for the _fileSystemChange function to make JSLint happy.
+     */
+    var _fileSystemChange;
+    
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -639,7 +651,7 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (FileSystem.shouldShow(entry.getPath())) {
+            if (_fileSystem.shouldShow(entry.getPath())) {
                 jsonEntry = {
                     data: entry.getName(),
                     attr: { id: "node" + _projectInitialLoad.id++ },
@@ -720,7 +732,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        FileSystem.getDirectoryContents(dirEntry)
+        _fileSystem.getDirectoryContents(dirEntry)
             .done(function (contents) {
                 processEntries(contents);
             })
@@ -839,7 +851,24 @@ define(function (require, exports, module) {
             // close all the old files
             DocumentManager.closeAll();
             
-            FileSystem.setProjectRoot(rootPath);
+            // Close the old file system
+            if (_fileSystem) {
+                _fileSystem.close();
+                $(_fileSystem).off("change", _fileSystemChange);
+                _fileSystem = null;
+            }
+            
+            // TODO: Load file system impl. This information should be stored with the project and 
+            // passed to this function.
+            var system = "";
+            
+            // !!HACK FOR DEMO - if the path is "/Stuff", load the Dropbox file system
+            if (rootPath === "/Stuff") {
+                system = "dropbox";
+            }
+            _fileSystem = FileSystemManager.createFileSystem(system);
+            _fileSystem.setProjectRoot(rootPath);
+            $(_fileSystem).on("change", _fileSystemChange);
         }
         
         // Clear project path map
@@ -858,7 +887,7 @@ define(function (require, exports, module) {
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
-            var rootEntry = FileSystem.getDirectoryForPath(rootPath);
+            var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
             rootEntry.exists()
                 .done(function (exists) {
                     if (exists) {
@@ -1060,7 +1089,7 @@ define(function (require, exports, module) {
                     _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.getPath(), null)
+                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.getPath(), null)
                         .done(function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -1258,22 +1287,29 @@ define(function (require, exports, module) {
                     errorCleanup();
                 };
                 
+                var newItemPath = selectionEntry.getPath() + "/" + data.rslt.name;
+                
                 if (isFolder) {
-                    // Use getDirectory() to create the new folder
-                    selectionEntry.getDirectory(
-                        data.rslt.name,
-                        {create: true, exclusive: true},
-                        successCallback,
-                        errorCallback
-                    );
+                    var directory = _fileSystem.getDirectoryForPath(newItemPath);
+                    
+                    directory.create()
+                        .done(function () {
+                            successCallback(directory);
+                        })
+                        .fail(function (err) {
+                            errorCallback(err);
+                        });
                 } else {
-                    // Use getFile() to create the new file
-                    selectionEntry.getFile(
-                        data.rslt.name,
-                        {create: true, exclusive: true},
-                        successCallback,
-                        errorCallback
-                    );
+                    // Create an empty file
+                    var file = _fileSystem.getFileForPath(newItemPath);
+                    
+                    file.write("")
+                        .done(function () {
+                            successCallback(file);
+                        })
+                        .fail(function (err) {
+                            errorCallback(err);
+                        });
                 }
             } else { //escapeKeyPressed
                 errorCleanup();
@@ -1523,12 +1559,23 @@ define(function (require, exports, module) {
         $(".jstree-rename-input").blur();
     }
     
-    function _fileSystemChange(event, item) {
+    /**
+     * Returns the FileSystem instance used for this project
+     */
+    function getFileSystem() {
+        return _fileSystem;
+    }
+    
+    /**
+     * @private 
+     * Respond to a FileSystem change event.
+     */
+    _fileSystemChange = function (event, item) {
         // TODO: Batch multiple changes into a single refresh
         if (item.isDirectory()) {
             refreshFileTree();
         }
-    }
+    };
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1550,7 +1597,6 @@ define(function (require, exports, module) {
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
-    $(FileSystem).on("change", _fileSystemChange);
 
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
@@ -1574,4 +1620,5 @@ define(function (require, exports, module) {
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;
+    exports.getFileSystem            = getFileSystem;
 });

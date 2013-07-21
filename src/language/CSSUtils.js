@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
+        ProjectManager      = require("project/ProjectManager"),
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
@@ -915,7 +915,7 @@ define(function (require, exports, module) {
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
         var result          = new $.Deferred(),
-            cssFilesResult  = FileSystem.getFileList(function (entry) {
+            cssFilesResult  = ProjectManager.getFileSystem().getFileList(function (entry) {
                 return PathUtils.filenameExtension(entry.getPath()) === ".css";
             });
         

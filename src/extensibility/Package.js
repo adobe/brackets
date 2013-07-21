@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
-        FileSystem           = require("filesystem/FileSystem"),
         NodeConnection       = require("utils/NodeConnection");
     
     var Errors = {
@@ -329,7 +328,7 @@ define(function (require, exports, module) {
                             result.localPath = downloadResult.localPath;
                             d.resolve(result);
                         } else {
-                            FileSystem.getFileForPath(downloadResult.localPath).unlink();
+                            brackets.appFileSystem.getFileForPath(downloadResult.localPath).unlink();
                             if (result.errors && result.errors.length > 0) {
                                 // Validation errors - for now, only return the first one
                                 state = STATE_FAILED;
@@ -348,7 +347,7 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        FileSystem.getFileForPath(downloadResult.localPath).unlink();
+                        brackets.appFileSystem.getFileForPath(downloadResult.localPath).unlink();
                         d.reject(err);  // TODO: needs to be err.message ?
                     });
             })
@@ -441,7 +440,7 @@ define(function (require, exports, module) {
                 d.reject(error);
             })
             .always(function () {
-                FileSystem.getFileForPath(path).unlink();
+                brackets.appFileSystem.getFileForPath(path).unlink();
             });
         return d.promise();
     }

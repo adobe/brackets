@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        FileSystem              = require("filesystem/FileSystem"),
+        FileSystemManager       = require("filesystem/FileSystemManager"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
@@ -161,6 +161,12 @@ define(function (require, exports, module) {
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
         
+        // Initialze the app file system. This is used to load application files like
+        // extensions and config.json.
+        // This file system is created with the "default" file system implementation,
+        // which is different when running in the shell and in browsers.
+        brackets.appFileSystem = FileSystemManager.createFileSystem();
+        
         EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet
@@ -212,7 +218,7 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            var indexFile = FileSystem.getFileForPath(initialProjectPath + "/index.html");
+                            var indexFile = brackets.appFileSystem.getFileForPath(initialProjectPath + "/index.html");
 
                             indexFile.exists().done(function (exists) {
                                 if (exists) {
@@ -305,7 +311,7 @@ define(function (require, exports, module) {
             FileSyncManager.syncOpenDocuments(); // TODO: FileSystem - remove now that we have file watchers?
         });
         
-        $(FileSystem).on("change", function (item) {
+        $(brackets.appFileSystem).on("change", function (item) {
             // TODO: FileSystem - only sync when window has focus?
             FileSyncManager.syncOpenDocuments();    // TODO: Batch multiple changes into a single sync operation
         });

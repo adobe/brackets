@@ -188,7 +188,7 @@ define(function (require, exports, module) {
      */
     function reloadDoc(doc) {
         
-        var promise = FileUtils.readAsText(doc.file.getPath());
+        var promise = FileUtils.readAsText(doc.file);
         
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);

@@ -33,8 +33,7 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var FileSystem          = require("filesystem/FileSystem"),
-        NativeFileError     = require("file/NativeFileError"),
+    var NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -44,16 +43,16 @@ define(function (require, exports, module) {
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
+     * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
      *  file's text content plus its timestamp, or rejected with a NativeFileError if
      *  the file can not be read.
      */
-    function readAsText(path) {
-        var result = new $.Deferred(),
-            file = FileSystem.getFileForPath(path);
+    function readAsText(file) {
+        var result = new $.Deferred();
 
         // Measure performance
-        var perfTimerName = PerfUtils.markStart("readAsText:\t" + path);
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + file.getPath());
         result.always(function () {
             PerfUtils.addMeasurement(perfTimerName);
         });
@@ -72,14 +71,13 @@ define(function (require, exports, module) {
     
     /**
      * Asynchronously writes a file as UTF-8 encoded text.
-     * @param {!string} path
+     * @param {!File} file File to write
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a NativeFileError.
      */
-    function writeText(path, text) {
-        var result = new $.Deferred(),
-            file = FileSystem.getFileForPath(path);
+    function writeText(file, text) {
+        var result = new $.Deferred();
         
         file.write(text)
             .done(function () {

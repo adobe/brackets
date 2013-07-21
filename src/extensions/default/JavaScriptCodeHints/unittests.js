@@ -1370,9 +1370,11 @@ define(function (require, exports, module) {
                 preferences;
 
             function getPreferences(path) {
+                var file = brackets.appFileSystem.getFileForPath(path);
+                
                 preferences = null;
 
-                FileUtils.readAsText(path).done(function (text) {
+                FileUtils.readAsText(file).done(function (text) {
                     var configObj = null;
                     try {
                         configObj = JSON.parse(text);

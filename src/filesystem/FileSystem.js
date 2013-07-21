@@ -32,50 +32,37 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex");
     
-    var _impls = {},    // File system implementations. Key is the string name, value is the _impl obj
-        _impl;          // Current file system implementation.
-    
-    var appshellFileSystem  = require("filesystem/impls/appshell/AppshellFileSystem"),
-        dropboxFileSystem   = require("filesystem/impls/dropbox/DropboxFileSystem");
-    
     /**
-     * Set the low-level implementation for file i/o
-     *
-     * @param {FileSystemImpl} impl File system implementation
+     * Constructor. FileSystem objects should not be constructed directly.
+     * Use FileSystemManager.createFileSystem() instead.
+     * @param {!FileSystemImpl} impl Low-level file system implementation to use.
      */
-    function _setFileSystemImpl(impl) {
-        // Clear old watchers
-        if (_impl) {
-            _impl.unwatchAll();
-        }
+    function FileSystem(impl) {
+        this._impl = impl;
+        this._impl.init();
         
-        _impl = impl;
-        _impl.init();
-        
-        FileIndex.clear();
+        // Create a file index
+        this._index = new FileIndex();
     }
     
     /**
-     * Register a file system implementation
-     * @param {string} name Name of the implementation
-     * @param {object} impl File system implementation. Must implement the methods 
-     *          described in FileSystemImpl. 
+     * The low-level file system implementation used by this object. 
+     * This is set in the constructor and cannot be changed.
      */
-    function registerFileSystemImpl(name, impl) {
-        _impls[name] = impl;
-    }
+    FileSystem.prototype._impl = null;
     
     /**
-     * Set the file system to use.
-     * @param {string} system The system to use. The system must be registered with
-     *        registerFileSystemImpl. The built-in systems are "appshell" and 
-     *        "dropbox", but extensions can register additional implementations.
+     * The FileIndex used by this object. This is initialized in the constructor.
      */
-    function setFileSystem(system) {
-        var impl = _impls[system];
-        
-        _setFileSystemImpl(impl || appshellFileSystem);
-    }
+    FileSystem.prototype._index = null;
+    
+    /**
+     * Close a file system. Clear all caches, indexes, and file watchers.
+     */
+    FileSystem.prototype.close = function () {
+        this._impl.unwatchAll();
+        this._index.clear();
+    };
     
     /**
      * Returns false for files and directories that are not commonly useful to display.
@@ -84,11 +71,11 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
-    function shouldShow(path) {
+    FileSystem.prototype.shouldShow = function (path) {
         var name = path.substr(path.lastIndexOf("/") + 1);
         
         return !name.match(_exclusionListRegEx);
-    }
+    };
     
     /**
      * Return a File object for the specified path.
@@ -97,16 +84,16 @@ define(function (require, exports, module) {
      *
      * @return {File} The File object. This file may not yet exist on disk.
      */
-    function getFileForPath(path) {
-        var file = FileIndex.getEntry(path);
+    FileSystem.prototype.getFileForPath = function (path) {
+        var file = this._index.getEntry(path);
         
         if (!file) {
-            file = new File(path, _impl);
-            FileIndex.addEntry(file);
+            file = new File(path, this._impl);
+            this._index.addEntry(file);
         }
                 
         return file;
-    }
+    };
      
     /**
      * Return an File object that does *not* exist on disk. Any attempts to write to this
@@ -116,8 +103,6 @@ define(function (require, exports, module) {
      */
     function newUnsavedFile() {
         // TODO: Implement me
-        
-        // return _impl.newUnsavedFile(options);
     }
     
     /**
@@ -127,16 +112,16 @@ define(function (require, exports, module) {
      *
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
-    function getDirectoryForPath(path) {
-        var directory = FileIndex.getEntry(path);
+    FileSystem.prototype.getDirectoryForPath = function (path) {
+        var directory = this._index.getEntry(path);
         
         if (!directory) {
-            directory = new Directory(path, _impl);
-            FileIndex.addEntry(directory);
+            directory = new Directory(path, this._impl);
+            this._index.addEntry(directory);
         }
         
         return directory;
-    }
+    };
     
     /**
      * Check if the specified path exists.
@@ -144,24 +129,19 @@ define(function (require, exports, module) {
      * @param {string} path The path to test
      * @return {$.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
      */
-    function pathExists(path) {
+    FileSystem.prototype.pathExists = function (path) {
         var result = new $.Deferred();
         
-        if (_impl) {
-            _impl.exists(path, function (exists) {
-                if (exists) {
-                    result.resolve();
-                } else {
-                    result.reject();
-                }
-            });
-        } else {
-            // No impl...
-            result.reject(); /* TODO: not found error*/
-        }
+        this._impl.exists(path, function (exists) {
+            if (exists) {
+                result.resolve();
+            } else {
+                result.reject();
+            }
+        });
         
         return result.promise();
-    }
+    };
     
     /**
      * Read the contents of a Directory. 
@@ -171,7 +151,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that is resolved with the contents of the directory.
      *         Contents is an Array of File and Directory objects.
      */
-    function getDirectoryContents(directory) {
+    FileSystem.prototype.getDirectoryContents = function (directory) {
         var i, entryPath, entry, result = new $.Deferred();
         
         if (directory._contentsPromise) {
@@ -185,18 +165,18 @@ define(function (require, exports, module) {
             return result.promise();
         }
         
-        _impl.readdir(directory.getPath(), function (err, contents, stats) {
+        this._impl.readdir(directory.getPath(), function (err, contents, stats) {
             directory._contents = [];
             
             // Instantiate content objects
             for (i = 0; i < stats.length; i++) {
                 entryPath = directory.getPath() + "/" + contents[i];
                 
-                if (shouldShow(entryPath)) {
+                if (this.shouldShow(entryPath)) {
                     if (stats[i].isFile()) {
-                        entry = getFileForPath(entryPath);
+                        entry = this.getFileForPath(entryPath);
                     } else {
-                        entry = getDirectoryForPath(entryPath);
+                        entry = this.getDirectoryForPath(entryPath);
                     }
                     
                     directory._contents.push(entry);
@@ -205,12 +185,12 @@ define(function (require, exports, module) {
             
             directory._contentsPromise = null;
             result.resolve(directory._contents);
-        });
+        }.bind(this));
         
         directory._contentsPromise = result.promise();
         
         return result.promise();
-    }
+    };
     
     /**
      * Return all indexed files, with optional filtering
@@ -221,15 +201,15 @@ define(function (require, exports, module) {
      *
      * @return {Array<File>} Array containing all indexed files.
      */
-    function getFileList(filterFunc) {
-        var result = FileIndex.getAllFiles();
+    FileSystem.prototype.getFileList = function (filterFunc) {
+        var result = this._index.getAllFiles();
         
         if (filterFunc) {
             return result.filter(filterFunc);
         }
         
         return result;
-    }
+    };
     
     /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
@@ -246,7 +226,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that will be resolved with the selected file(s)/directories, 
      *                     or rejected if an error occurred.
      */
-    function showOpenDialog(allowMultipleSelection,
+    FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
                             chooseDirectories,
                             title,
                             initialPath,
@@ -254,7 +234,7 @@ define(function (require, exports, module) {
         
         var result = new $.Deferred();
         
-        _impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
+        this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
             if (err) {
                 result.reject(err);
             } else {
@@ -263,7 +243,7 @@ define(function (require, exports, module) {
         });
         
         return result.promise();
-    }
+    };
     
     /**
      * Show a "Save" dialog and return the path of the file to save.
@@ -278,10 +258,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that will be resolved with the name of the file to save,
      *                     or rejected if an error occurred.
      */
-    function showSaveDialog(title, initialPath, proposedNewFilename) {
+    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename) {
         var result = new $.Deferred();
         
-        _impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
+        this._impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
             if (err) {
                 result.reject(err);
             } else {
@@ -290,26 +270,26 @@ define(function (require, exports, module) {
         });
         
         return result.promise();
-    }
+    };
     
     /**
      * @private
      * Recursively scan and index all entries in a directory
      */
-    function _scanDirectory(directoryPath) {
-        var directory = getDirectoryForPath(directoryPath);
+    FileSystem.prototype._scanDirectory = function (directoryPath) {
+        var directory = this.getDirectoryForPath(directoryPath);
         
-        getDirectoryContents(directory).done(function (entries) {
+        this.getDirectoryContents(directory).done(function (entries) {
             var i;
             
             for (i = 0; i < entries.length; i++) {
                 if (entries[i].isDirectory()) {
-                    _scanDirectory(entries[i].getPath());
+                    this._scanDirectory(entries[i].getPath());
                 }
             }
-        });
-        _impl.watchPath(directoryPath);
-    }
+        }.bind(this));
+        this._impl.watchPath(directoryPath);
+    };
     
     /**
      * @private
@@ -320,8 +300,8 @@ define(function (require, exports, module) {
      * @param {stat=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
-    function _watcherCallback(path, stat) {
-        var entry = FileIndex.getEntry(path);
+    FileSystem.prototype._watcherCallback = function (path, stat) {
+        var entry = this._index.getEntry(path);
         
         if (entry) {
             if (entry.isFile()) {
@@ -337,7 +317,7 @@ define(function (require, exports, module) {
                 entry._contents = entry._contentsPromise = undefined;
                 
                 // Read new contents
-                getDirectoryContents(entry)
+                this.getDirectoryContents(entry)
                     .done(function (contents) {
                         var i, len, item, path;
                         
@@ -352,18 +332,18 @@ define(function (require, exports, module) {
                             if (contents.indexOf(item) === -1) {
                                 if (item.isFile()) {
                                     // File removed, just remove from index.
-                                    FileIndex.removeEntry(item);
+                                    this._index.removeEntry(item);
                                 } else {
                                     // Remove the directory and all entries under it
                                     path = item.getPath();
-                                    var j, itemsToDelete = getFileList(_isInPath);
+                                    var j, itemsToDelete = this.getFileList(_isInPath);
                                     
                                     for (j = 0; j < itemsToDelete.length; j++) {
-                                        FileIndex.removeEntry(itemsToDelete[j]);
+                                        this._index.removeEntry(itemsToDelete[j]);
                                     }
                                     
-                                    FileIndex.removeEntry(item);
-                                    _impl.unwatchPath(item.getPath());
+                                    this._index.removeEntry(item);
+                                    this._impl.unwatchPath(item.getPath());
                                     // TODO: Remove and unwatch other directories contained within this directory.
                                     // getFileList() only returns files, and ignores directories.
                                 }
@@ -377,7 +357,7 @@ define(function (require, exports, module) {
                             item = contents[i];
                             if (!oldContents || oldContents.indexOf(item) === -1) {
                                 if (item.isDirectory()) {
-                                    _scanDirectory(item.getPath());
+                                    this._scanDirectory(item.getPath());
                                 }
                             }
                         }
@@ -388,7 +368,7 @@ define(function (require, exports, module) {
             $(exports).trigger("change", entry);
         }
         // console.log("File/directory change: " + path + ", stat: " + stat);
-    }
+    };
     
     /**
      * Set the root directory for the project. This clears any existing file cache
@@ -396,14 +376,17 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath The new project root.
      */
-    function setProjectRoot(rootPath) {
+    FileSystem.prototype.setProjectRoot = function (rootPath) {
         // !!HACK FOR DEMO - if rootPath === "/Stuff", switch to the dropbox file system
+        /*
         if (rootPath === "/Stuff") {
             setFileSystem("dropbox");
         } else {
             setFileSystem("appshell");
         }
+        */
         
+        // Remove trailing "/" from path
         if (rootPath && rootPath.length > 1) {
             if (rootPath[rootPath.length - 1] === "/") {
                 rootPath = rootPath.substr(0, rootPath.length - 1);
@@ -411,35 +394,16 @@ define(function (require, exports, module) {
         }
         
         // Clear file index
-        FileIndex.clear();
+        this._index.clear();
         
         // Initialize watchers
-        _impl.unwatchAll();
-        _impl.initWatchers(_watcherCallback);
+        this._impl.unwatchAll();
+        this._impl.initWatchers(this._watcherCallback);
         
         // Start indexing from the new root path
-        _scanDirectory(rootPath);
-    }
+        this._scanDirectory(rootPath);
+    };
     
-    // Register built-in file systems
-    registerFileSystemImpl("appshell", appshellFileSystem);
-    registerFileSystemImpl("dropbox", dropboxFileSystem);
-    
-    // Set initial file system
-    setFileSystem("appshell");
-    
-    // Export public API
-    exports.registerFileSystemImp   = registerFileSystemImpl;
-    exports.setFileSystem           = setFileSystem;
-    exports.shouldShow              = shouldShow;
-    exports.getFileForPath          = getFileForPath;
-    exports.newUnsavedFile          = newUnsavedFile;
-    exports.getDirectoryForPath     = getDirectoryForPath;
-    exports.pathExists              = pathExists;
-    exports.getDirectoryContents    = getDirectoryContents;
-    exports.getFileList             = getFileList;
-    exports.showOpenDialog          = showOpenDialog;
-    exports.showSaveDialog          = showSaveDialog;
-    exports.setProjectRoot          = setProjectRoot;
+    // Export the FileSystem class
+    module.exports = FileSystem;
 });
-

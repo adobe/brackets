@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        FileSystem       = require("filesystem/FileSystem"),
         Async            = require("utils/Async"),
         Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils");
@@ -132,7 +131,7 @@ define(function (require, exports, module) {
         Object.keys(this._idsToUpdate).forEach(function (id) {
             var filename = this._idsToUpdate[id].localPath;
             if (filename) {
-                FileSystem.getFileForPath(filename).unlink();
+                brackets.appFileSystem.getFileForPath(filename).unlink();
             }
         }.bind(this));
     };
@@ -382,7 +381,7 @@ define(function (require, exports, module) {
             return;
         }
         if (installationResult.localPath) {
-            FileSystem.getFileForPath(installationResult.localPath).unlink();
+            brackets.appFileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete this._idsToUpdate[id];
         $(this).triggerHandler("change", [id]);

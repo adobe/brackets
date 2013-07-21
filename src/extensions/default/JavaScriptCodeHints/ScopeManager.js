@@ -36,7 +36,6 @@ define(function (require, exports, module) {
 
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
@@ -79,7 +78,8 @@ define(function (require, exports, module) {
             library;
 
         files.forEach(function (i) {
-            FileUtils.readAsText(path + i).done(function (text) {
+            var file = brackets.appFileSystem.getFileForPath(path + i);
+            FileUtils.readAsText(file).done(function (text) {
                 library = JSON.parse(text);
                 builtinLibraryNames.push(library["!name"]);
                 ternEnvironment.push(library);
@@ -117,9 +117,10 @@ define(function (require, exports, module) {
             console.log("initPreferences: projectRootPath has no value");
         }
 
-        var path = projectRootPath + Preferences.FILE_NAME;
+        var path = projectRootPath + Preferences.FILE_NAME,
+            file = ProjectManager.getFileSystem().getFileForPath(path);
 
-        FileUtils.readAsText(path).done(function (text) {
+        FileUtils.readAsText(file).done(function (text) {
             var configObj = null;
             try {
                 configObj = JSON.parse(text);
@@ -173,10 +174,11 @@ define(function (require, exports, module) {
      * @param {!function(string)=} errorCallback - Callback for errors (optional).
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var directory = FileSystem.getDirectoryForPath(dir),
+        var fileSystem = ProjectManager.getFileSystem(),
+            directory = fileSystem.getDirectoryForPath(dir),
             files = [];
 
-        FileSystem.getDirectoryContents(directory)
+        fileSystem.getDirectoryContents(directory)
             .done(function (contents) {
                 contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.getPath(),
@@ -823,7 +825,7 @@ define(function (require, exports, module) {
                 // check for any files in project that end with the right path.
                 var fileName = HintUtils.splitPath(name).file;
                 
-                var files = FileSystem.getFileList(function (file) {
+                var files = ProjectManager.getFileSystem().getFileList(function (file) {
                     return file.getName() === fileName;
                 });
                 

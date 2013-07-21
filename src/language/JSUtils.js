@@ -34,9 +34,9 @@ define(function (require, exports, module) {
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
-        FileSystem              = require("filesystem/FileSystem"),
         CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
+        ProjectManager          = require("project/ProjectManager"),
         StringUtils             = require("utils/StringUtils");
 
     /**
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
                 result.resolve(false);
             } else {
                 // If a cache exists, check the timestamp on disk
-                var file = FileSystem.getFileForPath(fileInfo.getPath());
+                var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.getPath());
                 
                 file.stat()
                     .done(function (stat) {

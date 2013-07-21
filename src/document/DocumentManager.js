@@ -86,7 +86,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var DocumentModule      = require("document/Document"),
-        FileSystem          = require("filesystem/FileSystem"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
@@ -571,15 +570,16 @@ define(function (require, exports, module) {
             return pendingPromise;
         } else {
             var result = new $.Deferred(),
-                promise = result.promise();
+                promise = result.promise(),
+                fileSystem = ProjectManager.getFileSystem();
             
-            FileSystem.pathExists(fullPath)
+            fileSystem.pathExists(fullPath)
                 .done(function () {
                     // log this document's Promise as pending
                     getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
         
                     // create a new document
-                    var file = FileSystem.getFileForPath(fullPath),
+                    var file = fileSystem.getFileForPath(fullPath),
                         perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
         
                     result.done(function () {
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
                         PerfUtils.finalizeMeasurement(perfTimerName);
                     });
         
-                    FileUtils.readAsText(fullPath)
+                    FileUtils.readAsText(file)
                         .always(function () {
                             // document is no longer pending
                             delete getDocumentForPath._pendingDocumentPromises[fullPath];
@@ -721,7 +721,7 @@ define(function (require, exports, module) {
         // Add all files to the working set without verifying that
         // they still exist on disk (for faster project switching)
         files.forEach(function (value, index) {
-            filesToOpen.push(FileSystem.getFileForPath(value.file));
+            filesToOpen.push(ProjectManager.getFileSystem().getFileForPath(value.file));
             if (value.active) {
                 activeFile = value.file;
             }

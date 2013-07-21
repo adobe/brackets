@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        FileSystem          = require("filesystem/FileSystem"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
@@ -173,7 +172,7 @@ define(function (require, exports, module) {
                 .fail(function (fileError) {
                     FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
                         // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullPath));
+                        DocumentManager.removeFromWorkingSet(ProjectManager.getFileSystem().getFileForPath(fullPath));
                         EditorManager.focusEditor();
                         result.reject();
                     });
@@ -200,6 +199,8 @@ define(function (require, exports, module) {
     function _doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
+            var fileSystem = ProjectManager.getFileSystem();
+            
             // Create placeholder deferred
             result = new $.Deferred();
             
@@ -208,14 +209,14 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().getPath();
             }
             // Prompt the user with a dialog
-            FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
+            fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
                 .done(function (paths) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [];
                         paths.forEach(function (file) {
-                            filesToOpen.push(FileSystem.getFileForPath(file));
+                            filesToOpen.push(fileSystem.getFileForPath(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
@@ -324,6 +325,7 @@ define(function (require, exports, module) {
      */
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
+        var fileSystem = ProjectManager.getFileSystem();
         var suggestedName = baseFileName + fileExt;
 
         result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
@@ -334,7 +336,7 @@ define(function (require, exports, module) {
             }
             
             var path = dir + "/" + suggestedName;
-            var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
+            var entry = isFolder ? fileSystem.getDirectoryForPath(path) : fileSystem.getFileForPath(path);
             
             entry.exists().done(function (exists) {
                 if (exists) {
@@ -525,7 +527,7 @@ define(function (require, exports, module) {
     function doRevert(doc) {
         var result = new $.Deferred();
         
-        FileUtils.readAsText(doc.file.getPath())
+        FileUtils.readAsText(doc.file)
             .done(function (text, readTimestamp) {
                 doc.refreshText(text, readTimestamp);
                 result.resolve();
@@ -555,6 +557,7 @@ define(function (require, exports, module) {
         var fullPath,
             saveAsDefaultPath,
             defaultName,
+            fileSystem = ProjectManager.getFileSystem(),
             result = new $.Deferred();
                 
         function _doSaveAfterSaveDialog(path) {
@@ -594,11 +597,11 @@ define(function (require, exports, module) {
             }
             // now save new document
             // create empty file,  FileUtils.writeText will create content.
-            var newFile = FileSystem.getFileForPath(path);
+            var newFile = fileSystem.getFileForPath(path);
             newFile.write("")
                 .done(function (stat) {
                     DocumentManager.getDocumentForPath(path).done(function (newDoc) {
-                        FileUtils.writeText(newDoc.file.getPath(), doc.getText()).done(function () {
+                        FileUtils.writeText(newDoc.file, doc.getText()).done(function () {
                             ProjectManager.refreshFileTree().done(function () {
                                 // do not call doRevert unless the file is dirty.
                                 // doRevert on a file that is not dirty and not in the working set
@@ -627,7 +630,7 @@ define(function (require, exports, module) {
             fullPath = doc.file.getPath();
             saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             defaultName = PathUtils.parseUrl(fullPath).filename;
-            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
+            fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
                 .done(function (selection) {
                     _doSaveAfterSaveDialog(selection);
                 })

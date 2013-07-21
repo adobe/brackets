@@ -52,8 +52,6 @@ define(function (require, exports, module) {
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
-        FileSystem            = require("filesystem/FileSystem"),
-        //FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
@@ -71,7 +69,7 @@ define(function (require, exports, module) {
     
     var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 100,
+    var FIND_IN_FILES_MAX = 300,
         maxHitsFoundInFile = false,
         currentQuery = "",
         currentScope;
@@ -434,7 +432,7 @@ define(function (require, exports, module) {
                         return;
                     }
                     StatusBar.showBusyIndicator(true);
-                    var fileList = FileSystem.getFileList();
+                    var fileList = ProjectManager.getFileSystem().getFileList();
                     Async.doInParallel(fileList, function (file) {
                         var result = new $.Deferred();
                         

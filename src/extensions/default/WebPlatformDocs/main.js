@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var EditorManager        = brackets.getModule("editor/EditorManager"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        CSSUtils             = brackets.getModule("language/CSSUtils");
+        CSSUtils             = brackets.getModule("language/CSSUtils"),
+        ProjectManager       = brackets.getModule("project/ProjectManager");
     
     // Extension modules
     var InlineDocsViewer = require("InlineDocsViewer");
@@ -50,9 +51,10 @@ define(function (require, exports, module) {
         if (!_cssDocsPromise) {
             var result = new $.Deferred();
             
-            var path = ExtensionUtils.getModulePath(module, "css.json");
+            var path = ExtensionUtils.getModulePath(module, "css.json"),
+                file = ProjectManager.getFileSystem().getFileForPath(path);
             
-            FileUtils.readAsText(path)
+            FileUtils.readAsText(file)
                 .done(function (text) {
                     var jsonData;
                     try {
