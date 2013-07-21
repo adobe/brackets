@@ -179,11 +179,12 @@ define(function (require, exports, module) {
      * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
      *      Default is WORING_SET_VIEW.
      * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {boolean=} true to suppress redraw after removal
      * @return {!$.Promise}
      */
-    function addToWorkingSetAndSelect(fullPath, selectIn, index) {
+    function addToWorkingSetAndSelect(fullPath, selectIn, index, suppressRedraw) {
         var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index});
+            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index, suppressRedraw : suppressRedraw});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with

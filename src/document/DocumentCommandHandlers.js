@@ -168,10 +168,12 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
+     * @param {number=} if defined, replace file at given index in working set list
+     * @param {boolean=} if defined, suppress redraw of working set list
      * @return {$.Promise} a jQuery promise that will be resolved with a
      *  document for the specified file path, or rejected if the file can not be read.
      */
-    function doOpen(fullPath, silent) {
+    function doOpen(fullPath, silent, index, suppressRedraw) {
         var result = new $.Deferred();
 
         if (!fullPath) {
@@ -186,7 +188,7 @@ define(function (require, exports, module) {
             // Load the file if it was never open before, and then switch to it in the UI
             DocumentManager.getDocumentForPath(fullPath)
                 .done(function (doc) {
-                    DocumentManager.setCurrentDocument(doc);
+                    DocumentManager.setCurrentDocument(doc, index, suppressRedraw);
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
@@ -220,10 +222,12 @@ define(function (require, exports, module) {
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
+     * @param {number=} if defined, replace file at given index in working set list
+     * @param {boolean=} if defined, suppress redraw of working set list
      * @return {$.Promise} a jQuery promise that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
-    function _doOpenWithOptionalPath(fullPath, silent) {
+    function _doOpenWithOptionalPath(fullPath, silent, index, suppressRedraw) {
         var result;
         if (!fullPath) {
             // Create placeholder deferred
@@ -259,7 +263,7 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            result = doOpen(fullPath, silent);
+            result = doOpen(fullPath, silent, index, suppressRedraw);
         }
         
         return result.promise();
@@ -298,8 +302,10 @@ define(function (require, exports, module) {
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = commandData ? commandData.silent : false;
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
+            silent = commandData ? commandData.silent : false,
+            index = commandData ? commandData.index : undefined,
+            suppressRedraw = commandData ? commandData.suppressRedraw : undefined;
+        return _doOpenWithOptionalPath(fileInfo.path, silent, index, suppressRedraw)
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
@@ -328,13 +334,13 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=}} File to open and optional position in the working
+     * @param {!{fullPath:string, index:number=, suppressRedraw:boolean=}} File to open and optional position in the working
      *   set list (defaults to last)
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index);
+            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.suppressRedraw);
         });
     }
 
@@ -612,12 +618,13 @@ define(function (require, exports, module) {
                     DocumentManager.removeFromWorkingSet(doc.file, true);
                     // add new file to working set
                     fileViewControllerPromise = FileViewController
-                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index);
+                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index, true);
                 }
 
                 // always configure editor after file is opened
                 fileViewControllerPromise.always(function () {
                     _configureEditorAndResolve();
+                    DocumentManager.refreshWorkingSet();	// since we suppressed redraw above, rebuild working set list
                 });
             }
             

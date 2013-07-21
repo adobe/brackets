@@ -228,8 +228,9 @@ define(function (require, exports, module) {
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {boolean=} true to suppress redraw after removal
      */
-    function addToWorkingSet(file, index) {
+    function addToWorkingSet(file, index, suppressRedraw) {
         // If doc is already in working set, don't add it again
         if (findInWorkingSet(file.fullPath) !== -1) {
             return;
@@ -261,11 +262,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        if ((index === undefined) || (index === null) || (index === -1)) {
-            $(exports).triggerHandler("workingSetAdd", file);
-        } else {
-            $(exports).triggerHandler("workingSetSort");
-        }
+        $(exports).triggerHandler("workingSetAdd", [file, suppressRedraw]);
     }
     
     /**
@@ -324,6 +321,13 @@ define(function (require, exports, module) {
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
+    }
+
+    /**
+     * Refreshes the Working Set List
+     */
+    function refreshWorkingSet() {
+        $(exports).triggerHandler("workingSetSort");
     }
 
     /**
@@ -452,8 +456,10 @@ define(function (require, exports, module) {
      * 
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
+     * @param {number=} if defined, replace file at given index in working set list
+     * @param {boolean=} if defined, suppress redraw of working set list
      */
-    function setCurrentDocument(doc) {
+    function setCurrentDocument(doc, index, suppressRedraw) {
         
         // If this doc is already current, do nothing
         if (_currentDocument === doc) {
@@ -465,7 +471,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addToWorkingSet(doc.file);
+            addToWorkingSet(doc.file, index, suppressRedraw);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
@@ -935,6 +941,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.refreshWorkingSet           = refreshWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
