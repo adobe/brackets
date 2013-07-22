@@ -920,6 +920,16 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                it("should not have a 'remove' link for extensions in the dev folder that failed to load", function () {
+                    mockLoadExtensions(["dev/mock-failed-in-dev-folder"], true);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        expect(view).toHaveText("mock-failed-in-dev-folder");
+                        var $removeLink = $("a.remove[data-extension-id=mock-failed-in-dev-folder]", view.$el);
+                        expect($removeLink.length).toBe(0);
+                    });
+                });
+
                 it("should disable the Remove button for extensions in the dev folder", function () {
                     mockLoadExtensions(["dev/mock-extension-2"]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
