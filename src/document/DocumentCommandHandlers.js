@@ -660,6 +660,11 @@ define(function (require, exports, module) {
             origPath = doc.file.fullPath;
             // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
+                // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
+                //   in the editor, so that if we're, for example, saving several files (ie. Save All),
+                //   then the user can visually tell which document we're currently prompting them to save.
+                DocumentManager.setCurrentDocument(doc);
+
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
