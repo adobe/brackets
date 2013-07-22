@@ -613,7 +613,13 @@ define(function (require, exports, module) {
      * @returns {{line: number, ch: number}}
      */
     function getOffset(session, fileInfo, offset) {
-        var newOffset = offset || session.getCursor();
+        var newOffset;
+
+        if (offset) {
+            newOffset = {line: offset.line, ch: offset.ch};
+        } else {
+            newOffset = session.getCursor();
+        }
 
         if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
             newOffset.line = Math.max(0, newOffset.line - fileInfo.offsetLines);
@@ -1268,6 +1274,32 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Request a function type hint from Tern.
+     *
+     * @param {Session} session - the active hinting session
+     * @param {{line: number, ch: number}} functionOffset - the offset the function call.
+     * @return {jQuery.Promise} - The promise will not complete until the
+     *      hint has completed.
+     */
+    function requestFunctionHint(session, functionOffset) {
+        var $deferredHints = $.Deferred(),
+            fileInfo = getFileInfo(session),
+            offset = getOffset(session, fileInfo, functionOffset),
+            fnTypePromise = getTernFunctionType(fileInfo, offset);
+
+        $.when(fnTypePromise).done(
+            function (fnType) {
+                session.setFnType(fnType);
+                $deferredHints.resolveWith(null, [fnType]);
+            }
+        ).fail(function () {
+            $deferredHints.reject();
+        });
+
+        return $deferredHints.promise();
+    }
+
+    /**
      * Request hints from Tern.
      *
      * Note that successive calls to getScope may return the same objects, so
@@ -1284,26 +1316,15 @@ define(function (require, exports, module) {
     function requestHints(session, document) {
         var $deferredHints = $.Deferred(),
             hintPromise,
-            fnTypePromise,
             sessionType = session.getType(),
             fileInfo = getFileInfo(session),
-            offset = getOffset(session, fileInfo,
-                            sessionType.showFunctionType ? sessionType.functionCallPos : null);
+            offset = getOffset(session, fileInfo, null);
 
         maybeReset(session, document);
 
         hintPromise = getTernHints(fileInfo, offset, sessionType.property);
 
-        if (sessionType.showFunctionType) {
-            // Show function sig
-            fnTypePromise = getTernFunctionType(fileInfo, offset);
-        } else {
-            var $fnTypeDeferred = $.Deferred();
-            fnTypePromise = $fnTypeDeferred.promise();
-            $fnTypeDeferred.resolveWith(null);
-        }
-
-        $.when(hintPromise, fnTypePromise).done(
+        $.when(hintPromise).done(
             function (completions, fnType) {
                 if (completions.completions) {
                     session.setTernHints(completions.completions);
@@ -1313,7 +1334,6 @@ define(function (require, exports, module) {
                     session.setGuesses(completions.properties);
                 }
 
-                session.setFnType(fnType);
                 $deferredHints.resolveWith(null);
             }
         ).fail(function () {
@@ -1408,6 +1428,7 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
+    exports.requestFunctionHint = requestFunctionHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
 

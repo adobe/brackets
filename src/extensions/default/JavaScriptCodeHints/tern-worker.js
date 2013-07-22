@@ -146,6 +146,7 @@ importScripts("thirdparty/requirejs/require.js");
                 query.depths = true;
                 query.guess = true;
                 query.origins = true;
+                query.types = true;
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
 
@@ -233,7 +234,7 @@ importScripts("thirdparty/requirejs/require.js");
                         //_log("tern properties: completions = " + data.completions.length);
                         for (i = 0; i < data.completions.length; ++i) {
                             var property = data.completions[i];
-                            properties.push({value: property, guess: true});
+                            properties.push({value: property, type: property.type, guess: true});
                         }
                     }
         
