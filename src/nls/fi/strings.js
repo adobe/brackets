@@ -403,7 +403,7 @@ define({
     "LOCALE_CS"                            : "tšekki",
     "LOCALE_DE"                            : "saksa",
     "LOCALE_EN"                            : "englanti",
-	"LOCALE_ES"                            : "espanja",
+    "LOCALE_ES"                            : "espanja",
     "LOCALE_FI"                            : "suomi",
     "LOCALE_FR"                            : "ranska",
     "LOCALE_IT"                            : "italia",
