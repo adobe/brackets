@@ -95,7 +95,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Käytä /re/-syntaksia hakeaksesi säännöllisellä lausekkeella",
-  "FIND_RESULT_COUNT"                 : "{0} tulosta",
+    "FIND_RESULT_COUNT"                 : "{0} tulosta",
     "WITH"                              : "merkkijonolla",
     "BUTTON_YES"                        : "Kyllä",
     "BUTTON_NO"                         : "Ei",
@@ -127,8 +127,8 @@ define({
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Ladataan\u2026",
-	"UNTITLED"          : "nimetön",
-	"WORKING_FILES"     : "Työtiedostot",
+    "UNTITLED"          : "nimetön",
+    "WORKING_FILES"     : "Työtiedostot",
 
     /**
      * Keyboard modifier names
@@ -148,7 +148,7 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Napsauta muuttaaksesi sarkainmerkin leveyttä",
     "STATUSBAR_SPACES"                      : "Välilyönnit",
     "STATUSBAR_TAB_SIZE"                    : "Sarkaimen koko",
-	"STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rivi",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rivi",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} riviä",
 
     /**
@@ -172,11 +172,11 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
     "CMD_FILE_DELETE"                     : "Poista",
-	"CMD_EXTENSION_MANAGER"               : "Laajennusten hallinta\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Laajennusten hallinta\u2026",
     "CMD_FILE_REFRESH"                    : "Päivitä",
-	"CMD_QUIT"                            : "Lopeta",
+    "CMD_QUIT"                            : "Lopeta",
     // Used in native File menu on Windows
-	"CMD_EXIT"                            : "Poistu",
+    "CMD_EXIT"                            : "Poistu",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Muokkaa",
@@ -237,12 +237,12 @@ define({
     "HELP_MENU"                           : "Ohje",
     "CMD_CHECK_FOR_UPDATE"                : "Tarkista päivitykset",
     "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}-sovellusta",
-	"CMD_FORUM"                           : "{APP_NAME}-keskustelupalsta",
-	"CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
-	"CMD_REPORT_AN_ISSUE"                 : "Ilmoita ongelmasta",
-	"CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
-	"CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
-	"CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
+    "CMD_FORUM"                           : "{APP_NAME}-keskustelupalsta",
+    "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
+    "CMD_REPORT_AN_ISSUE"                 : "Ilmoita ongelmasta",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
+    "CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Sulje ikkuna",
@@ -263,7 +263,7 @@ define({
     "CLOSE"                                : "Sulje",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} kokeellinen koontiversio {VERSION}",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-	"ABOUT_TEXT_LINE5"                     : "He tekivät sen \u2764lla ja JavaScriptilla:",
+    "ABOUT_TEXT_LINE5"                     : "He tekivät sen \u2764lla ja JavaScriptilla:",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}-sovelluksesta on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavissa!",
     "UPDATE_MESSAGE"                       : "Hei! {APP_NAME}-sovelluksesta on saatavilla uusi versio. Tässä on joitakin uusia toimintoja:",
@@ -283,17 +283,17 @@ define({
     "INSTALL"                              : "Asenna",
     "REMOVE"                               : "Poista",
     "OVERWRITE"                            : "Ylikirjoita",
-	"CANT_REMOVE_DEV"                      : "Laajennusten \"dev\"-kansio on poistettava käsin.",
-	"INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
-	"INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
+    "CANT_REMOVE_DEV"                      : "Laajennusten \"dev\"-kansio on poistettava käsin.",
+    "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
+    "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
     "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub repo",
-	"INSTALLING_FROM"                      : "Asennetaan laajennus kohteesta {0}\u2026",
-	"INSTALL_SUCCEEDED"                    : "Asennus on valmis!",
+    "INSTALLING_FROM"                      : "Asennetaan laajennus kohteesta {0}\u2026",
+    "INSTALL_SUCCEEDED"                    : "Asennus on valmis!",
     "INSTALL_FAILED"                       : "Asennus epäonnistui.",
-	"CANCELING_INSTALL"                    : "Peruutetaan\u2026",
+    "CANCELING_INSTALL"                    : "Peruutetaan\u2026",
     "CANCELING_HUNG"                       : "Asennuksen peruutus on kestänyt jo useita minuutteja. On voinut tapahtua sisäinen virhe.",
-	"INSTALL_CANCELED"                     : "Asennus keskeytetty.",
-	// These must match the error codes in ExtensionsDomain.Errors.* :
+    "INSTALL_CANCELED"                     : "Asennus keskeytetty.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu zip-tiedosto ei ole kelvollinen.",
     "INVALID_PACKAGE_JSON"                 : "JSON-paketti on virheellinen. (Virhe: {0}).",
     "MISSING_PACKAGE_NAME"                 : "JSON-pakettitiedostolle ei ole määritelty paketin nimeä.",
@@ -315,15 +315,15 @@ define({
     "MALFORMED_URL"                        : "URL on virheellinen. Tarkista, onko tämä kelvollinen URL-osoite.",
     "UNSUPPORTED_PROTOCOL"                 : "Syötä http- tai https-URL-osoite.",
     "UNKNOWN_ERROR"                        : "Tuntematon (sisäinen) virhe.",
-	// For NOT_FOUND_ERR, see generic strings above
+    // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Laajennusten hallinta",
-	"EXTENSION_MANAGER_ERROR_LOAD"         : "Virhe käytettäessä rekisterin laajennuksia. Yritä myöhemmin uudelleen.",
-	"INSTALL_FROM_URL"                     : "Asenna URL-osoitteesta\u2026",
-	"EXTENSION_AUTHOR"                     : "Tekijä",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Virhe käytettäessä rekisterin laajennuksia. Yritä myöhemmin uudelleen.",
+    "INSTALL_FROM_URL"                     : "Asenna URL-osoitteesta\u2026",
+    "EXTENSION_AUTHOR"                     : "Tekijä",
     "EXTENSION_DATE"                       : "Päivämäärä",
-	"EXTENSION_INCOMPATIBLE_NEWER"         : "Tämä laajennus vaatii uudemman version {APP_NAME}-sovelluksesta.",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Tämä laajennus vaatii uudemman version {APP_NAME}-sovelluksesta.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Tämä laajennus toimii tällä hetkellä vain vanhemmissa {APP_NAME}-sovelluksen versioissa.",
-	"EXTENSION_NO_DESCRIPTION"             : "Ei kuvausta",
+    "EXTENSION_NO_DESCRIPTION"             : "Ei kuvausta",
     "EXTENSION_MORE_INFO"                  : "Lisätietoja\u2026",
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
     "EXTENSION_KEYWORDS"                   : "Avainsanat",
@@ -331,12 +331,12 @@ define({
     "EXTENSION_UPDATE_INSTALLED"           : "Tämän laajennuksen päivitys on ladattu ja asennettu, kun poistut {APP_NAME}-sovelluksesta.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Haku",
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
-	"BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
-	"EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
+    "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
+    "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Virhe poistettaessa laajennusta: {0}. {APP_NAME} on yhä suljettu.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Yhden tai useamman päivityksen asennus epäonnistui: {0}. {APP_NAME} on yhä suljettu.",
-	"MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
+    "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
     "UNDO_UPDATE"                          : "Kumoa",
@@ -345,10 +345,10 @@ define({
     "REMOVE_AND_QUIT"                      : "Poista laajennukset ja poistu",
     "CHANGE_AND_QUIT"                      : "Muuta laajennuksia ja poistu",
     "UPDATE_AND_QUIT"                      : "Päivitä laajennukset ja poistu",
-	"NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta \"Asenna URL-osoitteesta\" -painiketta alhaalta aloittaaksesi.",
-	"NO_EXTENSION_MATCHES"                 : "Mikään laajennus ei vastannut hakuasi.",
-	
-	// extensions/default/DebugCommands
+    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta \"Asenna URL-osoitteesta\" -painiketta alhaalta aloittaaksesi.",
+    "NO_EXTENSION_MATCHES"                 : "Mikään laajennus ei vastannut hakuasi.",
+    
+    // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Kehitys",
     "CMD_SHOW_DEV_TOOLS"                   : "Näytä kehitystyökalut",
     "CMD_REFRESH_WINDOW"                   : "Päivitä {APP_NAME}-käyttöliittymä",
@@ -356,7 +356,7 @@ define({
     "CMD_SWITCH_LANGUAGE"                  : "Vaihda kieltä",
     "CMD_RUN_UNIT_TESTS"                   : "Suorita testejä",
     "CMD_SHOW_PERF_DATA"                   : "Näytä suorituskyvyn tiedot",
-	"CMD_ENABLE_NODE_DEBUGGER"             : "Ota käyttöön: Solmujen virheenjäljitin",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Ota käyttöön: Solmujen virheenjäljitin",
     "CMD_LOG_NODE_STATE"                   : "Kirjaa solmun tila konsoliin",
     "CMD_RESTART_NODE"                     : "Käynnistä solmu uudelleen",
     
@@ -364,14 +364,14 @@ define({
     "LANGUAGE_MESSAGE"                     : "Valitse haluamasi kieli luettelosta:",
     "LANGUAGE_SUBMIT"                      : "Lataa {APP_NAME} uudelleen",
     "LANGUAGE_CANCEL"                      : "Peruuta",
-	"LANGUAGE_SYSTEM_DEFAULT"              : "Järjestelmän oletus",
+    "LANGUAGE_SYSTEM_DEFAULT"              : "Järjestelmän oletus",
     
     /**
      * Locales
      */
     "LOCALE_DE"                            : "saksa",
     "LOCALE_EN"                            : "englanti",
-	"LOCALE_FI"                            : "suomi",
+    "LOCALE_FI"                            : "suomi",
     "LOCALE_FR"                            : "ranska",
     "LOCALE_CS"                            : "tšekki",
     "LOCALE_ES"                            : "espanja",
@@ -385,9 +385,9 @@ define({
     "LOCALE_SV"                            : "ruotsi",
     "LOCALE_TR"                            : "turkki",
     "LOCALE_ZH_CN"                         : "kiina, yksinkertaistettu",
-	"LOCALE_HU"                            : "unkari",
-	
-	// extensions/default/InlineColorEditor
+    "LOCALE_HU"                            : "unkari",
+    
+    // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nykyinen väri",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Alkuperäinen väri",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-muoto",
@@ -395,8 +395,8 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-muoto",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (käytetty {1} kerran)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (käytetty {1} kertaa)",
-	
-	// extensions/default/JavaScriptCodeHints
+    
+    // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Hyppää määrittelyyn",
     
     // extensions/default/JSLint
