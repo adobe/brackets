@@ -147,8 +147,14 @@ define(function (require, exports, module) {
         if (!ProjectManager.shouldShow(entry)) {
             return;
         }
-
+        
         var fileInfo = new FileInfo(entry);
+        
+        // skip zipped/binary files
+        if (ProjectManager.isBinaryFile(fileInfo.name)) {
+            return;
+        }
+        
         //console.log(entry.name);
   
         CollectionUtils.forEach(_indexList, function (index, indexName) {
