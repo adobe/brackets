@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                         // or scanning additional directories once a max has been hit. Also notify the 
                         // user once via a dialog. This limit could be increased
                         // if files were indexed in a worker thread so scanning didn't block the UI
-                        if (state.fileCount > 10000) {
+                        if (state.fileCount > 16000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
                                 if (!_maxFileDialogDisplayed) {
