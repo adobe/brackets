@@ -486,9 +486,15 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, index) {
+        if (index === DocumentManager.getWorkingSet().length - 1) {
+            // Simple case: append item to list
+            _createNewListItem(file);
+            _redraw();
+        } else {
+            // Insertion mid-list: just rebuild whole list UI
+            _rebuildWorkingSet(true);
+        }
     }
 
     /**
