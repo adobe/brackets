@@ -597,7 +597,10 @@ define(function (require, exports, module) {
             return pendingPromise;
         } else {
             var result = new $.Deferred(),
-                promise = result.promise();
+                promise = result.promise(),
+                // get the document extension to select the opening method 
+                i = fullPath.lastIndexOf("."),
+                ext = (i === -1 || i >= fullPath.length - 1) ? fullPath : fullPath.substr(i + 1);
 
             // create a new document
             var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
@@ -617,18 +620,30 @@ define(function (require, exports, module) {
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
                 fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                FileUtils.readAsText(fileEntry)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
+
+                if (ext.match(/^png|jpe?g|bmp|gif$/)) {
+
+                    doc = new DocumentModule.Document(fileEntry, new Date(), fullPath, 'image');
+                    _gcDocuments();
+                    result.resolve(doc);
+                    
+                } else {
+
+                    FileUtils.readAsText(fileEntry)
+                        .always(function () {
+                            // document is no longer pending
+                            delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                        })
+                        .done(function (rawText, readTimestamp) {
+                            doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                            result.resolve(doc);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+
+                }
+
             }
             
             // This is a good point to clean up any old dangling Documents

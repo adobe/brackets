@@ -72,13 +72,15 @@ define(function (require, exports, module) {
      * @param {!FileEntry} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
      * @param {!string} rawText  Text content of the file.
+     * @param {!string} template  Viewing instead of editing if present (specifies viewer type).  
      */
-    function Document(file, initialTimestamp, rawText) {
+    function Document(file, initialTimestamp, rawText, template) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
         
         this.file = file;
+        this.template = template;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp);
     }
@@ -94,6 +96,12 @@ define(function (require, exports, module) {
      * @type {!FileEntry}
      */
     Document.prototype.file = null;
+
+    /**
+     * The template name for this document. Currently used to preview image file types.
+     * @type {!string}
+     */
+    Document.prototype.template = null;
 
     /**
      * The Language for this document. Will be resolved by file extension in the constructor
