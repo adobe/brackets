@@ -54,7 +54,7 @@
             {{/removalAllowed}}
             {{#failedToStart}}
                 {{^isMarkedForRemoval}}
-                    {{Strings.EXTENSION_ERROR}} (<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>)
+                    {{Strings.EXTENSION_ERROR}} {{#allowRemove}}(<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>){{/allowRemove}}
                 {{/isMarkedForRemoval}}
             {{/failedToStart}}
             {{#isMarkedForRemoval}}
