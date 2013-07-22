@@ -227,8 +227,8 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
-     * @param {number=} index - position to add to list (defaults to end); -1 is ignored
-     * @param {boolean=} forceRedraw - if true, a working set change notification is always sent
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {

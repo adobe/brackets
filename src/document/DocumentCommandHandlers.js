@@ -328,7 +328,7 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} File to open; optional position in the
+     * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
      *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
