@@ -160,6 +160,21 @@ require(["MyModule"], function (myModule) {
     var x = myModule.c;
 });
 
+// Function hint testing
+function functionHintTesting() {
+    // simple function with primative arguments
+    s.lastIndexOf(s);
+
+    // function with a function argument
+    arr.sort();
+
+    // function with array argument
+    arr.concat();
+
+
+}
+
+
 /* Add large comment to make this test over 250 lines which will trigger
  *  partial updates to be used.
  *
