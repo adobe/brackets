@@ -309,7 +309,7 @@ define({
 	"REMOVE": "Supprimer",
 	"OVERWRITE": "Remplacer",
 	"CANT_REMOVE_DEV": "Les extensions du dossier \"dev\" doivent être supprimées manuellement.",
-	"CANT_UPDATE": "[7105473] !é=The update isn't compatible with this version of {APP_NAME}.=!",
+	"CANT_UPDATE": "La mise à jour n’est pas disponible avec cette version de l’application {APP_NAME}.",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"UPDATE_EXTENSION_TITLE": "Mettre à jour l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
@@ -373,12 +373,12 @@ define({
 	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
 	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
-	"NO_EXTENSIONS": "[6967841] !é=No extensions installed yet.<br>Click on the Available tab above to get started.=!",
+	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
-	"REGISTRY_SANITY_CHECK_WARNING": "[7105477] !é=Be cautious when installing extensions from an unknown source.=!",
-	"EXTENSIONS_INSTALLED_TITLE": "Installée",
-	"EXTENSIONS_AVAILABLE_TITLE": "[7105474] !é=Available=!",
-	"EXTENSIONS_UPDATES_TITLE": "[7105476] !é=Updates=!",
+	"REGISTRY_SANITY_CHECK_WARNING": "Soyez prudent lorsque vous installez des extensions provenant d’une source inconnue.",
+	"EXTENSIONS_INSTALLED_TITLE": "Installées",
+	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
+	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
     /**
      * Unit names
