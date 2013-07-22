@@ -82,6 +82,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * File names which are not showed in quick open dialog
+     * @type {RegExp}
+     */
+    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+
+    /**
+     * @private
      * Reference to the tree control container div. Initialized by
      * htmlReady handler
      * @type {jQueryObject}
@@ -637,6 +644,15 @@ define(function (require, exports, module) {
     function shouldShow(entry) {
         return !entry.name.match(_exclusionListRegEx);
     }
+    
+    /**
+     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @param {string} fileName
+     * @return {boolean}
+     */
+    function isBinaryFile(fileName) {
+        return fileName.match(_binaryExclusionListRegEx);
+    }
 
     /**
      * @private
@@ -717,7 +733,7 @@ define(function (require, exports, module) {
                 var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
                 
                 treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                        .addClass(classToAdd);
+                    .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on 
@@ -1197,7 +1213,7 @@ define(function (require, exports, module) {
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
-                          .addClass(classToAdd);
+                        .addClass(classToAdd);
                 }
                 
                 result.reject();
@@ -1559,6 +1575,7 @@ define(function (require, exports, module) {
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
+    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;
