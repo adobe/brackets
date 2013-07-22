@@ -416,7 +416,7 @@ define(function (require, exports, module) {
     function compareFilenames(filename1, filename2, extFirst) {
         var ext1   = getFilenameExtension(filename1),
             ext2   = getFilenameExtension(filename2),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase()),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
             cmpNames;
         
         if (brackets.platform === "win") {
