@@ -181,10 +181,18 @@ define(function (require, exports, module) {
      * @override
      */
     MultiRangeInlineEditor.prototype.onAdded = function () {
+        var self = this;
+        
         // Before setting the inline widget height, force a height on the
         // floating related-container in order for CodeMirror to layout and
         // compute scrollbars
         this.$relatedContainer.height(this.$related.height());
+
+        // Update the position of the selected marker now that we're laid out, and then
+        // set it to animate for future updates.
+        this._updateSelectedMarker().done(function () {
+            self.$selectedMarker.addClass("animate");
+        });
 
         // Call super
         MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
@@ -302,7 +310,8 @@ define(function (require, exports, module) {
     };
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
-        var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
+        var result = new $.Deferred(),
+            $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
         // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
         var self = this;
@@ -329,7 +338,11 @@ define(function (require, exports, module) {
                     self.$relatedContainer.scrollTop(itemBottom - containerHeight);
                 }
             }
+            
+            result.resolve();
         }, 0);
+        
+        return result.promise();
     };
 
     /**

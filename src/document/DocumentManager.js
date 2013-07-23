@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -63,7 +63,7 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
@@ -227,11 +227,22 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
-     * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToWorkingSet(file, index) {
+    function addToWorkingSet(file, index, forceRedraw) {
+        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // File is in working set, but not at the specifically requested index - only need to reorder
+            if (forceRedraw || (indexRequested && curIndex !== index)) {
+                var entry = _workingSet.splice(curIndex, 1)[0];
+                _workingSet.splice(index, 0, entry);
+                $(exports).triggerHandler("workingSetSort");
+            }
             return;
         }
         
@@ -242,7 +253,7 @@ define(function (require, exports, module) {
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
         }
-        if ((index === undefined) || (index === null) || (index === -1)) {
+        if (!indexRequested) {
             // If no index is specified, just add the file to the end of the working set.
             _workingSet.push(file);
         } else {
@@ -261,11 +272,10 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        if ((index === undefined) || (index === null) || (index === -1)) {
-            $(exports).triggerHandler("workingSetAdd", file);
-        } else {
-            $(exports).triggerHandler("workingSetSort");
+        if (!indexRequested) {
+            index = _workingSet.length - 1;
         }
+        $(exports).triggerHandler("workingSetAdd", [file, index]);
     }
     
     /**
@@ -305,8 +315,9 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file.
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!FileEntry} file
      * @param {boolean=} true to suppress redraw after removal
      */
@@ -503,9 +514,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
-     * expected that the UI has already confirmed with the user before calling this.
+     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
@@ -615,10 +626,10 @@ define(function (require, exports, module) {
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
-
+            
             var fileEntry;
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called with an untitled document path!");
+                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
                 result.reject();
             } else {
                 // log this document's Promise as pending
@@ -761,6 +772,8 @@ define(function (require, exports, module) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
+        
+        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
         if (!files) {
             return;

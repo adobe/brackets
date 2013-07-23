@@ -738,6 +738,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                console.error(err);
                 result.reject(err);
             } else {
                 result.resolve();
@@ -956,6 +957,7 @@ define(function (require, exports, module) {
     exports.getTempDirectory                = getTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
+    exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;

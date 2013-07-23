@@ -82,6 +82,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * File names which are not showed in quick open dialog
+     * @type {RegExp}
+     */
+    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+
+    /**
+     * @private
      * Reference to the tree control container div. Initialized by
      * htmlReady handler
      * @type {jQueryObject}
@@ -485,14 +492,15 @@ define(function (require, exports, module) {
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
                 sort :  function (a, b) {
+                    var a1 = $(a).text(),
+                        b1 = $(b).text();
+                    
+                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                     if (brackets.platform === "win") {
-                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                        var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
-                            b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
-                        return (a1 > b1) ? 1 : -1;
-                    } else {
-                        return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
+                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
+                    return FileUtils.compareFilenames(a1, b1, false);
                 }
             }).bind(
                 "before.jstree",
@@ -508,34 +516,35 @@ define(function (require, exports, module) {
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
-                    if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                    
-                        openResult.done(function () {
-                            // update when tree display state changes
-                            _redraw(true);
-                            _lastSelected = data.rslt.obj;
-                        }).fail(function () {
-                            if (_lastSelected) {
-                                // revert this new selection and restore previous selection
-                                _forceSelection(data.rslt.obj, _lastSelected);
-                            } else {
-                                _projectTree.jstree("deselect_all");
-                                _lastSelected = null;
-                            }
-                        });
-                    } else {
-                        FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
-                        // show selection marker on folders
-                        _redraw(true);
+                    if (entry) {
+                        if (entry.isFile) {
+                            var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                         
-                        // toggle folder open/closed
-                        // suppress if this selection was triggered by clicking the disclousre triangle
-                        if (!suppressToggleOpen) {
-                            _projectTree.jstree("toggle_node", data.rslt.obj);
+                            openResult.done(function () {
+                                // update when tree display state changes
+                                _redraw(true);
+                                _lastSelected = data.rslt.obj;
+                            }).fail(function () {
+                                if (_lastSelected) {
+                                    // revert this new selection and restore previous selection
+                                    _forceSelection(data.rslt.obj, _lastSelected);
+                                } else {
+                                    _projectTree.jstree("deselect_all");
+                                    _lastSelected = null;
+                                }
+                            });
+                        } else {
+                            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
+                            // show selection marker on folders
+                            _redraw(true);
+                            
+                            // toggle folder open/closed
+                            // suppress if this selection was triggered by clicking the disclousre triangle
+                            if (!suppressToggleOpen) {
+                                _projectTree.jstree("toggle_node", data.rslt.obj);
+                            }
                         }
                     }
-                    
                     suppressToggleOpen = false;
                 }
             ).bind(
@@ -636,6 +645,15 @@ define(function (require, exports, module) {
     function shouldShow(entry) {
         return !entry.name.match(_exclusionListRegEx);
     }
+    
+    /**
+     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @param {string} fileName
+     * @return {boolean}
+     */
+    function isBinaryFile(fileName) {
+        return fileName.match(_binaryExclusionListRegEx);
+    }
 
     /**
      * @private
@@ -716,7 +734,7 @@ define(function (require, exports, module) {
                 var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
                 
                 treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                        .addClass(classToAdd);
+                    .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on 
@@ -763,6 +781,15 @@ define(function (require, exports, module) {
         );
 
     }
+    
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
+    }
+    
     
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
@@ -818,14 +845,15 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @param {bool} isUpdating Indicates if it's just an update attempt to the
-     *  tree or if another project is being loaded.
+     * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
+     *  if false, a different project is being loaded.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-
     function _loadProject(rootPath, isUpdating) {
+        forceFinishRename();    // in case we're in the middle of renaming a file in the project
+        
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
@@ -1096,18 +1124,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     *
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * @param {string} filename
+     * @param {boolean} isFolder
+     * @return {boolean} Returns true if no illegal characters are found
      */
-    function _checkForValidFilename(filename) {
+    function _checkForValidFilename(filename, isFolder) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.INVALID_FILENAME_TITLE,
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
                 Strings.INVALID_FILENAME_MESSAGE
             );
             return false;
@@ -1184,7 +1214,7 @@ define(function (require, exports, module) {
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
-                          .addClass(classToAdd);
+                        .addClass(classToAdd);
                 }
                 
                 result.reject();
@@ -1192,7 +1222,7 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!_checkForValidFilename(data.rslt.name)) {
+                if (!_checkForValidFilename(data.rslt.name, isFolder)) {
                     errorCleanup();
                     return;
                 }
@@ -1252,7 +1282,7 @@ define(function (require, exports, module) {
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
                             StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
-                                Strings.breakableUrl(data.rslt.name), errString)
+                                StringUtils.breakableUrl(data.rslt.name), errString)
                         );
                     }
 
@@ -1416,7 +1446,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -1512,13 +1542,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1553,6 +1576,7 @@ define(function (require, exports, module) {
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
+    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;

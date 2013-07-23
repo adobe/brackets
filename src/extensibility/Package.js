@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                             d.reject(error);
                         });
                 } else {
-                    d.reject();
+                    d.reject("NodeConnection became disconnected");
                 }
             })
             .fail(function (error) {
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                             d.reject(error);
                         });
                 } else {
-                    d.reject();
+                    d.reject("NodeConnection became disconnected");
                 }
             })
             .fail(function (error) {

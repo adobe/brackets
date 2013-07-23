@@ -38,7 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
-	"DIRECTORY": "!能=[7061000] directory_=!",
+	"DIRECTORY": "ディレクトリ",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
@@ -49,7 +49,7 @@ define({
     // File open/save error string
 	"ERROR_OPENING_FILE_TITLE": "ファイルを開く際にエラーが発生しました。",
 	"ERROR_OPENING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を開く際にエラーが発生しました。{1}",
-	"ERROR_OPENING_FILES": "!能=[7060616] An error occurred when trying to open the following files:_=!",
+	"ERROR_OPENING_FILES": "次のファイルを開くときにエラーが発生しました :",
 	"ERROR_RELOADING_FILE_TITLE": "ディスクから変更を再読み込みする際にエラーが発生しました。",
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
 	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
@@ -58,11 +58,11 @@ define({
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
-	"INVALID_FILENAME_TITLE": "!能=[6307153] Invalid {0} name_=!",
+	"INVALID_FILENAME_TITLE": "無効な{0}名",
 	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\| またはシステムのすべての予約語",
-	"FILE_ALREADY_EXISTS": "!能=[6307149] The {0} <span class='dialog-filename'>{1}</span> already exists._=!",
-	"ERROR_CREATING_FILE_TITLE": "!能=[6307132] Error creating {0}_=!",
-	"ERROR_CREATING_FILE": "!能=[6307131] An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}_=!",
+	"FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span> は既に存在しています。",
+	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
+	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -171,6 +171,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "ファイル",
+	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
@@ -182,7 +183,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
+	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -304,10 +305,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "インストール",
+	"UPDATE": "更新",
 	"REMOVE": "削除",
 	"OVERWRITE": "上書き",
 	"CANT_REMOVE_DEV": "dev フォルダーの拡張機能は手動で削除する必要があります。",
+	"CANT_UPDATE": "アップデートはこのバージョンの {APP_NAME} と互換性がありません。",
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"UPDATE_EXTENSION_TITLE": "拡張機能を更新",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
 	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
@@ -369,8 +373,12 @@ define({
 	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
 	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
-	"NO_EXTENSIONS": "拡張機能はまだインストールされていません。<br>下にある「URL からインストール」ボタンをクリックして開始しましょう。",
+	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
+	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
+	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
     /**
      * Unit names

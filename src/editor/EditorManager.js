@@ -170,9 +170,10 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
-                editor.addInlineWidget(pos, inlineWidget);
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                result.resolve();
+                editor.addInlineWidget(pos, inlineWidget).done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                    result.resolve();
+                });
             }).fail(function () {
                 // terminate timer that was started above
                 PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
@@ -192,6 +193,7 @@ define(function (require, exports, module) {
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     function closeInlineWidget(hostEditor, inlineWidget) {
         // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
@@ -207,7 +209,7 @@ define(function (require, exports, module) {
             hostEditor.focus();
         }
         
-        hostEditor.removeInlineWidget(inlineWidget);
+        return hostEditor.removeInlineWidget(inlineWidget);
     }
     
     /**
@@ -670,11 +672,11 @@ define(function (require, exports, module) {
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
                 PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
-                inlineWidget.close();
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
-        
-                // return a resolved promise to CommandManager
-                result.resolve(false);
+                inlineWidget.close().done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);        
+                    // return a resolved promise to CommandManager
+                    result.resolve(false);
+                });
             } else {
                 // main editor has focus, so create an inline editor
                 _openInlineWidget(_currentEditor, providers).done(function () {
