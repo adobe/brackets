@@ -827,6 +827,19 @@ input[type="color"],
         outline: none;
     }
 
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: @tc-button-down-background;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-text;
+    }
+
+    &.disabled, &[disabled] {
+        opacity: @tc-disabled-opacity;
+    }    
+
     // Primary Button Type
     &.primary {
         background-image: none;
@@ -840,28 +853,13 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
-            color: @tc-call-to-action-text;
         }
 
         &:focus {
             border: 1px solid @tc-gray-component-focused-border;
             box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
-            color: @tc-call-to-action-text;
             outline: none;
         }
-    }
-
-    // Active and Disabled states
-    &.active,
-    &:active {
-        background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-text;
-    }
-
-    &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
     }
 
     // Button Sizes
