@@ -68,7 +68,7 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().getPath()),
+        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().getPath()),
+            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings

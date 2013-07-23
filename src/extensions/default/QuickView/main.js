@@ -405,7 +405,7 @@ define(function (require, exports, module) {
             
             if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
-                var docPath = editor.document.file.getPath();
+                var docPath = editor.document.file.fullPath;
                 var imgPath;
                 
                 if (PathUtils.isAbsoluteUrl(tokenString)) {

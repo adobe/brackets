@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         
         $dirtyIndicators.each(function (index, indicator) {
             $indicator = $(this);
-            if ($indicator.data("fullPath") === doc.file.getPath()) {
+            if ($indicator.data("fullPath") === doc.file.fullPath) {
                 _showDirtyIndicator($indicator, doc.isDirty);
             }
         });
@@ -214,19 +214,19 @@ define(function (require, exports, module) {
         var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
-        $dirtyIndicatorDiv.data("fullPath", doc.file.getPath());
+        $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
         this.$lineNumber = $("<span class='line-number'/>");
 
         // wrap filename & line number in clickable link with tooltip
         $filenameInfo.append($dirtyIndicatorDiv)
-            .append(doc.file.getName() + " : ")
+            .append(doc.file.name + " : ")
             .append(this.$lineNumber)
-            .attr("title", doc.file.getPath());
+            .attr("title", doc.file.fullPath);
         
         // clicking filename jumps to full editor view
         $filenameInfo.click(function () {
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.getPath() })
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
                 .done(function () {
                     EditorManager.getCurrentFullEditor().setCursorPos(startLine, 0, true);
                 });

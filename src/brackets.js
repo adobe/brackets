@@ -222,7 +222,7 @@ define(function (require, exports, module) {
 
                             indexFile.exists().done(function (exists) {
                                 if (exists) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: indexFile.getPath() });
+                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: indexFile.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
                                 } else {
                                     deferred.reject();

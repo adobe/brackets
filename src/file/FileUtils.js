@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         // Measure performance
-        var perfTimerName = PerfUtils.markStart("readAsText:\t" + file.getPath());
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + file.fullPath);
         result.always(function () {
             PerfUtils.addMeasurement(perfTimerName);
         });
@@ -268,9 +268,9 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if the file entry was updated
      */
     function updateFileEntryPath(entry, oldName, newName, isFolder) {
-        if (isAffectedWhenRenaming(entry.getPath(), oldName, newName, isFolder)) {
+        if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
             /* TODO: FileSystem ----
-            var oldFullPath = entry.getPath();
+            var oldFullPath = entry.fullPath;
             var fullPath = oldFullPath.replace(oldName, newName);
             entry.fullPath = fullPath;
             

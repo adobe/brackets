@@ -112,7 +112,7 @@ define(function (require, exports, module) {
         // Normally there is a project root, but for unit tests we need to
         // pass in a project root.
         if (pr) {
-            projectRootPath = pr.getPath();
+            projectRootPath = pr.fullPath;
         } else if (!projectRootPath) {
             console.log("initPreferences: projectRootPath has no value");
         }
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
         fileSystem.getDirectoryContents(directory)
             .done(function (contents) {
                 contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
-                    var path    = entry.getPath(),
+                    var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
                         file    = split.file;
 
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
                     } else if (directoryCallback && entry.isDirectory()) {
                         var dirName = HintUtils.splitPath(split.dir).file;
                         if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
-                            directoryCallback(entry.getPath());
+                            directoryCallback(entry.fullPath);
                         }
                     }
                 });
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
      *      has completed.
      */
     function requestJumptoDef(session, document, offset) {
-        var path    = document.file.getPath(),
+        var path    = document.file.fullPath,
             fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 offsetLines: 0,
@@ -540,7 +540,7 @@ define(function (require, exports, module) {
             to   = {line: endLine, ch: endCh};
 
         return {type: MessageIds.TERN_FILE_INFO_TYPE_PART,
-            name: document.file.getPath(),
+            name: document.file.fullPath,
             offsetLines: from.line,
             text: document.getRange(from, to)};
     }
@@ -558,7 +558,7 @@ define(function (require, exports, module) {
         var start = session.getCursor(),
             end = start,
             document = session.editor.document,
-            path = document.file.getPath(),
+            path = document.file.fullPath,
             isHtmlFile = LanguageManager.getLanguageForPath(path).getId() === "html",
             result;
 
@@ -768,7 +768,7 @@ define(function (require, exports, module) {
          * @return {jQuery.Promise} - the promise for the request
          */
         function updateTernFile(document) {
-            var path  = document.file.getPath();
+            var path  = document.file.fullPath;
             
             _postMessageByPass({
                 type       : MessageIds.TERN_UPDATE_FILE_MSG,
@@ -826,20 +826,20 @@ define(function (require, exports, module) {
                 var fileName = HintUtils.splitPath(name).file;
                 
                 var files = ProjectManager.getFileSystem().getFileList(function (file) {
-                    return file.getName() === fileName;
+                    return file.name === fileName;
                 });
                 
                 var file;
                 files = files.filter(function (file) {
-                    var pos = file.getPath().length - name.length;
-                    return pos === file.getPath().lastIndexOf(name);
+                    var pos = file.fullPath.length - name.length;
+                    return pos === file.fullPath.lastIndexOf(name);
                 });
                 
                 if (files.length === 1) {
                     file = files[0];
                 }
                 if (file) {
-                    getDocText(file.getPath()).fail(function () {
+                    getDocText(file.fullPath).fail(function () {
                         replyWith(name, "");
                     });
                 } else {
@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
          * @param {Document} previousDocument - the document the editor has changed from
          */
         function doEditorChange(session, document, previousDocument) {
-            var path        = document.file.getPath(),
+            var path        = document.file.fullPath,
                 split       = HintUtils.splitPath(path),
                 dir         = split.dir,
                 files       = [],
@@ -1100,7 +1100,7 @@ define(function (require, exports, module) {
     
             documentChanges = null;
             addFilesPromise = addFilesDeferred.promise();
-            pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().getPath() : null;
+            pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
     
             // avoid re-initializing tern if possible.
             if (canSkipTernInitialization(path)) {

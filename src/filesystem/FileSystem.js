@@ -165,12 +165,12 @@ define(function (require, exports, module) {
             return result.promise();
         }
         
-        this._impl.readdir(directory.getPath(), function (err, contents, stats) {
+        this._impl.readdir(directory.fullPath, function (err, contents, stats) {
             directory._contents = [];
             
             // Instantiate content objects
             for (i = 0; i < stats.length; i++) {
-                entryPath = directory.getPath() + "/" + contents[i];
+                entryPath = directory.fullPath + "/" + contents[i];
                 
                 if (this.shouldShow(entryPath)) {
                     if (stats[i].isFile()) {
@@ -284,7 +284,7 @@ define(function (require, exports, module) {
             
             for (i = 0; i < entries.length; i++) {
                 if (entries[i].isDirectory()) {
-                    this._scanDirectory(entries[i].getPath());
+                    this._scanDirectory(entries[i].fullPath);
                 }
             }
         }.bind(this));
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
                         var i, len, item, path;
                         
                         function _isInPath(item) {
-                            return item.getPath().indexOf(path) === 0;
+                            return item.fullPath.indexOf(path) === 0;
                         }
                         
                         // Check for deleted entries 
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
                                     this._index.removeEntry(item);
                                 } else {
                                     // Remove the directory and all entries under it
-                                    path = item.getPath();
+                                    path = item.fullPath;
                                     var j, itemsToDelete = this.getFileList(_isInPath);
                                     
                                     for (j = 0; j < itemsToDelete.length; j++) {
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                                     }
                                     
                                     this._index.removeEntry(item);
-                                    this._impl.unwatchPath(item.getPath());
+                                    this._impl.unwatchPath(item.fullPath);
                                     // TODO: Remove and unwatch other directories contained within this directory.
                                     // getFileList() only returns files, and ignores directories.
                                 }
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                             item = contents[i];
                             if (!oldContents || oldContents.indexOf(item) === -1) {
                                 if (item.isDirectory()) {
-                                    this._scanDirectory(item.getPath());
+                                    this._scanDirectory(item.fullPath);
                                 }
                             }
                         }

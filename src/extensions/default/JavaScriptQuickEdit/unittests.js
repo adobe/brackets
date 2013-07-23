@@ -380,7 +380,7 @@ define(function (require, exports, module) {
                         expect(newCursor.ch).toBe(expectedLocation.ch);
                         if (expectedLocation.file) {
                             var activeEditor = EditorManager.getActiveEditor();
-                            expect(activeEditor.document.file.getName()).toBe(expectedLocation.file);
+                            expect(activeEditor.document.file.name).toBe(expectedLocation.file);
                         }
                     });
                 }

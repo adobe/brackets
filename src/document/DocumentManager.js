@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     var _documentNavPending = false;
     
     /**
-     * All documents with refCount > 0. Maps Document.file.getPath() -> Document.
+     * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
      */
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         list = list || _workingSet;
         
         return CollectionUtils.indexOf(list, function (file, i) {
-            return file.getPath() === fullPath;
+            return file.fullPath === fullPath;
         });
     }
     
@@ -223,13 +223,13 @@ define(function (require, exports, module) {
      */
     function addToWorkingSet(file) {
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.getPath()) !== -1) {
+        if (findInWorkingSet(file.fullPath) !== -1) {
             return;
         }
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        if (_currentDocument && _currentDocument.file.getPath() === file.getPath()) {
+        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
             _workingSetMRUOrder.unshift(file);
         } else {
             _workingSetMRUOrder.push(file);
@@ -255,14 +255,14 @@ define(function (require, exports, module) {
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
             // If doc is already in working set, don't add it again
-            if (findInWorkingSet(file.getPath()) === -1) {
+            if (findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
                 _workingSet.push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (_currentDocument && _currentDocument.file.getPath() === file.getPath()) {
+                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
                     _workingSetMRUOrder.unshift(file);
                 } else {
                     _workingSetMRUOrder.push(file);
@@ -285,15 +285,15 @@ define(function (require, exports, module) {
      */
     function removeFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
-        var index = findInWorkingSet(file.getPath());
+        var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
             return;
         }
         
         // Remove
         _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.getPath(), _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.getPath(), _workingSetAddedOrder), 1);
+        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
      * @param {!Document}
      */
     function _markMostRecent(doc) {
-        var mruI = findInWorkingSet(doc.file.getPath(), _workingSetMRUOrder);
+        var mruI = findInWorkingSet(doc.file.fullPath, _workingSetMRUOrder);
         if (mruI !== -1) {
             _workingSetMRUOrder.splice(mruI, 1);
             _workingSetMRUOrder.unshift(doc.file);
@@ -394,7 +394,7 @@ define(function (require, exports, module) {
         }
         
         if (_currentDocument) {
-            var mruI = findInWorkingSet(_currentDocument.file.getPath(), _workingSetMRUOrder);
+            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
                 if (_workingSetMRUOrder.length > 0) {
@@ -433,11 +433,11 @@ define(function (require, exports, module) {
             return;
         }
 
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.getPath());
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
-        if (!ProjectManager.isWithinProject(doc.file.getPath())) {
+        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
             addToWorkingSet(doc.file);
         }
         
@@ -482,20 +482,20 @@ define(function (require, exports, module) {
     function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
-        if (_currentDocument && _currentDocument.file.getPath() === file.getPath()) {
+        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
             // Get next most recent doc in the MRU order
             var nextFile = getNextPrevFile(1);
-            if (nextFile && nextFile.getPath() === _currentDocument.file.getPath()) {
+            if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
                 // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
                 nextFile = null;
             }
             
             // Switch editor to next document (or blank it out)
             if (nextFile && !skipAutoSelect) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.getPath() })
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
                     .done(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
-                        console.assert(!(_currentDocument && _currentDocument.file.getPath() === file.getPath()));
+                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
                     })
                     .fail(function () {
                         // File chosen to be switched to could not be opened, and the original file
@@ -655,7 +655,7 @@ define(function (require, exports, module) {
         closeFullEditor(file, skipAutoSelect);
         
         // Notify all other editors to close as well
-        var doc = getOpenDocumentForPath(file.getPath());
+        var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
         }
@@ -685,20 +685,20 @@ define(function (require, exports, module) {
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
-            isActive = currentDoc && (file.getPath() === currentDoc.file.getPath());
+            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
             
             // save editor UI state for just the working set
-            var viewState = EditorManager._getViewState(file.getPath());
+            var viewState = EditorManager._getViewState(file.fullPath);
             
             files.push({
-                file: file.getPath(),
+                file: file.fullPath,
                 active: isActive,
                 viewState: viewState
             });
         });
 
         // append file root to make file list unique for each project
-        _prefs.setValue("files_" + projectRoot.getPath(), files);
+        _prefs.setValue("files_" + projectRoot.fullPath, files);
     }
 
     /**
@@ -708,7 +708,7 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = _prefs.getValue("files_" + projectRoot.getPath());
+            files = _prefs.getValue("files_" + projectRoot.fullPath);
 
         if (!files) {
             return;
@@ -736,7 +736,7 @@ define(function (require, exports, module) {
 
         // Initialize the active editor
         if (!activeFile && _workingSet.length > 0) {
-            activeFile = _workingSet[0].getPath();
+            activeFile = _workingSet[0].fullPath;
         }
 
         if (activeFile) {
@@ -844,22 +844,22 @@ define(function (require, exports, module) {
     // For compatibility
     $(DocumentModule)
         .on("_afterDocumentCreate", function (event, doc) {
-            if (_openDocuments[doc.file.getPath()]) {
+            if (_openDocuments[doc.file.fullPath]) {
                 console.error("Document for this path already in _openDocuments!");
                 return true;
             }
 
-            _openDocuments[doc.file.getPath()] = doc;
+            _openDocuments[doc.file.fullPath] = doc;
             $(exports).triggerHandler("afterDocumentCreate", doc);
         })
         .on("_beforeDocumentDelete", function (event, doc) {
-            if (!_openDocuments[doc.file.getPath()]) {
+            if (!_openDocuments[doc.file.fullPath]) {
                 console.error("Document with references was not in _openDocuments!");
                 return true;
             }
 
             $(exports).triggerHandler("beforeDocumentDelete", doc);
-            delete _openDocuments[doc.file.getPath()];
+            delete _openDocuments[doc.file.fullPath];
         })
         .on("_documentRefreshed", function (event, doc) {
             $(exports).triggerHandler("documentRefreshed", doc);

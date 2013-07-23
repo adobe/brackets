@@ -162,7 +162,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translate to local file path.
             // Need to use encoded project path because it's decoded below.
-            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().getPath()));
+            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
 
         } else if (url.indexOf("file://") === 0) {
             // Convert a file URL to local file path
@@ -187,7 +187,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
             // Map to server url. Base url is already encoded, so don't encode again.
             var encodedDocPath = encodeURI(path);
-            var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().getPath());
+            var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
             url = encodedDocPath.replace(encodedProjectPath, baseUrl);
 
         } else {
@@ -215,7 +215,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
-        matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.getPath());
+        matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
         if (!matches) {
             return;
         }
@@ -270,7 +270,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
         var foundDoc;
         docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.getPath() === path) {
+            if (ele.doc.file.fullPath === path) {
                 foundDoc = ele;
                 return true;
             }
@@ -284,7 +284,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (!editor) {
             return null;
         }
-        return getLiveDocForPath(editor.document.file.getPath());
+        return getLiveDocForPath(editor.document.file.fullPath);
     }
     
     /**
@@ -353,7 +353,7 @@ define(function LiveDevelopment(require, exports, module) {
                 enableInstrumentation = true;
                 
                 _serverProvider.setRequestFilterPaths(
-                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath()))]
+                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))]
                 );
                 
                 // Send custom HTTP response for the current live document
@@ -931,7 +931,7 @@ define(function LiveDevelopment(require, exports, module) {
     function _prepareServer(doc) {
         var deferred = new $.Deferred();
         
-        _serverProvider = LiveDevServerManager.getProvider(doc.file.getPath());
+        _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
         
         if (!exports.config.experimental && !_serverProvider) {
             if (FileUtils.isServerHtmlFileExt(doc.extension)) {

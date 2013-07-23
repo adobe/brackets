@@ -124,7 +124,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.getPath(), err);
+                        console.log("Error checking modification status of " + doc.file.fullPath, err);
                         result.reject();
                     }
                 });
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
         
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
-            return !DocumentManager.getOpenDocumentForPath(wsFile.getPath());
+            return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         
         function checkWorkingSetFile(file) {
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.getPath(), error.name);
+                        console.log("Error checking for deletion of " + file.fullPath, error.name);
                         result.reject();
                     }
                 }
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
             doc.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.getPath(), error.name);
+            console.log("Error reloading contents of " + doc.file.fullPath, error.name);
         });
         return promise;
     }
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
-                StringUtils.breakableUrl(doc.file.getPath()),
+                StringUtils.breakableUrl(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.name)
             )
         );
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.breakableUrl(
-                        ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
                 buttons = [
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.breakableUrl(
-                        ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
                 buttons = [

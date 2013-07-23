@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             if (currentDoc) {
                 _$title.text(_currentTitlePath);
-                _$title.attr("title", currentDoc.file.getPath());
+                _$title.attr("title", currentDoc.file.fullPath);
                 // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
                 _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
             } else {
@@ -117,10 +117,10 @@ define(function (require, exports, module) {
         // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
         // exception. This code should be removed (if not needed), or updated with a unique
         // timer name (if needed).
-        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.getPath()));
+        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
-            var fullPath = newDocument.file.getPath();
+            var fullPath = newDocument.file.fullPath;
     
             // In the main toolbar, show the project-relative path (if the file is inside the current project)
             // or the full absolute path (if it's not in the project).
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
     function handleDirtyChange(event, changedDoc) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
-        if (currentDoc && changedDoc.file.getPath() === currentDoc.file.getPath()) {
+        if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
             updateTitle();
         }
     }
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
             
             //first time through, default to the current project path
             if (!_defaultOpenDialogFullPath) {
-                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().getPath();
+                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
             fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                         
                         doOpen(paths[paths.length - 1])
                             .done(function (doc) {
-                                var url = PathUtils.parseUrl(doc.file.getPath());
+                                var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
                                 
@@ -382,7 +382,7 @@ define(function (require, exports, module) {
         var baseDir,
             selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
-        baseDir = selected.getPath();
+        baseDir = selected.fullPath;
         if (selected.isFile) {
             baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         }
@@ -439,7 +439,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            _showSaveFileError(error.name, fileEntry.getPath())
+            _showSaveFileError(error.name, fileEntry.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
@@ -505,7 +505,7 @@ define(function (require, exports, module) {
         return Async.doSequentially(
             DocumentManager.getWorkingSet(),
             function (file) {
-                var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     return doSave(doc);
                 } else {
@@ -533,7 +533,7 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.name, doc.file.getPath())
+                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
                     .done(function () {
                         result.reject(error);
                     });
@@ -627,7 +627,7 @@ define(function (require, exports, module) {
         // untitled focument. If so, we should default to project root.
         // If the there is no project, default to desktop.
         if (doc) {
-            fullPath = doc.file.getPath();
+            fullPath = doc.file.fullPath;
             saveAsDefaultPath = FileUtils.getDirectoryPath(fullPath);
             defaultName = PathUtils.parseUrl(fullPath).filename;
             fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
@@ -722,11 +722,11 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
         
         if (doc && doc.isDirty) {
             // Document is dirty: prompt to save changes before closing
-            var filename = PathUtils.parseUrl(doc.file.getPath()).filename;
+            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -774,7 +774,7 @@ define(function (require, exports, module) {
                         
                         // Only reload from disk if we've executed the Close for real,
                         // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.getPath())) {
+                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
                             doRevert(doc)
                                 .then(result.resolve, result.reject);
                         } else {
@@ -808,7 +808,7 @@ define(function (require, exports, module) {
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.getPath());
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
             }
@@ -836,7 +836,7 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.getPath())) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
                     "</span></li>";
             });
             message += "</ul>";
@@ -1021,7 +1021,7 @@ define(function (require, exports, module) {
         var file = DocumentManager.getNextPrevFile(inc);
         if (file) {
             DocumentManager.beginDocumentNavigation();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.getPath() });
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
             
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {
@@ -1051,9 +1051,9 @@ define(function (require, exports, module) {
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
-            brackets.app.showOSFolder(entry.getPath(), function (err) {
+            brackets.app.showOSFolder(entry.fullPath, function (err) {
                 if (err) {
-                    console.error("Error showing '" + entry.getPath() + "' in OS folder:", err);
+                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
                 }
             });
         }

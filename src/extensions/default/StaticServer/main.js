@@ -139,7 +139,7 @@ define(function (require, exports, module) {
             self = this;
 
         if (_nodeConnection.connected()) {
-            self.root = ProjectManager.getProjectRoot().getPath();
+            self.root = ProjectManager.getProjectRoot().fullPath;
 
             _nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {
                 _baseUrl = "http://" + address.address + ":" + address.port + "/";

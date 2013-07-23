@@ -37,6 +37,18 @@ define(function (require, exports, module) {
     function FileSystemEntry(path, impl) {
         this._path = path;
         this._impl = impl;
+        
+        // Add "fullPath" and "name" getters
+        Object.defineProperties(this, {
+            "fullPath": {
+                get: function () { return this._path; },
+                set: function (val) { throw new Error("Cannot set fullPath"); }
+            },
+            "name": {
+                get: function () { return this._path.split("/").pop(); },
+                set: function (val) { throw new Error("Cannot set name"); }
+            }
+        });
     }
     
     /**
@@ -54,23 +66,7 @@ define(function (require, exports, module) {
      * @type {string}
      */
     FileSystemEntry.prototype._path = null;
-    
-    /**
-     * Returns the path for this file entry.
-     * @return {string} 
-     */
-    FileSystemEntry.prototype.getPath = function () {
-        return this._path;
-    };
-    
-    /**
-     * Returns the name of the file or directory
-     * @return {string}
-     */
-    FileSystemEntry.prototype.getName = function () {
-        return this._path.split("/").pop();
-    };
-    
+        
     /**
      * Returns true if this entry is a file.
      * @return {boolean}

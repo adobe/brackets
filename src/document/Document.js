@@ -256,7 +256,7 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
-        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.getPath()));
+        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
 
         if (this._masterEditor) {
             this._masterEditor._resetText(text);
@@ -401,7 +401,7 @@ define(function (require, exports, module) {
                 $(exports).triggerHandler("_documentSaved", thisDoc);
             })
             .fail(function (err) {
-                console.log("Error updating timestamp after saving file: " + thisDoc.file.getPath());
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
                 $(exports).triggerHandler("_documentSaved", thisDoc);
             });
     };
@@ -411,7 +411,7 @@ define(function (require, exports, module) {
         var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
         var editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
         var refInfo = " refs:" + this._refCount;
-        return "[Document " + this.file.getPath() + dirtyInfo + editorInfo + refInfo + "]";
+        return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
     
     /**
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.getPath());
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);

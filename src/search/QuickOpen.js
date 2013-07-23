@@ -336,7 +336,7 @@ define(function (require, exports, module) {
         // Also, see related code in _handleItemFocus
         /*
         else {
-            var fullPath = selectedItem.getPath();
+            var fullPath = selectedItem.fullPath;
             if (fullPath) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
@@ -501,11 +501,11 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.getPath()), query);
+            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
-                searchResult.label = fileInfo.getName();
-                searchResult.fullPath = fileInfo.getPath();
-                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.getName(), false);
+                searchResult.label = fileInfo.name;
+                searchResult.fullPath = fileInfo.fullPath;
+                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
             }
             return searchResult;
         });
@@ -748,7 +748,7 @@ define(function (require, exports, module) {
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
-        origDocPath = curDoc ? curDoc.file.getPath() : null;
+        origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
             origSelection = EditorManager.getCurrentFullEditor().getSelection();
             origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();

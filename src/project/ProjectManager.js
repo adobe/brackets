@@ -233,7 +233,7 @@ define(function (require, exports, module) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.getPath() === curDoc.file.getPath()) {
+                if (entry && entry.fullPath === curDoc.file.fullPath) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
     function setBaseUrl(projectBaseUrl) {
         _projectBaseUrl = projectBaseUrl;
 
-        // Ensure trailing slash to be consistent with _projectRoot.getPath()
+        // Ensure trailing slash to be consistent with _projectRoot.fullPath
         // so they're interchangable (i.e. easy to convert back and forth)
         if (_projectBaseUrl.length > 0 && _projectBaseUrl[_projectBaseUrl.length - 1] !== "/") {
             _projectBaseUrl += "/";
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
      * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        return (_projectRoot && absPath.indexOf(_projectRoot.getPath()) === 0);
+        return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
-            return absPath.slice(_projectRoot.getPath().length);
+            return absPath.slice(_projectRoot.fullPath.length);
         }
         return absPath;
     }
@@ -348,11 +348,11 @@ define(function (require, exports, module) {
     function _savePreferences() {
         
         // save the current project
-        _prefs.setValue("projectPath", _projectRoot.getPath());
+        _prefs.setValue("projectPath", _projectRoot.fullPath);
 
         // save jstree state
         var openNodes = [],
-            projectPathLength = _projectRoot.getPath().length,
+            projectPathLength = _projectRoot.fullPath.length,
             entry,
             fullPath,
             shortPath,
@@ -362,8 +362,8 @@ define(function (require, exports, module) {
         $(".jstree-open:visible").each(function (index) {
             entry = $(this).data("entry");
 
-            if (entry.getPath()) {
-                fullPath = entry.getPath();
+            if (entry.fullPath) {
+                fullPath = entry.fullPath;
 
                 // Truncate project path prefix and trailing slash
                 shortPath = fullPath.slice(projectPathLength + 1);
@@ -382,7 +382,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        _prefs.setValue(_getTreeStateKey(_projectRoot.getPath()), openNodes);
+        _prefs.setValue(_getTreeStateKey(_projectRoot.fullPath), openNodes);
     }
     
     /**
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile()) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.getPath(), FileViewController.PROJECT_MANAGER);
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                     
                         openResult.done(function () {
                             // update when tree display state changes
@@ -568,7 +568,7 @@ define(function (require, exports, module) {
                         if (_hasFileSelectionFocus() && curDoc && data) {
                             var entry = data.rslt.obj.data("entry");
                             
-                            if (curDoc.file.getPath().indexOf(entry.getPath()) === 0) {
+                            if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _redraw(true, false);
@@ -617,7 +617,7 @@ define(function (require, exports, module) {
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile() && !_isInRename(event.target)) {
-                        FileViewController.addToWorkingSetAndSelect(entry.getPath());
+                        FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
 
@@ -651,9 +651,9 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (_fileSystem.shouldShow(entry.getPath())) {
+            if (_fileSystem.shouldShow(entry.fullPath)) {
                 jsonEntry = {
-                    data: entry.getName(),
+                    data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
                     metadata: { entry: entry }
                 };
@@ -669,7 +669,7 @@ define(function (require, exports, module) {
                 jsonEntryList.push(jsonEntry);
     
                 // Map path to ID to initialize loaded and opened states
-                _projectInitialLoad.fullPathToIdMap[entry.getPath()] = jsonEntry.attr.id;
+                _projectInitialLoad.fullPathToIdMap[entry.fullPath] = jsonEntry.attr.id;
             }
         }
         return jsonEntryList;
@@ -742,7 +742,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_LOADING_PROJECT,
                     StringUtils.format(
                         Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.breakableUrl(dirEntry.getPath()),
+                        StringUtils.breakableUrl(dirEntry.fullPath),
                         err // TODO: FileSystem errors
                     )
                 );
@@ -764,7 +764,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                            StringUtils.breakableUrl(dirEntry.getPath()),
+                            StringUtils.breakableUrl(dirEntry.fullPath),
                             error.name
                         )
                     );
@@ -840,7 +840,7 @@ define(function (require, exports, module) {
 
     function _loadProject(rootPath, isUpdating) {
         if (!isUpdating) {
-            if (_projectRoot && _projectRoot.getPath() === rootPath + "/") {
+            if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
             }
             if (_projectRoot) {
@@ -892,7 +892,7 @@ define(function (require, exports, module) {
                 .done(function (exists) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                            _projectRoot.getPath() !== rootEntry.getPath();
+                            _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
     
                         // Success!
@@ -974,8 +974,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         // If path not within project, ignore
-        var projRelativePath = makeProjectRelativeIfPossible(entry.getPath());
-        if (projRelativePath === entry.getPath()) {
+        var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
+        if (projRelativePath === entry.fullPath) {
             return result.reject().promise();
         }
         
@@ -1038,7 +1038,7 @@ define(function (require, exports, module) {
         }
         _lastSelected = null;
         
-        return _loadProject(getProjectRoot().getPath(), true)
+        return _loadProject(getProjectRoot().fullPath, true)
             .done(function () {
                 if (selectedEntry) {
                     _findTreeNode(selectedEntry).done(function (node) {
@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
                     _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.getPath(), null)
+                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
                         .done(function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -1287,7 +1287,7 @@ define(function (require, exports, module) {
                     errorCleanup();
                 };
                 
-                var newItemPath = selectionEntry.getPath() + "/" + data.rslt.name;
+                var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
                 
                 if (isFolder) {
                     var directory = _fileSystem.getDirectoryForPath(newItemPath);
@@ -1398,7 +1398,7 @@ define(function (require, exports, module) {
                 // Finally, re-open the selected document
                 if (DocumentManager.getCurrentDocument()) {
                     FileViewController.openAndSelectDocument(
-                        DocumentManager.getCurrentDocument().file.getPath(),
+                        DocumentManager.getCurrentDocument().file.fullPath,
                         FileViewController.getFileSelectionFocus()
                     );
                 }
@@ -1459,7 +1459,7 @@ define(function (require, exports, module) {
                         return;
                     }
                     
-                    var oldName = selected.data("entry").getPath();
+                    var oldName = selected.data("entry").fullPath;
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
                     var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
@@ -1528,7 +1528,7 @@ define(function (require, exports, module) {
                 // Notify that one of the project files has changed
                 $(exports).triggerHandler("projectFilesChange");
                 
-                DocumentManager.notifyPathDeleted(entry.getPath());
+                DocumentManager.notifyPathDeleted(entry.fullPath);
     
                 _redraw(true);
                 result.resolve();
@@ -1540,7 +1540,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_DELETING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_DELETING_FILE,
-                        StringUtils.htmlEscape(entry.getPath()),
+                        StringUtils.htmlEscape(entry.fullPath),
                         FileUtils.getFileErrorString(err)
                     )
                 );

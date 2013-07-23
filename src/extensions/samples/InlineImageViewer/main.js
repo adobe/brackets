@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             
             if (match && match[1]) {
                 // URLs are relative to the doc
-                var docPath = hostEditor.document.file.getPath();
+                var docPath = hostEditor.document.file.fullPath;
                 
                 docPath = docPath.substr(0, docPath.lastIndexOf("/"));
                 
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
         }
 
         // TODO: Check for relative path
-        var projectPath = ProjectManager.getProjectRoot().getPath();
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
         
         if (fileName.indexOf(projectPath) !== 0) {
             fileName = projectPath + fileName;

@@ -49,7 +49,7 @@ define(function (require, exports, module) {
 
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
-        return DocumentManager.getDocumentForPath(fileInfo.getPath()).done(function (doc) {
+        return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
             DocumentManager.setCurrentDocument(doc);
         });
     });
@@ -331,7 +331,7 @@ define(function (require, exports, module) {
                 expect(newCursor.ch).toBe(expectedLocation.ch);
                 if (expectedLocation.file) {
                     var activeEditor = EditorManager.getActiveEditor();
-                    expect(activeEditor.document.file.getName()).toBe(expectedLocation.file);
+                    expect(activeEditor.document.file.name).toBe(expectedLocation.file);
                 }
             });
             

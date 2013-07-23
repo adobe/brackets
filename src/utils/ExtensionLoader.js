@@ -201,7 +201,7 @@ define(function (require, exports, module) {
                     if (contents[i].isDirectory()) {
                         // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
                         // Also, load sub-extensions defined in package.json.
-                        extensions.push(contents[i].getName());
+                        extensions.push(contents[i].name);
                     }
                 }
 

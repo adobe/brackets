@@ -916,7 +916,7 @@ define(function (require, exports, module) {
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
         var result          = new $.Deferred(),
             cssFilesResult  = ProjectManager.getFileSystem().getFileList(function (entry) {
-                return PathUtils.filenameExtension(entry.getPath()) === ".css";
+                return PathUtils.filenameExtension(entry.fullPath) === ".css";
             });
         
         // Load one CSS file and search its contents
@@ -942,7 +942,7 @@ define(function (require, exports, module) {
         // Load index of all CSS files; then process each CSS file in turn (see above)
         cssFilesResult.done(function (fileInfos) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.getPath(), selector);
+                return _loadFileAndScan(fileInfo.fullPath, selector);
             })
                 .then(result.resolve, result.reject);
         });

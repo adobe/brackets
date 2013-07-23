@@ -111,7 +111,7 @@ define(function (require, exports, module) {
         var response = helper();
         if (response.hasOwnProperty("promise")) {
             response.promise.done(function (jumpResp) {
-                var resolvedPath = jumpResp.getPath();
+                var resolvedPath = jumpResp.fullPath;
                 if (resolvedPath) {
 
                     // Tern doesn't always return entire function extent.

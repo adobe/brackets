@@ -72,8 +72,8 @@ define(function (require, exports, module) {
      * Remove a document from the cache
      */
     function _removeDocFromCache(evt, document) {
-        if (_cachedValues.hasOwnProperty(document.file.getPath())) {
-            delete _cachedValues[document.file.getPath()];
+        if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
+            delete _cachedValues[document.file.fullPath];
             $(document).off(".htmlInstrumentation");
         }
     }
@@ -84,20 +84,20 @@ define(function (require, exports, module) {
      * @return {Array} Array of tag info, or null if no tags were found
      */
     function scanDocument(doc) {
-        if (!_cachedValues.hasOwnProperty(doc.file.getPath())) {
+        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
             $(doc).on("change.htmlInstrumentation", function () {
                 // Clear cached values on doc change, but keep the entry
                 // in the _cachedValues hash. Keeping the entry means
                 // the event handlers (like this one) won't be added again.
-                _cachedValues[doc.file.getPath()] = null;
+                _cachedValues[doc.file.fullPath] = null;
             });
             
             // Assign to cache, but don't set a value yet
-            _cachedValues[doc.file.getPath()] = null;
+            _cachedValues[doc.file.fullPath] = null;
         }
         
-        if (_cachedValues[doc.file.getPath()]) {
-            var cachedValue = _cachedValues[doc.file.getPath()];
+        if (_cachedValues[doc.file.fullPath]) {
+            var cachedValue = _cachedValues[doc.file.fullPath];
             
             if (cachedValue.timestamp === doc.diskTimestamp) {
                 return cachedValue.tags;
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
         });
         
         // Cache results
-        _cachedValues[doc.file.getPath()] = {
+        _cachedValues[doc.file.fullPath] = {
             timestamp: doc.diskTimestamp,
             tags: tags
         };
@@ -240,13 +240,13 @@ define(function (require, exports, module) {
      * @return none
      */
     function _markText(editor) {
-        var cache = _cachedValues[editor.document.file.getPath()];
+        var cache = _cachedValues[editor.document.file.fullPath];
         
         var cm = editor._codeMirror,
             tags = cache && cache.tags;
         
         if (!tags) {
-            console.error("Couldn't find the tag information for " + editor.document.file.getPath());
+            console.error("Couldn't find the tag information for " + editor.document.file.fullPath);
             return;
         }
         

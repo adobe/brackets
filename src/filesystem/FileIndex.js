@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry The entry to add.
      */
     FileIndex.prototype.addEntry = function (entry) {
-        this._index[entry.getPath()] = entry;
+        this._index[entry.fullPath] = entry;
         
         if (entry.isFile()) {
             this._allFiles.push(entry);
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry The entry to remove.
      */
     FileIndex.prototype.removeEntry = function (entry) {
-        var path = entry.getPath();
+        var path = entry.fullPath;
         
         delete this._index[path];
         

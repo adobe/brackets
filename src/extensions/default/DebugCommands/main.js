@@ -172,10 +172,10 @@ define(function (require, exports, module) {
                 // inspect all children of dirEntry
                 contents.forEach(function (entry) {
                     if (entry.isDirectory()) {
-                        var match = entry.getName().match(/^([a-z]{2})(-[a-z]{2})?$/);
+                        var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
                         
                         if (match) {
-                            var language = entry.getName(),
+                            var language = entry.name,
                                 label = match[1];
                             
                             if (match[2]) {

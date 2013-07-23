@@ -194,7 +194,7 @@ define(function (require, exports, module) {
      * @param {!$.Deferred} result Deferred to resolve with all functions found and the document
      */
     function _readFile(fileInfo, result) {
-        DocumentManager.getDocumentForPath(fileInfo.getPath())
+        DocumentManager.getDocumentForPath(fileInfo.fullPath)
             .done(function (doc) {
                 var allFunctions = _findAllFunctionsInText(doc.getText());
                 
@@ -218,17 +218,17 @@ define(function (require, exports, module) {
      */
     function _shouldGetFromCache(fileInfo) {
         var result = new $.Deferred(),
-            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.getPath());
+            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
         
         if (isChanged && fileInfo.JSUtils) {
             // See if it's dirty and in the working set first
-            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.getPath());
+            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
             
             if (doc && doc.isDirty) {
                 result.resolve(false);
             } else {
                 // If a cache exists, check the timestamp on disk
-                var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.getPath());
+                var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.fullPath);
                 
                 file.stat()
                     .done(function (stat) {
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
             
             // doc will be undefined if we hit the cache
             if (!doc) {
-                DocumentManager.getDocumentForPath(docEntry.fileInfo.getPath())
+                DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
                     .done(function (fetchedDoc) {
                         _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
                     })
@@ -377,7 +377,7 @@ define(function (require, exports, module) {
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.getPath()));
+                return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.fullPath));
             });
         } else {
             jsFiles = fileInfos;

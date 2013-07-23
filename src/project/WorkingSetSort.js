@@ -290,8 +290,8 @@ define(function (require, exports, module) {
     register(
         Commands.SORT_WORKINGSET_BY_ADDED,
         function (file1, file2) {
-            var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.getPath()),
-                index2 = DocumentManager.findInWorkingSetAddedOrder(file2.getPath());
+            var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
+                index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
             return index1 - index2;
         },
         "workingSetAdd workingSetAddList"

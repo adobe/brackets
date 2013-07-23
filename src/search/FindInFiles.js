@@ -119,7 +119,7 @@ define(function (require, exports, module) {
             return StringUtils.format(
                 Strings.FIND_IN_FILES_SCOPED,
                 StringUtils.breakableUrl(
-                    ProjectManager.makeProjectRelativeIfPossible(scope.getPath())
+                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
                 )
             );
         } else {
@@ -397,9 +397,9 @@ define(function (require, exports, module) {
             if (scope.isDirectory()) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
-                return file.getPath().indexOf(scope.getPath()) === 0;
+                return file.fullPath.indexOf(scope.fullPath) === 0;
             } else {
-                return file.getPath() === scope.getPath();
+                return file.fullPath === scope.fullPath;
             }
         }
         return true;
@@ -446,7 +446,7 @@ define(function (require, exports, module) {
                                     
                                     if (matches && matches.length) {
                                         searchResults.push({
-                                            fullPath: file.getPath(),
+                                            fullPath: file.fullPath,
                                             matches: matches
                                         });
                                     }
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item) {
-                // TODO: FileSystem rename -- item.getPath() = item.fullPath.replace(oldName, newName);
+                // TODO: FileSystem rename -- item.fullPath = item.fullPath.replace(oldName, newName);
             });
             _showSearchResults(searchResults, currentQuery, currentScope);
         }
@@ -494,7 +494,7 @@ define(function (require, exports, module) {
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             searchResults.forEach(function (item, idx) {
-                if (FileUtils.isAffectedWhenRenaming(item.getPath(), path)) {
+                if (FileUtils.isAffectedWhenRenaming(item.fullPath, path)) {
                     searchResults.splice(idx, 1);
                 }
             });

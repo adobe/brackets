@@ -68,7 +68,7 @@ define(function (require, exports, module) {
             return result;
         }
 
-        var docUrl = window.PathUtils.parseUrl(doc.file.getPath());
+        var docUrl = window.PathUtils.parseUrl(doc.file.fullPath);
         if (!docUrl) {
             return result;
         }
@@ -139,9 +139,9 @@ define(function (require, exports, module) {
             fileSystem.getDirectoryContents(directory)
                 .done(function (contents) {
                     contents.forEach(function (entry) {
-                        if (fileSystem.shouldShow(entry.getPath())) {
+                        if (fileSystem.shouldShow(entry.fullPath)) {
                             // convert to doc relative path
-                            var entryStr = entry.getPath().replace(docDir, "");
+                            var entryStr = entry.fullPath.replace(docDir, "");
 
                             // code hints show the same strings that are inserted into text,
                             // so strings in list will be encoded. wysiwyg, baby!
