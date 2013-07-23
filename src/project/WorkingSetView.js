@@ -52,6 +52,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * @type {boolean}
+     */
+    var _suppressSortRedraw = false;
+    
+    
+    /**
+     * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
@@ -179,6 +187,9 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
+                
+                // Don't redraw the working set for the next events
+                _suppressSortRedraw = true;
             }
         }
         
@@ -256,6 +267,9 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+                
+                // The drag is done, so set back to the default
+                _suppressSortRedraw = false;
             }
         }
         
@@ -550,11 +564,13 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    /** 
+    /**
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet(true);
+        if (!_suppressSortRedraw) {
+            _rebuildWorkingSet(true);
+        }
     }
 
     /** 

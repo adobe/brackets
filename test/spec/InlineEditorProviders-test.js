@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
+        InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         KeyEvent         = require("utils/KeyEvent"),
@@ -1256,6 +1257,108 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.deletePath(tempPath));
                 });
             });
+        });
+        
+        describe("InlineEditor provider prioritization", function () {
+            var testWindow,
+                testEditorManager,
+                testDoc;
+            
+            function getPositiveProviderCallback(widget) {
+                return function () {
+                    widget.called = true;
+                    return $.Deferred().resolve(widget).promise();
+                };
+            }
+            
+            function negativeProviderCallback() {
+                return null;
+            }
+            
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    var mock = SpecRunnerUtils.createMockEditor("");
+                    testWindow          = w;
+                    Commands            = testWindow.brackets.test.Commands;
+                    testEditorManager   = testWindow.brackets.test.EditorManager;
+                    testDoc             = mock.doc;
+                    testEditorManager._doShow(testDoc);
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDoc);
+                SpecRunnerUtils.closeTestWindow();
+                testWindow          = null;
+                Commands            = null;
+                testEditorManager   = null;
+                testDoc             = null;
+            });
+            
+            it("should prefer positive higher priority providers (1)", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), 2);
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBeFalsy();
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBe(true);
+                });
+            });
+            
+            it("should prefer positive higher priority providers (2)", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), 2);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBeFalsy();
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBe(true);
+                });
+
+            });
+
+            it("should ignore negative higher priority providers", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(negativeProviderCallback, 2);
+                testEditorManager.registerInlineEditProvider(negativeProviderCallback, 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), -1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), -2);
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBe(true);
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBeFalsy();
+                });
+
+            });
+            
         });
     });
 });
