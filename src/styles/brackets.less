@@ -308,47 +308,30 @@ a, img {
 }
 
 #update-notification {
-    margin: 10px 0 5px;
-    .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,14px);
-    //}
-    display:none;
+    .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
 }
 
 #toolbar-go-live {
+	// background-position is 0 0 for 24x24 icons
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,16px);
-    //}
+    .sprite-icon(0, 0, 24px, 24px, "images/live_development_sprites.svg");
     // 'Connected' state
     &.success {
-        .sprite-swap(0,32px);
+        .sprite-swap(0, 24px);
     }
-    //&.success:hover {
-    //    .sprite-swap(0,48px);
-    //}
     // 'Connection in progress' state
     &.info {
-        .sprite-swap(0,64px);
+        .sprite-swap(0, 48px);
     }
     // 'Out-of-sync' state
     &.out-of-sync {
-        .sprite-swap(0,80px);
+        .sprite-swap(0, 72px);
     }
-    //&.out-of-sync:hover {
-    //    .sprite-swap(0,96px);
-    //}
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
-    opacity: 0.7;
-    //&:hover {
-    //    opacity: 0.5;
-    //}
+    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
 }
 
 /* Project panel */
@@ -748,12 +731,9 @@ a, img {
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
         background-position: 7px 5px;
         -webkit-transform: translateZ(0) rotate(90deg);
-        -webkit-transition: -webkit-transform 0.05s;           
     }
     &.collapsed {
         background-position: 7px 5px;
-        -webkit-transform: translateZ(0);
-        -webkit-transition: -webkit-transform 0.05s;           
     }
 }
 
