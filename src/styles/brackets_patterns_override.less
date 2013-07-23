@@ -117,6 +117,11 @@
     background: @main-toolbar-background-color;
     padding: 7px 0px;
     
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
+    
     .buttons {
         text-align: center;
         margin: 0;
@@ -138,11 +143,6 @@
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
     }     
-
-    // Ensure icons are vertically stacked & horizontally centered
-    .vbox;
-    .box-flex(1);
-    text-align: center;
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
@@ -557,13 +557,10 @@
             }
             
             /* Colors for the active tab, remove bottom border */
-            > .active > a {
+            > .active > a,
+            > .active > a:hover {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
-                &:hover {
-                    background-color: #dfe2e2;
-                    border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
-                }
             }
         }
         
@@ -787,6 +784,21 @@ input[type="color"],
 /* Buttons */
 
 // Base .btn styles
+
+.btn:hover,
+.btn:focus,
+.btn.disabled,
+.btn[disabled] {
+    background-color: @tc-button-background;
+}
+
+.btn.primary:hover,
+.btn.primary:focus,
+.btn.primary.disabled,
+.btn.primary[disabled] {
+    background-color: @tc-call-to-action;
+}
+
 .btn {
     // Button Base
     background-image: none;
@@ -811,6 +823,7 @@ input[type="color"],
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        color: @tc-text;
         outline: none;
     }
 
@@ -827,11 +840,13 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
+            color: @tc-call-to-action-text;
         }
 
         &:focus {
             border: 1px solid @tc-gray-component-focused-border;
             box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
+            color: @tc-call-to-action-text;
             outline: none;
         }
     }
@@ -842,6 +857,7 @@ input[type="color"],
         background-image: none;
         background-color: @tc-button-down-background;
         box-shadow: @tc-button-down-shadow;
+        color: @tc-text;
     }
 
     &.disabled, &[disabled] {
@@ -863,24 +879,6 @@ input[type="color"],
     font-size: 11px;
     font-weight: normal;
     line-height: 14px;
-}
-
-.btn:hover,
-.btn:focus,
-.btn:active,
-.btn.active,
-.btn.disabled,
-.btn[disabled] {
-    background-color: @tc-button-background;
-}
-
-.btn.primary:hover,
-.btn.primary:focus,
-.btn.primary:active,
-.btn.primary.active,
-.btn.primary.disabled,
-.btn.primary[disabled] {
-    background-color: @tc-call-to-action;
 }
 
 /* Tables */
