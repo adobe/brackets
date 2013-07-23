@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
- /*global module, require*/
+/*global module, require*/
 module.exports = function (grunt) {
     "use strict";
 

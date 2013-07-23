@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
+/*jslint regexp: true*/
 /*global module, require, process*/
 
 module.exports = function (grunt) {
@@ -36,7 +37,7 @@ module.exports = function (grunt) {
             num,
             branch,
             sha,
-            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 },
+            opts = { cwd: process.cwd(), maxBuffer: 1024 * 1024 },
             version = grunt.config("pkg").version;
         
         qexec("git log --format=%h", opts).then(function (stdout, stderr) {

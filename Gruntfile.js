@@ -163,6 +163,13 @@ module.exports = function (grunt) {
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+    
+    // task: hack
+    grunt.registerTask("hack", "Direct brackets-shell installation to point to brackets git repository for development", function (path) {
+        var done = this.async;
+        
+        
+    });
 
     // Default task.
     grunt.registerTask('default', ['test']);
