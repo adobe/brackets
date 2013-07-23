@@ -760,18 +760,19 @@ define(function (require, exports, module) {
     function handleFileSaveAs(commandData) {
         // Default to current document if doc is null
         var doc = null,
-            activeEditor,
             settings;
         
         if (commandData) {
             doc = commandData.doc;
         } else {
-            activeEditor = EditorManager.getActiveEditor();
-            doc = activeEditor.document;
-            settings = {};
-            settings.selection = activeEditor.getSelection();
-            settings.cursorPos = activeEditor.getCursorPos();
-            settings.scrollPos = activeEditor.getScrollPos();
+            var activeEditor = EditorManager.getActiveEditor();
+            if (activeEditor) {
+                doc = activeEditor.document;
+                settings = {};
+                settings.selection = activeEditor.getSelection();
+                settings.cursorPos = activeEditor.getCursorPos();
+                settings.scrollPos = activeEditor.getScrollPos();
+            }
         }
             
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
