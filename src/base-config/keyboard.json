@@ -1,5 +1,5 @@
 {
-    "file.new":  [
+    "file.newDoc":  [
         "Ctrl-N"
     ],
     "file.open":  [
@@ -7,6 +7,9 @@
     ],
     "file.close":  [
         "Ctrl-W"
+    ],
+    "file.openFolder": [
+        "Ctrl-Alt-O"
     ],
     "file.close_all":  [
         "Ctrl-Shift-W"
@@ -17,6 +20,9 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
+    "file.saveAs":  [
+        "Ctrl-Shift-S"
+    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -130,6 +136,12 @@
             "platform": "mac"
         }
     ],
+    "edit.openLineAbove":  [
+        "Ctrl-Shift-Enter"
+    ],
+    "edit.openLineBelow":  [
+        "Ctrl-Enter"
+    ],
     "edit.lineComment":  [
         "Ctrl-/"
     ],
@@ -139,6 +151,15 @@
         },
         {
             "key": "Cmd-Opt-/",
+            "platform": "mac"
+        }
+    ],
+    "edit.showCodeHints":  [
+        {
+            "key": "Ctrl-Space"
+        },
+        {
+            "key": "Ctrl-Space",
             "platform": "mac"
         }
     ],
@@ -201,6 +222,9 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
+    ],
     "navigate.nextDoc":  [
         {
             "key": "Ctrl-Tab"
@@ -221,6 +245,9 @@
     ],
     "navigate.toggleQuickEdit":  [
         "Ctrl-E"
+    ],
+    "navigate.toggleQuickDocs":  [
+        "Ctrl-K"
     ],
     "navigate.previousMatch":  [
         {

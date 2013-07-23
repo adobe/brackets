@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, PathUtils */
+/*global define, $, CodeMirror */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -39,7 +39,7 @@
  *         mode: "haskell",
  *         fileExtensions: ["hs"],
  *         blockComment: ["{-", "-}"],
- *         lineComment: "--"
+ *         lineComment: ["--"]
  *     });
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
@@ -62,10 +62,11 @@
  *     });
  * You can combine file names and extensions, or not define them at all.
  *
- * You can also refine an existing language. Currently you can only set the comment styles:
+ * You can also refine an existing language:
  *     var language = LanguageManager.getLanguage("haskell");
- *     language.setLineComment("--");
- *     language.setBlockComment("{-", "-}");
+ *     language.setLineCommentSyntax(["--"]);
+ *     language.setBlockCommentSyntax("{-", "-}");
+ *     language.addFileExtension("lhs");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
@@ -102,6 +103,7 @@ define(function (require, exports, module) {
     
     // Dependencies
     var Async                 = require("utils/Async"),
+        FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
     
@@ -186,11 +188,11 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var fileName  = PathUtils.filename(path).toLowerCase(),
-            language  = _fileNameToLanguageMap[fileName],
+        var fileName = FileUtils.getBaseName(path).toLowerCase(),
+            language = _fileNameToLanguageMap[fileName],
             extension,
             parts;
-        
+
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
@@ -409,12 +411,6 @@ define(function (require, exports, module) {
                     result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
                     return;
                 }
-                
-                // modeConfig can be a string or mode object
-                if (modeConfig !== mode && modeConfig.name !== mode) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                    return;
-                }
             }
             
             // This mode is now only about what to tell CodeMirror
@@ -522,7 +518,7 @@ define(function (require, exports, module) {
 
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
-     * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
+     * @param {!string|Array.<string>} prefix Prefix string or an array of prefix strings
      *   to use for line comments (e.g. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */

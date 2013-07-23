@@ -58,6 +58,11 @@ define(function (require, exports, module) {
                 });
 
                 this.after(function () {
+                    testWindow        = null;
+                    CommandManager    = null;
+                    Commands          = null;
+                    KeyBindingManager = null;
+                    Menus             = null;
                     SpecRunnerUtils.closeTestWindow();
                 });
             }

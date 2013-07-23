@@ -113,6 +113,7 @@ define(function (require, exports, module) {
             
             it("should set mode based on Document language", function () {
                 createTestEditor(defaultContent, "html");
+                var mode = LanguageManager.getLanguageForPath("only/testing/the/path.css").getMode();
                 
                 var htmlLanguage = LanguageManager.getLanguage("html");
                 expect(myEditor.getModeForDocument()).toBe(htmlLanguage.getMode());

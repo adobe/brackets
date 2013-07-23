@@ -54,27 +54,47 @@ define(function NetworkAgent(require, exports, module) {
         return _urlRequested && _urlRequested[url];
     }
 
+    function _logURL(url) {
+        _urlRequested[_urlWithoutQueryString(url)] = true;
+    }
+
     // WebInspector Event: Network.requestWillBeSent
     function _onRequestWillBeSent(event, res) {
         // res = {requestId, frameId, loaderId, documentURL, request, timestamp, initiator, stackTrace, redirectResponse}
-        var url = _urlWithoutQueryString(res.request.url);
-        _urlRequested[url] = true;
+        _logURL(res.request.url);
+    }
+
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        _logURL(res.frame.url);
+    }
+    
+    /**
+     * Enable the inspector Network domain
+     * @return {jQuery.Promise} A promise resolved when the Network.enable() command is successful.
+     */
+    function enable() {
+        return Inspector.Network.enable();
     }
 
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
-        Inspector.Network.enable();
+
+        $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
         $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
+        $(Inspector.Page).off(".NetworkAgent");
         $(Inspector.Network).off(".NetworkAgent");
     }
 
     // Export public functions
     exports.wasURLRequested = wasURLRequested;
+    exports.enable = enable;
     exports.load = load;
     exports.unload = unload;
 });

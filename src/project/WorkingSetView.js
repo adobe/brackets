@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
+        $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
     
@@ -82,8 +83,10 @@ define(function (require, exports, module) {
     function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
+            $workingSetHeader.hide();
         } else {
             $openFilesContainer.show();
+            $workingSetHeader.show();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -241,14 +244,16 @@ define(function (require, exports, module) {
                 } else {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 }
-            } else if (moved) {
+            
+            } else {
+                // Update the file selection
                 if (selected) {
-                    // Update the file selection
                     _fireSelectionChanged();
                     ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
                 }
+                
+                // Restore the shadow
                 if (addBottomShadow) {
-                    // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
@@ -318,9 +323,8 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
+            ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     }
     
@@ -333,13 +337,22 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
+    }
+    
+    /**
+     * @private
+     * @param {$.Event} event The Click Event to respond to.
+     */
+    function _handleMiddleMouseClick(event) {
+        var file = $(event.target).closest("li").data(_FILE_KEY);
+
+        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
     
     /** 
@@ -352,7 +365,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").text(file.name);
+        var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
@@ -360,13 +373,20 @@ define(function (require, exports, module) {
         $openFilesContainer.find("ul").append($newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
-
+        
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
             _reorderListItem(e, $(this));
+            e.preventDefault();
+        });
+        
+        $newItem.click(function (e) {
+            if (e.which === 2) {
+                _handleMiddleMouseClick(e);
+            }
             e.preventDefault();
         });
 
@@ -384,14 +404,16 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet() {
+    function _rebuildWorkingSet(forceRedraw) {
         $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _redraw();
+        if (forceRedraw) {
+            _redraw();
+        }
     }
 
     /**
@@ -464,9 +486,15 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, index) {
+        if (index === DocumentManager.getWorkingSet().length - 1) {
+            // Simple case: append item to list
+            _createNewListItem(file);
+            _redraw();
+        } else {
+            // Insertion mid-list: just rebuild whole list UI
+            _rebuildWorkingSet(true);
+        }
     }
 
     /**
@@ -489,23 +517,26 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file 
+     * @param {FileEntry} file
+     * @param {boolean=} suppressRedraw If true, suppress redraw
      */
-    function _handleFileRemoved(file) {
-        var $listItem = _findListItemFromFile(file);
-        if ($listItem) {
-            // Make the next file in the list show the close icon, 
-            // without having to move the mouse, if there is a next file.
-            var $nextListItem = $listItem.next();
-            if ($nextListItem && $nextListItem.length > 0) {
-                var canClose = ($listItem.find(".can-close").length === 1);
-                var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                _updateFileStatusIcon($nextListItem, isDirty, canClose);
+    function _handleFileRemoved(file, suppressRedraw) {
+        if (!suppressRedraw) {
+            var $listItem = _findListItemFromFile(file);
+            if ($listItem) {
+                // Make the next file in the list show the close icon, 
+                // without having to move the mouse, if there is a next file.
+                var $nextListItem = $listItem.next();
+                if ($nextListItem && $nextListItem.length > 0) {
+                    var canClose = ($listItem.find(".can-close").length === 1);
+                    var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                    _updateFileStatusIcon($nextListItem, isDirty, canClose);
+                }
+                $listItem.remove();
             }
-            $listItem.remove();
+            
+            _redraw();
         }
-        
-        _redraw();
     }
 
     function _handleRemoveList(removedFiles) {
@@ -523,8 +554,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet();
-        _scrollSelectedDocIntoView();
+        _rebuildWorkingSet(true);
     }
 
     /** 
@@ -549,12 +579,17 @@ define(function (require, exports, module) {
         // Rebuild the working set if any file or folder name changed.
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
+    }
+    
+    function refresh() {
+        _redraw();
     }
     
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
+        $workingSetHeader = $("#working-set-header");
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
@@ -566,8 +601,8 @@ define(function (require, exports, module) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
-            _handleFileRemoved(removedFile);
+        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+            _handleFileRemoved(removedFile, suppressRedraw);
         });
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
@@ -598,5 +633,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
+    exports.refresh = refresh;
 });

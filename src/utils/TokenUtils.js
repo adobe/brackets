@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         return {
             "editor": editor,
             "pos": pos,
-            "token": editor.getTokenAt(pos)
+            "token": editor.getTokenAt(pos, true)
         };
     }
     
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
         return true;
     }
     
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
         return true;
     }
     
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         if (!moveFxn(ctx)) {
             return false;
         }
-        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
+        while (!ctx.token.type && ctx.token.string.trim().length === 0) {
             if (!moveFxn(ctx)) {
                 return false;
             }
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
      */
     function getModeAt(cm, pos) {
         var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos).state),
+            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
             name;
 
         name = (modeData.mode.name === "xml") ?

@@ -1,0 +1,21 @@
+<div class="install-extension-dialog modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">
+            {{#isUpdate}}{{Strings.UPDATE_EXTENSION_TITLE}}{{/isUpdate}}
+            {{^isUpdate}}{{Strings.INSTALL_EXTENSION_TITLE}}{{/isUpdate}}
+        </h1>
+    </div>
+    <div class="modal-body">
+        <div class="field-container input-field">
+            <input type="text" placeholder="{{INSTALL_EXTENSION_HINT}}" class="url" />
+        </div>
+        <div class="field-container message-field">
+            <div class="message"></div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn left browse-extensions">{{Strings.BROWSE_EXTENSIONS}}</button>
+        <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
+        <button class="dialog-button btn primary" data-button-id="ok" disabled>{{Strings.INSTALL}}</button>
+    </div>
+</div>

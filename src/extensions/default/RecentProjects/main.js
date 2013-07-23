@@ -45,8 +45,7 @@ define(function (require, exports, module) {
     
     
     var $dropdownToggle,
-        $dropdown,
-        $settings;
+        $dropdown;
     
     var prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
@@ -196,9 +195,6 @@ define(function (require, exports, module) {
                     });
                 closeDropdown();
             
-            } else if (id === "project-settings-link") {
-                CommandManager.execute(Commands.FILE_PROJECT_SETTINGS);
-            
             } else if (id === "open-folder-link") {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);
             }
@@ -244,16 +240,18 @@ define(function (require, exports, module) {
     function renderList() {
         var recentProjects = getRecentProjects(),
             currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            projectList    = [];
+            templateVars   = {
+                projectList : [],
+                Strings     : Strings
+            };
         
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
-                projectList.push(parsePath(root));
+                templateVars.projectList.push(parsePath(root));
             }
         });
-        var templateVars = {projectList: projectList, hasProject: projectList.length};
         
-        return Mustache.render(ProjectsMenuTemplate, $.extend(templateVars, Strings));
+        return Mustache.render(ProjectsMenuTemplate, templateVars);
     }
     
     /**

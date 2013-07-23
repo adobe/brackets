@@ -29,20 +29,39 @@ define(function (require, exports, module) {
 
     var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
+        DocumentManager = brackets.getModule("document/DocumentManager"),
+        Commands        = brackets.getModule("command/Commands"),
+        CommandManager  = brackets.getModule("command/CommandManager"),
+        Menus           = brackets.getModule("command/Menus"),
+        Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
+        StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
-        Session         = require("Session");
+        Session         = require("Session"),
+        Acorn           = require("thirdparty/acorn/acorn");
 
-    var session     = null,  // object that encapsulates the current session state
-        cachedHints = null,  // sorted hints for the current hinting session
-        cachedType  = null,  // describes the lookup type and the object context
-        cachedScope = null,  // the inner-most scope returned by the query worker
-        cachedLine  = null;  // the line number for the cached scope
+    var session      = null,  // object that encapsulates the current session state
+        cachedCursor = null,  // last cursor of the current hinting session
+        cachedHints  = null,  // sorted hints for the current hinting session
+        cachedType   = null,  // describes the lookup type and the object context
+        cachedToken  = null,  // the token used in the current hinting session
+        matcher      = null,  // string matcher for hints
+        ignoreChange;         // can ignore next "change" event if true;
 
-    var MAX_DISPLAYED_HINTS = 100;
+    /**
+     *  Get the value of current session.
+     *  Used for unit testing.
+     * @returns {Session} - the current session.
+     */
+    function getSession() {
+        return session;
+    }
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -51,74 +70,13 @@ define(function (require, exports, module) {
      *
      * @param {Array.<Object>} hints - hints to be included in the response
      * @param {string} query - querystring with which to filter the hint list
+     * @param {Object} type - the type of query, property vs. identifier
      * @return {Object} - hint response as defined by the CodeHintManager API 
      */
-    function getHintResponse(hints, query) {
+    function getHintResponse(hints, query, type) {
 
         var trimmedQuery,
-            filteredHints,
             formattedHints;
-
-        /*
-         * Filter a list of tokens using the query string in the closure.
-         * 
-         * @param {Array.<Object>} tokens - list of hints to filter
-         * @param {number} limit - maximum numberof tokens to return
-         * @return {Array.<Object>} - filtered list of hints
-         */
-        function filterWithQuery(tokens, limit) {
-
-            /*
-             * Filter arr using test, returning at most limit results from the
-             * front of the array.
-             * 
-             * @param {Array} arr - array to filter
-             * @param {Function} test - test to determine if an element should
-             *      be included in the results
-             * @param {number} limit - the maximum number of elements to return
-             * @return {Array.<Object>} - new array of filtered elements
-             */
-            function filterArrayPrefix(arr, test, limit) {
-                var i = 0,
-                    results = [],
-                    elem;
-
-                for (i; i < arr.length && results.length <= limit; i++) {
-                    elem = arr[i];
-                    if (test(elem)) {
-                        results.push(elem);
-                    }
-                }
-
-                return results;
-            }
-
-            // If the query is a string literal (i.e., if it starts with a
-            // string literal delimiter, and hence if trimmedQuery !== query)
-            // then only string literal hints should be returned, and matching
-            // should be performed w.r.t. trimmedQuery. If the query is 
-            // otherwise non-empty, no string literals should match. If the
-            // query is empty then no hints are filtered.
-            if (trimmedQuery !== query) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        return (token.value.indexOf(trimmedQuery) === 0);
-                    } else {
-                        return false;
-                    }
-                }, limit);
-            } else if (query.length > 0) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        return false;
-                    } else {
-                        return (token.value.indexOf(query) === 0);
-                    }
-                }, limit);
-            } else {
-                return tokens.slice(0, limit);
-            }
-        }
 
         /*
          * Returns a formatted list of hints with the query substring
@@ -127,61 +85,59 @@ define(function (require, exports, module) {
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @param {Array.<jQuery.Object>} - array of hints formatted as jQuery
+         * @return {Array.<jQuery.Object>} - array of hints formatted as jQuery
          *      objects
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
-                var hint        = token.value,
-                    index       = hint.indexOf(query),
-                    $hintObj    = $("<span>").addClass("brackets-js-hints"),
-                    delimiter   = "";
+                var $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
-                switch (token.level) {
-                case 0:
-                    $hintObj.addClass("priority-high");
-                    break;
-                case 1:
-                    $hintObj.addClass("priority-medium");
-                    break;
-                case 2:
-                    $hintObj.addClass("priority-low");
-                    break;
-                }
-
-                // is the token a global variable?
-                if (token.global) {
-                    $hintObj.addClass("global-hint");
-                }
-                
-                // is the token a literal?
-                if (token.literal) {
-                    $hintObj.addClass("literal-hint");
-                    if (token.kind === "string") {
-                        delimiter = HintUtils.DOUBLE_QUOTE;
+                if (!type.property && !token.builtin && token.depth !== undefined) {
+                    switch (token.depth) {
+                    case 0:
+                        $hintObj.addClass("priority-high");
+                        break;
+                    case 1:
+                        $hintObj.addClass("priority-medium");
+                        break;
+                    case 2:
+                        $hintObj.addClass("priority-low");
+                        break;
+                    default:
+                        $hintObj.addClass("priority-lowest");
+                        break;
                     }
                 }
-                
+
+                if (token.guess) {
+                    $hintObj.addClass("guess-hint");
+                }
+
                 // is the token a keyword?
                 if (token.keyword) {
                     $hintObj.addClass("keyword-hint");
                 }
-             
-                // higlight the matched portion of each hint
-                if (index >= 0) {
-                    var prefix  = StringUtils.htmlEscape(hint.slice(0, index)),
-                        match   = StringUtils.htmlEscape(hint.slice(index, index + query.length)),
-                        suffix  = StringUtils.htmlEscape(hint.slice(index + query.length));
 
-                    $hintObj.append(delimiter + prefix)
-                        .append($("<span>")
-                                .append(match)
-                                .addClass("matched-hint"))
-                        .append(suffix + delimiter);
-                } else {
-                    $hintObj.text(delimiter + hint + delimiter);
+                if (token.literal) {
+                    $hintObj.addClass("literal-hint");
                 }
+             
+                // highlight the matched portion of each hint
+                if (token.stringRanges) {
+                    token.stringRanges.forEach(function (item) {
+                        if (item.matched) {
+                            $hintObj.append($("<span>")
+                                .append(StringUtils.htmlEscape(item.text))
+                                .addClass("matched-hint"));
+                        } else {
+                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                        }
+                    });
+                } else {
+                    $hintObj.text(token.value);
+                }
+
                 $hintObj.data("token", token);
                 
                 return $hintObj;
@@ -200,13 +156,17 @@ define(function (require, exports, module) {
             trimmedQuery = query;
         }
 
-        filteredHints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
-        formattedHints = formatHints(filteredHints, trimmedQuery);
-
+        if (hints) {
+            formattedHints = formatHints(hints, trimmedQuery);
+        } else {
+            formattedHints = [];
+        }
+        
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true
+            selectInitial: true,
+            handleWideResults: hints.handleWideResults
         };
     }
 
@@ -217,6 +177,191 @@ define(function (require, exports, module) {
     }
 
     /**
+     * determine if the cached hint information should be invalidated and re-calculated
+     *
+     * @param {Session} session - the active hinting session
+     * @return {boolean} - true if the hints should be recalculated
+     */
+    JSHints.prototype.needNewHints = function (session) {
+        var cursor  = session.getCursor(),
+            type    = session.getType();
+
+        return !cachedHints || !cachedCursor || !cachedType ||
+                cachedCursor.line !== cursor.line ||
+                type.property !== cachedType.property ||
+                type.context !== cachedType.context ||
+                type.showFunctionType !== cachedType.showFunctionType ||
+                (type.functionCallPos && cachedType.functionCallPos &&
+                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
+    };
+
+    /**
+     *  Cache the hints and the hint's context.
+     *
+     *  @param {Array.<string>} hints - array of hints
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                showFunctionType:boolean,
+                context: string,
+                functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
+     */
+    function setCachedHintContext(hints, cursor, type, token) {
+        cachedHints = hints;
+        cachedCursor = cursor;
+        cachedType = type;
+        cachedToken = token;
+    }
+
+    /**
+     *  Reset cached hint context.
+     */
+    function resetCachedHintContext() {
+        cachedHints = null;
+        cachedCursor = null;
+        cachedType = null;
+        cachedToken =  null;
+    }
+
+    /**
+     *  Have conditions have changed enough to justify closing the hints popup?
+     *
+     * @param {Session} session - the active hinting session
+     * @return {boolean} - true if the hints popup should be closed.
+     */
+    JSHints.prototype.shouldCloseHints = function (session) {
+
+        // close if the token className has changed then close the hints.
+        var cursor = session.getCursor(),
+            token = session.getToken(cursor),
+            lastToken = cachedToken;
+
+        // if the line has changed, then close the hints
+        if (!cachedCursor || cursor.line !== cachedCursor.line) {
+            return true;
+        }
+
+        if (token.type === null) {
+            token = session.getNextTokenOnLine(cursor);
+        }
+
+        if (lastToken && lastToken.type === null) {
+            lastToken = session.getNextTokenOnLine(cachedCursor);
+        }
+
+        // Both of the tokens should never be null (happens when token is off
+        // the end of the line), so one is null then close the hints.
+        if (!lastToken || !token ||
+                token.type !== lastToken.type) {
+            return true;
+        }
+
+        // Test if one token string is a prefix of the other.
+        // If one is a prefix of the other then consider it the
+        // same token and don't close the hints.
+        if (token.string.length >= lastToken.string.length) {
+            return token.string.indexOf(lastToken.string) !== 0;
+        } else {
+            return lastToken.string.indexOf(token.string) !== 0;
+        }
+    };
+
+    /**
+     * @return {boolean} - true if the document is a html file
+     */
+    function isHTMLFile(document) {
+        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        return languageID === "html";
+    }
+    
+    function isInlineScript(editor) {
+        return editor.getModeForSelection() === "javascript";
+    }
+
+    /**
+     *  Create a new StringMatcher instance, if needed.
+     *
+     * @returns {StringMatcher} - a StringMatcher instance.
+     */
+    function getStringMatcher() {
+        if (!matcher) {
+            matcher = new StringMatch.StringMatcher({
+                preferPrefixMatches: true
+            });
+        }
+
+        return matcher;
+    }
+
+    /**
+     *  Check if a hint response is pending.
+     *
+     * @param {jQuery.Deferred} deferredHints - deferred hint response
+     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     */
+    function hintsArePending(deferredHints) {
+        return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
+            deferredHints.state() === "pending");
+    }
+
+    /**
+     *  Common code to get the session hints. Will get guesses if there were
+     *  no completions for the query.
+     *
+     * @param {string} query - user text to search hints with
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                 showFunctionType:boolean,
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
+     * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
+     * resolve (optional). If not supplied a new Deferred will be created if
+     * needed.
+     * @return {Object + jQuery.Deferred} - hint response (immediate or
+     *     deferred) as defined by the CodeHintManager API
+     */
+    function getSessionHints(query, cursor, type, token, $deferredHints) {
+
+        var hintResults = session.getHints(query, getStringMatcher());
+        if (hintResults.needGuesses) {
+            var guessesResponse = ScopeManager.requestGuesses(session,
+                session.editor.document);
+
+            if (!$deferredHints) {
+                $deferredHints = $.Deferred();
+            }
+
+            guessesResponse.done(function () {
+                if (hintsArePending($deferredHints)) {
+                    hintResults = session.getHints(query, getStringMatcher());
+                    setCachedHintContext(hintResults.hints, cursor, type, token);
+                    var hintResponse = getHintResponse(cachedHints, query, type);
+                    $deferredHints.resolveWith(null, [hintResponse]);
+                }
+            }).fail(function () {
+                if (hintsArePending($deferredHints)) {
+                    $deferredHints.reject();
+                }
+            });
+
+            return $deferredHints;
+        } else if (hintsArePending($deferredHints)) {
+            setCachedHintContext(hintResults.hints, cursor, type, token);
+            var hintResponse    = getHintResponse(cachedHints, query, type);
+            $deferredHints.resolveWith(null, [hintResponse]);
+            return null;
+        } else {
+            setCachedHintContext(hintResults.hints, cursor, type, token);
+            return getHintResponse(cachedHints, query, type);
+        }
+    }
+
+    /**
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
@@ -224,25 +369,28 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if (session && ((key === null) || HintUtils.maybeIdentifier(key))) {
+        if (session && HintUtils.hintableKey(key)) {
+            
+            if (isHTMLFile(session.editor.document)) {
+                if (!isInlineScript(session.editor)) {
+                    return false;
+                }
+            }
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
-                var offset = session.getOffset();
+                if (session.isFunctionName()) {
+                    return false;
+                }
+                var offset = session.getOffset(),
+                    type    = session.getType(),
+                    query   = session.getQuery();
 
-                // Invalidate cached information if: 1) no scope exists; 2) the
-                // cursor has moved a line; 3) the scope is dirty; or 4) if the
-                // cursor has moved into a different scope. Cached information
-                // is also reset on editor change.
-                if (!cachedScope ||
-                        cachedLine !== cursor.line ||
-                        ScopeManager.isScopeDirty(session.editor.document) ||
-                        !cachedScope.containsPositionImmediate(offset)) {
-                    cachedScope = null;
-                    cachedLine = null;
-                    cachedHints = null;
+                if (this.needNewHints(session)) {
+                    resetCachedHintContext();
+                    matcher = null;
                 }
                 return true;
             }
@@ -250,7 +398,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    /** 
+    /**
       * Return a list of hints, possibly deferred, for the current editor 
       * context
       * 
@@ -261,60 +409,43 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
-        if ((key === null) || HintUtils.hintable(token)) {
-            if (token) {
-                if (!cachedScope) {
-                    var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset),
-                        self            = this;
 
-                    if (scopeResponse.hasOwnProperty("promise")) {
-                        var $deferredHints = $.Deferred();
-                        scopeResponse.promise.done(function (scopeInfo) {
-                            session.setScopeInfo(scopeInfo);
-                            cachedScope = scopeInfo.scope;
-                            cachedLine = cursor.line;
-                            cachedType = session.getType();
-                            cachedHints = session.getHints();
+        if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
+            var type    = session.getType(),
+                query   = session.getQuery();
 
-                            $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
+            // If the hint context is changed and the hints are open, then
+            // close the hints by returning null;
+            if (CodeHintManager.isOpen() && this.shouldCloseHints(session)) {
+                return null;
+            }
 
-                            if ($deferredHints.state() === "pending") {
-                                var query           = session.getQuery(),
-                                    hintResponse    = getHintResponse(cachedHints, query);
-
-                                $deferredHints.resolveWith(null, [hintResponse]);
-                                $(self).triggerHandler("hintResponse", [query]);
-                            }
-                        }).fail(function () {
-                            if ($deferredHints.state() === "pending") {
-                                $deferredHints.reject();
-                            }
-                        });
-
-                        $(this).triggerHandler("deferredResponse");
-                        return $deferredHints;
-                    } else {
-                        session.setScopeInfo(scopeResponse);
-                        cachedScope = scopeResponse.scope;
-                        cachedLine = cursor.line;
-                    }
+            // Compute fresh hints if none exist, or if the session
+            // type has changed since the last hint computation
+            if (this.needNewHints(session)) {
+                if (key) {
+                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ignoreChange = true;
                 }
 
-                if (cachedScope) {
-                    var type    = session.getType(),
-                        query   = session.getQuery();
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
+                    $deferredHints = $.Deferred();
 
-                    // Compute fresh hints if none exist, or if the session
-                    // type has changed since the last hint computation
-                    if (!cachedHints ||
-                            type.property !== cachedType.property ||
-                            type.context !== cachedType.context) {
-                        cachedType = type;
-                        cachedHints = session.getHints();
+                scopeResponse.done(function () {
+                    if (hintsArePending($deferredHints)) {
+                        getSessionHints(query, cursor, type, token, $deferredHints);
                     }
-                    return getHintResponse(cachedHints, query);
-                }
+                }).fail(function () {
+                    if (hintsArePending($deferredHints)) {
+                        $deferredHints.reject();
+                    }
+                });
+
+                return $deferredHints;
+            }
+
+            if (cachedHints) {
+                return getSessionHints(query, cursor, type, token);
             }
         }
 
@@ -324,7 +455,7 @@ define(function (require, exports, module) {
     /**
      * Inserts the hint selected by the user into the current editor.
      * 
-     * @param {jQuery.Object} hint - hint object to insert into current editor
+     * @param {jQuery.Object} $hintObj - hint object to insert into current editor
      * @return {boolean} - should a new hinting session be requested 
      *      immediately after insertion?
      */
@@ -335,45 +466,60 @@ define(function (require, exports, module) {
             token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
-            delimeter;
+            end         = {line: cursor.line, ch: cursor.ch},
+            delimiter;
 
-        if (token && token.string === ".") {
-            var nextCursor  = session.getNextCursorOnLine(),
-                nextToken   = nextCursor ? session.getToken(nextCursor) : null;
-
-            if (nextToken && // don't replace delimiters, etc.
-                    HintUtils.maybeIdentifier(nextToken.string) &&
-                    HintUtils.hintable(nextToken)) {
-                end.ch = nextToken.end;
-            }
+        if (session.getType().showFunctionType) {
+            // function types show up as hints, so don't insert anything
+            // if we were displaying a function type            
+            return false;
         }
-
-        // If the hint is a string literal, choose a delimiter in which
-        // to wrap it, preserving the existing delimiter if possible.
-        if (hint.literal && hint.kind === "string") {
-            if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimeter = HintUtils.DOUBLE_QUOTE;
-            } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimeter = HintUtils.SINGLE_QUOTE;
+        
+        if (session.getType().property) {
+            // if we're inserting a property name, we need to make sure the 
+            // hint is a valid property name.  
+            // to check this, run the hint through Acorns tokenizer
+            // it should result in one token, and that token should either be 
+            // a 'name' or a 'keyword', as javascript allows keywords as property names
+            var tokenizer = Acorn.tokenize(completion);
+            var currentToken = tokenizer(),
+                invalidPropertyName = false;
+            
+            // the name is invalid if the hint is not a 'name' or 'keyword' token
+            if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
+                invalidPropertyName = true;
             } else {
-                delimeter = hint.delimeter;
+                // check for a second token - if there is one (other than 'eof')
+                // then the hint isn't a valid property name either
+                currentToken = tokenizer();
+                if (currentToken.type !== Acorn.tokTypes.eof) {
+                    invalidPropertyName = true;
+                }
             }
-
-            completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimeter, "\\" + delimeter);
-            completion = delimeter + completion + delimeter;
+            
+            if (invalidPropertyName) {
+                // need to walk back to the '.' and replace
+                // with '["<hint>"]
+                var dotCursor = session.findPreviousDot();
+                if (dotCursor) {
+                    completion = "[\"" + completion + "\"]";
+                    start.line = dotCursor.line;
+                    start.ch = dotCursor.ch - 1;
+                }
+            }
         }
-
         // Replace the current token with the completion
-        session.editor.document.replaceRange(completion, start, end);
+        // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
+        // directly to replace the range instead of using the Document, as we should. The
+        // reason is due to a flaw in our current document synchronization architecture when
+        // inline editors are open.
+        session.editor._codeMirror.replaceRange(completion, start, end);
 
         // Return false to indicate that another hinting session is not needed
         return false;
     };
 
-
-    // load the extension
+     // load the extension
     AppInit.appReady(function () {
 
         /*
@@ -381,10 +527,13 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
+         * @param {Editor} previousEditor - the previous editor.
          */
-        function initializeSession(editor) {
-            ScopeManager.handleEditorChange(editor.document);
+        function initializeSession(editor, previousEditor) {
             session = new Session(editor);
+            ScopeManager.handleEditorChange(session, editor.document,
+                previousEditor ? previousEditor.document : null);
+            cachedHints = null;
         }
 
         /*
@@ -392,19 +541,20 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context on which to listen for
          *      changes
+         * @param {Editor} previousEditor - the previous editor
          */
-        function installEditorListeners(editor) {
+        function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
-            cachedScope = null;
-            cachedLine = null;
-            cachedHints = null;
-            cachedType = null;
+            resetCachedHintContext();
 
-            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
-                initializeSession(editor);
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+                initializeSession(editor, previousEditor);
                 $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
+                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                        if (!ignoreChange) {
+                            ScopeManager.handleFileChange(changeList);
+                        }
+                        ignoreChange = false;
                     });
             } else {
                 session = null;
@@ -433,9 +583,162 @@ define(function (require, exports, module) {
          */
         function handleActiveEditorChange(event, current, previous) {
             uninstallEditorListeners(previous);
-            installEditorListeners(current);
+            installEditorListeners(current, previous);
         }
         
+        /*
+         * Handle JumptoDefiniton menu/keyboard command.
+         */
+        function handleJumpToDefinition() {
+            var offset,
+                handleJumpResponse;
+
+                        
+            // Only provide jump-to-definition results when cursor is in JavaScript content
+            if (session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            /**
+             * Make a jump-to-def request based on the session and offset passed in.
+             * @param {Session} session - the session
+             * @param {number} offset - the offset of where to jump from
+             */
+            function requestJumpToDef(session, offset) {
+                var response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+    
+                if (response.hasOwnProperty("promise")) {
+                    response.promise.done(handleJumpResponse).fail(function () {
+                        result.reject();
+                    });
+                }
+            }
+            
+
+            /**
+             * Sets the selection to move the cursor to the result position.
+             * Assumes that the editor has already changed files, if necessary.
+             *
+             * Additionally, this will check to see if the selection looks like an
+             * assignment to a member expression - if it is, and the type is a function,
+             * then we will attempt to jump to the RHS of the expression.
+             *
+             * 'exports.foo = foo'
+             *
+             * if the selection is 'foo' in 'exports.foo', then we will attempt to jump to def
+             * on the rhs of the assignment.
+             *
+             * @param {number} start - the start of the selection
+             * @param {number} end - the end of the selection
+             * @param {boolean} isFunction - true if we are jumping to the source of a function def
+             */
+            function setJumpSelection(start, end, isFunction) {
+                
+                /**
+                 * helper function to decide if the tokens on the RHS of an assignment
+                 * look like an identifier, or member expr.
+                 */
+                function validIdOrProp(token) {
+                    if (!token) {
+                        return false;
+                    }
+                    if (token.string === ".") {
+                        return true;
+                    }
+                    var type = token.type;
+                    if (type === "variable-2" || type === "variable" || type === "property") {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                
+                var madeNewRequest = false;
+                
+                if (isFunction) {
+                    // When jumping to function defs, follow the chain back
+                    // to get to the original function def
+                    var cursor = {line: end.line, ch: end.ch},
+                        prev = session._getPreviousToken(cursor),
+                        next,
+                        token,
+                        offset;
+    
+                    // see if the selection is preceded by a '.', indicating we're in a member expr
+                    if (prev.string === ".") {
+                        cursor = {line: end.line, ch: end.ch};
+                        next = session.getNextToken(cursor, true);
+                        // check if the next token indicates an assignment
+                        if (next && next.string === "=") {
+                            next = session.getNextToken(cursor, true);
+                            // find the last token of the identifier, or member expr
+                            while (validIdOrProp(next)) {
+                                offset = session.getOffsetFromCursor({line: cursor.line, ch: next.end});
+                                next = session.getNextToken(cursor, false);
+                            }
+                            if (offset) {
+                                // trigger another jump to def based on the offset of the RHS
+                                requestJumpToDef(session, offset);
+                                madeNewRequest = true;
+                            }
+                        }
+                    }
+                }
+                // We didn't make a new jump-to-def request, so we can resolve the promise
+                // and set the selection
+                if (!madeNewRequest) {
+                    // set the selection
+                    session.editor.setSelection(start, end, true);
+                    result.resolve(true);
+                }
+            }
+
+            /**
+             * handle processing of the completed jump-to-def request.              
+             * will open the appropriate file, and set the selection based
+             * on the response.
+             */
+            handleJumpResponse = function (jumpResp) {
+
+                if (jumpResp.resultFile) {
+                    if (jumpResp.resultFile !== jumpResp.file) {
+                        var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                        if (resolvedPath) {
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
+                                .done(function () {
+                                    setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                                });
+                        }
+                    } else {
+                        setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                    }
+                } else {
+                    result.reject();
+                }
+            };
+            
+            offset = session.getOffset();
+            // request a jump-to-def
+            requestJumpToDef(session, offset);
+            
+            return result.promise();
+        }
+
+        /*
+         * Helper for QuickEdit jump-to-definition request.
+         */
+        function quickEditHelper() {
+            var offset     = session.getCursor(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            return response;
+        }
+
+        // Register quickEditHelper.
+        brackets._jsCodeHintsHelper = quickEditHelper;
+  
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -443,14 +746,27 @@ define(function (require, exports, module) {
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
         
+        $(ProjectManager).on("beforeProjectClose", function () {
+            ScopeManager.handleProjectClose();
+        });
+
+        $(ProjectManager).on("projectOpen", function () {
+            ScopeManager.handleProjectOpen();
+        });
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 
+        // init
+        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
+
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID], 0);
+        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         // for unit testing
+        exports.getSession = getSession;
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
+        exports.handleJumpToDefinition = handleJumpToDefinition;
     });
 });

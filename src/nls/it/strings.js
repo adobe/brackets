@@ -121,12 +121,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Errore durante l'aggiornamento delle informazioni",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Si è verificato un problema durante l'aggiornamento delle informazioni dal server. Controlla di essere collegato a internet e riprova ancora.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Cambia lingua",
-    "LANGUAGE_MESSAGE"                  : "Scegli una lingua dlla lista sottostante:",
-    "LANGUAGE_SUBMIT"                   : "Ricarica {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Annulla",
-
     /**
      * ProjectManager
      */
@@ -217,7 +211,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Apri velocemente",
     "CMD_GOTO_LINE"                       : "Vai alla linea",
     "CMD_GOTO_DEFINITION"                 : "Vai alla definizione",
-    "CMD_JSLINT_FIRST_ERROR"              : "Vai al primo errore JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Modifica veloce",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Corrispondenza precedente",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Corrispondenza successiva",
@@ -225,20 +218,6 @@ define({
     "CMD_PREV_DOC"                        : "Documento precedente",
     "CMD_SHOW_IN_TREE"                    : "Mostra nell'albero dei file",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Ricarica {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostra strumenti di sviluppo",
-    "CMD_RUN_UNIT_TESTS"                  : "Esegui i test",
-    "CMD_JSLINT"                          : "Abilita JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostra dati sulle prestazioni",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nuova finestra {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
-    "CMD_SWITCH_LANGUAGE"                 : "Cambia lingua",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Abilita il debugger Node",
-    "CMD_LOG_NODE_STATE"                  : "Log lo stato del debugger Node nella Console",
-    "CMD_RESTART_NODE"                    : "Restart Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"                : "Controlla aggiornamenti",
@@ -246,6 +225,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_REPORT_AN_ISSUE"                 : "Segnala un problema",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
     "CMD_TWITTER"                         : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                           : "Informazioni su {APP_TITLE}",
 
@@ -257,11 +237,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Build sperimentale",
     "DEVELOPMENT_BUILD"                    : "Build di sviluppo",
-    "JSLINT_ERRORS"                        : "Errori di JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "JSLint: 1 errore",
-    "JSLINT_ERRORS_INFORMATION"            : "JSLint: {0} errori",
-    "JSLINT_NO_ERRORS"                     : "JSLint: Nessun errore - complimenti!",
-    "JSLINT_DISABLED"                      : "JSLint disabilitato o non funzionante per il file corrente",
     "SEARCH_RESULTS"                       : "Risultati della ricerca",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Non salvare",
@@ -272,7 +247,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                      : "Riavvia Chrome",
     "ABOUT"                                : "About",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Chiudi",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} build sperimentale {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> e incorporati per riferimento in questo documento.",
@@ -290,6 +264,24 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Trovato un carattere sconosciuto durante il parsing della URL di base",
     
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostra strumenti di sviluppo",
+    "CMD_REFRESH_WINDOW"                        : "Ricarica {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nuova finestra {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambia lingua",
+    "CMD_RUN_UNIT_TESTS"                        : "Esegui i test",
+    "CMD_SHOW_PERF_DATA"                        : "Mostra dati sulle prestazioni",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita il debugger Node",
+    "CMD_LOG_NODE_STATE"                        : "Log lo stato del debugger Node nella Console",
+    "CMD_RESTART_NODE"                          : "Restart Node",
+    
+    "LANGUAGE_TITLE"                            : "Cambia lingua",
+    "LANGUAGE_MESSAGE"                          : "Scegli una lingua dlla lista sottostante:",
+    "LANGUAGE_SUBMIT"                           : "Ricarica {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Annulla",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Colore attuale",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Colore originale",
@@ -297,5 +289,14 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Usato {1} volta)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Usato {1} volte)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Usato {1} volte)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Abilita JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Vai al primo errore JSLint",
+    "JSLINT_ERRORS"                             : "Errori di JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "JSLint: 1 errore",
+    "JSLINT_ERRORS_INFORMATION"                 : "JSLint: {0} errori",
+    "JSLINT_NO_ERRORS"                          : "JSLint: Nessun errore - complimenti!",
+    "JSLINT_DISABLED"                           : "JSLint disabilitato o non funzionante per il file corrente"
 });

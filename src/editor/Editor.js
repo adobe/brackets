@@ -50,7 +50,10 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away). 
+ *          eventually go away).
+ *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
+ *          is a string containing the editor option that is changing. The 3rd arg, which can be any
+ *          data type, is the new value for the editor option.
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -70,7 +73,8 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
-        ViewUtils          = require("utils/ViewUtils");
+        ViewUtils          = require("utils/ViewUtils"),
+        Async              = require("utils/Async");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: false, wordWrap: true };
@@ -119,8 +123,7 @@ define(function (require, exports, module) {
         //    the proper indentation then indent it to the proper place. Otherwise,
         //    add another tab. In either case, move the insertion point to the 
         //    beginning of the text.
-        // 2. If the selection is after the first non-space character, and is not an 
-        //    insertion point, indent the entire line(s).
+        // 2. If the selection is multi-line, indent all the lines.
         // 3. If the selection is after the first non-space character, and is an 
         //    insertion point, insert a tab character or the appropriate number 
         //    of spaces to pad to the nearest tab boundary.
@@ -144,7 +147,7 @@ define(function (require, exports, module) {
                 insertTab = true;
                 to.ch = 0;
             }
-        } else if (instance.somethingSelected()) {
+        } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
         } else {
             insertTab = true;
@@ -155,7 +158,7 @@ define(function (require, exports, module) {
                 CodeMirror.commands.insertTab(instance);
             } else {
                 var i, ins = "", numSpaces = instance.getOption("indentUnit");
-                numSpaces -= to.ch % numSpaces;
+                numSpaces -= from.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }
@@ -448,8 +451,9 @@ define(function (require, exports, module) {
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
+        var self = this;
         this._inlineWidgets.forEach(function (inlineWidget) {
-            inlineWidget.onClosed();
+            self._removeInlineWidgetInternal(inlineWidget);
         });
     };
     
@@ -672,12 +676,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
+     * Sets the contents of the editor, clears the undo/redo history and marks the document clean. Dispatches a change event.
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
-        var perfTimerName = PerfUtils.markStart("Edtitor._resetText()\t" + (!this.document || this.document.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
 
         var cursorPos = this.getCursorPos(),
             scrollPos = this.getScrollPos();
@@ -685,8 +689,10 @@ define(function (require, exports, module) {
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
-        // Make sure we can't undo back to the empty state before setValue()
+        // Make sure we can't undo back to the empty state before setValue(), and mark
+        // the document clean.
         this._codeMirror.clearHistory();
+        this._codeMirror.markClean();
         
         // restore cursor and scroll positions
         this.setCursorPos(cursorPos);
@@ -789,18 +795,26 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if pos is between start and end (inclusive at both ends)
+     * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
+     * but overridable via the endInclusive flag).
      * @param {{line:number, ch:number}} pos
      * @param {{line:number, ch:number}} start
      * @param {{line:number, ch:number}} end
+     * @param {boolean} endInclusive
      *
      */
-    Editor.prototype.posWithinRange = function (pos, start, end) {
-        var startIndex = this.indexFromPos(start),
-            endIndex = this.indexFromPos(end),
-            posIndex = this.indexFromPos(pos);
-
-        return posIndex >= startIndex && posIndex <= endIndex;
+    Editor.prototype.posWithinRange = function (pos, start, end, endInclusive) {
+        if (start.line <= pos.line && end.line >= pos.line) {
+            if (endInclusive) {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                    (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
+            } else {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+            }
+                   
+        }
+        return false;
     };
     
     /**
@@ -877,6 +891,21 @@ define(function (require, exports, module) {
      */
     Editor.prototype.lineCount = function () {
         return this._codeMirror.lineCount();
+    };
+    
+    /**
+     * Deterines if line is fully visible.
+     * @param {number} zero-based index of the line to test
+     * @return {boolean} true if the line is fully visible, false otherwise
+     */
+    Editor.prototype.isLineVisible = function (line) {
+        var coords = this._codeMirror.charCoords({line: line, ch: 0}, "local"),
+            scrollInfo = this._codeMirror.getScrollInfo(),
+            top = scrollInfo.top,
+            bottom = scrollInfo.top + scrollInfo.clientHeight;
+
+        // Check top and bottom and return false for partially visible lines.
+        return (coords.top >= top && coords.bottom <= bottom);
     };
     
     /**
@@ -979,54 +1008,104 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!InlineWidget} inlineWidget The widget to add.
      * @param {boolean=} scrollLineIntoView Scrolls the associated line into view. Default true.
+     * @return {$.Promise} A promise object that is resolved when the widget has been added (but might
+     *     still be animating open). Never rejected.
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
+        var self = this,
+            queue = this._inlineWidgetQueues[pos.line],
+            deferred = new $.Deferred();
+        if (!queue) {
+            queue = new Async.PromiseQueue();
+            this._inlineWidgetQueues[pos.line] = queue;
+        }
+        queue.add(function () {
+            self._addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView, deferred);
+            return deferred.promise();
+        });
+        return deferred.promise();
+    };
+    
+    /**
+     * @private
+     * Does the actual work of addInlineWidget().
+     */
+    Editor.prototype._addInlineWidgetInternal = function (pos, inlineWidget, scrollLineIntoView, deferred) {
         var self = this;
         
-        this.removeAllInlineWidgetsForLine(pos.line);
+        this.removeAllInlineWidgetsForLine(pos.line).done(function () {
+            if (scrollLineIntoView === undefined) {
+                scrollLineIntoView = true;
+            }
+    
+            if (scrollLineIntoView) {
+                self._codeMirror.scrollIntoView(pos);
+            }
+    
+            inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
+                                                               { coverGutter: true, noHScroll: true });
+            CodeMirror.on(inlineWidget.info.line, "delete", function () {
+                self._removeInlineWidgetInternal(inlineWidget);
+            });
+            self._inlineWidgets.push(inlineWidget);
 
-        if (scrollLineIntoView === undefined) {
-            scrollLineIntoView = true;
-        }
+            // Set up the widget to start closed, then animate open when its initial height is set.
+            inlineWidget.$htmlContent
+                .height(0)
+                .addClass("animating")
+                .one("webkitTransitionEnd", function () {
+                    inlineWidget.$htmlContent.removeClass("animating");
+                    deferred.resolve();
+                });
 
-        if (scrollLineIntoView) {
-            this._codeMirror.scrollIntoView(pos);
-        }
-
-        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
-                                                           { coverGutter: true, noHScroll: true });
-        CodeMirror.on(inlineWidget.info.line, "delete", function () {
-            self._removeInlineWidgetInternal(inlineWidget);
-            inlineWidget.onClosed();
+            // Callback to widget once parented to the editor. The widget should call back to
+            // setInlineWidgetHeight() in order to set its initial height and animate open.
+            inlineWidget.onAdded();
         });
-        this._inlineWidgets.push(inlineWidget);
-
-        // Callback to widget once parented to the editor
-        inlineWidget.onAdded();
     };
     
     /**
      * Removes all inline widgets
      */
     Editor.prototype.removeAllInlineWidgets = function () {
-        // copy the array because _removeInlineWidgetInternal will modifying the original
+        // copy the array because _removeInlineWidgetInternal will modify the original
         var widgets = [].concat(this.getInlineWidgets());
         
-        widgets.forEach(function (widget) {
-            this.removeInlineWidget(widget);
-        }, this);
+        return Async.doInParallel(
+            widgets,
+            this.removeInlineWidget.bind(this)
+        );
     };
     
     /**
      * Removes the given inline widget.
      * @param {number} inlineWidget The widget to remove.
+     * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
-        var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
-        
-        this._codeMirror.removeLineWidget(inlineWidget.info);
-        this._removeInlineWidgetInternal(inlineWidget);
-        inlineWidget.onClosed();
+        if (!inlineWidget.closePromise) {
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
+                deferred = new $.Deferred(),
+                self = this;
+            
+            // Remove the inline widget from our internal list immediately, so
+            // everyone external to us knows it's essentially already gone. We
+            // don't want to wait until it's done animating closed (but we do want
+            // the other stuff in _removeInlineWidgetInternal to wait until then).
+            self._removeInlineWidgetFromList(inlineWidget);
+            
+            inlineWidget.$htmlContent.addClass("animating")
+                .one("webkitTransitionEnd", function () {
+                    inlineWidget.$htmlContent.removeClass("animating");
+                    self._codeMirror.removeLineWidget(inlineWidget.info);
+                    self._removeInlineWidgetInternal(inlineWidget);
+                    deferred.resolve();
+                })
+                .height(0);
+                
+            inlineWidget.closePromise = deferred.promise();
+        }
+        return inlineWidget.closePromise;
     };
     
     /**
@@ -1045,27 +1124,49 @@ define(function (require, exports, module) {
                     return w.info;
                 });
 
-            widgetInfos.forEach(function (info) {
-                // Lookup the InlineWidget object using the same index
-                inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
-                self.removeInlineWidget(inlineWidget);
-            });
-
+            return Async.doInParallel(
+                widgetInfos,
+                function (info) {
+                    // Lookup the InlineWidget object using the same index
+                    inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
+                    if (inlineWidget) {
+                        return self.removeInlineWidget(inlineWidget);
+                    } else {
+                        return new $.Deferred().resolve().promise();
+                    }
+                }
+            );
+        } else {
+            return new $.Deferred().resolve().promise();
         }
     };
     
     /**
-     * Cleans up the given inline widget from our internal list of widgets.
-     * @param {number} inlineId  id returned by addInlineWidget().
+     * Cleans up the given inline widget from our internal list of widgets. It's okay
+     * to call this multiple times for the same widget--it will just do nothing if
+     * the widget has already been removed.
+     * @param {InlineWidget} inlineWidget  an inline widget.
      */
-    Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
-        var i;
-        var l = this._inlineWidgets.length;
+    Editor.prototype._removeInlineWidgetFromList = function (inlineWidget) {
+        var l = this._inlineWidgets.length,
+            i;
         for (i = 0; i < l; i++) {
             if (this._inlineWidgets[i] === inlineWidget) {
                 this._inlineWidgets.splice(i, 1);
                 break;
             }
+        }
+    };
+    
+    /**
+     * Removes the inline widget from the editor and notifies it to clean itself up.
+     * @param {InlineWidget} inlineWidget  an inline widget.
+     */
+    Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
+        if (!inlineWidget.isClosed) {
+            this._removeInlineWidgetFromList(inlineWidget);
+            inlineWidget.onClosed();
+            inlineWidget.isClosed = true;
         }
     };
 
@@ -1104,14 +1205,30 @@ define(function (require, exports, module) {
             changed = (oldHeight !== height),
             isAttached = inlineWidget.info !== undefined;
 
+        function updateHeight() {
+            // Notify CodeMirror for the height change.
+            if (isAttached) {
+                inlineWidget.info.changed();
+            }
+        }
+        
+        function setOuterHeight() {
+            $(node).height(height);
+            if ($(node).hasClass("animating")) {
+                $(node).one("webkitTransitionEnd", updateHeight);
+            } else {
+                updateHeight();
+            }
+        }
+
         // Make sure we set an explicit height on the widget, so children can use things like
         // min-height if they want.
         if (changed || !node.style.height) {
-            $(node).height(height);
-
-            if (isAttached) {
-                // Notify CodeMirror for the height change
-                inlineWidget.info.changed();
+            // If we're animating, set the wrapper's height on a timeout so the layout is finished before we animate.
+            if ($(node).hasClass("animating")) {
+                window.setTimeout(setOuterHeight, 0);
+            } else {
+                setOuterHeight();
             }
         }
 
@@ -1309,6 +1426,12 @@ define(function (require, exports, module) {
      */
     Editor.prototype._visibleRange = null;
     
+    /**
+     * @private
+     * @type {Object}
+     * Promise queues for inline widgets being added to a given line.
+     */
+    Editor.prototype._inlineWidgetQueues = {};
     
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
@@ -1322,6 +1445,7 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }
     
@@ -1336,7 +1460,7 @@ define(function (require, exports, module) {
         _setEditorOption(value, cmOption);
         _prefs.setValue(prefName, value);
     }
-		
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value

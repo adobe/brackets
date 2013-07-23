@@ -60,9 +60,18 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguage(expected.id)).toBe(actual);
             }
             
+            var i = 0,
+                expectedFileExtensions = expected.fileExtensions || [],
+                expectedFileExtensionsLength = expectedFileExtensions.length,
+                actualFileExtensions = actual.getFileExtensions();
+            
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            
+            for (i; i < expectedFileExtensionsLength; i++) {
+                expect(actualFileExtensions).toContain(expectedFileExtensions[i]);
+            }
+            
             expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
@@ -99,7 +108,7 @@ define(function (require, exports, module) {
                     "id": "html",
                     "name": "HTML",
                     "mode": ["htmlmixed", "text/x-brackets-html"],
-                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml"],
                     "blockComment": {prefix: "<!--", suffix: "-->"}
                 };
                 
@@ -137,9 +146,10 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("INDEX.HTML")).toBe(html);
                 expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
                 
-                // URIs
-                expect(LanguageManager.getLanguageForPath("file:///only/testing/the/path.html")).toBe(html);
-                expect(LanguageManager.getLanguageForPath("http://only.org/testing/the/path.css?v=2")).toBe(css);
+                // Paths
+                expect(LanguageManager.getLanguageForPath("c:/only/testing/the/path.html")).toBe(html);  // abs Windows-style
+                expect(LanguageManager.getLanguageForPath("/only/testing/the/path.css")).toBe(css);      // abs Mac/Linux-style
+                expect(LanguageManager.getLanguageForPath("only/testing/the/path.css")).toBe(css);       // relative
                 
                 // Things that aren't extensions
                 expect(LanguageManager.getLanguageForPath("/code/html")).toBe(unknown);
@@ -184,7 +194,7 @@ define(function (require, exports, module) {
                     language = lang;
                 });
                 
-                expect(promise.isResolved()).toBeTruthy();
+                expect(promise.state() === "resolved").toBeTruthy();
                 
                 validateLanguage(def, language);
             });

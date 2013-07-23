@@ -42,7 +42,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
+    var DocumentManager = require("document/DocumentManager"),
+        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and tags. Timestamp is the document timestamp,
@@ -67,12 +68,34 @@ define(function (require, exports, module) {
         return false;
     }
     
+    /** 
+     * Remove a document from the cache
+     */
+    function _removeDocFromCache(evt, document) {
+        if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
+            delete _cachedValues[document.file.fullPath];
+            $(document).off(".htmlInstrumentation");
+        }
+    }
+    
     /**
      * Scan a document to prepare for HTMLInstrumentation
      * @param {Document} doc The doc to scan. 
      * @return {Array} Array of tag info, or null if no tags were found
      */
     function scanDocument(doc) {
+        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
+            $(doc).on("change.htmlInstrumentation", function () {
+                // Clear cached values on doc change, but keep the entry
+                // in the _cachedValues hash. Keeping the entry means
+                // the event handlers (like this one) won't be added again.
+                _cachedValues[doc.file.fullPath] = null;
+            });
+            
+            // Assign to cache, but don't set a value yet
+            _cachedValues[doc.file.fullPath] = null;
+        }
+        
         if (_cachedValues[doc.file.fullPath]) {
             var cachedValue = _cachedValues[doc.file.fullPath];
             
@@ -188,19 +211,22 @@ define(function (require, exports, module) {
      */
     function generateInstrumentedHTML(doc) {
         var tags = scanDocument(doc).slice(),
-            gen = doc.getText();
+            orig = doc.getText(),
+            gen = "",
+            lastIndex = 0;
         
         // Walk through the tags and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var i, insertCount = 0;
+        var i;
         tags.forEach(function (tag) {
             var attrText = " data-brackets-id='" + tag.tagID + "'";
 
             // Insert the attribute as the first attribute in the tag.
-            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
-            gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
-            insertCount += attrText.length;
+            var insertIndex = tag.offset + tag.name.length + 1;
+            gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
+            lastIndex = insertIndex;
         });
+        gen += orig.substr(lastIndex);
         
         return gen;
     }
@@ -290,6 +316,8 @@ define(function (require, exports, module) {
         
         return -1;
     }
+    
+    $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;

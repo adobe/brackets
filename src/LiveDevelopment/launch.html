@@ -50,29 +50,10 @@
             margin: -55px auto 0;
             top: 50%;
         }
-        #spinner {
-            position: absolute;
-            top: 64px;
-            left: 22px;
-            width: 12px;
-            height: 12px;
-            background: url("../styles/images/small_spinner.svg");
-            -webkit-animation: rotating 1.5s linear infinite;
-        }
-        @-webkit-keyframes rotating {
-            0% {
-                -webkit-transform: rotate(0deg);
-            }
-
-            100% {
-                -webkit-transform: rotate(360deg);
-            }
-        }
     </style>
 </head>
 <body onload="handleLoad()">
     <div id="loading-image">
-        <div id="spinner"></div>
     </div>
 </body>
 

@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager");
@@ -79,7 +80,7 @@ define(function (require, exports, module) {
             deferred.resolve(nfs.root);
         }
         
-        resolveNativeFileSystemPath("/").pipe(deferred.resolve, deferred.reject);
+        resolveNativeFileSystemPath("/").then(deferred.resolve, deferred.reject);
         
         return deferred.promise();
     }
@@ -134,11 +135,12 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForFail = function (promise, operationName) {
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, 1000);
+        }, "failure " + operationName, timeout);
     };
     
     /**
@@ -153,7 +155,7 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
@@ -205,33 +207,58 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns a Document and Editor suitable for use with an Editor in isolation: i.e., a
-     * Document that will never be set as the currentDocument or added to the working set.
-     * The Editor *will* be reported as the "active editor" by EditorManager, however.
-     * 
-     * Must be cleaned up by calling destroyMockEditor(document) later.
-     * 
-     * @return {!{doc:{Document}, editor:{Editor}}}
+     * Returns a mock element (in the test runner window) that's offscreen, for
+     * parenting UI you want to unit-test. When done, make sure to delete it with
+     * remove().
+     * @return {jQueryObject} a jQuery object for an offscreen div
      */
-    function createMockEditor(initialContent, languageId, visibleRange) {
-        // Initialize EditorManager and position the editor-holder offscreen
-        var $editorHolder = $("<div id='mock-editor-holder'/>")
+    function createMockElement() {
+        return $("<div/>")
             .css({
                 position: "absolute",
                 left: "-10000px",
                 top: "-10000px"
-            });
+            })
+            .appendTo($("body"));
+    }
+
+    /**
+     * Returns an Editor tied to the given Document, but suitable for use in isolation
+     * (without being placed inside the surrounding Brackets UI). The Editor *will* be
+     * reported as the "active editor" by EditorManager.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @return {!Editor}
+     */
+    function createMockEditorForDocument(doc, visibleRange) {
+        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
+        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
-        $("body").append($editorHolder);
-        
-        // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent, languageId);
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
         EditorManager._notifyActiveEditorChanged(editor);
         
-        return { doc: doc, editor: editor };
+        return editor;
+    }
+    
+    /**
+     * Returns a Document and Editor suitable for use in isolation: the Document
+     * will never be set as the currentDocument or added to the working set and the
+     * Editor does not live inside a full-blown Brackets UI layout. The Editor *will* be
+     * reported as the "active editor" by EditorManager, however.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @return {!{doc:!Document, editor:!Editor}}
+     */
+    function createMockEditor(initialContent, languageId, visibleRange) {
+        // create dummy Document, then Editor tied to it
+        var doc = createMockDocument(initialContent, languageId);
+        return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
     /**
@@ -246,7 +273,7 @@ define(function (require, exports, module) {
         EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
-
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -287,6 +314,7 @@ define(function (require, exports, module) {
             function isBracketsDoneLoading() {
                 return _testWindow.brackets && _testWindow.brackets.test && _testWindow.brackets.test.doneLoading;
             },
+            "brackets.test.doneLoading",
             10000
         );
 
@@ -312,6 +340,8 @@ define(function (require, exports, module) {
                 }
             });
             _testWindow.close();
+            _testWindow.executeCommand = null;
+            _testWindow = null;
         });
     }
     
@@ -510,6 +540,9 @@ define(function (require, exports, module) {
             result.resolve(docs);
         }).fail(function () {
             result.reject();
+        }).always(function () {
+            docs = null;
+            FileViewController = null;
         });
         
         return result.promise();
@@ -650,7 +683,7 @@ define(function (require, exports, module) {
                     true
                 );
                 
-                copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
+                copyChildrenPromise.then(deferred.resolve, deferred.reject);
             });
         });
 
@@ -697,7 +730,7 @@ define(function (require, exports, module) {
                 promise = copyFileEntry(entry, destination, options);
             }
             
-            promise.pipe(deferred.resolve, deferred.reject);
+            promise.then(deferred.resolve, deferred.reject);
         }).fail(function () {
             deferred.reject();
         });
@@ -726,6 +759,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                console.error(err);
                 result.reject(err);
             } else {
                 result.resolve();
@@ -864,6 +898,41 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
+    /**
+     * Searches the DOM tree for text containing the given content. Useful for verifying
+     * that data you expect to show up in the UI somewhere is actually there.
+     *
+     * @param {jQueryObject|Node} root The root element to search from. Can be either a jQuery object
+     *     or a raw DOM node.
+     * @param {string} content The content to find.
+     * @param {boolean} asLink If true, find the content in the href of an <a> tag, otherwise find it in text nodes.
+     * @return true if content was found
+     */
+    function findDOMText(root, content, asLink) {
+        // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
+        // you can't escape quotes in it.
+        var i;
+        if (root instanceof $) {
+            root = root.get(0);
+        }
+        if (!root) {
+            return false;
+        } else if (!asLink && root.nodeType === 3) { // text node
+            return root.textContent.indexOf(content) !== -1;
+        } else {
+            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+                return true;
+            }
+            var children = root.childNodes;
+            for (i = 0; i < children.length; i++) {
+                if (findDOMText(children[i], content, asLink)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -909,8 +978,11 @@ define(function (require, exports, module) {
     exports.getTempDirectory                = getTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
+    exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
+    exports.createMockElement               = createMockElement;
+    exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
@@ -929,4 +1001,5 @@ define(function (require, exports, module) {
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
+    exports.findDOMText                     = findDOMText;
 });

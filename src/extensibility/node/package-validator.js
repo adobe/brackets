@@ -61,13 +61,19 @@ var ignoredPrefixes = {
 /**
  * Returns true if the name presented is acceptable as a package name. This enforces the
  * requirement as presented in the CommonJS spec: http://wiki.commonjs.org/wiki/Packages/1.0
+ * which states:
+ *
+ * "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
+ *
+ * We add the additional requirement that the first character must be a letter or number
+ * (there's a security implication to allowing a name like "..", because the name is
+ * used in directory names).
  *
  * @param {string} name to test
  * @return {boolean} true if the name is valid
  */
 function validateName(name) {
-    // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
-    if (/^[a-z0-9._\-]+$/.exec(name)) {
+    if (/^[a-z0-9][a-z0-9._\-]*$/.exec(name)) {
         return true;
     }
     return false;
