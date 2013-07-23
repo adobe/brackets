@@ -70,10 +70,11 @@
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
- *      the new sorted list. Listener receives no arguments.
- *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via dragging and dropping
- *      a file to disable automatic sorting. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *      Listener receives no arguments.
+ * 
+ *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -81,6 +82,8 @@
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
+ * 
+ * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
     "use strict";
