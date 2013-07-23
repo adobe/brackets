@@ -367,8 +367,8 @@ define(function (require, exports, module) {
     
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!number} index - old file index
-     * @param {!number} index - new file index
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
@@ -378,13 +378,15 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            $(exports).triggerHandler("workingSetSort");
             $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -393,14 +395,6 @@ define(function (require, exports, module) {
     function sortWorkingSet(compareFn) {
         _workingSet.sort(compareFn);
         $(exports).triggerHandler("workingSetSort");
-    }
-    
-    /**
-     * Triggers a WorkingSet Sort event
-     * @param {boolean=} suppressRedraw If true, suppress redraw
-     */
-    function triggerWorkingSetSort(suppressRedraw) {
-        $(exports).triggerHandler("workingSetSort", suppressRedraw);
     }
     
     
@@ -430,7 +424,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
@@ -957,7 +951,6 @@ define(function (require, exports, module) {
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
-    exports.triggerWorkingSetSort       = triggerWorkingSetSort;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;
