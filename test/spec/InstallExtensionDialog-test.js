@@ -522,6 +522,7 @@ define(function (require, exports, module) {
                 });
             });
 
+            // Cancelation vs. successful install race conditions
             it("should keep close button enabled and not throw an exception if install succeeds quickly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -534,7 +535,6 @@ define(function (require, exports, module) {
                     expect(fields.$okButton.prop("disabled")).toBe(false);
                 });
             });
-            
             it("should keep close button enabled and not throw an exception if install succeeds slowly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -567,6 +567,7 @@ define(function (require, exports, module) {
                 });
             });
             
+            // Cancelation vs. failed install race conditions
             it("should keep close button enabled and not throw an exception if install fails quickly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -594,7 +595,6 @@ define(function (require, exports, module) {
                     expect(fields.$okButton.prop("disabled")).toBe(false);
                 });
             });
-            
             it("should stay closed and not throw an exception if install fails after cancelation & force close", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -612,6 +612,7 @@ define(function (require, exports, module) {
                 });
             });
             
+            // Cancelation actually suceeding
             it("should keep close button enabled and not throw an exception if install cancelation completes quickly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -624,7 +625,6 @@ define(function (require, exports, module) {
                     expect(fields.$okButton.prop("disabled")).toBe(false);
                 });
             });
-            
             it("should keep close button enabled and not throw an exception if install cancelation completes slowly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -640,7 +640,6 @@ define(function (require, exports, module) {
                     expect(fields.$okButton.prop("disabled")).toBe(false);
                 });
             });
-            
             it("should stay closed and not throw an exception if install cancelation completes after cancelation & force close", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);

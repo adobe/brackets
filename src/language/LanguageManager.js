@@ -175,7 +175,7 @@ define(function (require, exports, module) {
     /**
      * Resolves a language ID to a Language object.
      * File names have a higher priority than file extensions. 
-     * @param {!string} id Identifier for this language: lowercase letters and digits with _ separators (e.g. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
     
     /**
      * Sets the identifier for this language or prints an error to the console.
-     * @param {!string} id Identifier for this language: lowercase letters and digits with _ separators (e.g. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @return {boolean} Whether the ID was valid and set or not
      */
     Language.prototype._setId = function (id) {
@@ -637,11 +637,11 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}               id                        Unique identifier for this language: lowercase letters and digits with _ separators (e.g. "cpp", "foo_bar", "c99")
+     * @param {!string}               id                        Unique identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @param {!Object}               definition                An object describing the language
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (e.g. "C++")
-     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (e.g. ["php", "php3"]). May contain periods (e.g. ["coffee.md"])
-     * @param {Array.<string>}        definition.fileNames      List of file names (e.g. ["Makefile"] or ["package.json])
+     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (e.g. ["php", "php3"] or ["coffee.md"] - may contain dots)
+     * @param {Array.<string>}        definition.fileNames      List of exact file names (e.g. ["Makefile"] or ["package.json]). Higher precedence than file extension.
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (e.g. ["<!--", "-->"])
      * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (e.g. "//" or ["//", "#"])
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]

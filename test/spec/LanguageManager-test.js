@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("/only/testing/the/path.css")).toBe(css);      // abs Mac/Linux-style
                 expect(LanguageManager.getLanguageForPath("only/testing/the/path.css")).toBe(css);       // relative
                 
-                // Things that aren't extensions
+                // Unknown file types
                 expect(LanguageManager.getLanguageForPath("/code/html")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("/code/foo.html.notreally")).toBe(unknown);
             });

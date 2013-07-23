@@ -973,10 +973,10 @@ define(function (require, exports, module) {
                 
                 // Braces inside string; string inside rule (not inside selector)
                 css = "a::after { content: ' {' attr(href) '}'; } \n" +
-                      ".foo { color:red } \n" +
-                      "a::after { content: \" {\" attr(href) \"}\"; } \n" +
-                      "li::before { content: \"} h4 { color:black }\"; } \n" +
-                      "div { color:green }";
+                    ".foo { color:red } \n" +
+                    "a::after { content: \" {\" attr(href) \"}\"; } \n" +
+                    "li::before { content: \"} h4 { color:black }\"; } \n" +
+                    "div { color:green }";
                 
                 result = match(css, { tag: "a" });
                 expect(result.length).toBe(2);
@@ -999,7 +999,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 css = "@import \"null?\\\"{\"; \n" +   // a real-world CSS hack similar to the above case
-                      "div { color: red }";
+                    "div { color: red }";
                 result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
@@ -1051,9 +1051,9 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 css = ".foo\n" +
-                      "{\n" +
-                      "    color: red;\n" +
-                      "}";
+                    "{\n" +
+                    "    color: red;\n" +
+                    "}";
                 result = match(css, { clazz: "foo" });
                 expect(result.length).toBe(1);
             });
@@ -1425,11 +1425,9 @@ define(function (require, exports, module) {
             });
 
             afterEach(function () {
-                brackets            = null;
                 CSSUtils            = null;
                 DocumentManager     = null;
                 FileViewController  = null;
-                ProjectManager      = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

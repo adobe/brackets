@@ -332,7 +332,7 @@ define(function (require, exports, module) {
 
         if (!editor) {
             if (!(document instanceof DocumentManager.Document)) {
-                throw new Error("_destroyEditorIfUnneeded() takes a Document arg, not an Editor");
+                throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
             }
             return;
         }
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
                 // an inline widget's editor has focus, so close it
                 PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
                 inlineWidget.close().done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);        
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
                     // return a resolved promise to CommandManager
                     result.resolve(false);
                 });
