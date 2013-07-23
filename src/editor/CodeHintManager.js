@@ -468,9 +468,7 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey ||
-                    event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
-                // End the session if the user presses any key with a modifier (other than Ctrl+Space).
+            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
