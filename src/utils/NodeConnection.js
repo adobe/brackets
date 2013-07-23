@@ -495,6 +495,15 @@ define(function (require, exports, module) {
         return deferred.promise();
     };
     
+    /**
+     * @private
+     * Get the default timeout value
+     * @return {number} Timeout value in milliseconds
+     */
+    NodeConnection._getConnectionTimeout = function () {
+        return CONNECTION_TIMEOUT;
+    };
+    
     module.exports = NodeConnection;
     
 });
