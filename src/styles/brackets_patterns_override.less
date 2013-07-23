@@ -453,24 +453,6 @@
     cursor: pointer;
 }
 
-.btn {
-    cursor: default;
-    font-size: 16px;
-    font-weight: @font-weight-semibold;
-    color: #454545;
-
-    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
-    // too so we don't see the color cross-fading during the gradient slide animation
-    background-color: #fff;
-    &:hover {
-        background-position: 0 15px;
-    }
-
-    &.primary {
-        background-color: @blue;
-    }
-}
-
 /* Update dialog */
 .update-dialog .modal-body {
     position: relative;
@@ -812,6 +794,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
+    cursor: default;    
     font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
@@ -889,6 +872,15 @@ input[type="color"],
 .btn.disabled,
 .btn[disabled] {
     background-color: @tc-button-background;
+}
+
+.btn.primary:hover,
+.btn.primary:focus,
+.btn.primary:active,
+.btn.primary.active,
+.btn.primary.disabled,
+.btn.primary[disabled] {
+    background-color: @tc-call-to-action;
 }
 
 /* Tables */
