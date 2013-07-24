@@ -144,15 +144,15 @@ define(function (require, exports, module) {
     /**
      * Hide the delete button.
      */
-    function hideDeleteButton() {
+    function removeDeleteButton() {
         $("#recent-folder-delete").remove();
     }
     
     /**
      * Show the delete button over a given target.
      */
-    function showDeleteButton($target) {
-        hideDeleteButton();
+    function addDeleteButton($target) {
+        removeDeleteButton();
         renderDelete()
             .css("top", $target.position().top + 6)
             .appendTo($target);
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
      * Selects the next or previous item in the list
      * @param {number} direction  +1 for next, -1 for prev
      */
-    function selectNextPrevItem(direction) {
+    function selectNextItem(direction) {
         var $links   = $dropdown.find("a"),
             index    = $dropdownItem ? $links.index($dropdownItem) : (direction > 0 ? -1 : 0),
             $newItem = $links.eq((index + direction) % $links.length);
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
         $newItem.addClass("selected");
         
         $dropdownItem = $newItem;
-        hideDeleteButton();
+        removeDeleteButton();
     }
     
     /**
@@ -187,11 +187,11 @@ define(function (require, exports, module) {
         
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_UP:
-            selectNextPrevItem(-1);
+            selectNextItem(-1);
             keyHandled = true;
             break;
         case KeyEvent.DOM_VK_DOWN:
-            selectNextPrevItem(+1);
+            selectNextItem(+1);
             keyHandled = true;
             break;
         case KeyEvent.DOM_VK_ENTER:
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                 if ($dropdownItem.hasClass("recent-folder-link")) {
                     // Note: we can't depend on the event here because this can be triggered
                     // manually from checkHovers().
-                    showDeleteButton($(this));
+                    addDeleteButton($(this));
                 }
             })
             .on("mouseleave", "a", function () {
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                     $dropdownItem = null;
                 }
                 if ($link.hasClass("recent-folder-link")) {
-                    hideDeleteButton();
+                    removeDeleteButton();
                 }
             });
     }
