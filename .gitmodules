@@ -15,7 +15,7 @@
 	url = https://github.com/marijnh/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
-	url = https://github.com/dangoor/acorn.git
+	url = https://github.com/marijnh/acorn.git
 [submodule "src/thirdparty/requirejs"]
 	path = src/thirdparty/requirejs
 	url = https://github.com/jrburke/requirejs.git
