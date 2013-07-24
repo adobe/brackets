@@ -27,7 +27,7 @@
 /*unittests: KeyBindingManager */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("utils/Global");
 

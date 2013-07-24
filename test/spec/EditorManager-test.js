@@ -26,7 +26,7 @@
 /*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, document */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var EditorManager   = require("editor/EditorManager"),
         PanelManager    = require("view/PanelManager"),

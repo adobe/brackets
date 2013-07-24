@@ -26,7 +26,7 @@
 /*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),

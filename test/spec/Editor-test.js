@@ -26,7 +26,7 @@
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         LanguageManager = require("language/LanguageManager");

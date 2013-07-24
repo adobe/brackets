@@ -26,7 +26,7 @@
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var CommandManager,
         KeyBindingManager,

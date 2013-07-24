@@ -26,7 +26,7 @@
 /*global define, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var CommandManager = require("command/CommandManager");

@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, spyOn */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, waits, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
                     $                   = testWindow.$;
                     brackets            = testWindow.brackets;
                     extensionRequire    = brackets.test.ExtensionLoader.getRequireContextForExtension("JSLint");
-                    JSLint = extensionRequire("main");
+                    JSLint              = extensionRequire("main");
                     JSLint.setEnabled(true);
                 });
             });

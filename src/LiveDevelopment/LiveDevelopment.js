@@ -1159,6 +1159,6 @@ define(function LiveDevelopment(require, exports, module) {
     exports.STATUS_INACTIVE       = STATUS_INACTIVE;
     exports.STATUS_CONNECTING     = STATUS_CONNECTING;
     exports.STATUS_LOADING_AGENTS = STATUS_LOADING_AGENTS;
-    exports.STATUS_ACTIVE         = STATUS_LOADING_AGENTS;
+    exports.STATUS_ACTIVE         = STATUS_ACTIVE;
     exports.STATUS_OUT_OF_SYNC    = STATUS_OUT_OF_SYNC;
 });

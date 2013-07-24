@@ -1171,7 +1171,7 @@ define(function (require, exports, module) {
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
                             expect(didQuit).toBe(false);
-                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename);
                         });
                     });
                     

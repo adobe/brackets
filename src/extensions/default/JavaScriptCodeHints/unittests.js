@@ -276,6 +276,7 @@ define(function (require, exports, module) {
          * @param {string} hintSelection - the hint to select
          */
         function selectHint(provider, hintObj, hintSelection) {
+            expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
                 var index = findHint(hintList, hintSelection);

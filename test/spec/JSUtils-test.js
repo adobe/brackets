@@ -26,7 +26,7 @@
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var DocumentManager,        // loaded from brackets.test
         FileIndexManager,       // loaded from brackets.test
