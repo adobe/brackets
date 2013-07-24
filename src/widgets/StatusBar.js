@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, document, Mustache */
 
 /**
@@ -49,9 +49,7 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
-    var $editorContainer,
-        $statusBar,
-        $indicators,
+    var $statusBar,
         $busyIndicator;
         
     /**
@@ -198,9 +196,8 @@ define(function (require, exports, module) {
         $parent.append(Mustache.render(StatusBarHTML, Strings));
 
         // Initialize items dependent on HTML DOM
-        $statusBar          = $("#status-bar");
-        $indicators         = $("#status-indicators");
-        $busyIndicator      = $("#status-bar .spinner");
+        $statusBar     = $("#status-bar");
+        $busyIndicator = $("#status-bar .spinner");
 
         _init = true;
 

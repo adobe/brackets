@@ -21,10 +21,9 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets */
-
-
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,7 +45,6 @@ define(function (require, exports, module) {
             return;
         }
 
-        var selectorList = [];
         var docText = doc.getText();
         return CSSUtils.extractAllSelectors(docText);
     }
@@ -115,16 +113,14 @@ define(function (require, exports, module) {
 
     QuickOpen.addQuickOpenPlugin(
         {
-            name: "CSS Selectors",
-            languageIds: ["css"],
-            done: function () {},
-            search: search,
-            match: match,
-            itemFocus: itemFocus,
-            itemSelect: itemSelect,
-            resultsFormatter: null // use default
+            name             : "CSS Selectors",
+            languageIds      : ["css"],
+            done             : function () { return undefined; },
+            search           : search,
+            match            : match,
+            itemFocus        : itemFocus,
+            itemSelect       : itemSelect,
+            resultsFormatter : null // use default
         }
     );
-
-
 });

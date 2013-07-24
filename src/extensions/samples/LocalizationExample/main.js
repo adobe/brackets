@@ -22,9 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, require, Mustache, navigator  */
-
 
 require.config({
     paths: {
@@ -66,7 +65,7 @@ define(function (require, exports, module) {
     // Register the command
     // A localized command name is used by passing in Strings.COMMAND_NAME
     var myCommandID = "localizationExample.command";
-    var command = CommandManager.register(Strings.COMMAND_NAME, myCommandID, testCommand);
+    CommandManager.register(Strings.COMMAND_NAME, myCommandID, testCommand);
 
     var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
     menu.addMenuItem(myCommandID, null, Menus.AFTER, myCommandID);

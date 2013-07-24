@@ -21,20 +21,18 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, browser: true */
 /*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, brackets */
 
 // TODO: Eventually we should have a brackets performance test suite that is separate from the unit tests
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var CommandManager,             // loaded from brackets.test
         Commands,                   // loaded from brackets.test
-        DocumentCommandHandlers,    // loaded from brackets.test
-        PerfUtils,                  // loaded from brackets.test
-        DocumentManager,            // loaded from brackets.test
         SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
         UnitTestReporter            = require("test/UnitTestReporter");
 
@@ -73,9 +71,6 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
-                DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                PerfUtils           = testWindow.brackets.test.PerfUtils;
         
                 jsLintCommand = CommandManager.get("jslint.toggleEnabled");
                 if (jsLintCommand) {
@@ -91,9 +86,6 @@ define(function (require, exports, module) {
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
-            DocumentCommandHandlers = null;
-            DocumentManager         = null;
-            PerfUtils               = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

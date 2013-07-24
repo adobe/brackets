@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
@@ -30,12 +31,10 @@ define(function (require, exports, module) {
     var Commands            = brackets.getModule("command/Commands"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        UnitTestReporter    = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints         = require("main"),
         Preferences         = require("Preferences"),
         ScopeManager        = require("ScopeManager"),
@@ -257,9 +256,9 @@ define(function (require, exports, module) {
          * @return {number} the index of the hint corresponding to the hintSelection
          */
         function findHint(hintList, hintSelection) {
-            var i, l;
+            var i, l, current;
             for (i = 0, l = hintList.length; i < l; ++i) {
-                var current = hintList[i].data("token");
+                current = hintList[i].data("token");
                 if (hintSelection === current.value) {
                     return i;
                 }
@@ -277,7 +276,6 @@ define(function (require, exports, module) {
          * @param {string} hintSelection - the hint to select
          */
         function selectHint(provider, hintObj, hintSelection) {
-            var hintList = expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
                 var index = findHint(hintList, hintSelection);
@@ -322,10 +320,7 @@ define(function (require, exports, module) {
          *  editor is expected to stay in the same file, then file may be omitted.  
          */
         function editorJumped(expectedLocation) {
-            var oldLocation = testEditor.getCursorPos();
-            
             var jumpPromise = JSCodeHints.handleJumpToDefinition();
-            
             
             _waitForJump(jumpPromise, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);

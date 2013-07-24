@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global self, importScripts, require */
 
 importScripts("thirdparty/requirejs/require.js");
@@ -92,22 +93,6 @@ importScripts("thirdparty/requirejs/require.js");
                     ternServer.addFile(file);
                 });
                 
-            }
-
-            /**
-             * Create a "full" update object.
-             *
-             * @param {string} path - full path of the file.
-             * @param {string} text - full text of the file.
-             * @return {{type: string, name: string, offsetLines: number, text: string}} -
-             * "full" update.
-
-             */
-            function createFullUpdate(path, text) {
-                return {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
-                        name: path,
-                        offsetLines: 0,
-                        text: text};
             }
 
             /**
@@ -185,8 +170,7 @@ importScripts("thirdparty/requirejs/require.js");
                         self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                         return;
                     }
-                    var isFunc = false,
-                        response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                    var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
                                           file: fileInfo.name,
                                           resultFile: data.file,
                                           offset: offset,
@@ -226,13 +210,13 @@ importScripts("thirdparty/requirejs/require.js");
                     i;
                 //_log("tern properties: request " + request.type + dir + " " + file);
                 ternServer.request(request, function (error, data) {
-                    var properties = [];
+                    var properties = [], property;
                     if (error) {
                         _log("Error returned from Tern 'properties' request: " + error);
                     } else {
                         //_log("tern properties: completions = " + data.completions.length);
                         for (i = 0; i < data.completions.length; ++i) {
-                            var property = data.completions[i];
+                            property = data.completions[i];
                             properties.push({value: property, guess: true});
                         }
                     }
@@ -266,13 +250,13 @@ importScripts("thirdparty/requirejs/require.js");
         
                 //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
                 ternServer.request(request, function (error, data) {
-                    var completions = [];
+                    var completions = [], completion;
                     if (error) {
                         _log("Error returned from Tern 'completions' request: " + error);
                     } else {
                         //_log("found " + data.completions.length + " for " + file + "@" + offset);
                         for (i = 0; i < data.completions.length; ++i) {
-                            var completion = data.completions[i];
+                            completion = data.completions[i];
                             completions.push({value: completion.name, type: completion.type, depth: completion.depth,
                                 guess: completion.guess, origin: completion.origin});
                         }

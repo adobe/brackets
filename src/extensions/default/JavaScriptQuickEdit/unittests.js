@@ -22,20 +22,16 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager,         // loaded from brackets.test
-        EditorManager,          // loaded from brackets.test
-        FileIndexManager,       // loaded from brackets.test
+    var EditorManager,          // loaded from brackets.test
         PerfUtils,              // loaded from brackets.test
-        JSUtils,                // loaded from brackets.test
         
         FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
@@ -76,9 +72,7 @@ define(function (require, exports, module) {
      * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
      */
     var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
-        var allFiles,
-            inlineOpened = null,
-            spec = this;
+        var spec = this;
         
         workingSet = workingSet || [];
         expectInline = (expectInline !== undefined) ? expectInline : true;
@@ -117,9 +111,6 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow          = w;
                     EditorManager       = testWindow.brackets.test.EditorManager;
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    FileIndexManager    = testWindow.brackets.test.FileIndexManager;
-                    JSUtils             = testWindow.brackets.test.JSUtils;
                 });
                 
                 this.addMatchers({
@@ -192,9 +183,6 @@ define(function (require, exports, module) {
                 initInlineTest      = null;
                 testWindow          = null;
                 EditorManager       = null;
-                CommandManager      = null;
-                FileIndexManager    = null;
-                JSUtils             = null;
                 SpecRunnerUtils.closeTestWindow();
             });
 
@@ -478,7 +466,6 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
-                    CommandManager      = testWindow.brackets.test.CommandManager;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     PerfUtils           = testWindow.brackets.test.PerfUtils;
                 });
@@ -486,7 +473,6 @@ define(function (require, exports, module) {
     
             afterEach(function () {
                 testWindow      = null;
-                CommandManager  = null;
                 EditorManager   = null;
                 PerfUtils       = null;
                 SpecRunnerUtils.closeTestWindow();

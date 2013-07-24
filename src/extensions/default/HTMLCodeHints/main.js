@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
@@ -92,13 +92,12 @@ define(function (require, exports, module) {
                 }
             }
             return false;
-        } else {
-            if (implicitChar === "<") {
-                this.exclusion = this.tagInfo.tagName;
-                return true;
-            }
-            return false;
         }
+        if (implicitChar === "<") {
+            this.exclusion = this.tagInfo.tagName;
+            return true;
+        }
+        return false;
     };
        
     /**
@@ -287,8 +286,7 @@ define(function (require, exports, module) {
         var pos = editor.getCursorPos(),
             tokenType,
             offset,
-            query,
-            textAfterCursor;
+            query;
         
         this.editor = editor;
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
@@ -342,16 +340,15 @@ define(function (require, exports, module) {
             }
             
             return query !== null;
-        } else {
-            if (implicitChar === " " || implicitChar === "'" ||
-                    implicitChar === "\"" || implicitChar === "=") {
-                if (tokenType === HTMLUtils.ATTR_NAME) {
-                    this.exclusion = this.tagInfo.attr.name;
-                }
-                return true;
-            }
-            return false;
         }
+        if (implicitChar === " " || implicitChar === "'" ||
+                implicitChar === "\"" || implicitChar === "=") {
+            if (tokenType === HTMLUtils.ATTR_NAME) {
+                this.exclusion = this.tagInfo.attr.name;
+            }
+            return true;
+        }
+        return false;
     };
     
     /**
@@ -372,8 +369,7 @@ define(function (require, exports, module) {
             query = {queryStr: null},
             tokenType,
             offset,
-            result = [],
-            textAfterCursor;
+            result = [];
  
         this.tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
         tokenType = this.tagInfo.position.tokenType;
@@ -432,15 +428,15 @@ define(function (require, exports, module) {
                     match: query.queryStr,
                     selectInitial: true
                 };
-            } else if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
+            }
+            if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
                 var deferred = $.Deferred();
                 hints.done(function (asyncHints) {
                     deferred.resolveWith(this, [{ hints : asyncHints, match: query.queryStr, selectInitial: true }]);
                 });
                 return deferred;
-            } else {
-                return null;
             }
+            return null;
         }
 
         
@@ -528,7 +524,9 @@ define(function (require, exports, module) {
             // Since we're now inside the double-quotes we just inserted,
             // immediately pop up the attribute value hint.
             return true;
-        } else if (tokenType === HTMLUtils.ATTR_VALUE && this.tagInfo.attr.hasEndQuote) {
+        }
+        
+        if (tokenType === HTMLUtils.ATTR_VALUE && this.tagInfo.attr.hasEndQuote) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }

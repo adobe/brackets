@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+
     /**
      * Errors
      */

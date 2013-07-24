@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, CodeMirror, brackets, window */
 
 /**
@@ -193,9 +193,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             extensionPath = config.baseUrl + "/" + entryPoint + ".js";
 
-        var fileExists = false, statComplete = false;
         brackets.fs.stat(extensionPath, function (err, stat) {
-            statComplete = true;
             if (err === brackets.fs.NO_ERROR && stat.isFile()) {
                 // unit test file exists
                 var extensionRequire = brackets.libRequire.config({

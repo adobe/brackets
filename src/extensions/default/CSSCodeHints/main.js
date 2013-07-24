@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, window */
 
 define(function (require, exports, module) {
@@ -88,8 +89,7 @@ define(function (require, exports, module) {
      */
     CssPropHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos(),
-            textAfterCursor;
+        var cursor = this.editor.getCursorPos();
 
         lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
@@ -109,7 +109,8 @@ define(function (require, exports, module) {
             
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
-        } else if (this.info.context === CSSUtils.PROP_NAME) {
+        }
+        if (this.info.context === CSSUtils.PROP_NAME) {
             if (this.info.offset === 0) {
                 this.exclusion = this.info.name;
             } else {
@@ -161,9 +162,8 @@ define(function (require, exports, module) {
             // to give other more specialized providers a chance to intervene.
             if (lastContext === CSSUtils.PROP_NAME) {
                 return true;
-            } else {
-                lastContext = CSSUtils.PROP_VALUE;
             }
+            lastContext = CSSUtils.PROP_VALUE;
             
             if (!properties[needle]) {
                 return null;
@@ -186,7 +186,8 @@ define(function (require, exports, module) {
                 match: valueNeedle,
                 selectInitial: selectInitial
             };
-        } else if (context === CSSUtils.PROP_NAME) {
+        }
+        if (context === CSSUtils.PROP_NAME) {
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {

@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /**
@@ -40,14 +40,6 @@ define(function ScriptAgent(require, exports, module) {
     var _idToScript; // id -> script info
     var _insertTrace; // the last recorded trace of a DOM insertion
 
-    /** Add a call stack trace to a node
-     * @param {integer} node id
-     * @param [{Debugger.CallFrame}] call stack
-     */
-    function _addTraceToNode(nodeId, trace) {
-        var node = DOMAgent.nodeWithId(nodeId);
-        node.trace = trace;
-    }
 
     // TODO: should the parameter to this be an ID rather than a URL?
     /** Get the script information for a given url
@@ -92,6 +84,7 @@ define(function ScriptAgent(require, exports, module) {
     // WebInspector Event: Debugger.scriptFailedToParse
     function _onScriptFailedToParse(event, res) {
         // res = {url, scriptSource, startLine, errorLine, errorMessage}
+        return undefined;
     }
 
     // WebInspector Event: Debugger.paused

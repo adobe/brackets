@@ -21,11 +21,12 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var ExtensionUtils,
         FileUtils           = require("file/FileUtils"),

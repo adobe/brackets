@@ -22,9 +22,10 @@
  */
 
 
-// FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
+
+// FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
 
 define(function (require, exports, module) {
     "use strict";

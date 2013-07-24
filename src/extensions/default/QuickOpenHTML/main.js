@@ -21,10 +21,9 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets */
-
-
 
 define(function (require, exports, module) {
     "use strict";
@@ -67,11 +66,13 @@ define(function (require, exports, module) {
         var lines = docText.split("\n");
 
         var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
-        var id, chFrom, chTo, i, line;
+        var id, chFrom, chTo, i, line, info;
+        
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
-            var info;
-            while ((info = regex.exec(line)) !== null) {
+            info = regex.exec(line);
+            
+            while (info !== null) {
                 id = info[1];
                 // TODO: this doesn't handle id's that share the 
                 // same portion of a name on the same line or when
@@ -79,6 +80,7 @@ define(function (require, exports, module) {
                 chFrom = line.indexOf(id);
                 chTo = chFrom + id.length;
                 idList.push(new FileLocation(null, i, chFrom, chTo, id));
+                info = regex.exec(line);
             }
         }
         return idList;
@@ -148,15 +150,14 @@ define(function (require, exports, module) {
 
     QuickOpen.addQuickOpenPlugin(
         {
-            name: "html ids",
-            languageIds: ["html"],
-            done: function () {},
-            search: search,
-            match: match,
-            itemFocus: itemFocus,
-            itemSelect: itemSelect,
-            resultsFormatter: null // use default
+            name             : "html ids",
+            languageIds      : ["html"],
+            done             : function () { return undefined; },
+            search           : search,
+            match            : match,
+            itemFocus        : itemFocus,
+            itemSelect       : itemSelect,
+            resultsFormatter : null // use default
         }
     );
-
 });

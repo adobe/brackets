@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waitsForDone: false, runs: false, brackets: false */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Don't run tests when running in browser
     if (brackets.inBrowser) {
@@ -953,18 +953,17 @@ define(function (require, exports, module) {
             it("should add menu items to beginning and end of menu section", function () {
                 var complete,
                     error,
-                    index,
-                    parent;
+                    index;
                 
                 // set up test menu and menu items
                 var SECTION_MENU = "menuitem-sectiontest";
                 runs(function () {
-                    brackets.app.addMenu("Section Test", "menuitem-sectiontest", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) {});
+                    brackets.app.addMenu("Section Test", "menuitem-sectiontest", "", "", function (err) { return undefined; });
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) { return undefined; });
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) { return undefined; });
+                    brackets.app.addMenuItem(SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) { return undefined; });
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) { return undefined; });
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) { return undefined; });
                 });
 
                 // Add new menu to END of menuSectionCmd10
@@ -985,7 +984,6 @@ define(function (require, exports, module) {
                     brackets.app.getMenuPosition("Menu-test.command14", function (err, par, idx) {
                         complete = true;
                         error = err;
-                        parent = par;
                         index = idx;
                     });
                 });
@@ -1015,7 +1013,6 @@ define(function (require, exports, module) {
                     brackets.app.getMenuPosition("Menu-test.command15", function (err, par, idx) {
                         complete = true;
                         error = err;
-                        parent = par;
                         index = idx;
                     });
                 });
@@ -1045,7 +1042,6 @@ define(function (require, exports, module) {
                     brackets.app.getMenuPosition("Menu-test.command16", function (err, par, idx) {
                         complete = true;
                         error = err;
-                        parent = par;
                         index = idx;
                     });
                 });
@@ -1075,7 +1071,6 @@ define(function (require, exports, module) {
                     brackets.app.getMenuPosition("Menu-test.command17", function (err, par, idx) {
                         complete = true;
                         error = err;
-                        parent = par;
                         index = idx;
                     });
                 });
@@ -1087,15 +1082,15 @@ define(function (require, exports, module) {
                     expect(index).toBe(5);
                 });
                 runs(function () {
-                    brackets.app.removeMenuItem("Menu-test.command10", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command11", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command12", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command13", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command14", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command15", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command16", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command17", function (err) {});
-                    brackets.app.removeMenu(SECTION_MENU, function (err) {});
+                    brackets.app.removeMenuItem("Menu-test.command10", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command11", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command12", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command13", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command14", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command15", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command16", function (err) { return undefined; });
+                    brackets.app.removeMenuItem("Menu-test.command17", function (err) { return undefined; });
+                    brackets.app.removeMenu(SECTION_MENU, function (err) { return undefined; });
                 });
             });
         });  // describe("addMenuItem (with reference)")

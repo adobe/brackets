@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 
 /**
@@ -64,15 +65,7 @@ define(function LiveDevelopment(require, exports, module) {
     "use strict";
 
     require("utils/Global");
-
-    // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
-    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
-    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
-
+    
     var Async                = require("utils/Async"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
@@ -86,7 +79,15 @@ define(function LiveDevelopment(require, exports, module) {
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
         StringUtils          = require("utils/StringUtils");
-
+    
+    // Status Codes
+    var STATUS_ERROR          = -1,
+        STATUS_INACTIVE       =  0,
+        STATUS_CONNECTING     =  1,
+        STATUS_LOADING_AGENTS =  2,
+        STATUS_ACTIVE         =  3,
+        STATUS_OUT_OF_SYNC    =  4;
+    
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
@@ -208,9 +209,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
-
         var parentUrl,
-            rootUrl,
             matches;
 
         // FUTURE: some of these things should just be moved into core Document; others should
@@ -331,9 +330,8 @@ define(function LiveDevelopment(require, exports, module) {
         var DocClass = _classForDocument(doc);
         if (DocClass) {
             return new DocClass(doc, editor);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -537,8 +535,6 @@ define(function LiveDevelopment(require, exports, module) {
     /** Load the agents */
     function loadAgents() {
         var result = new $.Deferred(),
-            promises = [],
-            enableAgentsPromise,
             allAgentsPromise;
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -1073,7 +1069,9 @@ define(function LiveDevelopment(require, exports, module) {
      * Project setting. In a clean installation of Brackets, this is the highest priority
      * server provider, if defined.
      */
-    function UserServerProvider() {}
+    function UserServerProvider() {
+        return undefined;
+    }
 
     /**
      * Determines whether we can serve local file.
@@ -1138,21 +1136,29 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     // For unit testing
-    exports._pathToUrl          = _pathToUrl;
-    exports._urlToPath          = _urlToPath;
-    exports._setServerProvider  = _setServerProvider;
-    exports.launcherUrl         = launcherUrl;
+    exports._pathToUrl            = _pathToUrl;
+    exports._urlToPath            = _urlToPath;
+    exports._setServerProvider    = _setServerProvider;
+    exports.launcherUrl           = launcherUrl;
 
     // Export public functions
-    exports.agents              = agents;
-    exports.open                = open;
-    exports.close               = close;
-    exports.reconnect           = reconnect;
-    exports.enableAgent         = enableAgent;
-    exports.disableAgent        = disableAgent;
-    exports.getLiveDocForPath   = getLiveDocForPath;
-    exports.showHighlight       = showHighlight;
-    exports.hideHighlight       = hideHighlight;
-    exports.redrawHighlight     = redrawHighlight;
-    exports.init                = init;
+    exports.agents                = agents;
+    exports.open                  = open;
+    exports.close                 = close;
+    exports.reconnect             = reconnect;
+    exports.enableAgent           = enableAgent;
+    exports.disableAgent          = disableAgent;
+    exports.getLiveDocForPath     = getLiveDocForPath;
+    exports.showHighlight         = showHighlight;
+    exports.hideHighlight         = hideHighlight;
+    exports.redrawHighlight       = redrawHighlight;
+    exports.init                  = init;
+    
+    // Export public Constants
+    exports.STATUS_ERROR          = STATUS_ERROR;
+    exports.STATUS_INACTIVE       = STATUS_INACTIVE;
+    exports.STATUS_CONNECTING     = STATUS_CONNECTING;
+    exports.STATUS_LOADING_AGENTS = STATUS_LOADING_AGENTS;
+    exports.STATUS_ACTIVE         = STATUS_LOADING_AGENTS;
+    exports.STATUS_OUT_OF_SYNC    = STATUS_OUT_OF_SYNC;
 });

@@ -22,8 +22,7 @@
  */
 
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, forin: true */
 /*global define, $, WebSocket, FileError, window, XMLHttpRequest */
 
  /**
@@ -343,7 +342,7 @@ define(function Inspector(require, exports, module) {
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
             InspectorJSON = JSON.parse(InspectorText);
         
-        var i, j, domain, domainDef, command;
+        var i, j, domain, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
             exports[domain.domain] = {};

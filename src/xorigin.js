@@ -21,8 +21,9 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets: true, navigator:true, document:true, window:true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global brackets, navigator, document, window */
+
 (function () {
     "use strict";
 
@@ -42,7 +43,7 @@
     }
 
     // Abort if running in the shell, running on a server or not running in a supported and affected browser
-    if (typeof (brackets) !== "undefined" ||
+    if (brackets !== undefined ||
             document.location.href.substr(0, 7) !== "file://" ||
             !testCrossOriginError) {
         return;

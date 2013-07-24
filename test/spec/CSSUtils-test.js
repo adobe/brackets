@@ -21,14 +21,14 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, xdescribe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
-        Async                      = require("utils/Async"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
@@ -61,8 +61,6 @@ define(function (require, exports, module) {
         
         if (fileEntry) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
-            
-            var doneLoading = false;
             
             runs(function () {
                 FileUtils.readAsText(fileEntry)
@@ -571,8 +569,7 @@ define(function (require, exports, module) {
     describe("CSS Parsing: ", function () {
         
         var lastCssCode,
-            match,
-            expectParseError;
+            match;
         
         function _findMatchingRules(cssCode, tagInfo) {
             if (tagInfo) {
@@ -587,11 +584,11 @@ define(function (require, exports, module) {
                     selector += "#" + tagInfo.id;
                 }
                 return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
-            } else {
-                // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
-                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy");
-                return null;
             }
+            
+            // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
+            CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy");
+            return null;
         }
         
         /**
@@ -635,7 +632,7 @@ define(function (require, exports, module) {
         /** To call fail(), these helpers need access to the value of 'this' inside each it() */
         beforeEach(function () {
             match = _match.bind(this);
-            expectParseError = _expectParseError.bind(this);
+            _expectParseError.bind(this);
         });
 
 
@@ -795,6 +792,7 @@ define(function (require, exports, module) {
                 //
                 // result = matchAgain({ tag: "div", clazz: "class2", id: "bar" });
                 // expect(result.length).toBe(0);
+                return undefined;
             });
             
             it("should match lone '*' given any tag; else ignore", function () {
@@ -1319,10 +1317,12 @@ define(function (require, exports, module) {
         describe("At-rules", function () {
             it("should handle @media", function () {
                 // TODO - not required for Sprint 4
+                return undefined;
             });
             
             it("should handle @page", function () {
                 // TODO - not required for Sprint 4
+                return undefined;
             });
         }); // describe("At-rules")        
 
@@ -1411,29 +1411,23 @@ define(function (require, exports, module) {
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,
                 DocumentManager,
-                FileViewController,
-                ProjectManager,
-                brackets;
+                FileViewController;
     
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
                     CSSUtils            = testWindow.brackets.test.CSSUtils;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    ProjectManager      = testWindow.brackets.test.ProjectManager;
 
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             });
 
             afterEach(function () {
-                brackets            = null;
                 CSSUtils            = null;
                 DocumentManager     = null;
                 FileViewController  = null;
-                ProjectManager      = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

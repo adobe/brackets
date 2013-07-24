@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror */
 
 /**
@@ -217,7 +217,6 @@ define(function (require, exports, module) {
         
         // Walk through the tags and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var i;
         tags.forEach(function (tag) {
             var attrText = " data-brackets-id='" + tag.tagID + "'";
 
@@ -295,9 +294,8 @@ define(function (require, exports, module) {
             if (markerLoc) {
                 var markPos = markerLoc.from;
                 return (cm.indexFromPos(pos) - cm.indexFromPos(markPos));
-            } else {
-                return Number.MAX_VALUE;
             }
+            return Number.MAX_VALUE;
         };
         
         for (i = 0; i < marks.length; i++) {

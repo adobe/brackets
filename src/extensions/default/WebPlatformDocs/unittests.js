@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
@@ -40,7 +41,6 @@ define(function (require, exports, module) {
         var testCSSInfo     = SpecRunnerUtils.parseOffsetsFromText(testCSS),
             testHTMLInfo    = SpecRunnerUtils.parseOffsetsFromText(testHTML),
             editor,
-            doc,
             pos;
     
         function queryInlineAtPos(info, offset, expectInline, expectedProperty) {
@@ -111,7 +111,6 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 var mock = SpecRunnerUtils.createMockEditor(testCSSInfo.text, "css");
                 editor = mock.editor;
-                doc = mock.doc;
             });
             
             afterEach(function () {
@@ -146,7 +145,6 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 var mock = SpecRunnerUtils.createMockEditor(testHTMLInfo.text, "html");
                 editor = mock.editor;
-                doc = mock.doc;
             });
             
             afterEach(function () {
@@ -193,7 +191,6 @@ define(function (require, exports, module) {
                     ),
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
-                    title,
                     href,
                     $links = viewer.$htmlContent.find("a");
                 

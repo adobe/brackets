@@ -21,6 +21,9 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define*/
+
 /*
  * N.B.: This file was copied from `lib/registry_utils.js` in `https://github.com/adobe/brackets-registry`.
  * We can't use the exact same file currently because Brackets uses AMD-style modules, so this version has
@@ -28,10 +31,6 @@
  * version in the registry app should be kept in sync.
  * In the future, we should have a better mechanism for sharing code between the two.
  */
-
-/*jslint vars: true, plusplus: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define*/
-
 define(function (require, exports, module) {
     "use strict";
     

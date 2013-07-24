@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, JSLINT, Mustache, brackets */
 
 /**
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
         var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
+        PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);

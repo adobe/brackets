@@ -22,9 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
-maxerr: 50, browser: true */
-/*global $, define, brackets, WebSocket */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global $, define, brackets, WebSocket, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -53,10 +52,10 @@ define(function (require, exports, module) {
      * automatically cleared.
      */
     function setDeferredTimeout(deferred, delay) {
-        var timer = setTimeout(function () {
+        var timer = window.setTimeout(function () {
             deferred.reject();
         }, delay);
-        deferred.always(function () { clearTimeout(timer); });
+        deferred.always(function () { window.clearTimeout(timer); });
     }
     
     /**
@@ -187,7 +186,7 @@ define(function (require, exports, module) {
         if (this._ws && this._ws.readyState !== WebSocket.CLOSED) {
             try {
                 this._ws.close();
-            } catch (e) { }
+            } catch (ignore) { }
         }
         var failedDeferreds = this._pendingInterfaceRefreshDeferreds
             .concat(this._pendingCommandDeferreds);
@@ -274,7 +273,7 @@ define(function (require, exports, module) {
                             RETRY_DELAY - (now - attemptTimestamp),
                             1
                         );
-                        setTimeout(doConnect, delay);
+                        window.setTimeout(doConnect, delay);
                     } else { // too many attempts, give up
                         deferred.reject();
                     }

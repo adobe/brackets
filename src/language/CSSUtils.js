@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
@@ -130,12 +129,14 @@ define(function (require, exports, module) {
      *           isNewItem: boolean}} A CSS context info object.
      */
     function createInfo(context, offset, name, index, values, isNewItem) {
-        var ruleInfo = { context: context || "",
-                         offset: offset || 0,
-                         name: name || "",
-                         index: -1,
-                         values: [],
-                         isNewItem: (isNewItem) ? true : false };
+        var ruleInfo = {
+            context   : context || "",
+            offset    : offset  || 0,
+            name      : name    || "",
+            index     : -1,
+            values    : [],
+            isNewItem : isNewItem ? true : false
+        };
         
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
@@ -227,7 +228,6 @@ define(function (require, exports, module) {
      */
     function _getSucceedingPropValues(ctx, currentValue) {
         var lastValue = currentValue,
-            curValue,
             propValues = [];
         
         while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
@@ -367,16 +367,13 @@ define(function (require, exports, module) {
      *           isNewItem: boolean}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
-            backwardPos = $.extend({}, ctx.pos),
+        var backwardPos = $.extend({}, ctx.pos),
             forwardPos  = $.extend({}, ctx.pos),
+            index       = 0,
+            propValues  = [],
+            offset      = TokenUtils.offsetInToken(ctx),
             backwardCtx,
-            forwardCtx,
-            index = 0,
-            propValues = [],
-            offset = TokenUtils.offsetInToken(ctx),
-            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos, true);
+            forwardCtx;
 
         // Currently only support url. May be null if starting to type
         if (ctx.token.className && ctx.token.className !== "string") {
@@ -414,9 +411,8 @@ define(function (require, exports, module) {
             if (!TokenUtils.moveNextToken(forwardCtx)) {
                 if (forwardCtx.token.string === "(") {
                     break;
-                } else {
-                    return createInfo();
                 }
+                return createInfo();
             }
             propValues[0] += forwardCtx.token.string;
         } while (forwardCtx.token.string !== ")" && forwardCtx.token.string !== "");
@@ -437,7 +433,7 @@ define(function (require, exports, module) {
      */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
-        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        // the pos the caller passed in so we use extend to make a safe copy of it.
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             offset = TokenUtils.offsetInToken(ctx),
@@ -508,7 +504,7 @@ define(function (require, exports, module) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state, lines, lineCount;
-        var token, style, stream, line;
+        var token, stream, line;
         var currentSelector = "";
         var ruleStartChar = -1, ruleStartLine = -1;
         var selectorStartChar = -1, selectorStartLine = -1;
@@ -548,7 +544,7 @@ define(function (require, exports, module) {
             if (!_hasStream()) {
                 return false;
             }
-            style = mode.token(stream, state);
+            mode.token(stream, state);
             token = stream.current();
             return true;
         }
@@ -559,7 +555,7 @@ define(function (require, exports, module) {
             if (!_hasStream()) {
                 return false;
             }
-            style = mode.token(stream, state);
+            mode.token(stream, state);
             token = stream.current();
             return true;
         }
@@ -635,11 +631,11 @@ define(function (require, exports, module) {
                         unicodeChar = unicodeChar.substr(1);
                         if (unicodeChar.length === 1) {
                             return unicodeChar;
-                        } else {
-                            if (parseInt(unicodeChar, 16) < 0x10FFFF) {
-                                return String.fromCharCode(parseInt(unicodeChar, 16));
-                            } else { return String.fromCharCode(0xFFFD); }
                         }
+                        if (parseInt(unicodeChar, 16) < 0x10FFFF) {
+                            return String.fromCharCode(parseInt(unicodeChar, 16));
+                        }
+                        return String.fromCharCode(0xFFFD);
                     });
                 });
             }
@@ -679,7 +675,6 @@ define(function (require, exports, module) {
         }
 
         function _parseDeclarationList() {
-
             var j;
             declListStartLine = line;
             declListStartChar = stream.start;
@@ -704,12 +699,11 @@ define(function (require, exports, module) {
             for (j = selectors.length - 1; j >= 0; j--) {
                 if (selectors[j].declListEndLine !== -1) {
                     break;
-                } else {
-                    selectors[j].declListStartLine = declListStartLine;
-                    selectors[j].declListStartChar = declListStartChar;
-                    selectors[j].declListEndLine = line;
-                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                 }
+                selectors[j].declListStartLine = declListStartLine;
+                selectors[j].declListStartChar = declListStartChar;
+                selectors[j].declListEndLine   = line;
+                selectors[j].declListEndChar   = stream.pos - 1; // stream.pos actually points to the char after the }
             }
         }
         
@@ -860,12 +854,10 @@ define(function (require, exports, module) {
     function _findAllMatchingSelectorsInText(text, selector) {
         var allSelectors = extractAllSelectors(text);
         var result = [];
-        var i;
         
         // For sprint 4 we only match the rightmost simple selector, and ignore 
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var prefix = "";
         
         // Escape initial "." in selector, if present.
         if (selector[0] === ".") {
@@ -1025,7 +1017,7 @@ define(function (require, exports, module) {
     function findSelectorAtDocumentPos(editor, pos) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
-        var selector = "", inSelector = false, foundChars = false;
+        var selector = "", foundChars = false;
 
         function _stripAtRules(selector) {
             selector = selector.trim();
@@ -1064,13 +1056,13 @@ define(function (require, exports, module) {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     break;
-                } else if (ctx.token.string === "{") {
+                }
+                if (ctx.token.string === "{") {
                     selector = _parseSelector(ctx);
                     break;
-                } else {
-                    if (ctx.token.string.trim() !== "") {
-                        foundChars = true;
-                    }
+                }
+                if (ctx.token.string.trim() !== "") {
+                    foundChars = true;
                 }
             }
             
@@ -1102,7 +1094,8 @@ define(function (require, exports, module) {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
                         break;
-                    } else if (ctx.token.string === "}" || ctx.token.string === ";") {
+                    }
+                    if (ctx.token.string === "}" || ctx.token.string === ";") {
                         break;
                     }
                 }

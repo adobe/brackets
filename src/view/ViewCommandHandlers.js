@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, window, $ */
 
 /**
@@ -37,15 +38,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        Strings                 = require("strings"),
-        ProjectManager          = require("project/ProjectManager"),
-        EditorManager           = require("editor/EditorManager"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        DocumentManager         = require("document/DocumentManager"),
-        AppInit                 = require("utils/AppInit");
+    var Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        Strings             = require("strings"),
+        EditorManager       = require("editor/EditorManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        AppInit             = require("utils/AppInit");
     
     /**
      * @const

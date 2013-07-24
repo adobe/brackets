@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waitsForDone: false, runs: false, brackets: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, brackets */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     require("utils/Global");
     
@@ -801,7 +801,7 @@ define(function (require, exports, module) {
         });
         
         describe("moveToTrash", function () {
-            var error, complete, isDirectory;
+            var error, complete;
             
             it("should move a file to the trash", function () {
                 var newFileName = baseDir + "/delete_me.txt";

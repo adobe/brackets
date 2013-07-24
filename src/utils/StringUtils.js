@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets */
 
 /**
@@ -45,7 +46,7 @@ define(function (require, exports, module) {
         // arguments[0] is the base string, so we need to adjust index values here
         var args = [].slice.call(arguments, 1);
         return str.replace(/\{(\d+)\}/g, function (match, num) {
-            return typeof args[num] !== "undefined" ? args[num] : match;
+            return args[num] !== undefined ? args[num] : match;
         });
     }
 
@@ -101,9 +102,10 @@ define(function (require, exports, module) {
                     // add 1 per line since /n were removed by splitting, but they needed to 
                     // contribute to the total offset count
                     total += lines[line].length + 1;
-                } else if (total === offset) {
-                    return line;
                 } else {
+                    if (total === offset) {
+                        return line;
+                    }
                     return line - 1;
                 }
             }
@@ -111,12 +113,10 @@ define(function (require, exports, module) {
             // if offset is NOT over the total then offset is in the last line
             if (offset <= total) {
                 return line - 1;
-            } else {
-                return undefined;
             }
-        } else {
-            return textOrLines.substr(0, offset).split("\n").length - 1;
+            return undefined;
         }
+        return textOrLines.substr(0, offset).split("\n").length - 1;
     }
     
     /**
@@ -146,9 +146,8 @@ define(function (require, exports, module) {
 
         if (a2 === b2) {
             return 0;
-        } else {
-            return (a2 > b2) ? 1 : -1;
         }
+        return (a2 > b2) ? 1 : -1;
     }
     
     /**

@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, window, $, Mustache */
 
 define(function (require, exports, module) {
@@ -29,7 +30,6 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
-        PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                             index = recentProjects.indexOf(path);
                         if (index !== -1) {
                             NativeFileSystem.requestNativeFileSystem(path,
-                                function () {},
+                                function () { return undefined; },
                                 function () {
                                     recentProjects.splice(index, 1);
                                 });

@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,7 +32,6 @@ define(function (require, exports, module) {
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
@@ -47,7 +46,9 @@ define(function (require, exports, module) {
     /**
      * @constructor
      */
-    function UrlCodeHints() {}
+    function UrlCodeHints() {
+        return undefined;
+    }
 
     /**
      * Helper function to create a list of urls to existing files based on the query.
@@ -245,7 +246,8 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
-        } else if (mode === "css") {
+        }
+        if (mode === "css") {
             return this.hasCssHints(editor, implicitChar);
         }
 
@@ -378,7 +380,6 @@ define(function (require, exports, module) {
         var mode = this.editor.getModeForSelection(),
             cursor = this.editor.getCursorPos(),
             filter = "",
-            unfiltered = [],
             hints = [],
             sortFunc = null,
             query = { queryStr: "" },
@@ -468,7 +469,9 @@ define(function (require, exports, module) {
                 selectInitial: true
             };
 
-        } else if (hints instanceof Object && hints.hasOwnProperty("done")) {
+        }
+        
+        if (hints instanceof Object && hints.hasOwnProperty("done")) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
@@ -499,7 +502,8 @@ define(function (require, exports, module) {
         var mode = this.editor.getModeForSelection();
         if (mode === "html") {
             return this.insertHtmlHint(completion);
-        } else if (mode === "css") {
+        }
+        if (mode === "css") {
             return this.insertCssHint(completion);
         }
 
@@ -526,7 +530,8 @@ define(function (require, exports, module) {
         
         if (pos1.index === pos2.index) {
             return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
-        } else if (pos1.index < pos2.index) {
+        }
+        if (pos1.index < pos2.index) {
             if (pos1.index < 0 || pos1.index >= array.length || pos2.index < 0 || pos2.index >= array.length) {
                 return 0;
             }
@@ -655,12 +660,12 @@ define(function (require, exports, module) {
             }
             return false;
 
-        } else {
-            // If closing quote and/or paren are added, move the cursor to where it would have been
-            moveLen = ((this.info.openingQuote && !hasClosingQuote) ? 1 : 0) + (!hasClosingParen ? 1 : 0);
-            if (moveLen > 0) {
-                this.editor.setCursorPos(start.line, start.ch + completion.length);
-            }
+        }
+        
+        // If closing quote and/or paren are added, move the cursor to where it would have been
+        moveLen = ((this.info.openingQuote && !hasClosingQuote) ? 1 : 0) + (!hasClosingParen ? 1 : 0);
+        if (moveLen > 0) {
+            this.editor.setCursorPos(start.line, start.ch + completion.length);
         }
 
         return true;
@@ -683,7 +688,6 @@ define(function (require, exports, module) {
             tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             tokenType = tagInfo.position.tokenType,
             charCount = 0,
-            replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
             shouldReplace = true;
 

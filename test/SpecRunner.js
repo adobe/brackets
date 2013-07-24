@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, browser: true */
 /*global require, define, $, beforeEach, afterEach, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
@@ -37,22 +38,23 @@ require.config({
 });
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
+    
+    require("utils/Global");
+    require("utils/ColorUtils");
+    require("command/Menus");
     
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),
-        Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
         FileUtils               = require("file/FileUtils"),
-        Menus                   = require("command/Menus"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
-        ColorUtils              = require("utils/ColorUtils");
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
@@ -74,7 +76,6 @@ define(function (require, exports, module) {
         _nodeConnectionDeferred = new $.Deferred(),
         reporterView,
         _writeResults           = new $.Deferred(),
-        _writeResultsPromise    = _writeResults.promise(),
         resultsPath;
     
     /**
@@ -205,12 +206,13 @@ define(function (require, exports, module) {
         jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
                 output = '<?xml version="1.0" encoding="UTF-8" ?>',
+                suite,
                 i;
 
             output += "\n<testsuites>";
 
             for (i = 0; i < suites.length; i++) {
-                var suite = suites[i];
+                suite = suites[i];
                 if (!suite.parentSuite) {
                     output += this.getNestedOutput(suite);
                 }
@@ -225,6 +227,7 @@ define(function (require, exports, module) {
         
         jasmine.JUnitXmlReporter.prototype.writeFile = function (path, filename, text) {
             // do nothing
+            return undefined;
         };
     }
     
@@ -239,7 +242,7 @@ define(function (require, exports, module) {
         // TODO: duplicates code from StaticServer
         // TODO: can this be done lazily?
         
-        var connectionTimeout = setTimeout(function () {
+        var connectionTimeout = window.setTimeout(function () {
             console.error("[SpecRunner] Timed out while trying to connect to node");
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);

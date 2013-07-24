@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, window, brackets */
 
 define(function (require, exports, module) {
@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
-        FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");
@@ -45,16 +44,17 @@ define(function (require, exports, module) {
      * @return {boolean} True if one or more items can be dropped.
      */
     function isValidDrop(items) {
-        var i, len = items.length;
+        var i, entry, len = items.length;
         
         for (i = 0; i < len; i++) {
             if (items[i].kind === "file") {
-                var entry = items[i].webkitGetAsEntry();
+                entry = items[i].webkitGetAsEntry();
                 
                 if (entry.isFile) {
                     // If any files are being dropped, this is a valid drop
                     return true;
-                } else if (len === 1) {
+                }
+                if (len === 1) {
                     // If exactly one folder is being dropped, this is a valid drop
                     return true;
                 }

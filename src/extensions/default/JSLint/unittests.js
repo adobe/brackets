@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
@@ -36,8 +37,7 @@ define(function (require, exports, module) {
             $,
             brackets,
             extensionRequire,
-            JSLint,
-            EditorManager;
+            JSLint;
         
         var toggleJSLintResults = function (visible) {
             $("#jslint-status").triggerHandler("click");
@@ -47,12 +47,11 @@ define(function (require, exports, module) {
         beforeEach(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
                     // Load module instances from brackets.test
-                    $ = testWindow.$;
-                    brackets = testWindow.brackets;
-                    EditorManager = testWindow.brackets.test.EditorManager;
-                    extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("JSLint");
+                    testWindow          = w;
+                    $                   = testWindow.$;
+                    brackets            = testWindow.brackets;
+                    extensionRequire    = brackets.test.ExtensionLoader.getRequireContextForExtension("JSLint");
                     JSLint = extensionRequire("main");
                     JSLint.setEnabled(true);
                 });
@@ -64,10 +63,9 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
-            testWindow    = null;
-            $             = null;
-            brackets      = null;
-            EditorManager = null;
+            testWindow          = null;
+            $                   = null;
+            brackets            = null;
             extensionRequire    = null;
             JSLint              = null;
             SpecRunnerUtils.closeTestWindow();

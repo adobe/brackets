@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window */
 
 /**
@@ -68,12 +68,6 @@ define(function (require, exports, module) {
      */
     var _automaticSort = false;
     
-    /**
-     * @private
-     * @type {boolean}
-     * Used to know when to do the automatic sort for MRU order.
-     */
-    var _openedDocument = false;
     
     /**
      * Retrieves a Sort object by id
@@ -179,7 +173,7 @@ define(function (require, exports, module) {
      * @param {string} events Space-separated DocumentManager possible events
      *      ending with ".sort".
      */
-    function Sort(commandID, compareFn, events, automaticFn) {
+    function Sort(commandID, compareFn, events) {
         this._commandID = commandID;
         this._compareFn = compareFn;
         this._events    = events;
@@ -258,7 +252,7 @@ define(function (require, exports, module) {
         if (events) {
             events = events.split(" ");
             events.forEach(function (event, index) {
-                events[index] = events[index].trim() + ".sort";
+                events[index] = event.trim() + ".sort";
             });
             events = events.join(" ");
         }

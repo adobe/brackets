@@ -21,10 +21,8 @@
  * 
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
-indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
+/*global define, $, brackets, PathUtils, window */
 
 /* Functions for working with extension packages */
 
@@ -328,9 +326,7 @@ define(function (require, exports, module) {
                             result.localPath = downloadResult.localPath;
                             d.resolve(result);
                         } else {
-                            brackets.fs.unlink(downloadResult.localPath, function (err) {
-                                // ignore errors
-                            });
+                            brackets.fs.unlink(downloadResult.localPath);
                             if (result.errors && result.errors.length > 0) {
                                 // Validation errors - for now, only return the first one
                                 state = STATE_FAILED;
@@ -349,9 +345,7 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        brackets.fs.unlink(downloadResult.localPath, function (err) {
-                            // ignore errors
-                        });
+                        brackets.fs.unlink(downloadResult.localPath);
                         d.reject(err);  // TODO: needs to be err.message ?
                     });
             })
@@ -387,9 +381,8 @@ define(function (require, exports, module) {
         if (Array.isArray(error)) {
             error[0] = localize(error[0]);
             return StringUtils.format.apply(window, error);
-        } else {
-            return localize(error);
         }
+        return localize(error);
     }
     
     /**
@@ -444,7 +437,7 @@ define(function (require, exports, module) {
                 d.reject(error);
             })
             .always(function () {
-                brackets.fs.unlink(path, function () { });
+                brackets.fs.unlink(path);
             });
         return d.promise();
     }
@@ -468,7 +461,7 @@ define(function (require, exports, module) {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
         // _nodeConnectionDeferred.done() to access it.
-        var connectionTimeout = setTimeout(function () {
+        var connectionTimeout = window.setTimeout(function () {
             console.error("[Extensions] Timed out while trying to connect to node");
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
@@ -480,12 +473,12 @@ define(function (require, exports, module) {
             _nodeConnection.loadDomains(domainPath, true)
                 .then(
                     function () {
-                        clearTimeout(connectionTimeout);
+                        window.clearTimeout(connectionTimeout);
                         _nodeConnectionDeferred.resolve(_nodeConnection);
                     },
                     function () { // Failed to connect
                         console.error("[Extensions] Failed to connect to node", arguments);
-                        clearTimeout(connectionTimeout);
+                        window.clearTimeout(connectionTimeout);
                         _nodeConnectionDeferred.reject();
                     }
                 );

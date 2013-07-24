@@ -21,6 +21,10 @@
  * 
  */
 
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets */
+
 /*
  * CodeHintManager Overview:
  *
@@ -213,11 +217,6 @@
  * Indicates whether the manager should follow hint insertion with an
  * explicit hint request.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
 define(function (require, exports, module) {
     "use strict";
     

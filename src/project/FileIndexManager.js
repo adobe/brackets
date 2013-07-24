@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets */
 
 /*
@@ -34,8 +34,6 @@
  * a new file within brackets.
  *
  */
-
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -143,7 +141,7 @@ define(function (require, exports, module) {
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
   
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
+        CollectionUtils.forEach(_indexList, function (index) {
             if (index.filterFunction(entry)) {
                 index.fileInfos.push(fileInfo);
             }
@@ -261,25 +259,13 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
-    
-
-
-    
-    // debug 
-    function _logFileList(list) {
-        list.forEach(function (fileInfo) {
-            console.log(fileInfo.name);
-        });
-        console.log("length: " + list.length);
-    }
-    
 
     /**
      * Clears the fileInfo array for all the indexes in _indexList
      * @private
      */
     function _clearIndexes() {
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
+        CollectionUtils.forEach(_indexList, function (index) {
             index.fileInfos = [];
         });
     }
@@ -324,9 +310,8 @@ define(function (require, exports, module) {
                     //_logFileList(_indexList["css"].fileInfos);
                 });
             return _ongoingSyncPromise;
-        } else {
-            return $.Deferred().resolve().promise();
         }
+        return $.Deferred().resolve().promise();
     }
 
     /**

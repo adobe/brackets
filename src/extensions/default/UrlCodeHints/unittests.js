@@ -22,17 +22,14 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
+    var DocumentManager     = brackets.getModule("document/DocumentManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UrlCodeHints        = require("main");
@@ -42,7 +39,6 @@ define(function (require, exports, module) {
         
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
-            testWindow,
             testDocument,
             testEditor,
             hintsObj;
@@ -65,7 +61,7 @@ define(function (require, exports, module) {
             });
     
             waitsFor(function () {
-                return (testDocument);
+                return testDocument;
             }, "Unable to open test document", 2000);
 
             // create Editor instance (containing a CodeMirror instance)

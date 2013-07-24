@@ -21,48 +21,47 @@
  * 
  */
 
-/**
 
-    This class parses configuration values from a JSON object. The expected
-    name of the file is “.jscodehints” but this class does not actually read
-    the file, it just provides a constant, FILE_NAME.
-
-    The following properties are supported:
-
-     "excluded-directories" - An array of directory strings that match
-     directories that will be excluded from analysis. Directories may be
-     excluded if they contain automated tests that aren’t relevant for code hinting.
-     The wildcards “*” and “?” are supported in strings.
-
-     "excluded-files" - An array of file strings that match files that will
-     be excluded from analysis. Files are typically excluded because
-     their API is in a JSON file or they are known to cause problems with either
-     stability or performance. The wildcards “*” and “?” are supported in strings.
-
-     "max-file-count" - Limits the total number of files that can be processed for
-     hints.
-
-     "max-file-size" - Files larger than this number of bytes will not be parsed.
-
-     The strings in "excluded-directories" or "excluded-files" will be treated as a
-     regular expression if the first and last characters of the string are the '/'
-     character. Note the '\' character in a regular expression needs to be escaped
-     to be valid in a JSON formatted file. For example "/[\d]/" becomes "/[\\d]/".
-
-     Example file:
-
-     {
-     "excluded-directories" : ["/ex[\\w]*ed/"],
-     "excluded-files" : ["require.js", "jquery*.js", "less*.min.js", "ember*.js", "d2?.js", "d3*"],
-     "max-file-count": 100,
-     "max-file-size": 524288
-     }
-
- */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
+/**
+ *  This class parses configuration values from a JSON object. The expected
+ *  name of the file is “.jscodehints” but this class does not actually read
+ *  the file, it just provides a constant, FILE_NAME.
+ *  
+ *  The following properties are supported:
+ *  
+ *   "excluded-directories" - An array of directory strings that match
+ *   directories that will be excluded from analysis. Directories may be
+ *   excluded if they contain automated tests that aren’t relevant for code hinting.
+ *   The wildcards “*” and “?” are supported in strings.
+ *  
+ *   "excluded-files" - An array of file strings that match files that will
+ *   be excluded from analysis. Files are typically excluded because
+ *   their API is in a JSON file or they are known to cause problems with either
+ *   stability or performance. The wildcards “*” and “?” are supported in strings.
+ *  
+ *   "max-file-count" - Limits the total number of files that can be processed for
+ *   hints.
+ *  
+ *   "max-file-size" - Files larger than this number of bytes will not be parsed.
+ *  
+ *   The strings in "excluded-directories" or "excluded-files" will be treated as a
+ *   regular expression if the first and last characters of the string are the '/'
+ *   character. Note the '\' character in a regular expression needs to be escaped
+ *   to be valid in a JSON formatted file. For example "/[\d]/" becomes "/[\\d]/".
+ *  
+ *   Example file:
+ *  
+ *   {
+ *   "excluded-directories" : ["/ex[\\w]*ed/"],
+ *   "excluded-files" : ["require.js", "jquery*.js", "less*.min.js", "ember*.js", "d2?.js", "d3*"],
+ *   "max-file-count": 100,
+ *   "max-file-size": 524288
+ *   }
+ *  
+ */
 define(function (require, exports, module) {
     "use strict";
 

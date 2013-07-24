@@ -21,14 +21,14 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true, forin: true */
-/*global jasmine, $, define, document, require */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true, forin: false */
+/*global jasmine, $, define, document, require, window */
+
 define(function (require, exports, module) {
     'use strict';
     
-    var UrlParams       = require("utils/UrlParams").UrlParams,
-        StringUtils     = require("utils/StringUtils"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils");
+    var StringUtils = require("utils/StringUtils");
 
     var BootstrapReporterView = function (doc, reporter) {
         doc = doc || document;
@@ -66,9 +66,7 @@ define(function (require, exports, module) {
             $badgePassed = $('<span class="badge badge-success" style="display:none"/>'),
             $badgeFailed = $('<span class="badge badge-important" style="display:none"/>'),
             $anchor = $('<a href="?spec=' + encodeURIComponent(suiteName) + '">' + suiteName + '</a>').append($badgeAll).append($badgePassed).append($badgeFailed),
-            $listItem = $('<li/>').append($anchor),
-            self = this,
-            active;
+            $listItem = $('<li/>').append($anchor);
         
         this._topLevelSuiteMap[suiteName] = {
             $badgeAll: $badgeAll,
@@ -105,8 +103,7 @@ define(function (require, exports, module) {
     };
     
     BootstrapReporterView.prototype._handleRunnerStart = function (event, reporter) {
-        var topLevelData,
-            self = this;
+        var topLevelData;
 
         // create top level suite list navigation
         this._createSuiteList(reporter.suites, reporter.sortedNames, reporter.totalSpecCount);
@@ -286,31 +283,33 @@ define(function (require, exports, module) {
      * @return {!string} HTML
      */
     BootstrapReporterView.prototype._linkerizeStack = function (text) {
-        var html = "",
-            indexAfterLastMatch = 0,  // index into 'text'
-            plainText,
-            match;
+        var plainText, match, line, ch, cssClasses, linkPrefix,
+            html = "",
+            indexAfterLastMatch = 0;  // index into 'text'
         
         // We'll style links to Jasmine code less prominently (vs. test spec code / core Brackets code)
         function isTestFrameworkCode() {
             return match[0].indexOf("/jasmine-core/") !== -1;
         }
         
-        while ((match = _codeRefRegExp.exec(text)) !== null) {
+        match = _codeRefRegExp.exec(text);
+        while (match !== null) {
             // Add any plain text before the link
             plainText = text.substring(indexAfterLastMatch, match.index);
             html += StringUtils.htmlEscape(plainText);
             
             // Create a clickable link for the file
-            var line = match[1], ch = match[2];
-            var cssClasses = "link-to-source";
+            line = match[1];
+            ch = match[2];
+            cssClasses = "link-to-source";
             if (isTestFrameworkCode()) {
                 cssClasses += " testframework-link";
             }
-            var linkPrefix = "<a href='#' class='" + cssClasses + "' data-line='" + line + "' data-ch='" + ch + "'>";
+            linkPrefix = "<a href='#' class='" + cssClasses + "' data-line='" + line + "' data-ch='" + ch + "'>";
             html += linkPrefix + StringUtils.htmlEscape(match[0]) + "</a>";
             
             indexAfterLastMatch = match.index + match[0].length;
+            match = _codeRefRegExp.exec(text);
         }
         
         // Add any trailing plain text after last link
@@ -362,6 +361,7 @@ define(function (require, exports, module) {
     
     
     BootstrapReporterView.prototype.log = function (str) {
+        return undefined;
     };
     
     exports.BootstrapReporterView = BootstrapReporterView;

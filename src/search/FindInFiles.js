@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, window, Mustache */
 
 /*
@@ -43,7 +44,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async                 = require("utils/Async"),
-        Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
@@ -117,7 +117,6 @@ define(function (require, exports, module) {
      * @param {?Entry} scope
      */
     function _labelForScope(scope) {
-        var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
             return StringUtils.format(
                 Strings.FIND_IN_FILES_SCOPED,
@@ -125,9 +124,8 @@ define(function (require, exports, module) {
                     ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
                 )
             );
-        } else {
-            return Strings.FIND_IN_FILES_NO_SCOPE;
         }
+        return Strings.FIND_IN_FILES_NO_SCOPE;
     }
     
     
@@ -220,23 +218,22 @@ define(function (require, exports, module) {
      * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
      */
     function _getSearchMatches(contents, queryExpr) {
+        var lineNum, line, ch, matchLength;
+        
         // Quick exit if not found
         if (contents.search(queryExpr) === -1) {
             return null;
         }
         
-        var trimmedContents = contents;
-        var startPos = 0;
-        var matchStart;
         var matches = [];
-        
-        var match;
+        var match = queryExpr.exec(contents);
         var lines = StringUtils.getLines(contents);
-        while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum     = StringUtils.offsetToLineNum(lines, match.index);
-            var line        = lines[lineNum];
-            var ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            var matchLength = match[0].length;
+        
+        while (match !== null) {
+            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
+            line        = lines[lineNum];
+            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            matchLength = match[0].length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));
@@ -254,6 +251,7 @@ define(function (require, exports, module) {
                 maxHitsFoundInFile = true;
                 break;
             }
+            match = queryExpr.exec(contents);
         }
 
         return matches;
@@ -401,9 +399,8 @@ define(function (require, exports, module) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
                 return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
-            } else {
-                return fileInfo.fullPath === scope.fullPath;
             }
+            return fileInfo.fullPath === scope.fullPath;
         }
         return true;
     }

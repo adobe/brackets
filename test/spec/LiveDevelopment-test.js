@@ -21,8 +21,9 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -37,10 +38,8 @@ define(function (require, exports, module) {
     // The following are all loaded from the test window
     var CommandManager,
         Commands,
-        NativeApp,
         LiveDevelopment,
         LiveDevServerManager,
-        Inspector,
         DOMAgent,
         DocumentManager,
         ProjectManager;
@@ -196,7 +195,6 @@ define(function (require, exports, module) {
                         DocumentManager      = testWindow.brackets.test.DocumentManager;
                         CommandManager       = testWindow.brackets.test.CommandManager;
                         Commands             = testWindow.brackets.test.Commands;
-                        NativeApp            = testWindow.brackets.test.NativeApp;
                         ProjectManager       = testWindow.brackets.test.ProjectManager;
                     });
 
@@ -221,7 +219,6 @@ define(function (require, exports, module) {
                     DocumentManager      = null;
                     CommandManager       = null;
                     Commands             = null;
-                    NativeApp            = null;
                     ProjectManager       = null;
                     SpecRunnerUtils.closeTestWindow();
                 });
@@ -326,7 +323,6 @@ define(function (require, exports, module) {
                     browserCssText,
                     origHtmlText,
                     updatedHtmlText,
-                    browserHtmlText,
                     htmlDoc;
                 
                 //verify live dev isn't currently active
@@ -534,14 +530,14 @@ define(function (require, exports, module) {
                 
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn("");
-                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
-                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
-                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return undefined; });
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () { return undefined; });
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () { return undefined; });
                 InspectorModule.CSS = {
                     getStyleSheet   : jasmine.createSpy("getStyleSheet")
                 };
-                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () { return undefined; });
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () { return undefined; });
                 
                 // document spies
                 var deferred = new $.Deferred();
@@ -686,8 +682,8 @@ define(function (require, exports, module) {
                     
                     // module spies -- used to mock actual API calls so that we can test those
                     // APIs without having to actually launch the browser.
-                    spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
-                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "hide").andCallFake(function () { return undefined; });
+                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () { return undefined; });
                     
                     var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
                     testDocument = mock.doc;

@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var CommandManager,      // loaded from brackets.test
@@ -36,8 +36,7 @@ define(function (require, exports, module) {
         Dialogs,             // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils"),
-        StringUtils         = require("utils/StringUtils");
+        FileUtils           = require("file/FileUtils");
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
@@ -608,7 +607,6 @@ define(function (require, exports, module) {
                 });
 
                 // confirm file contents
-                var actualContent = null, error = -1;
                 runs(function () {
                     promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(filePath))
                         .done(function (actualText) {

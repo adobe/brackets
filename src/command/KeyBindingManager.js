@@ -21,6 +21,7 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 /*unittests: KeyBindingManager */

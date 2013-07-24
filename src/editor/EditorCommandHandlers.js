@@ -21,9 +21,9 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
-
 
 /**
  * Text-editing commands that apply to whichever Editor is currently focused

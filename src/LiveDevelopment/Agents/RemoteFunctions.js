@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true, forin: true */
 /*global define, $, window, document, navigator */
 
 /**
@@ -43,10 +43,9 @@ function RemoteFunctions(experimental) {
         if (navigator.platform.substr(0, 3) === "Mac") {
             // Mac
             return event.metaKey;
-        } else {
-            // Windows
-            return event.ctrlKey;
         }
+        // Windows
+        return event.ctrlKey;
     }
 
     // determine the color for a type
@@ -68,9 +67,8 @@ function RemoteFunctions(experimental) {
         var bounds = element.getBoundingClientRect();
         if (key === "offsetLeft") {
             return bounds.left + window.pageXOffset;
-        } else {
-            return bounds.top + window.pageYOffset;
         }
+        return bounds.top + window.pageYOffset;
     }
 
     // set an event on a element

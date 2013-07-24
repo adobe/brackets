@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $, window, tinycolor, Mustache */
 
 define(function (require, exports, module) {

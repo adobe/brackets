@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, FileError, window */
 
 /**
@@ -94,14 +95,6 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var _projectTree = null;
-    
-    function canonicalize(path) {
-        if (path.length > 0 && path[path.length - 1] === "/") {
-            return path.slice(0, -1);
-        } else {
-            return path;
-        }
-    }
     
     /**
      * @private
@@ -227,7 +220,7 @@ define(function (require, exports, module) {
     function _documentSelectionFocusChange() {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
-            var nodeFound = $("#project-files-container li").is(function (index) {
+            var nodeFound = $("#project-files-container li").is(function () {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
                 if (entry && entry.fullPath === curDoc.file.fullPath) {
@@ -356,7 +349,7 @@ define(function (require, exports, module) {
             depth;
 
         // Query open nodes by class selector
-        $(".jstree-open:visible").each(function (index) {
+        $(".jstree-open:visible").each(function () {
             entry = $(this).data("entry");
 
             if (entry.fullPath) {
@@ -432,7 +425,7 @@ define(function (require, exports, module) {
                 node        = null;
 
             // use path to lookup ID
-            toOpenPaths.forEach(function (value, index) {
+            toOpenPaths.forEach(function (value) {
                 node = _projectInitialLoad.fullPathToIdMap[value];
                 
                 if (node) {
@@ -552,7 +545,7 @@ define(function (require, exports, module) {
                 }
             ).bind(
                 "scroll.jstree",
-                function (e) {
+                function () {
                     // close all dropdowns on scroll
                     Menus.closeAll();
                 }
@@ -714,7 +707,7 @@ define(function (require, exports, module) {
             if (!isProjectRoot && emptyDirectory) {
                 // If the directory is empty, force it to appear as an open or closed node.
                 // This is a workaround for issue #149 where jstree would show this node as a leaf.
-                var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
+                var classToAdd = wasNodeOpen ? "jstree-closed" : "jstree-open";
                 
                 treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                         .addClass(classToAdd);
@@ -809,9 +802,8 @@ define(function (require, exports, module) {
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
             return _getWelcomeProjectPath();
-        } else {
-            return path;
         }
+        return path;
     }
 
     /**
@@ -871,7 +863,6 @@ define(function (require, exports, module) {
                     var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry) ||
                         _projectRoot.fullPath !== rootEntry.fullPath;
-                    var i;
 
                     // Success!
                     var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
@@ -968,7 +959,7 @@ define(function (require, exports, module) {
         
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
-            var match = CollectionUtils.indexOf($nodes, function (node, i) {
+            var match = CollectionUtils.indexOf($nodes, function (node) {
                 var nodeName = $(node).data("entry").name;
                 return nodeName === seg;
             });
@@ -1191,8 +1182,8 @@ define(function (require, exports, module) {
                 // Restore tree node state and styling when errors occur.
                 // parent returns -1 when at the root
                 if (parent && (parent !== -1)) {
-                    var methodName = (wasNodeOpen) ? "open_node" : "close_node";
-                    var classToAdd = (wasNodeOpen) ? "jstree-open" : "jstree-closed";
+                    var methodName = wasNodeOpen ? "open_node" : "close_node";
+                    var classToAdd = wasNodeOpen ? "jstree-open" : "jstree-closed";
                     
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
@@ -1357,13 +1348,11 @@ define(function (require, exports, module) {
             if (!err) {
                 // Update all nodes in the project tree.
                 // All other updating is done by DocumentManager.notifyPathNameChanged() below
-                var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
-                    i;
+                var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed");
                 
-                for (i = 0; i < nodes.length; i++) {
-                    var node = $(nodes[i]);
-                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName, isFolder);
-                }
+                nodes.each(function () {
+                    FileUtils.updateFileEntryPath($(this).data("entry"), oldName, newName, isFolder);
+                });
                 
                 // Notify that one of the project files has changed
                 $(exports).triggerHandler("projectFilesChange");
@@ -1456,7 +1445,7 @@ define(function (require, exports, module) {
                                 suppressToggleOpen = oldSuppressToggleOpen;
                             }
                         })
-                        .fail(function (err) {
+                        .fail(function () {
                             // Error during rename. Reset to the old name and alert the user.
                             _resetOldFilename();
                         });

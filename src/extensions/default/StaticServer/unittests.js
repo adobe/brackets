@@ -22,14 +22,13 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
 
 define(function (require, exports, module) {
     "use strict";
     
     var main            = require("main"),
-        NodeConnection  = brackets.getModule("utils/NodeConnection"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils");
     
@@ -404,8 +403,7 @@ define(function (require, exports, module) {
             it("should log a warning when writing to a non-existant request", function () {
                 var serverInfo,
                     path = testFolder + "folder1",
-                    text,
-                    location;
+                    text;
                 
                 spyOn(console, "warn").andCallThrough();
                 
@@ -438,9 +436,6 @@ define(function (require, exports, module) {
                 waitsFor(function () { return text; }, "waiting for text from server");
 
                 runs(function () {
-                    var expectedWarning = "writeFilteredResponse: Missing callback for " +
-                        path + "/index.txt. This command must only be called after a requestFilter event has fired for a path.";
-
                     // verify console warning
                     expect(logs.length).toBe(2);
 
@@ -521,8 +516,6 @@ define(function (require, exports, module) {
                 StaticServer;
             
             beforeEach(function () {
-                var ExtensionLoader;
-
                 runs(function () {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test

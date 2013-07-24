@@ -21,10 +21,11 @@
  * 
  */
 
-// FUTURE: Merge part (or all) of this class with InlineTextEditor
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
+
+// FUTURE: Merge part (or all) of this class with InlineTextEditor
 
 /**
  * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 

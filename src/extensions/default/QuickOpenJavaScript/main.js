@@ -21,10 +21,9 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets */
-
-
 
 define(function (require, exports, module) {
     "use strict";
@@ -142,15 +141,14 @@ define(function (require, exports, module) {
 
     QuickOpen.addQuickOpenPlugin(
         {
-            name: "JavaScript functions",
-            languageIds: ["javascript"],
-            done: function () {},
-            search: search,
-            match: match,
-            itemFocus: itemFocus,
-            itemSelect: itemSelect,
-            resultsFormatter: null // use default
+            name             : "JavaScript functions",
+            languageIds      : ["javascript"],
+            done             : function () { return undefined; },
+            search           : search,
+            match            : match,
+            itemFocus        : itemFocus,
+            itemSelect       : itemSelect,
+            resultsFormatter : null // use default
         }
     );
-
 });
