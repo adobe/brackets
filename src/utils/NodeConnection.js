@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global $, define, brackets, WebSocket, window */
 
 define(function (require, exports, module) {
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
      */
     function setDeferredTimeout(deferred, delay) {
         var timer = window.setTimeout(function () {
-            deferred.reject();
+            deferred.reject("timeout");
         }, delay);
         deferred.always(function () { window.clearTimeout(timer); });
     }
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                 // at some point in the future (and will not get an onopen 
                 // event)
                 ws.onclose = function () {
-                    deferred.reject();
+                    deferred.reject("WebSocket closed");
                 };
 
                 ws.onopen = function () {
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
                     deferred.resolveWith(null, [ws, port]);
                 };
             } else {
-                deferred.reject();
+                deferred.reject("brackets.app.getNodeState error: " + err);
             }
         });
         
@@ -191,7 +191,7 @@ define(function (require, exports, module) {
         var failedDeferreds = this._pendingInterfaceRefreshDeferreds
             .concat(this._pendingCommandDeferreds);
         failedDeferreds.forEach(function (d) {
-            d.reject();
+            d.reject("cleanup");
         });
         this._pendingInterfaceRefreshDeferreds = [];
         this._pendingCommandDeferreds = [];
@@ -231,9 +231,9 @@ define(function (require, exports, module) {
                 deferred.resolve();
             }
             // Called if we fail at the final setup
-            function fail() {
+            function fail(err) {
                 self._cleanup();
-                deferred.reject();
+                deferred.reject(err);
             }
             
             self._ws = ws;
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
                         );
                         window.setTimeout(doConnect, delay);
                     } else { // too many attempts, give up
-                        deferred.reject();
+                        deferred.reject("Max connection attempts reached");
                     }
                 }
             );
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
                     if (!success) {
                         // response from commmand call was "false" so we know
                         // the actual load failed.
-                        deferred.reject();
+                        deferred.reject("loadDomainModulesFromPaths failed");
                     }
                     // if the load succeeded, we wait for the API refresh to
                     // resolve the deferred.
@@ -347,7 +347,7 @@ define(function (require, exports, module) {
 
             this._pendingInterfaceRefreshDeferreds.push(deferred);
         } else {
-            deferred.reject();
+            deferred.reject("this.domains.base is undefined");
         }
         
         return deferred.promise();
@@ -450,8 +450,8 @@ define(function (require, exports, module) {
             function () {
                 pendingDeferreds.forEach(function (d) { d.resolve(); });
             },
-            function () {
-                pendingDeferreds.forEach(function (d) { d.reject(); });
+            function (err) {
+                pendingDeferreds.forEach(function (d) { d.reject(err); });
             }
         );
         
@@ -486,9 +486,9 @@ define(function (require, exports, module) {
         if (this.connected()) {
             $.getJSON("http://localhost:" + this._port + "/api")
                 .done(refreshInterfaceCallback)
-                .fail(function () { deferred.reject(); });
+                .fail(function (err) { deferred.reject(err); });
         } else {
-            deferred.reject();
+            deferred.reject("Attempted to call _refreshInterface when not connected.");
         }
         
         return deferred.promise();

@@ -35,16 +35,15 @@ define(function (require, exports, module) {
     
     
     /**
-     * Registered as an inline editor provider: creates an InlineEditorColor when the cursor
-     * is on a color value (in any flavor of code).
+     * Prepare hostEditor for an InlineColorEditor at pos if possible. Return
+     * editor context if so; otherwise null.
      *
-     * @param {!Editor} hostEditor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
-     *      no color at pos.
+     * @param {Editor} hostEditor
+     * @param {{line:Number, ch:Number}} pos
+     * @return {?{color:String, start:TextMarker, end:TextMarker}}
      */
-    function inlineColorEditorProvider(hostEditor, pos) {
-        var colorRegEx, cursorLine, inlineColorEditor, match, result,
+    function prepareEditorForProvider(hostEditor, pos) {
+        var colorRegEx, cursorLine, match,
             sel, start, end, startBookmark, endBookmark;
         
         sel = hostEditor.getSelection();
@@ -77,9 +76,34 @@ define(function (require, exports, module) {
         
         hostEditor.setSelection(pos, { line: pos.line, ch: end });
         
-        inlineColorEditor = new InlineColorEditor(match[0], startBookmark, endBookmark);
+        return {
+            color: match[0],
+            start: startBookmark,
+            end: endBookmark
+        };
+    }
+    
+    /**
+     * Registered as an inline editor provider: creates an InlineEditorColor when the cursor
+     * is on a color value (in any flavor of code).
+     *
+     * @param {!Editor} hostEditor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
+     *      no color at pos.
+     */
+    function inlineColorEditorProvider(hostEditor, pos) {
+        var context = prepareEditorForProvider(hostEditor, pos),
+            inlineColorEditor,
+            result;
+        
+        if (!context) {
+            return null;
+        }
+        
+        inlineColorEditor = new InlineColorEditor(context.color, context.start, context.end);
         inlineColorEditor.load(hostEditor);
-
+        
         result = new $.Deferred();
         result.resolve(inlineColorEditor);
         return result.promise();
@@ -91,6 +115,8 @@ define(function (require, exports, module) {
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
     
+    // for use by other InlineColorEditors
+    exports.prepareEditorForProvider = prepareEditorForProvider;
     
     // for unit tests only
     exports.inlineColorEditorProvider = inlineColorEditorProvider;

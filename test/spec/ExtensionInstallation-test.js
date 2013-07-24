@@ -50,13 +50,17 @@ define(function (require, exports, module) {
         packageData = undefined;
         
         runs(function () {
+            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", 5000);
+        });
+        
+        runs(function () {
             promise = packageFunc(packagePath);
             promise.then(function (pd) {
                 // perform checks outside of this function to avoid
                 // getting caught by NodeConnection's error catcher
                 packageData = pd;
             }, function (err) {
-                expect("Error").toEqual("No error");
+                expect(err).toBeNull();
             });
             
             waitsForDone(promise, "package validation", 5000);

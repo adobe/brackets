@@ -26,7 +26,7 @@
 /*global define, describe, it, expect, spyOn, runs, waitsForDone, waitsForFail, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var ExtensionLoader = require("utils/ExtensionLoader"),

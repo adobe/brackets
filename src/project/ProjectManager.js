@@ -83,6 +83,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * File names which are not showed in quick open dialog
+     * @type {RegExp}
+     */
+    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+
+    /**
+     * @private
      * Reference to the tree control container div. Initialized by
      * htmlReady handler
      * @type {jQueryObject}
@@ -502,34 +509,35 @@ define(function (require, exports, module) {
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
-                    if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                    
-                        openResult.done(function () {
-                            // update when tree display state changes
-                            _redraw(true);
-                            _lastSelected = data.rslt.obj;
-                        }).fail(function () {
-                            if (_lastSelected) {
-                                // revert this new selection and restore previous selection
-                                _forceSelection(data.rslt.obj, _lastSelected);
-                            } else {
-                                _projectTree.jstree("deselect_all");
-                                _lastSelected = null;
-                            }
-                        });
-                    } else {
-                        FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
-                        // show selection marker on folders
-                        _redraw(true);
+                    if (entry) {
+                        if (entry.isFile) {
+                            var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                         
-                        // toggle folder open/closed
-                        // suppress if this selection was triggered by clicking the disclousre triangle
-                        if (!suppressToggleOpen) {
-                            _projectTree.jstree("toggle_node", data.rslt.obj);
+                            openResult.done(function () {
+                                // update when tree display state changes
+                                _redraw(true);
+                                _lastSelected = data.rslt.obj;
+                            }).fail(function () {
+                                if (_lastSelected) {
+                                    // revert this new selection and restore previous selection
+                                    _forceSelection(data.rslt.obj, _lastSelected);
+                                } else {
+                                    _projectTree.jstree("deselect_all");
+                                    _lastSelected = null;
+                                }
+                            });
+                        } else {
+                            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
+                            // show selection marker on folders
+                            _redraw(true);
+                            
+                            // toggle folder open/closed
+                            // suppress if this selection was triggered by clicking the disclousre triangle
+                            if (!suppressToggleOpen) {
+                                _projectTree.jstree("toggle_node", data.rslt.obj);
+                            }
                         }
                     }
-                    
                     suppressToggleOpen = false;
                 }
             ).bind(
@@ -630,6 +638,15 @@ define(function (require, exports, module) {
     function shouldShow(entry) {
         return !entry.name.match(_exclusionListRegEx);
     }
+    
+    /**
+     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @param {string} fileName
+     * @return {boolean}
+     */
+    function isBinaryFile(fileName) {
+        return fileName.match(_binaryExclusionListRegEx);
+    }
 
     /**
      * @private
@@ -710,7 +727,7 @@ define(function (require, exports, module) {
                 var classToAdd = wasNodeOpen ? "jstree-closed" : "jstree-open";
                 
                 treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                        .addClass(classToAdd);
+                    .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on 
@@ -1188,7 +1205,7 @@ define(function (require, exports, module) {
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
-                          .addClass(classToAdd);
+                        .addClass(classToAdd);
                 }
                 
                 result.reject();
@@ -1256,7 +1273,7 @@ define(function (require, exports, module) {
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
                             StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
-                                Strings.breakableUrl(data.rslt.name), errString)
+                                StringUtils.breakableUrl(data.rslt.name), errString)
                         );
                     }
 
@@ -1548,6 +1565,7 @@ define(function (require, exports, module) {
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
+    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;

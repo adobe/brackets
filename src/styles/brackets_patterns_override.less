@@ -115,29 +115,34 @@
     box-sizing: border-box;
 
     background: @main-toolbar-background-color;
-    padding: 5px 0px;
-
+    padding: 7px 0px;
+    
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
     .box-flex(1);
     text-align: center;
-
+    
     .buttons {
         text-align: center;
         margin: 0;
-
+    
         > a {
-            margin: 5px 0px 5px 0px;
-            padding: 0 !important;
-            position: static !important;
-            top: 0 !important;
-            left: 0 !important;
+            border-radius: 3px;
+            background-repeat: none;
+            display: block;
+            height: 24px;
+            margin: 7px 0px 0px 3px;
+            width: 24px;
         }
-
+        
+        > a:hover {
+            background-color: rgba(0, 0, 0, 0.24) !important;
+        }
+    
         > a:active {
-            opacity: 0.5;
+            background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }
+    }     
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
@@ -356,9 +361,12 @@
 
 .modal .close {
     cursor: default;
+    margin: 10px 5px 0 0;
 }
 
 .modal-header {
+    background: @tc-gray-panel-top-bar;
+    border-radius: 4px 4px 0 0;
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
@@ -420,8 +428,8 @@
 
 .dialog-message {
     color: @tc-light-weight-text;
-    font-size: 16px;
-    line-height: 26px;
+    font-size: 14px;
+    line-height: 20px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
 }
@@ -436,31 +444,13 @@
 }
 
 .dialog-filename {
-    font-weight: @font-weight-semibold;
+    font-weight: normal;
     word-wrap: break-word;
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
 .clickable-link {
     cursor: pointer;
-}
-
-.btn {
-    cursor: default;
-    font-size: 16px;
-    font-weight: @font-weight-semibold;
-    color: #454545;
-
-    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
-    // too so we don't see the color cross-fading during the gradient slide animation
-    background-color: #fff;
-    &:hover {
-        background-position: 0 15px;
-    }
-
-    &.primary {
-        background-color: @blue;
-    }
 }
 
 /* Update dialog */
@@ -538,6 +528,7 @@
                 min-width: 80px;
                 min-height: 60px;
                 color: black;
+                cursor: default;
                 font-size: 12px;
                 
                 .box;
@@ -556,7 +547,7 @@
                 
                 > img {
                     margin-top: 5px;
-                    padding-bottom: 5px;
+                    padding-bottom: 2px;
                 }
             }
             
@@ -566,7 +557,8 @@
             }
             
             /* Colors for the active tab, remove bottom border */
-            > .active > a {
+            > .active > a,
+            > .active > a:hover {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
@@ -792,6 +784,21 @@ input[type="color"],
 /* Buttons */
 
 // Base .btn styles
+
+.btn:hover,
+.btn:focus,
+.btn.disabled,
+.btn[disabled] {
+    background-color: @tc-button-background;
+}
+
+.btn.primary:hover,
+.btn.primary:focus,
+.btn.primary.disabled,
+.btn.primary[disabled] {
+    background-color: @tc-call-to-action;
+}
+
 .btn {
     // Button Base
     background-image: none;
@@ -799,6 +806,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
+    cursor: default;    
     font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
@@ -815,8 +823,22 @@ input[type="color"],
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        color: @tc-text;
         outline: none;
     }
+
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: @tc-button-down-background;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-text;
+    }
+
+    &.disabled, &[disabled] {
+        opacity: @tc-disabled-opacity;
+    }    
 
     // Primary Button Type
     &.primary {
@@ -840,18 +862,6 @@ input[type="color"],
         }
     }
 
-    // Active and Disabled states
-    &.active,
-    &:active {
-        background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-    }
-
-    &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
-    }
-
     // Button Sizes
     &.large {
         font-size: @baseFontSize + 1px;
@@ -871,7 +881,7 @@ input[type="color"],
 
 /* Tables */
 
-table {
+.table, table {
     th {
         font-weight: @font-weight-semibold;
     }
@@ -938,12 +948,12 @@ dt,
 }
 
 .alert {
-  text-shadow: none;
-  background-color: @tc-warning-background;
-  border: none;
+    text-shadow: none;
+    background-color: @tc-warning-background;
+    border: none;
 }
 .alert,
 .alert h4 {
-  // Specified for the h4 to prevent conflicts of changing @headingsColor
-  color: @tc-warning-text;
+    // Specified for the h4 to prevent conflicts of changing @headingsColor
+    color: @tc-warning-text;
 }
