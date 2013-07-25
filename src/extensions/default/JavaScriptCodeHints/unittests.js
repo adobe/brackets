@@ -27,20 +27,20 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands            = brackets.getModule("command/Commands"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        UnitTestReporter    = brackets.getModule("test/UnitTestReporter"),
-        JSCodeHints         = require("main"),
-        Preferences         = require("Preferences"),
-        ScopeManager        = require("ScopeManager"),
-        HintUtils           = require("HintUtils"),
-        FunctionHintManager = require("FunctionHintManager");
+    var Commands             = brackets.getModule("command/Commands"),
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        DocumentManager      = brackets.getModule("document/DocumentManager"),
+        Editor               = brackets.getModule("editor/Editor").Editor,
+        EditorManager        = brackets.getModule("editor/EditorManager"),
+        FileUtils            = brackets.getModule("file/FileUtils"),
+        NativeFileSystem     = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
+        UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
+        JSCodeHints          = require("main"),
+        Preferences          = require("Preferences"),
+        ScopeManager         = require("ScopeManager"),
+        HintUtils            = require("HintUtils"),
+        ParameterHintManager = require("ParameterHintManager");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -347,16 +347,16 @@ define(function (require, exports, module) {
          * records, where each element of the array describes a function parameter.
          * If null, then no hint is expected.
          */
-        function showAndVerifyFunctionHint(expectedHint)
+        function popUpAndVerifyParameterHint(expectedHint)
         {
-            var request = FunctionHintManager.popUpFunctionHint();
+            var request = ParameterHintManager.popUpHint();
             if (expectedHint === null) {
                 expect(request).toBe(null);
                 return;
             }
 
             request.done(function () {
-                var actualHint = JSCodeHints.getSession().getFunctionHint(),
+                var actualHint = JSCodeHints.getSession().getParameterHint(),
                     n = actualHint.length,
                     i;
 
@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "a", type: "String"}, {name: "b", type: "number"}]);
+                    popUpAndVerifyParameterHint([{name: "a", type: "String"}, {name: "b", type: "number"}]);
                 });
             });
 
@@ -855,7 +855,7 @@ define(function (require, exports, module) {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "a4", type: "number"}, {name: "b4", type: "number"}]);
+                    popUpAndVerifyParameterHint([{name: "a4", type: "number"}, {name: "b4", type: "number"}]);
                 });
             });
             
@@ -875,7 +875,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name:"amountDue", type: "Object"}]);
+                    popUpAndVerifyParameterHint([{name:"amountDue", type: "Object"}]);
                 });
             });
             
@@ -884,7 +884,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "arg", type: "String"}]);
+                    popUpAndVerifyParameterHint([{name: "arg", type: "String"}]);
                 });
             });
             
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    showAndVerifyFunctionHint([]);
+                    popUpAndVerifyParameterHint([]);
                 });
                 
             });
@@ -918,7 +918,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "f", type: "function():number"}]);
+                    popUpAndVerifyParameterHint([{name: "f", type: "function():number"}]);
                 });
             });
 
@@ -928,7 +928,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "f", type: "function(String s, number n):String)"}]);
+                    popUpAndVerifyParameterHint([{name: "f", type: "function(String s, number n):String)"}]);
                 });
             });
 
@@ -949,7 +949,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funArr.index1(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([]);
+                    popUpAndVerifyParameterHint([]);
                 });
             });
 
@@ -1088,7 +1088,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     testEditor.setCursorPos(func);
-                    showAndVerifyFunctionHint(null);
+                    popUpAndVerifyParameterHint(null);
                     testEditor.setCursorPos(param);
                     expectNoHints(JSCodeHints.jsHintProvider);
                     testEditor.setCursorPos(variable);
@@ -1141,7 +1141,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "amountDue", type: "number"}]);
+                    popUpAndVerifyParameterHint([{name: "amountDue", type: "number"}]);
                 });
             });
 
@@ -1174,7 +1174,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "a", type: "number"}]);
+                    popUpAndVerifyParameterHint([{name: "a", type: "number"}]);
                 });
             });
             
@@ -1183,7 +1183,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
+                    popUpAndVerifyParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
                 });
             });
 
@@ -1192,7 +1192,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    showAndVerifyFunctionHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
+                    popUpAndVerifyParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
                 });
             });
 

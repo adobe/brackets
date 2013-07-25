@@ -162,6 +162,8 @@ require(["MyModule"], function (myModule) {
 
 // Function hint testing
 function functionHintTesting() {
+    "use strict";
+    
     // simple function with primative arguments
     s.lastIndexOf(s);
 

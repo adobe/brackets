@@ -27,24 +27,24 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Commands            = brackets.getModule("command/Commands"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
-        Menus               = brackets.getModule("command/Menus"),
-        AppInit             = brackets.getModule("utils/AppInit"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        PerfUtils           = brackets.getModule("utils/PerfUtils"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        StringMatch         = brackets.getModule("utils/StringMatch"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        FunctionHintManager = require("FunctionHintManager"),
-        HintUtils           = require("HintUtils"),
-        ScopeManager        = require("ScopeManager"),
-        Session             = require("Session"),
-        Acorn               = require("thirdparty/acorn/acorn");
+    var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
+        EditorManager        = brackets.getModule("editor/EditorManager"),
+        DocumentManager      = brackets.getModule("document/DocumentManager"),
+        Commands             = brackets.getModule("command/Commands"),
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        Menus                = brackets.getModule("command/Menus"),
+        AppInit              = brackets.getModule("utils/AppInit"),
+        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils            = brackets.getModule("utils/PerfUtils"),
+        StringUtils          = brackets.getModule("utils/StringUtils"),
+        StringMatch          = brackets.getModule("utils/StringMatch"),
+        LanguageManager      = brackets.getModule("language/LanguageManager"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        ParameterHintManager = require("ParameterHintManager"),
+        HintUtils            = require("HintUtils"),
+        ScopeManager         = require("ScopeManager"),
+        Session              = require("Session"),
+        Acorn                = require("thirdparty/acorn/acorn");
 
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
@@ -524,17 +524,17 @@ define(function (require, exports, module) {
 
             // stop cursor tracking before setting the cursor to avoid bringing
             // down the current hint.
-            if (FunctionHintManager.isFunctionHintDisplayed()) {
-                FunctionHintManager.stopCursorTracking(session);
+            if (ParameterHintManager.isHintDisplayed()) {
+                ParameterHintManager.stopCursorTracking(session);
             }
 
             session.editor._codeMirror.setCursor(pos);
 
-            if (FunctionHintManager.isFunctionHintDisplayed()) {
-                FunctionHintManager.startCursorTracking(session);
+            if (ParameterHintManager.isHintDisplayed()) {
+                ParameterHintManager.startCursorTracking(session);
             }
 
-            FunctionHintManager.popUpFunctionHint(FunctionHintManager.PUSH_EXISTING_HINT, hint.type);
+            ParameterHintManager.popUpHint(ParameterHintManager.PUSH_EXISTING_HINT, hint.type);
         }
 
         // Return false to indicate that another hinting session is not needed
@@ -555,7 +555,7 @@ define(function (require, exports, module) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
                 previousEditor ? previousEditor.document : null);
-            FunctionHintManager.setSession(session);
+            ParameterHintManager.setSession(session);
             cachedHints = null;
         }
 
@@ -580,7 +580,7 @@ define(function (require, exports, module) {
                         ignoreChange = false;
                     });
 
-                FunctionHintManager.installFunctionHintListeners(editor);
+                ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
             }
@@ -788,7 +788,7 @@ define(function (require, exports, module) {
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
-        FunctionHintManager.addFunctionHintCommand();
+        ParameterHintManager.addCommands();
 
         // for unit testing
         exports.getSession = getSession;
