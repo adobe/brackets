@@ -187,12 +187,12 @@ define(function (require, exports, module) {
             type    = session.getType();
 
         return !cachedHints || !cachedCursor || !cachedType ||
-                cachedCursor.line !== cursor.line ||
-                type.property !== cachedType.property ||
-                type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType ||
-                (type.functionCallPos && cachedType.functionCallPos &&
-                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
+            cachedCursor.line !== cursor.line ||
+            type.property !== cachedType.property ||
+            type.context !== cachedType.context ||
+            type.showFunctionType !== cachedType.showFunctionType ||
+            (type.functionCallPos && cachedType.functionCallPos &&
+            type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
 
     /**
@@ -787,6 +787,8 @@ define(function (require, exports, module) {
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
+
+        FunctionHintManager.addFunctionHintCommand();
 
         // for unit testing
         exports.getSession = getSession;

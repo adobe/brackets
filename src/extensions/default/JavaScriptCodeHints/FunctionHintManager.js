@@ -64,6 +64,9 @@ define(function (require, exports, module) {
         POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
 
+    // keep jslint from complaining about handleCursorActivity being used before
+    // it was defined.
+    var handleCursorActivity;
 
     /**
      * Update the current session for use by the Function Hint Manager.
@@ -225,7 +228,7 @@ define(function (require, exports, module) {
             $functionHintContainer.hide();
             $functionHintContent.empty();
             functionHintState = {};
-            $(session.editor).off("cursorActivity", handleFunctionHintCursorActivity);
+            $(session.editor).off("cursorActivity", handleCursorActivity);
 
             if (!preserveFunctionHintStack) {
                 clearFunctionHintStack();
@@ -239,7 +242,13 @@ define(function (require, exports, module) {
      * @param {boolean=} pushExistingHint - if true, push the existing hint on the stack. Default is false, not
      * to push the hint.
      * @param {string=} hint - function hint string from tern.
-     * @param {{inFunctionCall: boolean, functionCallPos: {{line: number, ch: number}}=} functionInfo -
+     * @param {{inFunctionCall: boolean, functionCallPos:
+     * {{line: number, ch: number}}=} functionInfo -
+     * if the functionInfo is already known, it can be passed in to avoid
+     * figuring it out again.
+     * @return {jQuery.Promise} - The promise will not complete until the
+     *      hint has completed. Returns null, if the function hint is already
+     *      displayed or the there is no function hint at the cursor.
      *
      */
     function popUpFunctionHint(pushExistingHint, hint, functionInfo) {
@@ -247,7 +256,7 @@ define(function (require, exports, module) {
         functionInfo = functionInfo || session.getFunctionInfo();
         if (!functionInfo.inFunctionCall) {
             dismissFunctionHint();
-            return;
+            return null;
         }
 
         if (hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
@@ -261,7 +270,7 @@ define(function (require, exports, module) {
             dismissFunctionHint();
             preserveFunctionHintStack = false;
         } else if (isFunctionHintDisplayed()) {
-            return;
+            return null;
         }
 
         functionHintState.functionCallPos = functionInfo.functionCallPos;
@@ -287,15 +296,17 @@ define(function (require, exports, module) {
             functionHintState.visible = true;
             functionHintState.fnType = fnType;
 
-            $(session.editor).on("cursorActivity", handleFunctionHintCursorActivity);
+            $(session.editor).on("cursorActivity", handleCursorActivity);
         });
+
+        return request;
     }
 
     /**
      *  Show the parameter the cursor is on in bold when the cursor moves.
      *  Dismiss the pop up when the cursor moves off the function.
      */
-    function handleFunctionHintCursorActivity() {
+    handleCursorActivity = function () {
         var functionInfo = session.getFunctionInfo();
 
         if (functionInfo.inFunctionCall) {
@@ -324,7 +335,7 @@ define(function (require, exports, module) {
         }
 
         dismissFunctionHint();
-    }
+    };
 
     /**
      * Enable cursor tracking in the current session.
@@ -332,7 +343,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to stop cursor tracking on.
      */
     function startCursorTracking(session) {
-        $(session.editor).on("cursorActivity", handleFunctionHintCursorActivity);
+        $(session.editor).on("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -343,7 +354,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to stop cursor tracking on.
      */
     function stopCursorTracking(session) {
-        $(session.editor).off("cursorActivity", handleFunctionHintCursorActivity);
+        $(session.editor).off("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -374,27 +385,35 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Add the function hint command at start up.
+     */
+    function addFunctionHintCommand() {
+        /* Register the command handler */
+        CommandManager.register(Strings.CMD_SHOW_PARAMETER_HINT, SHOW_FUNCTION_HINT_CMD_ID, handleShowFunctionHint);
+
+        // Add the menu items
+        var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
+        if (menu) {
+            menu.addMenuItem(SHOW_FUNCTION_HINT_CMD_ID, KeyboardPrefs.showFunctionHint, Menus.AFTER, Commands.SHOW_CODE_HINTS);
+        }
+
+        // Close the function hint when commands are executed, except for the commands
+        // to show function hints for code hints.
+        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+            if (commandId !== SHOW_FUNCTION_HINT_CMD_ID &&
+                    commandId !== Commands.SHOW_CODE_HINTS) {
+                dismissFunctionHint();
+            }
+        });
+    }
+
     // Create the function hint container
     $functionHintContainer = $(functionHintContainerHTML).appendTo($("body"));
     $functionHintContent = $functionHintContainer.find(".function-hint-content");
 
-    /* Register all the command handlers */
-    CommandManager.register(Strings.CMD_SHOW_FUNCTION_HINT, SHOW_FUNCTION_HINT_CMD_ID, handleShowFunctionHint);
-
-    // Close the function hint when commands are executed, except for the commands
-    // to show function hints for code hints.
-    $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
-        if (commandId !== SHOW_FUNCTION_HINT_CMD_ID &&
-                commandId !== Commands.SHOW_CODE_HINTS) {
-            dismissFunctionHint();
-        }
-    });
-
-    // Add the menu items
-    var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
-    menu.addMenuItem(SHOW_FUNCTION_HINT_CMD_ID, KeyboardPrefs.showFunctionHint, Menus.AFTER, Commands.SHOW_CODE_HINTS);
-
     exports.PUSH_EXISTING_HINT              = PUSH_EXISTING_HINT;
+    exports.addFunctionHintCommand          = addFunctionHintCommand;
     exports.dismissFunctionHint             = dismissFunctionHint;
     exports.installFunctionHintListeners    = installFunctionHintListeners;
     exports.isFunctionHintDisplayed         = isFunctionHintDisplayed;
