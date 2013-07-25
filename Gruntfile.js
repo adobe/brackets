@@ -186,7 +186,7 @@ module.exports = function (grunt) {
                 sample = "/usr/lib/brackets";
             }
             
-            if (bracketsAppPathExists) {
+            if (!bracketsAppPathExists) {
                 grunt.log.error("Path does not exist: " + bracketsAppPath);
             }
             
