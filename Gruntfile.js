@@ -20,11 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-/*global module, require*/
+/*jslint vars:true*/
+/*global module, require, process*/
 module.exports = function (grunt) {
     'use strict';
 
-    var common = require("./tasks/lib/common")(grunt);
+    var common  = require("./tasks/lib/common")(grunt),
+        path    = require("path");
     
     // Project configuration.
     grunt.initConfig({
@@ -165,10 +167,32 @@ module.exports = function (grunt) {
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
     
     // task: hack
-    grunt.registerTask("hack", "Direct brackets-shell installation to point to brackets git repository for development", function (path) {
-        var done = this.async;
+    grunt.registerTask("hack", "Direct brackets-shell installation to point to brackets git repository for development", function (bracketsAppPath) {
+        var done = this.async,
+            platform = common.platform(),
+            sample,
+            bracketsAppPathExists = grunt.file.exists(bracketsAppPath);
         
+        if (!bracketsAppPath || !bracketsAppPathExists) {
+            if (platform === "mac") {
+                sample = "/Applications/Brackets Sprint 28.app";
+            } else if (platform === "win") {
+                sample = "C:\\Program Files (x86)\\Brackets Sprint 28";
+            } else {
+                sample = "/usr/lib/brackets";
+            }
+            
+            if (bracketsAppPathExists) {
+                grunt.log.error("Path does not exist: " + bracketsAppPath);
+            }
+            
+            grunt.log.error("Usage: grunt hack:" + sample);
+            done(false);
+            
+            return;
+        }
         
+        common.link(process.cwd(), bracketsAppPath).then(done, grunt.log.error);
     });
 
     // Default task.
