@@ -645,7 +645,7 @@ define(function (require, exports, module) {
      * the "currentIndex" property index of the hint the cursor is on, may be
      * -1 if the cursor is on the function identifier.
      */
-    Session.prototype.getFunctionHint = function (functionCallPos) {
+    Session.prototype.getParameterHint = function (functionCallPos) {
         var fnHint = this.fnType,
             cursor = this.getCursor(),
             token = this.getToken(functionCallPos),
