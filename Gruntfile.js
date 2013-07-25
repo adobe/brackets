@@ -171,7 +171,8 @@ module.exports = function (grunt) {
         var done = this.async,
             platform = common.platform(),
             sample,
-            bracketsAppPathExists = grunt.file.exists(bracketsAppPath);
+            bracketsAppPathExists = grunt.file.exists(bracketsAppPath),
+            destPath;
         
         if (!bracketsAppPath || !bracketsAppPathExists) {
             if (platform === "mac") {
@@ -192,7 +193,16 @@ module.exports = function (grunt) {
             return;
         }
         
-        common.link(process.cwd(), bracketsAppPath).then(done, grunt.log.error);
+        if (platform === "mac") {
+            destPath = path.join(bracketsAppPath, "Contents", "dev");
+        } else {
+            destPath = path.join(bracketsAppPath, "dev");
+        }
+        
+        common.link(process.cwd(), destPath).then(done, function (err) {
+            grunt.log.error(err);
+            done(false);
+        });
     });
 
     // Default task.
