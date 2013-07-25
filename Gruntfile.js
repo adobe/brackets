@@ -26,7 +26,8 @@ module.exports = function (grunt) {
     'use strict';
 
     var common  = require("./tasks/lib/common")(grunt),
-        path    = require("path");
+        path    = require("path"),
+        q       = require("q");
     
     // Project configuration.
     grunt.initConfig({
@@ -207,15 +208,21 @@ module.exports = function (grunt) {
             destPath = _validateInstallPath(this.name, bracketsAppPath);
         
         if (destPath) {
-            // remove old symlink if it exists
+            var promise,
+                errBack = function (err) {
+                    grunt.log.error(err);
+                    done(false);
+                };
+            
             if (grunt.file.exists(destPath)) {
-                grunt.file["delete"](destPath);
+                // remove old symlink if it exists
+                promise = common.unlink(destPath);
+            } else {
+                // standalone promise
+                promise = q();
             }
             
-            common.link(process.cwd(), destPath).then(done, function (err) {
-                grunt.log.error(err);
-                done(false);
-            });
+            promise.then(common.link(process.cwd(), destPath).then(done, errBack), errBack);
         } else {
             done(false);
         }
