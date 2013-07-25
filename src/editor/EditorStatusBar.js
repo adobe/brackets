@@ -87,7 +87,26 @@ define(function (require, exports, module) {
         // compute columns, account for tab size
         var cursor = editor.getCursorPos(true);
         
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
+        var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
+        if (editor.hasSelection()) {
+            // Show info about selection size when one exists
+            var sel = editor.getSelection(),
+                selStr;
+            
+            if (sel.start.line !== sel.end.line) {
+                var lines = sel.end.line - sel.start.line + 1;
+                if (sel.end.ch === 0) {
+                    lines--;  // end line is exclusive if ch is 0, inclusive otherwise
+                }
+                selStr = StringUtils.format(Strings.STATUSBAR_LINE_SELECTION_LEN, lines);
+            } else {
+                var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
+                selStr = StringUtils.format(Strings.STATUSBAR_CH_SELECTION_LEN, cols);
+            }
+            $cursorInfo.text(cursorStr + selStr);
+        } else {
+            $cursorInfo.text(cursorStr);
+        }
     }
     
     function _changeIndentWidth(value) {

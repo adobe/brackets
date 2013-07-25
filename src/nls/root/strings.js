@@ -156,6 +156,8 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_CH_SELECTION_LEN"            : " \u2014 Selected {0} column(s)",
+    "STATUSBAR_LINE_SELECTION_LEN"          : " \u2014 Selected {0} line(s)",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
