@@ -22,17 +22,14 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent, document */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
     var SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor            = brackets.getModule("editor/Editor").Editor,
-        DocumentManager   = brackets.getModule("document/DocumentManager"),
-        Strings           = brackets.getModule("strings"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
         testContentCSS    = require("text!unittest-files/unittests.css"),
         testContentHTML   = require("text!unittest-files/unittests.html"),
@@ -354,7 +351,7 @@ define(function (require, exports, module) {
             function makeUI(initialColor, callback, swatches, hide) {
                 colorEditor = new ColorEditor($(document.body),
                                               initialColor,
-                                              callback || function () { },
+                                              callback || function () { return undefined; },
                                               swatches || defaultSwatches);
                 if (hide !== false) {
                     colorEditor.getRootElement().css("display", "none");
@@ -738,9 +735,8 @@ define(function (require, exports, module) {
                                 result = Number(result.substr(0, result.length - 1));
                             }
                             return result;
-                        } else {
-                            return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                         }
+                        return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                     }
                     
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
@@ -768,7 +764,7 @@ define(function (require, exports, module) {
                     // The color picker needs to be displayed for this test; otherwise the
                     // selection won't be properly set, because you can only set the selection
                     // when the text field has focus.
-                    makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { }, defaultSwatches, false);
+                    makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { return undefined; }, defaultSwatches, false);
                     
                     $item = colorEditor[opts.item];
                     $item.focus();

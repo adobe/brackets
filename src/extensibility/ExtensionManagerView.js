@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
@@ -33,8 +33,6 @@ define(function (require, exports, module) {
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        CommandManager            = require("command/CommandManager"),
-        Commands                  = require("command/Commands"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
     
     /**
@@ -43,6 +41,7 @@ define(function (require, exports, module) {
      * with initialize(). When the view is closed, dispose() must be called.
      */
     function ExtensionManagerView() {
+        return undefined;
     }
     
     /**
@@ -238,14 +237,12 @@ define(function (require, exports, module) {
             this._$infoMessage.css("display", "none");
             this._$table.css("display", "none");
             
-            return true;
         } else {
             this._$emptyMessage.css("display", "none");
             this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
             this._$table.css("display", "");
-            
-            return false;
         }
+        return !!this.model.message;
     };
     
     /**
@@ -254,8 +251,7 @@ define(function (require, exports, module) {
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
-        var self = this,
-            $item;
+        var self = this;
         
         this._$table.empty();
         this._updateMessage();

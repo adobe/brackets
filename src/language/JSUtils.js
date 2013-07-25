@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, CodeMirror */
 
 /**
@@ -65,13 +66,13 @@ define(function (require, exports, module) {
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
     function _findAllFunctionsInText(text) {
-        var results = {},
-            functionName,
-            match;
-        
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
         
-        while ((match = _functionRegExp.exec(text)) !== null) {
+        var match   = _functionRegExp.exec(text),
+            results = {},
+            functionName;
+        
+        while (match !== null) {
             functionName = (match[2] || match[5]).trim();
             
             if (!Array.isArray(results[functionName])) {
@@ -79,6 +80,7 @@ define(function (require, exports, module) {
             }
             
             results[functionName].push({offsetStart: match.index});
+            match = _functionRegExp.exec(text);
         }
         
         PerfUtils.addMeasurement(PerfUtils.JSUTILS_REGEXP);
@@ -372,9 +374,8 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-        var result          = new $.Deferred(),
-            jsFiles         = [],
-            docEntries      = [];
+        var result  = new $.Deferred(),
+            jsFiles = [];
         
         if (!keepAllFiles) {
             // Filter fileInfos for .js files

@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror */
 
 define(function (require, exports, module) {
@@ -299,10 +299,9 @@ define(function (require, exports, module) {
      */
     function getTagInfo(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
-        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        // the pos the caller passed in so we use extend to make a safe copy of it.
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            tempCtx = null,
             offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;
@@ -336,7 +335,8 @@ define(function (require, exports, module) {
                 } else if (ctx.token.type === "attribute") {
                     // Check to see if the user is going to add a new attr before an existing one
                     return _getTagInfoStartingFromAttrName(ctx, false);
-                } else if (ctx.token.string === "=") {
+                }
+                if (ctx.token.string === "=") {
                     // We're between a whitespace and  "=", so return an empty tag info.
                     return createTagInfo();
                 }
@@ -361,7 +361,8 @@ define(function (require, exports, module) {
 
                 if (ctx.token.type === "comment") {
                     return createTagInfo();
-                } else if (ctx.token.type !== "tag" && ctx.token.string !== "=") {
+                }
+                if (ctx.token.type !== "tag" && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);

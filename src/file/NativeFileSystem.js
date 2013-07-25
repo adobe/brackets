@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global $, define, brackets, InvalidateStateError, window */
 
 /**
@@ -149,7 +150,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var files = brackets.fs.showOpenDialog(
+            brackets.fs.showOpenDialog(
                 allowMultipleSelection,
                 chooseDirectories,
                 title,
@@ -187,7 +188,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var newFile = brackets.fs.showSaveDialog(
+            brackets.fs.showSaveDialog(
                 title,
                 initialPath,
                 proposedNewFilename,
@@ -373,6 +374,7 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-moveTo
+        return undefined;
     };
     
     /**
@@ -385,6 +387,7 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-copyTo
+        return undefined;
     };
     
     /**
@@ -398,6 +401,7 @@ define(function (require, exports, module) {
         
         // Check updated definition at 
         // http://www.w3.org/TR/2012/WD-file-system-api-20120417/#widl-Entry-toURL-DOMString
+        return undefined;
     };
     
     /**
@@ -431,6 +435,7 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry.prototype.getParent = function (successCallback, errorCallback) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+        return undefined;
     };
     
     /**
@@ -596,6 +601,7 @@ define(function (require, exports, module) {
         FileWriter.prototype.seek = function (offset) {
             // TODO (issue #241)
             // http://www.w3.org/TR/2011/WD-file-writer-api-20110419/#widl-FileWriter-seek
+            return undefined;
         };
 
         /**
@@ -606,6 +612,7 @@ define(function (require, exports, module) {
         FileWriter.prototype.truncate = function (size) {
             // TODO (issue #241)
             // http://www.w3.org/TR/2011/WD-file-writer-api-20110419/#widl-FileWriter-truncate
+            return undefined;
         };
 
         var fileWriter = new FileWriter();
@@ -904,6 +911,7 @@ define(function (require, exports, module) {
     NativeFileSystem.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-removeRecursively
+        return undefined;
     };
 
     /**
@@ -1024,7 +1032,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     NativeFileSystem.DirectoryReader = function () {
-
+        return undefined;
     };
 
     /**
@@ -1173,6 +1181,7 @@ define(function (require, exports, module) {
     NativeFileSystem.FileReader.prototype.readAsArrayBuffer = function (blob) {
         // TODO (issue #241): implement
         // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsArrayBuffer
+        return undefined;
     };
     
     /**
@@ -1182,6 +1191,7 @@ define(function (require, exports, module) {
     NativeFileSystem.FileReader.prototype.readAsBinaryString = function (blob) {
         // TODO (issue #241): implement
         // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsBinaryStringAsync
+        return undefined;
     };
     
     /**
@@ -1191,6 +1201,7 @@ define(function (require, exports, module) {
     NativeFileSystem.FileReader.prototype.readAsDataURL = function (blob) {
         // TODO (issue #241): implement
         // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsDataURL
+        return undefined;
     };
     
     /**
@@ -1199,6 +1210,7 @@ define(function (require, exports, module) {
     NativeFileSystem.FileReader.prototype.abort = function () {
         // TODO (issue #241): implement
         // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-abort
+        return undefined;
     };
     
     /**
@@ -1303,6 +1315,7 @@ define(function (require, exports, module) {
     NativeFileSystem.Blob.prototype.slice = function (start, end, contentType) {
         // TODO (issue #241): implement
         // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-slice
+        return undefined;
     };
     
     /**

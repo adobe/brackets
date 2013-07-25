@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, forin: true */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, browser: true, forin: true */
 /*global $, define, brackets */
 
 /** 
@@ -37,8 +38,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        Global = require("utils/Global"),
-        BuildInfoUtils = require("utils/BuildInfoUtils");
+        BuildInfoUtils  = require("utils/BuildInfoUtils");
 
     var activeReporter;
     
@@ -125,7 +125,8 @@ define(function (require, exports, module) {
             b = b.toLowerCase();
             if (a < b) {
                 return -1;
-            } else if (a > b) {
+            }
+            if (a > b) {
                 return 1;
             }
             return 0;
@@ -310,14 +311,13 @@ define(function (require, exports, module) {
     UnitTestReporter.prototype._getCategory = function (spec) {
         if (spec.category) {
             return spec.category;
-        } else {
-            var suite = spec.suite;
-            while (suite) {
-                if (suite.category) {
-                    return suite.category;
-                }
-                suite = suite.parentSuite;
+        }
+        var suite = spec.suite;
+        while (suite) {
+            if (suite.category) {
+                return suite.category;
             }
+            suite = suite.parentSuite;
         }
         return null;
     };

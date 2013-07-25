@@ -22,12 +22,12 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define: false, require: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, jasmine: false */
 /*unittests: StringMatch */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var StringMatch = require("utils/StringMatch");
     
@@ -754,12 +754,14 @@ define(function (require, exports, module) {
                     // alphabetical letters
                     if (aName[0] === "_" && bName[0] !== "_") {
                         return 1;
-                    } else if (bName[0] === "_" && aName[0] !== "_") {
+                    }
+                    if (bName[0] === "_" && aName[0] !== "_") {
                         return -1;
                     }
                     if (aName < bName) {
                         return -1;
-                    } else if (aName > bName) {
+                    }
+                    if (aName > bName) {
                         return 1;
                     }
                     return 0;

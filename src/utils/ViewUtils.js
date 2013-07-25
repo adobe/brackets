@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window */
 
 define(function (require, exports, module) {
@@ -67,7 +67,6 @@ define(function (require, exports, module) {
             var clientHeight        = scrollElement.clientHeight,
                 outerHeight         = $displayElement.outerHeight(),
                 scrollHeight        = scrollElement.scrollHeight,
-                bottomOffset        = outerHeight - clientHeight,
                 bottomShadowOffset  = SCROLL_SHADOW_HEIGHT; // outside of shadow div viewport
             
             if (scrollHeight > clientHeight) {
@@ -116,10 +115,9 @@ define(function (require, exports, module) {
         
         // update shadows when the scrolling element is scrolled
         var $displayElement = $(displayElement),
-            $scrollElement = $(scrollElement);
-        
-        var $shadowTop = getOrCreateShadow($displayElement, "top", isPositionFixed);
-        var $shadowBottom = (showBottom) ? getOrCreateShadow($displayElement, "bottom", isPositionFixed) : null;
+            $scrollElement  = $(scrollElement),
+            $shadowTop      = getOrCreateShadow($displayElement, "top", isPositionFixed),
+            $shadowBottom   = showBottom ? getOrCreateShadow($displayElement, "bottom", isPositionFixed) : null;
         
         var doUpdate = function () {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
@@ -207,12 +205,11 @@ define(function (require, exports, module) {
         var updateSelectionTriangle = function () {
             var selectionMarkerHeight = $selectionMarker.height(),
                 selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
-                scrollerOffset = $scrollerElement.offset(),
-                triangleHeight = $selectionTriangle.outerHeight(),
-                scrollerTop = scrollerOffset.top,
-                scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
-                scrollerLeft = scrollerOffset.left,
-                triangleTop = selectionMarkerOffset.top;
+                scrollerOffset        = $scrollerElement.offset(),
+                triangleHeight        = $selectionTriangle.outerHeight(),
+                scrollerTop           = scrollerOffset.top,
+                scrollerBottom        = scrollerTop + $scrollerElement.outerHeight(),
+                triangleTop           = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
@@ -310,9 +307,7 @@ define(function (require, exports, module) {
      * @param {?boolean} scrollHorizontal - whether to also scroll horizonally
      */
     function scrollElementIntoView($view, $element, scrollHorizontal) {
-        var viewOffset = $view.offset(),
-            viewScroller = $view.get(0),
-            element = $element.get(0),
+        var viewOffset    = $view.offset(),
             elementOffset = $element.offset();
 
         // scroll minimum amount

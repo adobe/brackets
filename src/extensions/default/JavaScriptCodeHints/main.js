@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
@@ -29,14 +30,10 @@ define(function (require, exports, module) {
 
     var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
         Commands        = brackets.getModule("command/Commands"),
         CommandManager  = brackets.getModule("command/CommandManager"),
-        Menus           = brackets.getModule("command/Menus"),
-        Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        PerfUtils       = brackets.getModule("utils/PerfUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
@@ -174,6 +171,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     function JSHints() {
+        return undefined;
     }
 
     /**
@@ -263,9 +261,8 @@ define(function (require, exports, module) {
         // same token and don't close the hints.
         if (token.string.length >= lastToken.string.length) {
             return token.string.indexOf(lastToken.string) !== 0;
-        } else {
-            return lastToken.string.indexOf(token.string) !== 0;
         }
+        return lastToken.string.indexOf(token.string) !== 0;
     };
 
     /**
@@ -350,15 +347,17 @@ define(function (require, exports, module) {
             });
 
             return $deferredHints;
-        } else if (hintsArePending($deferredHints)) {
+        }
+        
+        if (hintsArePending($deferredHints)) {
             setCachedHintContext(hintResults.hints, cursor, type, token);
             var hintResponse    = getHintResponse(cachedHints, query, type);
             $deferredHints.resolveWith(null, [hintResponse]);
             return null;
-        } else {
-            setCachedHintContext(hintResults.hints, cursor, type, token);
-            return getHintResponse(cachedHints, query, type);
         }
+        
+        setCachedHintContext(hintResults.hints, cursor, type, token);
+        return getHintResponse(cachedHints, query, type);
     }
 
     /**
@@ -384,9 +383,6 @@ define(function (require, exports, module) {
                 if (session.isFunctionName()) {
                     return false;
                 }
-                var offset = session.getOffset(),
-                    type    = session.getType(),
-                    query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
                     resetCachedHintContext();
@@ -463,11 +459,9 @@ define(function (require, exports, module) {
         var hint        = $hintObj.data("token"),
             completion  = hint.value,
             cursor      = session.getCursor(),
-            token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: cursor.ch},
-            delimiter;
+            end         = {line: cursor.line, ch: cursor.ch};
 
         if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
@@ -663,7 +657,6 @@ define(function (require, exports, module) {
                     var cursor = {line: end.line, ch: end.ch},
                         prev = session._getPreviousToken(cursor),
                         next,
-                        token,
                         offset;
     
                     // see if the selection is preceded by a '.', indicating we're in a member expr

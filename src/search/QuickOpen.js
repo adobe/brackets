@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, window, setTimeout */
 /*unittests: QuickOpen*/
 
@@ -66,13 +67,6 @@ define(function (require, exports, module) {
     
     /** @type $.Promise */
     var fileListPromise;
-
-    /**
-     * Remembers the current document that was displayed when showDialog() was called.
-     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
-     * @type {?string} full path
-     */
-    var origDocPath;
 
     /**
      * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
@@ -439,8 +433,7 @@ define(function (require, exports, module) {
 
         var i;
         for (i = 0; i < plugins.length; i++) {
-            var plugin = plugins[i];
-            plugin.done();
+            plugins[i].done();
         }
 
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
@@ -552,15 +545,15 @@ define(function (require, exports, module) {
         if (curDoc) {
             var languageId = curDoc.getLanguage().getId();
 
-            var i;
+            var i, plugin, languageIdMatch, matcher;
             for (i = 0; i < plugins.length; i++) {
-                var plugin = plugins[i];
-                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
+                plugin = plugins[i];
+                languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
                 if (languageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
-                    var matcher = this._matchers[currentPlugin.name];
+                    matcher = this._matchers[currentPlugin.name];
                     if (!matcher) {
                         matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
                         this._matchers[currentPlugin.name] = matcher;
@@ -636,9 +629,8 @@ define(function (require, exports, module) {
             if (includesLastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf('/');
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
-            } else {
-                return "";
             }
+            return "";
         }
         var displayName = highlightMatch(item, null, fileNameFilter);
         var displayPath = highlightMatch(item, "quicksearch-pathmatch");
@@ -752,7 +744,6 @@ define(function (require, exports, module) {
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
-        origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
             origSelection = EditorManager.getCurrentFullEditor().getSelection();
             origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();

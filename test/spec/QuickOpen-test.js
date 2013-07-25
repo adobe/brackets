@@ -21,12 +21,13 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Commands              = require("command/Commands"),
         KeyEvent              = require("utils/KeyEvent"),
@@ -72,9 +73,6 @@ define(function (require, exports, module) {
         function expectSearchBarOpen() {
             expect(getSearchBar()[0]).toBeDefined();
         }
-        function expectSearchBarClosed() {
-            expect(getSearchBar()[0]).not.toBeDefined();
-        }
         
         function enterSearchText(str, timeoutLength) {
             timeoutLength = timeoutLength || 10;
@@ -98,8 +96,7 @@ define(function (require, exports, module) {
         // This test is currently turned off due to failures on Windows 7
         // See https://github.com/adobe/brackets/issues/2696
         it("can open a file and jump to a line, centering that line on the screen", function () {
-            var err = false,
-                editor,
+            var editor,
                 $scroller;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);

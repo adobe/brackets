@@ -21,16 +21,16 @@
  * 
  */
 
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, brackets, CodeMirror, $, Worker, setTimeout */
+
 /*
  * Throughout this file, the term "outer scope" is used to refer to the outer-
  * most/global/root Scope objects for particular file. The term "inner scope"
  * is used to refer to a Scope object that is reachable via the child relation
  * from an outer scope.
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror, $, Worker, setTimeout */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -183,8 +183,6 @@ define(function (require, exports, module) {
      * @param {!function(string)=} errorCallback - Callback for errors (optional).
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var files = [];
-
         NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
             var reader = dirEntry.createReader();
 
@@ -509,12 +507,13 @@ define(function (require, exports, module) {
             p,
             min,
             indent,
-            line;
+            line,
+            fn;
 
         // expand range backwards
         for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
             line = session.getLine(p);
-            var fn = line.search(/\bfunction\b/);
+            fn = line.search(/\bfunction\b/);
             
             if (fn >= 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
@@ -1107,8 +1106,6 @@ define(function (require, exports, module) {
             var path        = document.file.fullPath,
                 split       = HintUtils.splitPath(path),
                 dir         = split.dir,
-                files       = [],
-                file        = split.file,
                 pr;
     
             var addFilesDeferred = $.Deferred();
@@ -1174,7 +1171,7 @@ define(function (require, exports, module) {
                 }, function () {
                     addFilesDeferred.resolveWith(null);
                 });
-            }).fail(function () {});
+            });
         }
 
         /**

@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, WebSocket, Mustache */
 
 define(function (require, exports, module) {
@@ -30,14 +30,11 @@ define(function (require, exports, module) {
     
     var Commands               = brackets.getModule("command/Commands"),
         CommandManager         = brackets.getModule("command/CommandManager"),
-        KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
         Menus                  = brackets.getModule("command/Menus"),
-        Editor                 = brackets.getModule("editor/Editor").Editor,
         FileUtils              = brackets.getModule("file/FileUtils"),
         NativeFileSystem       = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
-        NativeApp              = brackets.getModule("utils/NativeApp"),
         CollectionUtils        = brackets.getModule("utils/CollectionUtils"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
@@ -111,9 +108,8 @@ define(function (require, exports, module) {
                 }
                 avg = Math.round(sum / entry.length);
                 return String(min) + "/" + String(avg) + "/" + String(max) + "/" + String(e);
-            } else {
-                return entry;
             }
+            return entry;
         };
         
         var perfData = PerfUtils.getData();
@@ -191,7 +187,8 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialogUsingTemplate(template).done(function () {
                     if (locale === undefined) {
                         return;
-                    } else if (locale !== curLocale) {
+                    }
+                    if (locale !== curLocale) {
                         brackets.setLocale(locale);
                         CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     }
@@ -222,7 +219,9 @@ define(function (require, exports, module) {
                 // enable the menu item
                 CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             },
-            function (error) {} /* menu already disabled, ignore errors */
+            function (error) { /* menu already disabled, ignore errors */
+                return undefined;
+            }
         );
     }
 	

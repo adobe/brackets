@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, window, $, brackets, semver */
 /*unittests: ExtensionManager*/
 
@@ -331,7 +332,7 @@ define(function (require, exports, module) {
         Object.keys(_idsToUpdate).forEach(function (id) {
             var filename = _idsToUpdate[id].localPath;
             if (filename) {
-                brackets.fs.unlink(filename, function () { });
+                brackets.fs.unlink(filename);
             }
         });
     }
@@ -397,8 +398,7 @@ define(function (require, exports, module) {
             return;
         }
         if (installationResult.localPath) {
-            brackets.fs.unlink(installationResult.localPath, function () {
-            });
+            brackets.fs.unlink(installationResult.localPath);
         }
         delete _idsToUpdate[id];
         $(exports).triggerHandler("statusChange", [id]);

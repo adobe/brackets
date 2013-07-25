@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window */
 
 /**
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
         // Switch menus when the mouse enters an adjacent menu
         // Only open the menu if another one has already been opened
         // by clicking
-        $(window.document).on("mouseenter", "#titlebar .dropdown", function (e) {
+        $(window.document).on("mouseenter", "#titlebar .dropdown", function () {
             var open = $(this).siblings(".open");
             if (open.length > 0) {
                 open.removeClass("open");

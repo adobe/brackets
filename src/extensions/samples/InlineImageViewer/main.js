@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
@@ -65,20 +65,19 @@ define(function (require, exports, module) {
             }
             
             return string;
-        } else {
+        }
+        
+        // Check for url(...);
+        var line = hostEditor._codeMirror.getLine(pos.line);
+        var match = /url\s*\(([^)]*)\)/.exec(line);
+        
+        if (match && match[1]) {
+            // URLs are relative to the doc
+            var docPath = hostEditor.document.file.fullPath;
             
-            // Check for url(...);
-            var line = hostEditor._codeMirror.getLine(pos.line);
-            var match = /url\s*\(([^)]*)\)/.exec(line);
+            docPath = docPath.substr(0, docPath.lastIndexOf("/"));
             
-            if (match && match[1]) {
-                // URLs are relative to the doc
-                var docPath = hostEditor.document.file.fullPath;
-                
-                docPath = docPath.substr(0, docPath.lastIndexOf("/"));
-                
-                return docPath + "/" + match[1];
-            }
+            return docPath + "/" + match[1];
         }
         
         return "";

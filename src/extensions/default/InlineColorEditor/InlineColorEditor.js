@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, window */
 
 define(function (require, exports, module) {
@@ -131,9 +132,8 @@ define(function (require, exports, module) {
         if (end.ch === undefined) {
             // We were unable to resync the end bookmark.
             return null;
-        } else {
-            return {start: start, end: end};
         }
+        return {start: start, end: end};
     };
         
     /**

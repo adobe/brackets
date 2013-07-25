@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn, jasmine */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             });
             
             it("should not start a new scan if another scan is requested while not dirty", function () {
-                var firstCB, secondCB, firstFileInfoResult, secondFileInfoResult;
+                var firstCB, firstFileInfoResult, secondFileInfoResult;
                 curProjectRoot = makeFakeProjectDirectory("fakeProject1", function (cb) {
                     firstCB = cb;
                 });

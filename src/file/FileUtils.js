@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, FileError, brackets, unescape, window */
 
 /**
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         fileEntry.createWriter(function (fileWriter) {
-            fileWriter.onwriteend = function (e) {
+            fileWriter.onwriteend = function () {
                 result.resolve();
             };
             fileWriter.onerror = function (err) {
@@ -140,9 +140,8 @@ define(function (require, exports, module) {
         
         if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
             return null;
-        } else {
-            return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
         }
+        return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
     }
 
     /**
@@ -233,9 +232,8 @@ define(function (require, exports, module) {
     function canonicalizeFolderPath(path) {
         if (path.length > 0 && path[path.length - 1] === "/") {
             return path.slice(0, -1);
-        } else {
-            return path;
         }
+        return path;
     }
 
     /**

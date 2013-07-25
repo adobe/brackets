@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets */
 
 /*
@@ -34,8 +34,6 @@
  * a new file within brackets.
  *
  */
-
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -300,12 +298,12 @@ define(function (require, exports, module) {
     }
     
     // debug 
-    function _logFileList(list) {
+    /*function _logFileList(list) {
         list.forEach(function (fileInfo) {
             console.log(fileInfo.name);
         });
         console.log("length: " + list.length);
-    }
+    }*/
 
     /**
      * Used by syncFileIndex function to prevent reentrancy
@@ -343,10 +341,10 @@ define(function (require, exports, module) {
                     //_logFileList(_indexList["css"].fileInfos);
                 });
             return _scanDeferred.promise();
-        } else {
-            // If we're in the middle of a scan, return its promise, otherwise resolve immediately.
-            return _scanDeferred ? _scanDeferred.promise() : new $.Deferred().resolve().promise();
         }
+        
+        // If we're in the middle of a scan, return its promise, otherwise resolve immediately.
+        return _scanDeferred ? _scanDeferred.promise() : new $.Deferred().resolve().promise();
     }
 
     /**
@@ -461,6 +459,4 @@ define(function (require, exports, module) {
     exports.markDirty = markDirty;
     exports.getFileInfoList = getFileInfoList;
     exports.getFilenameMatches = getFilenameMatches;
-
-
 });

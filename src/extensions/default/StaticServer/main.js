@@ -22,15 +22,13 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
-maxerr: 50, browser: true */
-/*global $, define, brackets */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global $, define, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit              = brackets.getModule("utils/AppInit"),
-        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+    var ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
         NodeConnection       = brackets.getModule("utils/NodeConnection"),
@@ -76,7 +74,9 @@ define(function (require, exports, module) {
      *     Listeners to this event should be installed before any HTTP
      *     requests are sent to the server.
      */
-    function StaticServerProvider() {}
+    function StaticServerProvider() {
+        return undefined;
+    }
 
     /**
      * @private
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
         // _nodeConnectionDeferred.done() to access it.
-        var connectionTimeout = setTimeout(function () {
+        var connectionTimeout = window.setTimeout(function () {
             console.error("[StaticServer] Timed out while trying to connect to node");
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                         $staticServerProvider.triggerHandler("request", [requestData]);
                     });
 
-                    clearTimeout(connectionTimeout);
+                    window.clearTimeout(connectionTimeout);
 
                     // Register as a Live Development server provider
                     LiveDevServerManager.registerProvider(_staticServerProvider, 5);

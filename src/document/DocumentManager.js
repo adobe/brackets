@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /**
@@ -96,7 +96,6 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
-        Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
         NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -193,7 +192,7 @@ define(function (require, exports, module) {
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
         
-        return CollectionUtils.indexOf(list, function (file, i) {
+        return CollectionUtils.indexOf(list, function (file) {
             return file.fullPath === fullPath;
         });
     }
@@ -608,50 +607,52 @@ define(function (require, exports, module) {
         if (doc) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
-        } else if (pendingPromise) {
+        }
+        
+        if (pendingPromise) {
             // wait for the result of a previous request
             return pendingPromise;
-        } else {
-            var result = new $.Deferred(),
-                promise = result.promise();
-
-            // create a new document
-            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-
-            result.done(function () {
-                PerfUtils.addMeasurement(perfTimerName);
-            }).fail(function () {
-                PerfUtils.finalizeMeasurement(perfTimerName);
-            });
-            
-            var fileEntry;
-            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                result.reject();
-            } else {
-                // log this document's Promise as pending
-                getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
-
-                fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                FileUtils.readAsText(fileEntry)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-            }
-            
-            // This is a good point to clean up any old dangling Documents
-            result.done(_gcDocuments);
-            
-            return promise;
         }
+        
+        var result = new $.Deferred(),
+            promise = result.promise();
+
+        // create a new document
+        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+
+        result.done(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement(perfTimerName);
+        });
+        
+        var fileEntry;
+        if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+            console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
+            result.reject();
+        } else {
+            // log this document's Promise as pending
+            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+
+            fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            FileUtils.readAsText(fileEntry)
+                .always(function () {
+                    // document is no longer pending
+                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                })
+                .done(function (rawText, readTimestamp) {
+                    doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
+        }
+        
+        // This is a good point to clean up any old dangling Documents
+        result.done(_gcDocuments);
+        
+        return promise;
     }
     
     /**
@@ -740,7 +741,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        workingSet.forEach(function (file, index) {
+        workingSet.forEach(function (file) {
             // Do not persist untitled document paths
             if (!(file instanceof NativeFileSystem.InaccessibleFileEntry)) {
                 // flag the currently active editor
@@ -782,7 +783,7 @@ define(function (require, exports, module) {
 
         // Add all files to the working set without verifying that
         // they still exist on disk (for faster project switching)
-        files.forEach(function (value, index) {
+        files.forEach(function (value) {
             filesToOpen.push(new NativeFileSystem.FileEntry(value.file));
             if (value.active) {
                 activeFile = value.file;
@@ -817,7 +818,7 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
+        var i, path, doc, newKey;
         
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
@@ -825,10 +826,10 @@ define(function (require, exports, module) {
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
                 if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                    var doc = _openDocuments[path];
+                    doc = _openDocuments[path];
                     
                     // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
+                    newKey = path.replace(oldName, newName);
                     _openDocuments[newKey] = doc;
                     
                     keysToDelete.push(path);
@@ -879,7 +880,7 @@ define(function (require, exports, module) {
      * Update document
      */
     function _handleLanguageAdded(event, language) {
-        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+        CollectionUtils.forEach(_openDocuments, function (doc) {
             // No need to look at the new language if this document has one already
             if (doc.getLanguage().isFallbackLanguage()) {
                 doc._updateLanguage();
@@ -892,7 +893,7 @@ define(function (require, exports, module) {
      * Update document
      */
     function _handleLanguageModified(event, language) {
-        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+        CollectionUtils.forEach(_openDocuments, function (doc) {
             var docLanguage = doc.getLanguage();
             // A modified language can affect a document
             // - if its language was modified

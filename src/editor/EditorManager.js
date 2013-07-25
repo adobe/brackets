@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window */
 
 /**
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
      */
     var _jumpToDefProviders = [];
     
-	/**
+    /**
      * @private
      * @param {?Editor} current
      */
@@ -159,13 +159,14 @@ define(function (require, exports, module) {
         PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
         
         // Run through inline-editor providers until one responds
-        var pos = editor.getCursorPos(),
+        var pos    = editor.getCursorPos(),
+            result = new $.Deferred(),
             inlinePromise,
-            i,
-            result = new $.Deferred();
+            provider,
+            i;
         
         for (i = 0; i < providers.length && !inlinePromise; i++) {
-            var provider = providers[i].provider;
+            provider = providers[i].provider;
             inlinePromise = provider(editor, pos);
         }
         
@@ -561,8 +562,7 @@ define(function (require, exports, module) {
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
-        var doc = DocumentManager.getCurrentDocument(),
-            container = _editorHolder.get(0);
+        var doc = DocumentManager.getCurrentDocument();
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
         
@@ -738,10 +738,11 @@ define(function (require, exports, module) {
      *  which is resolved by adjusting the editor selection to the requested definition.
      */
     function _doJumpToDef() {
-        var providers = _jumpToDefProviders;
-        var promise,
-            i,
-            result = new $.Deferred();
+        var providers = _jumpToDefProviders,
+            result    = new $.Deferred(),
+            provider,
+            promise,
+            i;
         
         if (_currentEditor) {
             // main editor has focus
@@ -750,8 +751,8 @@ define(function (require, exports, module) {
             
             // Run through providers until one responds
             for (i = 0; i < providers.length && !promise; i++) {
-                var provider = providers[i];
-                promise = provider();
+                provider = providers[i];
+                promise  = provider();
             }
 
             // Will one of them will provide a result?

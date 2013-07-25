@@ -22,20 +22,18 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
-        FileViewController, // loaded from brackets.test
         InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
@@ -84,13 +82,7 @@ define(function (require, exports, module) {
          * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
          */
         var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
-            var allFiles,
-                editor,
-                hostOpened = false,
-                err = false,
-                spec = this,
-                rewriteDone = false,
-                rewriteErr = false;
+            var editor, spec = this;
             
             workingSet = workingSet || [];
             
@@ -175,7 +167,6 @@ define(function (require, exports, module) {
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    FileViewController  = testWindow.brackets.test.FileViewController;
                 });
                 
                 this.addMatchers({
@@ -251,7 +242,6 @@ define(function (require, exports, module) {
                 EditorManager       = null;
                 FileSyncManager     = null;
                 DocumentManager     = null;
-                FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
             });
 
@@ -380,9 +370,7 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 0);
 
                 runs(function () {
-                    var hostEditor = EditorManager.getCurrentFullEditor(),
-                        inlineWidget = hostEditor.getInlineWidgets()[0],
-                        inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var hostEditor = EditorManager.getCurrentFullEditor();
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -396,7 +384,7 @@ define(function (require, exports, module) {
                     // verify no inline widgets
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
 
-                    doc = hostEditor = inlineWidget = null;
+                    doc = hostEditor = null;
                 });
             });
 
@@ -729,11 +717,10 @@ define(function (require, exports, module) {
                 it("should add dirty documents to the working set", function () {
                     initInlineTest("test1.html", 1);
                     
-                    var inlineEditor, widgetHeight;
+                    var inlineEditor;
                     
                     runs(function () {
                         inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                        widgetHeight = inlineEditor.totalHeight();
                         
                         // change inline editor content
                         var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
@@ -1096,8 +1083,6 @@ define(function (require, exports, module) {
                 });
             
                 it("should close inline if the contents of the full editor are all deleted", function () {
-                    var newInlineText = "/* jasmine was inline */\n";
-                    
                     // verify inline is open
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     

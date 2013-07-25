@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 
 define(function (require, exports, module) {
@@ -130,9 +130,8 @@ define(function (require, exports, module) {
         // current project or the full absolute path if it's not in the project.
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
-        } else {
-            return ProjectManager.makeProjectRelativeIfPossible(fullPath);
         }
+        return ProjectManager.makeProjectRelativeIfPossible(fullPath);
     }
     
     function updateDocumentTitle() {
@@ -707,9 +706,8 @@ define(function (require, exports, module) {
                 }
                 
                 return _doSaveAs(doc, settings);
-            } else {
-                return doSave(doc);
             }
+            return doSave(doc);
         }
         
         return $.Deferred().reject().promise();
@@ -744,10 +742,10 @@ define(function (require, exports, module) {
                         }
                     });
                     return savePromise;
-                } else {
-                    // working set entry that was never actually opened - ignore
-                    return (new $.Deferred()).resolve().promise();
                 }
+                
+                // working set entry that was never actually opened - ignore
+                return (new $.Deferred()).resolve().promise();
             },
             false
         );
@@ -945,8 +943,6 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                var fullPath = doc.file.fullPath;
-                
                 message += "<li><span class='dialog-filename'>";
                 message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
                 message += "</span></li>";

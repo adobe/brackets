@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window, setTimeout */
 /*unittests: StringMatch */
 
@@ -273,12 +274,13 @@ define(function (require, exports, module) {
         //
         // returns false when it is not able to backtrack successfully
         function backtrack() {
+            var item;
             
             // The idea is to pull matches off of our match list, rolling back
             // characters from the query. We pay special attention to the special
             // characters since they are searched first.
             while (result.length > 0) {
-                var item = result.pop();
+                item = result.pop();
                 
                 // nothing in the list? there's no possible match then.
                 if (!item) {
@@ -406,12 +408,11 @@ define(function (require, exports, module) {
         
         if (queryCounter === query.length || !matchList) {
             return null;
-        } else {
-            return {
-                remainder: remainder + query.substring(0, queryCounter),
-                matchList: matchList
-            };
         }
+        return {
+            remainder: remainder + query.substring(0, queryCounter),
+            matchList: matchList
+        };
     }
     
     /*
@@ -625,8 +626,7 @@ define(function (require, exports, module) {
         
         // scan through the matches, adding each one in turn
         for (matchCounter = 0; matchCounter < matchList.length; matchCounter++) {
-            var match = matchList[matchCounter];
-            addMatch(match);
+            addMatch(matchList[matchCounter]);
         }
         
         // add a range for the last part of the string
@@ -805,17 +805,18 @@ define(function (require, exports, module) {
         }
         
         searchResults.sort(function (a, b) {
-            var priority;
+            var priority, comparison, result, valueA, valueB;
+            
             for (priority = 0; priority < comparisons.length; priority++) {
-                var comparison = comparisons[priority];
+                comparison = comparisons[priority];
                 if (typeof comparison === "function") {
-                    var result = comparison(a, b);
+                    result = comparison(a, b);
                     if (result) {
                         return result;
                     }
                 } else {
-                    var valueA = a[comparison];
-                    var valueB = b[comparison];
+                    valueA = a[comparison];
+                    valueB = b[comparison];
                     if (typeof valueA === "string") {
                         valueA = valueA.toLowerCase();
                         valueB = valueB.toLowerCase();
@@ -823,7 +824,8 @@ define(function (require, exports, module) {
                     
                     if (valueA < valueB) {
                         return -1;
-                    } else if (valueA > valueB) {
+                    }
+                    if (valueA > valueB) {
                         return 1;
                     }
                 }

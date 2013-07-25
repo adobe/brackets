@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine */
 /*unittests: Install Extension Dialog*/
 
@@ -31,11 +31,10 @@ define(function (require, exports, module) {
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
-        NativeApp       = require("utils/NativeApp"),
         Strings         = require("strings");
 
     describe("Install Extension Dialog", function () {
-        var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
+        var testWindow, dialog, fields, closed,
             url = "http://brackets.io/extensions/myextension.zip";
         
         beforeEach(function () {
@@ -80,6 +79,7 @@ define(function (require, exports, module) {
                     return deferred.promise();
                 },
                 cancel: function () {
+                    return undefined;
                 }
             };
             spyOn(installer, "install").andCallThrough();
@@ -177,8 +177,9 @@ define(function (require, exports, module) {
             });
             
             it("should disable the ok button while installing", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 expect(fields.$okButton.prop("disabled")).toBe(true);
@@ -186,8 +187,9 @@ define(function (require, exports, module) {
             });
             
             it("should hide the url field and 'browse extensions' button while installing", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 expect(fields.$url.is(":visible")).toBe(false);
@@ -198,6 +200,7 @@ define(function (require, exports, module) {
             it("should do nothing if Enter pressed while installing", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
+                
                 setUrl();
                 fields.$okButton.click();
                 installer.install.reset();
@@ -215,6 +218,7 @@ define(function (require, exports, module) {
             it("should cancel installation if cancel clicked while installing", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
+                
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -225,6 +229,7 @@ define(function (require, exports, module) {
             it("should cancel installation if Esc pressed while installing", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
+                
                 setUrl();
                 fields.$okButton.click();
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
@@ -233,8 +238,9 @@ define(function (require, exports, module) {
             });
             
             it("should disable the cancel button while cancellation is processed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -243,8 +249,9 @@ define(function (require, exports, module) {
             });
             
             it("should ignore the Esc key while cancellation is processed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -254,8 +261,9 @@ define(function (require, exports, module) {
             });
     
             it("should ignore the Enter key while cancellation is processed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -265,8 +273,9 @@ define(function (require, exports, module) {
             });
     
             it("should re-enable the ok button and hide cancel button after install succeeds", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve(successfulResult);
@@ -275,7 +284,7 @@ define(function (require, exports, module) {
             });
     
             it("should re-enable the ok button and hide cancel button after install succeeds synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 expect(fields.$okButton.prop("disabled")).toBe(false);
@@ -283,8 +292,9 @@ define(function (require, exports, module) {
             });
     
             it("should re-enable the ok button and hide cancel button after install fails", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.reject();
@@ -293,7 +303,7 @@ define(function (require, exports, module) {
             });
             
             it("should re-enable the ok button and hide cancel button after install fails synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 expect(fields.$okButton.prop("disabled")).toBe(false);
@@ -301,8 +311,9 @@ define(function (require, exports, module) {
             });
             
             it("should re-enable the ok button and hide cancel button after install finishes canceling", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -312,8 +323,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if ok button clicked after install succeeds", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve(successfulResult);
@@ -322,7 +334,7 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if ok button clicked after install succeeds synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 fields.$okButton.click();
@@ -330,8 +342,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Enter pressed after install succeeds", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve(successfulResult);
@@ -340,7 +353,7 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Enter pressed after install succeeds synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
@@ -348,8 +361,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Esc pressed after install succeeds", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve(successfulResult);
@@ -358,7 +372,7 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Esc pressed after install succeeds synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
@@ -366,8 +380,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if ok button clicked after install fails", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.reject();
@@ -376,7 +391,7 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if ok button clicked after install fails synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 fields.$okButton.click();
@@ -384,8 +399,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Enter pressed after install fails", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.reject();
@@ -394,7 +410,7 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Enter pressed after install fails synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
@@ -402,8 +418,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Esc pressed after install fails", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.reject();
@@ -412,7 +429,7 @@ define(function (require, exports, module) {
             });
             
             it("should close the dialog if Esc pressed after install fails synchronously", function () {
-                var installer = makeInstaller(true);
+                makeInstaller(true);
                 setUrl();
                 fields.$okButton.click();
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
@@ -420,8 +437,9 @@ define(function (require, exports, module) {
             });
 
             it("should close the dialog if ok button clicked after install finishes canceling", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -431,8 +449,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Enter pressed after install finishes canceling", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(true);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -442,8 +461,9 @@ define(function (require, exports, module) {
             });
     
             it("should close the dialog if Esc pressed after install finishes canceling", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(true);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 fields.$cancelButton.click();
@@ -453,8 +473,9 @@ define(function (require, exports, module) {
             });
                 
             it("should time out and re-enable close button if cancel doesn't complete quickly", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -469,8 +490,9 @@ define(function (require, exports, module) {
             });
             
             it("should close when clicking Close button after timing out if cancel doesn't complete quickly", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -486,8 +508,9 @@ define(function (require, exports, module) {
             });
             
             it("should close when hitting Enter after timing out if cancel doesn't complete quickly", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -503,8 +526,9 @@ define(function (require, exports, module) {
             });
             
             it("should close when hitting Esc after timing out if cancel doesn't complete quickly", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -520,8 +544,9 @@ define(function (require, exports, module) {
             });
 
             it("should keep close button enabled and not throw an exception if install succeeds after cancelation", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -536,8 +561,9 @@ define(function (require, exports, module) {
             });
 
             it("should keep close button enabled and not throw an exception if install fails after cancelation", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -552,8 +578,9 @@ define(function (require, exports, module) {
             });
             
             it("should keep close button enabled and not throw an exception if install cancelation completes after cancelation", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 runs(function () {
                     setUrl();
                     dialog._cancelTimeout = 50;
@@ -575,8 +602,9 @@ define(function (require, exports, module) {
             });
             
             it("should display a warning message if the extension is already installed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve({
@@ -591,8 +619,9 @@ define(function (require, exports, module) {
             });
             
             it("should display a warning message if the same version is already installed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve({
@@ -607,8 +636,9 @@ define(function (require, exports, module) {
             });
             
             it("should display a warning message if an older version is already installed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 deferred.resolve({
@@ -627,8 +657,9 @@ define(function (require, exports, module) {
             });
             
             it("should delete the downloaded file if the warning message is cancelled", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 var packageFilename = "/path/to/downloaded/package.zip";
@@ -638,13 +669,14 @@ define(function (require, exports, module) {
                 });
                 spyOn(testWindow.brackets.fs, "unlink");
                 fields.$cancelButton.click();
-                expect(testWindow.brackets.fs.unlink).toHaveBeenCalledWith(packageFilename, jasmine.any(Function));
+                expect(testWindow.brackets.fs.unlink).toHaveBeenCalledWith(packageFilename);
                 expect(fields.$dlg.is(":visible")).toBe(false);
             });
             
             it("should pass the installation result if the warning message is confirmed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 var packageFilename = "/path/to/downloaded/package.zip";
@@ -665,8 +697,9 @@ define(function (require, exports, module) {
             });
 
             it("should pass installation result when update is needed", function () {
-                var deferred = new $.Deferred(),
-                    installer = makeInstaller(null, deferred);
+                var deferred = new $.Deferred();
+                
+                makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
                 var packageFilename = "/path/to/downloaded/package.zip";

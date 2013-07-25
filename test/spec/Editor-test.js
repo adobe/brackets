@@ -22,15 +22,13 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    var Editor          = require("editor/Editor").Editor,
-        EditorManager   = require("editor/EditorManager"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         LanguageManager = require("language/LanguageManager");
     
     var langNames = {
@@ -43,10 +41,10 @@ define(function (require, exports, module) {
     function compareMode(expected, actual) {
         if (typeof actual === "string") {
             return actual === expected;
-        } else if (actual === null) {
+        }
+        if (actual === null) {
             return expected === null;
         }
-        
         return actual === expected;
     }
     

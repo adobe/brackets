@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window, brackets  */
 
 /**
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
+        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function () {
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             drop();
         });
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
         }
             
         // Iterate through working set list and update the selection on each
-        var items = $openFilesContainer.find("ul").children().each(function () {
+        $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
 

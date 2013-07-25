@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
 require.config({
@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+    locale: window.localStorage.getItem("locale") || (brackets !== undefined ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -57,17 +57,16 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
+    
+    
     // Load dependent modules
-    var Global                  = require("utils/Global"),
-        AppInit                 = require("utils/AppInit"),
+    var AppInit                 = require("utils/AppInit"),
         LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         WorkingSetView          = require("project/WorkingSetView"),
-        WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -77,39 +76,42 @@ define(function (require, exports, module) {
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
-        FileUtils               = require("file/FileUtils"),
         MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         DefaultDialogs          = require("widgets/DefaultDialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
-        SidebarView             = require("project/SidebarView"),
-        Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        Resizer                 = require("utils/Resizer"),
-        LiveDevelopmentMain     = require("LiveDevelopment/main"),
-        NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
-        DragAndDrop             = require("utils/DragAndDrop"),
-        ColorUtils              = require("utils/ColorUtils");
+        DragAndDrop             = require("utils/DragAndDrop");
             
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/CSSInlineEditor");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
+    require("extensibility/ExtensionManagerDialog");
+    require("extensibility/InstallExtensionDialog");
+    require("file/FileUtils");
     require("help/HelpCommandHandlers");
+    require("LiveDevelopment/main");
+    require("project/SidebarView");
+    require("project/WorkingSetSort");
     require("search/FindInFiles");
     require("search/FindReplace");
-    require("extensibility/InstallExtensionDialog");
-    require("extensibility/ExtensionManagerDialog");
+    require("search/QuickOpen");
+    require("utils/Async");
+    require("utils/ColorUtils");
+    require("utils/Global");
+    require("utils/Resizer");
+    require("utils/NodeConnection");
+    require("view/ViewCommandHandlers");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 

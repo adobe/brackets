@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets */
 
 /**
@@ -31,10 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit       = require("utils/AppInit"),
-        EditorManager = require("editor/EditorManager"),
-        KeyEvent      = require("utils/KeyEvent"),
-        Menus         = require("command/Menus");
+    var AppInit     = require("utils/AppInit"),
+        KeyEvent    = require("utils/KeyEvent");
     
     var _popUps = [];
         

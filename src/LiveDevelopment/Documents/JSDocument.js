@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, forin: true */
 /*global define, $ */
 
 /**
@@ -88,6 +88,7 @@ define(function JSDocumentModule(require, exports, module) {
 
     /** Triggered on cursor activity by the editor */
     JSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        return undefined;
     };
 
     /** Triggered on change by the editor */

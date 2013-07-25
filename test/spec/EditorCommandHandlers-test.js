@@ -21,15 +21,17 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
+    
+    require("editor/EditorCommandHandlers");
     
     var Editor                = require("editor/Editor").Editor,
         EditorManager         = require("editor/EditorManager"),
-        EditorCommandHandlers = require("editor/EditorCommandHandlers"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         LanguageManager       = require("language/LanguageManager"),

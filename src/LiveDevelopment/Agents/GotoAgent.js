@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true, forin: true */
 /*global define, brackets, $, window */
 
 /**
@@ -66,7 +66,6 @@ define(function GotoAgent(require, exports, module) {
      */
     function _makeHTMLTarget(targets, node) {
         if (node.location) {
-            var target = {};
             var url = DOMAgent.url;
             var location = node.location;
             if (node.canHaveChildren()) {
@@ -85,7 +84,6 @@ define(function GotoAgent(require, exports, module) {
      */
     function _makeCSSTarget(targets, rule) {
         if (rule.sourceURL) {
-            var target = {};
             var url = rule.sourceURL;
             url += ":" + rule.style.range.start;
             var name = rule.selectorList.text;
@@ -101,7 +99,6 @@ define(function GotoAgent(require, exports, module) {
     function _makeJSTarget(targets, callFrame) {
         var script = ScriptAgent.scriptWithId(callFrame.location.scriptId);
         if (script && script.url) {
-            var target = {};
             var url = script.url;
             url += ":" + callFrame.location.lineNumber + "," + callFrame.location.columnNumber;
             var name = callFrame.functionName;
@@ -120,13 +117,13 @@ define(function GotoAgent(require, exports, module) {
 
         // get all css rules that apply to the given node
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onMatchedStyles(res) {
-            var i, callFrame, name, script, url, rule, targets = [];
+            var i, trace, targets = [];
             _makeHTMLTarget(targets, node);
             for (i in node.trace) {
                 _makeJSTarget(targets, node.trace[i]);
             }
             for (i in node.events) {
-                var trace = node.events[i];
+                trace = node.events[i];
                 _makeJSTarget(targets, trace.callFrames[0]);
             }
             for (i in res.matchedCSSRules.reverse()) {

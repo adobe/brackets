@@ -22,10 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
-indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach,
-waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine, window */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -40,8 +38,6 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
-        NativeFileSystem          = require("file/NativeFileSystem").NativeFileSystem,
-        NativeFileError           = require("file/NativeFileError"),
         SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
         CollectionUtils           = require("utils/CollectionUtils"),
         NativeApp                 = require("utils/NativeApp"),
@@ -124,7 +120,6 @@ define(function (require, exports, module) {
         
         describe("ExtensionManager", function () {
             it("should download the extension list from the registry", function () {
-                var registry;
                 runs(function () {
                     waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
@@ -138,7 +133,7 @@ define(function (require, exports, module) {
             });
             
             it("should trigger a registryUpdate event when updating the extension list from the registry", function () {
-                var registry, registryUpdateSpy;
+                var registryUpdateSpy;
                 runs(function () {
                     registryUpdateSpy = jasmine.createSpy();
                     $(ExtensionManager).on("registryUpdate", registryUpdateSpy);
@@ -223,7 +218,6 @@ define(function (require, exports, module) {
             it("should set the title for a legacy extension based on its folder name", function () {
                 mockLoadExtensions();
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
                 });
             });
@@ -233,7 +227,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(ExtensionManager.extensions["mock-extension-1"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEFAULT);
                     expect(ExtensionManager.extensions["mock-extension-2"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEV);
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
                 });
             });
@@ -256,7 +249,6 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/mock-legacy-extension"]);
                 });
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-legacy-extension");
                 });
             });
@@ -550,7 +542,7 @@ define(function (require, exports, module) {
                         spyOn(brackets.fs, "unlink");
                         ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename);
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
@@ -610,20 +602,20 @@ define(function (require, exports, module) {
         });
         
         describe("ExtensionManagerView", function () {
-            var testWindow, view, model, fakeLoadDeferred, modelDisposed;
+            var view, model, fakeLoadDeferred;
             
             // Sets up the view using the normal (mock) ExtensionManager data.
             function setupViewWithMockData(ModelClass) {
                 runs(function () {
                     view = new ExtensionManagerView();
                     model = new ModelClass();
-                    modelDisposed = false;
                     waitsForDone(view.initialize(model), "view initializing");
                 });
                 runs(function () {
                     spyOn(view.model, "dispose").andCallThrough();
                 });
             }
+            
             
             beforeEach(function () {
                 this.addMatchers({
@@ -973,8 +965,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
-                            $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
+                        var $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
                         $button.click();
                         expect(ExtensionManager.isMarkedForRemoval(id)).toBe(true);
                     });
@@ -1026,7 +1017,7 @@ define(function (require, exports, module) {
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
                         expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename);
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
                     });
@@ -1180,7 +1171,7 @@ define(function (require, exports, module) {
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
                             expect(didQuit).toBe(false);
-                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename);
                         });
                     });
                     

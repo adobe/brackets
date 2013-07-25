@@ -21,10 +21,10 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, doReplace */
 /*unittests: FindReplace*/
-
 
 /*
  * Adds Find and Replace commands
@@ -74,9 +74,9 @@ define(function (require, exports, module) {
         try {
             if (isRE && isRE[1]) {  // non-empty regexp
                 return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
-            } else {
-                return query;
             }
+            return query;
+        
         } catch (e) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")

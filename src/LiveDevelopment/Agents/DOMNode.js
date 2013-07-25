@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, forin: true */
 /*global define, $ */
 
 /**
@@ -93,11 +93,17 @@ define(function DOMNodeModule(require, exports, module) {
         this.agent.addNode(this);
     };
 
-    var TYPE_ELEMENT = DOMNode.TYPE_ELEMENT = 1; // element node
-    var TYPE_ATTRIBUTE = DOMNode.TYPE_ATTRIBUTE = 2; // attribute node (unused)
-    var TYPE_TEXT = DOMNode.TYPE_TEXT = 3; // text node
-    var TYPE_COMMENT = DOMNode.TYPE_COMMENT = 8; // comment node <!-- -->
-    var TYPE_DOCUMENT = DOMNode.TYPE_DOCUMENT = 9; // document node <!DOCUMENT>
+    var TYPE_ELEMENT   = 1, // element node
+        TYPE_ATTRIBUTE = 2, // attribute node (unused)
+        TYPE_TEXT      = 3, // text node
+        TYPE_COMMENT   = 8, // comment node <!-- -->
+        TYPE_DOCUMENT  = 9; // document node <!DOCUMENT>
+    
+    DOMNode.TYPE_ELEMENT   = TYPE_ELEMENT;
+    DOMNode.TYPE_ATTRIBUTE = TYPE_ATTRIBUTE;
+    DOMNode.TYPE_TEXT      = TYPE_TEXT;
+    DOMNode.TYPE_COMMENT   = TYPE_COMMENT;
+    DOMNode.TYPE_DOCUMENT  = TYPE_DOCUMENT;
 
     /** Remove a node */
     DOMNode.prototype.remove = function remove() {

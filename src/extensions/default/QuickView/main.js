@@ -21,16 +21,15 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $, window, PathUtils, CodeMirror */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
+    var CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
@@ -223,11 +222,11 @@ define(function (require, exports, module) {
                     beforeIndex = match.index - 1;
                     if (beforeIndex >= 0 && line[beforeIndex] === "-") {
                         return true;
-                    } else {
-                        afterIndex = match.index + match[0].length;
-                        if (afterIndex < line.length && line[afterIndex] === "-") {
-                            return true;
-                        }
+                    }
+                    
+                    afterIndex = match.index + match[0].length;
+                    if (afterIndex < line.length && line[afterIndex] === "-") {
+                        return true;
                     }
                 }
                 
@@ -244,13 +243,13 @@ define(function (require, exports, module) {
         
         // simple css property splitter (used to find color stop arguments in gradients)
         function splitStyleProperty(property) {
-            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g;
+            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g, result, str;
             var recurse = function () {
                 var array = [];
                 for (;;) {
-                    var result = token.exec(property);
+                    result = token.exec(property);
                     if (result[2] === "(") {
-                        var str = result[1].trim() + "(" + recurse().join(",") + ")";
+                        str = result[1].trim() + "(" + recurse().join(",") + ")";
                         result = token.exec(property);
                         str += result[1];
                         array.push(str);
@@ -328,26 +327,26 @@ define(function (require, exports, module) {
             return expression;
         }
 
-        var gradientMatch = execGradientMatch(line),
+        var previewCSS, preview, startPos, endPos, startCoords, xPos,
+            gradientMatch = execGradientMatch(line),
             match = gradientMatch.match || execColorMatch(line),
             cm = editor._codeMirror;
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
                 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member 
                 //          (used by unit tests) to match so normalize the css for both
                 previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
                     
-                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
+                preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
-                var startPos = {line: pos.line, ch: match.index},
-                    endPos = {line: pos.line, ch: match.index + match[0].length},
-                    startCoords = cm.charCoords(startPos),
-                    xPos;
+                startPos = {line: pos.line, ch: match.index};
+                endPos = {line: pos.line, ch: match.index + match[0].length};
+                startCoords = cm.charCoords(startPos);
                 
                 xPos = (cm.charCoords(endPos).left - startCoords.left) / 2 + startCoords.left;
                 
@@ -506,18 +505,18 @@ define(function (require, exports, module) {
         }
         
         // Check for inline Editor instances first
-        var inlines = fullEditor.getInlineWidgets(),
-            i,
-            editor;
+        var i, editor, $inlineDiv, $otherDiv,
+            inlines = fullEditor.getInlineWidgets();
         
         for (i = 0; i < inlines.length; i++) {
-            var $inlineDiv = inlines[i].$editorsDiv,  // see MultiRangeInlineEditor
-                $otherDiv  = inlines[i].$htmlContent;
+            $inlineDiv = inlines[i].$editorsDiv;  // see MultiRangeInlineEditor
+            $otherDiv  = inlines[i].$htmlContent;
             
             if ($inlineDiv && divContainsMouse($inlineDiv, event)) {
                 editor = inlines[i].editors[0];
                 break;
-            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
+            }
+            if ($otherDiv && divContainsMouse($otherDiv, event)) {
                 // Mouse inside unsupported inline editor like Quick Docs or Color Editor
                 hidePreview();
                 return;
@@ -548,11 +547,11 @@ define(function (require, exports, module) {
                 if (editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
                     // That one's still relevant - nothing more to do
                     return;
-                } else {
-                    // That one doesn't cover this pos - hide it and query providers anew
-                    showImmediately = popoverState.visible;
-                    hidePreview();
                 }
+                
+                // That one doesn't cover this pos - hide it and query providers anew
+                showImmediately = popoverState.visible;
+                hidePreview();
             }
             
             // Query providers for a new popoverState

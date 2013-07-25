@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils, window, Mustache */
 
 /**
@@ -36,8 +37,6 @@ define(function (require, exports, module) {
         NativeApp            = require("utils/NativeApp"),
         PreferencesManager   = require("preferences/PreferencesManager"),
         Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
-        Global               = require("utils/Global"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     

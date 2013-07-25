@@ -21,15 +21,16 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var PreferencesManager      = require("preferences/PreferencesManager"),
-        PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+        PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage;
 
     var CLIENT_ID = "PreferencesManager-test";
         
@@ -86,11 +87,10 @@ define(function (require, exports, module) {
         
         it("should throw errors for invalid values", function () {
             var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-            var error = null;
             
             expect(store.getValue("foo")).toBe(42);
             // function data is not valid JSON
-            store.setValue("foo", function () {});
+            store.setValue("foo", function () { return undefined; });
             expect(store.getValue("foo")).toBe(42);
                         
             // number key is not valid JSON

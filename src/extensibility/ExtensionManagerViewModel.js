@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils"),
         Strings          = require("strings");
 
@@ -143,7 +142,9 @@ define(function (require, exports, module) {
      * Re-sorts the current full set based on the source we're viewing.
      * The base implementation does nothing.
      */
-    ExtensionManagerViewModel.prototype._sortFullSet = function () { };
+    ExtensionManagerViewModel.prototype._sortFullSet = function () {
+        return undefined;
+    };
 
     /**
      * Initializes the model from the source.
@@ -254,7 +255,8 @@ define(function (require, exports, module) {
                     return cur.some(function (keyword) {
                         return keyword.toLowerCase().indexOf(query) !== -1;
                     });
-                } else if (cur.toLowerCase().indexOf(query) !== -1) {
+                }
+                if (cur.toLowerCase().indexOf(query) !== -1) {
                     return true;
                 }
             });
@@ -380,13 +382,8 @@ define(function (require, exports, module) {
                 metadata2 = self.extensions[key2].installInfo.metadata,
                 id1 = (metadata1.title || metadata1.name).toLowerCase(),
                 id2 = (metadata2.title || metadata2.name).toLowerCase();
-            if (id1 < id2) {
-                return -1;
-            } else if (id1 === id2) {
-                return 0;
-            } else {
-                return 1;
-            }
+            
+            return id1.localeCompare(id2);
         });
     };
     

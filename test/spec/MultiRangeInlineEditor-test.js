@@ -22,23 +22,20 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, HTMLElement: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, HTMLElement */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,
         InlineWidget            = require("editor/InlineWidget").InlineWidget,
-        Editor                  = require("editor/Editor").Editor,
-        EditorManager           = require("editor/EditorManager"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
     describe("MultiRangeInlineEditor", function () {
         
         var inlineEditor,
-            $editorHolder,
             hostEditor,
             doc;
         

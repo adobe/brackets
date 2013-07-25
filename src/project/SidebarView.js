@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, document, window, brackets  */
 
 /**
@@ -40,14 +40,11 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        EditorManager       = require("editor/EditorManager"),
-        Global              = require("utils/Global"),
         Resizer             = require("utils/Resizer");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
     var $sidebar,
-        $sidebarMenuText,
         $openFilesContainer,
         $projectTitle,
         $projectFilesContainer;
@@ -104,7 +101,6 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $openFilesContainer     = $("#open-files-container");
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");

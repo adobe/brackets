@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
@@ -84,11 +84,10 @@ define(function (require, exports, module) {
      * CSS rules and show (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with an InlineWidget
      *      or null if we're not going to provide anything.
      */
-    function htmlToCSSProvider(hostEditor, pos) {
+    function htmlToCSSProvider(hostEditor) {
         // Only provide a CSS editor when cursor is in HTML content
         if (hostEditor.getLanguageForSelection().getId() !== "html") {
             return null;

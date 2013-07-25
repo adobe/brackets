@@ -21,9 +21,7 @@
  * 
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, node: true, stupid: true */
 /*global expect, describe, it, beforeEach, afterEach */
 
 "use strict";
@@ -66,8 +64,8 @@ describe("Package Installation", function () {
     };
     
     beforeEach(function (done) {
-        fs.mkdirs(installDirectory, function (err) {
-            fs.mkdirs(disabledDirectory, function (err) {
+        fs.mkdirs(installDirectory, function () {
+            fs.mkdirs(disabledDirectory, function () {
                 done();
             });
         });
@@ -145,8 +143,6 @@ describe("Package Installation", function () {
     
     it("should successfully update an extension", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
-            
             expect(err).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();

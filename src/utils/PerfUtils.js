@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, window */
 
 /**
@@ -30,8 +31,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global          = require("utils/Global"),
-        CollectionUtils = require("utils/CollectionUtils");
+    var CollectionUtils = require("utils/CollectionUtils");
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
@@ -292,14 +292,11 @@ define(function (require, exports, module) {
                     }
                 }
                 return values;
-            } else {
-                return entry;
             }
+            return entry;
         };
 
-        var testName,
-            index,
-            result = "";
+        var result = "";
         CollectionUtils.forEach(perfData, function (entry, testName) {
             result += getValue(entry) + "\t" + testName + "\n";
         });

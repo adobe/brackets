@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, window */
 
 /**
@@ -68,7 +69,6 @@ define(function (require, exports, module) {
      */
     var _prefs = null;
 	
-    var $mainView;
     
     /**
      * Shows a resizable element.
@@ -194,8 +194,9 @@ define(function (require, exports, module) {
         $element.data("show", function () {
             var elementOffset   = $element.offset(),
                 elementSize     = elementSizeFunction.apply($element) || elementPrefs.size,
-                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize,
-                resizerSize     = elementSizeFunction.apply($resizer);
+                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize;
+            
+            elementSizeFunction.apply($resizer);
             
             // Resize the element before showing it again. If the panel was collapsed by dragging
             // the resizer, the size of the element should be 0, so we restore size in preferences
@@ -243,7 +244,7 @@ define(function (require, exports, module) {
         });
         
         // If the resizer is positioned right or bottom of the panel, we need to listen to 
-        // reposition it if the element size changes externally		
+        // reposition it if the element size changes externally
         function repositionResizer(elementSize) {
             var resizerPosition = elementSize || 1;
             if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
             function endResize(e) {
                 if (isMouseDown) {
                     
-                    var elementSize	= elementSizeFunction.apply($element);
+                    var elementSize = elementSizeFunction.apply($element);
                     if ($element.is(":visible")) {
                         elementPrefs.size = elementSize;
                         if ($resizableElement.length) {
@@ -413,8 +414,6 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
 		
-        $mainView = $(".main-view");
-        
         $(".vert-resizable").each(function (index, element) {
             
             if ($(element).data().minsize !== undefined) {

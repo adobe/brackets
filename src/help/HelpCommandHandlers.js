@@ -22,14 +22,13 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
-        Global                  = require("utils/Global"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -61,7 +60,9 @@ define(function (require, exports, module) {
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {} /* Ignore errors */
+            function () { /* Ignore errors */
+                return undefined;
+            }
         );
     }
 

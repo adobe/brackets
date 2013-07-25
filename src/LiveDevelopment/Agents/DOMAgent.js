@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, XMLHttpRequest */
 
 /**
@@ -40,11 +40,10 @@ define(function DOMAgent(require, exports, module) {
 
     var $exports = $(exports);
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-    var EditAgent = require("LiveDevelopment/Agents/EditAgent");
-    var DOMNode = require("LiveDevelopment/Agents/DOMNode");
-    var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
+    var Inspector  = require("LiveDevelopment/Inspector/Inspector"),
+        EditAgent  = require("LiveDevelopment/Agents/EditAgent"),
+        DOMNode    = require("LiveDevelopment/Agents/DOMNode"),
+        DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
 
     var _load; // {$.Deferred} load promise
     var _idToNode; // {nodeId -> node}
@@ -121,14 +120,6 @@ define(function DOMAgent(require, exports, module) {
             _pendingRequests++;
         }
         Inspector.DOM.requestChildNodes(node.nodeId);
-    }
-
-    /** Resolve a node
-     * @param {DOMNode} node
-     */
-    function resolveNode(node, callback) {
-        console.assert(node.nodeId, "Attempted to resolve node without id");
-        Inspector.DOM.resolveNode(node.nodeId, callback);
     }
 
     /** Eliminate the query string from a URL
@@ -217,6 +208,7 @@ define(function DOMAgent(require, exports, module) {
      // WebInspector Event: DOM.documentUpdated
     function _onDocumentUpdated(event, res) {
         // res = {}
+        return undefined;
     }
 
     // WebInspector Event: DOM.setChildNodes

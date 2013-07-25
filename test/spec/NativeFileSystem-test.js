@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global brackets, $, define, describe, it, xit, expect, beforeEach, afterEach, FileError, waitsFor, waitsForDone, waitsForFail, runs */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     require("utils/Global");
     
@@ -40,8 +40,6 @@ define(function (require, exports, module) {
 
     describe("NativeFileSystem", function () {
         
-        var _err;
-
         beforeEach(function () {
             var self = this;
 
@@ -500,7 +498,6 @@ define(function (require, exports, module) {
                     expect(actualContents).toEqual("");
 
                     // cleanup
-                    var self = this;
                     brackets.fs.unlink(fileEntry.fullPath, function (err) {
                         cleanupComplete = (err === brackets.fs.NO_ERROR);
                     });
@@ -602,7 +599,6 @@ define(function (require, exports, module) {
             it("should create overwrite files with new content", function () {
                 var fileEntry = null;
                 var writeComplete = false;
-                var error = null;
 
                 runs(function () {
                     var successCallback = function (entry) {
@@ -658,7 +654,6 @@ define(function (require, exports, module) {
             it("should write an empty file", function () {
                 var fileEntry = null;
                 var writeComplete = false;
-                var error = null;
 
                 runs(function () {
                     var successCallback = function (entry) {
@@ -670,7 +665,6 @@ define(function (require, exports, module) {
                             };
                             fileWriter.onerror = function (err) {
                                 writeComplete = true;
-                                error = err;
                             };
 
                             // TODO (jasonsj): BlobBulder

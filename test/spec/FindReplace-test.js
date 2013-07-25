@@ -21,16 +21,17 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    var Editor                = require("editor/Editor").Editor,
-        FindReplace           = require("search/FindReplace"),
-        Commands              = require("command/Commands"),
+    require("search/FindReplace");
+    
+    var Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
@@ -52,7 +53,6 @@ define(function (require, exports, module) {
                              "}";
         
         var LINE_FIRST_REQUIRE = 2;
-        var LINE_AFTER_REQUIRES = 5;
         var CH_REQUIRE_START = 14;
         var CH_REQUIRE_PAREN = CH_REQUIRE_START + "require".length;
         

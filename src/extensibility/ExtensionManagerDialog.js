@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global brackets, define, $, Mustache, window */
 
 define(function (require, exports, module) {
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
             
             // Update search UI before new tab is shown
             $("a[data-toggle='tab']").each(function (index, tabElement) {
-                $(tabElement).on("show", function (event) {
+                $(tabElement).on("show", function () {
                     _activeTabIndex = index;
                     
                     // Focus the search input
@@ -221,14 +222,14 @@ define(function (require, exports, module) {
             });
             
             // Filter the views when the user types in the search field.
-            $dlg.on("input", ".search", function (e) {
+            $dlg.on("input", ".search", function () {
                 var query = $(this).val();
                 views.forEach(function (view) {
                     view.filter(query);
                 });
-            }).on("click", ".search-clear", function (e) {
+            }).on("click", ".search-clear", function () {
                 $search.val("");
-                views.forEach(function (view, index) {
+                views.forEach(function (view) {
                     view.filter("");
                 });
                 

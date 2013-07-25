@@ -21,14 +21,14 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, document */
 
 define(function (require, exports, module) {
     "use strict";
     
     var EditorManager       = brackets.getModule("editor/EditorManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineColorEditor   = require("InlineColorEditor").InlineColorEditor,
         ColorUtils          = brackets.getModule("utils/ColorUtils");
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
      * @return {?{color:String, start:TextMarker, end:TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
-        var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
+        var colorRegEx, cursorLine, match,
             sel, start, end, startBookmark, endBookmark;
         
         sel = hostEditor.getSelection();
@@ -99,14 +99,14 @@ define(function (require, exports, module) {
         
         if (!context) {
             return null;
-        } else {
-            inlineColorEditor = new InlineColorEditor(context.color, context.start, context.end);
-            inlineColorEditor.load(hostEditor);
-    
-            result = new $.Deferred();
-            result.resolve(inlineColorEditor);
-            return result.promise();
         }
+        
+        inlineColorEditor = new InlineColorEditor(context.color, context.start, context.end);
+        inlineColorEditor.load(hostEditor);
+        
+        result = new $.Deferred();
+        result.resolve(inlineColorEditor);
+        return result.promise();
     }
     
     

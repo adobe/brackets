@@ -22,11 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var CommandManager,      // loaded from brackets.test
@@ -77,8 +77,7 @@ define(function (require, exports, module) {
             
             it("should clean up (later) a master Editor auto-created by calling read-only Document API, if Editor not used by UI", function () {
                 var promise,
-                    cssDoc,
-                    cssMasterEditor;
+                    cssDoc;
                 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
@@ -125,7 +124,7 @@ define(function (require, exports, module) {
                     expect(testWindow.$(".CodeMirror").length).toBe(2);   // HTML editor (working set) & JS editor (current)
                 });
 
-                cssDoc = cssMasterEditor = null;
+                cssDoc = null;
             });
         });
     });

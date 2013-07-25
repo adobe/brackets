@@ -22,18 +22,16 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, CodeMirror, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var LanguageManager = require("language/LanguageManager"),
         DocumentManager = require("document/DocumentManager"),
-        PathUtils       = require("thirdparty/path-utils/path-utils.min"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        FileUtils       = require("file/FileUtils");
+        SpecRunnerUtils = require("spec/SpecRunnerUtils");
     
     describe("LanguageManager", function () {
         
@@ -513,8 +511,7 @@ define(function (require, exports, module) {
                 var unknown,
                     doc,
                     spy,
-                    modifiedLanguage,
-                    promise;
+                    modifiedLanguage;
                 
                 // Create a foo script file
                 doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });

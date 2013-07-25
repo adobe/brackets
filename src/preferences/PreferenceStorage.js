@@ -21,7 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /**
@@ -54,14 +55,13 @@ define(function (require, exports, module) {
             // set value to JSON storage if no errors occurred
             if (!error && (temp[key] !== undefined)) {
                 return true;
-            } else {
-                console.error("Value '" + value + "' for key '" + key + "' must be a valid JSON value");
-                return false;
             }
-        } else {
-            console.error("Preference key '" + key + "' must be a string");
+            
+            console.error("Value '" + value + "' for key '" + key + "' must be a valid JSON value");
             return false;
         }
+        console.error("Preference key '" + key + "' must be a string");
+        return false;
     }
     
     /**

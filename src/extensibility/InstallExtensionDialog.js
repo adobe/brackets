@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets, Mustache, document */
 /*unittests: Install Extension Dialog*/
 
@@ -31,8 +31,6 @@ define(function (require, exports, module) {
     var Dialogs                = require("widgets/Dialogs"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        Commands               = require("command/Commands"),
-        CommandManager         = require("command/CommandManager"),
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
         NativeApp              = require("utils/NativeApp"),
@@ -253,9 +251,7 @@ define(function (require, exports, module) {
             // and the user cancels, we can delete the downloaded file.
             if (this._installResult && this._installResult.localPath) {
                 var filename = this._installResult.localPath;
-                brackets.fs.unlink(filename, function () {
-                    // ignore the result
-                });
+                brackets.fs.unlink(filename);
             }
             this._enterState(STATE_CLOSED);
         } else if (this._state !== STATE_CANCELING_INSTALL) {
@@ -371,7 +367,9 @@ define(function (require, exports, module) {
     
     
     /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
-    function InstallerFacade() { }
+    function InstallerFacade() {
+        return undefined;
+    }
     InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");

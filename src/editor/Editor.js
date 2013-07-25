@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, window */
 
 /**
@@ -65,15 +65,11 @@ define(function (require, exports, module) {
     "use strict";
     
     var CodeHintManager    = require("editor/CodeHintManager"),
-        Commands           = require("command/Commands"),
-        CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
-        ViewUtils          = require("utils/ViewUtils"),
         Async              = require("utils/Async");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
@@ -389,9 +385,9 @@ define(function (require, exports, module) {
         
         // Initially populate with text. This will send a spurious change event, so need to make
         // sure this is understood as a 'sync from document' case, not a genuine edit
-        this._duringSync = true;
+        this._duringSynch = true;
         this._resetText(document.getText());
-        this._duringSync = false;
+        this._duringSynch = false;
         
         if (range) {
             // Hide all lines other than those we want to show. We do this rather than trimming the
@@ -544,7 +540,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype._handleEditorChange = function (event, editor, changeList) {
         // we're currently syncing from the Document, so don't echo back TO the Document
-        if (this._duringSync) {
+        if (this._duringSynch) {
             return;
         }
         
@@ -559,9 +555,9 @@ define(function (require, exports, module) {
             // FUTURE: Technically we should add a replaceRange() method to Document and go through
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
-            this._duringSync = true;
+            this._duringSynch = true;
             this.document._masterEditor._applyChanges(changeList);
-            this._duringSync = false;
+            this._duringSynch = false;
             
             // Update which lines are hidden inside our editor, since we're not going to go through
             // _applyChanges() in our own editor.
@@ -584,10 +580,8 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
         // we're currently syncing to the Document, so don't echo back FROM the Document
-        if (this._duringSync) {
+        if (this._duringSynch) {
             return;
         }
         
@@ -596,9 +590,9 @@ define(function (require, exports, module) {
             // we're not the ground truth; and if we got here, this was a Document change that
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
-            this._duringSync = true;
+            this._duringSynch = true;
             this._applyChanges(changeList);
-            this._duringSync = false;
+            this._duringSynch = false;
         }
         // Else, Master editor:
         // we're the ground truth; nothing to do since Document change is just echoing our
@@ -808,10 +802,9 @@ define(function (require, exports, module) {
             if (endInclusive) {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
                     (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
-            } else {
-                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
             }
+            return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                (end.line > pos.line   || end.ch > pos.ch);       // exclusive
                    
         }
         return false;
@@ -1084,8 +1077,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
-                deferred = new $.Deferred(),
+            var deferred = new $.Deferred(),
                 self = this;
             
             // Remove the inline widget from our internal list immediately, so
@@ -1131,14 +1123,14 @@ define(function (require, exports, module) {
                     inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
                     if (inlineWidget) {
                         return self.removeInlineWidget(inlineWidget);
-                    } else {
-                        return new $.Deferred().resolve().promise();
                     }
+                    
+                    return new $.Deferred().resolve().promise();
                 }
             );
-        } else {
-            return new $.Deferred().resolve().promise();
         }
+        
+        return new $.Deferred().resolve().promise();
     };
     
     /**
@@ -1373,10 +1365,10 @@ define(function (require, exports, module) {
             }
 
             return startMode.name;
-        } else {
-            // Mode does not vary: just use the editor-wide mode
-            return this._codeMirror.getOption("mode");
         }
+        
+        // Mode does not vary: just use the editor-wide mode
+        return this._codeMirror.getOption("mode");
     };
     
     Editor.prototype.getLanguageForSelection = function () {
@@ -1403,7 +1395,7 @@ define(function (require, exports, module) {
      * events caused by us (vs. change events caused by others, which we need to pay attention to).
      * @type {!boolean}
      */
-    Editor.prototype._duringSync = false;
+    Editor.prototype._duringSynch = false;
     
     /**
      * @private

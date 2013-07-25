@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /**
@@ -149,14 +149,16 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        var from, to, text, codeMirror;
         if (!this.editor) {
             return;
         }
-        var codeMirror = this.editor._codeMirror;
+        
+        codeMirror = this.editor._codeMirror;
         while (change) {
-            var from = codeMirror.indexFromPos(change.from);
-            var to = codeMirror.indexFromPos(change.to);
-            var text = change.text.join("\n");
+            from = codeMirror.indexFromPos(change.from);
+            to = codeMirror.indexFromPos(change.to);
+            text = change.text.join("\n");
             DOMAgent.applyChange(from, to, text);
             change = change.next;
         }

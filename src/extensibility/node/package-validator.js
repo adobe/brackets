@@ -21,9 +21,7 @@
  * 
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, node: true, regexp: true */
 
 "use strict";
 
@@ -97,7 +95,7 @@ var _personRegex = /^([^<\(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^\)]+)\))?$/;
  * @return {Object} person object with name and optional email and url
  */
 function parsePersonString(obj) {
-    if (typeof (obj) === "string") {
+    if (typeof obj === "string") {
         var parts = _personRegex.exec(obj);
         
         // No regex match, so we just synthesize an object with an opaque name string
@@ -105,22 +103,21 @@ function parsePersonString(obj) {
             return {
                 name: obj
             };
-        } else {
-            var result = {
-                name: parts[1]
-            };
-            if (parts[2]) {
-                result.email = parts[2];
-            }
-            if (parts[3]) {
-                result.url = parts[3];
-            }
-            return result;
         }
-    } else {
-        // obj is not a string, so return as is
-        return obj;
+        var result = {
+            name: parts[1]
+        };
+        if (parts[2]) {
+            result.email = parts[2];
+        }
+        if (parts[3]) {
+            result.url = parts[3];
+        }
+        return result;
+        
     }
+    // obj is not a string, so return as is
+    return obj;
 }
 
 /**
@@ -131,10 +128,9 @@ function parsePersonString(obj) {
  * @return {String[]} words that matched
  */
 function containsWords(wordlist, str) {
-    var i;
-    var matches = [];
+    var i, re, matches = [];
     for (i = 0; i < wordlist.length; i++) {
-        var re = new RegExp("\\b" + wordlist[i] + "\\b", "i");
+        re = new RegExp("\\b" + wordlist[i] + "\\b", "i");
         if (re.exec(str)) {
             matches.push(wordlist[i]);
         }
@@ -180,7 +176,7 @@ function validate(path, options, callback) {
         
         readStream
             .pipe(unzip.Parse())
-            .on("error", function (exception) {
+            .on("error", function () {
                 // General error to report for problems reading the file
                 errors.push([Errors.INVALID_ZIP_FILE, path]);
                 callback(null, {

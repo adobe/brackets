@@ -22,10 +22,11 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50, browser: true, regexp: true */
 /*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         Commands            = require("command/Commands"),
@@ -41,11 +42,10 @@ define(function (require, exports, module) {
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
-        CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        nfs                     = null,
         _testWindow,
-        _doLoadExtensions,
-        nfs;
+        _doLoadExtensions;
     
     /**
      * Resolves a path string to a FileEntry or DirectoryEntry
@@ -183,8 +183,8 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        docToShim.addRef = function () { return undefined; };
+        docToShim.releaseRef = function () { return undefined; };
         
         return docToShim;
     }
@@ -431,9 +431,8 @@ define(function (require, exports, module) {
         
         if (Array.isArray(paths)) {
             return paths.map(prefixProjectPath);
-        } else {
-            return prefixProjectPath(paths);
         }
+        return prefixProjectPath(paths);
     }
     
     /**
@@ -456,9 +455,8 @@ define(function (require, exports, module) {
         
         if (Array.isArray(paths)) {
             return paths.map(removeProjectPath);
-        } else {
-            return removeProjectPath(paths);
         }
+        return removeProjectPath(paths);
     }
     
     function makeArray(arg) {
@@ -467,28 +465,6 @@ define(function (require, exports, module) {
         }
         
         return arg;
-    }
-    
-    /**
-     * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!FileEntry} entry File to open
-     * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
-     *  the file text without offset markup, the original file content, and the corresponding
-     *  file entry.
-     */
-    function parseOffsetsFromFile(entry) {
-        var result = new $.Deferred();
-        
-        FileUtils.readAsText(entry).done(function (text) {
-            var info = parseOffsetsFromText(text);
-            info.fileEntry = entry;
-            
-            result.resolve(info);
-        }).fail(function (err) {
-            result.reject(err);
-        });
-        
-        return result.promise();
     }
     
     /**
@@ -896,20 +872,21 @@ define(function (require, exports, module) {
         }
         if (!root) {
             return false;
-        } else if (!asLink && root.nodeType === 3) { // text node
+        }
+        if (!asLink && root.nodeType === 3) { // text node
             return root.textContent.indexOf(content) !== -1;
-        } else {
-            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+        }
+        if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+            return true;
+        }
+        
+        var children = root.childNodes;
+        for (i = 0; i < children.length; i++) {
+            if (findDOMText(children[i], content, asLink)) {
                 return true;
             }
-            var children = root.childNodes;
-            for (i = 0; i < children.length; i++) {
-                if (findDOMText(children[i], content, asLink)) {
-                    return true;
-                }
-            }
-            return false;
         }
+        return false;
     }
     
     beforeEach(function () {
@@ -941,9 +918,8 @@ define(function (require, exports, module) {
                 // selection and the position. We just check the position in that case.
                 if (this.isNot) {
                     return positionsMatch;
-                } else {
-                    return !selectionMoreThanOneCharacter && positionsMatch;
                 }
+                return !selectionMoreThanOneCharacter && positionsMatch;
             }
         });
     });

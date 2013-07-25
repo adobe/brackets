@@ -21,15 +21,15 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, todo: true, unparam: true, indent: 4, maxerr: 50 */
 /*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $  */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
@@ -120,7 +120,9 @@ define(function (require, exports, module) {
                 getHints: function (implicitChar) {
                     return { hints: ["mock hint"], match: null, selectInitial: false };
                 },
-                insertHint: function (hint) { }
+                insertHint: function (hint) {
+                    return undefined;
+                }
             };
             
             function expectMockHints() {
@@ -213,7 +215,6 @@ define(function (require, exports, module) {
                     CodeHintManager._getCodeHintList()._keydownHook(e);
 
                     // doesn't matter what was inserted, but line should be different
-                    var newPos = editor.getCursorPos();
                     lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
                     
@@ -304,9 +305,9 @@ define(function (require, exports, module) {
                     testWindow.$("body").click();
                     KeyBindingManager._handleKeyEvent({
                         keyCode: KeyEvent.DOM_VK_ENTER,
-                        stopImmediatePropagation: function () { },
-                        stopPropagation: function () { },
-                        preventDefault: function () { }
+                        stopImmediatePropagation: function () { return undefined; },
+                        stopPropagation: function () { return undefined; },
+                        preventDefault: function () { return undefined; }
                     });
                     
                     // Verify that after the keydown, the session is closed 
