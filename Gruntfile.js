@@ -173,9 +173,11 @@ module.exports = function (grunt) {
      * @param {string} bracketsAppPath
      */
     function _validateInstallPath(taskName, bracketsAppPath) {
+        bracketsAppPath = bracketsAppPath || grunt.option("target");
+        
         var platform = common.platform(),
             sample,
-            bracketsAppPathExists = grunt.file.exists(bracketsAppPath);
+            bracketsAppPathExists = !!(bracketsAppPath && grunt.file.exists(bracketsAppPath));
         
         if (!bracketsAppPath || !bracketsAppPathExists) {
             if (platform === "mac") {
@@ -190,7 +192,7 @@ module.exports = function (grunt) {
                 grunt.log.error("Path does not exist: " + bracketsAppPath);
             }
             
-            grunt.log.error("Usage: grunt " + taskName + ":" + sample);
+            grunt.log.error("Usage: grunt " + taskName + " --target=\"" + sample + "\"");
             
             return;
         }
@@ -201,18 +203,26 @@ module.exports = function (grunt) {
             return path.join(bracketsAppPath, "dev");
         }
     }
+
+    function _symlinkErrBack(done) {
+        return function (err) {
+            if (err.toString().indexOf("EPERM") >= 0) {
+                grunt.log.error("Please run command shell with \"Run as administrator\"");
+            }
+
+            grunt.log.error(err);
+            done(false);
+        }
+    }
     
     // task: dev-install
     grunt.registerTask("dev-install", "Direct brackets-shell installation to point to brackets git repository for development", function (bracketsAppPath) {
-        var done = this.async,
+        var done = this.async(),
             destPath = _validateInstallPath(this.name, bracketsAppPath);
-        
+
         if (destPath) {
             var promise,
-                errBack = function (err) {
-                    grunt.log.error(err);
-                    done(false);
-                };
+                errBack = _symlinkErrBack(done);
             
             if (grunt.file.exists(destPath)) {
                 // remove old symlink if it exists
@@ -222,7 +232,9 @@ module.exports = function (grunt) {
                 promise = q();
             }
             
-            promise.then(common.link(process.cwd(), destPath).then(done, errBack), errBack);
+            promise.then(function () {
+                return common.link(process.cwd(), destPath);
+            }).then(done, errBack);
         } else {
             done(false);
         }
@@ -235,10 +247,7 @@ module.exports = function (grunt) {
         
         if (destPath) {
             if (grunt.file.exists(destPath)) {
-                common.unlink(destPath).then(done, function (err) {
-                    grunt.log.error(err);
-                    done(false);
-                });
+                common.unlink(destPath).then(done, _symlinkErrBack(done));
             } else {
                 grunt.log.error("Path does not exist: " + destPath);
                 done(false);
