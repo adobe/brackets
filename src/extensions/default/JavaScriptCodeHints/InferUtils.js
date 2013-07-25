@@ -47,6 +47,9 @@ define(function (require, exports, module) {
          */
         function getParameters(newFnType) {
 
+            // work around define functions before use warning.
+            var inferTypeToString, processInferFnTypeParameters;
+            
             /**
              *
              * @param {!Array.<name: {string}, type: {string},
@@ -122,11 +125,18 @@ define(function (require, exports, module) {
              * @return {String}
              *
              */
-            function inferTypeToString(inferType) {
+            inferTypeToString = function (inferType) {
                 var result;
 
                 if (inferType instanceof infer.Prim) {
                     result = inferType.toString();
+                    if (result === "string") {
+                        result = "String";
+                    } else if (result === "number") {
+                        result = "Number";
+                    } else if (result === "boolean") {
+                        result = "Boolean";
+                    }
                 } else if (inferType instanceof infer.Arr) {
                     result = inferArrTypeToString(inferType);
                 } else {
@@ -134,7 +144,7 @@ define(function (require, exports, module) {
                 }
 
                 return result;
-            }
+            };
 
             /**
              * Convert an infer function type to a Google closure type string.
@@ -158,7 +168,7 @@ define(function (require, exports, module) {
              * @param {*} inferType - one of the Infer's types; infer.Fn, infer.Prim, infer.Arr, infer.ANull
              * @returns {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
              */
-            function processInferFnTypeParameters(inferType) {
+            processInferFnTypeParameters = function (inferType) {
                 var params = [],
                     i;
 
@@ -166,6 +176,10 @@ define(function (require, exports, module) {
                     var param = {},
                         name = inferType.argNames[i],
                         type = inferType.args[i];
+
+                    if (name === undefined) {
+                        name = 'arg' + (i + 1);
+                    }
 
                     if (name[name.length - 1] === "?") {
                         name = name.substring(0, name.length - 1);
@@ -184,14 +198,27 @@ define(function (require, exports, module) {
                 }
 
                 return params;
-            }
+            };
 
             if (newFnType && newFnType.indexOf("fn(") === 0) {
                 var params = Infer.withContext(cx, function () {
-                    var typeParser = new Infer.def.TypeParser(newFnType, null, null, true),
-                        inferType = typeParser.parseType("", true);
 
-                    return processInferFnTypeParameters(inferType);
+                    try {
+                        var typeParser = new Infer.def.TypeParser(newFnType, null, null, true),
+                            inferType = typeParser.parseType("", true);
+                        return processInferFnTypeParameters(inferType);
+                    } catch (e) {
+                        console.log(e.message);
+                        return [e.message];
+                    }
+
+                });
+
+                console.log("newFnType = " + newFnType);
+                console.log("convert to params:");
+
+                params.forEach(function (value) {
+                    console.log(value);
                 });
 
                 return params;

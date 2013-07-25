@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         JSCodeHints         = require("main"),
         Preferences         = require("Preferences"),
         ScopeManager        = require("ScopeManager"),
-        HintUtils           = require("HintUtils");
+        HintUtils           = require("HintUtils"),
+        FunctionHintManager = require("FunctionHintManager");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -336,6 +337,39 @@ define(function (require, exports, module) {
                 }
             });
             
+        }
+
+        /**
+         * Show a function hint based on the code at the cursor. Verify the
+         * hint matches the passed in value.
+         *
+         * @param {?Array.<{name: string, type: string}> expectedHint - array of
+         * records, where each element of the array describes a function parameter.
+         * If null, then no hint is expected.
+         */
+        function showAndVerifyFunctionHint(expectedHint)
+        {
+            var request = FunctionHintManager.popUpFunctionHint();
+            if (expectedHint === null) {
+                expect(request).toBe(null);
+                return;
+            }
+
+            request.done(function () {
+                var actualHint = JSCodeHints.getSession().getFunctionHint(),
+                    n = actualHint.length,
+                    i;
+
+                // compare params to expected params
+                expect(actualHint.length.toBe(expectedHint.length));
+
+                for (i = 0; i < n; i++) {
+
+                    expect(actualHint[i].name).toBe(expectedHint[i].name);
+                    expect(actualHint[i].type).toBe(expectedHint[i].type);
+                }
+
+            });
         }
 
         function setupTest(path, primePump) {
@@ -737,9 +771,8 @@ define(function (require, exports, module) {
                 
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funD(a: string, b: number) -> {x, y}"]);
+                    showAndVerifyFunctionHint([{name: "a", type: "String"}, {name: "b", type: "number"}]);
                 });
             });
 
@@ -821,9 +854,8 @@ define(function (require, exports, module) {
             it("should list function type defined from .prototype", function () {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["calc(a4: number, b4: number) -> number"]);
+                    showAndVerifyFunctionHint([{name: "a4", type: "number"}, {name: "b4", type: "number"}]);
                 });
             });
             
@@ -842,9 +874,8 @@ define(function (require, exports, module) {
                 
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["setAmountDue(amountDue: ?)"]);
+                    showAndVerifyFunctionHint([{name:"amountDue", type: "Object"}]);
                 });
             });
             
@@ -852,9 +883,8 @@ define(function (require, exports, module) {
                 var testPos = { line: 96, ch: 23 };
                 
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["innerFunc(arg: string) -> {t}"]);
+                    showAndVerifyFunctionHint([{name: "arg", type: "String"}]);
                 });
             });
             
@@ -864,7 +894,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["t() -> string"]);
+                    showAndVerifyFunctionHint([]);
                 });
                 
             });
@@ -887,9 +917,8 @@ define(function (require, exports, module) {
                 var testPos = { line: 123, ch: 11 };
                 
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funFuncArg(f: fn() -> number) -> number"]);
+                    showAndVerifyFunctionHint([{name: "f", type: "function():number"}]);
                 });
             });
 
@@ -898,9 +927,8 @@ define(function (require, exports, module) {
                 var testPos = { line: 139, ch: 12 };
                 
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funFunc2Arg(f: fn(s: string, n: number) -> string)"]);
+                    showAndVerifyFunctionHint([{name: "f", type: "function(String s, number n):String)"}]);
                 });
             });
 
@@ -920,9 +948,8 @@ define(function (require, exports, module) {
                 
                 testDoc.replaceRange("funArr.index1(", start);
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["index1() -> number"]);
+                    showAndVerifyFunctionHint([]);
                 });
             });
 
@@ -1061,7 +1088,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     testEditor.setCursorPos(func);
-                    expectNoHints(JSCodeHints.jsHintProvider);
+                    showAndVerifyFunctionHint(null);
                     testEditor.setCursorPos(param);
                     expectNoHints(JSCodeHints.jsHintProvider);
                     testEditor.setCursorPos(variable);
@@ -1113,9 +1140,8 @@ define(function (require, exports, module) {
                     testPos = { line: 80, ch: 24 };
                 testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["setAmountDue(amountDue: number)"]);
+                    showAndVerifyFunctionHint([{name: "amountDue", type: "number"}]);
                 });
             });
 
@@ -1147,9 +1173,8 @@ define(function (require, exports, module) {
                 var start = { line: 36, ch: 12 };
                 
                 testEditor.setCursorPos(start);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["foo(a: number) -> string"]);
+                    showAndVerifyFunctionHint([{name: "a", type: "number"}]);
                 });
             });
             
@@ -1157,9 +1182,8 @@ define(function (require, exports, module) {
                 var start = { line: 22, ch: 17 };
                 
                 testEditor.setCursorPos(start);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funD(a: string, b: number) -> {x, y}"]);
+                    showAndVerifyFunctionHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
                 });
             });
 
@@ -1167,9 +1191,8 @@ define(function (require, exports, module) {
                 var start = { line: 23, ch: 17 };
                 
                 testEditor.setCursorPos(start);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funE(paramE1: D1, paramE2: number)"]);
+                    showAndVerifyFunctionHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
                 });
             });
 
