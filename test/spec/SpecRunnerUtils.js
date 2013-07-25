@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, jasmine, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -103,6 +103,25 @@ define(function (require, exports, module) {
      */
     function getTempDirectory() {
         return getTestPath("/temp");
+    }
+
+    /**
+     * Create the temporary unit test project directory.
+     */
+    function createTempDirectory() {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            brackets.fs.makedir(getTempDirectory(), 0, function (err) {
+                if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve();
+                }
+            });
+        });
+
+        waitsForDone(deferred, "Create temp directory", 500);
     }
     
     function getBracketsSourceRoot() {
@@ -280,6 +299,10 @@ define(function (require, exports, module) {
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
+            };
+
+            _testWindow.closeAllDocuments = function closeAllDocuments() {
+                _testWindow.brackets.test.DocumentManager.closeAll();
             };
         });
 
@@ -911,6 +934,32 @@ define(function (require, exports, module) {
             return false;
         }
     }
+
+    /**
+     * Counts the number of active specs in the current suite. Includes all
+     * descendants.
+     * @param {(jasmine.Suite|jasmine.Spec)} suiteOrSpec
+     * @return {number}
+     */
+    function countSpecs(suiteOrSpec) {
+        var children = suiteOrSpec.children && typeof suiteOrSpec.children === "function" && suiteOrSpec.children();
+
+        if (Array.isArray(children)) {
+            var childCount = 0;
+
+            children.forEach(function (child) {
+                childCount += countSpecs(child);
+            });
+
+            return childCount;
+        }
+
+        if (jasmine.getEnv().specFilter(suiteOrSpec)) {
+            return 1;
+        }
+
+        return 0;
+    }
     
     beforeEach(function () {
         this.addMatchers({
@@ -955,6 +1004,7 @@ define(function (require, exports, module) {
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
+    exports.createTempDirectory             = createTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
@@ -981,4 +1031,5 @@ define(function (require, exports, module) {
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
+    exports.countSpecs                      = countSpecs;
 });

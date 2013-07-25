@@ -310,6 +310,10 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 // Unique key for unit testing
                 localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+
+                // Reset preferences from previous test runs
+                localStorage.removeItem("doLoadPreferences");
+                localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
             });
             
             afterEach(function () {
