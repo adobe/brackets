@@ -653,6 +653,12 @@
                 .user-select(text);
                 cursor: text;
             }
+            .platform-win & {  // work around #4554
+                .ext-name, .ext-desc {
+                    font-weight: normal;
+                    color: #2e2e2e;
+                }
+            }
             .muted {
                 color: #888;
             }
