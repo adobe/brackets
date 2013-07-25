@@ -17,7 +17,7 @@ and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/mast
 
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
-on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets' blog](http://blog.brackets.io/).
+on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
 
 
 How to install and run Brackets
