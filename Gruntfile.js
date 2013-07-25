@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-/*jslint vars:true*/
+/*jslint vars:true, nomen:true*/
 /*global module, require, process*/
 module.exports = function (grunt) {
     'use strict';
@@ -166,13 +166,15 @@ module.exports = function (grunt) {
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
     
-    // task: hack
-    grunt.registerTask("hack", "Direct brackets-shell installation to point to brackets git repository for development", function (bracketsAppPath) {
-        var done = this.async,
-            platform = common.platform(),
+    /**
+     * @private
+     * Validate path to a Brackets install. Optionally print usage
+     * @param {string} bracketsAppPath
+     */
+    function _validateInstallPath(taskName, bracketsAppPath) {
+        var platform = common.platform(),
             sample,
-            bracketsAppPathExists = grunt.file.exists(bracketsAppPath),
-            destPath;
+            bracketsAppPathExists = grunt.file.exists(bracketsAppPath);
         
         if (!bracketsAppPath || !bracketsAppPathExists) {
             if (platform === "mac") {
@@ -187,22 +189,54 @@ module.exports = function (grunt) {
                 grunt.log.error("Path does not exist: " + bracketsAppPath);
             }
             
-            grunt.log.error("Usage: grunt hack:" + sample);
-            done(false);
+            grunt.log.error("Usage: grunt " + taskName + ":" + sample);
             
             return;
         }
         
-        if (platform === "mac") {
-            destPath = path.join(bracketsAppPath, "Contents", "dev");
+        if (common.platform() === "mac") {
+            return path.join(bracketsAppPath, "Contents", "dev");
         } else {
-            destPath = path.join(bracketsAppPath, "dev");
+            return path.join(bracketsAppPath, "dev");
         }
+    }
+    
+    // task: dev-install
+    grunt.registerTask("dev-install", "Direct brackets-shell installation to point to brackets git repository for development", function (bracketsAppPath) {
+        var done = this.async,
+            destPath = _validateInstallPath(this.name, bracketsAppPath);
         
-        common.link(process.cwd(), destPath).then(done, function (err) {
-            grunt.log.error(err);
+        if (destPath) {
+            // remove old symlink if it exists
+            if (grunt.file.exists(destPath)) {
+                grunt.file["delete"](destPath);
+            }
+            
+            common.link(process.cwd(), destPath).then(done, function (err) {
+                grunt.log.error(err);
+                done(false);
+            });
+        } else {
             done(false);
-        });
+        }
+    });
+    
+    // task: dev-uninstall
+    grunt.registerTask("dev-uninstall", "Remove symlink to brackets git repository", function (bracketsAppPath) {
+        var done = this.async(),
+            destPath = _validateInstallPath(this.name, bracketsAppPath);
+        
+        if (destPath) {
+            if (grunt.file.exists(destPath)) {
+                common.unlink(destPath).then(done, function (err) {
+                    grunt.log.error(err);
+                    done(false);
+                });
+            } else {
+                grunt.log.error("Path does not exist: " + destPath);
+                done(false);
+            }
+        }
     });
 
     // Default task.

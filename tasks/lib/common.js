@@ -70,6 +70,7 @@ module.exports = function (grunt) {
     }
 
     common.link         = link;
+    common.unlink       = q.denodeify(fs.unlink);
     common.writeJSON    = writeJSON;
     common.resolve      = resolve;
     common.platform     = platform;
