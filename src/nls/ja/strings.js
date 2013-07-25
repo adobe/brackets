@@ -150,7 +150,7 @@ define({
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
-	"KEYBOARD_SPACE": "スペース",
+	"KEYBOARD_SPACE": "Space",
     
     /**
      * StatusBar strings
