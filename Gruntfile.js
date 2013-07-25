@@ -20,11 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-/*global module, require*/
+/*jslint vars:true, nomen:true*/
+/*global module, require, process*/
 module.exports = function (grunt) {
     'use strict';
 
-    var common = require("./tasks/lib/common")(grunt);
+    var common  = require("./tasks/lib/common")(grunt),
+        path    = require("path"),
+        q       = require("q");
     
     // Project configuration.
     grunt.initConfig({
@@ -163,6 +166,94 @@ module.exports = function (grunt) {
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+    
+    /**
+     * @private
+     * Validate path to a Brackets install. Optionally print usage
+     * @param {string} bracketsAppPath
+     */
+    function _validateInstallPath(taskName, bracketsAppPath) {
+        bracketsAppPath = bracketsAppPath || grunt.option("target");
+        
+        var platform = common.platform(),
+            sample,
+            bracketsAppPathExists = !!(bracketsAppPath && grunt.file.exists(bracketsAppPath));
+        
+        if (!bracketsAppPath || !bracketsAppPathExists) {
+            if (platform === "mac") {
+                sample = "/Applications/Brackets Sprint 28.app";
+            } else if (platform === "win") {
+                sample = "C:\\Program Files (x86)\\Brackets Sprint 28";
+            } else {
+                sample = "/usr/lib/brackets";
+            }
+            
+            if (!bracketsAppPathExists) {
+                grunt.log.error("Path does not exist: " + bracketsAppPath);
+            }
+            
+            grunt.log.error("Usage: grunt " + taskName + " --target=\"" + sample + "\"");
+            
+            return;
+        }
+        
+        if (common.platform() === "mac") {
+            return path.join(bracketsAppPath, "Contents", "dev");
+        } else {
+            return path.join(bracketsAppPath, "dev");
+        }
+    }
+
+    function _symlinkErrBack(done) {
+        return function (err) {
+            if (err.toString().indexOf("EPERM") >= 0) {
+                grunt.log.error("Please run command shell with \"Run as administrator\"");
+            }
+
+            grunt.log.error(err);
+            done(false);
+        };
+    }
+    
+    // task: dev-install
+    grunt.registerTask("dev-install", "Direct brackets-shell installation to point to brackets git repository for development", function (bracketsAppPath) {
+        var done = this.async(),
+            destPath = _validateInstallPath(this.name, bracketsAppPath);
+
+        if (destPath) {
+            var promise,
+                errBack = _symlinkErrBack(done);
+            
+            if (grunt.file.exists(destPath)) {
+                // remove old symlink if it exists
+                promise = common.unlink(destPath);
+            } else {
+                // standalone promise
+                promise = q();
+            }
+            
+            promise.then(function () {
+                return common.link(process.cwd(), destPath);
+            }).then(done, errBack);
+        } else {
+            done(false);
+        }
+    });
+    
+    // task: dev-uninstall
+    grunt.registerTask("dev-uninstall", "Remove symlink to brackets git repository", function (bracketsAppPath) {
+        var done = this.async(),
+            destPath = _validateInstallPath(this.name, bracketsAppPath);
+        
+        if (destPath) {
+            if (grunt.file.exists(destPath)) {
+                common.unlink(destPath).then(done, _symlinkErrBack(done));
+            } else {
+                grunt.log.error("Path does not exist: " + destPath);
+                done(false);
+            }
+        }
+    });
 
     // Default task.
     grunt.registerTask('default', ['test']);

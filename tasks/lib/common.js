@@ -20,13 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
- /*global module, require, process*/
+/*jslint vars:true, nomen: true*/
+/*global module, require, process*/
 module.exports = function (grunt) {
     "use strict";
 
     var common      = {},
         path        = require("path"),
+        fs          = require("fs"),
+        q           = require("q"),
         _platform;
+    
+    // cross-platform symbolic link
+    var link = (function () {
+        var typeArg,
+            symlink;
+        
+        if (process.platform === "win32") {
+            typeArg = "junction";
+        }
+        
+        symlink = q.denodeify(fs.symlink);
+        
+        return function (srcpath, destpath) {
+            return symlink(srcpath, destpath, typeArg);
+        };
+    }());
         
     function writeJSON(grunt, path, obj) {
         grunt.file.write(path, JSON.stringify(obj, null, "    "));
@@ -50,6 +69,8 @@ module.exports = function (grunt) {
         return _platform;
     }
 
+    common.link         = link;
+    common.unlink       = q.denodeify(fs.unlink);
     common.writeJSON    = writeJSON;
     common.resolve      = resolve;
     common.platform     = platform;
