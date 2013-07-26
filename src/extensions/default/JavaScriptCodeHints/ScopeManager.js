@@ -1290,6 +1290,7 @@ define(function (require, exports, module) {
         $.when(fnTypePromise).done(
             function (fnType) {
                 session.setFnType(fnType);
+                session.setFunctionCallPos(functionOffset);
                 $deferredHints.resolveWith(null, [fnType]);
             }
         ).fail(function () {

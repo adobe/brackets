@@ -30,12 +30,14 @@ importScripts("thirdparty/requirejs/require.js");
     "use strict";
     
     var MessageIds;
-    var Tern;
+    var Tern, Infer;
     require(["./MessageIds"], function (messageIds) {
         MessageIds = messageIds;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
+        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment"],
+            function (tern, infer, requirejs, docComment) {
             Tern = tern;
+            Infer = infer;
 
             var ternServer  = null;
         
@@ -292,7 +294,200 @@ importScripts("thirdparty/requirejs/require.js");
                     }
                 });
             }
-        
+
+            /**
+             *  Given a Tern formatted function type string, convert it to an array of Objects, where each object describes
+             *  a parameter.
+             *
+             * @param {String} newFnType - Tern formatted function type string.
+             * @returns {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+             */
+            function getParameters(newFnType) {
+
+                // work around define functions before use warning.
+                var inferTypeToString, processInferFnTypeParameters;
+
+                /**
+                 *
+                 * @param {!Array.<name: {string}, type: {string},
+             * isOptional: {boolean}>} params - array of parameter descriptors
+                 * @param {boolean=} typesOnly - only show parameter types. The
+                 * default behavior is to include both parameter names and types.
+                 * @returns {string} parameters formatted as a string
+                 */
+                function formatParams(params, typesOnly) {
+                    var result = "";
+
+                    params.forEach(function (value, i) {
+
+                        if (value.isOptional) {
+                            if (i > 0) {
+                                result += " ";
+                            }
+                            result += "[";
+                        }
+
+                        if (i > 0) {
+                            result += ", ";
+                        }
+
+                        var type = value.type;
+
+                        result += type;
+
+                        if (!typesOnly) {
+                            result += " " + value.name;
+                        }
+
+                        if (value.isOptional) {
+                            result += "]";
+                        }
+                    });
+
+                    return result;
+                }
+
+                /**
+                 *  Convert an infer array type to a string.
+                 *
+                 *  Formatted using google closure style. For example:
+                 *
+                 *  "Array.<string, number>"
+                 *
+                 * @param {Infer.Arr} inferArrType
+                 *
+                 * @return {String} - array formatted in google closure style.
+                 *
+                 */
+                function inferArrTypeToString(inferArrType) {
+                    var result = "Array.<";
+
+                    inferArrType.props["<i>"].types.forEach(function (value, i) {
+                        if (i > 0) {
+                            result += ", ";
+                        }
+                        result += inferTypeToString(value);
+                    });
+
+                    // workaround case where types is zero length
+                    if (inferArrType.props["<i>"].types.length === 0) {
+                        result += "Object";
+                    }
+                    result += ">";
+
+                    return result;
+                }
+
+                /**
+                 *  Convert an infer type to a string.
+                 *
+                 * @param {*} inferType - one of the Infer's types; infer.Prim, infer.Arr, infer.ANull. infer.Fn functions are
+                 * not handled here.
+                 *
+                 * @return {String}
+                 *
+                 */
+                inferTypeToString = function (inferType) {
+                    var result;
+
+                    if (inferType instanceof infer.Prim) {
+                        result = inferType.toString();
+                        if (result === "string") {
+                            result = "String";
+                        } else if (result === "number") {
+                            result = "Number";
+                        } else if (result === "boolean") {
+                            result = "Boolean";
+                        }
+                    } else if (inferType instanceof infer.Arr) {
+                        result = inferArrTypeToString(inferType);
+                    } else if (inferType instanceof Infer.Fn) {
+                        result = inferFnTypeToString(inferType);
+                    } else if (inferType instanceof infer.Obj) {
+                        result = inferType.name;
+                    } else {
+                        result = "Object";
+                    }
+
+                    return result;
+                };
+
+                /**
+                 * Convert an infer function type to a Google closure type string.
+                 *
+                 * @param {Infer.Fn} inferType - type to convert.
+                 * @return {string} - function type as a string.
+                 */
+                function inferFnTypeToString(inferType) {
+                    var result = "function(",
+                        params = processInferFnTypeParameters(inferType);
+
+                    result += formatParams(params, true);
+                    result += "):";
+                    result += inferTypeToString(inferType.retval);
+                    return result;
+                }
+
+                /**
+                 * Convert an infer function type to string.
+                 *
+                 * @param {*} inferType - one of the Infer's types; infer.Fn, infer.Prim, infer.Arr, infer.ANull
+                 * @returns {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+                 */
+                processInferFnTypeParameters = function (inferType) {
+                    var params = [],
+                        i;
+
+                    for (i = 0; i < inferType.args.length; i++) {
+                        var param = {},
+                            name = inferType.argNames[i],
+                            type = inferType.args[i];
+
+                        if (name === undefined) {
+                            name = 'arg' + (i + 1);
+                        }
+
+                        if (name[name.length - 1] === "?") {
+                            name = name.substring(0, name.length - 1);
+                            param.isOptional = true;
+                        }
+
+                        param.name = name;
+                        param.type = inferTypeToString(type);
+                        params.push(param);
+                    }
+
+                    return params;
+                };
+
+                if (newFnType && newFnType.indexOf("fn(") === 0) {
+                    var params = Infer.withContext(ternServer.cx, function () {
+
+                        try {
+                            var typeParser = new Infer.def.TypeParser(newFnType, null, null, true),
+                                inferType = typeParser.parseType("", true);
+                            return processInferFnTypeParameters(inferType);
+                        } catch (e) {
+                            _log(e.message);
+                            return [{name: e.message, type: ""}];
+                        }
+
+                    });
+
+                    _log("newFnType = " + newFnType);
+                    _log("convert to params:");
+
+                    params.forEach(function (value) {
+                        _log(value);
+                    });
+
+                    return params;
+                } else {
+                    return [];
+                }
+
+            }
+
             /**
              * Get the function type for the given offset
              *
@@ -316,7 +511,7 @@ importScripts("thirdparty/requirejs/require.js");
                     if (error) {
                         _log("Error returned from Tern 'type' request: " + error);
                     } else {
-                        fnType = data.type;
+                        fnType = getParameters(data.type);
                     }
         
                     // Post a message back to the main thread with the completions

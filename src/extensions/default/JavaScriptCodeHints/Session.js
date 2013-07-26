@@ -630,28 +630,35 @@ define(function (require, exports, module) {
      * @param {string} newFnType - the new tern function hint.
      */
     Session.prototype.setFnType = function (newFnType) {
-        this.fnType = InferUtils.getParameters(newFnType);
+        this.fnType = newFnType; //InferUtils.getParameters(newFnType);
     };
+
+    /**
+     * The position of the function call for the current fnType.
+     *
+     * @param functionCallPos
+     */
+    Session.prototype.setFunctionCallPos = function (functionCallPos) {
+        this.functionCallPos = functionCallPos;
+    }
 
     /**
      * Get the function type hint.  This will format the hint, showing the
      * parameter at the cursor in bold.
      *
-     * @param {{line: number, ch: number}} functionCallPos - the position of the current
-     * function call being hinted.
      * @return {{parameters: Array<{name: string, type: string, isOptional: boolean}>,
      * currentIndex: number}} An Object where the
      * "parameters" property is an array of parameter objects;
      * the "currentIndex" property index of the hint the cursor is on, may be
      * -1 if the cursor is on the function identifier.
      */
-    Session.prototype.getParameterHint = function (functionCallPos) {
+    Session.prototype.getParameterHint = function () {
         var fnHint = this.fnType,
             cursor = this.getCursor(),
-            token = this.getToken(functionCallPos),
-            start = {line: functionCallPos.line, ch: token.start},
+            token = this.getToken(this.functionCallPos),
+            start = {line: this.functionCallPos.line, ch: token.start},
             fragment = this.editor.document.getRange(start,
-                {line: functionCallPos.line + 10, ch: 0});
+                {line: this.functionCallPos.line + 10, ch: 0});
 
         var ast;
         try {
@@ -715,7 +722,7 @@ define(function (require, exports, module) {
                 }
 
                 // if there are no args, then figure out if we are on the function identifier
-                if (n === 0 && cursorOffset > this.getOffsetFromCursor(functionCallPos)) {
+                if (n === 0 && cursorOffset > this.getOffsetFromCursor(this.functionCallPos)) {
                     currentArg = 0;
                 }
             }

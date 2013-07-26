@@ -160,6 +160,17 @@ require(["MyModule"], function (myModule) {
     var x = myModule.c;
 });
 
+
+/**
+ *  Test record type google annoations.
+ *
+ *  @param {{line: number, type: string}} t
+ */
+function testRecordTypeAnnotation(t) {
+    'use strict';
+    
+}
+
 // Function hint testing
 function functionHintTesting() {
     "use strict";
@@ -167,6 +178,9 @@ function functionHintTesting() {
     // simple function with primative arguments
     s.lastIndexOf(s);
 
+    // function with record type argument
+    testRecordTypeAnnotation();
+    
     // function with a function argument
     arr.sort();
 
