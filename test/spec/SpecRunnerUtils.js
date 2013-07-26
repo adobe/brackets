@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
         nfs;
@@ -961,6 +962,90 @@ define(function (require, exports, module) {
         return 0;
     }
     
+    
+    /**
+     * @private
+     * Adds a new before all or after all function to the current suite. If requires it creates a new object to
+     * store the before all and after all functions and a spec counter for the current suite.
+     * @param {string} type  "beforeAll" or "afterAll"
+     * @param {function} func  The function to store
+     */
+    function _addSuiteFunction(type, func) {
+        var suiteId = jasmine.getEnv().currentSuite.id;
+        if (!_testSuites[suiteId]) {
+            _testSuites[suiteId] = {
+                beforeAll   : [],
+                afterAll    : [],
+                specCounter : null
+            };
+        }
+        _testSuites[suiteId][type].push(func);
+    }
+    
+    /**
+     * Utility for tests that need to open a window or do something before every test in a suite
+     * @param {function} func
+     */
+    window.beforeAll = function (func) {
+        _addSuiteFunction("beforeAll", func);
+    };
+    
+    /**
+     * Utility for tests that need to close a window or do something after every test in a suite
+     * @param {function} func
+     */
+    window.afterAll = function (func) {
+        _addSuiteFunction("afterAll", func);
+    };
+    
+    /**
+     * @private
+     * Calls each function in the given array of functions
+     * @param {Array.<function>} functions
+     */
+    function _callFunctions(functions) {
+        functions.forEach(function (func) {
+            func.apply(this);
+        });
+    }
+    
+    /**
+     * Calls the before all functions and initialized the spec counter for the suites with the spec counter not
+     * initialized and parent of the currently running spec.
+     */
+    function runBeforeAll() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        while (suite) {
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
+                _callFunctions(_testSuites[suite.id].beforeAll);
+                _testSuites[suite.id].specCounter = countSpecs(suite);
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    /**
+     * Reduces the spec counter of the suites parent of the current running spec (if available), and when the counter
+     * reached 0, it calls the after all functions and removes the object from the test suites.
+     */
+    function runAfterAll() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        while (suite) {
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
+                _testSuites[suite.id].specCounter--;
+                
+                if (_testSuites[suite.id].specCounter === 0) {
+                    _callFunctions(_testSuites[suite.id].afterAll);
+                    delete _testSuites[suite.id];
+                }
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -1032,4 +1117,6 @@ define(function (require, exports, module) {
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
     exports.countSpecs                      = countSpecs;
+    exports.runBeforeAll                    = runBeforeAll;
+    exports.runAfterAll                     = runAfterAll;
 });
