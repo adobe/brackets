@@ -154,6 +154,7 @@ define(function (require, exports, module) {
 
             runs(function () { callback(hintList); });
         }
+
         /*
          * Test if hints should be closed or not closed at a given position.
          *
@@ -340,33 +341,65 @@ define(function (require, exports, module) {
         }
 
         /**
+         * Verify there is no parameter hint at the current cursor.
+         */
+        function expectNoParameterHint() {
+            expect(ParameterHintManager.popUpHint()).toBe(null);
+        }
+
+        /*
+         * Wait for a hint response object to resolve, then apply a callback
+         * to the result
+         *
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Function} callback - the callback to apply to the resolved
+         *      hint response object
+         */
+        function _waitForParameterHint(hintObj, callback) {
+            var complete = false,
+                hint = null;
+
+            hintObj.done(function () {
+                hint = JSCodeHints.getSession().getParameterHint();
+                complete = true;
+            });
+
+            waitsFor(function () {
+                return complete;
+            }, "Expected parameter hint did not resolve", 3000);
+
+            runs(function () { callback(hint); });
+        }
+
+        /**
          * Show a function hint based on the code at the cursor. Verify the
          * hint matches the passed in value.
          *
-         * @param {?Array.<{name: string, type: string}> expectedHint - array of
+         * @param {?Array.<{name: string, type: string}> expectedParams - array of
          * records, where each element of the array describes a function parameter.
          * If null, then no hint is expected.
          */
-        function popUpAndVerifyParameterHint(expectedHint)
+        function expectParameterHint(expectedParams)
         {
             var request = ParameterHintManager.popUpHint();
-            if (expectedHint === null) {
+            if (expectedParams === null) {
                 expect(request).toBe(null);
                 return;
             }
 
-            request.done(function () {
-                var actualHint = JSCodeHints.getSession().getParameterHint(),
-                    n = actualHint.length,
+            _waitForParameterHint(request, function (hint) {
+                var params = hint.parameters,
+                    n = params.length,
                     i;
 
                 // compare params to expected params
-                expect(actualHint.length.toBe(expectedHint.length));
+                expect(params.length).toBe(expectedParams.length);
 
                 for (i = 0; i < n; i++) {
 
-                    expect(actualHint[i].name).toBe(expectedHint[i].name);
-                    expect(actualHint[i].type).toBe(expectedHint[i].type);
+                    expect(params[i].name).toBe(expectedParams[i].name);
+                    expect(params[i].type).toBe(expectedParams[i].type);
                 }
 
             });
@@ -772,7 +805,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "a", type: "String"}, {name: "b", type: "number"}]);
+                    expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
                 });
             });
 
@@ -855,7 +888,7 @@ define(function (require, exports, module) {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "a4", type: "number"}, {name: "b4", type: "number"}]);
+                    expectParameterHint([{name: "a4", type: "Number"}, {name: "b4", type: "Number"}]);
                 });
             });
             
@@ -875,7 +908,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name:"amountDue", type: "Object"}]);
+                    expectParameterHint([{name:"amountDue", type: "Object"}]);
                 });
             });
             
@@ -884,7 +917,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "arg", type: "String"}]);
+                    expectParameterHint([{name: "arg", type: "String"}]);
                 });
             });
             
@@ -894,7 +927,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    popUpAndVerifyParameterHint([]);
+                    expectParameterHint([]);
                 });
                 
             });
@@ -918,17 +951,17 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "f", type: "function():number"}]);
+                    expectParameterHint([{name: "f", type: "function(): number"}]);
                 });
             });
 
-            // parameter type anotation tests
+            // parameter type annotation tests
             it("should list parameter function type and best guess for function call/return types", function () {
                 var testPos = { line: 139, ch: 12 };
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "f", type: "function(String s, number n):String)"}]);
+                    expectParameterHint([{name: "f", type: "function(String, Number):String"}]);
                 });
             });
 
@@ -949,7 +982,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funArr.index1(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([]);
+                    expectParameterHint([]);
                 });
             });
 
@@ -1088,7 +1121,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     testEditor.setCursorPos(func);
-                    popUpAndVerifyParameterHint(null);
+                    expectNoParameterHint();
                     testEditor.setCursorPos(param);
                     expectNoHints(JSCodeHints.jsHintProvider);
                     testEditor.setCursorPos(variable);
@@ -1141,7 +1174,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "amountDue", type: "number"}]);
+                    expectParameterHint([{name: "amountDue", type: "Number"}]);
                 });
             });
 
@@ -1174,7 +1207,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "a", type: "number"}]);
+                    expectParameterHint([{name: "a", type: "Number"}]);
                 });
             });
             
@@ -1183,7 +1216,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
+                    expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
                 });
             });
 
@@ -1192,7 +1225,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    popUpAndVerifyParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
+                    expectParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
                 });
             });
 

@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint undef: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets */
 
 define(function (require, exports, module) {
@@ -54,9 +54,11 @@ define(function (require, exports, module) {
              *
              * @param {!Array.<name: {string}, type: {string},
              * isOptional: {boolean}>} params - array of parameter descriptors
+             * @param {boolean=} typesOnly - only show parameter types. The
+             * default behavior is to include both parameter names and types.
              * @returns {string} parameters formatted as a string
              */
-            function formatParams(params) {
+            function formatParams(params, typesOnly) {
                 var result = "";
 
                 params.forEach(function (value, i) {
@@ -75,7 +77,10 @@ define(function (require, exports, module) {
                     var type = value.type;
 
                     result += type;
-                    result += " " + value.name;
+
+                    if (!typesOnly) {
+                        result += " " + value.name;
+                    }
 
                     if (value.isOptional) {
                         result += "]";
@@ -156,8 +161,8 @@ define(function (require, exports, module) {
                 var result = "function(",
                     params = processInferFnTypeParameters(inferType);
 
-                result += formatParams(params);
-                result += "):";
+                result += formatParams(params, true);
+                result += "): ";
                 result += inferTypeToString(inferType.retval);
                 return result;
             }
@@ -209,7 +214,7 @@ define(function (require, exports, module) {
                         return processInferFnTypeParameters(inferType);
                     } catch (e) {
                         console.log(e.message);
-                        return [e.message];
+                        return [{name: e.message, type: ""}];
                     }
 
                 });

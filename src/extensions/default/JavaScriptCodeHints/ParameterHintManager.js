@@ -21,7 +21,7 @@
  *
  */
 
-/*jslint undef: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
@@ -100,8 +100,15 @@ define(function (require, exports, module) {
             top           = ypos - hintHeight - POINTER_TOP_OFFSET,
             left          = xpos,
             $editorHolder = $("#editor-holder"),
-            editorLeft    = $editorHolder.offset().left;
+            editorLeft;
 
+        if ($editorHolder.offset() === undefined) {
+            // this happens in jasmine tests that run
+            // without a windowed document.
+            return;
+        }
+
+        editorLeft = $editorHolder.offset().left;
         left = Math.max(left, editorLeft);
         left = Math.min(left, editorLeft + $editorHolder.width() - hintWidth);
 
@@ -276,12 +283,15 @@ define(function (require, exports, module) {
         hintState.functionCallPos = functionInfo.functionCallPos;
 
         var request = null;
+        var $deferredPopUp = $.Deferred();
+
         if (!hint) {
             request = ScopeManager.requestFunctionHint(session, functionInfo.functionCallPos);
         } else {
             session.setFnType(hint);
             request = $.Deferred();
             request.resolveWith(null, [hint]);
+            $deferredPopUp.resolveWith(null);
         }
 
         request.done(function (fnType) {
@@ -297,9 +307,10 @@ define(function (require, exports, module) {
             hintState.fnType = fnType;
 
             $(session.editor).on("cursorActivity", handleCursorActivity);
+            $deferredPopUp.resolveWith(null);
         });
 
-        return request;
+        return $deferredPopUp;
     }
 
     /**
