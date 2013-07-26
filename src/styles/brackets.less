@@ -906,35 +906,35 @@ a, img {
 
 /* Linting panel & status bar indicator */
 
-#status-indicators #jslint-status {
+#status-indicators #lint-status {
     border: none;
     cursor: default;
     width: 13px;
 }
 
-.jslint-disabled {
+.lint-disabled {
     background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
     pointer-events: none;
 }
 
-.jslint-errors {
+.lint-errors {
     background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
 }
 
-.jslint-errors:hover {
+.lint-errors:hover {
     background-color: rgba(0, 0, 0, 0.03);
 }
 
-.jslint-errors:active {
+.lint-errors:active {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-.jslint-valid {
+.lint-valid {
     background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
     pointer-events: none;
 }
 
-#jslint-results {
+#errors-panel {
     .user-select(text);  // allow selecting error messages for easy web searching
     .line {
         text-align: right;  // make line number line up with editor line numbers

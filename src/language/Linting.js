@@ -53,14 +53,22 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
-        JSLintTemplate          = require("text!htmlContent/linting-panel.html"),
+        PanelTemplate           = require("text!htmlContent/linting-panel.html"),
         ResultsTemplate         = require("text!htmlContent/linting-results-table.html");
     
-    var INDICATOR_ID = "jslint-status",
+    var INDICATOR_ID = "lint-status",
         defaultPrefs = {
             enabled: brackets.config["linting.enabled_by_default"],
             collapsed: false
         };
+    
+    /** Values for linting error's 'type' property */
+    var Type = {
+        /** Unambiguous error, such as a syntax error */
+        ERROR: "lint_type_error",
+        /** Maintainability issue, probable error / bad smell, etc. */
+        WARNING: "line_type_warning"
+    };
     
     
     /**
@@ -106,7 +114,7 @@ define(function (require, exports, module) {
     var _lastResult;
     
     /**
-     * Enable or disable the "Go to First JSLint Error" command
+     * Enable or disable the "Go to First Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
     function setGotoEnabled(gotoEnabled) {
@@ -123,7 +131,8 @@ define(function (require, exports, module) {
      * @param {string} languageId
      * @param {{name:string, scanFile:function(string, string):{errors:Array, aborted:boolean}} provider
      *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, level:?enum }
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
      */
     function registerLinter(languageId, provider) {
         if (_providers[languageId]) {
@@ -139,7 +148,7 @@ define(function (require, exports, module) {
     function run() {
         if (!_enabled) {
             Resizer.hide($lintResults);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.LINT_DISABLED);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
         }
         
@@ -178,12 +187,12 @@ define(function (require, exports, module) {
                     .empty()
                     .append(html)
                     .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-                    .on("click", function (e) {
+                    .on("click", "tr", function (e) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
                         }
                         
-                        $selectedRow  = $(e.target).closest("tr");
+                        $selectedRow  = $(e.currentTarget);
                         $selectedRow.addClass("selected");
                         var lineTd    = $selectedRow.find("td.line");
                         var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
@@ -194,12 +203,13 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
+                $lintResults.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
                 if (!_collapsed) {
                     Resizer.show($lintResults);
-                    $lintResults.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
                 }
+                
                 if (result.errors.length === 1) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
                 } else {
                     // If linter was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
                     var numberOfErrors = result.errors.length;
@@ -208,14 +218,14 @@ define(function (require, exports, module) {
                         numberOfErrors--;
                         numberOfErrors += "+";
                     }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors",
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors",
                         StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numberOfErrors));
                 }
                 setGotoEnabled(true);
             
             } else {
                 Resizer.hide($lintResults);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
+                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
                 setGotoEnabled(false);
             }
 
@@ -225,9 +235,9 @@ define(function (require, exports, module) {
             // No linting provider for current file
             Resizer.hide($lintResults);
             if (language) {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
+                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
             } else {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.NOTHING_TO_LINT);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", Strings.NOTHING_TO_LINT);
             }
             setGotoEnabled(false);
         }
@@ -240,16 +250,16 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(DocumentManager)
-                .on("currentDocumentChange.jslint", function () {
+                .on("currentDocumentChange.linting", function () {
                     run();
                 })
-                .on("documentSaved.jslint documentRefreshed.jslint", function (event, document) {
+                .on("documentSaved.linting documentRefreshed.linting", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
                 });
         } else {
-            $(DocumentManager).off(".jslint");
+            $(DocumentManager).off(".linting");
         }
     }
     
@@ -295,7 +305,7 @@ define(function (require, exports, module) {
         setEnabled(!_enabled);
     }
     
-    /** Command to go to the first JSLint Error */
+    /** Command to go to the first Error/Warning */
     function handleGotoFirstError() {
         run();
         if (_gotoEnabled) {
@@ -313,18 +323,20 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
-        $lintResults = $("#jslint-results");
+        var panelHtml = Mustache.render(PanelTemplate, Strings);
+        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        $lintResults = $("#errors-panel");
         
-        var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
+        // Status bar icon - icon & tooltip updated by run()
+        var lintStatusHtml = Mustache.render("<div id=\"lint-status\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
-        $("#jslint-results .close").click(function () {
+        
+        $("#errors-panel .close").click(function () {
             toggleCollapsed(true);
         });
 
-        $("#jslint-status").click(function () {
+        $("#lint-status").click(function () {
             toggleCollapsed();
         });
         
@@ -339,6 +351,7 @@ define(function (require, exports, module) {
     
     // Public API
     exports.registerLinter = registerLinter;
+    exports.Type           = Type;
     
     // for unit tests
     exports.setEnabled = setEnabled;

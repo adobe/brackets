@@ -59,13 +59,15 @@ define(function (require, exports, module) {
         var jslintResult = JSLINT(text, null);
         
         if (!jslintResult) {
-            // Remove the null errors for the template
+            // Remove any trailing null placeholder error
             var errors = JSLINT.errors.filter(function (err) { return err !== null; });
+            
             errors = errors.map(function (jslintError) {
                 return {
                     // JSLint returns 1-based line/col numbers
                     pos: { line: jslintError.line - 1, ch: jslintError.character - 1 },
-                    message: jslintError.reason
+                    message: jslintError.reason,
+                    type: Linting.Type.WARNING
                 };
             });
             

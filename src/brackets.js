@@ -96,8 +96,9 @@ define(function (require, exports, module) {
         NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
-        ColorUtils              = require("utils/ColorUtils");
-            
+        ColorUtils              = require("utils/ColorUtils"),
+        Linting                 = require("language/Linting");
+        
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -110,7 +111,6 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
-    require("language/Linting");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
@@ -144,6 +144,7 @@ define(function (require, exports, module) {
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
+            Linting                 : Linting,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
