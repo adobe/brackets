@@ -113,7 +113,7 @@ define({
     "WITH"                              : "merkkijonolla",
     "BUTTON_YES"                        : "Kyllä",
     "BUTTON_NO"                         : "Ei",
-    "BUTTON_STOP"                       : "Seis",
+    "BUTTON_STOP"                       : "Lopeta",
 
     "OPEN_FILE"                         : "Avaa tiedosto",
     "SAVE_FILE_AS"                      : "Tallenna tiedosto",
