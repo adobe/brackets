@@ -436,14 +436,19 @@ define({
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     
-    // extensions/default/JSLint
+    // Linting/errors/warnings
     "CMD_JSLINT"                                : "Enable JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",
-    "JSLINT_ERRORS"                             : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    "CMD_GOTO_FIRST_ERROR"                      : "Go to First Error/Warning",
+    "ERRORS_PANEL_TITLE"                        : "{0} Errors",
+    "SINGLE_ERROR"                              : "1 {0} Error",
+    "MULTIPLE_ERRORS"                           : "{1} {0} Errors",
+    "NO_ERRORS"                                 : "No {0} errors - good job!",
+    "LINT_DISABLED"                             : "Linting is disabled",
+    "NO_LINT_AVAILABLE"                         : "No linter available for {0}",
+    "NOTHING_TO_LINT"                           : "Nothing to lint",
+    
+    // extensions/default/JSLint
+    "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",

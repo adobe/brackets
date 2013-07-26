@@ -35,7 +35,8 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var Linting            = brackets.getModule("language/Linting");
+    var Linting            = brackets.getModule("language/Linting"),
+        Strings            = brackets.getModule("strings");
     
     
     /**
@@ -60,6 +61,14 @@ define(function (require, exports, module) {
         if (!jslintResult) {
             // Remove the null errors for the template
             var errors = JSLINT.errors.filter(function (err) { return err !== null; });
+            errors = errors.map(function (jslintError) {
+                return {
+                    // JSLint returns 1-based line/col numbers
+                    pos: { line: jslintError.line - 1, ch: jslintError.character - 1 },
+                    message: jslintError.reason
+                };
+            });
+            
             var result = { errors: errors };
 
             // If there was a null value it means there was a stop notice
@@ -74,5 +83,8 @@ define(function (require, exports, module) {
     
     
     // Register for JS files
-    Linting.registerLinter("javascript", lintOneFile);
+    Linting.registerLinter("javascript", {
+        name: Strings.JSLINT_NAME,
+        scanFile: lintOneFile
+    });
 });

@@ -31,6 +31,10 @@
  *
  * Currently, linters are only invoked on the current file and only when it is opened, switched to, or saved.
  * But in the future, linters may be invoked as part of a global scan, at intervals while typing, etc.
+ * Currently, linting results are only displayed in a bottom panel list and in a status bar icon. But in the
+ * future, results may also be displayed inline in the editor (as gutter markers, squiggly underlines, etc.).
+ * In the future, support may also be added for error/warning providers that cannot process a single file at
+ * a time (e.g. a full-project compiler).
  */
 define(function (require, exports, module) {
     "use strict";
@@ -48,7 +52,6 @@ define(function (require, exports, module) {
         StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
-        ExtensionUtils          = require("utils/ExtensionUtils"),
         StatusBar               = require("widgets/StatusBar"),
         JSLintTemplate          = require("text!htmlContent/linting-panel.html"),
         ResultsTemplate         = require("text!htmlContent/linting-results-table.html");
@@ -92,7 +95,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {Object.<string, function(string, string):Object>}
+     * @type {Object.<string, {name:string, scanFile:function(string, string):Object}>}
      */
     var _providers = {};
     
@@ -118,9 +121,9 @@ define(function (require, exports, module) {
      * that the file on disk matches the text given (file may have unsaved changes).
      *
      * @param {string} languageId
-     * @param {function(string, string):{errors:Array, aborted:boolean}} provider
+     * @param {{name:string, scanFile:function(string, string):{errors:Array, aborted:boolean}} provider
      *
-     * Each error is: { line:number, character:number, reason:string, evidence:string }
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, level:?enum }
      */
     function registerLinter(languageId, provider) {
         if (_providers[languageId]) {
@@ -130,10 +133,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Run JSLint on the current document. Reports results to the main UI. Displays
-     * a gold star when no errors are found.
+     * Run linter applicable to current document. Updates status bar indicator and refreshes error list in
+     * bottom panel.
      */
     function run() {
+        if (!_enabled) {
+            Resizer.hide($lintResults);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.LINT_DISABLED);
+            setGotoEnabled(false);
+        }
+        
         var currentDoc = DocumentManager.getCurrentDocument();
         
         var perfTimerDOM,
@@ -146,17 +155,25 @@ define(function (require, exports, module) {
         if (_enabled && provider) {
             perfTimerLint = PerfUtils.markStart("Linting '" + languageId + "':\t" + currentDoc.file.fullPath);
             
-            var result = provider(currentDoc.getText(), currentDoc.fullPath);
+            var result = provider.scanFile(currentDoc.getText(), currentDoc.fullPath);
             _lastResult = result;
             
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("Linting DOM:\t" + currentDoc.file.fullPath);
             
-            if (result) {
+            if (result && result.errors.length) {
+                // Augment error objects with additional fields needed by Mustache template
+                result.errors.forEach(function (error) {
+                    error.friendlyLine = error.pos.line + 1;
+                    
+                    error.codeSnippet = currentDoc.getLine(error.pos.line);
+                    error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                });
+                
                 // Remove the null errors for the template
                 var html   = Mustache.render(ResultsTemplate, {reportList: result.errors});
                 var $selectedRow;
-
+                
                 $lintResults.find(".table-container")
                     .empty()
                     .append(html)
@@ -165,23 +182,24 @@ define(function (require, exports, module) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
                         }
-        
+                        
                         $selectedRow  = $(e.target).closest("tr");
                         $selectedRow.addClass("selected");
                         var lineTd    = $selectedRow.find("td.line");
-                        var line      = lineTd.text();
+                        var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
                         var character = lineTd.data("character");
-        
+                        
                         var editor = EditorManager.getCurrentFullEditor();
-                        editor.setCursorPos(line - 1, character - 1, true);
+                        editor.setCursorPos(line, character, true);
                         EditorManager.focusEditor();
                     });
                 
                 if (!_collapsed) {
                     Resizer.show($lintResults);
+                    $lintResults.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
                 }
                 if (result.errors.length === 1) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
                 } else {
                     // If linter was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
                     var numberOfErrors = result.errors.length;
@@ -191,22 +209,26 @@ define(function (require, exports, module) {
                         numberOfErrors += "+";
                     }
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors",
-                        StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
+                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numberOfErrors));
                 }
                 setGotoEnabled(true);
             
             } else {
                 Resizer.hide($lintResults);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
                 setGotoEnabled(false);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
 
         } else {
-            // JSLint is disabled or does not apply to the current file, hide the results
+            // No linting provider for current file
             Resizer.hide($lintResults);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
+            if (language) {
+                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
+            } else {
+                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.NOTHING_TO_LINT);
+            }
             setGotoEnabled(false);
         }
     }
@@ -284,7 +306,7 @@ define(function (require, exports, module) {
     
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT,             Commands.VIEW_TOGGLE_LINTING,       handleToggleEnabled);
-    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_FIRST_ERROR, handleGotoFirstError);
+    CommandManager.register(Strings.CMD_GOTO_FIRST_ERROR,   Commands.NAVIGATE_GOTO_FIRST_ERROR, handleGotoFirstError);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
