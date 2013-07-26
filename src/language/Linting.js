@@ -67,7 +67,9 @@ define(function (require, exports, module) {
         /** Unambiguous error, such as a syntax error */
         ERROR: "lint_type_error",
         /** Maintainability issue, probable error / bad smell, etc. */
-        WARNING: "line_type_warning"
+        WARNING: "lint_type_warning",
+        /** Linter unable to continue, code too complex for static analysis, etc. Not counted in error/warning tally. */
+        META: "lint_type_meta"
     };
     
     
@@ -78,12 +80,15 @@ define(function (require, exports, module) {
     var _prefs = null;
     
     /**
+     * When disabled, the errors panel is closed and the status bar icon is grayed out.
+     * Takes precedence over _collapsed.
      * @private
      * @type {boolean}
      */
     var _enabled = true;
     
     /**
+     * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
      * @private
      * @type {boolean}
      */
@@ -150,6 +155,7 @@ define(function (require, exports, module) {
             Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
+            return;
         }
         
         var currentDoc = DocumentManager.getCurrentDocument();
@@ -161,7 +167,7 @@ define(function (require, exports, module) {
         var languageId = language && language.getId();
         var provider = language && _providers[languageId];
         
-        if (_enabled && provider) {
+        if (provider) {
             perfTimerLint = PerfUtils.markStart("Linting '" + languageId + "':\t" + currentDoc.file.fullPath);
             
             var result = provider.scanFile(currentDoc.getText(), currentDoc.fullPath);
@@ -172,11 +178,16 @@ define(function (require, exports, module) {
             
             if (result && result.errors.length) {
                 // Augment error objects with additional fields needed by Mustache template
+                var numProblems = 0;
                 result.errors.forEach(function (error) {
                     error.friendlyLine = error.pos.line + 1;
                     
                     error.codeSnippet = currentDoc.getLine(error.pos.line);
                     error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                    
+                    if (error.type !== Type.META) {
+                        numProblems++;
+                    }
                 });
                 
                 // Remove the null errors for the template
@@ -208,18 +219,15 @@ define(function (require, exports, module) {
                     Resizer.show($lintResults);
                 }
                 
-                if (result.errors.length === 1) {
+                if (numProblems === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
                 } else {
                     // If linter was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                    var numberOfErrors = result.errors.length;
                     if (result.aborted) {
-                        // Don't include stop notice itself in tally
-                        numberOfErrors--;
-                        numberOfErrors += "+";
+                        numProblems += "+";
                     }
                     StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors",
-                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numberOfErrors));
+                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
                 }
                 setGotoEnabled(true);
             
@@ -264,7 +272,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Enable or disable JSLint.
+     * Enable or disable all linting.
      * @param {boolean} enabled Enabled state.
      */
     function setEnabled(enabled) {
@@ -280,7 +288,10 @@ define(function (require, exports, module) {
     
     
     /** 
-     * Toggle the collapsed state for the panel
+     * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
+     * the auto collapse due to files with no errors & filetypes with no linter). When explicitly
+     * collapsed, the panel will not reopen automatically on switch files or save.
+     * 
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
      */
     function toggleCollapsed(collapsed) {
@@ -315,7 +326,7 @@ define(function (require, exports, module) {
     
     
     // Register command handlers
-    CommandManager.register(Strings.CMD_JSLINT,             Commands.VIEW_TOGGLE_LINTING,       handleToggleEnabled);
+    CommandManager.register(Strings.CMD_TOGGLE_LINTING,     Commands.VIEW_TOGGLE_LINTING,       handleToggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_ERROR,   Commands.NAVIGATE_GOTO_FIRST_ERROR, handleGotoFirstError);
     
     // Init PreferenceStorage

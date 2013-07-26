@@ -73,9 +73,10 @@ define(function (require, exports, module) {
             
             var result = { errors: errors };
 
-            // If there was a null value it means there was a stop notice
+            // If array terminated in a null it means there was a stop notice
             if (errors.length !== JSLINT.errors.length) {
                 result.aborted = true;
+                errors[errors.length - 1].type = Linting.Type.META;
             }
             
             return result;

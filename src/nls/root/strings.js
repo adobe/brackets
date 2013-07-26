@@ -437,7 +437,7 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     
     // Linting/errors/warnings
-    "CMD_JSLINT"                                : "Enable JSLint",
+    "CMD_TOGGLE_LINTING"                        : "Lint Files on Save",
     "CMD_GOTO_FIRST_ERROR"                      : "Go to First Error/Warning",
     "ERRORS_PANEL_TITLE"                        : "{0} Errors",
     "SINGLE_ERROR"                              : "1 {0} Error",
