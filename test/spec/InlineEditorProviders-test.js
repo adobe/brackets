@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeAll, afterAll */
 
 define(function (require, exports, module) {
     'use strict';
@@ -147,8 +147,7 @@ define(function (require, exports, module) {
         function expectTextToBeEqual(editor1, editor2) {
             expect(editor1._codeMirror.getValue()).toBe(editor2._codeMirror.getValue());
         }
-        
-
+		
 
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
@@ -167,17 +166,35 @@ define(function (require, exports, module) {
                 return false;
             }
             
-            beforeEach(function () {
-                initInlineTest = _initInlineTest.bind(this);
+            beforeAll(function () {
+                // Create a new window that will be shared by ALL tests in this spec.
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow          = w;
+                    testWindow = w;
+    
+                    // Load module instances from brackets.test
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
+                    
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
-                
+            });
+            
+            afterAll(function () {
+                testWindow          = null;
+                Commands            = null;
+                EditorManager       = null;
+                FileSyncManager     = null;
+                DocumentManager     = null;
+                FileViewController  = null;
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+    
+            beforeEach(function () {
+                initInlineTest = _initInlineTest.bind(this);
                 this.addMatchers({
                         
                     toHaveInlineEditorRange: function (range) {
@@ -245,14 +262,8 @@ define(function (require, exports, module) {
                 //waits(1000);
                 
                 // revert files to original content with offset markup
-                initInlineTest      = null;
-                testWindow          = null;
-                Commands            = null;
-                EditorManager       = null;
-                FileSyncManager     = null;
-                DocumentManager     = null;
-                FileViewController  = null;
-                SpecRunnerUtils.closeTestWindow();
+                initInlineTest = null;
+                testWindow.closeAllFiles();
             });
 
 
@@ -1238,6 +1249,7 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
                 });
+                
                 it("should insert new line at bottom and not close on undo", function () {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
                     
@@ -1294,6 +1306,7 @@ define(function (require, exports, module) {
                 testEditorManager   = null;
                 testDoc             = null;
             });
+            
             
             it("should prefer positive higher priority providers (1)", function () {
                 var widget0 = new InlineWidget(),

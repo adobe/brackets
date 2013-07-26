@@ -268,6 +268,32 @@ define(function (require, exports, module) {
         $("#mock-editor-holder").remove();
     }
     
+    /**
+     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
+     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     */
+    function clickDialogButton(buttonId) {
+        // Make sure there's one and only one dialog open
+        var $dlg = _testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
+
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise);
+    }
+    
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -305,6 +331,16 @@ define(function (require, exports, module) {
             _testWindow.closeAllDocuments = function closeAllDocuments() {
                 _testWindow.brackets.test.DocumentManager.closeAll();
             };
+            
+            _testWindow.closeAllFiles = function closeAllFiles() {
+                var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
+                waitsForDone(promise, "Close all open files in working set");
+                
+                var $dlg = _testWindow.$(".modal.instance");
+                if ($dlg.length) {
+                    clickDialogButton("dontsave");
+                }
+            };
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
@@ -341,32 +377,6 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = null;
             _testWindow = null;
         });
-    }
-    
-    
-    /**
-     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
-     * clients must also wait for any additional promises.
-     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
-     */
-    function clickDialogButton(buttonId) {
-        // Make sure there's one and only one dialog open
-        var $dlg = _testWindow.$(".modal.instance"),
-            promise = $dlg.data("promise");
-        
-        expect($dlg.length).toBe(1);
-        
-        // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
-        
-        // Click the button
-        dismissButton.click();
-
-        // Dialog should resolve/reject the promise
-        waitsForDone(promise);
     }
     
     
