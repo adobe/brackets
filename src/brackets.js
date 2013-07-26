@@ -110,6 +110,7 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
+    require("language/Linting");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
