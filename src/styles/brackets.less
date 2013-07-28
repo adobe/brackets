@@ -746,15 +746,12 @@ a, img {
 
 .modal-bar.hide {
     opacity: 0;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -33px;
-//    transform: translate(0, -33px);
-    -webkit-transition: all 1s cubic-bezier(0, 0.56, 0, 1);
+    -webkit-transform: translate(0, -44px);
+    transition: opacity 1s, -webkit-transform 0.3s cubic-bezier(0, 0.56, 0, 1);
 }
 
 .modal-bar {
+    display: block;    
     text-align: left;
     
     font-family: @sansFontFamily;
@@ -762,12 +759,13 @@ a, img {
     color: @tc-text;
     background: @tc-gray-panel;
     overflow: hidden; 
+    opacity: 1;
     padding: 5px 4px 4px 14px;
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;
-    -webkit-transition: all 1s cubic-bezier(0, 0.56, 0, 1);
+    -webkit-transform: translate(0);
+    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
 
     
     body.in-browser & {
