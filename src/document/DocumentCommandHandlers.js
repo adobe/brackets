@@ -917,12 +917,17 @@ define(function (require, exports, module) {
             promptOnly = commandData && commandData.promptOnly;
         
         var unsavedDocs = [];
-        DocumentManager.getWorkingSet().forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
-            }
-        });
+        
+        if (commandData.unsavedDocs) {
+            unsavedDocs = commandData.unsavedDocs;
+        } else {
+            DocumentManager.getWorkingSet().forEach(function (file) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (doc && doc.isDirty) {
+                    unsavedDocs.push(doc);
+                }
+            });
+        }
         
         if (unsavedDocs.length === 0) {
             // No unsaved changes, so we can proceed without a prompt
