@@ -744,6 +744,16 @@ a, img {
 
 /* Modal bar for Find/Quick Open */
 
+.modal-bar.hide {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -33px;
+//    transform: translate(0, -33px);
+    -webkit-transition: all 1s cubic-bezier(0, 0.56, 0, 1);
+}
+
 .modal-bar {
     text-align: left;
     
@@ -751,8 +761,14 @@ a, img {
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
+    overflow: hidden; 
     padding: 5px 4px 4px 14px;
-    overflow: hidden;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    -webkit-transition: all 1s cubic-bezier(0, 0.56, 0, 1);
+
     
     body.in-browser & {
         // Separator line between us and the HTML menu/titlebar above

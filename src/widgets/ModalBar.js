@@ -123,7 +123,7 @@ define(function (require, exports, module) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
         
-        this._$root.remove();
+        this._$root.addClass("hide");
 
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
