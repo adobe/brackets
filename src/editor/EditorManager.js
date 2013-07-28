@@ -90,14 +90,16 @@ define(function (require, exports, module) {
     var _lastEditorWidth = null;
     
     /**
-     * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
-     * @type {Array.<function(...)>}
+     * Registered inline-editor widget providers sorted descending by priority. 
+     * See {@link #registerInlineEditProvider()}.
+     * @type {Array.<{priority:number, provider:function(...)}>}
      */
     var _inlineEditProviders = [];
     
     /**
-     * Registered inline documentation widget providers. See {@link #registerInlineDocsProvider()}.
-     * @type {Array.<function(...)>}
+     * Registered inline documentation widget providers sorted descending by priority.
+     * See {@link #registerInlineDocsProvider()}.
+     * @type {Array.<{priority:number, provider:function(...)}>}
      */
     var _inlineDocsProviders = [];
     
@@ -149,7 +151,7 @@ define(function (require, exports, module) {
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
      * @param {!Editor} editor The host editor
-     * @param {!Array.<function(!Editor, !{line:Number, ch:Number}):?$.Promise>} providers
+     * @param {!Array.<{priority:number, provider:function(!Editor, !{line:number, ch:number}):?$.Promise}>} prioritized providers
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected if no inline providers have offered one.
      */
@@ -163,16 +165,17 @@ define(function (require, exports, module) {
             result = new $.Deferred();
         
         for (i = 0; i < providers.length && !inlinePromise; i++) {
-            var provider = providers[i];
+            var provider = providers[i].provider;
             inlinePromise = provider(editor, pos);
         }
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
-                editor.addInlineWidget(pos, inlineWidget);
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                result.resolve();
+                editor.addInlineWidget(pos, inlineWidget).done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                    result.resolve();
+                });
             }).fail(function () {
                 // terminate timer that was started above
                 PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
@@ -188,10 +191,34 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Inserts a prioritized provider object into the array in sorted (descending) order.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} array
+     * @param {number} priority
+     * @param {function(...)} provider
+     */
+    function _insertProviderSorted(array, provider, priority) {
+        var index,
+            prioritizedProvider = {
+                priority: priority,
+                provider: provider
+            };
+        
+        for (index = 0; index < array.length; index++) {
+            if (array[index].priority < priority) {
+                break;
+            }
+        }
+        
+        array.splice(index, 0, prioritizedProvider);
+    }
+    
+    /**
      * Removes the given widget UI from the given hostEditor (agnostic of what the widget's content
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     function closeInlineWidget(hostEditor, inlineWidget) {
         // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
@@ -207,38 +234,50 @@ define(function (require, exports, module) {
             hostEditor.focus();
         }
         
-        hostEditor.removeInlineWidget(inlineWidget);
+        return hostEditor.removeInlineWidget(inlineWidget);
     }
     
     /**
      * Registers a new inline editor provider. When Quick Edit is invoked each registered provider is
      * asked if it wants to provide an inline editor given the current editor and cursor location.
+     * An optional priority parameter is used to give providers with higher priority an opportunity
+     * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {number=} priority 
      * The provider returns a promise that will be resolved with an InlineWidget, or returns null
      * to indicate the provider doesn't want to respond to this case.
      */
-    function registerInlineEditProvider(provider) {
-        _inlineEditProviders.push(provider);
+    function registerInlineEditProvider(provider, priority) {
+        if (priority === undefined) {
+            priority = 0;
+        }
+        _insertProviderSorted(_inlineEditProviders, provider, priority);
     }
 
     /**
      * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
      * asked if it wants to provide inline docs given the current editor and cursor location.
+     * An optional priority parameter is used to give providers with higher priority an opportunity
+     * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {number=} priority 
      * The provider returns a promise that will be resolved with an InlineWidget, or returns null
      * to indicate the provider doesn't want to respond to this case.
      */
-    function registerInlineDocsProvider(provider) {
-        _inlineDocsProviders.push(provider);
+    function registerInlineDocsProvider(provider, priority) {
+        if (priority === undefined) {
+            priority = 0;
+        }
+        _insertProviderSorted(_inlineDocsProviders, provider, priority);
     }
     
     /**
      * Registers a new jump-to-definition provider. When jump-to-definition is invoked each
      * registered provider is asked if it wants to provide jump-to-definition results, given
      * the current editor and cursor location. 
-     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
      * The provider returns a promise that will be resolved with jump-to-definition results, or
      * returns null to indicate the provider doesn't want to respond to this case.
      */
@@ -657,6 +696,8 @@ define(function (require, exports, module) {
     
     /**
      * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} prioritized providers
      * @return {!Promise} A promise resolved with true if an inline widget is opened or false
      *   when closed. Rejected if there is neither an existing widget to close nor a provider
      *   willing to create a widget (or if no editor is open).
@@ -670,11 +711,11 @@ define(function (require, exports, module) {
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
                 PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
-                inlineWidget.close();
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
-        
-                // return a resolved promise to CommandManager
-                result.resolve(false);
+                inlineWidget.close().done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
+                    // return a resolved promise to CommandManager
+                    result.resolve(false);
+                });
             } else {
                 // main editor has focus, so create an inline editor
                 _openInlineWidget(_currentEditor, providers).done(function () {

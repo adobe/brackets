@@ -63,17 +63,18 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
- *      the new sorted list. Listener receives no arguments.
- *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via dragging and dropping
- *      a file to disable automatic sorting. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *      Listener receives no arguments.
+ * 
+ *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -81,6 +82,8 @@
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
+ * 
+ * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -227,11 +230,22 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
-     * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToWorkingSet(file, index) {
+    function addToWorkingSet(file, index, forceRedraw) {
+        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // File is in working set, but not at the specifically requested index - only need to reorder
+            if (forceRedraw || (indexRequested && curIndex !== index)) {
+                var entry = _workingSet.splice(curIndex, 1)[0];
+                _workingSet.splice(index, 0, entry);
+                $(exports).triggerHandler("workingSetSort");
+            }
             return;
         }
         
@@ -242,7 +256,7 @@ define(function (require, exports, module) {
         } else {
             file = new NativeFileSystem.FileEntry(file.fullPath);
         }
-        if ((index === undefined) || (index === null) || (index === -1)) {
+        if (!indexRequested) {
             // If no index is specified, just add the file to the end of the working set.
             _workingSet.push(file);
         } else {
@@ -261,11 +275,10 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        if ((index === undefined) || (index === null) || (index === -1)) {
-            $(exports).triggerHandler("workingSetAdd", file);
-        } else {
-            $(exports).triggerHandler("workingSetSort");
+        if (!indexRequested) {
+            index = _workingSet.length - 1;
         }
+        $(exports).triggerHandler("workingSetAdd", [file, index]);
     }
     
     /**
@@ -305,8 +318,9 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file.
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!FileEntry} file
      * @param {boolean=} true to suppress redraw after removal
      */
@@ -356,8 +370,8 @@ define(function (require, exports, module) {
     
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!number} index - old file index
-     * @param {!number} index - new file index
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
@@ -367,13 +381,15 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            $(exports).triggerHandler("workingSetSort");
             $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -411,7 +427,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
@@ -495,9 +511,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
-     * expected that the UI has already confirmed with the user before calling this.
+     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
@@ -607,10 +623,10 @@ define(function (require, exports, module) {
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
-
+            
             var fileEntry;
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called with an untitled document path!");
+                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
                 result.reject();
             } else {
                 // log this document's Promise as pending
@@ -753,6 +769,8 @@ define(function (require, exports, module) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
+        
+        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
         if (!files) {
             return;

@@ -359,7 +359,7 @@ define(function (require, exports, module) {
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the path to the parent directory of a file or the path of a directory 
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory
      */
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
@@ -393,6 +393,40 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx);
     }
+    
+    /**
+     * @private
+     * Get the file name without the extension.
+     * @param {string} filename File name of a file or directory
+     * @return {string} Returns the file name without the extension
+     */
+    function _getFilenameWithoutExtension(filename) {
+        var extension = getFilenameExtension(filename);
+        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
+    }
+    
+    /**
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the
+     * extension first and then the extensions to fix issue #4409
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
+     * @return {number} The result of the local compare function
+     */
+    function compareFilenames(filename1, filename2, extFirst) {
+        var ext1   = getFilenameExtension(filename1),
+            ext2   = getFilenameExtension(filename2),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            cmpNames;
+        
+        if (brackets.platform === "win") {
+            filename1 = _getFilenameWithoutExtension(filename1);
+            filename2 = _getFilenameWithoutExtension(filename2);
+        }
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        
+        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+    }
 
 
     // Define public API
@@ -417,4 +451,5 @@ define(function (require, exports, module) {
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getFilenameExtension           = getFilenameExtension;
+    exports.compareFilenames               = compareFilenames;
 });
