@@ -29,13 +29,13 @@ importScripts("thirdparty/requirejs/require.js");
 (function () {
     "use strict";
     
-    var MessageIds;
+    var MessageIds, HintUtils2;
     var Tern, Infer;
-    require(["./MessageIds"], function (messageIds) {
+    require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
+        HintUtils2 = hintUtils2;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment"],
-            function (tern, infer, requirejs, docComment) {
+        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
 
@@ -305,47 +305,7 @@ importScripts("thirdparty/requirejs/require.js");
             function getParameters(newFnType) {
 
                 // work around define functions before use warning.
-                var inferTypeToString, processInferFnTypeParameters;
-
-                /**
-                 *
-                 * @param {!Array.<name: {string}, type: {string},
-             * isOptional: {boolean}>} params - array of parameter descriptors
-                 * @param {boolean=} typesOnly - only show parameter types. The
-                 * default behavior is to include both parameter names and types.
-                 * @returns {string} parameters formatted as a string
-                 */
-                function formatParams(params, typesOnly) {
-                    var result = "";
-
-                    params.forEach(function (value, i) {
-
-                        if (value.isOptional) {
-                            if (i > 0) {
-                                result += " ";
-                            }
-                            result += "[";
-                        }
-
-                        if (i > 0) {
-                            result += ", ";
-                        }
-
-                        var type = value.type;
-
-                        result += type;
-
-                        if (!typesOnly) {
-                            result += " " + value.name;
-                        }
-
-                        if (value.isOptional) {
-                            result += "]";
-                        }
-                    });
-
-                    return result;
-                }
+                var inferTypeToString, processInferFnTypeParameters, inferFnTypeToString;
 
                 /**
                  *  Convert an infer array type to a string.
@@ -418,15 +378,22 @@ importScripts("thirdparty/requirejs/require.js");
                  * @param {Infer.Fn} inferType - type to convert.
                  * @return {string} - function type as a string.
                  */
-                function inferFnTypeToString(inferType) {
+                inferFnTypeToString = function (inferType) {
                     var result = "function(",
                         params = processInferFnTypeParameters(inferType);
 
-                    result += formatParams(params, true);
-                    result += "):";
-                    result += inferTypeToString(inferType.retval);
+                    function appendValue(value) {
+                        result += value;
+                    }
+
+                    HintUtils2.formatParameterHint(params, appendValue, appendValue, true);
+                    if (inferType.retval) {
+                        result += "):";
+                        result += inferTypeToString(inferType.retval);
+                    }
+
                     return result;
-                }
+                };
 
                 /**
                  * Convert an infer function type to string.
@@ -444,7 +411,7 @@ importScripts("thirdparty/requirejs/require.js");
                             type = inferType.args[i];
 
                         if (name === undefined) {
-                            name = 'arg' + (i + 1);
+                            name = 'param' + (i + 1);
                         }
 
                         if (name[name.length - 1] === "?") {
@@ -469,16 +436,9 @@ importScripts("thirdparty/requirejs/require.js");
                             return processInferFnTypeParameters(inferType);
                         } catch (e) {
                             _log(e.message);
-                            return [{name: e.message, type: ""}];
+                            return [{name: e.message, type: ''}];
                         }
 
-                    });
-
-                    _log("newFnType = " + newFnType);
-                    _log("convert to params:");
-
-                    params.forEach(function (value) {
-                        _log(value);
                     });
 
                     return params;

@@ -347,6 +347,13 @@ define(function (require, exports, module) {
             expect(ParameterHintManager.popUpHint()).toBe(null);
         }
 
+        /**
+         * Verify the parameter hint is not visible.
+         */
+        function expectParameterHintClosed() {
+            expect(ParameterHintManager.isHintDisplayed()).toBe(false);
+        }
+
         /*
          * Wait for a hint response object to resolve, then apply a callback
          * to the result
@@ -376,11 +383,12 @@ define(function (require, exports, module) {
          * Show a function hint based on the code at the cursor. Verify the
          * hint matches the passed in value.
          *
-         * @param {?Array.<{name: string, type: string}> expectedParams - array of
-         * records, where each element of the array describes a function parameter.
-         * If null, then no hint is expected.
+         * @param {Array<{name: string, type: string, isOptional: boolean}>}
+         * expectedParams - array of records, where each element of the array
+         * describes a function parameter. If null, then no hint is expected.
+         * @param {number} expectedParameter - the parameter at cursor.
          */
-        function expectParameterHint(expectedParams)
+        function expectParameterHint(expectedParams, expectedParameter)
         {
             var request = ParameterHintManager.popUpHint();
             if (expectedParams === null) {
@@ -388,21 +396,33 @@ define(function (require, exports, module) {
                 return;
             }
 
-            _waitForParameterHint(request, function (hint) {
+            function expectHint(hint) {
                 var params = hint.parameters,
                     n = params.length,
                     i;
 
                 // compare params to expected params
                 expect(params.length).toBe(expectedParams.length);
+                expect(hint.currentIndex).toBe(expectedParameter);
 
                 for (i = 0; i < n; i++) {
 
                     expect(params[i].name).toBe(expectedParams[i].name);
                     expect(params[i].type).toBe(expectedParams[i].type);
+                    if (params[i].isOptional) {
+                        expect(expectedParams[i].isOptional).toBeTruthy();
+                    } else {
+                        expect(expectedParams[i].isOptional).toBeFalsy();
+                    }
                 }
 
-            });
+            }
+
+            if (request) {
+                _waitForParameterHint(request, expectHint);
+            } else {
+                expectHint(JSCodeHints.getSession().getParameterHint());
+            }
         }
 
         function setupTest(path, primePump) {
@@ -805,7 +825,8 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
                 runs(function () {
-                    expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
+                    expectParameterHint([{name: "a", type: "String"},
+                        {name: "b", type: "Number"}], 0);
                 });
             });
 
@@ -888,7 +909,7 @@ define(function (require, exports, module) {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    expectParameterHint([{name: "a4", type: "Number"}, {name: "b4", type: "Number"}]);
+                    expectParameterHint([{name: "a4", type: "Number"}, {name: "b4", type: "Number"}], 0);
                 });
             });
             
@@ -908,7 +929,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name:"amountDue", type: "Object"}]);
+                    expectParameterHint([{name:"amountDue", type: "Object"}], 0);
                 });
             });
             
@@ -917,7 +938,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "arg", type: "String"}]);
+                    expectParameterHint([{name: "arg", type: "String"}], 0);
                 });
             });
             
@@ -927,7 +948,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    expectParameterHint([]);
+                    expectParameterHint([], 0);
                 });
                 
             });
@@ -951,7 +972,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "f", type: "function(): number"}]);
+                    expectParameterHint([{name: "f", type: "function(): number"}], 0);
                 });
             });
 
@@ -961,7 +982,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "f", type: "function(String, Number):String"}]);
+                    expectParameterHint([{name: "f", type: "function(String, Number):String"}], 0);
                 });
             });
 
@@ -982,7 +1003,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("funArr.index1(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([]);
+                    expectParameterHint([], 0);
                 });
             });
 
@@ -1174,7 +1195,89 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(10)", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "amountDue", type: "Number"}]);
+                    expectParameterHint([{name: "amountDue", type: "Number"}], 0);
+                });
+            });
+
+            // log a bug against Tern. Tern can't parse its own function hint.
+            xit("should list parameter hint for record type annotation", function () {
+                var testPos = { line: 178, ch: 25 };
+
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "t", type: "{index: Number, type: String}"}], -1);
+                });
+            });
+
+            it("should list parameter hint for a function parameter", function () {
+                var testPos = { line: 181, ch: 12 };
+
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "compare",
+                        type: "function(Object, Object):Number",
+                        isOptional: true}], -1);
+                });
+            });
+
+            it("should list parameter hint for an array parameter", function () {
+                var testPos = { line: 184, ch: 12 };
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "other", type: "Array.<Object>"}], -1);
+                });
+            });
+
+            // Tern is not returning the correct function type info for the array annotation
+            xit("should list parameter hint for a source array annotation", function () {
+                var testPos = { line: 200, ch: 20 };
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "a", type: "Array.<String>"}],0);
+                });
+            });
+
+            it("should close parameter hint when move off function", function () {
+                var testPos = { line: 184, ch: 12 },
+                    endPos  = { line: 184, ch: 19 };
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "other", type: "Array.<Object>"}], -1);
+                });
+
+                runs(function () {
+                    testEditor.setCursorPos(endPos);
+                    expectParameterHintClosed();
+                });
+            });
+
+            it("should close parameter hint when move off function to another function", function () {
+                var testPos = { line: 184, ch: 12 },
+                    newPos  = { line: 181, ch: 12 };
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "other", type: "Array.<Object>"}], -1);
+                });
+
+                runs(function () {
+                    testEditor.setCursorPos(newPos);
+                    expectParameterHintClosed();
+                });
+            });
+
+            it("should update current parameter as the cursor moves", function () {
+                var testPos = { line: 186, ch: 19 },
+                    newPos  = { line: 186, ch: 20 };
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "char", type: "String"},
+                        {name: "from", type: "Number", isOptional: true}], 0);
+                });
+
+                runs(function () {
+                    testEditor.setCursorPos(newPos);
+                    expectParameterHint([{name: "char", type: "String"},
+                        {name: "from", type: "Number", isOptional: true}], 1);
                 });
             });
 
@@ -1207,7 +1310,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    expectParameterHint([{name: "a", type: "Number"}]);
+                    expectParameterHint([{name: "a", type: "Number"}], 0);
                 });
             });
             
@@ -1216,7 +1319,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}]);
+                    expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}], 0);
                 });
             });
 
@@ -1225,7 +1328,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    expectParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}]);
+                    expectParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}], 0);
                 });
             });
 

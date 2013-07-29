@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
+        HintsUtils2     = require("HintUtils2"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");
 
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
         $hintContent,      // function hint content holder
 
         /** @type {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number},
-        *           fnType: {string}}
+        *           fnType: {Array.<Object>}}
         */
         hintState = {},
         hintStack = [],    // stack for previous function hint to restore
@@ -57,12 +58,8 @@ define(function (require, exports, module) {
         session;                   // current editor session, updated by main
 
     // Constants
-    var
-        POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
-        POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
-        POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
-        POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
+    var POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
+        POSITION_BELOW_OFFSET       = 4;    // Amount to adjust to top position when the preview bubble is below the text
 
     // keep jslint from complaining about handleCursorActivity being used before
     // it was defined.
@@ -138,44 +135,29 @@ define(function (require, exports, module) {
       * of the function call.
      */
     function formatHint(functionInfo) {
-        var hints = session.getParameterHint(functionInfo.functionCallPos);
+        var hints = session.getParameterHint(functionInfo.functionCallPos),
+            pendingOptional = false;
 
         $hintContent.empty();
         $hintContent.addClass("brackets-js-hints");
-        hints.parameters.forEach(function (value, i) {
-            var param = value.type + " " + value.name,
-                separator = "";
 
-            if (value.isOptional) {
-                if (i > 0) {
-                    separator += " ";
-                }
+        function appendSeparators(separators) {
+            $hintContent.append(separators);
+        }
 
-                separator += "[";
-            }
-
-            if (i > 0) {
-                separator += ", ";
-            }
-
-            if (separator) {
-                $hintContent.append(separator);
-            }
-
-            if (hints.currentIndex === i) {
+        function appendParameter(param, index) {
+            if (hints.currentIndex === index) {
                 $hintContent.append($("<span>")
                     .append(StringUtils.htmlEscape(param))
                     .addClass("current-parameter"));
             } else {
                 $hintContent.append(StringUtils.htmlEscape(param));
             }
+        }
 
-            if (value.isOptional) {
-                $hintContent.append("]");
-            }
-        });
-
-        if (hints.parameters.length === 0) {
+        if (hints.parameters.length > 0) {
+            HintsUtils2.formatParameterHint(hints.parameters, appendSeparators, appendParameter);
+        } else {
             $hintContent.append(StringUtils.htmlEscape(Strings.NO_ARGUMENTS));
         }
     }
