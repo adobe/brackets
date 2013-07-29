@@ -94,7 +94,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Regex arama yapmak için /re/ sintaksını kullanın",
+    "SEARCH_REGEXP_INFO"                : "Regex arama yapmak için /re/ sentaksını kullanın",
     "WITH"                              : "İle",
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",

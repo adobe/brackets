@@ -277,8 +277,8 @@ define(function (require, exports, module) {
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
-    menu.addMenuDivider(Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
+    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.FILE_LIVE_HIGHLIGHT);
+    menu.addMenuDivider(Menus.AFTER, Commands.FILE_LIVE_HIGHLIGHT);
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
@@ -313,4 +313,7 @@ define(function (require, exports, module) {
         toggleCollapsed(_prefs.getValue("collapsed"));
                 
     });
+    
+    // for unit tests
+    exports.setEnabled = setEnabled;
 });
