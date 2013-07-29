@@ -33,7 +33,6 @@ define(function (require, exports, module) {
         TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
-        InferUtils      = require("InferUtils"),
         Acorn           = require("thirdparty/acorn/acorn"),
         Acorn_Loose     = require("thirdparty/acorn/acorn_loose");
 
@@ -627,10 +626,11 @@ define(function (require, exports, module) {
     /**
      * Set a new function type hint.
      *
-     * @param {string} newFnType - the new tern function hint.
+     * @param {Array<{name: string, type: string, isOptional: boolean}>} newFnType -
+     * Array of function hints.
      */
     Session.prototype.setFnType = function (newFnType) {
-        this.fnType = newFnType; //InferUtils.getParameters(newFnType);
+        this.fnType = newFnType;
     };
 
     /**
@@ -640,7 +640,7 @@ define(function (require, exports, module) {
      */
     Session.prototype.setFunctionCallPos = function (functionCallPos) {
         this.functionCallPos = functionCallPos;
-    }
+    };
 
     /**
      * Get the function type hint.  This will format the hint, showing the
