@@ -145,6 +145,11 @@ define(function (require, exports, module) {
                 // This must be in the last spec in the suite.
                 runs(function () {
                     this.after(function () {
+                        testWindow          = null;
+                        CommandManager      = null;
+                        Commands            = null;
+                        EditorManager       = null;
+                        FileViewController  = null;
                         SpecRunnerUtils.closeTestWindow();
                     });
                 });

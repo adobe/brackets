@@ -134,24 +134,24 @@ define(function (require, exports, module) {
      */
     function generateInstrumentedHTML(doc) {
         var dom = scanDocument(doc),
-            gen = doc.getText();
+            orig = doc.getText(),
+            gen = "",
+            lastIndex = 0;
         
         if (!dom) {
             return null;
         }
         
         // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
-        // end of the open tag
-        var insertCount = 0;
-        
+        // end of the open tag        
         function walk(node) {
             if (node.tag) {
                 var attrText = " data-brackets-id='" + node.tagID + "'";
                 
                 // Insert the attribute as the first attribute in the tag.
-                var insertIndex = node.start + node.tag.length + 1 + insertCount;
-                gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
-                insertCount += attrText.length;
+                var insertIndex = node.start + node.tag.length + 1;
+                gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
+                lastIndex = insertIndex;
             }
             
             if (node.children) {
@@ -160,6 +160,8 @@ define(function (require, exports, module) {
         }
         
         walk(dom);
+        gen += orig.substr(lastIndex);
+        
         return gen;
     }
     

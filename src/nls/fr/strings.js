@@ -37,6 +37,8 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
+	"FILE": "fichier",
+	"DIRECTORY": "répertoire",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -47,6 +49,7 @@ define({
     // File open/save error string
 	"ERROR_OPENING_FILE_TITLE": "Erreur lors de l’ouverture du fichier",
 	"ERROR_OPENING_FILE": "Une erreur s’est produite lors de la tentative d’ouverture du fichier <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_OPENING_FILES": "Une erreur s’est produite en tentant d’ouvrir les fichiers suivants :",
 	"ERROR_RELOADING_FILE_TITLE": "Erreur lors du rechargement des modifications à partir du disque",
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
@@ -55,11 +58,11 @@ define({
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
+	"INVALID_FILENAME_TITLE": "Nom de {0} incorrect",
 	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
-	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
-	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
-	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
+	"FILE_ALREADY_EXISTS": "Le {0} <span class='dialog-filename'>{1}</span> existe déjà.",
+	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
+	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -130,7 +133,7 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "ligne : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
@@ -168,6 +171,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "Fichier",
+	"CMD_FILE_NEW_UNTITLED": "Nouveau",
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
@@ -179,7 +183,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
-	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
+	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
@@ -292,7 +296,7 @@ define({
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "Pour utiliser un serveur local, entrez une URL comme http://localhost:8000/",
+	"PROJECT_SETTING_BASE_URL_HINT": "Serveur local : entrez une URL du type http://localhost:8000/",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
@@ -301,10 +305,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "Installer",
+	"UPDATE": "Mettre à jour",
 	"REMOVE": "Supprimer",
 	"OVERWRITE": "Remplacer",
 	"CANT_REMOVE_DEV": "Les extensions du dossier \"dev\" doivent être supprimées manuellement.",
+	"CANT_UPDATE": "La mise à jour n’est pas disponible avec cette version de l’application {APP_NAME}.",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
+	"UPDATE_EXTENSION_TITLE": "Mettre à jour l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
@@ -366,8 +373,12 @@ define({
 	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
 	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
-	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur le bouton Installer à partir de l’URL se trouvant ci-dessous pour démarrer.",
+	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
+	"REGISTRY_SANITY_CHECK_WARNING": "Soyez prudent lorsque vous installez des extensions provenant d’une source inconnue.",
+	"EXTENSIONS_INSTALLED_TITLE": "Installées",
+	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
+	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
     /**
      * Unit names
@@ -411,6 +422,7 @@ define({
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
+	"LOCALE_HU": "Hongrois",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

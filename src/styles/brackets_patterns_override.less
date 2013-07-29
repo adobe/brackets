@@ -1,22 +1,22 @@
 
 // Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
-//  
+//
 // Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the "Software"), 
-// to deal in the Software without restriction, including without limitation 
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-// and/or sell copies of the Software, and to permit persons to whom the 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following conditions:
-//  
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-//  
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 
@@ -54,7 +54,7 @@
     .hbox;
     .box-align(center);
     overflow: hidden;
-    
+
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
@@ -82,10 +82,10 @@
 */
 #titlebar {
     // Visible only in-browser
-    body.in-appshell & {
+    body.has-appshell-menus & {
         display: none;
     }
-    
+
     text-align: center;
     .nav {  // menubar
         float: left;
@@ -113,9 +113,9 @@
     width: @main-toolbar-width;
     height: 100%;
     box-sizing: border-box;
-    
+
     background: @main-toolbar-background-color;
-    padding: 5px 0px;
+    padding: 7px 0px;
     
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
@@ -125,33 +125,38 @@
     .buttons {
         text-align: center;
         margin: 0;
-        
+    
         > a {
-            margin: 5px 0px 5px 0px;
-            padding: 0 !important;
-            position: static !important;
-            top: 0 !important;
-            left: 0 !important;
+            border-radius: 3px;
+            background-repeat: none;
+            display: block;
+            height: 24px;
+            margin: 7px 0px 0px 3px;
+            width: 24px;
         }
         
-        > a:active {
-            opacity: 0.5;
+        > a:hover {
+            background-color: rgba(0, 0, 0, 0.24) !important;
         }
-    }
+    
+        > a:active {
+            background-color: rgba(0, 0, 0, 0.66) !important;
+        }
+    }     
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
 
 @toolbar-top-gap-px: 5px;
-    
+
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
     background-color: @bc-white;
     color: @bc-black;
-    
+
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
-    
+
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
         padding: (@toolbar-top-gap-px - 3px) 0 3px 0;
@@ -165,17 +170,17 @@
         .dirty-dot {
             font-weight: normal;
         }
-        
+
         white-space: nowrap;
         overflow: hidden;
         -ms-text-overflow: ellipsis;
         -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
     }
-    
+
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
-        
+
         span, a {
             cursor: default;
         }
@@ -191,7 +196,7 @@
 @item-highlight-color: #e0f0fa;
 
 .toolbar .nav, .context-menu, .codehint-menu {
-    
+
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
 
@@ -221,55 +226,55 @@
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
-    
+
     // no triangle icon after menu items
     .dropdown-toggle:after {
         border: 0;
         margin: 0;
     }
-    
+
     // Menu dropdown appearance
     .dropdown-menu {
         top: 34px; // Offset from top of menubar item
-        
+
         margin-top: 0;
         background-color: @bc-white;
         border: 1px solid #c8c8c8;
         .border-radius(0 0 3px 3px);
         .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
-        
+
         // Menu items
         li {
             a {
                 font-size: @menu-item-font-size;
                 line-height: 18px;
-                
+
                 // Slightly less padding on left to account for checkmark.
                 // More padding on top than bottom to center font within its bg highlight better.
                 padding: 2px 10px 0px 6px;
-                
+
                 color: @bc-black;
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
-    
+
                 &.wide-result {
                     white-space: normal;
                 }
-                
+
                 &:hover, &.highlight {
                     color: @bc-black;
                     background: @item-highlight-color;
                 }
-            
+
                 &.disabled {
                     color: @bc-gray;
-            
+
                     &:hover {
                         background: @bc-white;
                     }
                 }
-   
+
                 /* hidden checkmark for all list item content ensures consistent left spacing */
                 &::before {
                     content: "✓\00a0"; /* non-breaking space */
@@ -281,13 +286,13 @@
                 }
             }
         }
-        
+
         .divider {
             background-color: #eaeaea;
             border: 0;
         }
     }
-    
+
     // Ensure a minimum amount of space to the left of the shortcut
     .menu-shortcut {
         float: right;
@@ -307,7 +312,7 @@
     .dropdown-menu {
         .border-radius(3px);
     }
-    
+
     .menu-shortcut {
         float: right;
     }
@@ -320,7 +325,7 @@
         overflow-y: auto;
 
         padding: 0;
-        
+
         li {
             a {
                 // Less padding than on menus. More padding on top than bottom
@@ -356,9 +361,12 @@
 
 .modal .close {
     cursor: default;
+    margin: 10px 5px 0 0;
 }
 
 .modal-header {
+    background: @tc-gray-panel-top-bar;
+    border-radius: 4px 4px 0 0;
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
@@ -382,7 +390,7 @@
 }
 .modal-footer .btn.left {
     float: left;
-    
+
     /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
      * with the title.
      */
@@ -414,14 +422,14 @@
     margin-bottom: 0;
     margin-top: 0;
     font-size: 26px;
-    line-height: 40px; 
+    line-height: 40px;
     font-weight: @font-weight-light;
 }
 
 .dialog-message {
     color: @tc-light-weight-text;
-    font-size: 16px;
-    line-height: 26px;
+    font-size: 14px;
+    line-height: 20px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
 }
@@ -436,31 +444,13 @@
 }
 
 .dialog-filename {
-    font-weight: @font-weight-semibold;
+    font-weight: normal;
     word-wrap: break-word;
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
 .clickable-link {
     cursor: pointer;
-}
-
-.btn {
-    cursor: default;
-    font-size: 16px;
-    font-weight: @font-weight-semibold;
-    color: #454545;
-    
-    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
-    // too so we don't see the color cross-fading during the gradient slide animation
-    background-color: #fff;
-    &:hover {
-        background-position: 0 15px;
-    }
-
-    &.primary {
-        background-color: @blue;
-    }
 }
 
 /* Update dialog */
@@ -476,11 +466,11 @@
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
         margin: 0 10px 0 123px;
-        
+
         .update-info {
             max-height: 200px;
             overflow: auto;
-            
+
             // Enable text selection
             cursor: auto;
             .user-select(text);
@@ -522,14 +512,68 @@
     left: 50%;
     margin-top: -275px;
     margin-left: -350px;
-    
+    background-color: #d4d7d7;
+
     .modal-header {
-        width: 700px;
+        border-bottom: none;
+        padding: 0;
+        width: auto;
         
+        .nav-tabs {
+            margin: 0;
+            border-color: #c3c6c5;
+            
+            /* Tab styling */
+            > li > a {
+                min-width: 80px;
+                min-height: 60px;
+                color: black;
+                cursor: default;
+                font-size: 12px;
+                
+                .box;
+                box-sizing: border-box;
+                .box-align(center);
+                .box-pack(center);
+                padding: 0;
+                margin: 0;
+                
+                text-align: center;
+                
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.04);
+                    border-color: rgba(0, 0, 0, 0.04);
+                }
+                
+                > img {
+                    margin-top: 5px;
+                    padding-bottom: 2px;
+                }
+            }
+            
+            /* Remove border-left from the first tab */
+            > li:nth-child(1) > a {
+                border-left: transparent;
+            }
+            
+            /* Colors for the active tab, remove bottom border */
+            > .active > a,
+            > .active > a:hover {
+                background-color: #dfe2e2;
+                border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+            }
+        }
+        
+        /* Search box */
+        > :nth-child(2) {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
         .search {
             background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
-            margin-top: 6px;
+            margin: 0;
             padding-left: 27px;
             padding-right: 20px;
         }
@@ -538,14 +582,14 @@
             display: block;
             float: right;
             left: -5px;
-            margin: 13px 0 0 -20px;
+            margin: 7px 0 0 -20px;
             opacity: 0.5;
             background: url("images/topcoat-cancel-15.svg") no-repeat;
             width: 15px;
             height: 16px;
             z-index: 1;
             border: 0;
-            
+
             &:disabled {
                 opacity: 0.3;
                 cursor: default;
@@ -561,12 +605,11 @@
     .modal-body {
         width: 730px;
         height: 400px;
-        text-align: center;
         overflow-y: scroll;
         padding: 0;
-        
+        background-color: @tc-gray-panel;
+
         .empty-message {
-            display: none;
             position: absolute;
             top: 50%;
             width: 100%;
@@ -574,6 +617,19 @@
             text-align: center;
         }
         
+        .info-message {
+            background-color: @tc-gray-panel;
+            padding: 1em;
+        }
+        
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -18px;
+            margin-left: -18px;
+        }
+
         .extension-list {
             td {
                 height: 2em;
@@ -587,11 +643,21 @@
                 display: block;
                 font-size: 15px;
                 font-weight: @font-weight-light;
+                .user-select(text);
+                cursor: text;
             }
             .ext-desc {
                 color: #000;
                 font-weight: @font-weight-light;
                 width: auto;
+                .user-select(text);
+                cursor: text;
+            }
+            .platform-win & {  // work around #4554
+                .ext-name, .ext-desc {
+                    font-weight: normal;
+                    color: #2e2e2e;
+                }
             }
             .muted {
                 color: #888;
@@ -611,20 +677,10 @@
                 text-align: right;
                 vertical-align: middle;
                 width: 150px;
-            }            
-            .spinner {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                margin-top: -18px;
-                margin-left: -18px;
             }
             .load-error {
                 display: inline-block;
                 margin-top: 240px;
-            }
-            .install {
-                width: 90px;
             }
         }
     }
@@ -642,7 +698,7 @@
     .about-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
         margin: 0 10px 0 123px;
-        
+
         #about-build-number {
             color: @tc-light-weight-quiet-text;
         }
@@ -661,7 +717,7 @@
             transition: opacity 1s;
         }
     }
-    
+
     h2 {
         font-weight: normal;
         font-size: 25px;
@@ -671,7 +727,7 @@
     .dialog-message {
         font-size: 14px;
         line-height: 17px;
-        
+
         // Enable text selection
         cursor: auto;
         .user-select(text);
@@ -702,12 +758,12 @@ input[type="color"],
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
-    
+
     &::-webkit-input-placeholder {
         color: @tc-input-placeholder-text;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
-    }    
+    }
 
     &:focus {
         outline: 0;
@@ -717,7 +773,7 @@ input[type="color"],
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: @tc-input-inner-shadow, @tc-input-glow;
     }
-    
+
     &:disabled {
         opacity: @tc-disabled-opacity;
         cursor: default;
@@ -734,6 +790,21 @@ input[type="color"],
 /* Buttons */
 
 // Base .btn styles
+
+.btn:hover,
+.btn:focus,
+.btn.disabled,
+.btn[disabled] {
+    background-color: @tc-button-background;
+}
+
+.btn.primary:hover,
+.btn.primary:focus,
+.btn.primary.disabled,
+.btn.primary[disabled] {
+    background-color: @tc-call-to-action;
+}
+
 .btn {
     // Button Base
     background-image: none;
@@ -741,6 +812,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
+    cursor: default;    
     font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
@@ -757,8 +829,22 @@ input[type="color"],
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        color: @tc-text;
         outline: none;
     }
+
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: @tc-button-down-background;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-text;
+    }
+
+    &.disabled, &[disabled] {
+        opacity: @tc-disabled-opacity;
+    }    
 
     // Primary Button Type
     &.primary {
@@ -773,25 +859,13 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
-        }    
-   
+        }
+
         &:focus {
             border: 1px solid @tc-gray-component-focused-border;
             box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
             outline: none;
-        }        
-    }
-    
-    // Active and Disabled states
-    &.active,
-    &:active {
-        background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-    }    
-    
-    &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
+        }
     }
 
     // Button Sizes
@@ -813,7 +887,7 @@ input[type="color"],
 
 /* Tables */
 
-table {
+.table, table {
     th {
         font-weight: @font-weight-semibold;
     }
@@ -832,9 +906,9 @@ table {
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
-        background-color: @tc-gray-panel; // turn off bootstrap hover highlight 
+        background-color: @tc-gray-panel; // turn off bootstrap hover highlight
     }
-}    
+}
 .row-highlight tbody {
     tr:hover td,
     tr:hover th {
@@ -877,4 +951,15 @@ dt,
 .alert-message a,
 .form-stacked label {
     font-weight: @font-weight-semibold;
+}
+
+.alert {
+    text-shadow: none;
+    background-color: @tc-warning-background;
+    border: none;
+}
+.alert,
+.alert h4 {
+    // Specified for the h4 to prevent conflicts of changing @headingsColor
+    color: @tc-warning-text;
 }
