@@ -534,7 +534,7 @@ define(function (require, exports, module) {
                 ParameterHintManager.startCursorTracking(session);
             }
 
-            ParameterHintManager.popUpHint(ParameterHintManager.PUSH_EXISTING_HINT, hint.type);
+            ParameterHintManager.popUpHint(ParameterHintManager.PUSH_EXISTING_HINT);
         }
 
         // Return false to indicate that another hinting session is not needed

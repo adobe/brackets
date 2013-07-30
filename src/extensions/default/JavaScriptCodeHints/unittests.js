@@ -389,8 +389,7 @@ define(function (require, exports, module) {
          * describes a function parameter. If null, then no hint is expected.
          * @param {number} expectedParameter - the parameter at cursor.
          */
-        function expectParameterHint(expectedParams, expectedParameter)
-        {
+        function expectParameterHint(expectedParams, expectedParameter) {
             var request = ParameterHintManager.popUpHint();
             if (expectedParams === null) {
                 expect(request).toBe(null);
@@ -930,7 +929,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name:"amountDue", type: "Object"}], 0);
+                    expectParameterHint([{name: "amountDue", type: "Object"}], 0);
                 });
             });
             
@@ -1234,7 +1233,7 @@ define(function (require, exports, module) {
                 var testPos = { line: 200, ch: 20 };
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "a", type: "Array.<String>"}],0);
+                    expectParameterHint([{name: "a", type: "Array.<String>"}], 0);
                 });
             });
 
