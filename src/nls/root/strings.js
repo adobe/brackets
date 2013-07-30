@@ -436,7 +436,7 @@ define({
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
-    "NO_ARGUMENTS"                              : "<no arguments>",
+    "NO_ARGUMENTS"                              : "<no parameters>",
 
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Enable JSLint",
