@@ -38,6 +38,8 @@ define(function (require, exports, module) {
         var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
             url = "http://brackets.io/extensions/myextension.zip";
         
+        this.category = "integration";
+        
         beforeEach(function () {
             if (!testWindow) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
