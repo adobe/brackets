@@ -1,31 +1,31 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
 define({
-    
+
     /**
      * Chyby
      */
@@ -37,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
+    "FILE"                              : "Soubor",
+    "DIRECTORY"                         : "Složka",
 
     // Řetězce chyb projektu
     "ERROR_LOADING_PROJECT"             : "Chyba při otevírání projektu",
@@ -47,6 +49,7 @@ define({
     // Řetězce chyb otevírání/ukládání souboru
     "ERROR_OPENING_FILE_TITLE"          : "Chyba při otevírání souboru",
     "ERROR_OPENING_FILE"                : "Došlo k chybě při otevírání souboru <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "Došlo k chybě při otevírání následujících souborů:",
     "ERROR_RELOADING_FILE_TITLE"        : "Chyba při načítání změn z disku",
     "ERROR_RELOADING_FILE"              : "Došlo k chybě při načítání souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Chyba při ukládání souboru",
@@ -84,26 +87,26 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhled",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhled: Spouštění\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Zrušit živý náhled",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled: Klikněte pro odpojení (uložte soubor)",
-    
+
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Živý náhled byl zrušen, protože byly otevřeny vývojářské nástroje prohlížeče",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhled byl zrušen, protože dokument byl zavřen v prohlížeči",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Živý náhled byl zrušen, protože prohlížeč přešel na stránku, která není součástí projektu",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Živý náhled byl zrušen z neznámého důvodu ({0})",
-        
+
     "SAVE_CLOSE_TITLE"                  : "Uložit změny",
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložit změny v souboru <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložit změny v následujících souborech?",
     "EXT_MODIFIED_TITLE"                : "Externí změny",
-    "FILE_DELETED_TITLE"                : "Soubor smazán",    
+    "FILE_DELETED_TITLE"                : "Soubor smazán",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
-    
+
     // Najít, Nahradit, Nahradit v souborech
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
@@ -111,14 +114,15 @@ define({
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
     "BUTTON_STOP"                       : "Stop",
-    
+
     "OPEN_FILE"                         : "Otevřít soubor",
+    "SAVE_FILE_AS"                      : "Uložit soubor",
     "CHOOSE_FOLDER"                     : "Vybrat složku",
 
     "RELEASE_NOTES"                     : "Poznámky k verzi",
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
-    
+
     "FIND_IN_FILES_TITLE"               : "pro \"{4}\" {5} - {0} {1} v {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
@@ -133,7 +137,7 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
-    
+
     /**
      * Správce projektu
      */
@@ -147,9 +151,9 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-   
+
     /**
-     * Řetezce příkazového řádku 
+     * Řetezce příkazového řádku
      */
     "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Přepnout odsazení na mezery",
@@ -164,9 +168,10 @@ define({
     /**
      * Příkazy
      */
-         
+
     // Příkazy menu Soubor
     "FILE_MENU"                           : "Soubor",
+    "CMD_FILE_NEW_UNTITLED"               : "Nový",
     "CMD_FILE_NEW"                        : "Nový soubor",
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
@@ -176,6 +181,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Zavřít vše",
     "CMD_FILE_SAVE"                       : "Uložit",
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
+    "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
@@ -215,7 +221,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "O řádek níže",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
     "CMD_SHOW_CODE_HINTS"                 : "Zobrazit nápovědu",
-     
+
     // Příkazy menu Zobrazit
     "VIEW_MENU"                           : "Zobrazit",
     "CMD_HIDE_SIDEBAR"                    : "Skrýt boční menu",
@@ -246,7 +252,7 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
-    
+
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
@@ -257,12 +263,13 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
-  
-      
+
+
     // Speciální příkazy spustěné pomocí shell
     "CMD_CLOSE_WINDOW"                    : "Zavřít okno",
     "CMD_ABORT_QUIT"                      : "Zrušit",
-            
+    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
+
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
@@ -295,13 +302,16 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Neznámá chyba při zpracování URL",
-    
+
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
+    "UPDATE"                               : "Aktualizovat",
     "REMOVE"                               : "Odstranit",
-    "OVERWRITE"                            : "Přepsat",    
+    "OVERWRITE"                            : "Přepsat",
     "CANT_REMOVE_DEV"                      : "Doplněk v \"dev\" složce musí být smazán manuálně.",
+    "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
+    "UPDATE_EXTENSION_TITLE"               : "Aktualizovat doplněk",
     "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
     "INSTALL_EXTENSION_HINT"               : "URL adresa zip archivu nebo GitHub repozitáře",
     "INSTALLING_FROM"                      : "Instalace doplňku z {0}\u2026",
@@ -321,9 +331,9 @@ define({
     "DISALLOWED_WORDS"                     : "Slova {{1}} nejsou povolena v {{0}} poli.",
     "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
     "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
-    "EXTENSION_ALREADY_INSTALLED"          : "Instalací tohoto balíčku přepíšete již nainstalovaný doplněk. Chcete přepsat doplněk?",
-    "EXTENSION_SAME_VERSION"               : "Tento balíček je stejná verze, jakou již máte nainstalovanou. Chcete přepsat existující instalací?",
-    "EXTENSION_OLDER_VERSION"              : "Tento balíček je verze {0}, která je starší, něž současně nainstalovaná ({1}). Chcete přepsat existující instalací?",    
+    "EXTENSION_ALREADY_INSTALLED"          : "Instalace tohoto balíčku přepíše již nainstalovaný doplněk. Chcete přepsat starý doplněk?",
+    "EXTENSION_SAME_VERSION"               : "Tento balíček je stejná verze jako ta, kterou již máte nainstalovanou. Chcete přepsat existující doplněk?",
+    "EXTENSION_OLDER_VERSION"              : "Tento balíček je verze {0}, která je starší než současně nainstalovaná verze ({1}). Chcete přepsat existující doplněk?",
     "DOWNLOAD_ID_IN_USE"                   : "Interní chyba: ID stahování se již používá.",
     "NO_SERVER_RESPONSE"                   : "Nelze se připojit na server.",
     "BAD_HTTP_STATUS"                      : "Soubor nebyl nalezen (HTTP {0}).",
@@ -343,36 +353,40 @@ define({
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
-    "EXTENSION_KEYWORDS"                   : "Klíčová slova",    
+    "EXTENSION_KEYWORDS"                   : "Klíčová slova",
     "EXTENSION_INSTALLED"                  : "Nainstalováno",
-    "EXTENSION_UPDATE_INSTALLED"           : "Aktualizace doplňku byla stažena a bude nainstalována při ukončení {APP_NAME}.",    
+    "EXTENSION_UPDATE_INSTALLED"           : "Aktualizace doplňku byla stažena a bude nainstalována při ukončení aplikace {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Hledat",
     "EXTENSION_MORE_INFO_LINK"             : "Více",
     "BROWSE_EXTENSIONS"                    : "Procházet doplňky",
     "EXTENSION_MANAGER_REMOVE"             : "Odstranit doplněk",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Chyba při odstraňování jednoho nebo více doplňků: {{0}}. Aplikace {APP_NAME} bude stále ukončena.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Chyba při odstraňování jednoho nebo více doplňků: {{0}}. {APP_NAME} bude stále ukončen.",
     "EXTENSION_MANAGER_UPDATE"             : "Aktualizovat doplněk",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nelze aktualizovat jeden nebo více doplňků: {0}. Aplikace {APP_NAME} bude stále ukončena.",    
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nelze aktualizovat jeden nebo více doplňků: {0}. Aplikace {APP_NAME} bude ukončena.",
     "MARKED_FOR_REMOVAL"                   : "Označeno pro odstranění",
     "UNDO_REMOVE"                          : "Zpět",
-    "MARKED_FOR_UPDATE"                    : "Označeno pro aktualizaci",   
-    "UNDO_UPDATE"                          : "Vrátit zpět",
-    "CHANGE_AND_QUIT_TITLE"                : "Změnit doplňky",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pro aktualizaci nebo odstranění označených doplňků je třeba restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn v souborech.",    
-    "REMOVE_AND_QUIT"                      : "Odstranit doplňky a ukončit program",    
+    "MARKED_FOR_UPDATE"                    : "Označeno pro aktualizaci",
+    "UNDO_UPDATE"                          : "Zpět",
+    "CHANGE_AND_QUIT_TITLE"                : "Změnit doplněk",
+    "CHANGE_AND_QUIT_MESSAGE"              : "Pro aktualizaci nebo odstranění označených doplňků musíte ukončit a restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn.",
+    "REMOVE_AND_QUIT"                      : "Odstranit doplňky a ukončit program",
     "CHANGE_AND_QUIT"                      : "Změnit doplňky a ukončit program",
-    "UPDATE_AND_QUIT"                      : "Aktualizovat doplňky a ukončit program",    
+    "UPDATE_AND_QUIT"                      : "Aktualizovat doplňky a ukončit program",
     "EXTENSION_NOT_INSTALLED"              : "Doplněk {{0}} nemohl být odstraněn, protože nebyl nainstalován.",
     "NO_EXTENSIONS"                        : "Žádný doplněk ještě nebyl nainstalován.<br />Klikněte na tlačítko Instalovat z URL pro zahájení instalace.",
-    "NO_EXTENSION_MATCHES"                 : "Žádný doplněk neodpovídá kritériím hledání.",    
-  
+    "NO_EXTENSION_MATCHES"                 : "Žádný doplněk neodpovídá hledání.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Buďte opatrní při instalaci doplňků z neznámých zdrojů.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Nainstalované",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
+    "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
+
     /**
      * Jména jednotek
      */
 
     "UNIT_PIXELS"                          : "pixely",
-      
-    // extensions/default/DebugCommands    
+
+    // extensions/default/DebugCommands
     "DEBUG_MENU"                          : "Nástroje",
     "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
@@ -383,7 +397,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
     "CMD_RESTART_NODE"                    : "Restartovat Node",
- 
+
     "LANGUAGE_TITLE"                    : "Změnit jazyk",
     "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
     "LANGUAGE_SUBMIT"                   : "Restartovat {APP_NAME}",
@@ -408,6 +422,7 @@ define({
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_ZH_CN"                              : "Čínsky",
+    "LOCALE_HU"                                 : "Maďarsky",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
@@ -417,11 +432,11 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formát",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (použito {1} krát)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
 
-    // extensions/default/JSLint 
+    // extensions/default/JSLint
     "CMD_JSLINT"                           : "Povolit JSLint",
     "CMD_JSLINT_FIRST_ERROR"               : "Přejít na první JSLint chybu",
     "JSLINT_ERRORS"                        : "JSLint chyby",
@@ -429,10 +444,10 @@ define({
     "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
     "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
     "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
-                                  
-    // extensions/default/QuickView 
+
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"
 });
