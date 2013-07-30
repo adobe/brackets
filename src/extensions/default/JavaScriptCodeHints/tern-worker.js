@@ -382,11 +382,7 @@ importScripts("thirdparty/requirejs/require.js");
                     var result = "function(",
                         params = processInferFnTypeParameters(inferType);
 
-                    function appendValue(value) {
-                        result += value;
-                    }
-
-                    HintUtils2.formatParameterHint(params, appendValue, appendValue, true);
+                    result += HintUtils2.formatParameterHint(params, null, null, true);
                     if (inferType.retval) {
                         result += "):";
                         result += inferTypeToString(inferType.retval);

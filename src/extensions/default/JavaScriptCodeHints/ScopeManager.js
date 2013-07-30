@@ -1274,14 +1274,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Request a function type hint from Tern.
+     * Request a parameter hint from Tern.
      *
      * @param {Session} session - the active hinting session
      * @param {{line: number, ch: number}} functionOffset - the offset the function call.
      * @return {jQuery.Promise} - The promise will not complete until the
      *      hint has completed.
      */
-    function requestFunctionHint(session, functionOffset) {
+    function requestParameterHint(session, functionOffset) {
         var $deferredHints = $.Deferred(),
             fileInfo = getFileInfo(session),
             offset = getOffset(session, fileInfo, functionOffset),
@@ -1429,7 +1429,7 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
-    exports.requestFunctionHint = requestFunctionHint;
+    exports.requestParameterHint = requestParameterHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
 

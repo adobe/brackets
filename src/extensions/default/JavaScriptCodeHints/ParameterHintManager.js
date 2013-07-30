@@ -268,7 +268,7 @@ define(function (require, exports, module) {
         var $deferredPopUp = $.Deferred();
 
         if (!hint) {
-            request = ScopeManager.requestFunctionHint(session, functionInfo.functionCallPos);
+            request = ScopeManager.requestParameterHint(session, functionInfo.functionCallPos);
         } else {
             session.setFnType(hint);
             request = $.Deferred();
