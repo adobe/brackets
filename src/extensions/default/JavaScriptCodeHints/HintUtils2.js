@@ -36,17 +36,19 @@ define(function (require, exports, module) {
     /**
      * Format the given parameter array. Handles separators between
      * parameters, syntax for optional parameters, and the order of the
-     * parameter type and parameter name.
+     * parameter type and parameter name. If the appendSeparators parameter
+     * is supplied, the appendParameter is also required.
      *
      * @param {!Array.<name: {string}, type: {string},
                  * isOptional: {boolean}>} params - array of parameter descriptors
-     * @param {function(string)} appendSeparators - callback function to append separators.
+     * @param {function(string)=} appendSeparators - callback function to append separators.
      * The separator is passed to the callback.
      * @param {function(string, number)} appendParameter - callback function to append parameter.
      * The formatted parameter type and name is passed to the callback along with the
      * current index of the parameter.
      * @param {boolean=} typesOnly - only show parameter types. The
      * default behavior is to include both parameter names and types.
+     * @return {string} - formatted parameter hint unless appendSeparators
      */
     function formatParameterHint(params, appendSeparators, appendParameter, typesOnly) {
         var result = "",
@@ -66,29 +68,44 @@ define(function (require, exports, module) {
                 }
 
                 if (i > 0) {
-                    result += " ";
+                    separators += ", ";
                 }
+
                 separators += "[";
                 pendingOptional = true;
+            } else {
+                if (i > 0) {
+                    separators += ", ";
+                }
             }
 
-            if (i > 0) {
-                separators += ", ";
+            if (appendSeparators) {
+                appendSeparators(separators);
+            } else {
+                result += separators;
             }
-
-            appendSeparators(separators);
 
             if (!typesOnly) {
                 param += " " + value.name;
             }
 
-            appendParameter(param, i);
+            if (appendParameter) {
+                appendParameter(param, i);
+            } else {
+                result += param;
+            }
 
         });
 
         if (pendingOptional) {
-            appendSeparators("]");
+            if (appendSeparators) {
+                appendSeparators("]");
+            } else {
+                result += "]";
+            }
         }
+
+        return result;
     }
 
     exports.formatParameterHint = formatParameterHint;

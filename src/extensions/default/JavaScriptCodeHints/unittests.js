@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         Preferences          = require("Preferences"),
         ScopeManager         = require("ScopeManager"),
         HintUtils            = require("HintUtils"),
+        HintUtils2           = require("HintUtils2"),
         ParameterHintManager = require("ParameterHintManager");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
@@ -1804,5 +1805,61 @@ define(function (require, exports, module) {
             });
 
         });
+
+        describe("JavaScript Code Hinting format parameters tests", function () {
+
+            it("should format parameters with no params", function () {
+                var params = [];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("");
+            });
+
+            it("should format parameters with one param", function () {
+                var params = [{name: "param1", type: "String"}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("String param1");
+            });
+
+            it("should format parameters with one optional param", function () {
+                var params = [{name: "param1", type: "String", isOptional: true}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("[String param1]");
+            });
+
+            it("should format parameters with one required, one optional param", function () {
+                var params = [{name: "param1", type: "String"},
+                              {name: "param2", type: "String", isOptional: true}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2]");
+            });
+
+            it("should format parameters with required param following an optional param", function () {
+                var params = [{name: "param1", type: "String"},
+                    {name: "param2", type: "String", isOptional: true},
+                    {name: "param3", type: "String"}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2, String param3]");
+            });
+
+            it("should format parameters with optional param following an optional param", function () {
+                var params = [{name: "param1", type: "String"},
+                    {name: "param2", type: "String", isOptional: true},
+                    {name: "param3", type: "String", isOptional: true}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2], [String param3]");
+            });
+
+            it("should format parameters with optional param following optional and required params", function () {
+                var params = [{name: "param1", type: "String"},
+                    {name: "param2", type: "String", isOptional: true},
+                    {name: "param3", type: "String"},
+                    {name: "param4", type: "String", isOptional: true}];
+
+                expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2, String param3], [String param4]");
+            });
+
+        });
+
+
     });
 });
