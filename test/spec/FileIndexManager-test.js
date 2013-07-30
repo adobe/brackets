@@ -248,22 +248,23 @@ define(function (require, exports, module) {
             });
     
             it("should handle identical simultaneous requests without doing extra work", function () {  // #330
+                var projectRoot,
+                    allFiles1,
+                    allFiles2;
+                
                 // Open a directory
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
     
-                var projectRoot;
-                var promise1, promise2;
-                var allFiles1, allFiles2;
                 runs(function () {
                     projectRoot = ProjectManager.getProjectRoot();
                     spyOn(projectRoot, "createReader").andCallThrough();
                     
                     // Kick off two index requests in parallel
-                    promise1 = FileIndexManager.getFileInfoList("all")
+                    var promise1 = FileIndexManager.getFileInfoList("all")
                         .done(function (result) {
                             allFiles1 = result;
                         });
-                    promise2 = FileIndexManager.getFileInfoList("all") // same request again
+                    var promise2 = FileIndexManager.getFileInfoList("all") // same request again
                         .done(function (result) {
                             allFiles2 = result;
                         });
@@ -283,22 +284,23 @@ define(function (require, exports, module) {
             });
             
             it("should handle differing simultaneous requests without doing extra work", function () {  // #330
+                var projectRoot,
+                    allFiles1,
+                    allFiles2;
+                
                 // Open a directory
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
     
-                var projectRoot;
-                var promise1, promise2;
-                var allFiles1, allFiles2;
                 runs(function () {
                     projectRoot = ProjectManager.getProjectRoot();
                     spyOn(projectRoot, "createReader").andCallThrough();
                     
                     // Kick off two index requests in parallel
-                    promise1 = FileIndexManager.getFileInfoList("all")
+                    var promise1 = FileIndexManager.getFileInfoList("all")
                         .done(function (result) {
                             allFiles1 = result;
                         });
-                    promise2 = FileIndexManager.getFileInfoList("css") // different request in parallel
+                    var promise2 = FileIndexManager.getFileInfoList("css") // different request in parallel
                         .done(function (result) {
                             allFiles2 = result;
                         });

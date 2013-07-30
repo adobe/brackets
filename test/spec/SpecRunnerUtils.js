@@ -203,8 +203,8 @@ define(function (require, exports, module) {
      * 
      * Unlike a real Document, does NOT need to be explicitly cleaned up.
      * 
-     * @param {?string} initialContent  Defaults to ""
-     * @param {?string} languageId      Defaults to JavaScript
+     * @param {string=} initialContent  Defaults to ""
+     * @param {string=} languageId      Defaults to JavaScript
      */
     function createMockDocument(initialContent, languageId) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
@@ -248,6 +248,8 @@ define(function (require, exports, module) {
      * 
      * Must be cleaned up by calling destroyMockEditor(document) later.
      * 
+     * @param {!Document} doc
+     * @param {{startLine: number, endLine: number}=} visibleRange
      * @return {!Editor}
      */
     function createMockEditorForDocument(doc, visibleRange) {
@@ -272,6 +274,9 @@ define(function (require, exports, module) {
      * 
      * Must be cleaned up by calling destroyMockEditor(document) later.
      * 
+     * @param {string=} initialContent
+     * @param {string=} languageId
+     * @param {{startLine: number, endLine: number}=} visibleRange
      * @return {!{doc:!Document, editor:!Editor}}
      */
     function createMockEditor(initialContent, languageId, visibleRange) {

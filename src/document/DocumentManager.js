@@ -817,8 +817,6 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i;
-        
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
@@ -837,14 +835,14 @@ define(function (require, exports, module) {
         });
         
         // Delete the old keys
-        for (i = 0; i < keysToDelete.length; i++) {
-            delete _openDocuments[keysToDelete[i]];
-        }
+        keysToDelete.forEach(function (fullPath) {
+            delete _openDocuments[fullPath];
+        });
         
         // Update working set
-        for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
-        }
+        _workingSet.forEach(function (fileEntry) {
+            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
