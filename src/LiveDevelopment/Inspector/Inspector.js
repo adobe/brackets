@@ -283,6 +283,7 @@ define(function Inspector(require, exports, module) {
 
         return promise;
     }
+    
     /**
      * Connect to the remote debugger WebSocket at the given URL.
      * Clients must listen for the `connect` event.

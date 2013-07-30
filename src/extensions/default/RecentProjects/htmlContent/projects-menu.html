@@ -8,9 +8,9 @@
     </li>
     {{/projectList}}
     
-    {{#hasProject}}
+    {{#projectList.length}}
     <li class="divider"></li>
-    {{/hasProject}}
+    {{/projectList.length}}
     
-    <li><a id="open-folder-link">{{CMD_OPEN_FOLDER}}</a></li>
+    <li><a id="open-folder-link">{{Strings.CMD_OPEN_FOLDER}}</a></li>
 </ul>

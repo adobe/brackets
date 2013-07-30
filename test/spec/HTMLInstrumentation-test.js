@@ -520,7 +520,12 @@ define(function (require, exports, module) {
                 elementIds = {};
             });
             
-            function doFullAndIncrementalEditTest(editFn, expectationFn) {
+            function doEditTest(origText, editFn, expectationFn, incremental) {
+                // We need to fully reset the editor/mark state between the full and incremental tests
+                // because if new DOM nodes are added by the edit, those marks will be present after the
+                // full test, messing up the incremental test.                
+                editor.document.refreshText(origText);
+                
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                     changeList,
                     result;
@@ -530,15 +535,17 @@ define(function (require, exports, module) {
                 });
                 editFn(editor, previousDOM);
                 $(editor).off(".instrtest");
-                
-                // full test
-                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                expectationFn(result, previousDOM, false);
+
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                expectationFn(result, previousDOM, incremental);
+            }
+
+            function doFullAndIncrementalEditTest(editFn, expectationFn) {
+                var origText = editor.document.getText();
+                doEditTest(origText, editFn, expectationFn, false);
                 
                 if (HTMLInstrumentation._allowIncremental) {
-                    // incremental test
-                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-                    expectationFn(result, previousDOM, true);
+                    doEditTest(origText, editFn, expectationFn, true);
                 }
             }
             
