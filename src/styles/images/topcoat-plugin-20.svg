@@ -1,9 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 16.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="20px" height="20px" viewBox="0.5 0.5 20 20" enable-background="new 0.5 0.5 20 20" xml:space="preserve">
-<path fill="#FFFFFF" d="M9.529,6.5V5.75c0-1.5-0.468-2.25-2.029-2.25C6,3.5,5.529,4.311,5.529,5.75V6.5h-1c-1.56,0-2,0.75-2,2.25v6
-	c0,1.529,0.44,1.792,2,1.792h13c1.561,0,2-0.263,2-1.792v-6c0-1.5-0.439-2.25-2-2.25h-1V5.75C16.529,4.311,16,3.5,14.5,3.5
-	c-1.562,0-1.971,0.75-1.971,2.25V6.5H9.529z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <title>Extension Manager</title>
+    <description>Created with Sketch (http://www.bohemiancoding.com/sketch)</description>
+    <defs></defs>
+    <g id="Page 1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Slice 1" transform="translate(4.000000, 5.000000)" fill="#BBBBBB">
+            <g id="Page 1">
+                <g id="Layer_1">
+                    <path d="M6,2.25 C6,0.75 5.532,0 3.971,0 C2.471,0 2,0.812 2,2.25 L2,3 L1,3 C-0.56,3 -1,3.75 -1,5.25 L-1,11.25 C-1,12.779 -0.56,13.042 1,13.042 L15,13.042 C16.563,13.042 17.004,12.779 17.004,11.25 L17.004,5.25 C17.004,3.75 16.563,3 15,3 L14,3 L14,2.25 C14,0.812 13.471,0 11.971,0 C10.409,0 10,0.75 10,2.25 L10,3 L6,3 L6,2.25 Z M6,2.25" id="Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
 </svg>

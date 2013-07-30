@@ -147,8 +147,14 @@ define(function (require, exports, module) {
         if (!ProjectManager.shouldShow(entry)) {
             return;
         }
-
+        
         var fileInfo = new FileInfo(entry);
+        
+        // skip zipped/binary files
+        if (ProjectManager.isBinaryFile(fileInfo.name)) {
+            return;
+        }
+        
         //console.log(entry.name);
   
         CollectionUtils.forEach(_indexList, function (index, indexName) {
@@ -256,7 +262,7 @@ define(function (require, exports, module) {
                         // or scanning additional directories once a max has been hit. Also notify the 
                         // user once via a dialog. This limit could be increased
                         // if files were indexed in a worker thread so scanning didn't block the UI
-                        if (state.fileCount > 10000) {
+                        if (state.fileCount > 16000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
                                 if (!_maxFileDialogDisplayed) {
