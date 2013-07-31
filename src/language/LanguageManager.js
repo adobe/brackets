@@ -373,9 +373,9 @@ define(function (require, exports, module) {
     /**
      * Loads a mode and sets it for this language.
      * 
-     * @param {string|Array.<string>} mode            CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     *
+     * @param {(string|Array.<string>)} mode  CodeMirror mode (e.g. "htmlmixed"), optionally paired with a MIME mode defined by
+     *      that mode (e.g. ["clike", "text/x-c++src"]). Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js,
+     *      you need to first load it yourself.
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
     Language.prototype._loadAndSetMode = function (mode) {
@@ -518,7 +518,7 @@ define(function (require, exports, module) {
 
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
-     * @param {!string|Array.<string>} prefix Prefix string or an array of prefix strings
+     * @param {!(string|Array.<string>)} prefix Prefix string or an array of prefix strings
      *   to use for line comments (e.g. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
@@ -643,8 +643,8 @@ define(function (require, exports, module) {
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (e.g. ["php", "php3"] or ["coffee.md"] - may contain dots)
      * @param {Array.<string>}        definition.fileNames      List of exact file names (e.g. ["Makefile"] or ["package.json]). Higher precedence than file extension.
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (e.g. ["<!--", "-->"])
-     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (e.g. "//" or ["//", "#"])
-     * @param {string|Array.<string>} definition.mode           CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     * @param {(string|Array.<string>)} definition.lineComment  Line comment prefixes (e.g. "//" or ["//", "#"])
+     * @param {(string|Array.<string>)} definition.mode         CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
      * @return {$.Promise} A promise object that will be resolved with a Language object
