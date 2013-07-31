@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine, beforeAll, afterAll */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine, beforeFirst, afterLast */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -40,13 +40,13 @@ define(function (require, exports, module) {
         
         this.category = "integration";
         
-        beforeAll(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
             });
         });
         
-        afterAll(function () {
+        afterLast(function () {
             testWindow = null;
             SpecRunnerUtils.closeTestWindow();
         });

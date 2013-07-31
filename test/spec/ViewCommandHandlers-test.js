@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, it, runs, expect, waitsForDone, beforeAll, afterAll */
+/*global define, describe, beforeEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         var CSS_FILE  = testPath + "/test.css",
             HTML_FILE = testPath + "/test.html";
         
-        beforeAll(function () {
+        beforeFirst(function () {
             var promise;
             
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
             });
         });
         
-        afterAll(function () {
+        afterLast(function () {
             testWindow          = null;
             CommandManager      = null;
             Commands            = null;

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeAll, afterAll */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -43,8 +43,7 @@ define(function (require, exports, module) {
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
-        var topLevelSuite = this,
-            testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
+        var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow,
             promise;
 
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
         
-        beforeAll(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
@@ -66,7 +65,7 @@ define(function (require, exports, module) {
             });
         });
         
-        afterAll(function () {
+        afterLast(function () {
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;

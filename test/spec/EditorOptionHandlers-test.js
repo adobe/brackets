@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, beforeAll, afterAll */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
             BACKSPACE     = 8;
         
         
-        beforeAll(function () {
+        beforeFirst(function () {
             // Create a new window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
             });
         });
         
-        afterAll(function () {
+        afterLast(function () {
             testWindow          = null;
             CommandManager      = null;
             Commands            = null;
