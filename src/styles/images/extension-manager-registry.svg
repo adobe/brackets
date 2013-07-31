@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="23px" height="20px" viewBox="0 0 23 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <title>Slice 1</title>
+    <description>Created with Sketch (http://www.bohemiancoding.com/sketch)</description>
+    <defs></defs>
+    <g id="Page 1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M21,2.996 L19,2.996 L19,1.997 C19,0.568 18.48,-0.001 17,-0.001 L16,-0.001 C14.5,-0.001 14,0.538 14,1.997 L14,2.996 L9,2.996 L9,1.997 C9,0.538 8.5,-0.001 7,-0.001 L6,-0.001 C4.52,-0.001 4,0.569 4,1.997 L4,2.996 L2,2.996 C0.5,2.996 0,3.616 0,4.994 L0,17.982 C0,19.361 0.61,20 2,19.98 L21,19.98 C22.39,20 23,19.361 23,17.982 L23,4.994 C23,3.615 22.5,2.996 21,2.996 L21,2.996 Z M14.969,13 L12.969,13 L12.969,15 C12.969,15.59 12.129,16 11.469,16 C10.849,16 9.969,15.59 9.969,15 L9.969,13 L8,13 C7.44,13 7,12.09 7,11.5 C7,10.91 7.44,10 8,10 L9.969,10 L9.969,7.938 C9.969,7.468 10.849,6.938 11.469,6.938 C12.059,6.938 12.969,7.438 12.969,7.938 L12.969,10 L14.969,10 C15.529,10 15.969,10.91 15.969,11.5 C15.969,12.12 15.499,13 14.969,13 L14.969,13 Z M14.969,13" id="Shape" fill="#7F8181"></path>
+    </g>
+</svg>

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -63,17 +63,18 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
- *      the new sorted list. Listener receives no arguments.
- *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via dragging and dropping
- *      a file to disable automatic sorting. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *      Listener receives no arguments.
+ * 
+ *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -81,6 +82,8 @@
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
+ * 
+ * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -95,11 +98,12 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
+        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
-    
+
     /**
      * @private
      * @see DocumentManager.getCurrentDocument()
@@ -122,6 +126,12 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
+    /**
+     * @private
+     * Random path prefix for untitled documents
+     */
+    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
+
     /**
      * @private
      * @type {Array.<FileEntry>}
@@ -169,8 +179,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet;
-        // TODO: (issue #297) return a clone to prevent meddling?
+        return _workingSet.slice(0);
     }
 
     /** 
@@ -221,17 +230,39 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToWorkingSet(file) {
+    function addToWorkingSet(file, index, forceRedraw) {
+        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // File is in working set, but not at the specifically requested index - only need to reorder
+            if (forceRedraw || (indexRequested && curIndex !== index)) {
+                var entry = _workingSet.splice(curIndex, 1)[0];
+                _workingSet.splice(index, 0, entry);
+                $(exports).triggerHandler("workingSetSort");
+            }
             return;
         }
         
         // Add to _workingSet making sure we store a different instance from the
-        // one in the Document. See issue #1971 for more details.        
-        file = new NativeFileSystem.FileEntry(file.fullPath);
-        _workingSet.push(file);
+        // one in the Document. See issue #1971 for more details.
+        if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, file.mtime);
+        } else {
+            file = new NativeFileSystem.FileEntry(file.fullPath);
+        }
+        if (!indexRequested) {
+            // If no index is specified, just add the file to the end of the working set.
+            _workingSet.push(file);
+        } else {
+            // If specified, insert into the working set list at this 0-based index
+            _workingSet.splice(index, 0, file);
+        }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -244,9 +275,12 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", file);
+        if (!indexRequested) {
+            index = _workingSet.length - 1;
+        }
+        $(exports).triggerHandler("workingSetAdd", [file, index]);
     }
-
+    
     /**
      * Adds the given file list to the end of the working set list.
      * Does not change which document is currently open in the editor.
@@ -284,11 +318,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file.
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!FileEntry} file
+     * @param {boolean=} true to suppress redraw after removal
      */
-    function removeFromWorkingSet(file) {
+    function removeFromWorkingSet(file, suppressRedraw) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -301,7 +337,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
+        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
     }
 
     /**
@@ -334,8 +370,8 @@ define(function (require, exports, module) {
     
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!number} index - old file index
-     * @param {!number} index - new file index
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
@@ -345,13 +381,15 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            $(exports).triggerHandler("workingSetSort");
             $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -389,7 +427,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
@@ -440,9 +478,9 @@ define(function (require, exports, module) {
 
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
-        // If file not within project tree, add it to working set right now (don't wait for it to
-        // become dirty)
-        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+        // If file is untitled or otherwise not within project tree, add it to
+        // working set right now (don't wait for it to become dirty)
+        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
             addToWorkingSet(doc.file);
         }
         
@@ -473,9 +511,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
-     * expected that the UI has already confirmed with the user before calling this.
+     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
@@ -576,36 +614,41 @@ define(function (require, exports, module) {
         } else {
             var result = new $.Deferred(),
                 promise = result.promise();
-            
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
+            
+            var fileEntry;
+            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
+                result.reject();
+            } else {
+                // log this document's Promise as pending
+                getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                            
-                    // This is a good point to clean up any old dangling Documents
-                    _gcDocuments();
-                    
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+                fileEntry = new NativeFileSystem.FileEntry(fullPath);
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            }
+            
+            // This is a good point to clean up any old dangling Documents
+            result.done(_gcDocuments);
             
             return promise;
         }
@@ -633,6 +676,22 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
+    /**
+     * Creates an untitled document. The associated FileEntry has a fullPath
+     * looks like /some-random-string/Untitled-counter.fileExt.
+     *
+     * @param {number} counter - used in the name of the new Document's FileEntry
+     * @param {string} fileExt - file extension of the new Document's FileEntry
+     * @return {Document} - a new untitled Document
+     */
+    function createUntitledDocument(counter, fileExt) {
+        var filename = Strings.UNTITLED + "-" + counter + fileExt,
+            fullPath = _untitledDocumentPath + "/" + filename,
+            now = new Date(),
+            fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
+        
+        return new DocumentModule.Document(fileEntry, now, "");
+    }
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
@@ -682,17 +741,20 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
-            // flag the currently active editor
-            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-            
-            // save editor UI state for just the working set
-            var viewState = EditorManager._getViewState(file.fullPath);
-            
-            files.push({
-                file: file.fullPath,
-                active: isActive,
-                viewState: viewState
-            });
+            // Do not persist untitled document paths
+            if (!(file instanceof NativeFileSystem.InaccessibleFileEntry)) {
+                // flag the currently active editor
+                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+                
+                // save editor UI state for just the working set
+                var viewState = EditorManager._getViewState(file.fullPath);
+                
+                files.push({
+                    file: file.fullPath,
+                    active: isActive,
+                    viewState: viewState
+                });
+            }
         });
 
         // append file root to make file list unique for each project
@@ -707,6 +769,8 @@ define(function (require, exports, module) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
+        
+        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
         if (!files) {
             return;
@@ -753,43 +817,32 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
-        
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                    var doc = _openDocuments[path];
-                    
-                    // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
-                    _openDocuments[newKey] = doc;
-                    
-                    keysToDelete.push(path);
-                    
-                    // Update document file
-                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
-                    doc._notifyFilePathChanged();
-                    
-                    if (!isFolder) {
-                        // If the path name is a file, there can only be one matched entry in the open document
-                        // list, which we just updated. Break out of the for .. in loop. 
-                        break;
-                    }
-                }
+        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                // Copy value to new key
+                var newKey = path.replace(oldName, newName);
+                _openDocuments[newKey] = doc;
+                
+                keysToDelete.push(path);
+                
+                // Update document file
+                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                doc._notifyFilePathChanged();
             }
-        }
+        });
+        
         // Delete the old keys
-        for (i = 0; i < keysToDelete.length; i++) {
-            delete _openDocuments[keysToDelete[i]];
-        }
+        keysToDelete.forEach(function (fullPath) {
+            delete _openDocuments[fullPath];
+        });
         
         // Update working set
-        for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
-        }
+        _workingSet.forEach(function (fileEntry) {
+            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
@@ -878,6 +931,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.createUntitledDocument      = createUntitledDocument;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;

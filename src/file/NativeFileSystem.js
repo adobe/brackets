@@ -645,6 +645,44 @@ define(function (require, exports, module) {
 
         // TODO (issue #241): errorCallback
     };
+    
+    /**
+     * An InaccessibleFileEntry represents an inaccessible file on a file system.
+     * In particular, InaccessibleFileEntry objects are used as in the representation
+     * of untitled Documents.
+     *
+     * @constructor
+     * @param {string} name Full path of the file in the file system
+     * @param {FileSystem} fs File system that contains this entry
+     * @extends {FileEntry}
+     */
+    NativeFileSystem.InaccessibleFileEntry = function (name, mtime) {
+        NativeFileSystem.FileEntry.call(this, name, false);
+        this.mtime = mtime;
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype = Object.create(NativeFileSystem.FileEntry.prototype);
+    NativeFileSystem.InaccessibleFileEntry.prototype.constructor = NativeFileSystem.InaccessibleFileEntry;
+    NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.createWriter is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.file is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
+        successCallback(new NativeFileSystem.Metadata(this.mtime));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.remove is unsupported");
+        errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
+    };
 
     /**
      * This class extends the FileException interface described in to add

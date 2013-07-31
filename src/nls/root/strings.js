@@ -37,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
+    "FILE"                              : "file",
+    "DIRECTORY"                         : "directory",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -47,6 +49,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error reloading changes from disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
@@ -55,11 +58,11 @@ define({
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid file name",
+    "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
-    "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
-    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
+    "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
+    "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
+    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
@@ -168,6 +171,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
+    "CMD_FILE_NEW_UNTITLED"               : "New",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
@@ -179,7 +183,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -301,10 +305,13 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Install",
+    "UPDATE"                               : "Update",
     "REMOVE"                               : "Remove",
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
+    "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
     "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
@@ -366,8 +373,12 @@ define({
     "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
     "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     /**
      * Unit names

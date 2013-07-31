@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager       = require("editor/EditorManager"),
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager");
@@ -440,6 +441,15 @@ define(function (require, exports, module) {
     Document.prototype._notifyFilePathChanged = function () {
         // File extension may have changed
         this._updateLanguage();
+    };
+    
+    /**
+     * Is this an untitled document?
+     * 
+     * @return {boolean} - whether or not the document is untitled
+     */
+    Document.prototype.isUntitled = function () {
+        return this.file instanceof NativeFileSystem.InaccessibleFileEntry;
     };
 
 

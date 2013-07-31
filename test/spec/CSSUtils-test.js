@@ -515,32 +515,35 @@ define(function (require, exports, module) {
         });
         
         describe("find correct positions of selectors", function () {
-            var selectors;
                 
-            selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
-            
             it("should find selector positions when whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when no whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when '{' on the next line", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
             });
             
             it("should find selector positions when '{' on the next line and selector is indented", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
             });
             
             it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
                 expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
             });
             
             it("should find selector positions in a selector group when '{' on the next line", function () {
-                var expected = [0, 2, 4, 6, 8, 10],
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [0, 2, 4, 6, 8, 10],
                     result = [
                         selectors[5].selectorStartChar, selectors[5].selectorEndChar,
                         selectors[6].selectorStartChar, selectors[6].selectorEndChar,
@@ -551,7 +554,8 @@ define(function (require, exports, module) {
             });
             
             it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
-                var expected = [4, 6, 8, 10, 12, 14],
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [4, 6, 8, 10, 12, 14],
                     result = [
                         selectors[8].selectorStartChar, selectors[8].selectorEndChar,
                         selectors[9].selectorStartChar, selectors[9].selectorEndChar,
@@ -969,10 +973,10 @@ define(function (require, exports, module) {
                 
                 // Braces inside string; string inside rule (not inside selector)
                 css = "a::after { content: ' {' attr(href) '}'; } \n" +
-                      ".foo { color:red } \n" +
-                      "a::after { content: \" {\" attr(href) \"}\"; } \n" +
-                      "li::before { content: \"} h4 { color:black }\"; } \n" +
-                      "div { color:green }";
+                    ".foo { color:red } \n" +
+                    "a::after { content: \" {\" attr(href) \"}\"; } \n" +
+                    "li::before { content: \"} h4 { color:black }\"; } \n" +
+                    "div { color:green }";
                 
                 result = match(css, { tag: "a" });
                 expect(result.length).toBe(2);
@@ -995,7 +999,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 css = "@import \"null?\\\"{\"; \n" +   // a real-world CSS hack similar to the above case
-                      "div { color: red }";
+                    "div { color: red }";
                 result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
@@ -1047,9 +1051,9 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 css = ".foo\n" +
-                      "{\n" +
-                      "    color: red;\n" +
-                      "}";
+                    "{\n" +
+                    "    color: red;\n" +
+                    "}";
                 result = match(css, { clazz: "foo" });
                 expect(result.length).toBe(1);
             });
@@ -1407,29 +1411,23 @@ define(function (require, exports, module) {
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,
                 DocumentManager,
-                FileViewController,
-                ProjectManager,
-                brackets;
+                FileViewController;
     
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
                     CSSUtils            = testWindow.brackets.test.CSSUtils;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    ProjectManager      = testWindow.brackets.test.ProjectManager;
 
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             });
 
             afterEach(function () {
-                brackets            = null;
                 CSSUtils            = null;
                 DocumentManager     = null;
                 FileViewController  = null;
-                ProjectManager      = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             

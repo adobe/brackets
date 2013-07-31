@@ -101,7 +101,7 @@ define(function (require, exports, module) {
         
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
-            var $gutter = $(editor._codeMirror.getGutterElement());
+            var $gutter = $(editor._codeMirror.getGutterElement()).find(".CodeMirror-linenumbers");
             $gutter.css("min-width", "");
             var curWidth = $gutter.width();
             if (curWidth > maxWidth) {
@@ -110,15 +110,17 @@ define(function (require, exports, module) {
         });
         
         if (allHostedEditors.length === 1) {
-            //There's only the host, just bail
-            allHostedEditors[0]._codeMirror.setOption("gutter", true);
+            //There's only the host, just refresh the gutter
+            allHostedEditors[0]._codeMirror.setOption("gutters", allHostedEditors[0]._codeMirror.getOption("gutters"));
             return;
         }
         
         maxWidth = maxWidth + "px";
         allHostedEditors.forEach(function (editor) {
-            $(editor._codeMirror.getGutterElement()).css("min-width", maxWidth);
-            editor._codeMirror.setOption("gutter", true);
+            $(editor._codeMirror.getGutterElement()).find(".CodeMirror-linenumbers").css("min-width", maxWidth);
+            
+            // Force CodeMirror to refresh the gutter
+            editor._codeMirror.setOption("gutters", editor._codeMirror.getOption("gutters"));
         });
     }
 

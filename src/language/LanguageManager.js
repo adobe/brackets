@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, PathUtils */
+/*global define, $, CodeMirror */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -103,6 +103,7 @@ define(function (require, exports, module) {
     
     // Dependencies
     var Async                 = require("utils/Async"),
+        FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
     
@@ -174,7 +175,7 @@ define(function (require, exports, module) {
     /**
      * Resolves a language ID to a Language object.
      * File names have a higher priority than file extensions. 
-     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -187,11 +188,11 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var fileName  = PathUtils.filename(path).toLowerCase(),
-            language  = _fileNameToLanguageMap[fileName],
+        var fileName = FileUtils.getBaseName(path).toLowerCase(),
+            language = _fileNameToLanguageMap[fileName],
             extension,
             parts;
-        
+
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
@@ -321,7 +322,7 @@ define(function (require, exports, module) {
     
     /**
      * Sets the identifier for this language or prints an error to the console.
-     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @return {boolean} Whether the ID was valid and set or not
      */
     Language.prototype._setId = function (id) {
@@ -349,7 +350,7 @@ define(function (require, exports, module) {
     
     /**
      * Sets the human-readable name of this language or prints an error to the console.
-     * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
+     * @param {!string} name Human-readable name of the language, as it's commonly referred to (e.g. "C++")
      * @return {boolean} Whether the name was valid and set or not
      */
     Language.prototype._setName = function (name) {
@@ -372,9 +373,9 @@ define(function (require, exports, module) {
     /**
      * Loads a mode and sets it for this language.
      * 
-     * @param {string|Array.<string>} mode            CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     *
+     * @param {(string|Array.<string>)} mode  CodeMirror mode (e.g. "htmlmixed"), optionally paired with a MIME mode defined by
+     *      that mode (e.g. ["clike", "text/x-c++src"]). Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js,
+     *      you need to first load it yourself.
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
     Language.prototype._loadAndSetMode = function (mode) {
@@ -517,8 +518,8 @@ define(function (require, exports, module) {
 
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
-     * @param {!string|Array.<string>} prefix Prefix string or an array of prefix strings
-     *   to use for line comments (i.e. "//" or ["//", "#"])
+     * @param {!(string|Array.<string>)} prefix Prefix string or an array of prefix strings
+     *   to use for line comments (e.g. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
@@ -636,13 +637,14 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}               id                        Unique identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string}               id                        Unique identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @param {!Object}               definition                An object describing the language
-     * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
-     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
-     * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (i.e. "//" or ["//", "#"])
-     * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (e.g. "C++")
+     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (e.g. ["php", "php3"] or ["coffee.md"] - may contain dots)
+     * @param {Array.<string>}        definition.fileNames      List of exact file names (e.g. ["Makefile"] or ["package.json]). Higher precedence than file extension.
+     * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (e.g. ["<!--", "-->"])
+     * @param {(string|Array.<string>)} definition.lineComment  Line comment prefixes (e.g. "//" or ["//", "#"])
+     * @param {(string|Array.<string>)} definition.mode         CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
      * @return {$.Promise} A promise object that will be resolved with a Language object
