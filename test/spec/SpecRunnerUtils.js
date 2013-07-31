@@ -364,13 +364,15 @@ define(function (require, exports, module) {
             };
             
             _testWindow.closeAllFiles = function closeAllFiles() {
-                var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
-                waitsForDone(promise, "Close all open files in working set");
-                
-                var $dlg = _testWindow.$(".modal.instance");
-                if ($dlg.length) {
-                    clickDialogButton("dontsave");
-                }
+                runs(function () {
+                    var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    var $dlg = _testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        clickDialogButton("dontsave");
+                    }
+                });
             };
         });
 
