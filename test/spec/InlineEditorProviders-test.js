@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
+        InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         KeyEvent         = require("utils/KeyEvent"),
@@ -84,9 +85,9 @@ define(function (require, exports, module) {
          */
         var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
             var allFiles,
+                editor,
                 hostOpened = false,
                 err = false,
-                inlineOpened = null,
                 spec = this,
                 rewriteDone = false,
                 rewriteErr = false;
@@ -97,54 +98,44 @@ define(function (require, exports, module) {
             
             // load project to set CSSUtils scope
             runs(function () {
-                rewriteProject(spec)
-                    .done(function () { rewriteDone = true; })
-                    .fail(function () { rewriteErr = true; });
+                waitsForDone(rewriteProject(spec), "rewriteProject timeout", 1000);
             });
-            
-            waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
             
             SpecRunnerUtils.loadProjectInTestWindow(tempPath);
             
             runs(function () {
                 workingSet.push(openFile);
-                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                    hostOpened = true;
-                }).fail(function () {
-                    err = true;
-                });
+                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout", 1000);
             });
             
-            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-            
             runs(function () {
-                var editor = EditorManager.getCurrentFullEditor();
-                
+                editor = EditorManager.getCurrentFullEditor();
+
                 // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
                     editor,
                     spec.infos[openFile].offsets[openOffset]
                 );
                 
-                inlineEditorResult.done(function (isOpened) {
-                    inlineOpened = isOpened;
-                    
+                if (expectInline) {
+                    waitsForDone(inlineEditorResult, "inline editor opened", 1000);
+                } else {
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                }
+            });
+
+            runs(function () {
+                if (expectInline) {
                     var inlineWidgets = editor.getInlineWidgets();
                     expect(inlineWidgets.length).toBe(1);
                     
                     // By the time we're called, the content of the widget should be in the DOM and have a nontrivial height.
-                    expect($.contains(testWindow.document.documentElement, inlineWidgets[0].htmlContent)).toBeTrue();
+                    expect($.contains(testWindow.document.documentElement, inlineWidgets[0].htmlContent)).toBe(true);
                     expect(inlineWidgets[0].$htmlContent.height()).toBeGreaterThan(50);
-                }).fail(function () {
-                    inlineOpened = false;
-                }).always(function () {
-                    editor = null;
-                });
+                }
+
+                editor = null;
             });
-            
-            waitsFor(function () {
-                return (inlineOpened !== null) && (inlineOpened === expectInline);
-            }, "inline editor timeout", 1000);
         };
         
         
@@ -1266,6 +1257,108 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.deletePath(tempPath));
                 });
             });
+        });
+        
+        describe("InlineEditor provider prioritization", function () {
+            var testWindow,
+                testEditorManager,
+                testDoc;
+            
+            function getPositiveProviderCallback(widget) {
+                return function () {
+                    widget.called = true;
+                    return $.Deferred().resolve(widget).promise();
+                };
+            }
+            
+            function negativeProviderCallback() {
+                return null;
+            }
+            
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    var mock = SpecRunnerUtils.createMockEditor("");
+                    testWindow          = w;
+                    Commands            = testWindow.brackets.test.Commands;
+                    testEditorManager   = testWindow.brackets.test.EditorManager;
+                    testDoc             = mock.doc;
+                    testEditorManager._doShow(testDoc);
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDoc);
+                SpecRunnerUtils.closeTestWindow();
+                testWindow          = null;
+                Commands            = null;
+                testEditorManager   = null;
+                testDoc             = null;
+            });
+            
+            it("should prefer positive higher priority providers (1)", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), 2);
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBeFalsy();
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBe(true);
+                });
+            });
+            
+            it("should prefer positive higher priority providers (2)", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), 2);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBeFalsy();
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBe(true);
+                });
+
+            });
+
+            it("should ignore negative higher priority providers", function () {
+                var widget0 = new InlineWidget(),
+                    widget1 = new InlineWidget(),
+                    widget2 = new InlineWidget();
+                
+                testEditorManager.registerInlineEditProvider(negativeProviderCallback, 2);
+                testEditorManager.registerInlineEditProvider(negativeProviderCallback, 1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget0));
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget1), -1);
+                testEditorManager.registerInlineEditProvider(getPositiveProviderCallback(widget2), -2);
+                                
+                runs(function () {
+                    testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+                });
+                
+                runs(function () {
+                    expect(widget0.called).toBe(true);
+                    expect(widget1.called).toBeFalsy();
+                    expect(widget2.called).toBeFalsy();
+                });
+
+            });
+            
         });
     });
 });

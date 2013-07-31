@@ -150,7 +150,7 @@ define({
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
-	"KEYBOARD_SPACE": "スペース",
+	"KEYBOARD_SPACE": "Space",
     
     /**
      * StatusBar strings
@@ -183,7 +183,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
+	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -305,10 +305,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "インストール",
+	"UPDATE": "更新",
 	"REMOVE": "削除",
 	"OVERWRITE": "上書き",
 	"CANT_REMOVE_DEV": "dev フォルダーの拡張機能は手動で削除する必要があります。",
+	"CANT_UPDATE": "アップデートはこのバージョンの {APP_NAME} と互換性がありません。",
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"UPDATE_EXTENSION_TITLE": "拡張機能を更新",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
 	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
@@ -370,8 +373,12 @@ define({
 	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
 	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
-	"NO_EXTENSIONS": "拡張機能はまだインストールされていません。<br>下にある「URL からインストール」ボタンをクリックして開始しましょう。",
+	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
+	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
+	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
     /**
      * Unit names
