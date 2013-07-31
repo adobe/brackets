@@ -36,8 +36,7 @@ define(function (require, exports, module) {
     /**
      * Format the given parameter array. Handles separators between
      * parameters, syntax for optional parameters, and the order of the
-     * parameter type and parameter name. If the appendSeparators parameter
-     * is supplied, the appendParameter is also required.
+     * parameter type and parameter name.
      *
      * @param {!Array.<name: {string}, type: {string},
                  * isOptional: {boolean}>} params - array of parameter descriptors
@@ -48,7 +47,7 @@ define(function (require, exports, module) {
      * current index of the parameter.
      * @param {boolean=} typesOnly - only show parameter types. The
      * default behavior is to include both parameter names and types.
-     * @return {string} - formatted parameter hint unless appendSeparators
+     * @return {string} - formatted parameter hint
      */
     function formatParameterHint(params, appendSeparators, appendParameter, typesOnly) {
         var result = "",
@@ -64,26 +63,24 @@ define(function (require, exports, module) {
                 // in the same bracket.
                 if (pendingOptional) {
                     separators += "]";
-                    pendingOptional = false;
                 }
 
-                if (i > 0) {
-                    separators += ", ";
-                }
-
-                separators += "[";
                 pendingOptional = true;
-            } else {
-                if (i > 0) {
-                    separators += ", ";
-                }
+            }
+
+            if (i > 0) {
+                separators += ", ";
+            }
+
+            if (value.isOptional) {
+                separators += "[";
             }
 
             if (appendSeparators) {
                 appendSeparators(separators);
-            } else {
-                result += separators;
             }
+
+            result += separators;
 
             if (!typesOnly) {
                 param += " " + value.name;
@@ -91,18 +88,18 @@ define(function (require, exports, module) {
 
             if (appendParameter) {
                 appendParameter(param, i);
-            } else {
-                result += param;
             }
+
+            result += param;
 
         });
 
         if (pendingOptional) {
             if (appendSeparators) {
                 appendSeparators("]");
-            } else {
-                result += "]";
             }
+
+            result += "]";
         }
 
         return result;
