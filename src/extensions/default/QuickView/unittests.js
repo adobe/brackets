@@ -289,22 +289,28 @@ define(function (require, exports, module) {
                 QuickView._forceShow(popoverInfo);
             }
 
-            function getBounds(object) {
+            function getBounds(object, useOffset) {
+                var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
+                    top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
                 return {
-                    left:   object.offset().left,
-                    top:    object.offset().top,
-                    right:  object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left:   left,
+                    top:    top,
+                    right:  left + object.outerWidth(),
+                    bottom: top + object.outerHeight()
                 };
             }
 
             function boundsInsideWindow(object) {
-                var bounds = getBounds(object),
-                    editorBounds = getBounds(testWindow.$("#editor-holder"));
+                // For the popover, we can't use offset(), because jQuery gets confused by the
+                // scale factor and transform origin that the animation uses. Instead, we rely
+                // on the fact that its offset parent is body, and just test its explicit left/top 
+                // values.
+                var bounds = getBounds(object, false),
+                    editorBounds = getBounds(testWindow.$("#editor-holder"), true);
                 return bounds.left   >= editorBounds.left   &&
-                       bounds.right  <= editorBounds.right  &&
-                       bounds.top    >= editorBounds.top    &&
-                       bounds.bottom <= editorBounds.bottom;
+                    bounds.right  <= editorBounds.right  &&
+                    bounds.top    >= editorBounds.top    &&
+                    bounds.bottom <= editorBounds.bottom;
             }
 
             function toggleOption(commandID, text) {
@@ -392,18 +398,25 @@ define(function (require, exports, module) {
                     checkImagePathAtPos("img/Gradient.png", 154, 80);    // url()
                     checkImagePathAtPos("img/Gradient.png", 155, 80);    // ""
                 });
-
-                // This must be in the last spec in the suite.
-                runs(function () {
-                    this.after(function () {
-                        SpecRunnerUtils.closeTestWindow();
-                    });
-                });
             });
 
             it("Should show image preview for a data URI inside url()", function () {
                 runs(function () {
                     checkImageDataAtPos("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABq0lEQVQoU11RPUgcURD+Zt/unnrcCf4QIugRMcS7a2xjmmArRlRIFRBFgrVtGgmBRFCwTBoLsQiBGMxiJ4iksLRSFEzQRC2EAwm5g727feP3LpyFy1tm5s33zcz7RnDvG4x0zFgMJRY/jiewhy/w8FKSJkyaTuG7Fumvi+ARbQiLpcMDvH/Qj1S6Bf6vI5SxKPUG4fGm5kMf6wr08MKHILCKldoZlk0OIeuHjNuDBBcNAqvvENTLwKii1ZFoF/7G2PQDpNo8dFUt1AcSGfymz42PVfI8ghxht1bHh9MpucCiegMFdJoUOtSD+MxLPtI5T/GaHWhg+NjRk3G5utPikwb5bjzhq40JSChs6Sx1eOYAojg/fCFv7yvnBLGCLPMqxS2dZrtXnDthhySuYebnpFw3ST2RtmUVIx5z1sIKdX9qgDcOTJAj7WsNa8eTUhrY0Gwqg2FldeZiduH5r9JHvqEDigzDS/4VJvYJfMh9VLmbNO9+s9hNg5D/qjkJ8I6uW0yFtkrwHydCg+AhVgsp/8Pnu00XI+0jYJ7gjANRiEsmQ3aNOXuJhG035i1QA6g+uONCrgAAAABJRU5ErkJggg==",  159, 26);
+                });
+
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        testWindow       = null;
+                        brackets         = null;
+                        CommandManager   = null;
+                        Commands         = null;
+                        EditorManager    = null;
+                        extensionRequire = null;
+                        QuickView        = null;
+                        SpecRunnerUtils.closeTestWindow();
+                    });
                 });
             });
         });

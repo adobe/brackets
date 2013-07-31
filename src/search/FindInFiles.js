@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window, Mustache */
+/*global define, $, window, Mustache */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
         FileIndexManager      = require("project/FileIndexManager"),
+        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
@@ -414,6 +415,13 @@ define(function (require, exports, module) {
      */
     function doFindInFiles(scope) {
 
+        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
+                CommandManager.execute(Commands.EDIT_FIND);
+            });
+            return;
+        }
+        
         var dialog = new FindInFilesDialog();
         
         // Default to searching for the current selection

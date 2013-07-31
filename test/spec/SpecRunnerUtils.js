@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, jasmine, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -104,6 +104,25 @@ define(function (require, exports, module) {
     function getTempDirectory() {
         return getTestPath("/temp");
     }
+
+    /**
+     * Create the temporary unit test project directory.
+     */
+    function createTempDirectory() {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            brackets.fs.makedir(getTempDirectory(), 0, function (err) {
+                if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve();
+                }
+            });
+        });
+
+        waitsForDone(deferred, "Create temp directory", 500);
+    }
     
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
@@ -135,11 +154,12 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForFail = function (promise, operationName) {
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, 1000);
+        }, "failure " + operationName, timeout);
     };
     
     /**
@@ -280,6 +300,10 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
+
+            _testWindow.closeAllDocuments = function closeAllDocuments() {
+                _testWindow.brackets.test.DocumentManager.closeAll();
+            };
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
@@ -313,6 +337,8 @@ define(function (require, exports, module) {
                 }
             });
             _testWindow.close();
+            _testWindow.executeCommand = null;
+            _testWindow = null;
         });
     }
     
@@ -516,6 +542,9 @@ define(function (require, exports, module) {
             result.resolve(docs);
         }).fail(function () {
             result.reject();
+        }).always(function () {
+            docs = null;
+            FileViewController = null;
         });
         
         return result.promise();
@@ -732,6 +761,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                console.error(err);
                 result.reject(err);
             } else {
                 result.resolve();
@@ -904,6 +934,32 @@ define(function (require, exports, module) {
             return false;
         }
     }
+
+    /**
+     * Counts the number of active specs in the current suite. Includes all
+     * descendants.
+     * @param {(jasmine.Suite|jasmine.Spec)} suiteOrSpec
+     * @return {number}
+     */
+    function countSpecs(suiteOrSpec) {
+        var children = suiteOrSpec.children && typeof suiteOrSpec.children === "function" && suiteOrSpec.children();
+
+        if (Array.isArray(children)) {
+            var childCount = 0;
+
+            children.forEach(function (child) {
+                childCount += countSpecs(child);
+            });
+
+            return childCount;
+        }
+
+        if (jasmine.getEnv().specFilter(suiteOrSpec)) {
+            return 1;
+        }
+
+        return 0;
+    }
     
     beforeEach(function () {
         this.addMatchers({
@@ -948,8 +1004,10 @@ define(function (require, exports, module) {
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
+    exports.createTempDirectory             = createTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
+    exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
@@ -973,4 +1031,5 @@ define(function (require, exports, module) {
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
+    exports.countSpecs                      = countSpecs;
 });

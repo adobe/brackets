@@ -52,6 +52,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * @type {boolean}
+     */
+    var _suppressSortRedraw = false;
+    
+    
+    /**
+     * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
@@ -179,6 +187,9 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
+                
+                // Don't redraw the working set for the next events
+                _suppressSortRedraw = true;
             }
         }
         
@@ -256,6 +267,9 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+                
+                // The drag is done, so set back to the default
+                _suppressSortRedraw = false;
             }
         }
         
@@ -486,9 +500,15 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, index) {
+        if (index === DocumentManager.getWorkingSet().length - 1) {
+            // Simple case: append item to list
+            _createNewListItem(file);
+            _redraw();
+        } else {
+            // Insertion mid-list: just rebuild whole list UI
+            _rebuildWorkingSet(true);
+        }
     }
 
     /**
@@ -511,23 +531,26 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file 
+     * @param {FileEntry} file
+     * @param {boolean=} suppressRedraw If true, suppress redraw
      */
-    function _handleFileRemoved(file) {
-        var $listItem = _findListItemFromFile(file);
-        if ($listItem) {
-            // Make the next file in the list show the close icon, 
-            // without having to move the mouse, if there is a next file.
-            var $nextListItem = $listItem.next();
-            if ($nextListItem && $nextListItem.length > 0) {
-                var canClose = ($listItem.find(".can-close").length === 1);
-                var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                _updateFileStatusIcon($nextListItem, isDirty, canClose);
+    function _handleFileRemoved(file, suppressRedraw) {
+        if (!suppressRedraw) {
+            var $listItem = _findListItemFromFile(file);
+            if ($listItem) {
+                // Make the next file in the list show the close icon, 
+                // without having to move the mouse, if there is a next file.
+                var $nextListItem = $listItem.next();
+                if ($nextListItem && $nextListItem.length > 0) {
+                    var canClose = ($listItem.find(".can-close").length === 1);
+                    var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                    _updateFileStatusIcon($nextListItem, isDirty, canClose);
+                }
+                $listItem.remove();
             }
-            $listItem.remove();
+            
+            _redraw();
         }
-        
-        _redraw();
     }
 
     function _handleRemoveList(removedFiles) {
@@ -541,11 +564,13 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    /** 
+    /**
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet(true);
+        if (!_suppressSortRedraw) {
+            _rebuildWorkingSet(true);
+        }
     }
 
     /** 
@@ -592,8 +617,8 @@ define(function (require, exports, module) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
-            _handleFileRemoved(removedFile);
+        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+            _handleFileRemoved(removedFile, suppressRedraw);
         });
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {

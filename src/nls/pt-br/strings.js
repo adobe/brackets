@@ -60,7 +60,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Opa! {APP_NAME} não funciona em navegadores ainda.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} é criado em HTML, mas agora mesmo ele é executado como um aplicativo de desktop para que você possa usá-lo para editar arquivos locais. Por favor, use o shell da aplicação no <b>github.com/adobe/brackets-shell</b> repo para executar {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} é criado em HTML, mas no momento ele é executado como um aplicativo de desktop para que você possa usá-lo para editar arquivos locais. Por favor, use o shell da aplicação no <b>github.com/adobe/brackets-shell</b> repo para executar {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Erro indexando Arquivos",
@@ -219,7 +219,7 @@ define({
     "RELOAD_FROM_DISK"                     : "Atualizar a Partir do Disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Manter Mudanças no Editor",
     "CLOSE_DONT_SAVE"                      : "Fechar (Não Salvar)",
-    "RELAUNCH_CHROME"                      : "Relançar Chrome",
+    "RELAUNCH_CHROME"                      : "Abrir Chrome Novamente",
     "ABOUT"                                : "Sobre",
     "CLOSE"                                : "Fechar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental {VERSION}",
@@ -240,7 +240,7 @@ define({
     "CMD_RUN_UNIT_TESTS"                   : "Executar Testes",
     "CMD_SHOW_PERF_DATA"                   : "Mostrar Dados de Desempenho",
     
-    "LANGUAGE_TITLE"                       : "Comutar Idioma",
+    "LANGUAGE_TITLE"                       : "Trocar Idioma",
     "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
     "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
     "LANGUAGE_CANCEL"                      : "Cancelar",
