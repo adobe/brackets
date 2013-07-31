@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, it, runs, expect, waitsForDone */
+/*global define, describe, beforeEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,35 +42,42 @@ define(function (require, exports, module) {
         var CSS_FILE  = testPath + "/test.css",
             HTML_FILE = testPath + "/test.html";
         
-        beforeEach(function () {
+        beforeFirst(function () {
             var promise;
             
-            // Create a new window that will be shared by ALL tests in this spec.
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
     
-                    // Load module instances from brackets.test
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    EditorManager       = testWindow.brackets.test.EditorManager;
-                    FileViewController  = testWindow.brackets.test.FileViewController;
-                   
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
+                // Load module instances from brackets.test
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                FileViewController  = testWindow.brackets.test.FileViewController;
                 
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                    waitsForDone(promise, "Open into working set");
-                });
-                
-                runs(function () {
-                    // Open inline editor onto test.css's ".testClass" rule
-                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                    waitsForDone(promise, "Open inline editor");
-                });
-            }
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
+            
+            runs(function () {
+                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                waitsForDone(promise, "Open into working set");
+            });
+            
+            runs(function () {
+                // Open inline editor onto test.css's ".testClass" rule
+                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                waitsForDone(promise, "Open inline editor");
+            });
         });
+        
+        afterLast(function () {
+            testWindow          = null;
+            CommandManager      = null;
+            Commands            = null;
+            EditorManager       = null;
+            FileViewController  = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
         
         function getEditors() {
             var editor = EditorManager.getCurrentFullEditor();
@@ -140,18 +147,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor.getTextHeight()).toBeGreaterThan(originalSize);
-                });
-                
-                // This must be in the last spec in the suite.
-                runs(function () {
-                    this.after(function () {
-                        testWindow          = null;
-                        CommandManager      = null;
-                        Commands            = null;
-                        EditorManager       = null;
-                        FileViewController  = null;
-                        SpecRunnerUtils.closeTestWindow();
-                    });
                 });
             });
         });

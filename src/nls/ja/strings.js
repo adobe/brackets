@@ -296,7 +296,7 @@ define({
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "ローカルサーバーを使用するには http://localhost:8000/ などの URL を入力します",
+	"PROJECT_SETTING_BASE_URL_HINT": "http://localhost:8000/ 等のURLを入力してローカルサーバーを使用",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",

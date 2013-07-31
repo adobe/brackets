@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         HTMLCodeHints   = require("main");
 
-    describe("HTML Attribute Hinting", function () {
+    describe("HTML Code Hinting", function () {
 
         var defaultContent = "<!doctype html>\n" +
                              "<html>\n" +
@@ -49,7 +49,6 @@ define(function (require, exports, module) {
                              "</body>\n" +
                              "</html>\n";
         
-        var testWindow;
         var testDocument, testEditor;
         
         beforeEach(function () {
@@ -690,5 +689,5 @@ define(function (require, exports, module) {
         });
         
         
-    }); // describe("HTML Attribute Hinting"
+    }); // describe("HTML Code Hinting"
 });
