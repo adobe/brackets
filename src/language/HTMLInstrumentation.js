@@ -192,24 +192,36 @@ define(function (require, exports, module) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
-            match;
-        
-        var _distance = function (mark) {
+            match,
+            matchLength,
+            test,
+            indexPos = cm.indexFromPos(pos);
+
+        var _contains = function (mark) {
             var markerLoc = mark.find();
             if (markerLoc) {
-                var markPos = markerLoc.from;
-                return (cm.indexFromPos(pos) - cm.indexFromPos(markPos));
-            } else {
-                return Number.MAX_VALUE;
+                var indexFrom = cm.indexFromPos(markerLoc.from),
+                    indexTo   = cm.indexFromPos(markerLoc.to);
+                if (indexFrom <= indexPos && indexPos <= indexTo) {
+                    return { contains: true, length: (indexTo - indexFrom) };
+                }
             }
+
+            return { contains: false };
         };
+
         
         for (i = 0; i < marks.length; i++) {
-            if (!match) {
-                match = marks[i];
-            } else {
-                if (_distance(marks[i]) < _distance(match)) {
+            test = _contains(marks[i]);
+            if (test.contains) {
+                if (!match) {
                     match = marks[i];
+                    matchLength = test.length;
+                } else {
+                    if (test.length < matchLength) {
+                        match = marks[i];
+                        matchLength = test.length;
+                    }
                 }
             }
         }
