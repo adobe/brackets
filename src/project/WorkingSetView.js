@@ -91,10 +91,7 @@ define(function (require, exports, module) {
                 var dirNameStart = file.fullPath.lastIndexOf("/", dirNameEnd - 1) + 1;
                 var dirName = file.fullPath.substring(dirNameStart, dirNameEnd);
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + dirName);
-
-                var $a = $li.children("a");
-                $a.children("span.directory").remove();
-                $a.append($dir);
+                $li.children("a").append($dir);
             }
         });
     }
@@ -107,6 +104,9 @@ define(function (require, exports, module) {
     function _checkForDuplicatesInWorkingTree() {
         var map = {},
             fileList = DocumentManager.getWorkingSet();
+
+        // we need to always clear current directories as files could be removed from working tree
+        $openFilesContainer.find("ul > li > a > span.directory").remove();
 
         // go through files and fill map with arrays of duplicates
         fileList.forEach(function (file) {
