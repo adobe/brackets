@@ -41,10 +41,22 @@ define(function (require, exports, module) {
                 end: 5
             });
             expect(t.nextToken()).toEqual({
+                type: "opentagend",
+                contents: "",
+                start: -1,
+                end: 6
+            });
+            expect(t.nextToken()).toEqual({
                 type: "opentagname",
                 contents: "body",
                 start: 7,
                 end: 11
+            });
+            expect(t.nextToken()).toEqual({
+                type: "opentagend",
+                contents: "",
+                start: -1,
+                end: 12
             });
             expect(t.nextToken()).toEqual({
                 type: "text",
@@ -99,12 +111,58 @@ define(function (require, exports, module) {
                 end: 37
             });
             expect(t.nextToken()).toEqual({
+                type: "opentagend",
+                contents: "",
+                start: -1,
+                end: 39
+            });
+            expect(t.nextToken()).toEqual({
                 type: "closetag",
                 contents: "div",
                 start: 41,
                 end: 44
             });
             expect(t.nextToken()).toEqual(null);
+        });
+        
+        it("should notify of explicit shorttags like <br/>", function () {
+            var t = new Tokenizer("<p>hello<br/></p>");
+            expect(t.nextToken()).toEqual({
+                type: "opentagname",
+                contents: "p",
+                start: 1,
+                end: 2
+            });
+            expect(t.nextToken()).toEqual({
+                type: "opentagend",
+                contents: "",
+                start: -1,
+                end: 3
+            });
+            expect(t.nextToken()).toEqual({
+                type: "text",
+                contents: "hello",
+                start: 3,
+                end: 8
+            });
+            expect(t.nextToken()).toEqual({
+                type: "opentagname",
+                contents: "br",
+                start: 9,
+                end: 11
+            });
+            expect(t.nextToken()).toEqual({
+                type: "selfclosingtag",
+                contents: "",
+                start: -1,
+                end: 13
+            });
+            expect(t.nextToken()).toEqual({
+                type: "closetag",
+                contents: "p",
+                start: 15,
+                end: 16
+            });
         });
     });
 });

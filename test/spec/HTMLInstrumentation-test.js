@@ -104,6 +104,27 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
+        // Useful for debugging to see what the mark ranges. Just call it inside one of the following tests.
+        function _dumpMarks() {
+            var cm = editor._codeMirror,
+                marks = cm.getAllMarks();
+            marks.sort(function (mark1, mark2) {
+                var range1 = mark1.find(), range2 = mark2.find();
+                if (range1.from.line === range2.from.line) {
+                    return range1.from.ch - range2.from.ch;
+                } else {
+                    return range1.from.line - range2.from.line;
+                }
+            });
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID")) {
+                    var range = mark.find();
+                    console.log("<" + elementIds[mark.tagID] + "> (" + mark.tagID + ") " +
+                                range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+                }
+            });
+        }
+            
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
@@ -171,14 +192,14 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
+            it("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 58, ch: 1 }, "a");    // before "   <img"
                     checkTagIdAtPos({ line: 59, ch: 0 }, "a");    // before </a>
                 });
             });
 
-            xit("No tag at cursor positions outside of the 'html' tag", function () {
+            it("No tag at cursor positions outside of the 'html' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 0, ch: 4 }, "");    // inside 'doctype' tag
                     checkTagIdAtPos({ line: 146, ch: 0 }, "");  // after </html>
@@ -217,7 +238,7 @@ define(function (require, exports, module) {
             });
         });
 
-        xdescribe("HTML Instrumentation in valid but not wellformed HTML", function () {
+        describe("HTML Instrumentation in valid but not wellformed HTML", function () {
                 
             beforeEach(function () {
                 init(this, NotWellFormedFileEntry);
@@ -245,7 +266,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(41);
+                    expect(elementCount).toEqual(43);
                 });
             });
 
@@ -296,8 +317,13 @@ define(function (require, exports, module) {
             it("should get 'table' tag for cursor positions that are not in any unclosed child tags", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 17, ch: 17 }, "table");   // inside an attribute of table tag
-                    checkTagIdAtPos({ line: 21, ch: 0 }, "table");    // after a 'th' but before the start tag of another one 
                     checkTagIdAtPos({ line: 32, ch: 6 }, "table");    // inside </table> tag
+                });
+            });
+            
+            it("should get 'tr' tag for cursor positions between child tags", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 21, ch: 0 }, "tr");    // after a 'th' but before the start tag of another one 
                 });
             });
 
@@ -359,9 +385,15 @@ define(function (require, exports, module) {
                     checkTagIdAtPos({ line: 50, ch: 30 }, "footer");   // in </FOOTER>
                 });
             });
+            
+            it("should get 'body' for text after an h1 that closed a previous uncleosd paragraph", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 53, ch: 2 }, "body"); // in the text content after the h1
+                });
+            });
         });
 
-        xdescribe("HTML Instrumentation in an HTML page with some invalid markups", function () {
+        describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
                 
             beforeEach(function () {
                 init(this, InvalidHTMLFileEntry);
@@ -413,11 +445,16 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get 'i' tag for cursor positions before </b>, inside </b> and after </b>.", function () {
+            it("should get 'i' tag for cursor position before </b>.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 18, ch: 20 }, "i");   // after <i> and before </b>
-                    checkTagIdAtPos({ line: 18, ch: 30 }, "i");   // inside </b>
-                    checkTagIdAtPos({ line: 18, ch: 34 }, "i");   // between </b> and </i>
+                    checkTagIdAtPos({ line: 18, ch: 28 }, "i");   // immediately before </b>
+                });
+            });
+            
+            it("should get 'p' tag after </b> because the </b> closed the overlapping <i>.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 18, ch: 34 }, "p");   // between </b> and </i>
                 });
             });
 
