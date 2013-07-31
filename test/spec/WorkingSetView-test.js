@@ -41,6 +41,8 @@ define(function (require, exports, module) {
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
         var testWindow;
+        var openAndMakeDirty;
+        var workingSetCount;
 
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -56,7 +58,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
 
-            var workingSetCount = 0;
+            workingSetCount = 0;
             
             runs(function () {
                 // Initialize: register listeners
@@ -65,7 +67,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            var openAndMakeDirty = function (path) {
+            openAndMakeDirty = function (path) {
                 var doc, didOpen = false, gotError = false;
                 
                 // open file
@@ -92,6 +94,8 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             testWindow          = null;
+            openAndMakeDirty    = null;
+            workingSetCount     = null;
             CommandManager      = null;
             Commands            = null;
             DocumentManager     = null;
@@ -250,6 +254,38 @@ define(function (require, exports, module) {
                 var $projectFileItems = $("#project-files-container > ul").children();
     
                 expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+            });
+        });
+
+        it("should show a directory name next to the file name when two files with same names are opened", function () {
+            runs(function() {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // First we need to open another file
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+
+                // Wait for file to be added to the working set
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+
+                runs(function() {
+                    // Two files with the same name file_one.js should be now opened
+                    var $list = testWindow.$("#open-files-container > ul");
+                    expect($list.find(".directory").length).toBe(2);
+
+                    // Now close last opened file to hide the directories again
+                    DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
+                    var didClose = false, gotError = false;
+                    CommandManager.execute(Commands.FILE_CLOSE)
+                        .done(function () { didClose = true; })
+                        .fail(function () { gotError = true; });
+                    waitsFor(function () { return didClose && !gotError; }, "timeout on FILE_CLOSE", 1000);
+
+                    // there should be no more directories shown
+                    runs(function () {
+                        expect($list.find(".directory").length).toBe(0);
+                    });
+                });
             });
         });
             
