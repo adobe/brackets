@@ -49,7 +49,6 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Fehler beim Öffnen der Datei",
     "ERROR_OPENING_FILE"                : "Beim Öffnen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_OPENING_FILES"               : "Ein Fehler ist beim Öffnen der folgenden Dateien aufgetreten:",
     "ERROR_RELOADING_FILE_TITLE"        : "Fehler beim Laden der Änderungen",
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
@@ -58,9 +57,9 @@ define({
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
-    "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
+    "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
     "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\| Auch dürfen keine vom System reservierten Wörter vorkommen.",
-    "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
+    "FILE_ALREADY_EXISTS"               : "Die {0} <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen der Datei",
     "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
 
@@ -175,8 +174,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Datei",
-    "CMD_FILE_NEW_UNTITLED"               : "Neu",
-    "CMD_FILE_NEW"                        : "Neu",
+    "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
@@ -187,7 +185,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -308,10 +306,13 @@ define({
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
+    "UPDATE"                               : "Update",
     "REMOVE"                               : "Entfernen",
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
+    "CANT_UPDATE"                          : "Dieses Aktualisierung ist inkompatibel mit dieser Version von {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
+    "UPDATE_EXTENSION_TITLE"               : "Erweiterung aktualisieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
     "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
     "INSTALLING_FROM"                      : "Erweiterung installieren von {0}\u2026",
@@ -375,6 +376,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Seien Sie vorsichtig, wenn sie Erweiterungen von einer unbekannten Quelle installieren.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installiert",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
+    "EXTENSIONS_UPDATES_TITLE"             : "Aktualisierungen",
     /**
      * Unit names
      */
