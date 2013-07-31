@@ -286,6 +286,41 @@ define(function (require, exports, module) {
             });
         }
     }
+    
+    /**
+     * @private
+     * Remove a code hint provider
+     * @param {!CodeHintProvider} provider Code hint provider to remove
+     * @param {(string|Array.<string>)=} targetLanguageId Optional set of
+     *     language IDs for languages to remove the provider for. Defaults
+     *     to all languages.
+     */
+    function _removeHintProvider(provider, targetLanguageId) {
+        var languageId,
+            languages,
+            index,
+            providers,
+            targetLanguageIdArr;
+        
+        if (Array.isArray(targetLanguageId)) {
+            targetLanguageIdArr = targetLanguageId;
+        } else if (targetLanguageId) {
+            targetLanguageIdArr = [targetLanguageId];
+        } else {
+            targetLanguageIdArr = Object.keys(hintProviders);
+        }
+        
+        targetLanguageIdArr.forEach(function (languageId) {
+            providers = hintProviders[languageId];
+            
+            for (index = 0; index < providers.length; index++) {
+                if (providers[index].provider === provider) {
+                    providers.splice(index, 1);
+                    break;
+                }
+            }
+        });
+    }
 
     /** 
      *  Return the array of hint providers for the given language id.
@@ -546,6 +581,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 
     exports._getCodeHintList        = _getCodeHintList;
+    exports._removeHintProvider     = _removeHintProvider;
     
     // Define public API
     exports.isOpen                  = isOpen;
