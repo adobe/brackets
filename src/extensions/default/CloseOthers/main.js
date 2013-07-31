@@ -31,57 +31,53 @@ define(function (require, exports, module) {
         CommandManager    = brackets.getModule("command/CommandManager"),
         Commands          = brackets.getModule("command/Commands"),
         dm                = brackets.getModule("document/DocumentManager"),
+        docCH             = brackets.getModule("document/DocumentCommandHandlers"),
+        strings           = brackets.getModule("i18n!nls/strings"),
         settings          = JSON.parse(require("text!settings.json")),
-        working_set_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
+        working_set_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
+        close_others      = "file.close_others",
+        close_above       = "file.close_above",
+        close_below       = "file.close_below";
 
     function handleClose(mode) {
 
         var targetIndex = dm.findInWorkingSet(dm.getCurrentDocument().file.fullPath),
             workingSet   = dm.getWorkingSet().slice(0),
-            start = (mode === "close_below") ? (targetIndex + 1) : 0,
-            end   = (mode === "close_above") ? (targetIndex) : (workingSet.length),
-            unsavedDocs = [],
-            doc,
+            start = (mode === close_below) ? (targetIndex + 1) : 0,
+            end   = (mode === close_above) ? (targetIndex) : (workingSet.length),
+            docList = [],
             i;
         
-        if (mode === "close_others") {
+        if (mode === close_others) {
             end--;
             workingSet.splice(targetIndex, 1);
         }
         
         for (i = start; i < end; i++) {
-            doc = dm.getOpenDocumentForPath(workingSet[i].fullPath);
-
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
-            }
+            docList.push(workingSet[i]);
         }
 
-        CommandManager.execute(Commands.FILE_CLOSE_ALL, {promptOnly: true, unsavedDocs: unsavedDocs}).done(function () {
-            for (i = start; i < end; i++) {
-                dm.removeFromWorkingSet(workingSet[i]);
-            }
-        });
+        docCH.handleFileCloseList(docList);
     }
 
     if (settings.close_below) {
-        CommandManager.register("Close Others Below", "file.close_below", function () {
-            handleClose("close_below");
+        CommandManager.register(strings.CMD_FILE_CLOSE_BELOW, close_below, function () {
+            handleClose(close_below);
         });
-        working_set_cmenu.addMenuItem("file.close_below", "", Menus.AFTER, Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(close_below, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 
     if (settings.close_others) {
-        CommandManager.register("Close Others", "file.close_others", function () {
-            handleClose("close_others");
+        CommandManager.register(strings.CMD_FILE_CLOSE_OTHERS, close_others, function () {
+            handleClose(close_others);
         });
-        working_set_cmenu.addMenuItem("file.close_others", "", Menus.AFTER, Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(close_others, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 
     if (settings.close_above) {
-        CommandManager.register("Close Others Above", "file.close_above", function () {
-            handleClose("close_above");
+        CommandManager.register(strings.CMD_FILE_CLOSE_ABOVE, close_above, function () {
+            handleClose(close_above);
         });
-        working_set_cmenu.addMenuItem("file.close_above", "", Menus.AFTER, Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(close_above, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 });

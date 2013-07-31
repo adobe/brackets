@@ -316,19 +316,12 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
     }
-
-    /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!FileEntry} file
-     * @param {boolean=} true to suppress redraw after removal
-     */
-    function removeFromWorkingSet(file, suppressRedraw) {
+    
+    function _removeFromArrays(file) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
-            return;
+            return false;
         }
         
         // Remove
@@ -336,9 +329,29 @@ define(function (require, exports, module) {
         _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
+        return true;
     }
+    
+    function removeFromWorkingSet(file, suppressRedraw) {
+        if (_removeFromArrays(file)) {
+            $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
+        }
+    }
+    
+    function closeDocuments(fileList) {
+        
+        if (!fileList) {
+            return;
+        }
+        
+        fileList.forEach(function (file) {
+            _removeFromArrays(file);
+        });
+        
+        // Dispatch event
+        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
+    }
+    
 
     /**
      * Removes all files from the working set list.
@@ -568,7 +581,6 @@ define(function (require, exports, module) {
         _clearCurrentDocument();
         _removeAllFromWorkingSet();
     }
-    
     
     /**
      * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
@@ -817,43 +829,32 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
-        
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                    var doc = _openDocuments[path];
-                    
-                    // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
-                    _openDocuments[newKey] = doc;
-                    
-                    keysToDelete.push(path);
-                    
-                    // Update document file
-                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
-                    doc._notifyFilePathChanged();
-                    
-                    if (!isFolder) {
-                        // If the path name is a file, there can only be one matched entry in the open document
-                        // list, which we just updated. Break out of the for .. in loop. 
-                        break;
-                    }
-                }
+        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                // Copy value to new key
+                var newKey = path.replace(oldName, newName);
+                _openDocuments[newKey] = doc;
+                
+                keysToDelete.push(path);
+                
+                // Update document file
+                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                doc._notifyFilePathChanged();
             }
-        }
+        });
+        
         // Delete the old keys
-        for (i = 0; i < keysToDelete.length; i++) {
-            delete _openDocuments[keysToDelete[i]];
-        }
+        keysToDelete.forEach(function (fullPath) {
+            delete _openDocuments[fullPath];
+        });
         
         // Update working set
-        for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
-        }
+        _workingSet.forEach(function (fileEntry) {
+            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
@@ -951,6 +952,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.closeDocuments              = closeDocuments;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
