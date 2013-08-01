@@ -531,7 +531,7 @@ function RemoteFunctions(experimental) {
         
         if (afterID) {
             var afterNode = document.querySelectorAll("[data-brackets-id='" + afterID + "']");
-            pos = children.indexOf(afterNode[0]) + 1;
+            pos = Array.prototype.indexOf.call(children, afterNode) + 1;
         }
         
         return pos;
