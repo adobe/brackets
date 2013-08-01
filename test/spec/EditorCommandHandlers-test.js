@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeAll, afterAll */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -2132,11 +2132,11 @@ define(function (require, exports, module) {
                               "    color: red;\n" +
                               "}";
             
-            beforeAll(function () {
+            beforeFirst(function () {
                 createTestWindow(this);
             });
             
-            afterAll(function () {
+            afterLast(function () {
                 closeTestWindow();
             });
             
@@ -2628,11 +2628,11 @@ define(function (require, exports, module) {
                           "    color: red;\n" +
                           "}";
             
-            beforeAll(function () {
+            beforeFirst(function () {
                 createTestWindow(this);
             });
             
-            afterAll(function () {
+            afterLast(function () {
                 closeTestWindow();
             });
             

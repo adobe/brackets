@@ -115,7 +115,7 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                SpecRunnerUtils.destroyMockEditor(editor);
+                SpecRunnerUtils.destroyMockEditor(doc);
             });
             
             it("should open docs when the selection is on a CSS property", function () {
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                SpecRunnerUtils.destroyMockEditor(editor);
+                SpecRunnerUtils.destroyMockEditor(doc);
             });
             
             it("should open docs for CSS in a <style> block", function () {

@@ -1003,17 +1003,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Adds a new before all or after all function to the current suite. If requires it creates a new object to
-     * store the before all and after all functions and a spec counter for the current suite.
-     * @param {string} type  "beforeAll" or "afterAll"
+     * Adds a new before all or after all function to the current suite. If requires it creates a new
+     * object to store the before all and after all functions and a spec counter for the current suite.
+     * @param {string} type  "beforeFirst" or "afterLast"
      * @param {function} func  The function to store
      */
     function _addSuiteFunction(type, func) {
         var suiteId = jasmine.getEnv().currentSuite.id;
         if (!_testSuites[suiteId]) {
             _testSuites[suiteId] = {
-                beforeAll   : [],
-                afterAll    : [],
+                beforeFirst : [],
+                afterLast   : [],
                 specCounter : null
             };
         }
@@ -1024,16 +1024,16 @@ define(function (require, exports, module) {
      * Utility for tests that need to open a window or do something before every test in a suite
      * @param {function} func
      */
-    window.beforeAll = function (func) {
-        _addSuiteFunction("beforeAll", func);
+    window.beforeFirst = function (func) {
+        _addSuiteFunction("beforeFirst", func);
     };
     
     /**
      * Utility for tests that need to close a window or do something after every test in a suite
      * @param {function} func
      */
-    window.afterAll = function (func) {
-        _addSuiteFunction("afterAll", func);
+    window.afterLast = function (func) {
+        _addSuiteFunction("afterLast", func);
     };
     
     /**
@@ -1042,21 +1042,23 @@ define(function (require, exports, module) {
      * @param {Array.<function>} functions
      */
     function _callFunctions(functions) {
+        var spec = jasmine.getEnv().currentSpec;
         functions.forEach(function (func) {
-            func.apply(this);
+            func.apply(spec);
         });
     }
     
     /**
-     * Calls the before all functions and initialized the spec counter for the suites with the spec counter not
-     * initialized and parent of the currently running spec.
+     * Calls the before first functions for the parent suites of the current spec when is the first spec of each suite.
      */
-    function runBeforeAll() {
+    function runBeforeFirst() {
         var suite = jasmine.getEnv().currentSpec.suite;
         
+        // Iterate throught all the parent suites of the current spec
         while (suite) {
+            // If we have functions for this suite and it was never called, initialize the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
-                _callFunctions(_testSuites[suite.id].beforeAll);
+                _callFunctions(_testSuites[suite.id].beforeFirst);
                 _testSuites[suite.id].specCounter = countSpecs(suite);
             }
             suite = suite.parentSuite;
@@ -1064,18 +1066,20 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Reduces the spec counter of the suites parent of the current running spec (if available), and when the counter
-     * reached 0, it calls the after all functions and removes the object from the test suites.
+     * Calls the after last functions for the parent suites of the current spec when is the last spec of each suite.
      */
-    function runAfterAll() {
+    function runAfterLast() {
         var suite = jasmine.getEnv().currentSpec.suite;
         
+        // Iterate throught all the parent suites of the current spec
         while (suite) {
+            // If we have functions for this suite, reduce the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
                 _testSuites[suite.id].specCounter--;
                 
+                // If this was the last spec of the suite run the after last functions and remove it
                 if (_testSuites[suite.id].specCounter === 0) {
-                    _callFunctions(_testSuites[suite.id].afterAll);
+                    _callFunctions(_testSuites[suite.id].afterLast);
                     delete _testSuites[suite.id];
                 }
             }
@@ -1155,6 +1159,6 @@ define(function (require, exports, module) {
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
     exports.countSpecs                      = countSpecs;
-    exports.runBeforeAll                    = runBeforeAll;
-    exports.runAfterAll                     = runAfterAll;
+    exports.runBeforeFirst                  = runBeforeFirst;
+    exports.runAfterLast                    = runAfterLast;
 });
