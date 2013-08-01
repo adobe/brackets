@@ -49,6 +49,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Fehler beim Öffnen der Datei",
     "ERROR_OPENING_FILE"                : "Beim Öffnen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
+    "ERROR_OPENING_FILES"               : "Beim Öffnen folgender Dateien ist ein Fehler aufgetreten:",
     "ERROR_RELOADING_FILE_TITLE"        : "Fehler beim Laden der Änderungen",
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
@@ -174,6 +175,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Datei",
+    "CMD_FILE_NEW_UNTITLED"               : "Neu",
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
