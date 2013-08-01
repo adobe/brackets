@@ -81,15 +81,7 @@ define(function (require, exports, module) {
         
 
         afterEach(function () {
-            runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                waitsForDone(promise, "Close all open files in working set");
-                
-                var $dlg = testWindow.$(".modal.instance");
-                if ($dlg.length) {
-                    SpecRunnerUtils.clickDialogButton("dontsave");
-                }
-            });
+            testWindow.closeAllFiles();
         });
         
         
