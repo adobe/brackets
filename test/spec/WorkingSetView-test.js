@@ -288,6 +288,38 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        it("should show different directory names, when two files of the same name are opened, located in folders with same name", function () {
+            runs(function () {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // Open both files
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+                openAndMakeDirty(testPath + "/directory/directory/file_one.js");
+
+                // Wait for them to load
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+
+                runs(function() {
+                    // Collect all directory names displayed
+                    var $list = testWindow.$("#open-files-container > ul");
+                    var names = $list.find(".directory").map(function () {
+                        return $(this).text();
+                    }).toArray();
+
+                    // All directory names should be unique
+                    var uniq = 0, map = {};
+                    names.forEach(function(name) {
+                        if (!map[name]) {
+                            map[name] = true;
+                            uniq++;
+                        }
+                    });
+                    expect(uniq).toBe(names.length);
+                });
+            });
+        });
             
     });
 });
