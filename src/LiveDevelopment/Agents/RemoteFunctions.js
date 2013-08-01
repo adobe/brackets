@@ -512,6 +512,77 @@ function RemoteFunctions(experimental) {
             window.clearInterval(aliveTest);
         }
     }, 1000);
+    
+    function _insertChildNode(targetElement, childElement, index) {
+        var childElementCount = targetElement.childNodes.length;
+        
+        if ((childElementCount === 0 && index === 0) || (index === childElementCount)) {
+            // append new child to empty children or at the end
+            targetElement.appendChild(childElement);
+        } else {
+            // insert new child at requested index
+            targetElement.insertBefore(childElement, targetElement.childNodes[index]);
+        }
+    }
+    
+    function _getTextNodeIndex(targetElement, afterID) {
+        var pos = 0,
+            children = targetElement.childNodes;
+        
+        if (afterID) {
+            var afterNode = document.querySelectorAll("[data-brackets-id='" + afterID + "']");
+            pos = Array.prototype.indexOf.call(children, afterNode) + 1;
+        }
+        
+        return pos;
+    }
+    
+    function applyDOMEdits(edits) {
+        var targetID,
+            targetElement,
+            pos;
+        
+        edits.forEach(function (edit) {
+            targetID = edit.type === "textReplace" || edit.type === "textDelete" || edit.type === "elementInsert" ? edit.parentID : edit.tagID;
+            targetElement = document.querySelectorAll("[data-brackets-id='" + targetID + "']")[0];
+            pos = -1;
+            
+            switch (edit.type) {
+            case "attrChange":
+            case "attrAdd":
+                targetElement.setAttribute(edit.attribute, edit.value);
+                break;
+            case "attrDel":
+                targetElement.removeAttribute(edit.attribute);
+                break;
+            case "elementDelete":
+                targetElement.remove();
+                break;
+            case "elementInsert":
+                var childElement = document.createElement(edit.tag);
+                
+                Object.keys(edit.attributes).forEach(function (attr) {
+                    childElement.setAttribute(attr, edit.attributes[attr]);
+                });
+                
+                childElement.setAttribute("data-brackets-id", edit.tagID);
+                _insertChildNode(targetElement, childElement, edit.child);
+                break;
+            case "textInsert":
+                var textElement = document.createTextNode(edit.content);
+                _insertChildNode(targetElement, textElement, edit.child);
+                break;
+            case "textReplace":
+                pos = _getTextNodeIndex(targetElement, edit.afterID);
+                targetElement.childNodes[pos].nodeValue = edit.content;
+                break;
+            case "textDelete":
+                pos = _getTextNodeIndex(targetElement, edit.afterID);
+                targetElement.removeChild(targetElement.childNodes[pos]);
+                break;
+            }
+        });
+    }
 
     return {
         "keepAlive": keepAlive,
@@ -519,6 +590,7 @@ function RemoteFunctions(experimental) {
         "hideHighlight": hideHighlight,
         "highlight": highlight,
         "highlightRule": highlightRule,
-        "redrawHighlights": redrawHighlights
+        "redrawHighlights": redrawHighlights,
+        "applyDOMEdits": applyDOMEdits
     };
 }
