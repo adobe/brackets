@@ -234,17 +234,60 @@ define(function (require, exports, module) {
         return (match) ? match.tagID : -1;
     }
     
+    /**
+     * A list of tags whose start causes any of a given set of immediate parent
+     * tags to close. This mostly comes from the HTML5 spec section on omitted close tags:
+     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
+     * This doesn't handle general content model violations.
+     */
     var openImpliesClose = {
-        tr      : { tr: true, th: true, td: true },
-        th      : { th: true },
-        td      : { thead: true, td: true },
-        body    : { head: true, link: true, script: true },
         li      : { li: true },
+        dt      : { dd: true, dt: true },
+        dd      : { dd: true, dt: true },
+        address : { p: true },
+        article : { p: true },
+        aside   : { p: true },
+        blockquote : { p: true },
+        dir     : { p: true },
+        div     : { p: true },
+        dl      : { p: true },
+        fieldset: { p: true },
+        footer  : { p: true },
+        form    : { p: true },
+        h1      : { p: true },
+        h2      : { p: true },
+        h3      : { p: true },
+        h4      : { p: true },
+        h5      : { p: true },
+        h6      : { p: true },
+        header  : { p: true },
+        hgroup  : { p: true },
+        hr      : { p: true },
+        main    : { p: true },
+        menu    : { p: true },
+        nav     : { p: true },
+        ol      : { p: true },
         p       : { p: true },
+        pre     : { p: true },
+        section : { p: true },
+        table   : { p: true },
+        ul      : { p: true },
+        rt      : { rp: true, rt: true },
+        rp      : { rp: true, rt: true },
+        optgroup: { optgroup: true, option: true },
         option  : { option: true },
-        optgroup: { optgroup: true }
+        tbody   : { thead: true, tbody: true, tfoot: true },
+        tfoot   : { tbody: true },
+        tr      : { tr: true, th: true, td: true },
+        th      : { th: true, td: true },
+        td      : { thead: true, th: true, td: true },
+        body    : { head: true, link: true, script: true }
     };
 
+    /**
+     * A list of tags that are self-closing (do not contain other elements).
+     * Mostly taken from http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+     */
     var voidElements = {
         area: true,
         base: true,
@@ -260,6 +303,7 @@ define(function (require, exports, module) {
         isindex: true,
         keygen: true,
         link: true,
+        menuitem: true,
         meta: true,
         param: true,
         source: true,
@@ -269,13 +313,8 @@ define(function (require, exports, module) {
     
     function SimpleDOMBuilder(text, startOffset) {
         this.stack = [];
-        this.t = new Tokenizer(text, {}, {
-            onopentagend: this._handleOpenTagEnd.bind(this),
-            onselfclosingtag: function () { },
-            oncomment: function () { },
-            ontext: function () { }
-        });
-        this.lastTag = null;
+        this.text = text;
+        this.t = new Tokenizer(text);
         this.currentTag = null;
         this.startOffset = startOffset || 0;
     }
@@ -297,18 +336,6 @@ define(function (require, exports, module) {
         }
     }
     
-    SimpleDOMBuilder.prototype._handleOpenTagEnd = function () {
-        if (this.currentTag) {
-            // We're closing an open tag. Record the end of the open tag as the end of the
-            // range. (If we later find a close tag for this tag, the end will get overwritten
-            // with the end of the close tag.)
-            // TODO: current index is private in the tokenizer right now
-            this.currentTag.end = this.startOffset + this.t._index + 1;
-            this.lastTag = this.currentTag;
-            this.currentTag = null;
-        }
-    };
-    
     function getTextNodeID(textNode) {
         var childIndex = textNode.parent.children.indexOf(textNode);
         if (childIndex === 0) {
@@ -318,16 +345,26 @@ define(function (require, exports, module) {
     }
     
     SimpleDOMBuilder.prototype.build = function () {
-        var token, tagLabel;
+        var self = this;
+        var token, tagLabel, lastClosedTag, lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
         var signatureMap = {};
         
+        function closeTag(endIndex) {
+            lastClosedTag = stack[stack.length - 1];
+            stack.pop();
+            _updateHash(lastClosedTag);
+            
+            lastClosedTag.end = self.startOffset + endIndex;
+            signatureMap[lastClosedTag.signature] = lastClosedTag;
+        }
+        
         while ((token = this.t.nextToken()) !== null) {
             if (token.type === "opentagname") {
                 var newTag = {
-                    tag: token.contents,
+                    tag: token.contents.toLowerCase(),
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
@@ -340,7 +377,18 @@ define(function (require, exports, module) {
                     newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
+                
+                if (openImpliesClose.hasOwnProperty(newTag.tag)) {
+                    var closable = openImpliesClose[newTag.tag];
+                    while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
+                        // Close the previous tag at the start of this tag.
+                        // Adjust backwards for the < before the tag name.
+                        closeTag(token.start - 1);
+                    }
+                }
+                
                 if (voidElements.hasOwnProperty(newTag.tag)) {
+                    // This is a self-closing element.
                     tagLabel = newTag.tag + newTag.tagID;
                     newTag.weight = 0;
                     newTag.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
@@ -348,28 +396,49 @@ define(function (require, exports, module) {
                 } else {
                     stack.push(newTag);
                 }
-            } else if (token.type === "closetag") {
-                this.lastTag = stack.pop();
-                if (!this.lastTag) {
-                    console.error("Close tag with no matching open tag: " + token.contents);
-                    return null;
+            } else if (token.type === "opentagend" || token.type === "selfclosingtag") {
+                if (this.currentTag) {
+                    // We're closing an open tag. Record the end of the open tag as the end of the
+                    // range. (If we later find a close tag for this tag, the end will get overwritten
+                    // with the end of the close tag. In the case of a self-closing tag, we should never
+                    // encounter that.)
+                    this.currentTag.end = this.startOffset + token.end;
+                    lastClosedTag = this.currentTag;
+                    this.currentTag = null;
                 }
-                _updateHash(this.lastTag);
-                this.lastTag.end = this.startOffset + token.end + 1;
-                signatureMap[this.lastTag.signature] = this.lastTag;
-                if (this.lastTag.tag !== token.contents) {
-                    // console.error("Mismatched tag: ", this.lastTag.tag, token.contents);
-                    return null;
+            } else if (token.type === "closetag") {
+                // If this is a self-closing element, ignore the close tag.
+                var closeTagName = token.contents.toLowerCase();
+                if (!voidElements.hasOwnProperty(closeTagName)) {
+                    // Find the topmost item on the stack that matches. If we can't find one, assume
+                    // this is just a dangling closing tag and ignore it.
+                    var i;
+                    for (i = stack.length - 1; i >= 0; i--) {
+                        if (stack[i].tag === closeTagName) {
+                            break;
+                        }
+                    }
+                    if (i >= 0) {
+                        // if (i !== stack.length - 1) console.log("Unbalanced tag close: " + token.contents);
+                        do {
+                            // For all tags we're implicitly closing (before we hit the matching tag), we want the
+                            // implied end to be the beginning of the close tag (which is two characters, "</", before
+                            // the start of the tagname). For the actual tag we're explicitly closing, we want the
+                            // implied end to be the end of the close tag (which is one character, ">", after the end of
+                            // the tagname).
+                            closeTag(stack.length === i + 1 ? token.end + 1 : token.start - 2);
+                        } while (stack.length > i);
+                    }
+                    // else {
+                    //     console.log("Unmatched close tag: " + token.contents);
+                    // }
                 }
             } else if (token.type === "attribname") {
-                attributeName = token.contents;
+                attributeName = token.contents.toLowerCase();
             } else if (token.type === "attribvalue" && attributeName !== null) {
                 this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
             } else if (token.type === "text") {
-                // TODO: Not clear why we need this since it should already have been nulled out in
-                // _handleOpenTagEnd, but that doesn't seem to be sufficient for some reason.
-                this.currentTag = null;
                 if (stack.length) {
                     var parent = stack[stack.length - 1];
                     var newNode = {
@@ -384,9 +453,15 @@ define(function (require, exports, module) {
                     signatureMap[newNode.signature] = newNode;
                 }
             }
+            lastIndex = token.end;
         }
         
-        var dom = (stack.length ? stack[0] : this.lastTag);
+        // If we have any tags hanging open (e.g. html or body), close them at the end of the document.
+        while (stack.length) {
+            closeTag(this.text.length - this.startOffset);
+        }
+        
+        var dom = lastClosedTag;
         dom.nodeMap = nodeMap;
         dom.signatureMap = signatureMap;
         return dom;
@@ -488,13 +563,13 @@ define(function (require, exports, module) {
             text = editor.document.getText();
         }
         
-        this.constructor(text, startOffset);
+        SimpleDOMBuilder.call(this, text, startOffset);
         this.editor = editor;
         this.cm = editor._codeMirror;
         this.previousDOM = previousDOM;
     }
     
-    DOMUpdater.prototype = new SimpleDOMBuilder();
+    DOMUpdater.prototype = Object.create(SimpleDOMBuilder.prototype);
     
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck

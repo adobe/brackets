@@ -28,6 +28,8 @@
 /*global define, $, CodeMirror */
 /*unittests: HTML Tokenizer*/
 
+// TODO: add comments/jsdoc
+
 define(function (require, exports, module) {
     
     "use strict";
@@ -95,47 +97,38 @@ define(function (require, exports, module) {
         AFTER_STYLE_1 = i++, //T
         AFTER_STYLE_2 = i++, //Y
         AFTER_STYLE_3 = i++, //L
-        AFTER_STYLE_4 = i++, //E
-        
-        // The modes are not in use right now (this code just does TOKEN_BY_TOKEN
-        // but I'm leaving this here for the moment because we can merge back in
-        // to the original source using modes.
-        MODE_STREAM = 0,
-        MODE_TOKEN_BY_TOKEN = 1;
-    
+        AFTER_STYLE_4 = i++; //E
+
     function whitespace(c) {
         return c === " " || c === "\t" || c === "\r" || c === "\n";
     }
     
-    var emptyCallbacks = {
-        onopentagend: function () {},
-        onselfclosingtag: function () {},
-        oncomment: function () {},
-        ontext: function () {}
-    };
-    
-    function Tokenizer(text, options, cbs) {
+    function Tokenizer(text, options) {
         this._state = TEXT;
         this._buffer = text;
         this._sectionStart = 0;
         this._index = 0;
         this._options = options || {};
         this._special = 0; // 1 for script, 2 for style
-        this._cbs = cbs || emptyCallbacks;
         this._token = null;
-        this._mode = MODE_TOKEN_BY_TOKEN;
+        this._nextToken = null;
     }
     
     //TODO make events conditional
     Tokenizer.prototype.nextToken = function () {
-        this._mode = MODE_TOKEN_BY_TOKEN;
         this._token = null;
+        
+        if (this._nextToken) {
+            var result = this._nextToken;
+            this._nextToken = null;
+            return result;
+        }
         
         while (this._index < this._buffer.length && !this._token) {
             var c = this._buffer.charAt(this._index);
             if (this._state === TEXT) {
                 if (c === "<") {
-                    this._emitIfToken("ontext");
+                    this._emitTokenIfNonempty("text");
                     this._state = BEFORE_TAG_NAME;
                     this._sectionStart = this._index;
                 }
@@ -162,16 +155,17 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === IN_TAG_NAME) {
                 if (c === "/") {
-                    this._emitToken("onopentagname");
-                    this._cbs.onselfclosingtag();
+                    this._emitToken("opentagname");
+                    // Bit of a hack: assume that this will be followed by the ">".
+                    this._emitSpecialToken("selfclosingtag", this._index + 2);
                     this._state = AFTER_CLOSING_TAG_NAME;
                 } else if (c === ">") {
-                    this._emitToken("onopentagname");
-                    this._cbs.onopentagend();
+                    this._emitToken("opentagname");
+                    this._emitSpecialToken("opentagend", this._index + 1);
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 } else if (whitespace(c)) {
-                    this._emitToken("onopentagname");
+                    this._emitToken("opentagname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 }
             } else if (this._state === BEFORE_CLOSING_TAG_NAME) {
@@ -191,12 +185,12 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === IN_CLOSING_TAG_NAME) {
                 if (c === ">") {
-                    this._emitToken("onclosetag");
+                    this._emitToken("closetag");
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                     this._special = 0;
                 } else if (whitespace(c)) {
-                    this._emitToken("onclosetag");
+                    this._emitToken("closetag");
                     this._state = AFTER_CLOSING_TAG_NAME;
                     this._special = 0;
                 }
@@ -213,10 +207,11 @@ define(function (require, exports, module) {
             } else if (this._state === BEFORE_ATTRIBUTE_NAME) {
                 if (c === ">") {
                     this._state = TEXT;
-                    this._cbs.onopentagend();
+                    this._emitSpecialToken("opentagend", this._index + 1);
                     this._sectionStart = this._index + 1;
                 } else if (c === "/") {
-                    this._cbs.onselfclosingtag();
+                    // Bit of a hack: assume that this will be followed by the ">".
+                    this._emitSpecialToken("selfclosingtag", this._index + 2);
                     this._state = AFTER_CLOSING_TAG_NAME;
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
@@ -224,13 +219,13 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === IN_ATTRIBUTE_NAME) {
                 if (c === "=") {
-                    this._emitIfToken("onattribname");
+                    this._emitTokenIfNonempty("attribname");
                     this._state = BEFORE_ATTRIBUTE_VALUE;
                 } else if (whitespace(c)) {
-                    this._emitIfToken("onattribname");
+                    this._emitTokenIfNonempty("attribname");
                     this._state = AFTER_ATTRIBUTE_NAME;
                 } else if (c === "/" || c === ">") {
-                    this._emitIfToken("onattribname");
+                    this._emitTokenIfNonempty("attribname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                     continue;
                 }
@@ -257,22 +252,22 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES) {
                 if (c === "\"") {
-                    this._emitToken("onattribvalue");
+                    this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_SINGLE_QUOTES) {
                 if (c === "'") {
                     this._state = BEFORE_ATTRIBUTE_NAME;
-                    this._emitToken("onattribvalue");
+                    this._emitToken("attribvalue");
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_NO_QUOTES) {
                 if (c === ">") {
-                    this._emitToken("onattribvalue");
+                    this._emitToken("attribvalue");
+                    this._emitSpecialToken("opentagend", this._index + 1);
                     this._state = TEXT;
-                    this._cbs.onopentagend();
                     this._sectionStart = this._index + 1;
                 } else if (whitespace(c)) {
-                    this._emitToken("onattribvalue");
+                    this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 }
     
@@ -289,7 +284,7 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === IN_DECLARATION) {
                 if (c === ">") {
-                    this._emitToken("ondeclaration");
+                    this._emitToken("declaration");
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 }
@@ -300,7 +295,7 @@ define(function (require, exports, module) {
             */
             } else if (this._state === IN_PROCESSING_INSTRUCTION) {
                 if (c === ">") {
-                    this._emitToken("onprocessinginstruction");
+                    this._emitToken("processinginstruction");
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 }
@@ -329,7 +324,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_COMMENT_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._cbs.oncomment(this._buffer.substring(this._sectionStart, this._index - 2));
+                    this._emitToken("comment");
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 } else if (c !== "-") {
@@ -391,7 +386,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_CDATA_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._cbs.oncdata(this._buffer.substring(this._sectionStart, this._index - 2));
+                    this._emitToken("cdata");
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 } else if (c !== "]") {
@@ -550,66 +545,57 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                 }
             } else {
-                this._cbs.onerror(new Error("unknown state"), this._state);
+                console.error("HTMLTokenizer: Encountered unknown state");
+                return null;
             }
     
             this._index++;
         }
         return this._token;
-    
-        //cleanup
-//        if (this._sectionStart === -1) {
-//            this._buffer = "";
-//            this._index = 0;
-//        } else {
-//            if (this._state === TEXT) {
-//                if (this._sectionStart !== this._index) {
-//                    this._cbs.ontext(this._buffer.substr(this._sectionStart));
-//                }
-//                this._buffer = "";
-//                this._index = 0;
-//            } else if (this._sectionStart === this._index) {
-//                //the section just started
-//                this._buffer = "";
-//                this._index = 0;
-//            } else if (this._sectionStart > 0) {
-//                //remove everything unnecessary
-//                this._buffer = this._buffer.substr(this._sectionStart);
-//                this._index -= this._sectionStart;
-//            }
-//    
-//            this._sectionStart = 0;
-//        }
     };
+    
     Tokenizer.prototype.reset = function () {
-        Tokenizer.call(this, this._options, this._cbs);
+        Tokenizer.call(this, this._options);
     };
     
-    Tokenizer.prototype._setToken = function (name) {
-        this._token = {
-            type: name.substring(2),
-            contents: this._buffer.substring(this._sectionStart, this._index),
+    Tokenizer.prototype._setToken = function (name, index) {
+        if (index === undefined) {
+            index = this._index;
+        }
+        var token = {
+            type: name,
+            contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, this._index),
             start: this._sectionStart,
-            end: this._index
+            end: index
         };
+        if (this._token) {
+            // Queue this token to be emitted next. In theory it would be more general to have
+            // an arbitrary-length queue, but currently we only ever emit at most two tokens in a
+            // single pass through the tokenization loop.
+            if (this._nextToken) {
+                console.error("HTMLTokenizer: Tried to emit more than two tokens in a single call");
+            }
+            this._nextToken = token;
+        } else {
+            this._token = token;
+        }
     };
 
-    Tokenizer.prototype._emitToken = function (name) {
-        if (this._mode === MODE_TOKEN_BY_TOKEN) {
-            this._setToken(name);
-        } else {
-            this._cbs[name](this._buffer.substring(this._sectionStart, this._index));
-        }
+    Tokenizer.prototype._emitToken = function (name, index) {
+        this._setToken(name, index);
         this._sectionStart = -1;
     };
     
-    Tokenizer.prototype._emitIfToken = function (name) {
+    Tokenizer.prototype._emitSpecialToken = function (name, index) {
+        // Force the section start to be -1, since these tokens don't have meaningful content--they're
+        // just marking particular boundaries we care about (end of an open tag or a self-closing tag).
+        this._sectionStart = -1;
+        this._emitToken(name, index);
+    };
+    
+    Tokenizer.prototype._emitTokenIfNonempty = function (name) {
         if (this._index > this._sectionStart) {
-            if (this._mode === MODE_TOKEN_BY_TOKEN) {
-                this._setToken(name);
-            } else {
-                this._cbs[name](this._buffer.substring(this._sectionStart, this._index));
-            }
+            this._setToken(name);
         }
         this._sectionStart = -1;
     };
