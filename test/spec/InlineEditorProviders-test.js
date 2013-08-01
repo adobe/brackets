@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeAll, afterAll */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -79,9 +79,9 @@ define(function (require, exports, module) {
          * then attempts opens an inline editor at the given offset. Installs an after()
          * function restore all file content back to original state with offset markup.
          * 
-         * @param {!string} openFile Project relative file path to open in a main editor.
-         * @param {!number} openOffset The offset index location within openFile to open an inline editor.
-         * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
+         * @param {string} openFile  Project relative file path to open in a main editor.
+         * @param {number} openOffset  The offset index location within openFile to open an inline editor.
+         * @param {?boolean} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
          */
         var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
             var allFiles,
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 editor = EditorManager.getCurrentFullEditor();
-
+                
                 // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
                     editor,
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
                 return false;
             }
             
-            beforeAll(function () {
+            beforeFirst(function () {
                 // Create a new window that will be shared by ALL tests in this spec.
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
@@ -177,12 +177,10 @@ define(function (require, exports, module) {
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             });
             
-            afterAll(function () {
+            afterLast(function () {
                 testWindow          = null;
                 Commands            = null;
                 EditorManager       = null;
