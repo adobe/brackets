@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
         nfs;
@@ -163,8 +164,14 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation, but
-     * maintained active for global updates like name and language changes.
+     * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
+     * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
+     * 
+     * Like a normal Document, if you cause an addRef() on this you MUST call releaseRef() later.
+     * 
+     * @param {!{language:?string, filename:?string, content:?string }} options
+     * Language defaults to JavaScript, filename defaults to a placeholder name, and
+     * content defaults to "".
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
@@ -194,6 +201,11 @@ define(function (require, exports, module) {
     /**
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
      * never be set as the currentDocument or added to the working set.
+     * 
+     * Unlike a real Document, does NOT need to be explicitly cleaned up.
+     * 
+     * @param {string=} initialContent  Defaults to ""
+     * @param {string=} languageId      Defaults to JavaScript
      */
     function createMockDocument(initialContent, languageId) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
@@ -204,6 +216,12 @@ define(function (require, exports, module) {
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
         docToShim.addRef = function () {};
         docToShim.releaseRef = function () {};
+        docToShim._ensureMasterEditor = function () {
+            if (!this._masterEditor) {
+                // Don't let Document create an Editor itself via EditorManager; the unit test can't clean that up
+                throw new Error("Use create/destroyMockEditor() to test edit operations");
+            }
+        };
         
         return docToShim;
     }
@@ -226,7 +244,13 @@ define(function (require, exports, module) {
 
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
-     * (without being placed inside the surrounding Brackets UI).
+     * (without being placed inside the surrounding Brackets UI). The Editor *will* be
+     * reported as the "active editor" by EditorManager.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @param {!Document} doc
+     * @param {{startLine: number, endLine: number}=} visibleRange
      * @return {!Editor}
      */
     function createMockEditorForDocument(doc, visibleRange) {
@@ -244,9 +268,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns a Document and Editor suitable for use in isolation: i.e., the Document
+     * Returns a Document and Editor suitable for use in isolation: the Document
      * will never be set as the currentDocument or added to the working set and the
-     * Editor does not live inside a full-blown Brackets UI layout.
+     * Editor does not live inside a full-blown Brackets UI layout. The Editor *will* be
+     * reported as the "active editor" by EditorManager, however.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @param {string=} initialContent
+     * @param {string=} languageId
+     * @param {{startLine: number, endLine: number}=} visibleRange
      * @return {!{doc:!Document, editor:!Editor}}
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
@@ -257,15 +288,42 @@ define(function (require, exports, module) {
     
     /**
      * Destroy the Editor instance for a given mock Document.
-     * @param {!Document} doc
+     * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
+        EditorManager._notifyActiveEditorChanged(null);
         EditorManager._destroyEditorIfUnneeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
         EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
+    
+    /**
+     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
+     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     */
+    function clickDialogButton(buttonId) {
+        // Make sure there's one and only one dialog open
+        var $dlg = _testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
+
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise, "dismiss dialog");
+    }
+    
     
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
@@ -300,9 +358,17 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
-
-            _testWindow.closeAllDocuments = function closeAllDocuments() {
-                _testWindow.brackets.test.DocumentManager.closeAll();
+            
+            _testWindow.closeAllFiles = function closeAllFiles() {
+                runs(function () {
+                    var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    var $dlg = _testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        clickDialogButton("dontsave");
+                    }
+                });
             };
         });
 
@@ -343,45 +409,14 @@ define(function (require, exports, module) {
     }
     
     
-    /**
-     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
-     * clients must also wait for any additional promises.
-     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
-     */
-    function clickDialogButton(buttonId) {
-        // Make sure there's one and only one dialog open
-        var $dlg = _testWindow.$(".modal.instance"),
-            promise = $dlg.data("promise");
-        
-        expect($dlg.length).toBe(1);
-        
-        // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
-        
-        // Click the button
-        dismissButton.click();
-
-        // Dialog should resolve/reject the promise
-        waitsForDone(promise);
-    }
-    
-    
     function loadProjectInTestWindow(path) {
-        var isReady = false;
-
         runs(function () {
             // begin loading project path
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
-            result.done(function () {
-                isReady = true;
-            });
+            
+            // wait for file system to finish loading
+            waitsForDone(result, "ProjectManager.openProject()");
         });
-
-        // wait for file system to finish loading
-        waitsFor(function () { return isReady; }, "openProject() timeout", 1000);
     }
     
     /**
@@ -533,15 +568,15 @@ define(function (require, exports, module) {
             FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
                 docs[keys[i]] = doc;
                 one.resolve();
-            }).fail(function () {
-                one.reject();
+            }).fail(function (err) {
+                one.reject(err);
             });
             
             return one.promise();
         }, false).done(function () {
             result.resolve(docs);
-        }).fail(function () {
-            result.reject();
+        }).fail(function (err) {
+            result.reject(err);
         }).always(function () {
             docs = null;
             FileViewController = null;
@@ -568,8 +603,8 @@ define(function (require, exports, module) {
                 }).fail(function () {
                     deferred.reject();
                 });
-            }, function error() {
-                deferred.reject();
+            }, function error(err) {
+                deferred.reject(err);
             });
         });
 
@@ -961,6 +996,94 @@ define(function (require, exports, module) {
         return 0;
     }
     
+    
+    /**
+     * @private
+     * Adds a new before all or after all function to the current suite. If requires it creates a new
+     * object to store the before all and after all functions and a spec counter for the current suite.
+     * @param {string} type  "beforeFirst" or "afterLast"
+     * @param {function} func  The function to store
+     */
+    function _addSuiteFunction(type, func) {
+        var suiteId = jasmine.getEnv().currentSuite.id;
+        if (!_testSuites[suiteId]) {
+            _testSuites[suiteId] = {
+                beforeFirst : [],
+                afterLast   : [],
+                specCounter : null
+            };
+        }
+        _testSuites[suiteId][type].push(func);
+    }
+    
+    /**
+     * Utility for tests that need to open a window or do something before every test in a suite
+     * @param {function} func
+     */
+    window.beforeFirst = function (func) {
+        _addSuiteFunction("beforeFirst", func);
+    };
+    
+    /**
+     * Utility for tests that need to close a window or do something after every test in a suite
+     * @param {function} func
+     */
+    window.afterLast = function (func) {
+        _addSuiteFunction("afterLast", func);
+    };
+    
+    /**
+     * @private
+     * Calls each function in the given array of functions
+     * @param {Array.<function>} functions
+     */
+    function _callFunctions(functions) {
+        var spec = jasmine.getEnv().currentSpec;
+        functions.forEach(function (func) {
+            func.apply(spec);
+        });
+    }
+    
+    /**
+     * Calls the before first functions for the parent suites of the current spec when is the first spec of each suite.
+     */
+    function runBeforeFirst() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        // Iterate throught all the parent suites of the current spec
+        while (suite) {
+            // If we have functions for this suite and it was never called, initialize the spec counter
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
+                _callFunctions(_testSuites[suite.id].beforeFirst);
+                _testSuites[suite.id].specCounter = countSpecs(suite);
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    /**
+     * Calls the after last functions for the parent suites of the current spec when is the last spec of each suite.
+     */
+    function runAfterLast() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        // Iterate throught all the parent suites of the current spec
+        while (suite) {
+            // If we have functions for this suite, reduce the spec counter
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
+                _testSuites[suite.id].specCounter--;
+                
+                // If this was the last spec of the suite run the after last functions and remove it
+                if (_testSuites[suite.id].specCounter === 0) {
+                    _callFunctions(_testSuites[suite.id].afterLast);
+                    delete _testSuites[suite.id];
+                }
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -1032,4 +1155,6 @@ define(function (require, exports, module) {
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
     exports.countSpecs                      = countSpecs;
+    exports.runBeforeFirst                  = runBeforeFirst;
+    exports.runAfterLast                    = runAfterLast;
 });

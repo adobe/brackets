@@ -368,6 +368,9 @@ define(function (require, exports, module) {
         var editor = document._masterEditor;
 
         if (!editor) {
+            if (!(document instanceof DocumentManager.Document)) {
+                throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
+            }
             return;
         }
         
