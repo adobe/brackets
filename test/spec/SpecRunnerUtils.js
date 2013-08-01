@@ -358,10 +358,6 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
-
-            _testWindow.closeAllDocuments = function closeAllDocuments() {
-                _testWindow.brackets.test.DocumentManager.closeAll();
-            };
             
             _testWindow.closeAllFiles = function closeAllFiles() {
                 runs(function () {
@@ -572,15 +568,15 @@ define(function (require, exports, module) {
             FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
                 docs[keys[i]] = doc;
                 one.resolve();
-            }).fail(function () {
-                one.reject();
+            }).fail(function (err) {
+                one.reject(err);
             });
             
             return one.promise();
         }, false).done(function () {
             result.resolve(docs);
-        }).fail(function () {
-            result.reject();
+        }).fail(function (err) {
+            result.reject(err);
         }).always(function () {
             docs = null;
             FileViewController = null;
@@ -607,8 +603,8 @@ define(function (require, exports, module) {
                 }).fail(function () {
                     deferred.reject();
                 });
-            }, function error() {
-                deferred.reject();
+            }, function error(err) {
+                deferred.reject(err);
             });
         });
 
