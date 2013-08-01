@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             if (result !== "") {
                 result += " / ";
             }
-            result += "<a href='" + htmlEscape(ownerLink) + "'>" + htmlEscape(userId) + "</a>";
+            result += "<a href='" + htmlEscape(ownerLink) + "' title='" + htmlEscape(ownerLink) + "'>" + htmlEscape(userId) + "</a>";
         }
         return result;
     };
