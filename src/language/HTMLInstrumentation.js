@@ -826,16 +826,17 @@ define(function (require, exports, module) {
         
         queue.push(newNode);
         
-        while (currentElement = queue.shift()) {
+        // extract forEach iterator callback
+        var queuePush = function (child) { queue.push(child); }; 
+        
+        while (!!(currentElement = queue.shift())) {
             oldElement = oldNode.nodeMap[currentElement.tagID];
             if (oldElement) {
                 matches[currentElement.tagID] = true;
                 if (oldElement.children) {
                     if (oldElement.signature !== currentElement.signature) {
                         if (currentElement.children) {
-                            currentElement.children.forEach(function (child) {
-                                queue.push(child);
-                            });
+                            currentElement.children.forEach(queuePush);
                         }
                     }
                 } else {
@@ -850,9 +851,7 @@ define(function (require, exports, module) {
                     textInserts[currentElement.tagID] = true;
                 }
                 if (currentElement.children) {
-                    currentElement.children.forEach(function (child) {
-                        queue.push(child);
-                    });
+                    currentElement.children.forEach(queuePush);
                 }
             }
         }
@@ -863,7 +862,7 @@ define(function (require, exports, module) {
             if (subtreeRoot.children) {
                 attributeCompare(edits, oldNode.nodeMap[tagID], subtreeRoot);
                 var nav = new DOMNavigator(subtreeRoot);
-                while (currentElement = nav.next()) {
+                while (!!(currentElement = nav.next())) {
                     var currentTagID = currentElement.tagID;
                     if (!oldNode.nodeMap[currentTagID]) {
                         // this condition can happen for new elements
