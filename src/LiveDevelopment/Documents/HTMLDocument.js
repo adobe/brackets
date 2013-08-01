@@ -49,7 +49,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
-        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment");
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
+        StringUtils         = require("utils/StringUtils");
 
     /** Constructor
      *
@@ -74,10 +76,10 @@ define(function HTMLDocumentModule(require, exports, module) {
             // Used by highlight agent to highlight editor text as selected in browser
             this.onHighlight = this.onHighlight.bind(this);
             $(HighlightAgent).on("highlight", this.onHighlight);
-
-            this.onChange = this.onChange.bind(this);
-            $(this.editor).on("change", this.onChange);
         }
+
+        this.onChange = this.onChange.bind(this);
+        $(this.editor).on("change", this.onChange);
     };
     
     /**
@@ -98,11 +100,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @returns {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
-        var body = (this._instrumentationEnabled) ?
-                HTMLInstrumentation.generateInstrumentedHTML(this.doc) : this.doc.getText();
+        var body;
+        if (this._instrumentationEnabled) {
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc);
+        }
         
         return {
-            body: body
+            body: body || this.doc.getText()
         };
     };
 
@@ -149,17 +153,39 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
-        if (!this.editor) {
-            return;
-        }
-        var codeMirror = this.editor._codeMirror;
-        while (change) {
-            var from = codeMirror.indexFromPos(change.from);
-            var to = codeMirror.indexFromPos(change.to);
-            var text = change.text.join("\n");
-            DOMAgent.applyChange(from, to, text);
-            change = change.next;
-        }
+        // Only handles attribute changes currently.
+        // TODO: text changes should be easy to add
+        // TODO: if new tags are added, need to instrument them
+        var edits = HTMLInstrumentation.getUnappliedEditList(editor, change);
+        RemoteAgent.call("applyDOMEdits", edits);
+        
+//        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
+//            this.editor,
+//            editor.getCursorPos()
+//        );
+//
+//        if (marker && marker.tagID) {
+//            var range   = marker.find(),
+//                text    = marker.doc.getRange(range.from, range.to);
+//
+//            // HACK maintain ID
+//            text = text.replace(">", " data-brackets-id='" + marker.tagID + "'>");
+//
+//            // FIXME incorrectly replaces body elements with content only, missing body element
+//            RemoteAgent.remoteElement(marker.tagID).replaceWith(text);
+//        }
+
+        // if (!this.editor) {
+        //     return;
+        // }
+        // var codeMirror = this.editor._codeMirror;
+        // while (change) {
+        //     var from = codeMirror.indexFromPos(change.from);
+        //     var to = codeMirror.indexFromPos(change.to);
+        //     var text = change.text.join("\n");
+        //     DOMAgent.applyChange(from, to, text);
+        //     change = change.next;
+        // }
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

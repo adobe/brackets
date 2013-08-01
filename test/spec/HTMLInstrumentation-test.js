@@ -23,7 +23,8 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine */
+/*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,12 +33,14 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        MurmurHash3         = require("thirdparty/murmurhash3_gc");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
         WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
         NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
         InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
+        BigFileEntry = new NativeFileSystem.FileEntry(testPath + "/REC-widgets-20121127.html"),
         editor,
         instrumentedHTML,
         elementCount,
@@ -101,6 +104,27 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
+        // Useful for debugging to see what the mark ranges. Just call it inside one of the following tests.
+        function _dumpMarks() {
+            var cm = editor._codeMirror,
+                marks = cm.getAllMarks();
+            marks.sort(function (mark1, mark2) {
+                var range1 = mark1.find(), range2 = mark2.find();
+                if (range1.from.line === range2.from.line) {
+                    return range1.from.ch - range2.from.ch;
+                } else {
+                    return range1.from.line - range2.from.line;
+                }
+            });
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID")) {
+                    var range = mark.find();
+                    console.log("<" + elementIds[mark.tagID] + "> (" + mark.tagID + ") " +
+                                range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+                }
+            });
+        }
+            
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
@@ -242,7 +266,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(41);
+                    expect(elementCount).toEqual(43);
                 });
             });
 
@@ -293,8 +317,13 @@ define(function (require, exports, module) {
             it("should get 'table' tag for cursor positions that are not in any unclosed child tags", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 17, ch: 17 }, "table");   // inside an attribute of table tag
-                    checkTagIdAtPos({ line: 21, ch: 0 }, "table");    // after a 'th' but before the start tag of another one 
                     checkTagIdAtPos({ line: 32, ch: 6 }, "table");    // inside </table> tag
+                });
+            });
+            
+            it("should get 'tr' tag for cursor positions between child tags", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 21, ch: 0 }, "tr");    // after a 'th' but before the start tag of another one 
                 });
             });
 
@@ -356,6 +385,12 @@ define(function (require, exports, module) {
                     checkTagIdAtPos({ line: 50, ch: 30 }, "footer");   // in </FOOTER>
                 });
             });
+            
+            it("should get 'body' for text after an h1 that closed a previous uncleosd paragraph", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 53, ch: 2 }, "body"); // in the text content after the h1
+                });
+            });
         });
 
         describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
@@ -410,11 +445,16 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get 'i' tag for cursor positions before </b>, inside </b> and after </b>.", function () {
+            it("should get 'i' tag for cursor position before </b>.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 18, ch: 20 }, "i");   // after <i> and before </b>
-                    checkTagIdAtPos({ line: 18, ch: 30 }, "i");   // inside </b>
-                    checkTagIdAtPos({ line: 18, ch: 34 }, "i");   // between </b> and </i>
+                    checkTagIdAtPos({ line: 18, ch: 28 }, "i");   // immediately before </b>
+                });
+            });
+            
+            it("should get 'p' tag after </b> because the </b> closed the overlapping <i>.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 18, ch: 34 }, "p");   // between </b> and </i>
                 });
             });
 
@@ -517,6 +557,35 @@ define(function (require, exports, module) {
                 elementIds = {};
             });
             
+            function doEditTest(origText, editFn, expectationFn, incremental) {
+                // We need to fully reset the editor/mark state between the full and incremental tests
+                // because if new DOM nodes are added by the edit, those marks will be present after the
+                // full test, messing up the incremental test.                
+                editor.document.refreshText(origText);
+                
+                var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    changeList,
+                    result;
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                $(editor).on("change.instrtest", function (event, editor, change) {
+                    changeList = change;
+                });
+                editFn(editor, previousDOM);
+                $(editor).off(".instrtest");
+
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                expectationFn(result, previousDOM, incremental);
+            }
+
+            function doFullAndIncrementalEditTest(editFn, expectationFn) {
+                var origText = editor.document.getText();
+                doEditTest(origText, editFn, expectationFn, false);
+                
+                if (HTMLInstrumentation._allowIncremental) {
+                    doEditTest(origText, editFn, expectationFn, true);
+                }
+            }
+            
             it("should re-instrument after document is dirtied", function () {
                 runs(function () {
                     var pos = {line: 15, ch: 0};
@@ -528,6 +597,513 @@ define(function (require, exports, module) {
                     
                     expect(newElementCount).toBe(elementCount + 1);
                 });
+            });
+            
+            it("should build simple DOM", function () {
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    expect(dom.tagID).toEqual(jasmine.any(Number));
+                    expect(dom.tag).toEqual("html");
+                    expect(dom.start).toEqual(16);
+                    expect(dom.end).toEqual(5366);
+                    expect(dom.weight).toEqual(4131);
+                    expect(dom.signature).toEqual(jasmine.any(Number));
+                    expect(dom.children.length).toEqual(5);
+                    var meta = dom.children[1].children[1];
+                    expect(Object.keys(meta.attributes).length).toEqual(1);
+                    expect(meta.attributes.charset).toEqual("utf-8");
+                    var titleContents = dom.children[1].children[5].children[0];
+                    expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
+                    expect(titleContents.weight).toEqual(29);
+                    expect(titleContents.parent.weight).toEqual(29);
+                    expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
+                    expect(dom.children[1].parent).toEqual(dom);
+                    expect(dom.nodeMap[meta.tagID]).toBe(meta);
+                    expect(meta.signature).toEqual(jasmine.any(Number));
+                    expect(dom.signatureMap[meta.signature]).toBe(meta);
+                });
+            });
+            
+            it("should mark editor text based on the simple DOM", function () {
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, dom);
+                    expect(editor._codeMirror.getAllMarks().length).toEqual(49);
+                });
+            });
+            
+            it("should handle no diff", function () {
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits).toEqual([]);
+                    expect(result.dom).toEqual(previousDOM);
+                });
+            });
+            
+            it("should handle attribute change", function () {
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
+                            tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrChange",
+                                tagID: tagID,
+                                attribute: "content",
+                                value: "An interactive, awesome getting started guide for Brackets."
+                            });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle new attributes", function () {
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
+                            tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrAdd",
+                                tagID: tagID,
+                                attribute: "class",
+                                value: "supertitle"
+                            });
+
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle deleted attributes", function () {
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
+                            tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrDel",
+                                tagID: tagID,
+                                attribute: "content"
+                            });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle simple altered text", function () {
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                            tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
+                        },
+                        function (result, previousDOM, incremental) {
+                            console.log("should handle simple altered text - edits: " + JSON.stringify(result.edits));
+                            expect(result.edits.length).toEqual(1);
+                            expect(previousDOM.children[3].children[1].tag).toEqual("h1");
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: tagID,
+                                firstChild: true,
+                                content: "GETTING AWESOMER WITH BRACKETS"
+                            });
+                            
+                            if (incremental) {
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle two incremental text edits in a row", function () {
+                // Short-circuit this test if we're running without incremental updates
+                if (!HTMLInstrumentation._allowIncremental) {
+                    return;
+                }
+                
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        changeList,
+                        tagID = previousDOM.children[3].children[1].tagID,
+                        result,
+                        origParent = previousDOM.children[3];
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    $(editor).on("change.instrtest", function (event, editor, change) {
+                        changeList = change;
+                    });
+                    
+                    editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        parentID: tagID,
+                        firstChild: true,
+                        content: "GETTING AWESOMER WITH BRACKETS"
+                    });
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                    
+                    editor.document.replaceRange("MOAR AWESOME", {line: 12, ch: 12}, {line: 12, ch: 20});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        parentID: tagID,
+                        firstChild: true,
+                        content: "GETTING MOAR AWESOME WITH BRACKETS"
+                    });
+                    
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                });
+            });
+            
+            it("should represent simple new tag insert", function () {
+                runs(function () {
+                    var ed;
+                    
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            ed = editor;
+                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[5];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                child: 5
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                tagID: newElement.tagID,
+                                child: 0,
+                                content: "New Content"
+                            });
+                            
+//                            editor.document.replaceRange(" and Newer", {line: 15, ch: 8});
+//                            var result2 = HTMLInstrumentation._updateDOM(result.dom, ed);
+//                            expect(result2.edits.length).toEqual(1);
+//                            expect(result2.edits[0]).toEqual({
+//                                type: "textReplace",
+//                                parentID: newElement.tagID,
+//                                firstChild: true,
+//                                content: "New and Newer Content"
+//                            });
+                        }
+                    );
+                });
+            });
+        });
+        
+        var benchmarker = {
+            starts: {},
+            timings: {},
+            start: function (name) {
+                this.starts[name] = window.performance.webkitNow();
+            },
+            end: function (name) {
+                var end = window.performance.webkitNow();
+                var timeList = this.timings[name];
+                if (timeList === undefined) {
+                    timeList = this.timings[name] = [];
+                }
+                timeList.push(end - this.starts[name]);
+                delete this.starts[name];
+            },
+            report: function () {
+                console.log(this.heading);
+                var timingNames = Object.keys(this.timings);
+                timingNames.forEach(function (name) {
+                    var timings = this.timings[name];
+                    timings.sort(function (a, b) {
+                        return a - b;
+                    });
+                    var min = timings[0];
+                    var max = timings[timings.length - 1];
+                    var med = timings[Math.floor(timings.length / 2)];
+                    console.log(name, "Min:", min.toFixed(2), "ms, Max:", max.toFixed(2), "ms, Median:", med.toFixed(2), "ms (" + timings.length + " runs)");
+                }.bind(this));
+            },
+            reset: function () {
+                this.starts = {};
+                this.timings = {};
+                this.heading = "Test Results";
+            }
+        };
+        
+        function doFullAndIncrementalBenchmarkTest(runs, editFn) {
+            var i;
+            var previousText = editor.document.getText();
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Base edit");
+                editFn(editor);
+                benchmarker.end("Base edit");
+                editor.document.setText(previousText);
+            }
+            
+            benchmarker.start("Initial DOM build");
+            var previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText),
+                changeList,
+                result;
+            benchmarker.end("Initial DOM build");
+            benchmarker.start("Mark text");
+            HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            benchmarker.end("Mark text");
+            
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Edit with marks");
+                editFn(editor);
+                benchmarker.end("Edit with marks");
+                editor.document.setText(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            }
+            
+            var changeFunction = function (event, editor, change) {
+                changeList = change;
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.instrtest", changeFunction);
+                benchmarker.start("Incremental");
+                editFn(editor);
+                benchmarker.end("Incremental");
+                $(editor).off(".instrtest");
+            }
+            
+            var fullChangeFunction = function (event, editor, change) {
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.instrtest", fullChangeFunction);
+                benchmarker.start("Full");
+                // full test
+                editFn(editor);
+                benchmarker.end("Full");
+                $(editor).off(".instrtest");
+            }
+            
+            benchmarker.report();
+        }
+        
+        xdescribe("Performance Tests", function () {
+            beforeEach(function () {
+                init(this, WellFormedFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                benchmarker.reset();
+            });
+            
+            it("measure performance of text replacement", function () {
+                benchmarker.heading = "Text Replacement";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of simulated typing of text", function () {
+                benchmarker.heading = "Simulated Typing of Text";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("A", {line: 12, ch: 12});
+                            editor.document.replaceRange("W", {line: 12, ch: 13});
+                            editor.document.replaceRange("E", {line: 12, ch: 14});
+                            editor.document.replaceRange("S", {line: 12, ch: 15});
+                            editor.document.replaceRange("O", {line: 12, ch: 16});
+                            editor.document.replaceRange("M", {line: 12, ch: 17});
+                            editor.document.replaceRange("E", {line: 12, ch: 18});
+                            editor.document.replaceRange("R", {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of new tag insertion", function () {
+                benchmarker.heading = "New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of typing a new tag", function () {
+                benchmarker.heading = "Typing New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        5,
+                        function (editor) {
+                            editor.document.replaceRange("<", {line: 15, ch: 0});
+                            editor.document.replaceRange("d", {line: 15, ch: 1});
+                            editor.document.replaceRange("i", {line: 15, ch: 2});
+                            editor.document.replaceRange("v", {line: 15, ch: 3});
+                            editor.document.replaceRange(">", {line: 15, ch: 4});
+                            editor.document.replaceRange("</div>", {line: 15, ch: 5});
+                            editor.document.replaceRange("N", {line: 15, ch: 5});
+                            editor.document.replaceRange("e", {line: 15, ch: 6});
+                            editor.document.replaceRange("w", {line: 15, ch: 7});
+                            editor.document.replaceRange(" ", {line: 15, ch: 8});
+                            editor.document.replaceRange("C", {line: 15, ch: 9});
+                            editor.document.replaceRange("o", {line: 15, ch: 10});
+                            editor.document.replaceRange("n", {line: 15, ch: 11});
+                            editor.document.replaceRange("t", {line: 15, ch: 12});
+                            editor.document.replaceRange("e", {line: 15, ch: 13});
+                            editor.document.replaceRange("n", {line: 15, ch: 14});
+                            editor.document.replaceRange("t", {line: 15, ch: 15});
+                        }
+                    );
+                });
+            });
+        });
+        
+        xdescribe("Big File Performance Tests", function () {
+            beforeEach(function () {
+                init(this, BigFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                benchmarker.reset();
+            });
+            
+            it("should handle a big file", function () {
+                benchmarker.heading = "Big Text Replacement";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        1,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+        });
+
+        xdescribe("DOMNavigator", function () {
+            it("implements easy depth-first traversal", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<html><body><div>Here is <strong>my text</strong></div></body></html>");
+                var nav = new HTMLInstrumentation._DOMNavigator(dom);
+                expect(nav.next().tag).toEqual("body");
+                expect(nav.next().tag).toEqual("div");
+                expect(nav.next().content).toEqual("Here is ");
+                expect(nav.getPosition()).toEqual({
+                    tagID: dom.children[0].children[0].tagID,
+                    child: 0
+                });
+                expect(nav.next().tag).toEqual("strong");
+                expect(nav.next().content).toEqual("my text");
+                expect(nav.next()).toBeNull();
             });
         });
     });
