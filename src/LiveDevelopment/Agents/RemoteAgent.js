@@ -39,14 +39,10 @@ define(function RemoteAgent(require, exports, module) {
 
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
-        jQueryRemoteSrc = require("text!thirdparty/jQuery-2.0.1.min.js");
-
-    var $REMOTE = "window._LDjQuery";
+        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
-    var _jQueryRemoteObjectId;
     var _intervalId; // interval used to send keepAlive events
 
     // WebInspector Event: DOM.attributeModified
@@ -111,10 +107,6 @@ define(function RemoteAgent(require, exports, module) {
         return _call.apply(null, argsArray);
     }
 
-    function jQueryRemote(method, varargs) {
-        return _call(_jQueryRemoteObjectId, "_LDjQuery." + method, varargs);
-    }
-
     function _stopKeepAliveInterval() {
         if (_intervalId) {
             window.clearInterval(_intervalId);
@@ -155,17 +147,6 @@ define(function RemoteAgent(require, exports, module) {
                 _startKeepAliveInterval();
             }
         });
-
-        // inject jQuery
-        command = jQueryRemoteSrc + "window._LDjQuery=jQuery.noConflict(true);";
-
-        Inspector.Runtime.evaluate(command, function onEvaluate(response) {
-            if (response.error || response.wasThrown) {
-                _load.reject(null, response.error);
-            } else {
-                _jQueryRemoteObjectId = response.result.objectId;
-            }
-        });
     }
 
     /** Initialize the agent */
@@ -185,87 +166,8 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
     }
 
-    // Prototype DOM manipulation
-    var REMOTE_ELEMENT_METHODS = [
-        "attr", "removeAttr",
-        "before", "after", "append", "prepend",
-        "text",
-        "detach", "remove",
-        "html",
-        "replaceWith"
-    ];
-
-    function RemoteElement(dataBracketsId) {
-        var self = this;
-
-        this._queryBracketsId = "var $result = " + $REMOTE + '("[data-brackets-id=\\"' + dataBracketsId + '\\"]");';
-        this._dataBracketsId = dataBracketsId;
-
-        REMOTE_ELEMENT_METHODS.forEach(function (methodName) {
-            self[methodName] = self._eval.bind(self, methodName);
-        });
-    }
-    
-    function _doEval(script) {
-        //console.log("eval: " + script);
-        Inspector.Runtime.evaluate(script);
-    }
-
-    RemoteElement.prototype._eval = function (method, varargs) {
-        // Convert method arguments to JSON string to escape string args
-        var argsArray       = JSON.stringify(Array.prototype.slice.call(arguments, 1)).replace(/\\/g, "\\\\").replace(/\"/g, "\\\""),
-            argsAssign      = "var args = JSON.parse(\"" + argsArray + "\");",
-            fnApply         = "$result." + method + ".apply($result, args)";
-
-        return _doEval(argsAssign + this._queryBracketsId + fnApply);
-    };
-    
-    RemoteElement.prototype._getTextLocateScript = function (afterID) {
-        var result = this._queryBracketsId +
-            'var pos = 0, children = $result.contents();';
-        if (afterID) {
-            result +=
-                'var $afterNode = ' + $REMOTE + '("[data-brackets-id=\\"' + afterID + '\\"]");' +
-                "pos = children.indexOf($afterNode[0]) + 1;";
-        }
-        return result;
-    };
-    
-    RemoteElement.prototype.insertChild = function (childPos, content, isText) {
-        var escapedContent = content.replace(/\\/g, "\\\\").replace(/'/g, "\\\'"),
-            doInsert = this._queryBracketsId +
-                "var children = $result.contents()," +
-                "    toInsert = " + (isText
-                                     ? "document.createTextNode('" + escapedContent + "');"
-                                     : "window._LDjQuery('" + escapedContent + "');") +
-                "if (" + childPos + " >= children.length) {" +
-                "    $result.append(toInsert);" +
-                "} else {" +
-                "    window._LDjQuery($result.contents()[" + childPos + "]).before(toInsert);" +
-                "}";
-        return _doEval(doInsert);
-    };
-    
-    RemoteElement.prototype.replaceChildText = function (afterID, text) {
-        var doReplace = this._getTextLocateScript(afterID) +
-            "children[pos].nodeValue = '" + text.replace(/\\/g, "\\\\").replace(/'/g, "\\\'") + "';";
-        return _doEval(doReplace);
-    };
-
-    RemoteElement.prototype.deleteChildText = function (afterID) {
-        var doDelete = this._getTextLocateScript(afterID) +
-            "children[pos].parentNode.removeChild(children[pos])";
-        return _doEval(doDelete);
-    };
-
-    function remoteElement(dataBracketsId) {
-        return new RemoteElement(dataBracketsId);
-    }
-
     // Export public functions
     exports.call = call;
-    exports.jQuery = jQueryRemote;
     exports.load = load;
     exports.unload = unload;
-    exports.remoteElement = remoteElement;
 });
