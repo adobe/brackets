@@ -138,8 +138,7 @@ define(function (require, exports, module) {
                 } else if (c === ">" || this._special > 0) {
                     this._state = TEXT;
                 } else {
-                    if (whitespace(c)) {
-                    } else if (c === "!") {
+                    if (c === "!") {
                         this._state = BEFORE_DECLARATION;
                         this._sectionStart = this._index + 1;
                     } else if (c === "?") {
@@ -148,7 +147,7 @@ define(function (require, exports, module) {
                     } else if (!(this._options && this._options.xmlMode) && (c === "s" || c === "S")) {
                         this._state = BEFORE_SPECIAL;
                         this._sectionStart = this._index;
-                    } else {
+                    } else if (!whitespace(c)) {
                         this._state = IN_TAG_NAME;
                         this._sectionStart = this._index;
                     }
@@ -169,8 +168,7 @@ define(function (require, exports, module) {
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 }
             } else if (this._state === BEFORE_CLOSING_TAG_NAME) {
-                if (whitespace(c)) {
-                } else if (c === ">") {
+                if (c === ">") {
                     this._state = TEXT;
                 } else if (this._special > 0) {
                     if (c === "s" || c === "S") {
@@ -179,7 +177,7 @@ define(function (require, exports, module) {
                         this._state = TEXT;
                         continue;
                     }
-                } else {
+                } else if (!whitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index;
                 }
