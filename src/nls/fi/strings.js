@@ -103,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Haluatko tallentaa tekemäsi muutokset dokumenttiin <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Haluatko tallentaa muutokset seuraaviin tiedostoihin?",
     "EXT_MODIFIED_TITLE"                : "Ulkoiset muutokset",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Vahvista poisto",
+    "CONFIRM_FOLDER_DELETE"             : "Oletko varma, että haluat poistaa kansion <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Tiedosto poistettu",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä, mutta on myös tallentamattomia muutoksia {APP_NAME}-sovelluksessa.<br /><br />Kumman version haluat säilyttää?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä, mutta on tallentamattomia muutoksia {APP_NAME}-sovelluksessa.<br /><br />Haluatko säilyttää muutoksesi?",
@@ -278,7 +280,8 @@ define({
     "DONT_SAVE"                            : "Älä tallenna",
     "SAVE"                                 : "Tallenna",
     "CANCEL"                               : "Peruuta",
-    "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
+    "DELETE"                               : "Poista",
+	"RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
     "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset editorissa",
     "CLOSE_DONT_SAVE"                      : "Sulje (älä tallenna)",
     "RELAUNCH_CHROME"                      : "Käynnistä Chrome uudelleen",
@@ -305,10 +308,13 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Asenna",
-    "REMOVE"                               : "Poista",
+    "UPDATE"                               : "Päivitä",
+	"REMOVE"                               : "Poista",
     "OVERWRITE"                            : "Ylikirjoita",
     "CANT_REMOVE_DEV"                      : "Laajennukset \"dev\"-kansiossa on poistettava käsin.",
-    "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
+    "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
+	"INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
+    "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
     "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
     "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub repo",
     "INSTALLING_FROM"                      : "Asennetaan laajennus kohteesta {0}\u2026",
@@ -372,6 +378,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Ei voida poistaa laajennusta {0}, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta \"Asenna URL-osoitteesta\" -painiketta alhaalta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Mikään laajennus ei vastannut hakuasi.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
+    "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
     
     /**
      * Unit names
@@ -401,9 +411,9 @@ define({
      * Locales
      */
     "LOCALE_CS"                            : "tšekki",
-    "LOCALE_DE"                            : "saksa",
+	"LOCALE_DE"                            : "saksa",
     "LOCALE_EN"                            : "englanti",
-    "LOCALE_ES"                            : "espanja",
+	"LOCALE_ES"                            : "espanja",
     "LOCALE_FI"                            : "suomi",
     "LOCALE_FR"                            : "ranska",
     "LOCALE_IT"                            : "italia",
