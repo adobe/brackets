@@ -38,7 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
-    "DIRECTORY"                         : "Ordner",
+    "DIRECTORY"                         : "Verzeichnis",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
@@ -60,10 +60,9 @@ define({
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
     "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\| Auch dürfen keine vom System reservierten Wörter vorkommen.",
-    "FILE_ALREADY_EXISTS"               : "Die {0} <span class='dialog-filename'>{0}</span> existiert bereits.",
-    "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen der Datei",
-    "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-
+    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{0}</span> existiert bereits.", // TODO: depends on {0} gender
+    "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
+    "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
@@ -137,7 +136,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Mehr als ",
     "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
     "FIND_IN_FILES_FILE_PATH"           : "Datei: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "Zeile:&nbsp;{0}",
+    "FIND_IN_FILES_LINE"                : "Zeile: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
@@ -308,11 +307,11 @@ define({
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
-    "UPDATE"                               : "Update",
+    "UPDATE"                               : "Aktualisieren",
     "REMOVE"                               : "Entfernen",
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
-    "CANT_UPDATE"                          : "Dieses Aktualisierung ist inkompatibel mit dieser Version von {APP_NAME}.",
+    "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "UPDATE_EXTENSION_TITLE"               : "Erweiterung aktualisieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
@@ -376,12 +375,13 @@ define({
     "CHANGE_AND_QUIT"                      : "Erweiterungen ändern und beenden",
     "UPDATE_AND_QUIT"                      : "Erweiterungen aktualisieren und beenden",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
-    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie unten auf \"Von URL installieren\", um zu beginnen.",
+    "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Seien Sie vorsichtig, wenn sie Erweiterungen von einer unbekannten Quelle installieren.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installiert",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
-    "EXTENSIONS_UPDATES_TITLE"             : "Aktualisierungen",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+
     /**
      * Unit names
      */
