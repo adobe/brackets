@@ -674,10 +674,13 @@ define(function (require, exports, module) {
             properties = response.properties,
             fnType  = response.fnType,
             type = response.type,
+            error = response.error,
             $deferredHints = getPendingRequest(file, offset, type);
         
         if ($deferredHints) {
-            if (completions) {
+            if (error) {
+                $deferredHints.reject();
+            } else if (completions) {
                 $deferredHints.resolveWith(null, [{completions: completions}]);
             } else if (properties) {
                 $deferredHints.resolveWith(null, [{properties: properties}]);

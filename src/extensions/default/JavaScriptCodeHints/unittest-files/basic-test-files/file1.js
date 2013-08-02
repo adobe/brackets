@@ -164,7 +164,7 @@ require(["MyModule"], function (myModule) {
 /**
  *  Test record type google annoations.
  *
- *  @param {{index: number, type: string}} t
+ *  @param {{index: number, name: string}} t
  */
 function testRecordTypeAnnotation(t) {
     'use strict';
@@ -203,7 +203,7 @@ testArrayAnnotation();
 /**
  *  Test multiple optional args
  *
- * @param {string=} a
+ * @param {number=} a
  * @param {string=} b
  *
  */
@@ -213,6 +213,7 @@ function testOptionalArgs(a, b) {
 }
 
 testOptionalArgs();
+
 /* Add large comment to make this test over 250 lines which will trigger
  *  partial updates to be used.
  *
