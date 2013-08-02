@@ -112,26 +112,26 @@ define(function (require, exports, module) {
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
     function _reorderListItem(event, $listItem, fromClose) {
-        var $prevListItem   = $listItem.prev(),
-            $nextListItem   = $listItem.next(),
-            selected        = $listItem.hasClass("selected"),
-            prevSelected    = $prevListItem.hasClass("selected"),
-            nextSelected    = $nextListItem.hasClass("selected"),
-            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
-            height          = $listItem.height(),
-            startPageY      = event.pageY,
-            listItemTop     = startPageY - $listItem.offset().top,
-            listItemBottom  = $listItem.offset().top + height - startPageY,
-            offsetTop       = $openFilesContainer.offset().top,
-            scrollElement   = $openFilesContainer.get(0),
-            containerHeight = scrollElement.clientHeight,
-            maxScroll       = scrollElement.scrollHeight - containerHeight,
-            hasScroll       = scrollElement.scrollHeight > containerHeight,
-            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
-            addBottomShadow = false,
-            interval        = false,
-            moved           = false,
-            movedOutOfBoundary = false;
+        var $prevListItem       = $listItem.prev(),
+            $nextListItem       = $listItem.next(),
+            selected            = $listItem.hasClass("selected"),
+            prevSelected        = $prevListItem.hasClass("selected"),
+            nextSelected        = $nextListItem.hasClass("selected"),
+            index               = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            height              = $listItem.height(),
+            startPageY          = event.pageY,
+            listItemTop         = startPageY - $listItem.offset().top,
+            listItemBottom      = $listItem.offset().top + height - startPageY,
+            offsetTop           = $openFilesContainer.offset().top,
+            scrollElement       = $openFilesContainer.get(0),
+            containerHeight     = scrollElement.clientHeight,
+            maxScroll           = scrollElement.scrollHeight - containerHeight,
+            hasScroll           = scrollElement.scrollHeight > containerHeight,
+            hasBottomShadow     = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
+            addBottomShadow     = false,
+            interval            = false,
+            moved               = false,
+            movedOutOfBoundary  = false;
         
         function drag(e) {
             var top = e.pageY - startPageY;
@@ -190,7 +190,6 @@ define(function (require, exports, module) {
             
             // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
             if (!moved && Math.abs(top) > 3) {
-                //Menus.closeAll();
                 moved = true;
                 
                 // Don't redraw the working set for the next events
@@ -259,7 +258,6 @@ define(function (require, exports, module) {
                     // Normal right and left click - select the item
                     FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                 }
-            
             } else {
                 // Update the file selection
                 if (selected) {
@@ -302,9 +300,10 @@ define(function (require, exports, module) {
         });
         
         $openFilesContainer.on("mouseleave.workingSet", function (e) {
+            // Set this variable when move out of Filecontainer
             movedOutOfBoundary = true;
             
-            $openFilesContainer.off("mouseleave.workingSet");
+            $openFilesContainer.off("mousemove.workingSet mouseleave.workingSet");
             drop();
         });
         
@@ -339,10 +338,6 @@ define(function (require, exports, module) {
                     // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
                     // it doesn't merely remove a file from the working set
                     _reorderListItem(e, $(this).parent(), true);
-                    
-                    //$listItem = $(this).parent();
-                    //CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
-                    //console.log($listItem.data);
                     
                     // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
                     // selects documents on mousedown, doesn't select the document in the case 
