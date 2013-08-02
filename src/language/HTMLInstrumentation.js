@@ -344,7 +344,7 @@ define(function (require, exports, module) {
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
-    SimpleDOMBuilder.prototype.build = function () {
+    SimpleDOMBuilder.prototype.build = function (parseTagID) {
         var self = this;
         var token, tagLabel, lastClosedTag, lastIndex = 0;
         var stack = this.stack;
@@ -436,7 +436,18 @@ define(function (require, exports, module) {
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
             } else if (token.type === "attribvalue" && attributeName !== null) {
-                this.currentTag.attributes[attributeName] = token.contents;
+                if (parseTagID && (attributeName === "data-brackets-id")) {
+                    var embeddedTagID = token.contents;
+                    
+                    // delete old tagID mapping
+                    delete nodeMap[this.currentTag.tagID];
+                    
+                    this.currentTag.tagID = embeddedTagID;
+                    nodeMap[this.currentTag.tagID] = this.currentTag;
+                } else {
+                    this.currentTag.attributes[attributeName] = token.contents;
+                }
+                
                 attributeName = null;
             } else if (token.type === "text") {
                 if (stack.length) {
@@ -471,9 +482,9 @@ define(function (require, exports, module) {
         return tagID++;
     };
     
-    function _buildSimpleDOM(text) {
+    function _buildSimpleDOM(text, parseTagID) {
         var builder = new SimpleDOMBuilder(text);
-        return builder.build();
+        return builder.build(parseTagID);
     }
     
     function _dumpDOM(root) {
@@ -827,9 +838,12 @@ define(function (require, exports, module) {
         queue.push(newNode);
         
         // extract forEach iterator callback
-        var queuePush = function (child) { queue.push(child); }; 
+        var queuePush = function (child) { queue.push(child); };
         
-        while (!!(currentElement = queue.shift())) {
+        do {
+            // we can assume queue is non-empty for the first loop iteration
+            currentElement = queue.shift();
+            
             oldElement = oldNode.nodeMap[currentElement.tagID];
             if (oldElement) {
                 matches[currentElement.tagID] = true;
@@ -854,23 +868,30 @@ define(function (require, exports, module) {
                     currentElement.children.forEach(queuePush);
                 }
             }
-        }
+        } while (queue.length);
         
         Object.keys(matches).forEach(function (tagID) {
-            var currentElement;
             var subtreeRoot = newNode.nodeMap[tagID];
             if (subtreeRoot.children) {
                 attributeCompare(edits, oldNode.nodeMap[tagID], subtreeRoot);
-                var nav = new DOMNavigator(subtreeRoot);
-                while (!!(currentElement = nav.next())) {
-                    var currentTagID = currentElement.tagID;
-                    if (!oldNode.nodeMap[currentTagID]) {
-                        // this condition can happen for new elements
-                        continue;
+                var nav = new DOMNavigator(subtreeRoot),
+                    currentElement;
+                
+                // breadth-first traversal of DOM tree to diff attributes 
+                while (true) {
+                    currentElement = nav.next();
+                    
+                    if (!currentElement) {
+                        break;
                     }
-                    matches[currentTagID] = true;
-                    if (currentElement.children) {
-                        attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
+                    
+                    var currentTagID = currentElement.tagID;
+                    
+                    if (oldNode.nodeMap[currentTagID]) {
+                        matches[currentTagID] = true;
+                        if (currentElement.children) {
+                            attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
+                        }
                     }
                 }
             }
@@ -986,18 +1007,30 @@ define(function (require, exports, module) {
         }
     }
     
+    function _getBrowserDiff(editor, htmlString) {
+        var cachedValue = _cachedValues[editor.document.file.fullPath],
+            editorDOM   = cachedValue.dom,
+            browserDOM  = _buildSimpleDOM(htmlString, true);
+        
+        return domdiff(editorDOM, browserDOM);
+    }
+    
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
-    exports.scanDocument = scanDocument;
-    exports.generateInstrumentedHTML = generateInstrumentedHTML;
-    exports.getUnappliedEditList = getUnappliedEditList;
-    exports._markText = _markText;
-    exports._getMarkerAtDocumentPos = _getMarkerAtDocumentPos;
-    exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
-    exports._buildSimpleDOM = _buildSimpleDOM;
-    exports._markTextFromDOM = _markTextFromDOM;
-    exports._updateDOM = _updateDOM;
-    exports._DOMNavigator = DOMNavigator;
-    exports._seed = seed;
-    exports._allowIncremental = allowIncremental;
+    // private methods
+    exports._markText                   = _markText;
+    exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
+    exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
+    exports._buildSimpleDOM             = _buildSimpleDOM;
+    exports._markTextFromDOM            = _markTextFromDOM;
+    exports._updateDOM                  = _updateDOM;
+    exports._DOMNavigator               = DOMNavigator;
+    exports._seed                       = seed;
+    exports._allowIncremental           = allowIncremental;
+    exports._getBrowserDiff             = _getBrowserDiff;
+    
+    // public API
+    exports.scanDocument                = scanDocument;
+    exports.generateInstrumentedHTML    = generateInstrumentedHTML;
+    exports.getUnappliedEditList        = getUnappliedEditList;
 });
