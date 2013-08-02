@@ -314,11 +314,15 @@ define(function (require, exports, module) {
                 // Reset preferences from previous test runs
                 localStorage.removeItem("doLoadPreferences");
                 localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
+                
+                SpecRunnerUtils.runBeforeFirst();
             });
             
             afterEach(function () {
                 // Clean up preferencesKey
                 localStorage.removeItem("preferencesKey");
+                
+                SpecRunnerUtils.runAfterLast();
             });
             
             jasmineEnv.updateInterval = 1000;

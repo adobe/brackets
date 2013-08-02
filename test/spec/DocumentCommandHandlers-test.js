@@ -23,74 +23,74 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CommandManager,      // loaded from brackets.test
-        Commands,            // loaded from brackets.test
+    var CommandManager,          // loaded from brackets.test
+        Commands,                // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
-        DocumentManager,     // loaded from brackets.test
-        Dialogs,             // loaded from brackets.test
-        FileViewController,  // loaded from brackets.test
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils"),
-        StringUtils         = require("utils/StringUtils");
+        DocumentManager,         // loaded from brackets.test
+        Dialogs,                 // loaded from brackets.test
+        FileViewController,      // loaded from brackets.test
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
+        NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils                = require("file/FileUtils"),
+        StringUtils              = require("utils/StringUtils");
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
-        var topLevelSuite = this,
-            testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
+        var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow,
-            specCount,
             promise;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
+        
+        beforeFirst(function () {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
 
+                // Load module instances from brackets.test
+                CommandManager          = testWindow.brackets.test.CommandManager;
+                Commands                = testWindow.brackets.test.Commands;
+                DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
+                DocumentManager         = testWindow.brackets.test.DocumentManager;
+                Dialogs                 = testWindow.brackets.test.Dialogs;
+                FileViewController      = testWindow.brackets.test.FileViewController;
+            });
+        });
+        
+        afterLast(function () {
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentCommandHandlers = null;
+            DocumentManager         = null;
+            Dialogs                 = null;
+            FileViewController      = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
+        
         beforeEach(function () {
-            if (specCount === undefined) {
-                specCount = SpecRunnerUtils.countSpecs(topLevelSuite);
-            }
-
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
-
-                    // Load module instances from brackets.test
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    Dialogs             = testWindow.brackets.test.Dialogs;
-                    FileViewController  = testWindow.brackets.test.FileViewController;
-                });
-            }
-
             // Working set behavior is sensitive to whether file lives in the project or outside it, so make
             // the project root a known quantity.
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         });
 
         afterEach(function () {
-            specCount--;
             promise = null;
-            testWindow.closeAllDocuments();
-
+            
             runs(function () {
-                if (specCount === 0) {
-                    testWindow              = null;
-                    CommandManager          = null;
-                    Commands                = null;
-                    DocumentCommandHandlers = null;
-                    DocumentManager         = null;
-                    SpecRunnerUtils.closeTestWindow();
-                }
+                // Call closeAll() directly. Some tests set a spy on the save as
+                // dialog preventing SpecRunnerUtils.closeAllFiles() from
+                // working properly.
+                testWindow.brackets.test.DocumentManager.closeAll();
             });
         });
 
