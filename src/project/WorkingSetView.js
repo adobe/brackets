@@ -130,7 +130,8 @@ define(function (require, exports, module) {
             hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
             addBottomShadow = false,
             interval        = false,
-            moved           = false;
+            moved           = false,
+            movedOutOfBoundary = false;
         
         function drag(e) {
             var top = e.pageY - startPageY;
@@ -189,12 +190,13 @@ define(function (require, exports, module) {
             
             // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
             if (!moved && Math.abs(top) > 3) {
-                Menus.closeAll();
+                //Menus.closeAll();
                 moved = true;
                 
                 // Don't redraw the working set for the next events
                 _suppressSortRedraw = true;
             }
+            
         }
         
         function endScroll() {
@@ -243,8 +245,13 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
+            // Clear the menu before rebuilding it
+            if (moved && !movedOutOfBoundary) {
+                Menus.closeAll();
+            }
+            
             // If item wasn't dragged, treat as a click
-            if (!moved) {
+            if (!movedOutOfBoundary && !moved) {
                 // Click on close icon, or middle click anywhere - close the item without selecting it first
                 if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
@@ -293,8 +300,16 @@ define(function (require, exports, module) {
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        
+        $openFilesContainer.on("mouseleave.workingSet", function (e) {
+            movedOutOfBoundary = true;
+            
+            $openFilesContainer.off("mouseleave.workingSet");
+            drop();
+        });
+        
+        $openFilesContainer.on("mouseup.workingSet", function (e) {
+            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet");
             drop();
         });
     }
@@ -320,10 +335,14 @@ define(function (require, exports, module) {
             
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
-                .mouseup(function (e) {
+                .mousedown(function (e) {
                     // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
                     // it doesn't merely remove a file from the working set
                     _reorderListItem(e, $(this).parent(), true);
+                    
+                    //$listItem = $(this).parent();
+                    //CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                    //console.log($listItem.data);
                     
                     // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
                     // selects documents on mousedown, doesn't select the document in the case 
