@@ -677,6 +677,13 @@ define(function (require, exports, module) {
             if (node.type === "SequenceExpression") {
                 node = node.expressions[0];
             }
+            if (node.type === "BinaryExpression") {
+                if (node.left.type === "CallExpression") {
+                    node = node.left;
+                } else if (node.right.type === "CallExpression") {
+                    node = node.right;
+                }
+            }
             if (node.type === "CallExpression") {
                 var args = node["arguments"],
                     i,

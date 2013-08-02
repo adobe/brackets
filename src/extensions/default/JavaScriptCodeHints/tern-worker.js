@@ -407,7 +407,7 @@ importScripts("thirdparty/requirejs/require.js");
                             type = inferType.args[i];
 
                         if (name === undefined) {
-                            name = 'param' + (i + 1);
+                            name = "param" + (i + 1);
                         }
 
                         if (name[name.length - 1] === "?") {
@@ -425,16 +425,9 @@ importScripts("thirdparty/requirejs/require.js");
 
                 if (newFnType && newFnType.indexOf("fn(") === 0) {
                     var params = Infer.withContext(ternServer.cx, function () {
-
-                        try {
-                            var typeParser = new Infer.def.TypeParser(newFnType, null, null, true),
-                                inferType = typeParser.parseType("", true);
-                            return processInferFnTypeParameters(inferType);
-                        } catch (e) {
-                            _log(e.message);
-                            return [{name: e.message, type: ''}];
-                        }
-
+                        var typeParser = new Infer.def.TypeParser(newFnType, null, null, true),
+                            inferType = typeParser.parseType("", true);
+                        return processInferFnTypeParameters(inferType);
                     });
 
                     return params;
@@ -459,22 +452,29 @@ importScripts("thirdparty/requirejs/require.js");
                 
                 var request = buildRequest(fileInfo, "type", offset);
                     
-                request.preferFunction = true;
-                
+                request.query.preferFunction = true;
+
                 //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
                 ternServer.request(request, function (error, data) {
                     var fnType = "";
                     if (error) {
                         _log("Error returned from Tern 'type' request: " + error);
                     } else {
-                        fnType = getParameters(data.type);
+                        try {
+                            fnType = getParameters(data.type);
+                        } catch (e) {
+                            error = e.message;
+                            _log("Error thrown by Tern in getParameters: " + error);
+                        }
+
                     }
         
                     // Post a message back to the main thread with the completions
                     self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
                                       file: fileInfo.name,
                                       offset: offset,
-                                      fnType: fnType
+                                      fnType: fnType,
+                                      error: error
                                      });
                 });
             }

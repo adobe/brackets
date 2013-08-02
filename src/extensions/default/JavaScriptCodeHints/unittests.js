@@ -1199,13 +1199,23 @@ define(function (require, exports, module) {
                 });
             });
 
-            // log a bug against Tern. Tern can't parse its own function hint.
+            // Tern issue #207. Tern can't parse its own function hint.
             xit("should list parameter hint for record type annotation", function () {
                 var testPos = { line: 178, ch: 25 };
 
                 testEditor.setCursorPos(testPos);
                 runs(function () {
-                    expectParameterHint([{name: "t", type: "{index: Number, type: String}"}], -1);
+                    expectParameterHint([{name: "t", type: "{index: Number, name: String}"}], -1);
+                });
+            });
+
+            // Tern issue #208. Fixed in the latest tern
+            xit("should list parameter hint for optional parameters", function () {
+                var testPos = { line: 214, ch: 17 };
+
+                testEditor.setCursorPos(testPos);
+                runs(function () {
+                    expectParameterHint([{name: "a", type: "Number", isOptional: true}, {name: "b", type: "String", isOptional: true}], 0);
                 });
             });
 

@@ -277,9 +277,8 @@ define(function (require, exports, module) {
         }
 
         request.done(function (fnType) {
-            var cm = session.editor._codeMirror;
-
-            var pos = cm.charCoords(functionInfo.functionCallPos);
+            var cm = session.editor._codeMirror,
+                pos = cm.charCoords(functionInfo.functionCallPos);
 
             formatHint(functionInfo);
 
@@ -290,6 +289,8 @@ define(function (require, exports, module) {
 
             $(session.editor).on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
+        }).fail(function () {
+            hintState.functionCallPos = null;
         });
 
         return $deferredPopUp;
