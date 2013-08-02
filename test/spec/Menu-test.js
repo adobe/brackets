@@ -129,21 +129,19 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left: object.offset().left,
-                    top: object.offset().top,
-                    right: object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return (
-                    bounds.left >= 0 &&
-                    bounds.right <= $(testWindow).width() &&
-                    bounds.top >= 0 &&
-                    bounds.bottom <= $(testWindow).height()
-                );
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
+                       bounds.bottom <= $(testWindow).height();
             }
 
             it("context menu is not clipped", function () {
@@ -762,21 +760,19 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left:   object.offset().left,
-                    top:    object.offset().top,
-                    right:  object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return (
-                    bounds.left >= 0 &&
-                    bounds.right <= $(testWindow).width() &&
-                    bounds.top >= 0 &&
-                    bounds.bottom <= $(testWindow).height()
-                );
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
+                       bounds.bottom <= $(testWindow).height();
             }
                 
             it("context menu is not clipped", function () {
