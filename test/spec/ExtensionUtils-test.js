@@ -21,13 +21,14 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
-    var ExtensionUtils,
+    var ExtensionUtils,     // Load from brackets.test
         FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         LESS_RESULT         = require("text!spec/ExtensionUtils-test-files/less.text");
@@ -38,7 +39,7 @@ define(function (require, exports, module) {
 
         var testWindow;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
@@ -47,7 +48,7 @@ define(function (require, exports, module) {
             });
         });
 
-        afterEach(function () {
+        afterLast(function () {
             testWindow      = null;
             ExtensionUtils  = null;
             SpecRunnerUtils.closeTestWindow();
