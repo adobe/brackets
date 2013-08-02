@@ -21,19 +21,19 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
-    var CommandManager,
-        Commands,
-        KeyBindingManager,
-        Menus,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent");
-
+    var CommandManager,     // Load from brackets.test
+        Commands,           // Load from brackets.test
+        KeyBindingManager,  // Load from brackets.test
+        Menus,              // Load from brackets.test
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        KeyEvent            = require("utils/KeyEvent");
 
 
     describe("Menus", function () {
@@ -42,30 +42,28 @@ define(function (require, exports, module) {
 
         var testWindow;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
             // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
             // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
 
-                    // Load module instances from brackets.test
-                    CommandManager    = testWindow.brackets.test.CommandManager;
-                    Commands          = testWindow.brackets.test.Commands;
-                    KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
-                    Menus             = testWindow.brackets.test.Menus;
-                });
-
-                this.after(function () {
-                    testWindow        = null;
-                    CommandManager    = null;
-                    Commands          = null;
-                    KeyBindingManager = null;
-                    Menus             = null;
-                    SpecRunnerUtils.closeTestWindow();
-                });
-            }
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            });
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
         });
 
 
@@ -140,10 +138,12 @@ define(function (require, exports, module) {
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
-                       bounds.bottom <= $(testWindow).height();
+                return (
+                    bounds.left >= 0 &&
+                    bounds.right <= $(testWindow).width() &&
+                    bounds.top >= 0 &&
+                    bounds.bottom <= $(testWindow).height()
+                );
             }
 
             it("context menu is not clipped", function () {
@@ -771,10 +771,12 @@ define(function (require, exports, module) {
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
-                       bounds.bottom <= $(testWindow).height();
+                return (
+                    bounds.left >= 0 &&
+                    bounds.right <= $(testWindow).width() &&
+                    bounds.top >= 0 &&
+                    bounds.bottom <= $(testWindow).height()
+                );
             }
                 
             it("context menu is not clipped", function () {
