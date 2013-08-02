@@ -83,6 +83,11 @@ define(function (require, exports, module) {
      * @param {Array.<FileEntry>} fileArray
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+        // filesList must have at least two files in it for this to make sense
+        if (filesList.length <= 1) {
+            return;
+        }
+
         // First collect fullPaths from the list of files
         var filePaths = [];
         filesList.forEach(function (file, index) {
@@ -96,7 +101,8 @@ define(function (require, exports, module) {
         do {
             var i,
                 l = filePaths.length,
-                firstVal = filePaths[0][0];
+                // || '' should prevent infinite loop as the other arrays will get undefined
+                firstVal = filePaths[0][0] || '';
             for (i = 1; i < l; i++) {
                 if (filePaths[i][0] !== firstVal) {
                     foundDiff = true;
