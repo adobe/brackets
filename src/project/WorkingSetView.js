@@ -83,13 +83,40 @@ define(function (require, exports, module) {
      * @param {Array.<FileEntry>} fileArray
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+        // First collect fullPaths from the list of files
+        var filePaths = [];
+        filesList.forEach(function (file, index) {
+            var fp = file.fullPath.split('/');
+            fp.pop(); // Remove the filename itself
+            filePaths[index] = fp;
+        });
+
+        // Then go through all the paths and shift them until a difference is found
+        var foundDiff = false;
+        do {
+            var i,
+                l = filePaths.length,
+                firstVal = filePaths[0][0];
+            for (i = 1; i < l; i++) {
+                if (filePaths[i][0] !== firstVal) {
+                    foundDiff = true;
+                    break;
+                }
+            }
+            if (!foundDiff) {
+                for (i = 0; i < l; i++) {
+                    filePaths[i].shift();
+                }
+            }
+        } while (!foundDiff);
+
+        // Go through open files and add directories to appropriate entries
         $openFilesContainer.find("ul > li").each(function () {
             var $li = $(this);
             var file = $li.data(_FILE_KEY);
-            if (filesList.indexOf(file) !== -1) {
-                var dirNameEnd = file.fullPath.lastIndexOf("/");
-                var dirNameStart = file.fullPath.lastIndexOf("/", dirNameEnd - 1) + 1;
-                var dirName = file.fullPath.substring(dirNameStart, dirNameEnd);
+            var io = filesList.indexOf(file);
+            if (io !== -1) {
+                var dirName = filePaths[io].join('/');
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + dirName);
                 $li.children("a").append($dir);
             }
