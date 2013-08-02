@@ -290,7 +290,7 @@ define(function (require, exports, module) {
             $(session.editor).on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {
-            hintState.functionCallPos = null;
+            hintState = {};
         });
 
         return $deferredPopUp;
