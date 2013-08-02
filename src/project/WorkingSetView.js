@@ -89,13 +89,42 @@ define(function (require, exports, module) {
         }
 
         // First collect fullPaths from the list of files
-        var filePaths = [];
+        var filePaths = [], displayPaths = [];
         filesList.forEach(function (file, index) {
             var fp = file.fullPath.split('/');
             fp.pop(); // Remove the filename itself
+            displayPaths[index] = fp.pop();
             filePaths[index] = fp;
         });
 
+        // Check if displayPaths are unique
+        var unique, i, j, l = displayPaths.length;
+        do {
+            unique = null;
+            for (i = 0; i < l; i++) {
+                for (j = i + 1; j < l; j++) {
+                    if (displayPaths[i] === displayPaths[j]) {
+                        unique = [i,j];
+                    }
+                }
+            }
+            if (unique !== null) {
+                // we got two indexes representing same displayPaths, one of them 
+                // should add another parent directory into its display path
+                i = unique[0];
+                j = unique[1];
+                if (filePaths[i].length > filePaths[j].length) {
+                    displayPaths[i] = filePaths[i].pop() + '/' + displayPaths[i];
+                } else if (filePaths[i].length < filePaths[j].length) {
+                    displayPaths[j] = filePaths[j].pop() + '/' + displayPaths[j];
+                } else {
+                    displayPaths[i] = filePaths[i].pop() + '/' + displayPaths[i];
+                    displayPaths[j] = filePaths[j].pop() + '/' + displayPaths[j];
+                }
+            }
+        } while (unique !== null);
+
+        /*
         // Then go through all the paths and shift them until a difference is found
         var foundDiff = false;
         do {
@@ -115,6 +144,7 @@ define(function (require, exports, module) {
                 }
             }
         } while (!foundDiff);
+        */
 
         // Go through open files and add directories to appropriate entries
         $openFilesContainer.find("ul > li").each(function () {
@@ -122,7 +152,7 @@ define(function (require, exports, module) {
             var file = $li.data(_FILE_KEY);
             var io = filesList.indexOf(file);
             if (io !== -1) {
-                var dirName = filePaths[io].join('/');
+                var dirName = displayPaths[io];
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + dirName);
                 $li.children("a").append($dir);
             }
