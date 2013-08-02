@@ -320,7 +320,7 @@ define(function (require, exports, module) {
             
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
-                .mousedown(function (e) {
+                .mouseup(function (e) {
                     // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
                     // it doesn't merely remove a file from the working set
                     _reorderListItem(e, $(this).parent(), true);
