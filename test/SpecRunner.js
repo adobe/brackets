@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, beforeEach, afterEach, jasmine, brackets, PathUtils */
+/*global require, define, $, beforeEach, afterEach, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -310,11 +310,19 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 // Unique key for unit testing
                 localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+
+                // Reset preferences from previous test runs
+                localStorage.removeItem("doLoadPreferences");
+                localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
+                
+                SpecRunnerUtils.runBeforeFirst();
             });
             
             afterEach(function () {
                 // Clean up preferencesKey
                 localStorage.removeItem("preferencesKey");
+                
+                SpecRunnerUtils.runAfterLast();
             });
             
             jasmineEnv.updateInterval = 1000;

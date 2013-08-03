@@ -253,13 +253,12 @@ define(function (require, exports, module) {
      * Creates a new general purpose modal dialog using the default template and the template variables given
      * as parameters as described.
      *
-     * @param {string} dlgClass A class name identifier for the dialog.
-     * @param {string=} title The title of the dialog. Can contain HTML markup. If unspecified, the title
-     *      in the JSON file is used unchanged.
-     * @param {string=} message The message to display in the dialog. Can contain HTML markup. If
-     *      unspecified, the message in the JSON file is used.
-     * @param {Array.<{className: string, id: string, text: string>=} buttons An array of buttons where each button
-     *      has a class, id and text property. The id is used in "data-button-id". It defaults to an Ok button
+     * @param {string} dlgClass A class name identifier for the dialog. Typically one of DefaultDialogs.*
+     * @param {string=} title The title of the dialog. Can contain HTML markup. Defaults to "".
+     * @param {string=} message The message to display in the dialog. Can contain HTML markup. Defaults to "".
+     * @param {Array.<{className: string, id: string, text: string}>=} buttons An array of buttons where each button
+     *      has a class, id and text property. The id is used in "data-button-id". Defaults to a single Ok button.
+     *      Typically className is one of DIALOG_BTN_CLASS_*, id is one of DIALOG_BTN_*
      * @return {Dialog}
      */
     function showModalDialog(dlgClass, title, message, buttons) {

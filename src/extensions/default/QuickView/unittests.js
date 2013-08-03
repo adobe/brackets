@@ -289,22 +289,28 @@ define(function (require, exports, module) {
                 QuickView._forceShow(popoverInfo);
             }
 
-            function getBounds(object) {
+            function getBounds(object, useOffset) {
+                var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
+                    top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
                 return {
-                    left:   object.offset().left,
-                    top:    object.offset().top,
-                    right:  object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left:   left,
+                    top:    top,
+                    right:  left + object.outerWidth(),
+                    bottom: top + object.outerHeight()
                 };
             }
 
             function boundsInsideWindow(object) {
-                var bounds = getBounds(object),
-                    editorBounds = getBounds(testWindow.$("#editor-holder"));
+                // For the popover, we can't use offset(), because jQuery gets confused by the
+                // scale factor and transform origin that the animation uses. Instead, we rely
+                // on the fact that its offset parent is body, and just test its explicit left/top 
+                // values.
+                var bounds = getBounds(object, false),
+                    editorBounds = getBounds(testWindow.$("#editor-holder"), true);
                 return bounds.left   >= editorBounds.left   &&
-                       bounds.right  <= editorBounds.right  &&
-                       bounds.top    >= editorBounds.top    &&
-                       bounds.bottom <= editorBounds.bottom;
+                    bounds.right  <= editorBounds.right  &&
+                    bounds.top    >= editorBounds.top    &&
+                    bounds.bottom <= editorBounds.bottom;
             }
 
             function toggleOption(commandID, text) {
