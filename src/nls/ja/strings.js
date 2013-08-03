@@ -414,6 +414,7 @@ define({
 	"LOCALE_DE": "ドイツ語",
 	"LOCALE_EN": "英語",
 	"LOCALE_ES": "スペイン語",
+	"LOCALE_FI": "フィンランド語",
 	"LOCALE_FR": "フランス語",
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
