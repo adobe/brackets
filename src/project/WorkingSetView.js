@@ -137,6 +137,11 @@ define(function (require, exports, module) {
             var $li = $(this);
             var io = filesList.indexOf($li.data(_FILE_KEY));
             if (io !== -1) {
+                var dirSplit = displayPaths[io].split('/');
+                if (dirSplit.length > 3) {
+                    displayPaths[io] = dirSplit[0] + '/.../' + dirSplit[dirSplit.length - 1];
+                }
+
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
                 $li.children("a").append($dir);
             }
