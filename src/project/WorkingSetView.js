@@ -88,72 +88,53 @@ define(function (require, exports, module) {
             return;
         }
 
-        // First collect fullPaths from the list of files
-        var filePaths = [], displayPaths = [];
+        // First collect paths from the list of files and fill map with them
+        var map = {}, filePaths = [], displayPaths = [];
         filesList.forEach(function (file, index) {
             var fp = file.fullPath.split('/');
             fp.pop(); // Remove the filename itself
             displayPaths[index] = fp.pop();
             filePaths[index] = fp;
+
+            if (!map[displayPaths[index]]) {
+                map[displayPaths[index]] = [index];
+            } else {
+                map[displayPaths[index]].push(index);
+            }
         });
 
-        // Check if displayPaths are unique
-        var unique, i, j, l = displayPaths.length;
-        do {
-            unique = null;
-            for (i = 0; i < l; i++) {
-                for (j = i + 1; j < l; j++) {
-                    if (displayPaths[i] === displayPaths[j]) {
-                        unique = [i,j];
-                    }
-                }
-            }
-            if (unique !== null) {
-                // we got two indexes representing same displayPaths, one of them 
-                // should add another parent directory into its display path
-                i = unique[0];
-                j = unique[1];
-                if (filePaths[i].length > filePaths[j].length) {
-                    displayPaths[i] = filePaths[i].pop() + '/' + displayPaths[i];
-                } else if (filePaths[i].length < filePaths[j].length) {
-                    displayPaths[j] = filePaths[j].pop() + '/' + displayPaths[j];
-                } else {
-                    displayPaths[i] = filePaths[i].pop() + '/' + displayPaths[i];
-                    displayPaths[j] = filePaths[j].pop() + '/' + displayPaths[j];
-                }
-            }
-        } while (unique !== null);
+        // This function is used to loop through map and resolve duplicate names
+        var processMap = function (map) {
+            var didSomething = false;
+            CollectionUtils.forEach(map, function(arr, key) {
+                // length > 1 means we have duplicates that need to be resolved
+                if (arr.length > 1) {
+                    arr.forEach(function(index) {
+                        if (filePaths[index].length === 0) { return; }
+                        displayPaths[index] = filePaths[index].pop() + '/' + displayPaths[index];
+                        didSomething = true;
 
-        /*
-        // Then go through all the paths and shift them until a difference is found
-        var foundDiff = false;
-        do {
-            var i,
-                l = filePaths.length,
-                // || '' should prevent infinite loop as the other arrays will get undefined
-                firstVal = filePaths[0][0] || '';
-            for (i = 1; i < l; i++) {
-                if (filePaths[i][0] !== firstVal) {
-                    foundDiff = true;
-                    break;
+                        if (!map[displayPaths[index]]) {
+                            map[displayPaths[index]] = [index];
+                        } else {
+                            map[displayPaths[index]].push(index);
+                        }
+                    });
+                    map[key] = [];
                 }
-            }
-            if (!foundDiff) {
-                for (i = 0; i < l; i++) {
-                    filePaths[i].shift();
-                }
-            }
-        } while (!foundDiff);
-        */
+            });
+            return didSomething;
+        };
+
+        var repeat;
+        do { repeat = processMap(map); } while (repeat);
 
         // Go through open files and add directories to appropriate entries
         $openFilesContainer.find("ul > li").each(function () {
             var $li = $(this);
-            var file = $li.data(_FILE_KEY);
-            var io = filesList.indexOf(file);
+            var io = filesList.indexOf($li.data(_FILE_KEY));
             if (io !== -1) {
-                var dirName = displayPaths[io];
-                var $dir = $("<span class='directory'/>").html(" &mdash; " + dirName);
+                var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
                 $li.children("a").append($dir);
             }
         });
