@@ -106,28 +106,31 @@ define(function (require, exports, module) {
         // This function is used to loop through map and resolve duplicate names
         var processMap = function (map) {
             var didSomething = false;
-            CollectionUtils.forEach(map, function(arr, key) {
+            CollectionUtils.forEach(map, function (arr, key) {
                 // length > 1 means we have duplicates that need to be resolved
                 if (arr.length > 1) {
-                    arr.forEach(function(index) {
-                        if (filePaths[index].length === 0) { return; }
-                        displayPaths[index] = filePaths[index].pop() + '/' + displayPaths[index];
-                        didSomething = true;
+                    arr.forEach(function (index) {
+                        if (filePaths[index].length !== 0) {
+                            displayPaths[index] = filePaths[index].pop() + '/' + displayPaths[index];
+                            didSomething = true;
 
-                        if (!map[displayPaths[index]]) {
-                            map[displayPaths[index]] = [index];
-                        } else {
-                            map[displayPaths[index]].push(index);
+                            if (!map[displayPaths[index]]) {
+                                map[displayPaths[index]] = [index];
+                            } else {
+                                map[displayPaths[index]].push(index);
+                            }
                         }
                     });
-                    map[key] = [];
                 }
+                delete map[key];
             });
             return didSomething;
         };
 
         var repeat;
-        do { repeat = processMap(map); } while (repeat);
+        do {
+            repeat = processMap(map);
+        } while (repeat);
 
         // Go through open files and add directories to appropriate entries
         $openFilesContainer.find("ul > li").each(function () {
