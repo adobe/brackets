@@ -437,7 +437,7 @@ define(function (require, exports, module) {
                         if (strict) {
                             return null;
                         }
-                    }                        
+                    }
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
@@ -842,7 +842,7 @@ define(function (require, exports, module) {
         queue.push(newNode);
         
         // extract forEach iterator callback
-        var queuePush = function (child) { queue.push(child); }; 
+        var queuePush = function (child) { queue.push(child); };
         
         while (!!(currentElement = queue.shift())) {
             oldElement = oldNode.nodeMap[currentElement.tagID];
@@ -1015,7 +1015,7 @@ define(function (require, exports, module) {
     exports._markTextFromDOM = _markTextFromDOM;
     exports._updateDOM = _updateDOM;
     exports._DOMNavigator = DOMNavigator;
-    exports._seed = seed;    
+    exports._seed = seed;
     exports._allowIncremental = allowIncremental;
     exports._dumpDOM = _dumpDOM;
 });
