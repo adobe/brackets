@@ -90,9 +90,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Adds directory names to elements representing passed files in working tree
      * @private
-     * @param {Array.<FileEntry>} fileArray
+     * Adds directory names to elements representing passed files in working tree
+     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
         // filesList must have at least two files in it for this to make sense
@@ -161,35 +161,31 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
      * Looks for files with the same name in the working set
      * and adds a parent directory name to them
-     * @private
      */
     function _checkForDuplicatesInWorkingTree() {
         var map = {},
             fileList = DocumentManager.getWorkingSet();
 
-        // we need to always clear current directories as files could be removed from working tree
+        // We need to always clear current directories as files could be removed from working tree.
         $openFilesContainer.find("ul > li > a > span.directory").remove();
 
-        // go through files and fill map with arrays of duplicates
+        // Go through files and fill map with arrays of files.
         fileList.forEach(function (file) {
-            // use the same function that is used to create html for file
+            // Use the same function that is used to create html for file.
             var displayHtml = ViewUtils.getFileEntryDisplay(file);
 
-            if (map[displayHtml] === undefined) {
-                map[displayHtml] = file;
-            } else {
-                if (!(map[displayHtml] instanceof Array)) {
-                    map[displayHtml] = [map[displayHtml]];
-                }
-                map[displayHtml].push(file);
+            if (!map[displayHtml]) {
+                map[displayHtml] = [];
             }
+            map[displayHtml].push(file);
         });
 
-        // go through map and solve arrays, ignore rest
+        // Go through the map and solve the arrays with length over 1. Ignore the rest.
         CollectionUtils.forEach(map, function (value) {
-            if (value instanceof Array) {
+            if (value.length > 1) {
                 _addDirectoryNamesToWorkingTreeFiles(value);
             }
         });

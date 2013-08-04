@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
             testWindow,
-            workingSetCount;        
+            workingSetCount;
         
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
         });
 
         it("should show a directory name next to the file name when two files with same names are opened", function () {
-            runs(function() {
+            runs(function () {
                 // Count currently opened files
                 var workingSetCountBeforeTest = workingSetCount;
 
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                 // Wait for file to be added to the working set
                 waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
 
-                runs(function() {
+                runs(function () {
                     // Two files with the same name file_one.js should be now opened
                     var $list = testWindow.$("#open-files-container > ul");
                     expect($list.find(".directory").length).toBe(2);
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
                 // Wait for them to load
                 waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
 
-                runs(function() {
+                runs(function () {
                     // Collect all directory names displayed
                     var $list = testWindow.$("#open-files-container > ul");
                     var names = $list.find(".directory").map(function () {
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
 
                     // All directory names should be unique
                     var uniq = 0, map = {};
-                    names.forEach(function(name) {
+                    names.forEach(function (name) {
                         if (!map[name]) {
                             map[name] = true;
                             uniq++;
