@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -285,10 +285,7 @@ define(function (require, exports, module) {
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
                     var didClose = false, gotError = false;
-                    CommandManager.execute(Commands.FILE_CLOSE)
-                        .done(function () { didClose = true; })
-                        .fail(function () { gotError = true; });
-                    waitsFor(function () { return didClose && !gotError; }, "timeout on FILE_CLOSE", 1000);
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
 
                     // there should be no more directories shown
                     runs(function () {
