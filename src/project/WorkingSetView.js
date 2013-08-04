@@ -103,7 +103,7 @@ define(function (require, exports, module) {
         // First collect paths from the list of files and fill map with them
         var map = {}, filePaths = [], displayPaths = [];
         filesList.forEach(function (file, index) {
-            var fp = file.fullPath.split('/');
+            var fp = file.fullPath.split("/");
             fp.pop(); // Remove the filename itself
             displayPaths[index] = fp.pop();
             filePaths[index] = fp;
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
                 if (arr.length > 1) {
                     arr.forEach(function (index) {
                         if (filePaths[index].length !== 0) {
-                            displayPaths[index] = filePaths[index].pop() + '/' + displayPaths[index];
+                            displayPaths[index] = filePaths[index].pop() + "/" + displayPaths[index];
                             didSomething = true;
 
                             if (!map[displayPaths[index]]) {
@@ -149,9 +149,9 @@ define(function (require, exports, module) {
             var $li = $(this);
             var io = filesList.indexOf($li.data(_FILE_KEY));
             if (io !== -1) {
-                var dirSplit = displayPaths[io].split('/');
+                var dirSplit = displayPaths[io].split("/");
                 if (dirSplit.length > 3) {
-                    displayPaths[io] = dirSplit[0] + '/.../' + dirSplit[dirSplit.length - 1];
+                    displayPaths[io] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
                 }
 
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);

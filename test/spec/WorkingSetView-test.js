@@ -147,7 +147,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var $ = testWindow.$;
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 var $listItems = $("#open-files-container > ul").children();
                 expect($($listItems[0]).hasClass("selected")).not.toBeTruthy();
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
                 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('mouseover');
+                secondItem.trigger("mouseover");
                 var closeIcon = secondItem.find(".file-status-icon");
                 expect(closeIcon.length).toBe(1);
                 
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
                     didClose = true;
                 });
 
-                closeIcon.trigger('mousedown');
+                closeIcon.trigger("mousedown");
             });
             
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
                 var $ = testWindow.$;
                 var secondItem =  $("#open-files-container > ul").children().eq(1);
                 var fileName = secondItem.text();
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 // Calling FILE_RENAME synchronously works fine here since the item is already visible in project file tree.
                 // However, if the selected item is not already visible in the tree, this command will complete asynchronously.
