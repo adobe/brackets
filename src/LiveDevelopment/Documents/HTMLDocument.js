@@ -152,7 +152,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
     
-    HTMLDocument.prototype._compareWithBrowser = function (change, print) {
+    HTMLDocument.prototype._compareWithBrowser = function (change) {
         var self = this;
         
         RemoteAgent.call("getSimpleDOM").done(function (res) {
@@ -161,8 +161,8 @@ define(function HTMLDocumentModule(require, exports, module) {
                 skipDelta,
                 node;
             
-            if (print && edits.length > 0) {
-                console.log("Browser DOM does not match after change: " + JSON.stringify(change));
+            if (edits.length > 0) {
+                console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
                     // ignore textDelete in html root element
@@ -188,11 +188,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         
         // compare in-memory vs. in-browser DOM
         // set a conditional breakpoint at the top of this function: "this._debug = true, false"
-        if (this._debug) {
-            applyEditsPromise.done(function () {
-                self._compareWithBrowser(change, true);
-            });
-        }
+        applyEditsPromise.done(function () {
+            self._compareWithBrowser(change);
+        });
         
 //        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
 //            this.editor,
