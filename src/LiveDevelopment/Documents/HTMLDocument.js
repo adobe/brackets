@@ -153,33 +153,28 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     HTMLDocument.prototype._compareWithBrowser = function (change, print) {
-        var self        = this,
-            promise     = Inspector.DOM.getDocument(),
-            deferred    = new $.Deferred();
+        var self = this;
         
-        // Get HTML from browser
-        promise = promise.then(function (res) {
-            return Inspector.DOM.getOuterHTML(res.root.nodeId);
-        });
-        
-        // Build DOM
-        promise.then(function (res) {
-            var edits = HTMLInstrumentation._getBrowserDiff(self.editor, res.outerHTML);
+        RemoteAgent.call("getSimpleDOM").done(function (res) {
+            var browserSimpleDOM = JSON.parse(res.result.value),
+                edits = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM),
+                skipDelta,
+                node;
             
             if (print) {
-                console.log("Browser delta for change: " + JSON.stringify(change));
+                console.log("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
-                    console.log(delta);
+                    // ignore textDelete in html root element
+                    node = browserSimpleDOM.nodeMap[delta.parentID];
+                    skipDelta = node && node.tag === "html" && delta.type === "textDelete";
+                    
+                    if (!skipDelta) {
+                        console.log(delta);
+                    }
                 });
             }
-            
-            deferred.resolve(edits);
         });
-        
-        promise.fail(deferred.reject);
-        
-        return deferred.promise();
     };
 
     /** Triggered on change by the editor */

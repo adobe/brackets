@@ -344,7 +344,11 @@ define(function (require, exports, module) {
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
-    SimpleDOMBuilder.prototype.build = function (parseTagID) {
+    function _getTextNodeHash(text) {
+        return MurmurHash3.hashString(text, text.length, seed);
+    }
+    
+    SimpleDOMBuilder.prototype.build = function () {
         var self = this;
         var token, tagLabel, lastClosedTag, lastIndex = 0;
         var stack = this.stack;
@@ -436,18 +440,7 @@ define(function (require, exports, module) {
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
             } else if (token.type === "attribvalue" && attributeName !== null) {
-                if (parseTagID && (attributeName === "data-brackets-id")) {
-                    var embeddedTagID = token.contents;
-                    
-                    // delete old tagID mapping
-                    delete nodeMap[this.currentTag.tagID];
-                    
-                    this.currentTag.tagID = embeddedTagID;
-                    nodeMap[this.currentTag.tagID] = this.currentTag;
-                } else {
-                    this.currentTag.attributes[attributeName] = token.contents;
-                }
-                
+                this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
             } else if (token.type === "text") {
                 if (stack.length) {
@@ -455,9 +448,9 @@ define(function (require, exports, module) {
                     var newNode = {
                         parent: stack[stack.length - 1],
                         content: token.contents,
-                        weight: token.contents.length,
-                        signature: MurmurHash3.hashString(token.contents, token.contents.length, seed)
+                        weight: token.contents.length
                     };
+                    newNode.signature = _getTextNodeHash(newNode.content);
                     parent.children.push(newNode);
                     newNode.tagID = getTextNodeID(newNode);
                     nodeMap[newNode.tagID] = newNode;
@@ -482,9 +475,9 @@ define(function (require, exports, module) {
         return tagID++;
     };
     
-    function _buildSimpleDOM(text, parseTagID) {
+    function _buildSimpleDOM(text) {
         var builder = new SimpleDOMBuilder(text);
-        return builder.build(parseTagID);
+        return builder.build();
     }
     
     function _dumpDOM(root) {
@@ -1007,12 +1000,63 @@ define(function (require, exports, module) {
         }
     }
     
-    function _getBrowserDiff(editor, htmlString) {
-        var cachedValue = _cachedValues[editor.document.file.fullPath],
-            editorDOM   = cachedValue.dom,
-            browserDOM  = _buildSimpleDOM(htmlString, true);
+    /**
+     * @private
+     * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
+     * @param {Object} root
+     */
+    function _processBrowserSimpleDOM(root) {
+        var nodeMap         = {},
+            signatureMap    = {};
         
-        return domdiff(editorDOM, browserDOM);
+        function _processElement(elem) {
+            elem.tagID = elem.attributes["data-brackets-id"];
+            elem.weight = 0;
+            
+            // remove data-brackets-id attribute for diff
+            delete elem.attributes["data-brackets-id"];
+            
+            elem.children.forEach(function (child) {
+                // set parent
+                child.parent = elem;
+                
+                if (child.children) {
+                    _processElement(child);
+                } else if (child.content) {
+                    child.weight = child.content.length;
+                    child.signature = _getTextNodeHash(child.content);
+                    child.tagID = getTextNodeID(child);
+                    
+                    nodeMap[child.tagID] = child;
+                    signatureMap[child.signature] = child;
+                }
+            });
+            
+            elem.signature = _updateHash(elem);
+            
+            nodeMap[elem.tagID] = elem;
+            signatureMap[elem.signature] = elem;
+        }
+        
+        _processElement(root);
+        
+        root.nodeMap = nodeMap;
+        root.signatureMap = signatureMap;
+    }
+    
+    /**
+     * @private
+     * Diff the browser DOM with the in-editor DOM
+     * @param {Editor} editor
+     * @param {Object} browserSimpleDOM
+     */
+    function _getBrowserDiff(editor, browserSimpleDOM) {
+        var cachedValue = _cachedValues[editor.document.file.fullPath],
+            editorDOM   = cachedValue.dom;
+        
+        _processBrowserSimpleDOM(browserSimpleDOM);
+        
+        return domdiff(editorDOM, browserSimpleDOM);
     }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
