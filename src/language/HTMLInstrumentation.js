@@ -344,11 +344,12 @@ define(function (require, exports, module) {
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
+
     function _getTextNodeHash(text) {
         return MurmurHash3.hashString(text, text.length, seed);
     }
     
-    SimpleDOMBuilder.prototype.build = function () {
+    SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
         var token, tagLabel, lastClosedTag, lastIndex = 0;
         var stack = this.stack;
@@ -422,8 +423,11 @@ define(function (require, exports, module) {
                             break;
                         }
                     }
+                    if (strict && i !== stack.length - 1) {
+                        // If we're in strict mode, treat unbalanced tags as invalid.
+                        return null;
+                    }
                     if (i >= 0) {
-                        // if (i !== stack.length - 1) console.log("Unbalanced tag close: " + token.contents);
                         do {
                             // For all tags we're implicitly closing (before we hit the matching tag), we want the
                             // implied end to be the beginning of the close tag (which is two characters, "</", before
@@ -432,10 +436,13 @@ define(function (require, exports, module) {
                             // the tagname).
                             closeTag(stack.length === i + 1 ? token.end + 1 : token.start - 2);
                         } while (stack.length > i);
+                    } else {
+                        // If we're in strict mode, treat unmatched close tags as invalid. Otherwise
+                        // we just silently ignore them.
+                        if (strict) {
+                            return null;
+                        }
                     }
-                    // else {
-                    //     console.log("Unmatched close tag: " + token.contents);
-                    // }
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
@@ -460,7 +467,11 @@ define(function (require, exports, module) {
             lastIndex = token.end;
         }
         
-        // If we have any tags hanging open (e.g. html or body), close them at the end of the document.
+        // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,
+        // otherwise close them at the end of the document.
+        if (strict && stack.length) {
+            return null;
+        }
         while (stack.length) {
             closeTag(this.text.length - this.startOffset);
         }
@@ -475,9 +486,9 @@ define(function (require, exports, module) {
         return tagID++;
     };
     
-    function _buildSimpleDOM(text) {
+    function _buildSimpleDOM(text, strict) {
         var builder = new SimpleDOMBuilder(text);
-        return builder.build();
+        return builder.build(strict);
     }
     
     function _dumpDOM(root) {
@@ -532,6 +543,8 @@ define(function (require, exports, module) {
     function DOMUpdater(previousDOM, editor, changeList) {
         var text, startOffset = 0;
 
+        this.isIncremental = false;
+        
         // TODO: if there's more than one change in the changelist, we need to figure out how
         // to find all the affected ranges since we can't directly map the ranges of intermediate
         // changes to marked ranges after the fact. 
@@ -558,6 +571,7 @@ define(function (require, exports, module) {
                     //console.log("incremental update: " + text);
                     this.changedTagID = startMark.tagID;
                     startOffset = editor._codeMirror.indexFromPos(newMarkRange.from);
+                    this.isIncremental = true;
                 }
             }
         }
@@ -644,7 +658,9 @@ define(function (require, exports, module) {
     };
     
     DOMUpdater.prototype.update = function () {
-        var newSubtree = this.build(),
+        // If we're doing an incremental update, we want to do a stricter parse, and fail
+        // if there are any unbalanced tags.
+        var newSubtree = this.build(this.isIncremental),
             result = {
                 // default result if we didn't identify a changed portion
                 newDOM: newSubtree,
@@ -1071,6 +1087,7 @@ define(function (require, exports, module) {
     exports._DOMNavigator               = DOMNavigator;
     exports._seed                       = seed;
     exports._allowIncremental           = allowIncremental;
+    exports._dumpDOM                    = _dumpDOM;
     exports._getBrowserDiff             = _getBrowserDiff;
     
     // public API

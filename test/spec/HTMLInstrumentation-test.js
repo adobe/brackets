@@ -536,6 +536,24 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Strict HTML parsing", function () {
+            it("should parse a document with balanced, void and self-closing tags", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
+            });
+            it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>unclosed para<h1>heading that closes para</h1>", true)).not.toBeNull();
+            });
+            it("should return null for an unclosed non-void/non-implied-close tag", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
+            });
+            it("should return null for an extra close tag", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
+            });
+            it("should return null if there are unclosed tags at the end of the document", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
+            });
+        });
+        
         describe("HTML Instrumentation in dirty files", function () {
                 
             beforeEach(function () {
@@ -824,10 +842,14 @@ define(function (require, exports, module) {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             ed = editor;
+                            //console.log("original DOM: ");
+                            //console.log(HTMLInstrumentation._dumpDOM(previousDOM));
                             editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
+                            //console.log("new DOM: ");
+                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[5];
                             expect(newElement.tag).toEqual("div");
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
@@ -859,6 +881,80 @@ define(function (require, exports, module) {
 //                            });
                         }
                     );
+                });
+            });
+            
+            // TODO: these tests aren't working yet.
+            xit("should represent simple new tag insert immediately after previous tag", function () {
+                runs(function () {
+                    var ed;
+                    
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            ed = editor;
+                            //console.log("original DOM: ");
+                            //console.log(HTMLInstrumentation._dumpDOM(previousDOM));
+                            editor.document.replaceRange("<div>New Content</div>", {line: 12, ch: 38});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            console.log("new DOM: ");
+                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            
+                            // first child is whitespace, second child is <h1>, third child is new tag
+                            var newElement = newDOM.children[3].children[2];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            
+                            // 4 edits: 
+                            // - delete original \n
+                            // - insert new tag
+                            // - insert text in tag
+                            // - re-add \n after tag
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                child: 2
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                tagID: newElement.tagID,
+                                child: 0,
+                                content: "New Content"
+                            });
+                        }
+                    );
+                });
+            });
+            
+            // TODO: this isn't working yet--there are issues with the way text around comments 
+            // is being parsed in the test file
+            xit("should handle new text insert between tags", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("New Content", {line: 15, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[5];
+                            expect(newElement.tagID).toBeUndefined();
+                            expect(newElement.content).toEqual("New Content");
+                            expect(result.edits.length).toEqual(3);
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                tagID: newDOM.children[3].tagID,
+                                child: 0,
+                                content: "New Content"
+                            });
+                        }
+                    );
+                    
                 });
             });
         });
