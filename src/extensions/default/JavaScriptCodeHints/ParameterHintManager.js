@@ -174,7 +174,7 @@ define(function (require, exports, module) {
     /**
      * Restore the state of the previous function hint.
      *
-     * @return {boolean} - true the a parameter hint has been pushed, false otherwise.
+     * @return {boolean} - true the a parameter hint has been popped, false otherwise.
      */
     function popHintFromStack() {
         if (hintStack.length > 0) {
@@ -354,9 +354,8 @@ define(function (require, exports, module) {
     /**
      * Show a parameter hint in its own pop-up.
      *
-     * @param commandData
      */
-    function handleShowParameterHint(commandData) {
+    function handleShowParameterHint() {
 
         // Pop up function hint
         popUpHint();

@@ -566,7 +566,7 @@ define(function (require, exports, module) {
      * changes are reset.
      *
      * @param {!Session} session - the current session
-     * @return {{type: string, name: {string}, offsetLines: {number}, text: {string}}
+     * @return {{type: string, name: string, offsetLines: number, text: string}}
      */
     function getFileInfo(session) {
         var start = session.getCursor(),
