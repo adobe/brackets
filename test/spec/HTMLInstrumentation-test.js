@@ -547,7 +547,7 @@ define(function (require, exports, module) {
                 expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
             });
             it("should return null for an extra close tag", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();    
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
             });
             it("should return null if there are unclosed tags at the end of the document", function () {
                 expect(HTMLInstrumentation._buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
