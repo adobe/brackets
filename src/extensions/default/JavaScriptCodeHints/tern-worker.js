@@ -300,7 +300,7 @@ importScripts("thirdparty/requirejs/require.js");
              *  a parameter.
              *
              * @param {String} newFnType - Tern formatted function type string.
-             * @returns {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+             * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
              */
             function getParameters(newFnType) {
 
@@ -395,7 +395,7 @@ importScripts("thirdparty/requirejs/require.js");
                  * Convert an infer function type to string.
                  *
                  * @param {*} inferType - one of the Infer's types; infer.Fn, infer.Prim, infer.Arr, infer.ANull
-                 * @returns {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+                 * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
                  */
                 processInferFnTypeParameters = function (inferType) {
                     var params = [],
@@ -432,7 +432,7 @@ importScripts("thirdparty/requirejs/require.js");
 
                     return params;
                 } else {
-                    return [];
+                    throw new Error("No parameter hint found in '" + newFnType + "'");
                 }
 
             }
@@ -464,7 +464,7 @@ importScripts("thirdparty/requirejs/require.js");
                             fnType = getParameters(data.type);
                         } catch (e) {
                             error = e.message;
-                            _log("Error thrown by Tern in getParameters: " + error);
+                            _log("Error thrown in tern_worker, getParameters: " + error);
                         }
 
                     }

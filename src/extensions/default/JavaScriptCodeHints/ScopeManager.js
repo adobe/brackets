@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
-     * @returns {Array.<string>} - array of library  names.
+     * @return {Array.<string>} - array of library  names.
      */
     function getBuiltins() {
         return builtinLibraryNames;
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
      * Test if the directory should be excluded from analysis.
      *
      * @param {!string} path - full directory path.
-     * @returns {boolean} true if excluded, false otherwise.
+     * @return {boolean} true if excluded, false otherwise.
      */
     function isDirectoryExcluded(path) {
         var excludes = preferences.getExcludedDirectories();
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
      * Test if the file should be excluded from analysis.
      *
      * @param {!string} path - full directory path.
-     * @returns {boolean} true if excluded, false otherwise.
+     * @return {boolean} true if excluded, false otherwise.
      */
     function isFileExcluded(path) {
         var excludes = preferences.getExcludedFiles();
@@ -497,7 +497,7 @@ define(function (require, exports, module) {
      *
      * @param {!Session} session - the current session
      * @param {{line: number, ch: number}} start - the starting position of the changes
-     * @returns {{type: string, name: string, offsetLines: number, text: string}}
+     * @return {{type: string, name: string, offsetLines: number, text: string}}
      */
     function getFragmentAround(session, start) {
         var minIndent = null,
@@ -566,7 +566,7 @@ define(function (require, exports, module) {
      * changes are reset.
      *
      * @param {!Session} session - the current session
-     * @returns {{type: string, name: {string}, offsetLines: {number}, text: {string}}
+     * @return {{type: string, name: {string}, offsetLines: {number}, text: {string}}
      */
     function getFileInfo(session) {
         var start = session.getCursor(),
@@ -610,7 +610,7 @@ define(function (require, exports, module) {
      * and the text is empty.
      * @param {{line: number, ch: number}=} offset - the default offset (optional). Will
      * use the cursor if not provided.
-     * @returns {{line: number, ch: number}}
+     * @return {{line: number, ch: number}}
      */
     function getOffset(session, fileInfo, offset) {
         var newOffset;
@@ -757,7 +757,7 @@ define(function (require, exports, module) {
          *  Determine whether the current set of files are using modules to pull in
          *  additional files.
          *
-         * @returns {boolean} - true if more files than the current directory have
+         * @return {boolean} - true if more files than the current directory have
          * been read in.
          */
         function usingModules() {
@@ -1097,7 +1097,7 @@ define(function (require, exports, module) {
          *  already been added to tern.
          *
          * @param {string} newFile - full path of new file being opened in the editor.
-         * @returns {boolean} - true if tern initialization should be skipped,
+         * @return {boolean} - true if tern initialization should be skipped,
          * false otherwise.
          */
         function canSkipTernInitialization(newFile) {

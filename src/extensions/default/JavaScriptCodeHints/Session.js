@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     /**
      *  Get the builtin libraries tern is using.
      *
-     * @returns {Array.<string>} - array of library names.
+     * @return {Array.<string>} - array of library names.
      * @private
      */
     Session.prototype._getBuiltins = function () {
@@ -324,9 +324,8 @@ define(function (require, exports, module) {
 
     /**
      *
-     * @param {{line: number, ch: number}} cursor - the cursor position
-     *      at which to retrieve a token
-     * @returns {*} - the lexical state of the token
+     * @param {Object} cursor - a CodeMirror token
+     * @return {*} - the lexical state of the token
      */
     function getLexicalState(token) {
         if (token.state.lexical) {
@@ -343,10 +342,11 @@ define(function (require, exports, module) {
     /**
      * Determine if the caret is either within a function call or on the function call itself.
      *
-     * @returns {{inFunctionCall: boolean, functionCallPos: {{line: number, ch: number}}}
+     * @return {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number}}}
      * inFunctionCall - true if the caret if either within a function call or on the
      * function call itself.
-     * functionCallPos - the offset of the '(' character of the function call.
+     * functionCallPos - the offset of the '(' character of the function call if inFunctionCall
+     * is true, otherwise undefined.
      */
     Session.prototype.getFunctionInfo = function () {
         var inFunctionCall   = false,
@@ -412,7 +412,6 @@ define(function (require, exports, module) {
             }
 
             if (foundCall) {
-                inFunctionCall = true;
                 // we need to find the location of the called function so that we can request the functions type.
                 // the token's lexical info will contain the column where the open "(" for the
                 // function call occurs, but for whatever reason it does not have the line, so
@@ -439,6 +438,7 @@ define(function (require, exports, module) {
                 }
 
                 if (found) {
+                    inFunctionCall = true;
                     functionCallPos = {line: line, ch: col};
                 }
             }
@@ -517,7 +517,7 @@ define(function (require, exports, module) {
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
-     * @returns {hints: Array.<string>, needGuesses: boolean} - array of
+     * @return {hints: Array.<string>, needGuesses: boolean} - array of
      * matching hints. If needGuesses is true, then the caller needs to
      * request guesses and call getHints again.
      */

@@ -38,11 +38,11 @@ define(function (require, exports, module) {
      * parameters, syntax for optional parameters, and the order of the
      * parameter type and parameter name.
      *
-     * @param {!Array.<name: {string}, type: {string},
-                 * isOptional: {boolean}>} params - array of parameter descriptors
+     * @param {!Array.<{name: string, type: string, isOptional: boolean}>} params -
+     * array of parameter descriptors
      * @param {function(string)=} appendSeparators - callback function to append separators.
      * The separator is passed to the callback.
-     * @param {function(string, number)} appendParameter - callback function to append parameter.
+     * @param {function(string, number)=} appendParameter - callback function to append parameter.
      * The formatted parameter type and name is passed to the callback along with the
      * current index of the parameter.
      * @param {boolean=} typesOnly - only show parameter types. The

@@ -57,7 +57,7 @@ define(function (require, exports, module) {
     /**
      *  Get the value of current session.
      *  Used for unit testing.
-     * @returns {Session} - the current session.
+     * @return {Session} - the current session.
      */
     function getSession() {
         return session;
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
     /**
      *  Create a new StringMatcher instance, if needed.
      *
-     * @returns {StringMatcher} - a StringMatcher instance.
+     * @return {StringMatcher} - a StringMatcher instance.
      */
     function getStringMatcher() {
         if (!matcher) {
@@ -299,7 +299,7 @@ define(function (require, exports, module) {
      *  Check if a hint response is pending.
      *
      * @param {jQuery.Deferred} deferredHints - deferred hint response
-     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     * @return {boolean} - true if deferred hints are pending, false otherwise.
      */
     function hintsArePending(deferredHints) {
         return (deferredHints && !deferredHints.hasOwnProperty("hints") &&

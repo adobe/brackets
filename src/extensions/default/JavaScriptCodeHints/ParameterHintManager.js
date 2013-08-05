@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         $hintContent,      // function hint content holder
 
         /** @type {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number},
-        *           fnType: {Array.<Object>}}
+        *           fnType: Array.<Object}}
         */
         hintState = {},
         hintStack = [],    // stack for previous function hint to restore
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     /**
      * Test if a function hint is being displayed.
      *
-     * @returns {boolean} - true if a function hint is being displayed, false
+     * @return {boolean} - true if a function hint is being displayed, false
      * otherwise.
      */
     function isHintDisplayed() {
@@ -130,9 +130,9 @@ define(function (require, exports, module) {
     /**
      *  Bold the parameter at the caret.
      *
-     *  @param {{inFunctionCall: boolean, functionCallPos: {{line: number, ch: number}}}
-     *  functionInfo - tells if the caret is in a function call and the position
-      * of the function call.
+     *  @param {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number}}} functionInfo -
+     *  tells if the caret is in a function call and the position
+     * of the function call.
      */
     function formatHint(functionInfo) {
         var hints = session.getParameterHint(functionInfo.functionCallPos),
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
     /**
      * Restore the state of the previous function hint.
      *
-     * @returns {boolean} - true the a parameter hint has been pushed, false otherwise.
+     * @return {boolean} - true the a parameter hint has been pushed, false otherwise.
      */
     function popHintFromStack() {
         if (hintStack.length > 0) {
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * function hint.
      *
      * @param functionCallPos
-     * @returns {boolean}
+     * @return {boolean}
      */
     function hasFunctionCallPosChanged(functionCallPos) {
         var oldFunctionCallPos = hintState.functionCallPos;
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * to push the hint.
      * @param {string=} hint - function hint string from tern.
      * @param {{inFunctionCall: boolean, functionCallPos:
-     * {{line: number, ch: number}}=} functionInfo -
+     * {line: number, ch: number}}=} functionInfo -
      * if the functionInfo is already known, it can be passed in to avoid
      * figuring it out again.
      * @return {jQuery.Promise} - The promise will not complete until the
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
     exports.PUSH_EXISTING_HINT      = PUSH_EXISTING_HINT;
     exports.addCommands             = addCommands;
     exports.dismissHint             = dismissHint;
-    exports.installListeners    = installListeners;
+    exports.installListeners        = installListeners;
     exports.isHintDisplayed         = isHintDisplayed;
     exports.popUpHint               = popUpHint;
     exports.setSession              = setSession;
