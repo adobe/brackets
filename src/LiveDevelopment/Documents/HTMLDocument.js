@@ -161,7 +161,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                 skipDelta,
                 node;
             
-            if (print) {
+            if (print && edits.length > 0) {
                 console.log("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
