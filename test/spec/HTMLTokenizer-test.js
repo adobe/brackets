@@ -164,5 +164,70 @@ define(function (require, exports, module) {
                 end: 16
             });
         });
+        
+        describe("error cases", function () {
+            function expectError(text, isError) {
+                if (isError === undefined) {
+                    isError = true;
+                }
+                var t = new Tokenizer(text),
+                    token = t.nextToken();
+                while (token) {
+                    if (token.type === "error") {
+                        if (!isError) {
+                            expect("found an error token").toBe(false);
+                        }
+                        return;
+                    }
+                    token = t.nextToken();
+                }
+                if (isError) {
+                    expect("found an error token").toBe(true);
+                }
+            }
+            
+            it("should not fail for a comment", function () {
+                expectError("<!--a comment-->", false);
+            });
+            it("should not fail for a tag with a mix of attribute styles", function () {
+                expectError("<goodtag goodname=goodvalue goodname='goodvalue' goodname=\"goodvalue\" goodemptyname attrwithspace = attrval></goodtag>", false);
+            });
+            it("should fail for an angle bracket before a tag", function () {
+                expectError("<<notatag>");
+            });
+            it("should fail for an angle bracket in a tag", function () {
+                expectError("<not<atag>");
+            });
+            it("should fail for an angle bracket before an attribute name", function () {
+                expectError("<tag <notattr>");
+            });
+            it("should fail for an angle bracket in an attribute name", function () {
+                expectError("<tag not<attr>");
+            });
+            it("should fail for an angle bracket before a value", function () {
+                expectError("<tag attr=<notvalue>");
+            });
+            it("should fail for an angle bracket inside a value", function () {
+                expectError("<tag attr=not<value>");
+            });
+            it("should fail for an angle bracket before a close tag", function () {
+                expectError("</<notatag>");
+            });
+            it("should fail for an angle bracket in a close tag", function () {
+                expectError("</not<atag>");
+            });
+            it("should fail for unclosed open tag at EOF", function () {
+                expectError("<unclosedopentag");
+            });
+            it("should fail for unfinished attr at EOF", function () {
+                expectError("<tag unfinishedattr=");
+            });
+            it("should fail for unfinished single-quoted value at EOF", function () {
+                expectError("<tag attr='unfinishedval");
+            });
+            it("should fail for unfinished double-quoted value at EOF", function () {
+                expectError("<tag attr=\"unfinishedval");
+            });
+        });
     });
 });
