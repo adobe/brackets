@@ -98,6 +98,13 @@ define(function (require, exports, module) {
     var _gotoEnabled = false;
     
     /**
+     * @private
+     * @type {boolean}
+     */
+    var _hasErrors = false;
+    
+    
+    /**
      * Enable or disable the "Go to First JSLint Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
@@ -166,6 +173,7 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
+                _hasErrors = true;
                 if (!_collapsed) {
                     Resizer.show($lintResults);
                 }
@@ -186,6 +194,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
+                _hasErrors = false;
                 Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
@@ -195,6 +204,7 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
+            _hasErrors = false;
             Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
@@ -308,7 +318,7 @@ define(function (require, exports, module) {
 
         $("#jslint-status").click(function (event) {
             // Clicking indicator toggles error panel, if any errors in current file
-            if ($(event.currentTarget).hasClass("jslint-errors")) {
+            if (_hasErrors) {
                 toggleCollapsed();
             }
         });
