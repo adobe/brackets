@@ -344,6 +344,11 @@ define(function (require, exports, module) {
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
+
+    function _getTextNodeHash(text) {
+        return MurmurHash3.hashString(text, text.length, seed);
+    }
+    
     SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
         var token, tagLabel, lastClosedTag, lastIndex = 0;
@@ -450,9 +455,9 @@ define(function (require, exports, module) {
                     var newNode = {
                         parent: stack[stack.length - 1],
                         content: token.contents,
-                        weight: token.contents.length,
-                        signature: MurmurHash3.hashString(token.contents, token.contents.length, seed)
+                        weight: token.contents.length
                     };
+                    newNode.signature = _getTextNodeHash(newNode.content);
                     parent.children.push(newNode);
                     newNode.tagID = getTextNodeID(newNode);
                     nodeMap[newNode.tagID] = newNode;
@@ -844,7 +849,10 @@ define(function (require, exports, module) {
         // extract forEach iterator callback
         var queuePush = function (child) { queue.push(child); };
         
-        while (!!(currentElement = queue.shift())) {
+        do {
+            // we can assume queue is non-empty for the first loop iteration
+            currentElement = queue.shift();
+            
             oldElement = oldNode.nodeMap[currentElement.tagID];
             if (oldElement) {
                 matches[currentElement.tagID] = true;
@@ -869,23 +877,30 @@ define(function (require, exports, module) {
                     currentElement.children.forEach(queuePush);
                 }
             }
-        }
+        } while (queue.length);
         
         Object.keys(matches).forEach(function (tagID) {
-            var currentElement;
             var subtreeRoot = newNode.nodeMap[tagID];
             if (subtreeRoot.children) {
                 attributeCompare(edits, oldNode.nodeMap[tagID], subtreeRoot);
-                var nav = new DOMNavigator(subtreeRoot);
-                while (!!(currentElement = nav.next())) {
-                    var currentTagID = currentElement.tagID;
-                    if (!oldNode.nodeMap[currentTagID]) {
-                        // this condition can happen for new elements
-                        continue;
+                var nav = new DOMNavigator(subtreeRoot),
+                    currentElement;
+                
+                // breadth-first traversal of DOM tree to diff attributes 
+                while (true) {
+                    currentElement = nav.next();
+                    
+                    if (!currentElement) {
+                        break;
                     }
-                    matches[currentTagID] = true;
-                    if (currentElement.children) {
-                        attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
+                    
+                    var currentTagID = currentElement.tagID;
+                    
+                    if (oldNode.nodeMap[currentTagID]) {
+                        matches[currentTagID] = true;
+                        if (currentElement.children) {
+                            attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
+                        }
                     }
                 }
             }
@@ -1001,21 +1016,82 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
+     * @param {Object} root
+     */
+    function _processBrowserSimpleDOM(root) {
+        var nodeMap         = {},
+            signatureMap    = {};
+        
+        function _processElement(elem) {
+            elem.tagID = elem.attributes["data-brackets-id"];
+            elem.weight = 0;
+            
+            // remove data-brackets-id attribute for diff
+            delete elem.attributes["data-brackets-id"];
+            
+            elem.children.forEach(function (child) {
+                // set parent
+                child.parent = elem;
+                
+                if (child.children) {
+                    _processElement(child);
+                } else if (child.content) {
+                    child.weight = child.content.length;
+                    child.signature = _getTextNodeHash(child.content);
+                    child.tagID = getTextNodeID(child);
+                    
+                    nodeMap[child.tagID] = child;
+                    signatureMap[child.signature] = child;
+                }
+            });
+            
+            elem.signature = _updateHash(elem);
+            
+            nodeMap[elem.tagID] = elem;
+            signatureMap[elem.signature] = elem;
+        }
+        
+        _processElement(root);
+        
+        root.nodeMap = nodeMap;
+        root.signatureMap = signatureMap;
+    }
+    
+    /**
+     * @private
+     * Diff the browser DOM with the in-editor DOM
+     * @param {Editor} editor
+     * @param {Object} browserSimpleDOM
+     */
+    function _getBrowserDiff(editor, browserSimpleDOM) {
+        var cachedValue = _cachedValues[editor.document.file.fullPath],
+            editorDOM   = cachedValue.dom;
+        
+        _processBrowserSimpleDOM(browserSimpleDOM);
+        
+        return domdiff(editorDOM, browserSimpleDOM);
+    }
+    
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
-    exports.scanDocument = scanDocument;
-    exports.generateInstrumentedHTML = generateInstrumentedHTML;
-    exports.getUnappliedEditList = getUnappliedEditList;
-
-    // For unit testing
-    exports._markText = _markText;
-    exports._getMarkerAtDocumentPos = _getMarkerAtDocumentPos;
-    exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
-    exports._buildSimpleDOM = _buildSimpleDOM;
-    exports._markTextFromDOM = _markTextFromDOM;
-    exports._updateDOM = _updateDOM;
-    exports._DOMNavigator = DOMNavigator;
-    exports._seed = seed;
-    exports._allowIncremental = allowIncremental;
-    exports._dumpDOM = _dumpDOM;
+    // private methods
+    exports._markText                   = _markText;
+    exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
+    exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
+    exports._buildSimpleDOM             = _buildSimpleDOM;
+    exports._markTextFromDOM            = _markTextFromDOM;
+    exports._updateDOM                  = _updateDOM;
+    exports._DOMNavigator               = DOMNavigator;
+    exports._seed                       = seed;
+    exports._allowIncremental           = allowIncremental;
+    exports._dumpDOM                    = _dumpDOM;
+    exports._getBrowserDiff             = _getBrowserDiff;
+    
+    // public API
+    exports.scanDocument                = scanDocument;
+    exports.generateInstrumentedHTML    = generateInstrumentedHTML;
+    exports.getUnappliedEditList        = getUnappliedEditList;
 });

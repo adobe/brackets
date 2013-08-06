@@ -53,9 +53,10 @@ define(function HTMLDocumentModule(require, exports, module) {
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
         StringUtils         = require("utils/StringUtils");
 
-    /** Constructor
-     *
-     * @param Document the source document from Brackets
+    /**
+     * Constructor
+     * @param {!DocumentManager.Document} doc the source document from Brackets
+     * @param {editor=} editor
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
         this.doc = doc;
@@ -150,14 +151,46 @@ define(function HTMLDocumentModule(require, exports, module) {
             }
         }
     };
+    
+    HTMLDocument.prototype._compareWithBrowser = function (change) {
+        var self = this;
+        
+        RemoteAgent.call("getSimpleDOM").done(function (res) {
+            var browserSimpleDOM = JSON.parse(res.result.value),
+                edits = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM),
+                skipDelta,
+                node;
+            
+            if (edits.length > 0) {
+                console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
+                
+                edits.forEach(function (delta) {
+                    // ignore textDelete in html root element
+                    node = browserSimpleDOM.nodeMap[delta.parentID];
+                    skipDelta = node && node.tag === "html" && delta.type === "textDelete";
+                    
+                    if (!skipDelta) {
+                        console.log(delta);
+                    }
+                });
+            }
+        });
+    };
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
         // Only handles attribute changes currently.
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
-        var edits = HTMLInstrumentation.getUnappliedEditList(editor, change);
-        RemoteAgent.call("applyDOMEdits", edits);
+        var self                = this,
+            edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
+            applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
+        
+        // compare in-memory vs. in-browser DOM
+        // set a conditional breakpoint at the top of this function: "this._debug = true, false"
+        applyEditsPromise.done(function () {
+            self._compareWithBrowser(change);
+        });
         
 //        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
 //            this.editor,
