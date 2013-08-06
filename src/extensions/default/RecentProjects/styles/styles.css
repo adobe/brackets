@@ -45,7 +45,6 @@
     border-radius: 3px;
     border: 1px solid #2d2f31;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
-    color: #a0a0a0;
     text-decoration: none;
 }
 #project-dropdown-toggle:hover .dropdown-arrow {
