@@ -362,7 +362,9 @@ define(function (require, exports, module) {
         }
         
         while ((token = this.t.nextToken()) !== null) {
-            if (token.type === "opentagname") {
+            if (token.type === "error") {
+                return null;
+            } else if (token.type === "opentagname") {
                 var newTag = {
                     tag: token.contents.toLowerCase(),
                     children: [],
