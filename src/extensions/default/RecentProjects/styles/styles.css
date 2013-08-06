@@ -6,7 +6,7 @@
 .dropdown-arrow {
     display: inline-block;
     width: 5px;
-    height: 9px;
+    height: 10px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
     position: relative;
