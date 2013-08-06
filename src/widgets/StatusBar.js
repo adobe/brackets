@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     /**
      * Registers a new status indicator
      * @param {string} id Registration id of the indicator to be updated.
-     * @param {DOMNode|jQueryObject=} indicator Optional DOMNode for the indicator
+     * @param {(DOMNode|jQueryObject)=} indicator Optional DOMNode for the indicator
      * @param {boolean=} visible Shows or hides the indicator over the statusbar.
      * @param {string=} style Sets the attribute "class" of the indicator.
      * @param {string=} tooltip Sets the attribute "title" of the indicator.
