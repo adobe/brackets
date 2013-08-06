@@ -552,6 +552,9 @@ define(function (require, exports, module) {
             it("should return null if there are unclosed tags at the end of the document", function () {
                 expect(HTMLInstrumentation._buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
             });
+            it("should return null if there is a tokenization failure", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<div<badtag></div>", true)).toBeNull();
+            });
         });
         
         describe("HTML Instrumentation in dirty files", function () {

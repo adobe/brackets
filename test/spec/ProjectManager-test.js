@@ -23,15 +23,18 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
+/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    // Load dependent modules
     var ProjectManager,     // Load from brackets.test
         CommandManager,     // Load from brackets.test
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+
 
     describe("ProjectManager", function () {
         
@@ -41,30 +44,31 @@ define(function (require, exports, module) {
             testWindow,
             brackets;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
                 
                 // Load module instances from brackets.test
-                brackets = testWindow.brackets;
+                brackets       = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 CommandManager = testWindow.brackets.test.CommandManager;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
 
-        afterEach(function () {
+        afterLast(function () {
             testWindow     = null;
             brackets       = null;
             ProjectManager = null;
             CommandManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
+        
 
         describe("createNewItem", function () {
             it("should create a new file with a given name", function () {
                 var didCreate = false, gotError = false;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     // skip rename
@@ -110,8 +114,6 @@ define(function (require, exports, module) {
             it("should fail when a file already exists", function () {
                 var didCreate = false, gotError = false;
 
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-
                 runs(function () {
                     // skip rename
                     ProjectManager.createNewItem(testPath, "file.js", true)
@@ -123,13 +125,13 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
 
             it("should fail when a file name matches a directory that already exists", function () {
                 var didCreate = false, gotError = false;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     // skip rename
@@ -142,6 +144,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
 
@@ -150,8 +154,6 @@ define(function (require, exports, module) {
                 var i = 0;
                 var len = chars.length;
                 var charAt, didCreate, gotError;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 function createFile() {
                     // skip rename
@@ -167,6 +169,8 @@ define(function (require, exports, module) {
                 function assertFile() {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 }
                 
                 for (i = 0; i < len; i++) {
@@ -187,8 +191,6 @@ define(function (require, exports, module) {
                 var len = files.length;
                 var fileAt, didCreate, gotError;
 
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-
                 function createFile() {
                     // skip rename
                     ProjectManager.createNewItem(testPath, fileAt, true)
@@ -203,6 +205,8 @@ define(function (require, exports, module) {
                 function assertFile() {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 }
                 
                 for (i = 0; i < len; i++) {
@@ -234,8 +238,6 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 // Create a file and select it in the project tree.
                 runs(function () {
@@ -310,8 +312,6 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 // Create a folder
                 runs(function () {
@@ -419,8 +419,9 @@ define(function (require, exports, module) {
         describe("Selection indicator", function () {
             
             function expectSelected(fullPath) {
-                var $projectTreeItems = testWindow.$("#project-files-container > ul").children();
-                var $selectedItem = $projectTreeItems.find("a.jstree-clicked");
+                var $projectTreeItems = testWindow.$("#project-files-container > ul").children(),
+                    $selectedItem     = $projectTreeItems.find("a.jstree-clicked");
+                
                 if (!fullPath) {
                     expect($selectedItem.length).toBe(0);
                 } else {
@@ -430,7 +431,6 @@ define(function (require, exports, module) {
             }
             
             it("should deselect after opening file not rendered in tree", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     exposedFile   = testPath + "/file.js",
                     unexposedFile = testPath + "/directory/file.js";
@@ -453,6 +453,7 @@ define(function (require, exports, module) {
             function findExtantNode(fullPath) {
                 var $treeItems = testWindow.$("#project-files-container li"),
                     $result;
+                
                 $treeItems.is(function () {
                     var $treeNode = testWindow.$(this),
                         entry = $treeNode.data("entry");
@@ -464,6 +465,7 @@ define(function (require, exports, module) {
                 });
                 return $result;
             }
+            
             function toggleFolder(fullPath, open) {
                 var $treeNode = findExtantNode(fullPath);
                 
@@ -479,7 +481,6 @@ define(function (require, exports, module) {
             }
             
             it("should reselect previously selected file when made visible again", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     initialFile  = testPath + "/file.js",
                     folder       = testPath + "/directory/",
@@ -507,11 +508,11 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expectSelected(fileInFolder);
+                    toggleFolder(folder, false);    // close folder
                 });
             });
             
             it("should deselect after opening file hidden in tree, but select when made visible again", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     initialFile  = testPath + "/file.js",
                     folder       = testPath + "/directory/",
@@ -538,6 +539,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expectSelected(fileInFolder);
+                    toggleFolder(folder, false);    // close folder
                 });
             });
         });

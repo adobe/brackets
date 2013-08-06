@@ -103,6 +103,18 @@ define(function (require, exports, module) {
         return c === " " || c === "\t" || c === "\r" || c === "\n";
     }
     
+    function isLegalInName(c) {
+        return (/[A-Za-z0-9]/).test(c);
+    }
+    
+    function isLegalInAttributeName(c) {
+        return c !== '"' && c !== "'" && c !== "<" && c !== "=";
+    }
+    
+    function isLegalInUnquotedAttributeValue(c) {
+        return c !== "<" && c !== "=";
+    }
+    
     function Tokenizer(text, options) {
         this._state = TEXT;
         this._buffer = text;
@@ -147,6 +159,8 @@ define(function (require, exports, module) {
                     } else if (!(this._options && this._options.xmlMode) && (c === "s" || c === "S")) {
                         this._state = BEFORE_SPECIAL;
                         this._sectionStart = this._index;
+                    } else if (!isLegalInName(c)) {
+                        this._emitSpecialToken("error");
                     } else if (!whitespace(c)) {
                         this._state = IN_TAG_NAME;
                         this._sectionStart = this._index;
@@ -166,6 +180,8 @@ define(function (require, exports, module) {
                 } else if (whitespace(c)) {
                     this._emitToken("opentagname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
+                } else if (!isLegalInName(c)) {
+                    this._emitSpecialToken("error");
                 }
             } else if (this._state === BEFORE_CLOSING_TAG_NAME) {
                 if (c === ">") {
@@ -177,6 +193,8 @@ define(function (require, exports, module) {
                         this._state = TEXT;
                         continue;
                     }
+                } else if (!isLegalInName(c)) {
+                    this._emitSpecialToken("error");
                 } else if (!whitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index;
@@ -191,6 +209,8 @@ define(function (require, exports, module) {
                     this._emitToken("closetag");
                     this._state = AFTER_CLOSING_TAG_NAME;
                     this._special = 0;
+                } else if (!isLegalInName(c)) {
+                    this._emitSpecialToken("error");
                 }
             } else if (this._state === AFTER_CLOSING_TAG_NAME) {
                 //skip everything until ">"
@@ -211,6 +231,8 @@ define(function (require, exports, module) {
                     // Bit of a hack: assume that this will be followed by the ">".
                     this._emitSpecialToken("selfclosingtag", this._index + 2);
                     this._state = AFTER_CLOSING_TAG_NAME;
+                } else if (!isLegalInAttributeName(c)) {
+                    this._emitSpecialToken("error");
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
@@ -226,6 +248,8 @@ define(function (require, exports, module) {
                     this._emitTokenIfNonempty("attribname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                     continue;
+                } else if (!isLegalInAttributeName(c)) {
+                    this._emitSpecialToken("error");
                 }
             } else if (this._state === AFTER_ATTRIBUTE_NAME) {
                 if (c === "=") {
@@ -233,6 +257,8 @@ define(function (require, exports, module) {
                 } else if (c === "/" || c === ">") {
                     this._state = BEFORE_ATTRIBUTE_NAME;
                     continue;
+                } else if (!isLegalInAttributeName(c)) {
+                    this._emitSpecialToken("error");
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
@@ -244,6 +270,8 @@ define(function (require, exports, module) {
                 } else if (c === "'") {
                     this._state = IN_ATTRIBUTE_VALUE_SINGLE_QUOTES;
                     this._sectionStart = this._index + 1;
+                } else if (!isLegalInUnquotedAttributeValue(c)) {
+                    this._emitSpecialToken("error");
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_VALUE_NO_QUOTES;
                     this._sectionStart = this._index;
@@ -267,6 +295,8 @@ define(function (require, exports, module) {
                 } else if (whitespace(c)) {
                     this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
+                } else if (!isLegalInUnquotedAttributeValue(c)) {
+                    this._emitSpecialToken("error");
                 }
     
             /*
@@ -544,10 +574,15 @@ define(function (require, exports, module) {
                 }
             } else {
                 console.error("HTMLTokenizer: Encountered unknown state");
-                return null;
+                this._emitSpecialToken("error");
             }
     
             this._index++;
+        }
+        
+        if (this._index === this._buffer.length && this._state !== TEXT) {
+            // We hit EOF in the middle of processing something else.
+            this._emitSpecialToken("error");
         }
         return this._token;
     };
