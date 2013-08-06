@@ -423,14 +423,24 @@ define(function (require, exports, module) {
                 .one("click.searchList", ".close", function () {
                     _hideSearchResults();
                 })
+                // The link to go the first page
+                .one("click.searchList", ".first-page:not(.disabled)", function () {
+                    currentStart = 0;
+                    _showSearchResults();
+                })
                 // The link to go the previous page
-                .one("click.searchList", ".left-triangle:not(.disabled)", function () {
+                .one("click.searchList", ".prev-page:not(.disabled)", function () {
                     currentStart -= RESULTS_PER_PAGE;
                     _showSearchResults();
                 })
                 // The link to go to the next page
-                .one("click.searchList", ".right-triangle:not(.disabled)", function () {
+                .one("click.searchList", ".next-page:not(.disabled)", function () {
                     currentStart += RESULTS_PER_PAGE;
+                    _showSearchResults();
+                })
+                // The link to go to the last page
+                .one("click.searchList", ".last-page:not(.disabled)", function () {
+                    currentStart = Math.floor(numMatches / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
                     _showSearchResults();
                 });
             

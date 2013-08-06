@@ -724,14 +724,24 @@ a, img {
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
 #search-result-summary {
-    .left-triangle,  .right-triangle {
+    .first-page,
+    .prev-page,
+    .next-page,
+    .last-page {
         .jstree-sprite;
-        width: 10px;
+        width: 6px;
         display: inline-block;
         background-position: 0px 4px;
     }
-    .left-triangle {
-        -webkit-transform: translateZ(0) translateY(-3px) rotate(180deg);
+    .first-page {
+        background-position: 0px -80px;
+        margin-left: 10px;
+    }
+    .prev-page {
+        background-position: 0px -24px;
+    }
+    .last-page {
+        background-position: 0px -52px;
     }
     .disabled {
         opacity: 0.3;
