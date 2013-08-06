@@ -42,6 +42,10 @@ define(function (require, exports, module) {
         ViewUtils             = require("utils/ViewUtils");
     
     
+    /** @const @type {number} Constants for event.which values */
+    var LEFT_BUTTON = 1,
+        MIDDLE_BUTTON = 2;
+    
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
@@ -49,6 +53,14 @@ define(function (require, exports, module) {
         $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
+    
+    /**
+     * @private
+     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * @type {boolean}
+     */
+    var _suppressSortRedraw = false;
+    
     
     /**
      * @private
@@ -179,6 +191,9 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
+                
+                // Don't redraw the working set for the next events
+                _suppressSortRedraw = true;
             }
         }
         
@@ -228,21 +243,14 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
-            // If file wasnt moved open or close it
+            // If item wasn't dragged, treat as a click
             if (!moved) {
-                if (!fromClose) {
-                /***/
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                /***
-                    // Backing out for Sprint 18 due to issues described in #2394, #2411
-                    if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                    }
-                ***/
-                } else {
+                // Click on close icon, or middle click anywhere - close the item without selecting it first
+                if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                } else {
+                    // Normal right and left click - select the item
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                 }
             
             } else {
@@ -256,13 +264,16 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+                
+                // The drag is done, so set back to the default
+                _suppressSortRedraw = false;
             }
         }
         
         
         // Only drag with the left mouse button, and control key is not down
         // on Mac, end the drop in other cases
-        if (event.which !== 1 || (event.ctrlKey && brackets.platform === "mac")) {
+        if (event.which !== LEFT_BUTTON || (event.ctrlKey && brackets.platform === "mac")) {
             drop();
             return;
         }
@@ -341,18 +352,9 @@ define(function (require, exports, module) {
     }
 
     function isOpenAndDirty(file) {
+        // working set item might never have been opened; if so, then it's definitely not dirty
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
-    }
-    
-    /**
-     * @private
-     * @param {$.Event} event The Click Event to respond to.
-     */
-    function _handleMiddleMouseClick(event) {
-        var file = $(event.target).closest("li").data(_FILE_KEY);
-
-        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
     
     /** 
@@ -372,8 +374,6 @@ define(function (require, exports, module) {
 
         $openFilesContainer.find("ul").append($newItem);
         
-        // working set item might never have been opened; if so, then it's definitely not dirty
-        
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
@@ -383,13 +383,6 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
         
-        $newItem.click(function (e) {
-            if (e.which === 2) {
-                _handleMiddleMouseClick(e);
-            }
-            e.preventDefault();
-        });
-
         $newItem.hover(
             function () {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), true);
@@ -486,9 +479,15 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, index) {
+        if (index === DocumentManager.getWorkingSet().length - 1) {
+            // Simple case: append item to list
+            _createNewListItem(file);
+            _redraw();
+        } else {
+            // Insertion mid-list: just rebuild whole list UI
+            _rebuildWorkingSet(true);
+        }
     }
 
     /**
@@ -544,11 +543,13 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    /** 
+    /**
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet(true);
+        if (!_suppressSortRedraw) {
+            _rebuildWorkingSet(true);
+        }
     }
 
     /** 

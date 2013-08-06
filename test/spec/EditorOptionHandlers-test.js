@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -53,34 +53,35 @@ define(function (require, exports, module) {
             BACKSPACE     = 8;
         
         
-        beforeEach(function () {
+        beforeFirst(function () {
             // Create a new window that will be shared by ALL tests in this spec.
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
-    
-                    // Load module instances from brackets.test
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    EditorManager       = testWindow.brackets.test.EditorManager;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    FileViewController  = testWindow.brackets.test.FileViewController;
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
+                FileViewController  = testWindow.brackets.test.FileViewController;
                    
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
-            }
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
         });
+        
+        afterLast(function () {
+            testWindow          = null;
+            CommandManager      = null;
+            Commands            = null;
+            EditorManager       = null;
+            DocumentManager     = null;
+            FileViewController  = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
 
         afterEach(function () {
-            runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                waitsForDone(promise, "Close all open files in working set");
-                
-                var $dlg = testWindow.$(".modal.instance");
-                if ($dlg.length) {
-                    SpecRunnerUtils.clickDialogButton("dontsave");
-                }
-            });
+            testWindow.closeAllFiles();
         });
         
         
@@ -437,20 +438,6 @@ define(function (require, exports, module) {
                     var editor = EditorManager.getCurrentFullEditor();
                     checkCloseBraces(editor, {line: 0, ch: 15}, null, SINGLE_QUOTE, "var myContent ='' \"This is awesome!\";");
                     checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
-                });
-                
-                // This must be in the last spec in the suite. Note that it's possible to
-                // run a single test from suite, so this only works when running entire suite.
-                runs(function () {
-                    this.after(function () {
-                        testWindow          = null;
-                        CommandManager      = null;
-                        Commands            = null;
-                        EditorManager       = null;
-                        DocumentManager     = null;
-                        FileViewController  = null;
-                        SpecRunnerUtils.closeTestWindow();
-                    });
                 });
             });
         });

@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     }
 
     describe("Editor", function () {
-        var defaultContent = 'Brackets is going to be awesome!\n';
+        var defaultContent = "Brackets is going to be awesome!\n";
         var myDocument, myEditor;
         
         function createTestEditor(content, languageId) {
@@ -110,36 +110,14 @@ define(function (require, exports, module) {
                 myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
             });
-
-        });
             
-        describe("File extension to mode mapping", function () {
-            
-            it("should switch to the HTML mode for files ending in .html", function () {
-                // verify editor content
-                var mode = LanguageManager.getLanguageForPath("file:///only/testing/the/path.html").getMode();
-                expect(mode).toSpecifyModeNamed("text/x-brackets-html");
-            });
-            
-            it("should switch modes even if the url has a query string", function () {
-                // verify editor content
-                var mode = LanguageManager.getLanguageForPath("http://only.org/testing/the/path.css?v=2").getMode();
-                expect(mode).toSpecifyModeNamed(langNames.css.mode);
-            });
-            
-            it("should accept just a file name too", function () {
-                // verify editor content
-                var mode = LanguageManager.getLanguageForPath("path.js").getMode();
-                expect(mode).toSpecifyModeNamed(langNames.javascript.mode);
-            });
-
-            it("should default to plain text for unknown file extensions", function () {
-                // verify editor content
-                var mode = LanguageManager.getLanguageForPath("test.foo").getMode();
+            it("should set mode based on Document language", function () {
+                createTestEditor(defaultContent, "html");
                 
-                // "unknown" mode uses it's MIME type instead
-                expect(mode).toBe("text/plain");
+                var htmlLanguage = LanguageManager.getLanguage("html");
+                expect(myEditor.getModeForDocument()).toBe(htmlLanguage.getMode());
             });
+            
         });
         
         describe("Focus", function () {

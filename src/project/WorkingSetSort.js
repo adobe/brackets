@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
+        FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
     
@@ -292,6 +293,7 @@ define(function (require, exports, module) {
         function (file1, file2) {
             var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
                 index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
+            
             return index1 - index2;
         },
         "workingSetAdd workingSetAddList"
@@ -299,22 +301,14 @@ define(function (require, exports, module) {
     register(
         Commands.SORT_WORKINGSET_BY_NAME,
         function (file1, file2) {
-            return file1.name.toLocaleLowerCase().localeCompare(file2.name.toLocaleLowerCase());
+            return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
         "workingSetAdd workingSetAddList"
     );
     register(
         Commands.SORT_WORKINGSET_BY_TYPE,
         function (file1, file2) {
-            var ext1 = file1.name.split('.').pop(),
-                ext2 = file2.name.split('.').pop(),
-                cmp  = ext1.localeCompare(ext2);
-            
-            if (cmp === 0) {
-                return file1.name.toLocaleLowerCase().localeCompare(file2.name.toLocaleLowerCase());
-            } else {
-                return cmp;
-            }
+            return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
         "workingSetAdd workingSetAddList"
     );
