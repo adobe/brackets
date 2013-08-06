@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -39,10 +39,12 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
         StringUtils             = require("utils/StringUtils"),
-        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
     var buildInfo;
-
+    
+	
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -59,19 +61,65 @@ define(function (require, exports, module) {
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {
-                // Ignore errors
-            }
+            function (err) {} /* Ignore errors */
         );
     }
 
     function _handleAboutDialog() {
-        var templateVars = $.extend({
+        var templateVars = {
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-            BUILD_INFO          : buildInfo || ""
-        }, Strings);
+            BUILD_INFO          : buildInfo || "",
+            Strings             : Strings
+        };
+        
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        // Get containers
+        var $dlg = $(".about-dialog.instance"),
+            $contributors = $dlg.find(".about-contributors"),
+            $spinner = $dlg.find(".spinner");
+        
+        $spinner.addClass("spin");
+        
+        // Get all the project contributors and add them to the dialog
+        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
+            
+            // Populate the contributors data
+            var totalContributors = contributorsInfo.length;
+            var contributorsCount = 0;
+            
+            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
+            
+            // This is used to create an opacity transition when each image is loaded
+            $contributors.find("img").one("load", function () {
+                $(this).css("opacity", 1);
+                
+                // Count the contributors loaded and hide the spinner once all are loaded
+                contributorsCount++;
+                if (contributorsCount >= totalContributors) {
+                    $spinner.removeClass("spin");
+                }
+            }).each(function () {
+                if (this.complete) {
+                    $(this).trigger("load");
+                }
+            });
+            
+            // Create a link for each contributor image to their github account
+            $contributors.on("click", "img", function (e) {
+                var url = $(e.target).data("url");
+                if (url) {
+                    // Make sure the URL has a domain that we know about
+                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                }
+            });
+        }).fail(function () {
+            $spinner.removeClass("spin");
+            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
+        });
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead

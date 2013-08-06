@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, CodeMirror */
 
 /**
  * Functions for iterating through tokens in the current editor buffer. Useful for doing
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         return {
             "editor": editor,
             "pos": pos,
-            "token": editor.getTokenAt(pos)
+            "token": editor.getTokenAt(pos, true)
         };
     }
     
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
         return true;
     }
     
@@ -85,13 +85,13 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
         return true;
     }
     
    /**
      * Moves the given context in the given direction, skipping any whitespace it hits.
-     * @param {function} moveFxn the funciton to move the context
+     * @param {function} moveFxn the function to move the context
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
      * @return {boolean} whether the context changed
      */
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         if (!moveFxn(ctx)) {
             return false;
         }
-        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
+        while (!ctx.token.type && ctx.token.string.trim().length === 0) {
             if (!moveFxn(ctx)) {
                 return false;
             }
@@ -120,9 +120,27 @@ define(function (require, exports, module) {
         return offset;
     }
 
-    exports.movePrevToken = movePrevToken;
-    exports.moveNextToken = moveNextToken;
-    exports.moveSkippingWhitespace = moveSkippingWhitespace;
-    exports.getInitialContext = getInitialContext;
-    exports.offsetInToken = offsetInToken;
+    /**
+     * Returns the mode object and mode name string at a given position
+     * @param {CodeMirror} cm CodeMirror instance
+     * @param {line:{number}, ch:{number}} pos Position to query for mode
+     * @return {mode:{Object}, name:string}
+     */
+    function getModeAt(cm, pos) {
+        var outerMode = cm.getMode(),
+            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
+            name;
+
+        name = (modeData.mode.name === "xml") ?
+                modeData.mode.configuration : modeData.mode.name;
+
+        return {mode: modeData.mode, name: name};
+    }
+
+    exports.movePrevToken           = movePrevToken;
+    exports.moveNextToken           = moveNextToken;
+    exports.moveSkippingWhitespace  = moveSkippingWhitespace;
+    exports.getInitialContext       = getInitialContext;
+    exports.offsetInToken           = offsetInToken;
+    exports.getModeAt               = getModeAt;
 });

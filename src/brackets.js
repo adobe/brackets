@@ -23,12 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+/*global require, define, brackets: true, $, window, navigator, Mustache */
 
 require.config({
     paths: {
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -53,12 +53,14 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
+    require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
+        LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -73,7 +75,6 @@ define(function (require, exports, module) {
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
-        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         QuickOpen               = require("search/QuickOpen"),
@@ -82,6 +83,7 @@ define(function (require, exports, module) {
         MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
@@ -91,22 +93,28 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
-        ExtensionUtils          = require("utils/ExtensionUtils");
+        NodeConnection          = require("utils/NodeConnection"),
+        ExtensionUtils          = require("utils/ExtensionUtils"),
+        DragAndDrop             = require("utils/DragAndDrop"),
+        ColorUtils              = require("utils/ColorUtils");
             
     // Load modules that self-register and just need to get included in the main project
+    require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
+    require("editor/EditorOptionHandlers");
     require("view/ViewCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+    var params = new UrlParams();
     
     // read URL params
     params.parse();
@@ -126,7 +134,6 @@ define(function (require, exports, module) {
             EditorManager           : EditorManager,
             Commands                : Commands,
             WorkingSetView          : WorkingSetView,
-            JSLintUtils             : JSLintUtils,
             PerfUtils               : PerfUtils,
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
@@ -135,13 +142,17 @@ define(function (require, exports, module) {
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
+            Dialogs                 : Dialogs,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
+            ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             doneLoading             : false
         };
 
@@ -158,7 +169,7 @@ define(function (require, exports, module) {
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_IN_BROWSER_TITLE,
                 Strings.ERROR_IN_BROWSER
             );
@@ -178,45 +189,60 @@ define(function (require, exports, module) {
             
             $testDiv.remove();
         }
-        
-        // Load all extensions. This promise will complete even if one or more
-        // extensions fail to load.
-        var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
-        
-        // Load the initial project after extensions have loaded
-        extensionLoaderPromise.always(function () {
-            // Finish UI initialization
-            var initialProjectPath = ProjectManager.getInitialProjectPath();
-            ProjectManager.openProject(initialProjectPath).always(function () {
-                _initTest();
-                
-                // If this is the first launch, and we have an index.html file in the project folder (which should be
-                // the samples folder on first launch), open it automatically. (We explicitly check for the
-                // samples folder in case this is the first time we're launching Brackets after upgrading from
-                // an old version that might not have set the "afterFirstLaunch" pref.)
-                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
-                    deferred = new $.Deferred();
-                if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
-                    prefs.setValue("afterFirstLaunch", "true");
-                    if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                        var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                        
-                        dirEntry.getFile("index.html", {}, function (fileEntry) {
-                            var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                            promise.pipe(deferred.resolve, deferred.reject);
-                        }, deferred.reject);
+
+        // Load default languages
+        LanguageManager.ready.always(function () {
+            // Load all extensions. This promise will complete even if one or more
+            // extensions fail to load.
+            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            
+            // Load the initial project after extensions have loaded
+            extensionLoaderPromise.always(function () {
+                // Finish UI initialization
+                var initialProjectPath = ProjectManager.getInitialProjectPath();
+                ProjectManager.openProject(initialProjectPath).always(function () {
+                    _initTest();
+                    
+                    // If this is the first launch, and we have an index.html file in the project folder (which should be
+                    // the samples folder on first launch), open it automatically. (We explicitly check for the
+                    // samples folder in case this is the first time we're launching Brackets after upgrading from
+                    // an old version that might not have set the "afterFirstLaunch" pref.)
+                    var prefs = PreferencesManager.getPreferenceStorage(module),
+                        deferred = new $.Deferred();
+                    //TODO: Remove preferences migration code
+                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
+                    
+                    if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
+                        prefs.setValue("afterFirstLaunch", "true");
+                        if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
+                            var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                            
+                            dirEntry.getFile("index.html", {}, function (fileEntry) {
+                                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                                promise.then(deferred.resolve, deferred.reject);
+                            }, deferred.reject);
+                        } else {
+                            deferred.resolve();
+                        }
                     } else {
                         deferred.resolve();
                     }
-                } else {
-                    deferred.resolve();
-                }
-                
-                deferred.always(function () {
-                    // Signal that Brackets is loaded
-                    AppInit._dispatchReady(AppInit.APP_READY);
                     
-                    PerfUtils.addMeasurement("Application Startup");
+                    deferred.always(function () {
+                        // Signal that Brackets is loaded
+                        AppInit._dispatchReady(AppInit.APP_READY);
+                        
+                        PerfUtils.addMeasurement("Application Startup");
+                    });
+                    
+                    // See if any startup files were passed to the application
+                    if (brackets.app.getPendingFilesToOpen) {
+                        brackets.app.getPendingFilesToOpen(function (err, files) {
+                            files.forEach(function (filename) {
+                                CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
+                            });
+                        });
+                    }
                 });
             });
         });
@@ -237,6 +263,18 @@ define(function (require, exports, module) {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
+        // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
+        if (brackets.inBrowser) {
+            $("body").addClass("in-browser");
+        } else {
+            $("body").addClass("in-appshell");
+        }
+
+        // Enable/Disable HTML Menus
+        if (brackets.platform !== "linux") {
+            $("body").addClass("has-appshell-menus");
+        }
+        
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));
         
@@ -248,16 +286,25 @@ define(function (require, exports, module) {
         // handle drops.
         $(window.document.body)
             .on("dragover", function (event) {
+                var dropEffect = "none";
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "none";
+                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                        dropEffect = "copy";
+                    }
+                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
                 }
             })
             .on("drop", function (event) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
+                    brackets.app.getDroppedFiles(function (err, files) {
+                        if (!err) {
+                            DragAndDrop.openDroppedFiles(files);
+                        }
+                    });
                 }
             });
         

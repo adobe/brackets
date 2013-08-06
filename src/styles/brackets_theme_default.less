@@ -70,7 +70,7 @@
 @accent-variable-3: #535353;
 @accent-property: #8757ad;
 @accent-operator: #535353;
-@accent-comment: #a2a2a2;
+@accent-comment: #949494;
 @accent-string: #f18900;
 @accent-string-2: #f18900;
 @accent-meta: #535353;
@@ -97,18 +97,26 @@
 @inline-color-2: #8a8a8a;
 @inline-color-3: @bc-black;
 
+/* sidebar/toolbar colors */
+@project-panel-base-color: #3C3F41;
+@project-panel-text-1: #ffffff;
+@project-panel-text-2: #94A3A7;
+@main-toolbar-background-color: #5D5F60;
+
+/* Selection colors */
+@selection-color-focused: #d2dcf8;
+@selection-color-unfocused: #d9d9d9;
+
+/* background color of the line that has the cursor */
+@activeline-bgcolor: #e8f2ff;
+
 /* Code font formatting
  *
- * NOTE (JRB): At this time, the font-family must be set in .code-font (not in one of the platform-specific versions).
- * This is because, in order to get the web font to load early enough, we have a div called "dummy-text" that
+ * NOTE (JRB): In order to get the web font to load early enough, we have a div called "dummy-text" that
  * is styled with .code-font().
  *
- * The platform-specific selector gets added to the body tag at document ready time, so it may not happen soon
- * enough to get the web font loaded. So, we can't rely on this selector to load web fonts in a platform-specific way
- *
- * An alternative (if we wanted platform-specific fonts) would be to have a dummy text div for EVERY web font, and
- * then style those dummy text divs directly in brackets_fonts.less. However, this would result in us downloading
- * all fonts for every platform. This probably isn't a huge performance problem, but isn't necessary at this time.
+ * The platform-specific selector gets added to the body tag *before* document ready time.
+ * We rely on this behavior to load platform-specific web fonts early.
  */
 .code-font() {
     color: @content-color;
@@ -116,15 +124,13 @@
     // Sizing via em will cause the code and line numbers to misalign
     line-height: 15px;
     font-size: 12px;
-    font-family: 'SourceCodePro', "ＭＳ ゴシック", "MS Gothic", monospace;
+    font-family: "SourceCodePro-Medium", "ＭＳ ゴシック", "MS Gothic", monospace;
 }
 
 .code-font-win() {
-    .code-font();
 }
 
 .code-font-mac() {
-    .code-font();
 }
 
 .code-cursor() {

@@ -37,28 +37,13 @@ define(function RemoteAgent(require, exports, module) {
 
     var $exports = $(exports);
 
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
     var _intervalId; // interval used to send keepAlive events
-
-    // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(event, res) {
-        // res = {timestamp}
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Agents/RemoteFunctions.js");
-        request.onload = function onLoad() {
-            var run = "window._LD=" + request.response + "(" + LiveDevelopment.config.experimental + ")";
-            Inspector.Runtime.evaluate(run, function onEvaluate(res) {
-                console.assert(!res.wasThrown, res.result.description);
-                _objectId = res.result.objectId;
-                _load.resolve();
-            });
-        };
-        request.send(null);
-    }
 
     // WebInspector Event: DOM.attributeModified
     function _onAttributeModified(event, res) {
@@ -91,7 +76,7 @@ define(function RemoteAgent(require, exports, module) {
                 args[i] = args[i].resolve();
             }
         }
-        $.when.apply(undefined, args).then(function onResolvedAllNodes() {
+        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
             var i, arg, params = [];
             for (i in arguments) {
                 arg = args[i];
@@ -105,16 +90,53 @@ define(function RemoteAgent(require, exports, module) {
         });
     }
 
+    function _stopKeepAliveInterval() {
+        if (_intervalId) {
+            window.clearInterval(_intervalId);
+            _intervalId = null;
+        }
+    }
+
+    function _startKeepAliveInterval() {
+        _stopKeepAliveInterval();
+
+        _intervalId = window.setInterval(function () {
+            call("keepAlive");
+        }, 1000);
+    }
+
+    /**
+     * @private
+     * Cancel the keepAlive interval if the page reloads
+     */
+    function _onFrameStartedLoading(event, res) {
+        _stopKeepAliveInterval();
+    }
+
+    // WebInspector Event: Page.loadEventFired
+    function _onLoadEventFired(event, res) {
+        // res = {timestamp}
+        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ")";
+
+        Inspector.Runtime.evaluate(command, function onEvaluate(response) {
+            if (response.error || response.wasThrown) {
+                _load.reject(null, response.error);
+            } else {
+                _objectId = response.result.objectId;
+                _load.resolve();
+
+                _startKeepAliveInterval();
+            }
+        });
+    }
+
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
         $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
+        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _onFrameStartedLoading);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
-        _load.done(function () {
-            _intervalId = window.setInterval(function () {
-                call("keepAlive");
-            }, 1000);
-        });
+
         return _load.promise();
     }
 
@@ -122,9 +144,7 @@ define(function RemoteAgent(require, exports, module) {
     function unload() {
         $(Inspector.Page).off(".RemoteAgent");
         $(Inspector.DOM).off(".RemoteAgent");
-        if (_intervalId) {
-            window.clearInterval(_intervalId);
-        }
+        _stopKeepAliveInterval();
     }
 
     // Export public functions

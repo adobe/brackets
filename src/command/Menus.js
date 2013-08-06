@@ -29,15 +29,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        Global              = require("utils/Global"),
+    var Global              = require("utils/Global"),
         Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
-        EditorManager       = require("editor/EditorManager"),
-        Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
-        PopUpManager        = require("widgets/PopUpManager");
+        PopUpManager        = require("widgets/PopUpManager"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -48,7 +46,6 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 
@@ -80,38 +77,57 @@ define(function (require, exports, module) {
         FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
         FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
         FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
+        FILE_EXTENSION_MANAGER:             {sectionMarker: Commands.FILE_EXTENSION_MANAGER},
 
+        EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
+        EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
+        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.EDIT_FIND},
         EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
+        EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
+        EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
+        EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
 
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+        VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
 
         NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
-        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
+        NAVIGATE_DOCUMENTS_COMMANDS:        {sectionMarker: Commands.NAVIGATE_NEXT_DOC},
+        NAVIGATE_OS_COMMANDS:               {sectionMarker: Commands.NAVIGATE_SHOW_IN_FILE_TREE},
+        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT},
+        NAVIGATE_QUICK_DOCS_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
     };
 
     
     /**
-      * Insertion position constants
-      * Used by addMenu(), addMenuItem(), and addSubMenu() to
-      * specify the relative position of a newly created menu object
-      * @enum {string}
-      */
-    var BEFORE =            "before";
-    var AFTER =             "after";
-    var FIRST =             "first";
-    var LAST =              "last";
-    var FIRST_IN_SECTION =  "firstInSection";
-    var LAST_IN_SECTION =   "lastInSection";
+     * Insertion position constants
+     * Used by addMenu(), addMenuItem(), and addSubMenu() to
+     * specify the relative position of a newly created menu object
+     * @enum {string}
+     */
+    var BEFORE           = "before",
+        AFTER            = "after",
+        FIRST            = "first",
+        LAST             = "last",
+        FIRST_IN_SECTION = "firstInSection",
+        LAST_IN_SECTION  = "lastInSection";
 
     /**
-      * Other constants
-      */
+     * Other constants
+     */
     var DIVIDER = "---";
-
+    
+    /**
+     * Error Codes from Brackets Shell
+     * @enum {number}
+     */
+    var NO_ERROR           = 0,
+        ERR_UNKNOWN        = 1,
+        ERR_INVALID_PARAMS = 2,
+        ERR_NOT_FOUND      = 3;
+    
     /**
      * Maps menuID's to Menu objects
      * @type {Object.<string, Menu>}
@@ -158,7 +174,7 @@ define(function (require, exports, module) {
     }
     
     function _isHTMLMenu(id) {
-        return (brackets.inBrowser || _isContextMenu(id));
+        return (!$("body").hasClass("has-appshell-menus") || brackets.inBrowser) || _isContextMenu(id);
     }
 
     /**
@@ -331,11 +347,7 @@ define(function (require, exports, module) {
      * @return {?HTMLLIElement} menu item list element
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
-        var $relativeElement,
-            key,
-            menuItem,
-            map,
-            foundMenuItem;
+        var $relativeElement;
         
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
@@ -466,7 +478,8 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created MenuItem
      */
     Menu.prototype.addMenuItem = function (command, keyBindings, position, relativeID) {
-        var id,
+        var menuID = this.id,
+            id,
             $menuItem,
             $link,
             menuItem,
@@ -525,6 +538,46 @@ define(function (require, exports, module) {
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
             _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                           $menuItem, position, $relativeElement);
+        } else {
+            var bindings = KeyBindingManager.getKeyBindings(commandID),
+                binding,
+                bindingStr = "",
+                displayStr = "";
+            
+            if (bindings && bindings.length > 0) {
+                binding = bindings[bindings.length - 1];
+                bindingStr = binding.displayKey || binding.key;
+            }
+            
+            if (bindingStr.length > 0) {
+                displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
+            }
+            
+            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
+                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    return null;
+                }
+                
+                // For sections, pass in the marker for that section. 
+                relativeID = relativeID.sectionMarker;
+            }
+            
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
+                switch (err) {
+                case NO_ERROR:
+                    break;
+                case ERR_INVALID_PARAMS:
+                    console.error("addMenuItem(): Invalid Parameters when adding the command " + commandID);
+                    break;
+                case ERR_NOT_FOUND:
+                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID + " not found in the Menu " + menuID);
+                    break;
+                default:
+                    console.error("addMenuItem(); Unknown Error (" + err + ") when adding the command " + commandID);
+                }
+            });
+            menuItem.isNative = true;
         }
 
         // Initialize MenuItem state
@@ -545,43 +598,6 @@ define(function (require, exports, module) {
             menuItem._checkedChanged();
             menuItem._enabledChanged();
             menuItem._nameChanged();
-        }
-
-        if (!_isHTMLMenu(this.id)) {
-            var bindings = KeyBindingManager.getKeyBindings(commandID),
-                binding,
-                bindingStr = "";
-            
-            if (bindings && bindings.length > 0) {
-                binding = bindings[bindings.length - 1];
-                bindingStr = binding.displayKey || binding.key;
-            }
-            
-            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
-                if (!relativeID.hasOwnProperty("sectionMarker")) {
-                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
-                    return null;
-                }
-                
-                // For sections, pass in the marker for that section. 
-                relativeID = relativeID.sectionMarker;
-            }
-            
-            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
-                if (err) {
-                    console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
-                } else {
-                    // Make sure the name is up to date
-                    if (!menuItem.isDivider) {
-                        brackets.app.setMenuTitle(commandID, name, function (err) {
-                            if (err) {
-                                console.error("setMenuTitle() -- error: " + err);
-                            }
-                        });
-                    }
-                }
-            });
-            menuItem.isNative = true;
         }
         
         return menuItem;
@@ -685,13 +701,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            // Note, checked can also be undefined, so we explicitly check
-            // for truthiness and don't use toggleClass().
-            if (checked) {
-                $(_getHTMLMenuItem(this.id)).addClass("checked");
-            } else {
-                $(_getHTMLMenuItem(this.id)).removeClass("checked");
-            }
+            ViewUtils.toggleClass($(_getHTMLMenuItem(this.id)), "checked", checked);
         }
     };
 
@@ -708,7 +718,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+            ViewUtils.toggleClass($(_getHTMLMenuItem(this.id)), "disabled", !this._command.getEnabled());
         }
     };
 
@@ -732,7 +742,16 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM with a keyboard shortcut label
      */
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
-        _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        if (this.isNative) {
+            var shortcutKey = keyBinding.displayKey || keyBinding.key;
+            brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        }
     };
     
     /**
@@ -740,12 +759,20 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
-        var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-        
-        if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-            // check for any other bindings
-            if (_addExistingKeyBinding(this) === null) {
-                $shortcut.empty();
+        if (this.isNative) {
+            brackets.app.setMenuItemShortcut(this._command.getID(), "", "", function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+            
+            if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+                // check for any other bindings
+                if (_addExistingKeyBinding(this) === null) {
+                    $shortcut.empty();
+                }
             }
         }
     };
@@ -774,7 +801,7 @@ define(function (require, exports, module) {
      */
     function addMenu(name, id, position, relativeID) {
         name = StringUtils.htmlEscape(name);
-        var $menubar = $("#main-toolbar .nav"),
+        var $menubar = $("#titlebar .nav"),
             menu;
 
         if (!name || !id) {
@@ -793,21 +820,32 @@ define(function (require, exports, module) {
 
         if (!_isHTMLMenu(id)) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
-                if (err) {
-                    console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
-                } else {
+                switch (err) {
+                case NO_ERROR:
                     // Make sure name is up to date
                     brackets.app.setMenuTitle(id, name, function (err) {
                         if (err) {
                             console.error("setMenuTitle() -- error: " + err);
                         }
                     });
+                    break;
+                case ERR_UNKNOWN:
+                    console.error("addMenu(): Unknown Error when adding the menu " + id);
+                    break;
+                case ERR_INVALID_PARAMS:
+                    console.error("addMenu(): Invalid Parameters when adding the menu " + id);
+                    break;
+                case ERR_NOT_FOUND:
+                    console.error("addMenu(): Menu with command " + relativeID + " could not be found when adding the menu " + id);
+                    break;
+                default:
+                    console.error("addMenu(): Unknown Error (" + err + ") when adding the menu " + id);
                 }
             });
             return menu;
         }
 
-        var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
+        var $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
             $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 
@@ -845,7 +883,7 @@ define(function (require, exports, module) {
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
-            $toggle = $("<a href='#' class='dropdown-toggle'></a>").hide();
+            $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>").hide();
 
         // assemble the menu fragments
         $newMenu.append($toggle).append($popUp);
@@ -859,6 +897,9 @@ define(function (require, exports, module) {
                 self.close();
             },
             false);
+        
+        // Listen to ContextMenu's beforeContextMenuOpen event to first close other popups
+        PopUpManager.listenToContextMenu(this);
     }
     ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;
@@ -906,7 +947,7 @@ define(function (require, exports, module) {
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
-
+        
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
@@ -972,253 +1013,6 @@ define(function (require, exports, module) {
     // function removeMenu(id) {
     //     NOT IMPLEMENTED
     // }
-    
-    AppInit.htmlReady(function () {
-        /*
-         * File menu
-         */
-        var menu;
-        menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW);
-        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        menu.addMenuItem(Commands.FILE_OPEN);
-        menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
-        menu.addMenuItem(Commands.FILE_CLOSE);
-        menu.addMenuItem(Commands.FILE_CLOSE_ALL);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_SAVE);
-        menu.addMenuItem(Commands.FILE_SAVE_ALL);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
-        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
-        menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
-        
-        // supress redundant quit menu item on mac
-        if (brackets.platform !== "mac" && !brackets.inBrowser) {
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.FILE_QUIT);
-        }
-
-        /*
-         * Edit  menu
-         */
-        menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
-        menu.addMenuItem(Commands.EDIT_UNDO);
-        menu.addMenuItem(Commands.EDIT_REDO);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        menu.addMenuItem(Commands.EDIT_SELECT_LINE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_FIND);
-        menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
-        menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-
-        menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_REPLACE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_INDENT);
-        menu.addMenuItem(Commands.EDIT_UNINDENT);
-        menu.addMenuItem(Commands.EDIT_DUPLICATE);
-        menu.addMenuItem(Commands.EDIT_DELETE_LINES);
-        menu.addMenuItem(Commands.EDIT_LINE_UP);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
-        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
-
-        /*
-         * View menu
-         */
-        menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
-        menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
-        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE);
-        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_JSLINT);
-
-        /*
-         * Navigate menu
-         */
-        menu = addMenu(Strings.NAVIGATE_MENU, AppMenuBar.NAVIGATE_MENU);
-        menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
-        menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
-
-        menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
-        menu.addMenuItem(Commands.NAVIGATE_GOTO_JSLINT_ERROR);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
-        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
-        menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-
-        /*
-         * Debug menu
-         */
-        if (brackets.config.show_debug_menu) {
-            menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
-            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
-            menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-            menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-        }
-
-        /*
-         * Help menu
-         */
-        menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
-        menu.addMenuDivider();
-        if (brackets.config.how_to_use_url) {
-            menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
-        }
-        if (brackets.config.forum_url) {
-            menu.addMenuItem(Commands.HELP_FORUM);
-        }
-        if (brackets.config.release_notes_url) {
-            menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
-        }
-        if (brackets.config.report_issue_url) {
-            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
-        }
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-
-
-        menu.addMenuDivider();
-        if (brackets.config.twitter_url) {
-            menu.addMenuItem(Commands.HELP_TWITTER);
-        }
-        menu.addMenuItem(Commands.HELP_ABOUT);
-
-
-        /*
-         * Context Menus
-         */
-        var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
-        project_cmenu.addMenuItem(Commands.FILE_NEW);
-        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        project_cmenu.addMenuItem(Commands.FILE_RENAME);
-        project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
-
-        var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
-        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
-
-        var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
-        editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-
-        var inline_editor_cmenu = registerContextMenu(ContextMenuIds.INLINE_EDITOR_MENU);
-        inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        inline_editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        inline_editor_cmenu.addMenuDivider();
-        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
-        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-        
-        /**
-         * Context menu for code editors (both full-size and inline)
-         * Auto selects the word the user clicks if the click does not occur over
-         * an existing selection
-         */
-        $("#editor-holder").on("contextmenu", function (e) {
-            if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
-                return;
-            }
-            
-            // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
-            // if not clicking on a selection moves the cursor to click location. When triggered
-            // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
-            
-            var editor = EditorManager.getFocusedEditor(),
-                inlineWidget = EditorManager.getFocusedInlineWidget();
-            
-            if (editor) {
-                // If there's just an insertion point select the word token at the cursor pos so
-                // it's more clear what the context menu applies to.
-                if (!editor.hasSelection()) {
-                    editor.selectWordAt(editor.getCursorPos());
-                    
-                    // Prevent menu from overlapping text by moving it down a little
-                    // Temporarily backout this change for now to help mitigate issue #1111,
-                    // which only happens if mouse is not over context menu. Better fix
-                    // requires change to bootstrap, which is too risky for now.
-                    //e.pageY += 6;
-                }
-                
-                // Inline text editors have a different context menu (safe to assume it's not some other
-                // type of inline widget since we already know an Editor has focus)
-                if (inlineWidget) {
-                    inline_editor_cmenu.open(e);
-                } else {
-                    editor_cmenu.open(e);
-                }
-            }
-        });
-
-        /**
-         * Context menus for folder tree & working set list
-         */
-        $("#project-files-container").on("contextmenu", function (e) {
-            project_cmenu.open(e);
-        });
-
-        $("#open-files-container").on("contextmenu", function (e) {
-            working_set_cmenu.open(e);
-        });
-
-        // Prevent the browser context menu since Brackets creates a custom context menu
-        $(window).contextmenu(function (e) {
-            e.preventDefault();
-        });
-        
-        /*
-         * General menu event processing
-         */
-        // Prevent clicks on top level menus and menu items from taking focus
-        $(window.document).on("mousedown", ".dropdown", function (e) {
-            e.preventDefault();
-        });
-
-        // Switch menus when the mouse enters an adjacent menu
-        // Only open the menu if another one has already been opened
-        // by clicking
-        $(window.document).on("mouseenter", "#main-toolbar .dropdown", function (e) {
-            var open = $(this).siblings(".open");
-            if (open.length > 0) {
-                open.removeClass("open");
-                $(this).addClass("open");
-            }
-        });
-    });
 
     // Define public API
     exports.AppMenuBar = AppMenuBar;

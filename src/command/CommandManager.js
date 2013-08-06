@@ -28,9 +28,10 @@
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
   * of the application.
- *
- * This module dispatches these event(s):
- *    - commandRegistered  -- when a new command is registered
+  *
+  * This module dispatches these event(s):
+  *    - commandRegistered  -- when a new command is registered
+  *    - beforeExecuteCommand -- before dispatching a command
   */
 define(function (require, exports, module) {
     "use strict";
@@ -83,7 +84,7 @@ define(function (require, exports, module) {
      */
     Command.prototype.execute = function () {
         if (!this._enabled) {
-            return;
+            return (new $.Deferred()).reject().promise();
         }
         
         var result = this._commandFn.apply(this, arguments);
@@ -233,7 +234,14 @@ define(function (require, exports, module) {
      */
     function execute(id) {
         var command = _commands[id];
+        
         if (command) {
+            try {
+                $(exports).triggerHandler("beforeExecuteCommand");
+            } catch (err) {
+                console.error(err);
+            }
+            
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {
             return (new $.Deferred()).reject().promise();

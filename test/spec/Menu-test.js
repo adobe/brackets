@@ -21,44 +21,49 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
-    var CommandManager,
-        Commands,
-        KeyBindingManager,
-        Menus,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent");
-
+    var CommandManager,     // Load from brackets.test
+        Commands,           // Load from brackets.test
+        KeyBindingManager,  // Load from brackets.test
+        Menus,              // Load from brackets.test
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        KeyEvent            = require("utils/KeyEvent");
 
 
     describe("Menus", function () {
+        
+        this.category = "integration";
 
         var testWindow;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
             // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
             // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
 
-                    // Load module instances from brackets.test
-                    CommandManager    = testWindow.brackets.test.CommandManager;
-                    Commands          = testWindow.brackets.test.Commands;
-                    KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
-                    Menus             = testWindow.brackets.test.Menus;
-                });
-
-                this.after(function () {
-                    SpecRunnerUtils.closeTestWindow();
-                });
-            }
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            });
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
         });
 
 
@@ -124,18 +129,18 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left: object.offset().left,
-                    top: object.offset().top,
-                    right: object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
                        bounds.bottom <= $(testWindow).height();
             }
 
@@ -211,10 +216,14 @@ define(function (require, exports, module) {
         }
 
         describe("Add Menus", function () {
+            
+            function getTopMenus() {
+                return testWindow.$("#titlebar > ul.nav").children();
+            }
 
             it("should add new menu in last position of list", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -222,7 +231,7 @@ define(function (require, exports, module) {
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
+                    $listItems = getTopMenus(); // refresh
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest1");
                 });
@@ -230,7 +239,7 @@ define(function (require, exports, module) {
 
             it("should add new menu in first position of list", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -238,7 +247,7 @@ define(function (require, exports, module) {
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[0]).attr("id")).toBe("menu-unittest2");
                 });
@@ -246,7 +255,7 @@ define(function (require, exports, module) {
 
             it("should add new menu after reference menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -255,7 +264,7 @@ define(function (require, exports, module) {
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
                     expect($($listItems[0]).attr("id")).toBe("menu-unittest3-first");
                     expect($($listItems[1]).attr("id")).toBe("menu-unittest3-after");
@@ -264,7 +273,7 @@ define(function (require, exports, module) {
 
             it("should add new menu before reference menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -273,7 +282,7 @@ define(function (require, exports, module) {
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest3-before");
                     expect($($listItems[menuCountOriginal + 1]).attr("id")).toBe("menu-unittest3-last");
@@ -282,7 +291,7 @@ define(function (require, exports, module) {
 
             it("should add new menu at end of list when reference menu doesn't exist", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -290,7 +299,7 @@ define(function (require, exports, module) {
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest4");
                 });
@@ -298,7 +307,7 @@ define(function (require, exports, module) {
 
             it("should not add duplicate menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
@@ -310,7 +319,7 @@ define(function (require, exports, module) {
                     menu2 = Menus.addMenu("Custom5", "menu-unittest5");
                     expect(menu2).toBeFalsy();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect(menu2).toBeNull();
                 });
@@ -751,18 +760,18 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left:   object.offset().left,
-                    top:    object.offset().top,
-                    right:  object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
                        bounds.bottom <= $(testWindow).height();
             }
                 

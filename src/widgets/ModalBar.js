@@ -51,7 +51,15 @@ define(function (require, exports, module) {
         
         this._$root = $("<div class='modal-bar'/>")
             .html(template)
-            .appendTo("#main-toolbar");
+            .insertBefore("#editor-holder");
+        
+        // If something *other* than an editor (like another modal bar) has focus, set the focus 
+        // to the editor here, before opening up the new modal bar. This ensures that the old
+        // focused item has time to react and close before the new modal bar is opened.
+        // See bugs #4287 and #3424
+        if (!EditorManager.getFocusedEditor()) {
+            EditorManager.focusEditor();
+        }
         
         if (autoClose) {
             this._autoClose = true;
@@ -76,7 +84,7 @@ define(function (require, exports, module) {
         }
         EditorManager.resizeEditor();
         if (fullEditor) {
-            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this._$root.outerHeight());
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this.height());
         }
     }
     
@@ -98,10 +106,18 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @return {number} Height of the modal bar in pixels, if open.
+     */
+    ModalBar.prototype.height = function () {
+        return this._$root.outerHeight();
+    };
+    
+    /**
      * Closes the modal bar and returns focus to the active editor.
      */
     ModalBar.prototype.close = function () {
-        var barHeight = this._$root.outerHeight();
+        // Store our height before closing, while we can still measure it
+        var barHeight = this.height();
 
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);

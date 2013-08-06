@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
+/*unittests: KeyBindingManager */
 
 /**
  * Manages the mapping of keyboard inputs to commands.
@@ -41,21 +42,32 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
     
     /**
+     * @private
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     var _keyMap = {};
 
     /**
+     * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
     var _commandMap = {};
 
     /**
+     * @private
      * Allow clients to toggle key binding
+     * @type {boolean}
      */
     var _enabled = true;
+    
+    /**
+     * @private
+     * Stack of registered global keydown hooks.
+     * @type {Array.<function(Event): boolean>}
+     */
+    var _globalKeydownHooks = [];
 
     /**
      * @private
@@ -63,6 +75,7 @@ define(function (require, exports, module) {
     function _reset() {
         _keyMap = {};
         _commandMap = {};
+        _globalKeydownHooks = [];
     }
 
     /**
@@ -271,7 +284,7 @@ define(function (require, exports, module) {
         var displayStr;
         
         if (brackets.platform === "mac") {
-            displayStr = descriptor.replace(/-/g, "");          // remove dashes
+            displayStr = descriptor.replace(/-(?!$)/g, "");     // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
             displayStr = displayStr.replace("Cmd", "\u2318");   // Cmd > command symbol
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
@@ -280,7 +293,7 @@ define(function (require, exports, module) {
             displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);   // Ctrl
             displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT); // Shift > shift symbol
             displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE); // Alt > option symbol
-            displayStr = displayStr.replace(/-/g, "+");
+            displayStr = displayStr.replace(/-(?!$)/g, "+");
         }
 
         return displayStr;
@@ -395,16 +408,14 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // skip if the key is already assigned explicitly for this platform
+        // skip if the key is already assigned
         if (existing) {
-            if (!existing.explicitPlatform) {
-                // remove existing generic bindings, then re-map this binding
-                // to the new command
+            if (!existing.explicitPlatform && explicitPlatform) {
+                // remove the the generic binding to replace with this new platform-specific binding
                 removeBinding(normalized);
             } else {
-                // do not re-assign a platform-specific key binding
-                console.log("Cannot assign " + normalized + " to " + commandID +
-                            ". It is already assigned to " + _keyMap[normalized].commandID);
+                // do not re-assign a key binding
+                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
                 return null;
             }
         }
@@ -484,20 +495,20 @@ define(function (require, exports, module) {
      * @param {string} A key-description string.
      * @return {boolean} true if the key was processed, false otherwise
      */
-    function handleKey(key) {
+    function _handleKey(key) {
         if (_enabled && _keyMap[key]) {
             // The execute() function returns a promise because some commands are async.
             // Generally, commands decide whether they can run or not synchronously,
             // and reject immediately, so we can test for that synchronously.
             var promise = CommandManager.execute(_keyMap[key].commandID);
-            return (promise.state() === "rejected") ? false : true;
+            return (promise.state() !== "rejected");
         }
         return false;
     }
 
     // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
     /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable 
+     * Enable or disable key bindings. Clients such as dialogs may wish to disable
      * global key bindings temporarily.
      *
      * @param {string} A key-description string.
@@ -509,8 +520,8 @@ define(function (require, exports, module) {
 
     /**
      * Add one or more key bindings to a particular Command.
-     * 
-     * @param {!string} commandID
+     *
+     * @param {!string | Command} command - A command ID or command object
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
      *     a single key binding or an array of keybindings. Example:
      *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
@@ -522,14 +533,23 @@ define(function (require, exports, module) {
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
-    function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
+    function addBinding(command, keyBindings, platform) {
+        var commandID           = "",
+            results;
+        
+        if (!command) {
+            console.error("addBinding(): missing required parameter: command");
             return;
         }
         
-        var normalizedBindings = [],
-            results;
-
+        if (!keyBindings) { return; }
+        
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+        
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
@@ -548,15 +568,29 @@ define(function (require, exports, module) {
         
         return results;
     }
-    
+
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!string} command - A command ID
+     * @param {!string | Command} command - A command ID or command object
      * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
-    function getKeyBindings(commandID) {
-        var bindings = _commandMap[commandID];
+    function getKeyBindings(command) {
+        var bindings    = [],
+            commandID   = "";
+        
+        if (!command) {
+            console.error("getKeyBindings(): missing required parameter: command");
+            return [];
+        }
+        
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+        
+        bindings = _commandMap[commandID];
         return bindings || [];
     }
     
@@ -573,22 +607,79 @@ define(function (require, exports, module) {
             addBinding(commandId, defaults);
         }
     }
+    
+    /**
+     * Adds a global keydown hook that gets first crack at keydown events 
+     * before standard keybindings do. This is intended for use by modal or 
+     * semi-modal UI elements like dialogs or the code hint list that should 
+     * execute before normal command bindings are run. 
+     * 
+     * The hook is passed one parameter, the original keyboard event. If the 
+     * hook handles the event (or wants to block other global hooks from 
+     * handling the event), it should return true. Note that this will *only*
+     * stop other global hooks and KeyBindingManager from handling the
+     * event; to prevent further event propagation, you will need to call
+     * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
+     * as usual.
+     *
+     * Multiple keydown hooks can be registered, and are executed in order, 
+     * most-recently-added first.
+     * 
+     * (We have to have a special API for this because (1) handlers are normally
+     * called in least-recently-added order, and we want most-recently-added; 
+     * (2) native DOM events don't have a way for us to find out if 
+     * stopImmediatePropagation()/stopPropagation() has been called on the
+     * event, so we have to have some other way for one of the hooks to 
+     * indicate that it wants to block the other hooks from running.)
+     *
+     * @param {function(Event): boolean} hook The global hook to add.
+     */
+    function addGlobalKeydownHook(hook) {
+        _globalKeydownHooks.push(hook);
+    }
+    
+    /**
+     * Removes a global keydown hook added by `addGlobalKeydownHook`.
+     * Does not need to be the most recently added hook.
+     *
+     * @param {function(Event): boolean} hook The global hook to remove.
+     */
+    function removeGlobalKeydownHook(hook) {
+        var index = _globalKeydownHooks.indexOf(hook);
+        if (index !== -1) {
+            _globalKeydownHooks.splice(index, 1);
+        }
+    }
+    
+    /**
+     * Handles a given keydown event, checking global hooks first before
+     * deciding to handle it ourselves.
+     * @param {Event} The keydown event to handle.
+     */
+    function _handleKeyEvent(event) {
+        var i, handled = false;
+        for (i = _globalKeydownHooks.length - 1; i >= 0; i--) {
+            if (_globalKeydownHooks[i](event)) {
+                handled = true;
+                break;
+            }
+        }
+        if (!handled && _handleKey(_translateKeyboardEvent(event))) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
 
     AppInit.htmlReady(function () {
         // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
-            function (event) {
-                if (handleKey(_translateKeyboardEvent(event))) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            },
+            _handleKeyEvent,
             true
         );
         
-        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
-            && (brackets.platform !== "win");
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
+            (brackets.platform !== "win");
     });
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
@@ -598,20 +689,25 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    exports.addGlobalKeydownHook = addGlobalKeydownHook;
+    exports.removeGlobalKeydownHook = removeGlobalKeydownHook;
     
     /**
-     * Use windows-specific bindings if no other are found (e.g. Linux). 
+     * Use windows-specific bindings if no other are found (e.g. Linux).
      * Core Brackets modules that use key bindings should always define at
-     * least a generic keybinding that is applied for all platforms. This 
+     * least a generic keybinding that is applied for all platforms. This
      * setting effectively creates a compatibility mode for third party
      * extensions that define explicit key bindings for Windows and Mac, but
      * not Linux.
      */
     exports.useWindowsCompatibleBindings = false;
+    
+    // For unit testing only
+    exports._handleKey = _handleKey;
+    exports._handleKeyEvent = _handleKeyEvent;
 });

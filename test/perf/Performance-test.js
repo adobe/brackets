@@ -34,12 +34,11 @@ define(function (require, exports, module) {
         Commands,                   // loaded from brackets.test
         DocumentCommandHandlers,    // loaded from brackets.test
         PerfUtils,                  // loaded from brackets.test
-        JSLintUtils,                // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
         SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
         UnitTestReporter            = require("test/UnitTestReporter");
 
-    var jsLintPrevSetting;
+    var jsLintCommand, jsLintPrevSetting;
 
     describe("Performance Tests", function () {
         
@@ -77,14 +76,24 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 PerfUtils           = testWindow.brackets.test.PerfUtils;
-                JSLintUtils         = testWindow.brackets.test.JSLintUtils;
         
-                jsLintPrevSetting = JSLintUtils.getEnabled();
-                JSLintUtils.setEnabled(false);
+                jsLintCommand = CommandManager.get("jslint.toggleEnabled");
+                if (jsLintCommand) {
+                    jsLintPrevSetting = jsLintCommand.getChecked();
+                    if (jsLintPrevSetting) {
+                        jsLintCommand.execute();
+                    }
+                }
             });
         });
         
         afterEach(function () {
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentCommandHandlers = null;
+            DocumentManager         = null;
+            PerfUtils               = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

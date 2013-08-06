@@ -1,0 +1,6 @@
+{
+    "excluded-directories" : [],
+    "excluded-files" : [],
+    "max-file-count": -100,
+    "max-file-size": 0
+}

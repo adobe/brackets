@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, jasmine, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -34,13 +34,16 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
         nfs;
@@ -78,7 +81,7 @@ define(function (require, exports, module) {
             deferred.resolve(nfs.root);
         }
         
-        resolveNativeFileSystemPath("/").pipe(deferred.resolve, deferred.reject);
+        resolveNativeFileSystemPath("/").then(deferred.resolve, deferred.reject);
         
         return deferred.promise();
     }
@@ -102,6 +105,25 @@ define(function (require, exports, module) {
     function getTempDirectory() {
         return getTestPath("/temp");
     }
+
+    /**
+     * Create the temporary unit test project directory.
+     */
+    function createTempDirectory() {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            brackets.fs.makedir(getTempDirectory(), 0, function (err) {
+                if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve();
+                }
+            });
+        });
+
+        waitsForDone(deferred, "Create temp directory", 500);
+    }
     
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
@@ -113,7 +135,7 @@ define(function (require, exports, module) {
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
@@ -133,31 +155,36 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForFail = function (promise, operationName) {
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, 1000);
+        }, "failure " + operationName, timeout);
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
-     * never be set as the currentDocument or added to the working set.
+     * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
+     * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
+     * 
+     * Like a normal Document, if you cause an addRef() on this you MUST call releaseRef() later.
+     * 
+     * @param {!{language:?string, filename:?string, content:?string }} options
+     * Language defaults to JavaScript, filename defaults to a placeholder name, and
+     * content defaults to "".
      */
-    function createMockDocument(initialContent, createEditor) {
+    function createMockActiveDocument(options) {
+        var language    = options.language || LanguageManager.getLanguage("javascript"),
+            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
+            content     = options.content || "";
+        
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
-        
-        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
-        
-        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
-        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
@@ -167,45 +194,137 @@ define(function (require, exports, module) {
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
+        
         return docToShim;
     }
     
     /**
-     * Returns a Document and Editor suitable for use with an Editor in
-     * isolation: i.e., a Document that will never be set as the
-     * currentDocument or added to the working set.
-     * @return {!{doc:{Document}, editor:{Editor}}}
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     * 
+     * Unlike a real Document, does NOT need to be explicitly cleaned up.
+     * 
+     * @param {string=} initialContent  Defaults to ""
+     * @param {string=} languageId      Defaults to JavaScript
      */
-    function createMockEditor(initialContent, mode, visibleRange) {
-        mode = mode || "";
+    function createMockDocument(initialContent, languageId) {
+        var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
+            options     = { language: language, content: initialContent },
+            docToShim   = createMockActiveDocument(options);
         
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        docToShim._ensureMasterEditor = function () {
+            if (!this._masterEditor) {
+                // Don't let Document create an Editor itself via EditorManager; the unit test can't clean that up
+                throw new Error("Use create/destroyMockEditor() to test edit operations");
+            }
+        };
+        
+        return docToShim;
+    }
+    
+    /**
+     * Returns a mock element (in the test runner window) that's offscreen, for
+     * parenting UI you want to unit-test. When done, make sure to delete it with
+     * remove().
+     * @return {jQueryObject} a jQuery object for an offscreen div
+     */
+    function createMockElement() {
+        return $("<div/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            })
+            .appendTo($("body"));
+    }
+
+    /**
+     * Returns an Editor tied to the given Document, but suitable for use in isolation
+     * (without being placed inside the surrounding Brackets UI). The Editor *will* be
+     * reported as the "active editor" by EditorManager.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @param {!Document} doc
+     * @param {{startLine: number, endLine: number}=} visibleRange
+     * @return {!Editor}
+     */
+    function createMockEditorForDocument(doc, visibleRange) {
+        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
+        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
-        $("body").append($editorHolder);
-        
-        // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {}, visibleRange);
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        EditorManager._notifyActiveEditorChanged(editor);
         
-        return { doc: doc, editor: editor };
+        return editor;
+    }
+    
+    /**
+     * Returns a Document and Editor suitable for use in isolation: the Document
+     * will never be set as the currentDocument or added to the working set and the
+     * Editor does not live inside a full-blown Brackets UI layout. The Editor *will* be
+     * reported as the "active editor" by EditorManager, however.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
+     * @param {string=} initialContent
+     * @param {string=} languageId
+     * @param {{startLine: number, endLine: number}=} visibleRange
+     * @return {!{doc:!Document, editor:!Editor}}
+     */
+    function createMockEditor(initialContent, languageId, visibleRange) {
+        // create dummy Document, then Editor tied to it
+        var doc = createMockDocument(initialContent, languageId);
+        return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
     /**
      * Destroy the Editor instance for a given mock Document.
-     * @param {!Document} doc
+     * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
+        EditorManager._notifyActiveEditorChanged(null);
         EditorManager._destroyEditorIfUnneeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
         EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
+    
+    /**
+     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
+     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     */
+    function clickDialogButton(buttonId) {
+        // Make sure there's one and only one dialog open
+        var $dlg = _testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
 
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise, "dismiss dialog");
+    }
+    
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -234,8 +353,22 @@ define(function (require, exports, module) {
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
+            _testWindow.isBracketsTestWindow = true;
+            
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
+            };
+            
+            _testWindow.closeAllFiles = function closeAllFiles() {
+                runs(function () {
+                    var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    var $dlg = _testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        clickDialogButton("dontsave");
+                    }
+                });
             };
         });
 
@@ -244,6 +377,7 @@ define(function (require, exports, module) {
             function isBracketsDoneLoading() {
                 return _testWindow.brackets && _testWindow.brackets.test && _testWindow.brackets.test.doneLoading;
             },
+            "brackets.test.doneLoading",
             10000
         );
 
@@ -269,49 +403,20 @@ define(function (require, exports, module) {
                 }
             });
             _testWindow.close();
+            _testWindow.executeCommand = null;
+            _testWindow = null;
         });
-    }
-    
-    
-    /**
-     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
-     * clients must also wait for any additional promises.
-     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
-     */
-    function clickDialogButton(buttonId) {
-        // Make sure there's one and only one dialog open
-        var $dlg = _testWindow.$(".modal.instance"),
-            promise = $dlg.data("promise");
-        
-        expect($dlg.length).toBe(1);
-        
-        // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
-        
-        // Click the button
-        dismissButton.click();
-
-        // Dialog should resolve/reject the promise
-        waitsForDone(promise);
     }
     
     
     function loadProjectInTestWindow(path) {
-        var isReady = false;
-
         runs(function () {
             // begin loading project path
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
-            result.done(function () {
-                isReady = true;
-            });
+            
+            // wait for file system to finish loading
+            waitsForDone(result, "ProjectManager.openProject()");
         });
-
-        // wait for file system to finish loading
-        waitsFor(function () { return isReady; }, "openProject() timeout", 1000);
     }
     
     /**
@@ -324,7 +429,7 @@ define(function (require, exports, module) {
             output  = [],
             i       = 0,
             line    = 0,
-            char    = 0,
+            charAt  = 0,
             ch      = 0,
             length  = text.length,
             exec    = null,
@@ -349,10 +454,10 @@ define(function (require, exports, module) {
             }
             
             if (!found) {
-                char = text.substr(i, 1);
-                output.push(char);
+                charAt = text.substr(i, 1);
+                output.push(charAt);
                 
-                if (char === '\n') {
+                if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {
@@ -463,15 +568,18 @@ define(function (require, exports, module) {
             FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
                 docs[keys[i]] = doc;
                 one.resolve();
-            }).fail(function () {
-                one.reject();
+            }).fail(function (err) {
+                one.reject(err);
             });
             
             return one.promise();
         }, false).done(function () {
             result.resolve(docs);
-        }).fail(function () {
-            result.reject();
+        }).fail(function (err) {
+            result.reject(err);
+        }).always(function () {
+            docs = null;
+            FileViewController = null;
         });
         
         return result.promise();
@@ -495,8 +603,8 @@ define(function (require, exports, module) {
                 }).fail(function () {
                     deferred.reject();
                 });
-            }, function error() {
-                deferred.reject();
+            }, function error(err) {
+                deferred.reject(err);
             });
         });
 
@@ -612,7 +720,7 @@ define(function (require, exports, module) {
                     true
                 );
                 
-                copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
+                copyChildrenPromise.then(deferred.resolve, deferred.reject);
             });
         });
 
@@ -659,7 +767,7 @@ define(function (require, exports, module) {
                 promise = copyFileEntry(entry, destination, options);
             }
             
-            promise.pipe(deferred.resolve, deferred.reject);
+            promise.then(deferred.resolve, deferred.reject);
         }).fail(function () {
             deferred.reject();
         });
@@ -688,6 +796,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                console.error(err);
                 result.reject(err);
             } else {
                 result.resolve();
@@ -729,9 +838,14 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
+        Object.defineProperty(oEvent, 'charCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
         } else {
             oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }
@@ -791,16 +905,236 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
+    
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+    
+    /**
+     * Searches the DOM tree for text containing the given content. Useful for verifying
+     * that data you expect to show up in the UI somewhere is actually there.
+     *
+     * @param {jQueryObject|Node} root The root element to search from. Can be either a jQuery object
+     *     or a raw DOM node.
+     * @param {string} content The content to find.
+     * @param {boolean} asLink If true, find the content in the href of an <a> tag, otherwise find it in text nodes.
+     * @return true if content was found
+     */
+    function findDOMText(root, content, asLink) {
+        // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
+        // you can't escape quotes in it.
+        var i;
+        if (root instanceof $) {
+            root = root.get(0);
+        }
+        if (!root) {
+            return false;
+        } else if (!asLink && root.nodeType === 3) { // text node
+            return root.textContent.indexOf(content) !== -1;
+        } else {
+            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+                return true;
+            }
+            var children = root.childNodes;
+            for (i = 0; i < children.length; i++) {
+                if (findDOMText(children[i], content, asLink)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
+    /**
+     * Counts the number of active specs in the current suite. Includes all
+     * descendants.
+     * @param {(jasmine.Suite|jasmine.Spec)} suiteOrSpec
+     * @return {number}
+     */
+    function countSpecs(suiteOrSpec) {
+        var children = suiteOrSpec.children && typeof suiteOrSpec.children === "function" && suiteOrSpec.children();
+
+        if (Array.isArray(children)) {
+            var childCount = 0;
+
+            children.forEach(function (child) {
+                childCount += countSpecs(child);
+            });
+
+            return childCount;
+        }
+
+        if (jasmine.getEnv().specFilter(suiteOrSpec)) {
+            return 1;
+        }
+
+        return 0;
+    }
+    
+    
+    /**
+     * @private
+     * Adds a new before all or after all function to the current suite. If requires it creates a new
+     * object to store the before all and after all functions and a spec counter for the current suite.
+     * @param {string} type  "beforeFirst" or "afterLast"
+     * @param {function} func  The function to store
+     */
+    function _addSuiteFunction(type, func) {
+        var suiteId = jasmine.getEnv().currentSuite.id;
+        if (!_testSuites[suiteId]) {
+            _testSuites[suiteId] = {
+                beforeFirst : [],
+                afterLast   : [],
+                specCounter : null
+            };
+        }
+        _testSuites[suiteId][type].push(func);
+    }
+    
+    /**
+     * Utility for tests that need to open a window or do something before every test in a suite
+     * @param {function} func
+     */
+    window.beforeFirst = function (func) {
+        _addSuiteFunction("beforeFirst", func);
+    };
+    
+    /**
+     * Utility for tests that need to close a window or do something after every test in a suite
+     * @param {function} func
+     */
+    window.afterLast = function (func) {
+        _addSuiteFunction("afterLast", func);
+    };
+    
+    /**
+     * @private
+     * Calls each function in the given array of functions
+     * @param {Array.<function>} functions
+     */
+    function _callFunctions(functions) {
+        var spec = jasmine.getEnv().currentSpec;
+        functions.forEach(function (func) {
+            func.apply(spec);
+        });
+    }
+    
+    /**
+     * Calls the before first functions for the parent suites of the current spec when is the first spec of each suite.
+     */
+    function runBeforeFirst() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        // Iterate throught all the parent suites of the current spec
+        while (suite) {
+            // If we have functions for this suite and it was never called, initialize the spec counter
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
+                _callFunctions(_testSuites[suite.id].beforeFirst);
+                _testSuites[suite.id].specCounter = countSpecs(suite);
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    /**
+     * Calls the after last functions for the parent suites of the current spec when is the last spec of each suite.
+     */
+    function runAfterLast() {
+        var suite = jasmine.getEnv().currentSpec.suite;
+        
+        // Iterate throught all the parent suites of the current spec
+        while (suite) {
+            // If we have functions for this suite, reduce the spec counter
+            if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
+                _testSuites[suite.id].specCounter--;
+                
+                // If this was the last spec of the suite run the after last functions and remove it
+                if (_testSuites[suite.id].specCounter === 0) {
+                    _callFunctions(_testSuites[suite.id].afterLast);
+                    delete _testSuites[suite.id];
+                }
+            }
+            suite = suite.parentSuite;
+        }
+    }
+    
+    
+    beforeEach(function () {
+        this.addMatchers({
+            /**
+             * Expects the given editor's selection to be a cursor at the given position (no range selected)
+             */
+            toHaveCursorPosition: function (line, ch) {
+                var editor = this.actual;
+                var selection = editor.getSelection();
+                var notString = this.isNot ? "not " : "";
+                
+                var start = selection.start;
+                var end = selection.end;
+                var selectionMoreThanOneCharacter = start.line !== end.line || start.ch !== end.ch;
+                
+                this.message = function () {
+                    var message = "Expected the cursor to " + notString + "be at (" + line + ", " + ch +
+                        ") but it was actually at (" + start.line + ", " + start.ch + ")";
+                    if (!this.isNot && selectionMoreThanOneCharacter) {
+                        message += " and more than one character was selected.";
+                    }
+                    return message;
+                };
+                
+                var positionsMatch = start.line === line && start.ch === ch;
+                
+                // when adding the not operator, it's confusing to check both the size of the
+                // selection and the position. We just check the position in that case.
+                if (this.isNot) {
+                    return positionsMatch;
+                } else {
+                    return !selectionMoreThanOneCharacter && positionsMatch;
+                }
+            }
+        });
+    });
+    
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
+    exports.createTempDirectory             = createTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
+    exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
     exports.createMockDocument              = createMockDocument;
+    exports.createMockActiveDocument        = createMockActiveDocument;
+    exports.createMockElement               = createMockElement;
+    exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
@@ -819,4 +1153,8 @@ define(function (require, exports, module) {
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
+    exports.findDOMText                     = findDOMText;
+    exports.countSpecs                      = countSpecs;
+    exports.runBeforeFirst                  = runBeforeFirst;
+    exports.runAfterLast                    = runAfterLast;
 });

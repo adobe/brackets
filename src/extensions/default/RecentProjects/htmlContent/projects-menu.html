@@ -1,0 +1,16 @@
+<ul id="project-dropdown" class="dropdown-menu">
+    {{#projectList}}
+    <li>
+        <a class="recent-folder-link" data-path="{{path}}">
+            <span class="recent-folder">{{folder}}</span>
+            <span class="recent-folder-path">{{rest}}</span>
+        </a>
+    </li>
+    {{/projectList}}
+    
+    {{#projectList.length}}
+    <li class="divider"></li>
+    {{/projectList.length}}
+    
+    <li><a id="open-folder-link">{{Strings.CMD_OPEN_FOLDER}}</a></li>
+</ul>

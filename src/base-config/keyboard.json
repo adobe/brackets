@@ -1,5 +1,5 @@
 {
-    "file.new":  [
+    "file.newDoc":  [
         "Ctrl-N"
     ],
     "file.open":  [
@@ -7,6 +7,9 @@
     ],
     "file.close":  [
         "Ctrl-W"
+    ],
+    "file.openFolder": [
+        "Ctrl-Alt-O"
     ],
     "file.close_all":  [
         "Ctrl-Shift-W"
@@ -17,6 +20,9 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
+    "file.saveAs":  [
+        "Ctrl-Shift-S"
+    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -92,6 +98,16 @@
             "platform": "mac"
         }
     ],
+    "edit.indent":  [
+        {
+            "key": "Ctrl-]"
+        }
+    ],
+    "edit.unindent":  [
+        {
+            "key": "Ctrl-["
+        }
+    ],
     "edit.duplicate":  [
         "Ctrl-D"
     ],
@@ -120,6 +136,12 @@
             "platform": "mac"
         }
     ],
+    "edit.openLineAbove":  [
+        "Ctrl-Shift-Enter"
+    ],
+    "edit.openLineBelow":  [
+        "Ctrl-Enter"
+    ],
     "edit.lineComment":  [
         "Ctrl-/"
     ],
@@ -129,6 +151,15 @@
         },
         {
             "key": "Cmd-Opt-/",
+            "platform": "mac"
+        }
+    ],
+    "edit.showCodeHints":  [
+        {
+            "key": "Ctrl-Space"
+        },
+        {
+            "key": "Ctrl-Space",
             "platform": "mac"
         }
     ],
@@ -154,6 +185,28 @@
     "view.restoreFontSize":  [
         "Ctrl-0"
     ],
+    "view.scrollLineUp":  [
+        {
+            "key": "Ctrl-Up",
+            "displayKey": "Ctrl-\u2191"
+        },
+        {
+            "key": "Ctrl-Alt-Up",
+            "displayKey": "Ctrl-Alt-\u2191",
+            "platform": "mac"
+        }
+    ],
+    "view.scrollLineDown":  [
+        {
+            "key": "Ctrl-Down",
+            "displayKey": "Ctrl-\u2193"
+        },
+        {
+            "key": "Ctrl-Alt-Down",
+            "displayKey": "Ctrl-Alt-\u2193",
+            "platform": "mac"
+        }
+    ],
     "navigate.quickOpen":  [
         "Ctrl-Shift-O"
     ],
@@ -169,14 +222,8 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
-    "navigate.gotoJSLintError":  [
-        {
-            "key": "F8"
-        },
-        {
-            "key": "Cmd-'",
-            "platform": "mac"
-        }
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
     ],
     "navigate.nextDoc":  [
         {
@@ -199,6 +246,9 @@
     "navigate.toggleQuickEdit":  [
         "Ctrl-E"
     ],
+    "navigate.toggleQuickDocs":  [
+        "Ctrl-K"
+    ],
     "navigate.previousMatch":  [
         {
             "key": "Alt-Up",
@@ -209,24 +259,6 @@
         {
             "key": "Alt-Down",
             "displayKey": "Alt-↓"
-        }
-    ],
-    "debug.showDeveloperTools":  [
-        {
-            "key": "F12"
-        },
-        {
-            "key": "Cmd-Opt-I",
-            "platform": "mac"
-        }
-    ],
-    "debug.refreshWindow":  [
-        {
-            "key": "F5"
-        },
-        {
-            "key": "Cmd-R",
-            "platform": "mac"
         }
     ],
     "file.rename":  [

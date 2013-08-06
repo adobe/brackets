@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         FileIndexManager        = brackets.getModule("project/FileIndexManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
+        DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
         PerfUtils               = brackets.getModule("utils/PerfUtils");
     
@@ -43,18 +44,18 @@ define(function (require, exports, module) {
      * @return {String} token string at the specified position
      */
     function _getFunctionName(hostEditor, pos) {
-        var token = hostEditor._codeMirror.getTokenAt(pos);
+        var token = hostEditor._codeMirror.getTokenAt(pos, true);
         
         // If the pos is at the beginning of a name, token will be the 
         // preceding whitespace or dot. In that case, try the next pos.
         if (token.string.trim().length === 0 || token.string === ".") {
-            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1});
+            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
         
         // Return valid function expressions only (function call or reference)
-        if (!((token.className === "variable")
-              || (token.className === "variable-2")
-              || (token.className === "property"))) {
+        if (!((token.type === "variable") ||
+              (token.type === "variable-2") ||
+              (token.type === "property"))) {
             return null;
         }
         
@@ -103,26 +104,71 @@ define(function (require, exports, module) {
      *      or null if we're not going to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
+        // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
+        var helper = brackets._jsCodeHintsHelper;
+        if (helper === null) {
+            return null;
+        }
+
         var result = new $.Deferred();
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-        
-        _findInProject(functionName).done(function (functions) {
-            if (functions && functions.length > 0) {
-                var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                jsInlineEditor.load(hostEditor);
-                
-                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                result.resolve(jsInlineEditor);
-            } else {
-                // No matching functions were found
-                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+
+        var response = helper();
+        if (response.hasOwnProperty("promise")) {
+            response.promise.done(function (jumpResp) {
+                var resolvedPath = jumpResp.fullPath;
+                if (resolvedPath) {
+
+                    // Tern doesn't always return entire function extent.
+                    // Use QuickEdit search now that we know which file to look at.
+                    var fileInfos = [];
+                    fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
+                    JSUtils.findMatchingFunctions(functionName, fileInfos, true)
+                        .done(function (functions) {
+                            if (functions && functions.length > 0) {
+                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                                jsInlineEditor.load(hostEditor);
+                                
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.resolve(jsInlineEditor);
+                            } else {
+                                // No matching functions were found
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.reject();
+                            }
+                        })
+                        .fail(function () {
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.reject();
+                        });
+
+                } else {        // no result from Tern.  Fall back to _findInProject().
+
+                    _findInProject(functionName).done(function (functions) {
+                        if (functions && functions.length > 0) {
+                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                            jsInlineEditor.load(hostEditor);
+                            
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.resolve(jsInlineEditor);
+                        } else {
+                            // No matching functions were found
+                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            result.reject();
+                        }
+                    }).fail(function () {
+                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                        result.reject();
+                    });
+                }
+
+            }).fail(function () {
+                PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                 result.reject();
-            }
-        }).fail(function () {
-            PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-            result.reject();
-        });
-        
+            });
+
+        }
+
         return result.promise();
     }
     
@@ -143,18 +189,18 @@ define(function (require, exports, module) {
         }
         
         // Only provide JavaScript editor if the selection is within a single line
-        var sel = hostEditor.getSelection(false);
+        var sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
             return null;
         }
-        
+
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
-        var functionName = _getFunctionName(hostEditor, hostEditor.getSelection().start);
+        var functionName = _getFunctionName(hostEditor, sel.start);
         if (!functionName) {
             return null;
         }
-        
+
         return _createInlineEditor(hostEditor, functionName);
     }
 

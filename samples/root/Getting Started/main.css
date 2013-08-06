@@ -1,5 +1,10 @@
 html {
     background-color: #eeeeee;
+    background-image: linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -o-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -moz-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -webkit-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -ms-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
 }
 
 body {
@@ -28,9 +33,10 @@ samp
 
 img
 {
+    background: dimgray;
     border: 1px solid black;
-    background-color: dimgray;
-    padding: 10px;
+    border-radius: 2px;
+    padding: 15px 10px 10px;
     margin: 10px 0;
     max-width: 95%;
 }

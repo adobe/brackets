@@ -51,8 +51,6 @@ define(function (require, exports, module) {
                 e.stopImmediatePropagation();
             }
         });
-        
-        this.updateWidth = this.updateWidth.bind(this);
     }
     InlineWidget.prototype.htmlContent = null;
     InlineWidget.prototype.$htmlContent = null;
@@ -66,33 +64,11 @@ define(function (require, exports, module) {
     InlineWidget.prototype.height = 0;
     
     /**
-     * Automatically updates the width of the inline editor when the parent editor's width changes due to
-     * edits or window resizes.
-     */
-    InlineWidget.prototype.updateWidth = function () {
-        // Set the minimum width of the widget (which doesn't include the padding) to the width
-        // of CodeMirror's linespace, so that the total width will be at least as large as the
-        // width of the host editor's code plus any internal padding required by the widget.
-        // We can't just set the min-width to 100% because that would be 100% of the clientWidth of
-        // the host editor, rather than the overall scroll width.
-        // We also can't just use the host editor's scrollWidth, because if the host editor's own
-        // content becomes less wide, our own width will continue to prop open the host editor's
-        // scrollWidth.
-        // So instead, we peg our width to the right edge of CodeMirror's lineSpace (which is its
-        // width plus its offset from the left edge of the $htmlContent container).
-        // If the lineSpace is less than the scroller's clientWidth, we want to use the clientWidth instead.
-        // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
-        var lineSpace = this.hostEditor._getLineSpaceElement(),
-            scroller = this.hostEditor.getScrollerElement(),
-            minWidth = Math.max(scroller.clientWidth, $(lineSpace).offset().left - this.$htmlContent.offset().left + lineSpace.scrollWidth);
-        this.$htmlContent.css("min-width", minWidth + "px");
-    };
-    
-    /**
      * Closes this inline widget and all its contained Editors
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     InlineWidget.prototype.close = function () {
-        EditorManager.closeInlineWidget(this.hostEditor, this);
+        return EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
@@ -104,22 +80,20 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Called any time inline is closed, whether manually or automatically
+     * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        $(this.hostEditor).off("change", this.updateWidth);
-        $(window).off("resize", this.updateWidth);
+        // Does nothing in base implementation.
     };
 
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
      * focus or measuring content, which require htmlContent to be in the DOM tree.
+     * IMPORTANT: onAdded() must ensure that hostEditor.setInlineWidgetHeight() is called at least once in order
+     * to set the initial height of the widget and animate it open.
      */
     InlineWidget.prototype.onAdded = function () {
-        // Autosize the inline widget to the scrollable width of the main editor.
-        $(window).on("resize", this.updateWidth);
-        $(this.hostEditor).on("change", this.updateWidth);
-        window.setTimeout(this.updateWidth, 0);
+        // Does nothing in base implementation.
     };
 
     /**

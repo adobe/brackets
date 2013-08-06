@@ -34,7 +34,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var packageJSON = require("text!package.json");
+    var configJSON = require("text!config.json");
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     // Parse src/config.json
     try {
-        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.metadata = JSON.parse(configJSON);
         global.brackets.config = global.brackets.metadata.config;
     } catch (err) {
         console.log(err);
@@ -76,6 +76,10 @@ define(function (require, exports, module) {
     } else {
         global.brackets.platform = "win";
     }
+    
+    global.brackets.isLocaleDefault = function () {
+        return !global.localStorage.getItem("locale");
+    };
     
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js

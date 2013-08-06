@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         "de": true,
         "fr": true,
         "es": true,
-        "ru": true
+        "ru": true,
+        "sv": true
     };
 });

@@ -121,6 +121,7 @@ define(function (require, exports, module) {
          * @type {number}
          */
         ASYNC_TIMEOUT: 2000,
+        ASYNC_NETWORK_TIMEOUT: 20000,   // 20 seconds for reading files from network drive
         
         /**
          * Shows a modal dialog for selecting and opening files
@@ -154,6 +155,42 @@ define(function (require, exports, module) {
                 title,
                 initialPath,
                 fileTypes,
+                function (err, data) {
+                    if (!err) {
+                        successCallback(data);
+                    } else if (errorCallback) {
+                        errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                    }
+                }
+            );
+        },
+
+        /**
+         * Shows a modal dialog for selecting a new file name
+         *
+         * @param {string} title The title of the dialog.
+         * @param {string} initialPath The folder opened inside the window initially. If initialPath
+         *                          is not set, or it doesn't exist, the window would show the last
+         *                          browsed folder depending on the OS preferences.
+         * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
+         *                          on the current file name plus an additional suffix
+         * @param {function(string} successCallback Callback function for successful operations.
+                                    Receives the path of the selected file name.
+         * @param {function(DOMError)=} errorCallback Callback function for error operations.
+         */
+        showSaveDialog: function (title,
+                                    initialPath,
+                                    proposedNewFilename,
+                                    successCallback,
+                                    errorCallback) {
+            if (!successCallback) {
+                return;
+            }
+
+            var newFile = brackets.fs.showSaveDialog(
+                title,
+                initialPath,
+                proposedNewFilename,
                 function (err, data) {
                     if (!err) {
                         successCallback(data);
@@ -228,10 +265,8 @@ define(function (require, exports, module) {
             case brackets.fs.ERR_CANT_READ:
                 error = NativeFileError.NOT_READABLE_ERR;
                 break;
-            // It might seem like you should use NativeFileError.ENCODING_ERR for this,
-            // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = NativeFileError.SECURITY_ERR;
+                error = NativeFileError.NOT_READABLE_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
                 error = NativeFileError.NO_MODIFICATION_ALLOWED_ERR;
@@ -366,13 +401,26 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deletes a file or directory
+     * Deletes a file or directory by moving to the trash/recycle bin.
      * @param {function()} successCallback Callback function for successful operations
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+        var deleteFunc = brackets.fs.moveToTrash; // Future: Could fallback to unlink 
+        
+        if (!deleteFunc) {
+            // Running in a shell that doesn't support moveToTrash. Return an error.
+            errorCallback(brackets.fs.ERR_UNKNOWN);
+            return;
+        }
+        
+        deleteFunc(this.fullPath, function (err) {
+            if (err === brackets.fs.NO_ERROR) {
+                successCallback();
+            } else {
+                errorCallback(err);
+            }
+        });
     };
     
     /**
@@ -596,6 +644,44 @@ define(function (require, exports, module) {
         successCallback(newFile);
 
         // TODO (issue #241): errorCallback
+    };
+    
+    /**
+     * An InaccessibleFileEntry represents an inaccessible file on a file system.
+     * In particular, InaccessibleFileEntry objects are used as in the representation
+     * of untitled Documents.
+     *
+     * @constructor
+     * @param {string} name Full path of the file in the file system
+     * @param {FileSystem} fs File system that contains this entry
+     * @extends {FileEntry}
+     */
+    NativeFileSystem.InaccessibleFileEntry = function (name, mtime) {
+        NativeFileSystem.FileEntry.call(this, name, false);
+        this.mtime = mtime;
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype = Object.create(NativeFileSystem.FileEntry.prototype);
+    NativeFileSystem.InaccessibleFileEntry.prototype.constructor = NativeFileSystem.InaccessibleFileEntry;
+    NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.createWriter is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.file is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
+        successCallback(new NativeFileSystem.Metadata(this.mtime));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.remove is unsupported");
+        errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
     };
 
     /**
@@ -944,66 +1030,87 @@ define(function (require, exports, module) {
     /**
      * Read the next block of entries from this directory
      * @param {function(Array.<Entry>)} successCallback Callback function for successful operations
-     * @param {function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(DOMError, ?Array.<Entry>)=} errorCallback Callback function for error operations,
+     *      which may include an array of entries that could be read without error
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-        var rootPath = this._directory.fullPath,
-            filesystem = this.filesystem;
+        if (!this._directory.fullPath) {
+            errorCallback(new NativeFileError(NativeFileError.PATH_EXISTS_ERR));
+            return;
+        }
         
-        brackets.fs.readdir(rootPath, function (err, filelist) {
-            if (!err) {
-                var entries = [];
-                var lastError = null;
-
-                // call success immediately if this directory has no files
-                if (filelist.length === 0) {
-                    successCallback(entries);
-                    return;
+        var rootPath = this._directory.fullPath,
+            filesystem = this.filesystem,
+            timeout = NativeFileSystem.ASYNC_TIMEOUT,
+            networkDetectionResult = new $.Deferred();
+        
+        if (brackets.fs.isNetworkDrive) {
+            brackets.fs.isNetworkDrive(rootPath, function (err, remote) {
+                if (!err && remote) {
+                    timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
                 }
-
-                // stat() to determine type of each entry, then populare entries array with objects
-                var masterPromise = Async.doInParallel(filelist, function (filename, index) {
-                    
-                    var deferred = new $.Deferred();
-                    var itemFullPath = rootPath + filelist[index];
-                    
-                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
-                        if (!statErr) {
-                            if (statData.isDirectory()) {
-                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
-                            } else if (statData.isFile()) {
-                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
+                networkDetectionResult.resolve();
+            });
+        } else {
+            networkDetectionResult.resolve();
+        }
+        
+        networkDetectionResult.done(function () {
+            brackets.fs.readdir(rootPath, function (err, filelist) {
+                if (!err) {
+                    var entries = [];
+                    var lastError = null;
+    
+                    // call success immediately if this directory has no files
+                    if (filelist.length === 0) {
+                        successCallback(entries);
+                        return;
+                    }
+    
+                    // stat() to determine type of each entry, then populare entries array with objects
+                    var masterPromise = Async.doInParallel(filelist, function (filename, index) {
+                        
+                        var deferred = new $.Deferred();
+                        var itemFullPath = rootPath + filelist[index];
+                        
+                        brackets.fs.stat(itemFullPath, function (statErr, statData) {
+                            if (!statErr) {
+                                if (statData.isDirectory()) {
+                                    entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
+                                } else if (statData.isFile()) {
+                                    entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
+                                } else {
+                                    entries[index] = null;  // neither a file nor a dir, so don't include it
+                                }
+                                deferred.resolve();
                             } else {
-                                entries[index] = null;  // neither a file nor a dir, so don't include it
+                                entries[index] = null;  // failed to stat this file, so don't include it
+                                lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
+                                deferred.reject(lastError);
                             }
-                            deferred.resolve();
-                        } else {
-                            lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
-                            deferred.reject(lastError);
-                        }
-                    });
+                        });
+                        
+                        return deferred.promise();
+                    }, false);
+    
+                    // We want the error callback to get called after some timeout (in case some deferreds don't return).
+                    // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
+                    var timeoutWrapper = Async.withTimeout(masterPromise, timeout);
                     
-                    return deferred.promise();
-                }, true);
-
-                // We want the error callback to get called after some timeout (in case some deferreds don't return).
-                // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
-                var timeoutWrapper = Async.withTimeout(masterPromise, NativeFileSystem.ASYNC_TIMEOUT);
-
-                // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
-                timeoutWrapper.then(
-                    function () { // success
-                        // The entries array may have null values if stat returned things that were
-                        // neither a file nor a dir. So, we need to clean those out.
-                        var cleanedEntries = [], i;
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i]) {
-                                cleanedEntries.push(entries[i]);
+                    // The entries array may have null values if stat returned things that were
+                    // neither a file nor a dir. So, we need to clean those out.
+                    var cleanedEntries = [];
+    
+                    // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
+                    timeoutWrapper.always(function () { // always clean the successful entries 
+                        entries.forEach(function (entry) {
+                            if (entry) {
+                                cleanedEntries.push(entry);
                             }
-                        }
+                        });
+                    }).done(function () { // success
                         successCallback(cleanedEntries);
-                    },
-                    function (err) { // error
+                    }).fail(function (err) { // error
                         if (err === Async.ERROR_TIMEOUT) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
@@ -1013,14 +1120,14 @@ define(function (require, exports, module) {
                         }
                         
                         if (errorCallback) {
-                            errorCallback(err);
+                            errorCallback(err, cleanedEntries);
                         }
-                    }
-                );
-
-            } else { // There was an error reading the initial directory.
-                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
-            }
+                    });
+    
+                } else { // There was an error reading the initial directory.
+                    errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                }
+            });
         });
     };
 

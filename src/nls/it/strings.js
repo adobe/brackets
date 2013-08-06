@@ -76,6 +76,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome deve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Apri un file HTML per lanciare l'Anteprima Live.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Errore durante l'avvio del server HTTP server per i file di sviluppo in tempo reale. Riprova ancora.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell'Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l'anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per magiorni informazioni leggi <a class=\"clickable-link\" data-href=\"{0}\">Risoluzione dei problemi di connessione a Anteprima Live</a>.",
@@ -120,12 +121,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Errore durante l'aggiornamento delle informazioni",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Si è verificato un problema durante l'aggiornamento delle informazioni dal server. Controlla di essere collegato a internet e riprova ancora.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Cambia lingua",
-    "LANGUAGE_MESSAGE"                  : "Scegli una lingua dlla lista sottostante:",
-    "LANGUAGE_SUBMIT"                   : "Ricarica {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Annulla",
-
     /**
      * ProjectManager
      */
@@ -168,16 +163,25 @@ define({
     "CMD_FILE_SAVE"                       : "Salva",
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_LIVE_HIGHLIGHT"                  : "Evidenziatura Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
     "CMD_QUIT"                            : "Esci",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Esci",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Modifica",
+    "CMD_UNDO"                            : "Annulla",
+    "CMD_REDO"                            : "Ripristina",
+    "CMD_CUT"                             : "Taglia",
+    "CMD_COPY"                            : "Copia",
+    "CMD_PASTE"                           : "Incolla",
     "CMD_SELECT_ALL"                      : "Seleziona tutto",
-    "CMD_SELECT_LINE"                     : "Select Line",
+    "CMD_SELECT_LINE"                     : "Seleziona riga",
     "CMD_FIND"                            : "Cerca",
     "CMD_FIND_IN_FILES"                   : "Cerca nei file",
+    "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
     "CMD_FIND_NEXT"                       : "Cerca il successivo",
     "CMD_FIND_PREVIOUS"                   : "Cerca il precedente",
     "CMD_REPLACE"                         : "Sostituisci",
@@ -186,8 +190,9 @@ define({
     "CMD_DUPLICATE"                       : "Duplica",
     "CMD_DELETE_LINES"                    : "Elimina linea",
     "CMD_COMMENT"                         : "Commenta/De-commenta linee",
-    "CMD_LINE_UP"                         : "Sposta la linea in alto",
-    "CMD_LINE_DOWN"                       : "Sposta la linea in basso",
+    "CMD_BLOCK_COMMENT"                   : "Commenta/De-commenta blocco",
+    "CMD_LINE_UP"                         : "Sposta la riga in alto",
+    "CMD_LINE_DOWN"                       : "Sposta la riga in basso",
      
     // View menu commands
     "VIEW_MENU"                           : "Vista",
@@ -213,22 +218,17 @@ define({
     "CMD_PREV_DOC"                        : "Documento precedente",
     "CMD_SHOW_IN_TREE"                    : "Mostra nell'albero dei file",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Ricarica {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostra strumenti di sviluppo",
-    "CMD_RUN_UNIT_TESTS"                  : "Esegui i test",
-    "CMD_JSLINT"                          : "Abilita JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostra dati sulle prestazioni",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nuova finestra {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
-    "CMD_SWITCH_LANGUAGE"                 : "Cambia lingua",
-    "CMD_CHECK_FOR_UPDATE"                : "Controlla aggiornamenti",
-
     // Help menu commands
     "HELP_MENU"                           : "Aiuto",
-    "CMD_ABOUT"                           : "About",
+    "CMD_CHECK_FOR_UPDATE"                : "Controlla aggiornamenti",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Guida all'uso di {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_RELEASE_NOTES"                   : "Release Notes",
+    "CMD_REPORT_AN_ISSUE"                 : "Segnala un problema",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} su Twitter",
+    "CMD_ABOUT"                           : "Informazioni su {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Chiudi la finestra",
@@ -236,11 +236,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Build sperimentale",
-    "JSLINT_ERRORS"                        : "Errori di JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "JSLint: 1 errore",
-    "JSLINT_ERRORS_INFORMATION"            : "JSLint: {0} errori",
-    "JSLINT_NO_ERRORS"                     : "JSLint: Nessun errore - complimenti!",
-    "JSLINT_DISABLED"                      : "JSLint disabilitato o non funzionante per il file corrente",
+    "DEVELOPMENT_BUILD"                    : "Build di sviluppo",
     "SEARCH_RESULTS"                       : "Risultati della ricerca",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Non salvare",
@@ -251,7 +247,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                      : "Riavvia Chrome",
     "ABOUT"                                : "About",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Chiudi",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} build sperimentale {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> e incorporati per riferimento in questo documento.",
@@ -267,5 +262,41 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "L'URL di base non può contenere parametri di ricerca come \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "L'URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "I caratteri speciali come '{0}' devono essere %-encodate.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Trovato un carattere sconosciuto durante il parsing della URL di base"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Trovato un carattere sconosciuto durante il parsing della URL di base",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostra strumenti di sviluppo",
+    "CMD_REFRESH_WINDOW"                        : "Ricarica {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nuova finestra {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambia lingua",
+    "CMD_RUN_UNIT_TESTS"                        : "Esegui i test",
+    "CMD_SHOW_PERF_DATA"                        : "Mostra dati sulle prestazioni",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita il debugger Node",
+    "CMD_LOG_NODE_STATE"                        : "Log lo stato del debugger Node nella Console",
+    "CMD_RESTART_NODE"                          : "Restart Node",
+    
+    "LANGUAGE_TITLE"                            : "Cambia lingua",
+    "LANGUAGE_MESSAGE"                          : "Scegli una lingua dlla lista sottostante:",
+    "LANGUAGE_SUBMIT"                           : "Ricarica {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Annulla",
+    
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Colore attuale",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Colore originale",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "Formato RGBa",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Usato {1} volta)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Usato {1} volte)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Abilita JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Vai al primo errore JSLint",
+    "JSLINT_ERRORS"                             : "Errori di JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "JSLint: 1 errore",
+    "JSLINT_ERRORS_INFORMATION"                 : "JSLint: {0} errori",
+    "JSLINT_NO_ERRORS"                          : "JSLint: Nessun errore - complimenti!",
+    "JSLINT_DISABLED"                           : "JSLint disabilitato o non funzionante per il file corrente"
 });

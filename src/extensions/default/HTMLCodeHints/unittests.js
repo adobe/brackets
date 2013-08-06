@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         HTMLCodeHints   = require("main");
 
-    describe("HTML Attribute Hinting", function () {
+    describe("HTML Code Hinting", function () {
 
         var defaultContent = "<!doctype html>\n" +
                              "<html>\n" +
@@ -49,16 +49,15 @@ define(function (require, exports, module) {
                              "</body>\n" +
                              "</html>\n";
         
-        var testWindow;
         var testDocument, testEditor;
         
         beforeEach(function () {
             // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent, "html");
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
+            testEditor = new Editor(testDocument, true, $("#editor").get(0));
         });
         
         afterEach(function () {
@@ -151,6 +150,14 @@ define(function (require, exports, module) {
                 testDocument.replaceRange("<\t", { line: 10, ch: 0 }, { line: 10, ch: 2 });
                 testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor between < and some trailing whitespaces
                 hintList = expectHints(HTMLCodeHints.tagHintProvider);
+                verifyTagHints(hintList);
+            });
+            
+            //Test for issue #3339
+            it("should show HTML hints after HTML Entity on same line", function () {
+                testDocument.replaceRange("&nbsp; Test <  ", { line: 8, ch: 0 });
+                testEditor.setCursorPos({ line: 8, ch: 13 });   // cursor between < and some trailing whitespaces
+                var hintList = expectHints(HTMLCodeHints.tagHintProvider);
                 verifyTagHints(hintList);
             });
         });
@@ -451,9 +458,33 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 27 });   // cursor between space and >
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 
-                verifyAttrHints(hintList, "accept");  // expect no filtering (see note above)
+                // "accept" will get filtered and won't be the first one in the hints.
+                verifyAttrHints(hintList);
             });
             
+            it("should list attribute value hints for an attribute that follows a valueless attribute", function () {  // (bug #2804)
+                testDocument.replaceRange("  <input checked accept='' >\n", { line: 9, ch: 0 });  // insert new line
+                
+                // cursor between quotes of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 25 });
+                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                
+                verifyAttrHints(hintList, "application/msexcel");
+
+                // cursor between equal sign and opening quote of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 24 });
+                hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                
+                verifyAttrHints(hintList, "application/msexcel");
+            });
+
+            it("should NOT list attribute value hints when the cursor is after the end quote of an attribute value", function () {
+                testDocument.replaceRange("  <input checked accept='' >\n", { line: 9, ch: 0 });  // insert new line
+                
+                // Set cursor after the closing quote of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 26 });
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
         });
         
         
@@ -494,11 +525,11 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor at end of attr name
             });
             
-            it("should overwrite attribute but not change value, cursor at start", function () {  // (bug #1312)
+            it("should insert a new attribute before the existing one that starts at cursor", function () {  // (bug #1312)
                 testEditor.setCursorPos({ line: 5, ch: 6 });    // cursor between space and start of existing attribute name ("id")
                 selectHint(HTMLCodeHints.attrHintProvider, "class");
-                expect(testDocument.getLine(5)).toBe("  <h1 class='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 11 });            // cursor at end of attr name
+                expect(testDocument.getLine(5)).toBe("  <h1 class=\"\"id='foo'>Heading</h1>");
+                expectCursorAt({ line: 5, ch: 13 });            // cursor between two double-quotes
             });
             it("should change nothing when cursor at end", function () {  // (bug #1314)
                 testEditor.setCursorPos({ line: 5, ch: 8 });    // cursor between end of existing attribute name ("id") and =
@@ -507,21 +538,21 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 5, ch: 8 });            // cursor stays at end of attr name
             });
             
-            it("should overwrite attribute with valueless attribute, but still not change value", function () {
+            it("should insert a valueless attribute before the existing attribute that starts at cursor", function () {
                 testDocument.replaceRange("  <input id='foo'>\n", { line: 9, ch: 0 });  // insert new line
                 
-                testEditor.setCursorPos({ line: 9, ch: 9 });    // cursor after trailing space
+                testEditor.setCursorPos({ line: 9, ch: 9 });    // cursor after between "i" and "d"
                 selectHint(HTMLCodeHints.attrHintProvider, "checked");
-                expect(testDocument.getLine(9)).toBe("  <input checked='foo'>");
+                expect(testDocument.getLine(9)).toBe("  <input checkedid='foo'>");
                 expectCursorAt({ line: 9, ch: 16 });            // cursor between end of attr name and =
             });
             
-            it("should overwrite valueless attribute with normal attribute, adding value", function () {
+            it("should insert a new atribute with an empty value before the existing valueless attribute", function () {
                 testDocument.replaceRange("  <input checked>\n", { line: 9, ch: 0 });  // insert new line
                 
                 testEditor.setCursorPos({ line: 9, ch: 9 });    // cursor after trailing space
                 selectHint(HTMLCodeHints.attrHintProvider, "class");
-                expect(testDocument.getLine(9)).toBe("  <input class=\"\">");
+                expect(testDocument.getLine(9)).toBe("  <input class=\"\"checked>");
                 expectCursorAt({ line: 9, ch: 16 });            // cursor between the two "s
             });
  
@@ -625,7 +656,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 5, ch: 10 }); // Set cursor between = and the space
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
                 expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" ltr id='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
+                expectCursorAt({ line: 5, ch: 15 });          // cursor after the inserted value
             });
 
             it("should insert a quoted attribute value before an existing id attribute", function () {
@@ -634,10 +665,29 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 5, ch: 10 }); // Set cursor between = and the space
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
                 expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" id='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
+                expectCursorAt({ line: 5, ch: 15 });          // cursor after the inserted value
+            });
+
+            it("should insert a quoted attribute value right before the closing > of the tag", function () {
+                // Insert an unquoted attribute between <p and > on line 7.
+                testDocument.replaceRange(" dir=", { line: 7, ch: 4 });
+                testEditor.setCursorPos({ line: 7, ch: 9 }); // Set cursor between = and >
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(7)).toBe("  <p dir=\"rtl\"></p>");
+                expectCursorAt({ line: 7, ch: 14 });         // cursor after the inserted value
+            });
+
+            it("should insert a quoted attribute value without overwriting the closing > of the tag", function () {
+                // Insert an attribute value right before > on line 7 with an opening double quote that 
+                // creates an inbalanced string up to the first attribute value in the next tag.
+                testDocument.replaceRange("<a dir=\"><span class=\"foo\"></span></a>", { line: 7, ch: 2 }, { line: 7, ch: 9 });
+                testEditor.setCursorPos({ line: 7, ch: 10 }); // Set cursor between dir=" and >
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(7)).toBe("  <a dir=\"rtl\"><span class=\"foo\"></span></a>");
+                expectCursorAt({ line: 7, ch: 14 });          // cursor after the inserted value
             });
         });
         
         
-    }); // describe("HTML Attribute Hinting"
+    }); // describe("HTML Code Hinting"
 });

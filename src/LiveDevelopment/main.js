@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -46,10 +46,12 @@ define(function main(require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        StringUtils         = require("utils/StringUtils");
 
-    var PREFERENCES_KEY = "com.adobe.brackets.live-development";
     var prefs;
     var params = new UrlParams();
     var config = {
@@ -78,17 +80,13 @@ define(function main(require, exports, module) {
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/main.less", true);
-        request.onload = function onLoad(event) {
-            var parser = new less.Parser();
-            parser.parse(request.responseText, function onParse(err, tree) {
-                console.assert(!err, err);
-                $("<style>" + tree.toCSS() + "</style>")
-                    .appendTo(window.document.head);
-            });
-        };
-        request.send(null);
+        var lessText    = require("text!LiveDevelopment/main.less"),
+            parser      = new less.Parser();
+        
+        parser.parse(lessText, function onParse(err, tree) {
+            console.assert(!err, err);
+            ExtensionUtils.addEmbeddedStyleSheet(tree.toCSS());
+        });
     }
 
     /**
@@ -123,7 +121,7 @@ define(function main(require, exports, module) {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_INFO,
+                    DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
                 ).done(function (id) {
@@ -135,17 +133,48 @@ define(function main(require, exports, module) {
         }
     }
 
+    /** Called on status change */
+    function _showStatusChangeReason(reason) {
+        // Destroy the previous twipsy (options are not updated otherwise)    
+        _$btnGoLive.twipsy("hide").removeData("twipsy");
+        
+        // If there was no reason or the action was an explicit request by the user, don't show a twipsy
+        if (!reason || reason === "explicit_close") {
+            return;
+        }
+
+        // Translate the reason
+        var translatedReason = Strings["LIVE_DEV_" + reason.toUpperCase()];
+        if (!translatedReason) {
+            translatedReason = StringUtils.format(Strings.LIVE_DEV_CLOSED_UNKNOWN_REASON, reason);
+        }
+        
+        // Configure the twipsy
+        var options = {
+            placement: "left",
+            trigger: "manual",
+            autoHideDelay: 5000,
+            title: function () {
+                return translatedReason;
+            }
+        };
+
+        // Show the twipsy with the explanation
+        _$btnGoLive.twipsy(options).twipsy("show");
+    }
+    
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _$btnGoLive = $("#toolbar-go-live");
         _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            _showStatusChangeReason(reason);
             if (config.autoconnect) {
                 window.sessionStorage.setItem("live.enabled", status === 3);
             }
@@ -220,7 +249,10 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
+    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development");
+    
     config.highlight = prefs.getValue("highlight");
    
     // init commands

@@ -157,7 +157,7 @@ define(function (require, exports, module) {
             hueColor = "hsl(" + this._hsv.h + ", 100%, 50%)";
         
         this._updateColorTypeRadioButtons(colorObject.format);
-        this.$colorValue.attr("value", colorValue);
+        this.$colorValue.val(colorValue);
         this.$currentColor.css("background-color", colorValue);
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
             _this = this;
         handler = function (event) {
             var colorObject, newColor, newFormat;
-            newFormat = $(event.currentTarget).html().toLowerCase();
+            newFormat = $(event.currentTarget).html().toLowerCase().replace("%", "p");
             newColor = _this.getColor();
             colorObject = tinycolor(newColor);
             switch (newFormat) {
@@ -227,6 +227,9 @@ define(function (require, exports, module) {
                 break;
             case "rgba":
                 newColor = colorObject.toRgbString();
+                break;
+            case "prgba":
+                newColor = colorObject.toPercentageRgbString();
                 break;
             case "hex":
                 newColor = colorObject.toHexString();
@@ -266,10 +269,10 @@ define(function (require, exports, module) {
         }
         return color;
     };
-                    
+    
     /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
-     * after commas and converting RGB colors from percentages to integers.
+     * after commas.
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
@@ -285,7 +288,7 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor.toLowerCase());
+        return normalizedColor.toLowerCase();
     };
 
     /** Handle changes in text field */
@@ -384,6 +387,9 @@ define(function (require, exports, module) {
             break;
         case "rgb":
             colorVal = newColor.toRgbString();
+            break;
+        case "prgb":
+            colorVal = newColor.toPercentageRgbString();
             break;
         case "hex":
         case "name":
@@ -530,11 +536,10 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            switch (event.keyCode) {
-            case KeyEvent.DOM_VK_LEFT:
-            case KeyEvent.DOM_VK_RIGHT:
-            case KeyEvent.DOM_VK_UP:
-            case KeyEvent.DOM_VK_DOWN:
+            if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                    event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                    event.keyCode === KeyEvent.DOM_VK_UP ||
+                    event.keyCode === KeyEvent.DOM_VK_DOWN) {
                 // Prevent arrow keys that weren't handled by a child control 
                 // from being handled by a parent, either through bubbling or 
                 // through default native behavior. There isn't a good general
@@ -564,14 +569,12 @@ define(function (require, exports, module) {
                     event.stopPropagation();
                     return false; // equivalent to event.preventDefault()
                 }
-                break;
             }
         }
     };
 
     ColorEditor.prototype._handleHslKeydown = function (event) {
-        switch (event.keyCode) {
-        case KeyEvent.DOM_VK_TAB:
+        if (event.keyCode === KeyEvent.DOM_VK_TAB) {
             // If we're the last focusable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
                 if (this.$swatches.children().length === 0) {
@@ -579,7 +582,6 @@ define(function (require, exports, module) {
                     return false;
                 }
             }
-            break;
         }
     };
 
@@ -595,7 +597,7 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_LEFT:
         case KeyEvent.DOM_VK_RIGHT:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            xOffset = Number($.trim(this.$selectionBase.css("left").replace("%", "")));
+            xOffset = Number($.trim(this.$selectionBase[0].style.left.replace("%", "")));
             adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
             xOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.s = xOffset / 100;
@@ -604,7 +606,7 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_DOWN:
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            yOffset = Number($.trim(this.$selectionBase.css("bottom").replace("%", "")));
+            yOffset = Number($.trim(this.$selectionBase[0].style.bottom.replace("%", "")));
             adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_DOWN) ? (yOffset - step) : (yOffset + step);
             yOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.v = yOffset / 100;

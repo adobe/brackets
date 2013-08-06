@@ -281,6 +281,18 @@ define(function (require, exports, module) {
                 
             });
             
+            describe("edit batching", function () {
+                it("should combine multiple edits within the same inline editor into a single undo in the host editor", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        inline.colorEditor.setColorFromString("#010101");
+                        inline.colorEditor.setColorFromString("#123456");
+                        inline.colorEditor.setColorFromString("#bdafe0");
+                        testDocument._masterEditor._codeMirror.undo();
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#abcdef");
+                    });
+                });
+            });
         });
         
         describe("Inline editor - HTML", function () {
@@ -381,54 +393,56 @@ define(function (require, exports, module) {
             describe("simple load/commit", function () {
             
                 it("should load the initial color correctly", function () {
-                    var colorStr = "rgba(77, 122, 31, 0.5)";
+                    var colorStr    = "rgba(77, 122, 31, 0.5)";
+                    var colorStrRgb = "rgb(77, 122, 31)";
                     
                     runs(function () {
                         makeUI(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
     
                         // Not sure why the tolerances need to be larger for these.
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, 90, 2.0);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, 90, 2.0);
     
-                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStr)).toBe(true);
+                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStrRgb)).toBe(true);
                     });
 
                     // Need to do these on a timeout since we can't seem to read back CSS positions synchronously.
                     waits(1);
                     
                     runs(function () {
-                        checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
-                        checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$hueSelector[0].style.bottom, 25);
+                        checkPercentageNear(colorEditor.$opacitySelector[0].style.bottom, 50);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
                 
                 it("should load a committed color correctly", function () {
                     var colorStr = "rgba(77, 122, 31, 0.5)";
+                    var colorStrRgb = "rgb(77, 122, 31)";
                     
                     runs(function () {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
-                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStr)).toBe(true);
+                        expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStrRgb)).toBe(true);
                     });
 
                     // Need to do these on a timeout since we can't seem to read back CSS positions synchronously.
                     waits(1);
 
                     runs(function () {
-                        checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
-                        checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$hueSelector[0].style.bottom, 25);
+                        checkPercentageNear(colorEditor.$opacitySelector[0].style.bottom, 50);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
     
@@ -731,11 +745,11 @@ define(function (require, exports, module) {
                     
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
 
-                    var orig = getParam();
+                    var before = getParam();
                     colorEditor[opts.item].trigger(makeKeyEvent(opts));
                     
-                    var final = getParam();
-                    checkNear(final, orig + opts.delta, opts.tolerance);
+                    var after = getParam();
+                    checkNear(after, before + opts.delta, opts.tolerance);
                 }
                 
                 /**
@@ -1267,7 +1281,8 @@ define(function (require, exports, module) {
                 });
                 it("should normalize a string to match tinycolor's format", function () {
                     makeUI("#abcdef");
-                    expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
+                    //Percentage based colors are now supported: the following test is obsolete
+                    //expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
                     expect(colorEditor._normalizeColorString("rgb(10,20,   30)")).toBe("rgb(10, 20, 30)");
                 });
             });

@@ -63,42 +63,47 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetReorder -- When the indexes of 2 files are swapped. Listener receives no arguments.
- *    - workingSetSort -- When the workingSet array is sorted. Listener receives no arguments.
- *      TODO (#2076): combine workingSetSort & workingSetReorder since they convey nearly identical information.
+ *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *      Listener receives no arguments.
+ * 
+ *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
+ *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
+ * 
+ * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var DocumentModule      = require("document/Document"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSyncManager     = require("project/FileSyncManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
+        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands");
-    
-    /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
-    
+        Commands            = require("command/Commands"),
+        LanguageManager     = require("language/LanguageManager"),
+        Strings             = require("strings");
+
     /**
      * @private
      * @see DocumentManager.getCurrentDocument()
@@ -121,6 +126,12 @@ define(function (require, exports, module) {
         return _currentDocument;
     }
     
+    /**
+     * @private
+     * Random path prefix for untitled documents
+     */
+    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
+
     /**
      * @private
      * @type {Array.<FileEntry>}
@@ -149,12 +160,6 @@ define(function (require, exports, module) {
     var _documentNavPending = false;
     
     /**
-     * While true, allow preferences to be saved
-     * @type {boolean}
-     */
-    var _isProjectChanging = false;
-    
-    /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
@@ -174,8 +179,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet;
-        // TODO: (issue #297) return a clone to prevent meddling?
+        return _workingSet.slice(0);
     }
 
     /** 
@@ -226,17 +230,39 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToWorkingSet(file) {
+    function addToWorkingSet(file, index, forceRedraw) {
+        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(file.fullPath) !== -1) {
+        var curIndex = findInWorkingSet(file.fullPath);
+        if (curIndex !== -1) {
+            // File is in working set, but not at the specifically requested index - only need to reorder
+            if (forceRedraw || (indexRequested && curIndex !== index)) {
+                var entry = _workingSet.splice(curIndex, 1)[0];
+                _workingSet.splice(index, 0, entry);
+                $(exports).triggerHandler("workingSetSort");
+            }
             return;
         }
         
         // Add to _workingSet making sure we store a different instance from the
-        // one in the Document. See issue #1971 for more details.        
-        file = new NativeFileSystem.FileEntry(file.fullPath);
-        _workingSet.push(file);
+        // one in the Document. See issue #1971 for more details.
+        if (file instanceof NativeFileSystem.InaccessibleFileEntry) {
+            file = new NativeFileSystem.InaccessibleFileEntry(file.fullPath, file.mtime);
+        } else {
+            file = new NativeFileSystem.FileEntry(file.fullPath);
+        }
+        if (!indexRequested) {
+            // If no index is specified, just add the file to the end of the working set.
+            _workingSet.push(file);
+        } else {
+            // If specified, insert into the working set list at this 0-based index
+            _workingSet.splice(index, 0, file);
+        }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -249,9 +275,12 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.unshift(file);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", file);
+        if (!indexRequested) {
+            index = _workingSet.length - 1;
+        }
+        $(exports).triggerHandler("workingSetAdd", [file, index]);
     }
-
+    
     /**
      * Adds the given file list to the end of the working set list.
      * Does not change which document is currently open in the editor.
@@ -289,11 +318,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file.
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!FileEntry} file
+     * @param {boolean=} true to suppress redraw after removal
      */
-    function removeFromWorkingSet(file) {
+    function removeFromWorkingSet(file, suppressRedraw) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -306,7 +337,7 @@ define(function (require, exports, module) {
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", file);
+        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
     }
 
     /**
@@ -339,8 +370,8 @@ define(function (require, exports, module) {
     
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!number} index - old file index
-     * @param {!number} index - new file index
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
@@ -351,14 +382,14 @@ define(function (require, exports, module) {
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
             
-            // Dispatch event
-            $(exports).triggerHandler("workingSetReorder");
+            $(exports).triggerHandler("workingSetSort");
+            $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -368,6 +399,7 @@ define(function (require, exports, module) {
         _workingSet.sort(compareFn);
         $(exports).triggerHandler("workingSetSort");
     }
+    
     
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
@@ -395,7 +427,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
@@ -446,9 +478,9 @@ define(function (require, exports, module) {
 
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
-        // If file not within project tree, add it to working set right now (don't wait for it to
-        // become dirty)
-        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+        // If file is untitled or otherwise not within project tree, add it to
+        // working set right now (don't wait for it to become dirty)
+        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
             addToWorkingSet(doc.file);
         }
         
@@ -479,17 +511,18 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
-     * expected that the UI has already confirmed with the user before calling this.
+     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
      * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
      */
-    function closeFullEditor(file) {
+    function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
@@ -501,7 +534,7 @@ define(function (require, exports, module) {
             }
             
             // Switch editor to next document (or blank it out)
-            if (nextFile) {
+            if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
                     .done(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
@@ -553,382 +586,6 @@ define(function (require, exports, module) {
         });
     }
     
-    
-    /**
-     * @constructor
-     * Model for the contents of a single file and its current modification state.
-     * See DocumentManager documentation for important usage notes.
-     *
-     * Document dispatches these events:
-     *
-     * change -- When the text of the editor changes (including due to undo/redo). 
-     *
-     *        Passes ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
-     *        of change record objects. Each change record looks like:
-     *
-     *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
-     *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
-     *              text: array of lines of text to replace existing text,
-     *              next: next change record in the linked list, or undefined if this is the last record }
-     *      
-     *        The line and ch offsets are both 0-based.
-     *
-     *        The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
-     *        an insertion of new content (without replacing existing content) is expressed by a range
-     *        where from and to are the same.
-     *
-     *        If "from" and "to" are undefined, then this is a replacement of the entire text content.
-     *
-     *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
-     *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
-     *        event.
-     *  
-     *        (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
-     *        it an ordinary array)
-     *
-     * deleted -- When the file for this document has been deleted. All views onto the document should
-     *      be closed. The document will no longer be editable or dispatch "change" events.
-     *
-     * @param {!FileEntry} file  Need not lie within the project.
-     * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
-     * @param {!string} rawText  Text content of the file.
-     */
-    function Document(file, initialTimestamp, rawText) {
-        if (!(this instanceof Document)) {  // error if constructor called without 'new'
-            throw new Error("Document constructor must be called with 'new'");
-        }
-        if (_openDocuments[file.fullPath]) {
-            throw new Error("Creating a document when one already exists, for: " + file);
-        }
-        
-        this.file = file;
-        this.refreshText(rawText, initialTimestamp);
-        
-        // This is a good point to clean up any old dangling Documents
-        _gcDocuments();
-    }
-    
-    /**
-     * Number of clients who want this Document to stay alive. The Document is listed in
-     * DocumentManager._openDocuments whenever refCount > 0.
-     */
-    Document.prototype._refCount = 0;
-    
-    /**
-     * The FileEntry for this document. Need not lie within the project.
-     * @type {!FileEntry}
-     */
-    Document.prototype.file = null;
-    
-    /**
-     * Whether this document has unsaved changes or not.
-     * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
-     * @type {boolean}
-     */
-    Document.prototype.isDirty = false;
-    
-    /**
-     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
-     * it means the file was modified by an app other than Brackets.
-     * @type {!Date}
-     */
-    Document.prototype.diskTimestamp = null;
-    
-    /**
-     * The text contents of the file, or null if our backing model is _masterEditor.
-     * @type {?string}
-     */
-    Document.prototype._text = null;
-    
-    /**
-     * Editor object representing the full-size editor UI for this document. May be null if Document
-     * has not yet been modified or been the currentDocument; in that case, our backing model is the
-     * string _text.
-     * @type {?Editor}
-     */
-    Document.prototype._masterEditor = null;
-    
-    /**
-     * The content's line-endings style. If a Document is created on empty text, or text with
-     * inconsistent line endings, defaults to the current platform's standard endings.
-     * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
-     */
-    Document.prototype._lineEndings = null;
-
-    /** Add a ref to keep this Document alive */
-    Document.prototype.addRef = function () {
-        //console.log("+++REF+++ "+this);
-        
-        if (this._refCount === 0) {
-            //console.log("+++ adding to open list");
-            if (_openDocuments[this.file.fullPath]) {
-                console.error("Document for this path already in _openDocuments!");
-                return;
-            }
-
-            _openDocuments[this.file.fullPath] = this;
-            $(exports).triggerHandler("afterDocumentCreate", this);
-        }
-        this._refCount++;
-    };
-    /** Remove a ref that was keeping this Document alive */
-    Document.prototype.releaseRef = function () {
-        //console.log("---REF--- "+this);
-
-        this._refCount--;
-        if (this._refCount < 0) {
-            console.error("Document ref count has fallen below zero!");
-            return;
-        }
-        if (this._refCount === 0) {
-            //console.log("--- removing from open list");
-            if (!_openDocuments[this.file.fullPath]) {
-                console.error("Document with references was not in _openDocuments!");
-                return;
-            }
-
-            $(exports).triggerHandler("beforeDocumentDelete", this);
-            delete _openDocuments[this.file.fullPath];
-        }
-    };
-    
-    /**
-     * Attach a backing Editor to the Document, enabling setText() to be called. Assumes Editor has
-     * already been initialized with the value of getText(). ONLY Editor should call this (and only
-     * when EditorManager has told it to act as the master editor).
-     * @param {!Editor} masterEditor
-     */
-    Document.prototype._makeEditable = function (masterEditor) {
-        if (this._masterEditor) {
-            console.error("Document is already editable");
-        } else {
-            this._text = null;
-            this._masterEditor = masterEditor;
-            $(masterEditor).on("change", this._handleEditorChange.bind(this));
-        }
-    };
-    
-    /**
-     * Detach the backing Editor from the Document, disallowing setText(). The text content is
-     * stored back onto _text so other Document clients continue to have read-only access. ONLY
-     * Editor.destroy() should call this.
-     */
-    Document.prototype._makeNonEditable = function () {
-        if (!this._masterEditor) {
-            console.error("Document is already non-editable");
-        } else {
-            // _text represents the raw text, so fetch without normalized line endings
-            this._text = this.getText(true);
-            this._masterEditor = null;
-        }
-    };
-    
-    /**
-     * Guarantees that _masterEditor is non-null. If needed, asks EditorManager to create a new master
-     * editor bound to this Document (which in turn causes Document._makeEditable() to be called).
-     * Should ONLY be called by Editor and Document.
-     */
-    Document.prototype._ensureMasterEditor = function () {
-        if (!this._masterEditor) {
-            EditorManager._createFullEditorForDocument(this);
-        }
-    };
-    
-    /**
-     * Returns the document's current contents; may not be saved to disk yet. Whenever this
-     * value changes, the Document dispatches a "change" event.
-     *
-     * @param {boolean=} useOriginalLineEndings If true, line endings in the result depend on the
-     *      Document's line endings setting (based on OS & the original text loaded from disk).
-     *      If false, line endings are always \n (like all the other Document text getter methods).
-     * @return {string}
-     */
-    Document.prototype.getText = function (useOriginalLineEndings) {
-        if (this._masterEditor) {
-            // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
-            // endings preferred by the document, if necessary
-            var codeMirrorText = this._masterEditor._codeMirror.getValue();
-            if (useOriginalLineEndings) {
-                if (this._lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
-                    return codeMirrorText.replace(/\n/g, "\r\n");
-                }
-            }
-            return codeMirrorText;
-            
-        } else {
-            // Optimized path that doesn't require creating master editor
-            if (useOriginalLineEndings) {
-                return this._text;
-            } else {
-                return this._text.replace(/\r\n/g, "\n");
-            }
-        }
-    };
-    
-    /**
-     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style.
-     * @param {!string} text The text to replace the contents of the document with.
-     */
-    Document.prototype.setText = function (text) {
-        this._ensureMasterEditor();
-        this._masterEditor._codeMirror.setValue(text);
-        // _handleEditorChange() triggers "change" event
-    };
-    
-    /**
-     * Sets the contents of the document. Treated as reloading the document from disk: the document
-     * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
-     * the text's line-ending style. CAN be called even if there is no backing editor.
-     * @param {!string} text The text to replace the contents of the document with.
-     * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
-     */
-    Document.prototype.refreshText = function (text, newTimestamp) {
-        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
-
-        if (this._masterEditor) {
-            this._masterEditor._resetText(text);
-            // _handleEditorChange() triggers "change" event for us
-        } else {
-            this._text = text;
-            // We fake a change record here that looks like CodeMirror's text change records, but
-            // omits "from" and "to", by which we mean the entire text has changed.
-            // TODO: Dumb to split it here just to join it again in the change handler, but this is
-            // the CodeMirror change format. Should we document our change format to allow this to
-            // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, {text: text.split(/\r?\n/)}]);
-        }
-        this._markClean();
-        this.diskTimestamp = newTimestamp;
-        
-        // Sniff line-ending style
-        this._lineEndings = FileUtils.sniffLineEndings(text);
-        if (!this._lineEndings) {
-            this._lineEndings = FileUtils.getPlatformLineEndings();
-        }
-        
-        $(exports).triggerHandler("documentRefreshed", this);
-
-        PerfUtils.addMeasurement(perfTimerName);
-    };
-    
-    /**
-     * Adds, replaces, or removes text. If a range is given, the text at that range is replaced with the
-     * given new text; if text == "", then the entire range is effectively deleted. If 'end' is omitted,
-     * then the new text is inserted at that point and all existing text is preserved. Line endings will
-     * be rewritten to match the document's current line-ending style.
-     * @param {!string} text  Text to insert or replace the range with
-     * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
-     * @param {?{line:number, ch:number}} end  End of range, exclusive; optional
-     */
-    Document.prototype.replaceRange = function (text, start, end) {
-        this._ensureMasterEditor();
-        this._masterEditor._codeMirror.replaceRange(text, start, end);
-        // _handleEditorChange() triggers "change" event
-    };
-    
-    /**
-     * Returns the characters in the given range. Line endings are normalized to '\n'.
-     * @param {!{line:number, ch:number}} start  Start of range, inclusive
-     * @param {!{line:number, ch:number}} end  End of range, exclusive
-     * @return {!string}
-     */
-    Document.prototype.getRange = function (start, end) {
-        this._ensureMasterEditor();
-        return this._masterEditor._codeMirror.getRange(start, end);
-    };
-    
-    /**
-     * Returns the text of the given line (excluding any line ending characters)
-     * @param {number} Zero-based line number
-     * @return {!string}
-     */
-    Document.prototype.getLine = function (lineNum) {
-        this._ensureMasterEditor();
-        return this._masterEditor._codeMirror.getLine(lineNum);
-    };
-    
-    /**
-     * Batches a series of related Document changes. Repeated calls to replaceRange() should be wrapped in a
-     * batch for efficiency. Begins the batch, calls doOperation(), ends the batch, and then returns.
-     * @param {function()} doOperation
-     */
-    Document.prototype.batchOperation = function (doOperation) {
-        this._ensureMasterEditor();
-        
-        var self = this;
-        this._masterEditor._codeMirror.compoundChange(function () {
-            self._masterEditor._codeMirror.operation(doOperation);
-        });
-    };
-    
-    /**
-     * Handles changes from the master backing Editor. Changes are triggered either by direct edits
-     * to that Editor's UI, OR by our setText()/refreshText() methods.
-     * @private
-     */
-    Document.prototype._handleEditorChange = function (event, editor, changeList) {
-        // On any change, mark the file dirty. In the future, we should make it so that if you
-        // undo back to the last saved state, we mark the file clean.
-        var wasDirty = this.isDirty;
-        this.isDirty = editor._codeMirror.isDirty();
-        
-        // If file just became dirty, notify listeners, and add it to working set (if not already there)
-        if (wasDirty !== this.isDirty) {
-            $(exports).triggerHandler("dirtyFlagChange", [this]);
-            addToWorkingSet(this.file);
-        }
-        
-        // Notify that Document's text has changed
-        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockDocument(). In the
-        // future, we should fix things so that we either don't need mock documents or that this
-        // is factored so it will just run in both.
-        $(this).triggerHandler("change", [this, changeList]);
-    };
-    
-    /**
-     * @private
-     */
-    Document.prototype._markClean = function () {
-        this.isDirty = false;
-        if (this._masterEditor) {
-            this._masterEditor._codeMirror.markClean();
-        }
-        $(exports).triggerHandler("dirtyFlagChange", this);
-    };
-    
-    /** 
-     * Called when the document is saved (which currently happens in DocumentCommandHandlers). Marks the
-     * document not dirty and notifies listeners of the save.
-     */
-    Document.prototype.notifySaved = function () {
-        if (!this._masterEditor) {
-            console.log("### Warning: saving a Document that is not modifiable!");
-        }
-        
-        this._markClean();
-        $(exports).triggerHandler("documentSaved", this);
-        
-        // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
-        var thisDoc = this;
-        this.file.getMetadata(
-            function (metadata) {
-                thisDoc.diskTimestamp = metadata.modificationTime;
-            },
-            function (error) {
-                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
-            }
-        );
-    };
-    
-    /* (pretty toString(), to aid debugging) */
-    Document.prototype.toString = function () {
-        var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
-        var editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
-        var refInfo = " refs:" + this._refCount;
-        return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
-    };
-    
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
@@ -957,32 +614,41 @@ define(function (require, exports, module) {
         } else {
             var result = new $.Deferred(),
                 promise = result.promise();
-            
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
+            
+            var fileEntry;
+            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
+                result.reject();
+            } else {
+                // log this document's Promise as pending
+                getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new Document(fileEntry, readTimestamp, rawText);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+                fileEntry = new NativeFileSystem.FileEntry(fullPath);
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            }
+            
+            // This is a good point to clean up any old dangling Documents
+            result.done(_gcDocuments);
             
             return promise;
         }
@@ -1010,6 +676,22 @@ define(function (require, exports, module) {
         return _openDocuments[fullPath];
     }
     
+    /**
+     * Creates an untitled document. The associated FileEntry has a fullPath
+     * looks like /some-random-string/Untitled-counter.fileExt.
+     *
+     * @param {number} counter - used in the name of the new Document's FileEntry
+     * @param {string} fileExt - file extension of the new Document's FileEntry
+     * @return {Document} - a new untitled Document
+     */
+    function createUntitledDocument(counter, fileExt) {
+        var filename = Strings.UNTITLED + "-" + counter + fileExt,
+            fullPath = _untitledDocumentPath + "/" + filename,
+            now = new Date(),
+            fileEntry = new NativeFileSystem.InaccessibleFileEntry(fullPath, now);
+        
+        return new DocumentModule.Document(fileEntry, now, "");
+    }
     
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
@@ -1023,10 +705,11 @@ define(function (require, exports, module) {
      * sort of "project file model," making this just a private event handler.
      *
      * @param {!FileEntry} file
+     * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
-    function notifyFileDeleted(file) {
+    function notifyFileDeleted(file, skipAutoSelect) {
         // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file);
+        closeFullEditor(file, skipAutoSelect);
         
         // Notify all other editors to close as well
         var doc = getOpenDocumentForPath(file.fullPath);
@@ -1043,14 +726,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Preferences callback. Saves the document file paths for the working set.
+     * Preferences callback. Saves the state of the working set.
      */
     function _savePreferences() {
-
-        if (_isProjectChanging) {
-            return;
-        }
-        
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -1063,13 +741,20 @@ define(function (require, exports, module) {
         }
 
         workingSet.forEach(function (file, index) {
-            // flag the currently active editor
-            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-
-            files.push({
-                file: file.fullPath,
-                active: isActive
-            });
+            // Do not persist untitled document paths
+            if (!(file instanceof NativeFileSystem.InaccessibleFileEntry)) {
+                // flag the currently active editor
+                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+                
+                // save editor UI state for just the working set
+                var viewState = EditorManager._getViewState(file.fullPath);
+                
+                files.push({
+                    file: file.fullPath,
+                    active: isActive,
+                    viewState: viewState
+                });
+            }
         });
 
         // append file root to make file list unique for each project
@@ -1078,38 +763,21 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Handle beforeProjectClose event
-     */
-    function _beforeProjectClose() {
-        _savePreferences();
-
-        // When app is shutdown via shortcut key, the command goes directly to the
-        // app shell, so we can't reliably fire the beforeProjectClose event on
-        // app shutdown. To compensate, we listen for currentDocumentChange,
-        // workingSetAdd, and workingSetRemove events so that the prefs for
-        // last project used get updated. But when switching projects, after
-        // the beforeProjectChange event gets fired, DocumentManager.closeAll()
-        // causes workingSetRemove event to get fired and update the prefs to an empty
-        // list. So, temporarily (until projectOpen event) disallow saving prefs.
-        _isProjectChanging = true;
-    }
-
-    /**
-     * @private
      * Initializes the working set.
      */
     function _projectOpen(e) {
-        _isProjectChanging = false;
-        
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
+        
+        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
         if (!files) {
             return;
         }
 
         var filesToOpen = [],
+            viewStates = {},
             activeFile;
 
         // Add all files to the working set without verifying that
@@ -1119,8 +787,14 @@ define(function (require, exports, module) {
             if (value.active) {
                 activeFile = value.file;
             }
+            if (value.viewState) {
+                viewStates[value.file] = value.viewState;
+            }
         });
         addListToWorkingSet(filesToOpen);
+        
+        // Allow for restoring saved editor UI state
+        EditorManager._resetViewStates(viewStates);
 
         // Initialize the active editor
         if (!activeFile && _workingSet.length > 0) {
@@ -1143,50 +817,121 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
-        
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                if (path.indexOf(oldName) === 0) {
-                    // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
-                    
-                    _openDocuments[newKey] = _openDocuments[path];
-                    keysToDelete.push(path);
-                    
-                    // Update document file
-                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName);
-                        
-                    if (!isFolder) {
-                        // If the path name is a file, there can only be one matched entry in the open document
-                        // list, which we just updated. Break out of the for .. in loop. 
-                        break;
-                    }
-                }
+        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                // Copy value to new key
+                var newKey = path.replace(oldName, newName);
+                _openDocuments[newKey] = doc;
+                
+                keysToDelete.push(path);
+                
+                // Update document file
+                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                doc._notifyFilePathChanged();
             }
-        }
+        });
+        
         // Delete the old keys
-        for (i = 0; i < keysToDelete.length; i++) {
-            delete _openDocuments[keysToDelete[i]];
-        }
+        keysToDelete.forEach(function (fullPath) {
+            delete _openDocuments[fullPath];
+        });
         
         // Update working set
-        for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName);
-        }
+        _workingSet.forEach(function (fileEntry) {
+            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
     
+    /**
+     * Called after a file or folder has been deleted. This function is responsible 
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} path The path of the file/folder that has been deleted
+     */
+    function notifyPathDeleted(path) {
+        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+           in the working set and notifying the user of any unsaved changes. */
+        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+        
+        // Send a "pathDeleted" event. This will trigger the views to update.
+        $(exports).triggerHandler("pathDeleted", path);
+    }
+    
+    /**
+     * @private
+     * Update document
+     */
+    function _handleLanguageAdded(event, language) {
+        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+            // No need to look at the new language if this document has one already
+            if (doc.getLanguage().isFallbackLanguage()) {
+                doc._updateLanguage();
+            }
+        });
+    }
+
+    /**
+     * @private
+     * Update document
+     */
+    function _handleLanguageModified(event, language) {
+        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+            var docLanguage = doc.getLanguage();
+            // A modified language can affect a document
+            // - if its language was modified
+            // - if the document doesn't have a language yet and its file extension was added to the modified language
+            if (docLanguage === language || docLanguage.isFallbackLanguage()) {
+                doc._updateLanguage();
+            }
+        });
+    }
+    
+    // For compatibility
+    $(DocumentModule)
+        .on("_afterDocumentCreate", function (event, doc) {
+            if (_openDocuments[doc.file.fullPath]) {
+                console.error("Document for this path already in _openDocuments!");
+                return true;
+            }
+
+            _openDocuments[doc.file.fullPath] = doc;
+            $(exports).triggerHandler("afterDocumentCreate", doc);
+        })
+        .on("_beforeDocumentDelete", function (event, doc) {
+            if (!_openDocuments[doc.file.fullPath]) {
+                console.error("Document with references was not in _openDocuments!");
+                return true;
+            }
+
+            $(exports).triggerHandler("beforeDocumentDelete", doc);
+            delete _openDocuments[doc.file.fullPath];
+        })
+        .on("_documentRefreshed", function (event, doc) {
+            $(exports).triggerHandler("documentRefreshed", doc);
+        })
+        .on("_dirtyFlagChange", function (event, doc) {
+            $(exports).triggerHandler("dirtyFlagChange", doc);
+            if (doc.isDirty) {
+                addToWorkingSet(doc.file);
+            }
+        })
+        .on("_documentSaved", function (event, doc) {
+            $(exports).triggerHandler("documentSaved", doc);
+        });
+    
+
     // Define public API
-    exports.Document                    = Document;
+    exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.createUntitledDocument      = createUntitledDocument;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
@@ -1204,15 +949,22 @@ define(function (require, exports, module) {
     exports.closeAll                    = closeAll;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
+    exports.notifyPathDeleted           = notifyPathDeleted;
 
     // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder workingSetSort", _savePreferences);
+    _prefs = PreferencesManager.getPreferenceStorage(module);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle project change events
-    $(ProjectManager).on("projectOpen", _projectOpen);
-    $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
+    var $ProjectManager = $(ProjectManager);
+    $ProjectManager.on("projectOpen", _projectOpen);
+    $ProjectManager.on("beforeProjectClose beforeAppClose", _savePreferences);
+    
+    // Handle Language change events
+    $(LanguageManager).on("languageAdded", _handleLanguageAdded);
+    $(LanguageManager).on("languageModified", _handleLanguageModified);
 });

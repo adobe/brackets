@@ -1,0 +1,6 @@
+{{0}}div {
+    {{1}}border: 1px solid black{{2}};
+    {{3}}does-not-exist: 0;
+    /* {{5}}color: #000 */
+    background: border{{4}};
+}
