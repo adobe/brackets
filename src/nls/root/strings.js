@@ -125,7 +125,7 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "\"{4}\" found {5} &mdash; {0} {1} in {2} {3}:",
+    "FIND_IN_FILES_TITLE"               : "\"{4}\" found {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
