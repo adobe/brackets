@@ -33,59 +33,10 @@
          nonstandard WebKit-specific syntax. -->
     <link rel="stylesheet" href="styles/quiet-scrollbars.css">
 
-    <!-- Warn about failed cross origin requests in Chrome -->
-    <script type="application/javascript">
-        /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-        /*global brackets: true */
-        (function () {
-            "use strict";
-            
-            // Function to test whether a given error represents an illegal cross origin access
-            var testCrossOriginError;
-            
-            if (navigator.userAgent.search(" Chrome/") !== -1) {
-                // Chrome support
-                testCrossOriginError = function (message, url, line) {
-                    return url === "" && line === 0 && message === "Script error.";
-                };
-            } else if (navigator.userAgent.slice(0, 6) === 'Opera/') {
-                // Opera support
-                testCrossOriginError = function (message, url, line) {
-                    return message === "Uncaught exception: DOMException: NETWORK_ERR";
-                };
-            }
-            
-            // Abort if running in the shell, running on a server or not running in a supported and affected browser
-            if (typeof (brackets) !== "undefined"
-                    || document.location.href.substr(0, 7) !== "file://"
-                    || !testCrossOriginError) {
-                return;
-            }
-            
-            // Remember the current error handler to restore it once we're done
-            var previousErrorHandler = window.onerror;
-            
-            // Our error handler
-            function handleError(message, url, line) {
-                // Ignore this error if it does not look like the rather vague cross origin error in Chrome
-                // Chrome will print it to the console anyway
-                if (!testCrossOriginError(message, url, line)) {
-                    if (previousErrorHandler) {
-                        return previousErrorHandler(message, url, line);
-                    }
-                    return;
-                }
-                
-                // Show an error message
-                alert("Oops! This application doesn't run in browsers yet.\n\nIt is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the following repo to run this application:\n\ngithub.com/adobe/brackets-shell");
-                
-                // Restore the original handler for later errors
-                window.onerror = previousErrorHandler;
-            }
+    <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
 
-            // Install our error handler
-            window.onerror = handleError;
-        }());
+    <!-- Warn about failed cross origin requests in Chrome -->
+    <script type="application/javascript" src="xorigin.js">
     </script>
 
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
@@ -120,34 +71,7 @@
     <script src="thirdparty/requirejs/require.js" data-main="brackets"></script>
 
     <!-- Verify that all dependencies are loaded. -->
-    <script>
-        window.setTimeout(function () {
-            var deps = { "Mustache": window.Mustache, "jQuery": window.$, "CodeMirror": window.CodeMirror, "RequireJS": window.require };
-            var key, allOK = true;
-            for (key in deps) {
-                if (!deps[key]) {
-                    allOK = false;
-                    break;
-                }
-            }
-            if (allOK) {
-                return;
-            }
-            document.write("<h1>Missing libraries</h1>");
-            document.write("<p>Oops! One or more required libraries could not be found.</p>");
-            document.write("<ul>");
-            for (key in deps) {
-                if (!deps[key]) {
-                    document.write("<li>" + key + "</li>");
-                }
-            }
-            document.write("</ul>");
-            document.write("<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>");
-            document.write("<pre>git submodule update --init</pre>");
-            document.write("<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>");
-            document.write("<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>");
-        }, 1000);
-    </script>
+    <script src="dependencies.js"></script>
 
 </body>
 </html>

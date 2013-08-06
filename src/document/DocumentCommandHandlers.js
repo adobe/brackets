@@ -328,13 +328,13 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the working set.
-     * @param {!{fullPath:string, index:number=}} File to open and optional position in the working
-     *   set list (defaults to last)
+     * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
+     *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index);
+            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
         });
     }
 
@@ -600,23 +600,23 @@ define(function (require, exports, module) {
             
             // Replace old document with new one in open editor & working set
             function openNewFile() {
-                var fileViewControllerPromise;
+                var fileOpenPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    fileViewControllerPromise = FileViewController
+                    // If selection is in the tree, leave working set unchanged - even if orig file is in the list
+                    fileOpenPromise = FileViewController
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
-                } else { // Working set has file selection focus
-                    // replace original file in working set with new file
+                } else {
+                    // If selection is in working set, replace orig item in place with the new file
                     var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
-                    //  remove old file from working set.
+                    // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
                     DocumentManager.removeFromWorkingSet(doc.file, true);
-                    // add new file to working set
-                    fileViewControllerPromise = FileViewController
-                        .addToWorkingSetAndSelect(path, FileViewController.WORKING_SET_VIEW, index);
+                    // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
+                    fileOpenPromise = handleFileAddToWorkingSet({fullPath: path, index: index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
-                fileViewControllerPromise.always(function () {
+                fileOpenPromise.always(function () {
                     _configureEditorAndResolve();
                 });
             }
@@ -660,6 +660,11 @@ define(function (require, exports, module) {
             origPath = doc.file.fullPath;
             // If the document is an untitled document, we should default to project root.
             if (doc.isUntitled()) {
+                // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
+                //   in the editor, so that if we're, for example, saving several files (ie. Save All),
+                //   then the user can visually tell which document we're currently prompting them to save.
+                DocumentManager.setCurrentDocument(doc);
+
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
@@ -755,18 +760,19 @@ define(function (require, exports, module) {
     function handleFileSaveAs(commandData) {
         // Default to current document if doc is null
         var doc = null,
-            activeEditor,
             settings;
         
         if (commandData) {
             doc = commandData.doc;
         } else {
-            activeEditor = EditorManager.getActiveEditor();
-            doc = activeEditor.document;
-            settings = {};
-            settings.selection = activeEditor.getSelection();
-            settings.cursorPos = activeEditor.getCursorPos();
-            settings.scrollPos = activeEditor.getScrollPos();
+            var activeEditor = EditorManager.getActiveEditor();
+            if (activeEditor) {
+                doc = activeEditor.document;
+                settings = {};
+                settings.selection = activeEditor.getSelection();
+                settings.cursorPos = activeEditor.getCursorPos();
+                settings.scrollPos = activeEditor.getScrollPos();
+            }
         }
             
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
@@ -1150,7 +1156,35 @@ define(function (require, exports, module) {
     
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
-        ProjectManager.deleteItem(entry);
+        if (entry.isDirectory) {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_EXT_DELETED,
+                Strings.CONFIRM_FOLDER_DELETE_TITLE,
+                StringUtils.format(
+                    Strings.CONFIRM_FOLDER_DELETE,
+                    StringUtils.breakableUrl(entry.name)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.DELETE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK) {
+                        ProjectManager.deleteItem(entry);
+                    }
+                });
+        } else {
+            ProjectManager.deleteItem(entry);
+        }
     }
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */

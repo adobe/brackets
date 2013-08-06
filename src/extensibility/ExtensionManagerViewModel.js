@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
         Package          = require("extensibility/Package"),
-        registry_utils   = require("extensibility/registry_utils");
+        registry_utils   = require("extensibility/registry_utils"),
+        Strings          = require("strings");
 
     /**
      * @private
@@ -54,7 +55,9 @@ define(function (require, exports, module) {
         this._handleStatusChange = this._handleStatusChange.bind(this);
         
         // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", this._handleStatusChange);
+        $(ExtensionManager)
+            .on("statusChange." + this.source, this._handleStatusChange)
+            .on("registryUpdate." + this.source, this._handleStatusChange);
     }
     
     /**
@@ -101,10 +104,28 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
     /**
+     * @type {string}
+     * Info message to display to the user when listing extensions
+     */
+    ExtensionManagerViewModel.prototype.infoMessage = null;
+    
+    /**
+     * @type {string}
+     * An optional message to display to the user
+     */
+    ExtensionManagerViewModel.prototype.message = null;
+    
+    /**
+     * @private {$.Promise}
+     * Internal use only to track when initialization fails, see usage in _updateMessage.
+     */
+    ExtensionManagerViewModel.prototype._initializeFromSourcePromise = null;
+    
+    /**
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
-        $(ExtensionManager).off("statusChange", this._handleStatusChange);
+        $(ExtensionManager).off("." + this.source);
     };
     
     /**
@@ -128,7 +149,13 @@ define(function (require, exports, module) {
      * Initializes the model from the source.
      */
     ExtensionManagerViewModel.prototype.initialize = function () {
-        return this._initializeFromSource();
+        var self = this;
+
+        this._initializeFromSourcePromise = this._initializeFromSource().always(function () {
+            self._updateMessage();
+        });
+        
+        return this._initializeFromSourcePromise;
     };
     
     /**
@@ -171,7 +198,24 @@ define(function (require, exports, module) {
         
         this._lastQuery = query;
         this.filterSet = newFilterSet;
+
+        this._updateMessage();
+
         $(this).triggerHandler("filter");
+    };
+
+    /**
+     * @private
+     * Updates an optional message displayed to the user along with the extension list.
+     */
+    ExtensionManagerViewModel.prototype._updateMessage = function () {
+        if (this._initializeFromSourcePromise && this._initializeFromSourcePromise.state() === "rejected") {
+            this.message = Strings.EXTENSION_MANAGER_ERROR_LOAD;
+        } else if (this.filterSet && this.filterSet.length === 0) {
+            this.message = this.sortedFullSet && this.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS;
+        } else {
+            this.message = null;
+        }
     };
     
     /**
@@ -228,6 +272,7 @@ define(function (require, exports, module) {
      */
     function RegistryViewModel() {
         ExtensionManagerViewModel.call(this);
+        this.infoMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
     }
     
     RegistryViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
@@ -259,6 +304,11 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
+            })
+            .fail(function () {
+                self.extensions = [];
+                self.sortedFullSet = [];
+                self.filterSet = [];
             });
     };
     

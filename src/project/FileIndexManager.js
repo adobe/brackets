@@ -56,9 +56,17 @@ define(function (require, exports, module) {
     /**
      * Tracks whether _indexList should be considered dirty and invalid. Calls that access
      * any data in _indexList should call syncFileIndex prior to accessing the data.
+     * Note that if _scanDeferred is non-null, the index is dirty even if _indexListDirty is false.
      * @type {boolean}
      */
     var _indexListDirty = true;
+    
+    /**
+     * A serial number that we use to figure out if a scan has been restarted. When this
+     * changes, any outstanding async callbacks for previous scans should no-op.
+     * @type {number}
+     */
+    var _scanID = 0;
 
     /**
      * Store whether the index manager has exceeded the limit so the warning dialog only
@@ -139,8 +147,14 @@ define(function (require, exports, module) {
         if (!ProjectManager.shouldShow(entry)) {
             return;
         }
-
+        
         var fileInfo = new FileInfo(entry);
+        
+        // skip zipped/binary files
+        if (ProjectManager.isBinaryFile(fileInfo.name)) {
+            return;
+        }
+        
         //console.log(entry.name);
   
         CollectionUtils.forEach(_indexList, function (index, indexName) {
@@ -162,8 +176,20 @@ define(function (require, exports, module) {
         );
     }
 
+    /**
+     * Clears the fileInfo array for all the indexes in _indexList
+     * @private
+     */
+    function _clearIndexes() {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
+            index.fileInfos = [];
+        });
+    }
+
     /* Recursively visits all files that are descendent of dirEntry and adds
-     * files files to each index when the file matches the filter critera
+     * files files to each index when the file matches the filter criteria.
+     * If a scan is already in progress when this is called, the existing scan
+     * is aborted and its promise will never resolve.
      * @private
      * @param {!DirectoryEntry} dirEntry
      * @returns {$.Promise}
@@ -173,6 +199,12 @@ define(function (require, exports, module) {
             console.error("Bad dirEntry passed to _scanDirectorySubTree");
             return;
         }
+        
+        // Clear out our existing data structures.
+        _clearIndexes();
+        
+        // Increment the scan ID, so any callbacks from a previous scan will know not to do anything.
+        _scanID++;
 
         // keep track of directories as they are asynchronously read. We know we are done
         // when dirInProgress becomes empty again.
@@ -182,7 +214,8 @@ define(function (require, exports, module) {
                       maxFilesHit: false    // used to show warning dialog only once
                     };
 
-        var deferred = new $.Deferred();
+        var deferred = new $.Deferred(),
+            curScanID = _scanID;
 
         // inner helper function
         function _dirScanDone() {
@@ -218,13 +251,18 @@ define(function (require, exports, module) {
             dirEntry.createReader().readEntries(
                 // success callback
                 function (entries) {
+                    if (curScanID !== _scanID) {
+                        // We're a callback for an aborted scan. Do nothing.
+                        return;
+                    }
+                    
                     // inspect all children of dirEntry
                     entries.forEach(function (entry) {
                         // For now limit the number of files that are indexed by preventing adding files
                         // or scanning additional directories once a max has been hit. Also notify the 
                         // user once via a dialog. This limit could be increased
                         // if files were indexed in a worker thread so scanning didn't block the UI
-                        if (state.fileCount > 10000) {
+                        if (state.fileCount > 16000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
                                 if (!_maxFileDialogDisplayed) {
@@ -261,10 +299,6 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
-    
-
-
-    
     // debug 
     function _logFileList(list) {
         list.forEach(function (fileInfo) {
@@ -272,16 +306,47 @@ define(function (require, exports, module) {
         });
         console.log("length: " + list.length);
     }
-    
 
     /**
-     * Clears the fileInfo array for all the indexes in _indexList
+     * Used by syncFileIndex function to prevent reentrancy
      * @private
      */
-    function _clearIndexes() {
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
-            index.fileInfos = [];
-        });
+    var _scanDeferred = null;
+
+    /**
+     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
+     * @return {$.Promise} resolved when index has been updated
+     */
+    function syncFileIndex() {
+        if (_indexListDirty) {
+            _indexListDirty = false;
+
+            // If we already had an existing scan going, we want to use its deferred for
+            // notifying when the new scan is complete (so existing callers will get notified),
+            // and we don't want to start a new measurement.
+            if (!_scanDeferred) {
+                _scanDeferred = new $.Deferred();
+                PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
+            }
+            
+            // If there was already a scan running, this will abort it and start a new
+            // scan. The old scan's promise will never resolve, so the net result is that
+            // the `done` handler below will only execute when the final scan actually
+            // completes.
+            _scanDirectorySubTree(ProjectManager.getProjectRoot())
+                .done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.FILE_INDEX_MANAGER_SYNC);
+                    _scanDeferred.resolve();
+                    _scanDeferred = null;
+
+                    //_logFileList(_indexList["all"].fileInfos);
+                    //_logFileList(_indexList["css"].fileInfos);
+                });
+            return _scanDeferred.promise();
+        } else {
+            // If we're in the middle of a scan, return its promise, otherwise resolve immediately.
+            return _scanDeferred ? _scanDeferred.promise() : new $.Deferred().resolve().promise();
+        }
     }
 
     /**
@@ -289,43 +354,10 @@ define(function (require, exports, module) {
      */
     function markDirty() {
         _indexListDirty = true;
-    }
-
-    /**
-     * Used by syncFileIndex function to prevent reentrancy
-     * @private
-     */
-    var _ongoingSyncPromise = null;
-
-    /**
-     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
-     * @return {$.Promise} resolved when index has been updated
-     */
-    function syncFileIndex() {
-
-        // If we're already syncing, don't kick off a second one
-        if (_ongoingSyncPromise) {
-            return _ongoingSyncPromise;
-        }
-
-        var rootDir = ProjectManager.getProjectRoot();
-        if (_indexListDirty) {
-            PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
-
-            _clearIndexes();
-            
-            _ongoingSyncPromise = _scanDirectorySubTree(rootDir)
-                .done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.FILE_INDEX_MANAGER_SYNC);
-                    _indexListDirty = false;
-                    _ongoingSyncPromise = null;
-
-                    //_logFileList(_indexList["all"].fileInfos);
-                    //_logFileList(_indexList["css"].fileInfos);
-                });
-            return _ongoingSyncPromise;
-        } else {
-            return $.Deferred().resolve().promise();
+        
+        // If there's a scan already in progress, abort and restart it.
+        if (_scanDeferred) {
+            syncFileIndex();
         }
     }
 

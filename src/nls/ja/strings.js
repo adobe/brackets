@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -103,6 +103,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
+	"CONFIRM_FOLDER_DELETE_TITLE": "削除確認",
+	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
@@ -150,7 +152,7 @@ define({
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
-	"KEYBOARD_SPACE": "スペース",
+	"KEYBOARD_SPACE": "Space",
     
     /**
      * StatusBar strings
@@ -278,6 +280,7 @@ define({
 	"DONT_SAVE": "保存しない",
 	"SAVE": "保存",
 	"CANCEL": "キャンセル",
+	"DELETE": "削除",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
@@ -296,7 +299,7 @@ define({
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "ローカルサーバーを使用するには http://localhost:8000/ などの URL を入力します",
+	"PROJECT_SETTING_BASE_URL_HINT": "http://localhost:8000/ 等のURLを入力してローカルサーバーを使用",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
@@ -305,10 +308,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "インストール",
+	"UPDATE": "更新",
 	"REMOVE": "削除",
 	"OVERWRITE": "上書き",
 	"CANT_REMOVE_DEV": "dev フォルダーの拡張機能は手動で削除する必要があります。",
+	"CANT_UPDATE": "アップデートはこのバージョンの {APP_NAME} と互換性がありません。",
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"UPDATE_EXTENSION_TITLE": "拡張機能を更新",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
 	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
@@ -370,8 +376,12 @@ define({
 	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
 	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
-	"NO_EXTENSIONS": "拡張機能はまだインストールされていません。<br>下にある「URL からインストール」ボタンをクリックして開始しましょう。",
+	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
+	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
+	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
     /**
      * Unit names
@@ -404,6 +414,7 @@ define({
 	"LOCALE_DE": "ドイツ語",
 	"LOCALE_EN": "英語",
 	"LOCALE_ES": "スペイン語",
+	"LOCALE_FI": "フィンランド語",
 	"LOCALE_FR": "フランス語",
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
@@ -438,7 +449,7 @@ define({
 	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
 	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
     
     // extensions/default/WebPlatformDocs

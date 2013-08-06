@@ -23,52 +23,75 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CommandManager,      // loaded from brackets.test
-        Commands,            // loaded from brackets.test
+    var CommandManager,          // loaded from brackets.test
+        Commands,                // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
-        DocumentManager,     // loaded from brackets.test
-        Dialogs,             // loaded from brackets.test
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils"),
-        StringUtils         = require("utils/StringUtils");
+        DocumentManager,         // loaded from brackets.test
+        Dialogs,                 // loaded from brackets.test
+        FileViewController,      // loaded from brackets.test
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
+        NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils                = require("file/FileUtils"),
+        StringUtils              = require("utils/StringUtils");
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
-            testWindow;
+            testWindow,
+            promise;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
-
-        beforeEach(function () {
+        
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
+                CommandManager          = testWindow.brackets.test.CommandManager;
+                Commands                = testWindow.brackets.test.Commands;
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                Dialogs             = testWindow.brackets.test.Dialogs;
+                DocumentManager         = testWindow.brackets.test.DocumentManager;
+                Dialogs                 = testWindow.brackets.test.Dialogs;
+                FileViewController      = testWindow.brackets.test.FileViewController;
             });
         });
-
-        afterEach(function () {
+        
+        afterLast(function () {
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
             DocumentCommandHandlers = null;
             DocumentManager         = null;
+            Dialogs                 = null;
+            FileViewController      = null;
             SpecRunnerUtils.closeTestWindow();
+        });
+        
+        
+        beforeEach(function () {
+            // Working set behavior is sensitive to whether file lives in the project or outside it, so make
+            // the project root a known quantity.
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+        });
+
+        afterEach(function () {
+            promise = null;
+            
+            runs(function () {
+                // Call closeAll() directly. Some tests set a spy on the save as
+                // dialog preventing SpecRunnerUtils.closeAllFiles() from
+                // working properly.
+                testWindow.brackets.test.DocumentManager.closeAll();
+            });
         });
 
 
@@ -86,12 +109,16 @@ define(function (require, exports, module) {
         
         
         describe("New Untitled File", function () {
-            beforeEach(function () {
-                // Working set behavior is sensitive to whether file lives in the project or outside it, so make
-                // the project root a known quantity.
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
+            var filePath,
+                newFilename,
+                newFilePath;
             
+            beforeEach(function () {
+                filePath    = testPath + "/test.js";
+                newFilename = "testname.js";
+                newFilePath = testPath + "/" + newFilename;
+            });
+
             /** @return {Array.<Document>} */
             function getWorkingSetDocs() {
                 return DocumentManager.getWorkingSet().map(function (file) {
@@ -121,8 +148,6 @@ define(function (require, exports, module) {
             // Single untitled documents
             
             it("should create a new untitled document in the Working Set", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -146,11 +171,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should keep untitled document in the Working Set after saving with new name", function () {
-                var newFilename = "testname.js",
-                    newFilePath = testPath + "/" + newFilename,
-                    promise;
-
+            it("should swap out untitled document in the Working Set after saving with new name", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -173,16 +194,53 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
                 });
             });
 
+            it("should swap out untitled document from working set even when not current", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+
+                runs(function () {
+                    // Select test.js in the project tree (so nothing is selected in the working set)
+                    promise = FileViewController.openAndSelectDocument(testPath + "/test.js", FileViewController.PROJECT_MANAGER);
+
+                    waitsForDone(promise, "openAndSelectDocument");
+                });
+
+                runs(function () {
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
+                    waitsForDone(promise, "FILE_SAVE_ALL");
+                });
+                
+                runs(function () {
+                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
+
+                    expect(noLongerUntitledDocument.isDirty).toBe(false);
+                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
+                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+
+                    // Verify file exists, & clean up
+                    expectAndDelete(newFilePath);
+                });
+            });
+            
             it("should ask to save untitled document upon closing", function () {
-                var newFilename = "testname2.js",
-                    newFilePath = testPath + "/" + newFilename,
-                    promise;
+                newFilename = "testname2.js";
+                newFilePath = testPath + "/" + newFilename;
 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
@@ -217,8 +275,6 @@ define(function (require, exports, module) {
             });
 
             it("should keep dirty untitled document in Working Set when close document is canceled", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -249,8 +305,6 @@ define(function (require, exports, module) {
             });
             
             it("should keep dirty untitled document in Working Set when saving during close is canceled", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -285,8 +339,6 @@ define(function (require, exports, module) {
             });
 
             it("should remove dirty untitled Document from Working Set when closing document is not saved", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -313,8 +365,6 @@ define(function (require, exports, module) {
             });
 
             it("should remove new untitled Document from Working Set upon closing", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -547,8 +597,6 @@ define(function (require, exports, module) {
 
         describe("Close File", function () {
             it("should complete without error if no files are open", function () {
-                var promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_CLOSE);
                     waitsForDone(promise, "FILE_CLOSE");
@@ -696,15 +744,20 @@ define(function (require, exports, module) {
         });
 
         describe("Save As", function () {
-            it("should close the original file, reopen the saved file and add it to the Working Set", function () {
-                var filePath    = testPath + "/test.js",
-                    newFilename = "testname.js",
-                    newFilePath = testPath + "/" + newFilename,
-                    promise;
-
+            var filePath,
+                newFilename,
+                newFilePath;
+            
+            beforeEach(function () {
+                filePath    = testPath + "/test.js";
+                newFilename = "testname.js";
+                newFilePath = testPath + "/" + newFilename;
+            });
+            
+            it("should close the original file, reopen the saved file and add select the new file in the project tree", function () {
                 runs(function () {
+                    // Open the file, does not add to working set
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
-
                     waitsForDone(promise, "FILE_OPEN");
                 });
 
@@ -719,7 +772,7 @@ define(function (require, exports, module) {
                     });
 
                     promise = CommandManager.execute(Commands.FILE_SAVE_AS);
-                    waitsForDone(promise, "Provide new filename", 1000);
+                    waitsForDone(promise, "Provide new filename");
                 });
 
                 runs(function () {
@@ -728,8 +781,46 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
+                    // New file should not appear in working set
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    
+                    // Verify file exists & clean it up
+                    expectAndDelete(newFilePath);
+                });
+            });
+
+            it("should close the original file, reopen the saved file outside the project and add it to the Working Set", function () {
+                newFilePath = SpecRunnerUtils.getTempDirectory() + "/" + newFilename;
+
+                SpecRunnerUtils.createTempDirectory();
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(filePath);
+                });
+
+                runs(function () {
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Provide new filename");
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(newFilePath);
+                });
+
+                runs(function () {
+                    // Only new file should appear in working set
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    // old file will appear in working set
                     expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
@@ -738,11 +829,6 @@ define(function (require, exports, module) {
             });
 
             it("should leave Working Set untouched when operation is canceled", function () {
-                var filePath    = testPath + "/test.js",
-                    newFilename = "testname.js",
-                    newFilePath = testPath + "/" + newFilename,
-                    promise;
-
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
 
@@ -760,7 +846,7 @@ define(function (require, exports, module) {
                     });
 
                     promise = CommandManager.execute(Commands.FILE_SAVE_AS);
-                    waitsForFail(promise, "Provide new filename", 1000);
+                    waitsForFail(promise, "Provide new filename");
                 });
 
                 runs(function () {
@@ -772,8 +858,53 @@ define(function (require, exports, module) {
                     expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
                 });
             });
-        });
+            
+            it("should maintain order within Working Set after Save As", function () {
+                var index,
+                    targetDoc;
 
+                runs(function () {
+                    // open the target file
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+                
+                runs(function () {
+                    index = DocumentManager.findInWorkingSet(filePath);
+                    targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
+                });
+
+                runs(function () {
+                    // create an untitled document so that the file opened above isn't the last item in the working set list
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+
+                runs(function () {
+                    // save the file opened above to a different filename
+                    DocumentManager.setCurrentDocument(targetDoc);
+                    
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Provide new filename");
+                });
+
+                runs(function () {
+                    // New file should appear in working set at old file's index; old file shouldn't appear at all
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
+                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+
+                    // Verify file exists & clean it up
+                    expectAndDelete(newFilePath);
+                });
+            });
+        });
+        
         describe("Dirty File Handling", function () {
 
             beforeEach(function () {
