@@ -49,7 +49,7 @@
     text-decoration: none;
 }
 #project-dropdown-toggle:hover .dropdown-arrow {
-    background-image: url("down-arrow-hover.svg");
+    background-image: url("down-arrow.svg");
 }
 
 /* TODO: style the dropdown content */
