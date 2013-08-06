@@ -124,9 +124,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (LiveDevelopment.config.experimental) {
             $(HighlightAgent).off("highlight", this.onHighlight);
             this.onHighlight();
-
-            $(this.editor).off("change", this.onChange);
         }
+
+        $(this.editor).off("change", this.onChange);
     };
 
 
@@ -168,14 +168,21 @@ define(function HTMLDocumentModule(require, exports, module) {
                 skipDelta,
                 node;
             
+            edits = edits.filter(function (delta) {
+                // ignore textDelete in html root element
+                node = browserSimpleDOM.nodeMap[delta.parentID];
+                
+                if (node && node.tag === "html" && delta.type === "textDelete") {
+                    return false;
+                }
+                
+                return true;
+            });
+            
             if (edits.length > 0) {
                 console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
-                    // ignore textDelete in html root element
-                    node = browserSimpleDOM.nodeMap[delta.parentID];
-                    skipDelta = node && node.tag === "html" && delta.type === "textDelete";
-                    
                     if (!skipDelta) {
                         console.log(delta);
                     }
