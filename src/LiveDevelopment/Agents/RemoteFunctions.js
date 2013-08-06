@@ -571,17 +571,24 @@ function RemoteFunctions(experimental) {
      * @param {Object} edit
      */
     function _textReplace(targetElement, edit) {
-        var start       = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : targetElement.firstChild,
-            end         = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : targetElement.lastChild,
-            current     = start && start.nextSibling,
+        var start       = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : null,
+            end         = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
+            current     = start && start.nextSibling || end && end.previousSibling,
             next,
             textNode    = (edit.content !== undefined) ? document.createTextNode(edit.content) : null;
         
         // remove all nodes inside the range
         while (current && (current !== end)) {
-            next = current.nextSibling;
-            current.remove();
-            current = next;
+            // if start is defined, delete following text nodes
+            // if start is not defined, delete preceding text nodes
+            next = (start) ? current.nextSibling : current.previousSibling;
+
+            if (current.nodeType !== Node.ELEMENT_NODE) {
+                current.remove();
+                current = next;
+            } else {
+                break;
+            }
         }
         
         if (textNode) {
@@ -600,7 +607,7 @@ function RemoteFunctions(experimental) {
             targetElement;
         
         edits.forEach(function (edit) {
-            targetID = edit.type === "textReplace" || edit.type === "textDelete" || edit.type === "elementInsert" ? edit.parentID : edit.tagID;
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert/) ? edit.parentID : edit.tagID;
             targetElement = _queryBracketsID(targetID);
             
             switch (edit.type) {
