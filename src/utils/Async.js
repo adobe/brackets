@@ -321,46 +321,39 @@ define(function (require, exports, module) {
      * 
      * @param {Array.<function(*)>} functions Functions to be chained
      * @param {?Array} args Arguments to call the first function with
-     * @param {function(*)} successCallback Function that receives results of the final call
-     * @param {function(*)} failCallback Function that is called on any failure
+     * @return {jQuery.Promise} Promise that resolves with the results of the
+     *      final call or rejects with the final error
      */
-    function chain(functions, args, successCallback, failCallback) {
-        // private function that sometimes modifies its arguments
-        function chainHelper(functions, args, successCallback, failCallback) {
-            if (functions.length === 0) {
-                successCallback.apply(null, args);
+    function chain(functions, args) {
+        var deferred = $.Deferred();
+        
+        function chainHelper(index, args) {
+            if (functions.length === index) {
+                deferred.resolveWith(null, args);
             } else {
-                var firstFunction = functions.shift();
+                var nextFunction = functions[index++];
                 try {
-                    var responseOrPromise = firstFunction.apply(null, args);
+                    var responseOrPromise = nextFunction.apply(null, args);
                     if (responseOrPromise.hasOwnProperty("done") &&
                             responseOrPromise.hasOwnProperty("fail")) {
                         responseOrPromise.done(function () {
-                            var resultArgs = Array.prototype.slice.call(arguments, 0);
-                            chainHelper(functions, resultArgs, successCallback, failCallback);
+                            chainHelper(index, arguments);
                         });
                         responseOrPromise.fail(function () {
-                            var resultArgs = Array.prototype.slice.call(arguments, 0);
-                            failCallback.apply(null, resultArgs);
+                            deferred.rejectWith(null, arguments);
                         });
-                        
                     } else {
-                        chainHelper(functions, [responseOrPromise], successCallback, failCallback);
+                        chainHelper(index, [responseOrPromise]);
                     }
-    
                 } catch (e) {
-                    failCallback(e);
+                    deferred.reject(e);
                 }
-                
             }
         }
         
-        // Make a copy of the args and functions arrays because the helper modifies them
-        var argsCopy = args ? Array.prototype.slice.call(args) : [];
-        var functionsCopy = Array.prototype.slice.call(functions, 0);
+        chainHelper(0, args || []);
         
-        chainHelper(functionsCopy, argsCopy, successCallback, failCallback);
-        
+        return deferred.promise();
     }
 
     /**

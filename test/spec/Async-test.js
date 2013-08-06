@@ -98,20 +98,20 @@ define(function (require, exports, module) {
                 var success = false;
                 var response = null;
                 runs(function () {
-                    Async.chain(
+                    var result = Async.chain(
                         functions,
-                        args,
-                        function () {
-                            done = true;
-                            success = true;
-                            response = Array.prototype.slice.call(arguments, 0);
-                        },
-                        function () {
-                            done = true;
-                            success = false;
-                            response = Array.prototype.slice.call(arguments, 0);
-                        }
+                        args
                     );
+                    result.done(function () {
+                        done = true;
+                        success = true;
+                        response = arguments;
+                    });
+                    result.fail(function () {
+                        done = true;
+                        success = false;
+                        response = arguments;
+                    });
                 });
                 waitsFor(function () {
                     return done;
