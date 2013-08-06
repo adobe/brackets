@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,7 +42,6 @@ define(function (require, exports, module) {
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
             testWindow,
             workingSetCount;
-        
         
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
@@ -95,7 +94,6 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         }
         
-        
         beforeFirst(function () {
             createTestWindow(this, true);
         });
@@ -115,8 +113,6 @@ define(function (require, exports, module) {
         afterEach(function () {
             testWindow.closeAllFiles();
         });
-
-        
 
         it("should add a list item when a file is dirtied", function () {
             // check if files are added to work set and dirty icons are present
@@ -151,7 +147,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var $ = testWindow.$;
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 var $listItems = $("#open-files-container > ul").children();
                 expect($($listItems[0]).hasClass("selected")).not.toBeTruthy();
@@ -219,7 +215,7 @@ define(function (require, exports, module) {
                 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('mouseover');
+                secondItem.trigger("mouseover");
                 var closeIcon = secondItem.find(".file-status-icon");
                 expect(closeIcon.length).toBe(1);
                 
@@ -228,7 +224,7 @@ define(function (require, exports, module) {
                     didClose = true;
                 });
 
-                closeIcon.trigger('mousedown');
+                closeIcon.trigger("mousedown");
             });
             
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
@@ -257,7 +253,7 @@ define(function (require, exports, module) {
                 var $ = testWindow.$;
                 var secondItem =  $("#open-files-container > ul").children().eq(1);
                 var fileName = secondItem.text();
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 // Calling FILE_RENAME synchronously works fine here since the item is already visible in project file tree.
                 // However, if the selected item is not already visible in the tree, this command will complete asynchronously.
@@ -267,6 +263,67 @@ define(function (require, exports, module) {
                 var $projectFileItems = $("#project-files-container > ul").children();
     
                 expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+            });
+        });
+
+        it("should show a directory name next to the file name when two files with same names are opened", function () {
+            runs(function () {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // First we need to open another file
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+
+                // Wait for file to be added to the working set
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+
+                runs(function () {
+                    // Two files with the same name file_one.js should be now opened
+                    var $list = testWindow.$("#open-files-container > ul");
+                    expect($list.find(".directory").length).toBe(2);
+
+                    // Now close last opened file to hide the directories again
+                    DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
+                    var didClose = false, gotError = false;
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
+
+                    // there should be no more directories shown
+                    runs(function () {
+                        expect($list.find(".directory").length).toBe(0);
+                    });
+                });
+            });
+        });
+
+        it("should show different directory names, when two files of the same name are opened, located in folders with same name", function () {
+            runs(function () {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // Open both files
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+                openAndMakeDirty(testPath + "/directory/directory/file_one.js");
+
+                // Wait for them to load
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+
+                runs(function () {
+                    // Collect all directory names displayed
+                    var $list = testWindow.$("#open-files-container > ul");
+                    var names = $list.find(".directory").map(function () {
+                        return $(this).text();
+                    }).toArray();
+
+                    // All directory names should be unique
+                    var uniq = 0, map = {};
+                    names.forEach(function (name) {
+                        if (!map[name]) {
+                            map[name] = true;
+                            uniq++;
+                        }
+                    });
+                    expect(uniq).toBe(names.length);
+                });
             });
         });
             
