@@ -49,13 +49,17 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     
+    function _formatCountable(number, singularStr, pluralStr) {
+        return StringUtils.format(number > 1 ? pluralStr : singularStr, number);
+    }
+    
     function _updateLanguageInfo(editor) {
         $languageInfo.text(editor.document.getLanguage().getName());
     }
     
     function _updateFileInfo(editor) {
         var lines = editor.lineCount();
-        $fileInfo.text(StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
+        $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
     }
     
     function _updateIndentType() {
@@ -98,10 +102,10 @@ define(function (require, exports, module) {
                 if (sel.end.ch === 0) {
                     lines--;  // end line is exclusive if ch is 0, inclusive otherwise
                 }
-                selStr = StringUtils.format(Strings.STATUSBAR_LINE_SELECTION_LEN, lines);
+                selStr = _formatCountable(lines, Strings.STATUSBAR_SELECTION_LINE_SINGULAR, Strings.STATUSBAR_SELECTION_LINE_PLURAL);
             } else {
                 var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
-                selStr = StringUtils.format(Strings.STATUSBAR_CH_SELECTION_LEN, cols);
+                selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
             }
             $cursorInfo.text(cursorStr + selStr);
         } else {
