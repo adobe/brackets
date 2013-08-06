@@ -165,6 +165,16 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should parse a comment", function () {
+            var t = new Tokenizer("<!--very important-->");
+            expect(t.nextToken()).toEqual({
+                type: "comment",
+                contents: "very important",
+                start: 4,
+                end: 18
+            });
+        });
+        
         describe("error cases", function () {
             function expectError(text, isError) {
                 if (isError === undefined) {
