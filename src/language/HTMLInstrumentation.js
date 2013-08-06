@@ -886,7 +886,7 @@ define(function (require, exports, module) {
                 var nav = new DOMNavigator(subtreeRoot),
                     currentElement;
                 
-                // breadth-first traversal of DOM tree to diff attributes 
+                // breadth-first traversal of DOM tree to diff attributes and match up the old and new nodes
                 while (true) {
                     currentElement = nav.next();
                     
