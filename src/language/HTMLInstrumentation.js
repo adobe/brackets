@@ -801,34 +801,39 @@ define(function (require, exports, module) {
         };
     };
     
-    function domdiffOld(edits, oldNode, newNode) {
-        var oldNav = new DOMNavigator(oldNode),
-            newNav = new DOMNavigator(newNode);
+    function _findElementAndText(siblings, index, left) {
+        var step = left ? -1 : 1,
+            guard = left ? -1 : siblings.length,
+            result = {};
         
-        attributeCompare(edits, oldNode, newNode);
+        var nextToCheck = index + step;
         
-        var oldChild = oldNav.next(),
-            newChild = newNav.next();
-        
-        while (oldChild && newChild) {
-            if (oldChild.tag && newChild.tag) {
-                attributeCompare(edits, oldChild, newChild);
-            
-            // Check to see if they're both text nodes
-            } else if (!oldChild.tag && !newChild.tag) {
-                if (oldChild.content !== newChild.content) {
-                    var position = oldNav.getPosition();
-                    edits.push({
-                        type: "textReplace",
-                        tagID: position.tagID,
-                        child: position.child,
-                        content: newChild.content
-                    });
-                }
-            }
-            oldChild = oldNav.next();
-            newChild = newNav.next();
+        // if there are no more elements in the direction we're going
+        // then we are done looking
+        if (nextToCheck === guard) {
+            return result;
         }
+        
+        var elementOrText = siblings[nextToCheck];
+        if (elementOrText.children) {
+            result.element = elementOrText;
+        } else {
+            result.text = elementOrText;
+            nextToCheck = index + step * 2;
+            if (nextToCheck !== guard) {
+                result.element = siblings[nextToCheck];
+            }
+        }
+        return result;
+    }
+    
+    function findNeighbors(element) {
+        var siblings = element.parent.children;
+        var childIndex = siblings.indexOf(element);
+        var neighbors = {};
+        neighbors.left = _findElementAndText(siblings, childIndex, true);
+        neighbors.right = _findElementAndText(siblings, childIndex, false);
+        return neighbors;
     }
     
     function compareByWeight(a, b) {
@@ -908,19 +913,24 @@ define(function (require, exports, module) {
             }
         });
         
-        var initializeTextEdit = function (element) {
-            var edit = {
-                parentID: element.parent.tagID
-            };
-            
-            var match = /(\d+)t/.exec(element.tagID);
-            if (match) {
-                edit.afterID = match[1];
-            } else {
-                edit.firstChild = true;
+        function addPositionToEdit(edit, element) {
+            var neighbors = findNeighbors(element);
+            if (neighbors.left.element) {
+                edit.afterID = neighbors.left.element.tagID;
             }
-            return edit;
-        };
+            var text = neighbors.left.text;
+            if (text && !textInserts[text.tagID]) {
+                edit.afterText = true;
+            }
+            if (neighbors.right.element) {
+                edit.beforeID = neighbors.right.element.tagID;
+            }
+        }
+        
+        function addPositionToTextEdit(edit, element) {
+            addPositionToEdit(edit, element);
+            delete edit.afterText;
+        }
         
         var findDeletions = function (element) {
             if (!matches[element.tagID]) {
@@ -930,8 +940,11 @@ define(function (require, exports, module) {
                         tagID: element.tagID
                     });
                 } else {
-                    var edit = initializeTextEdit(element);
-                    edit.type = "textDelete";
+                    var edit = {
+                        parentID: element.parent.tagID,
+                        type: "textDelete"
+                    };
+                    addPositionToTextEdit(edit, element);
                     edits.push(edit);
                 }
             } else if (element.children) {
@@ -946,32 +959,37 @@ define(function (require, exports, module) {
         
         Object.keys(elementInserts).forEach(function (nonMatchingID) {
             var newElement = newNode.nodeMap[nonMatchingID];
-            var childIndex = newElement.parent.children.indexOf(newElement);
-            edits.push({
+            var edit = {
                 type: "elementInsert",
                 tagID: newElement.tagID,
                 tag: newElement.tag,
                 attributes: newElement.attributes,
-                parentID: newElement.parent.tagID,
-                child: childIndex
-            });
+                parentID: newElement.parent.tagID
+            };
+            addPositionToEdit(edit, newElement);
+            edits.push(edit);
         });
         
         Object.keys(textInserts).forEach(function (nonMatchingID) {
             var newElement = newNode.nodeMap[nonMatchingID];
-            edits.push({
+            var edit = {
                 type: "textInsert",
-                tagID: newElement.parent.tagID,
-                child: newElement.parent.children.indexOf(newElement),
+                parentID: newElement.parent.tagID,
                 content: newElement.content
-            });
+            };
+            addPositionToTextEdit(edit, newElement);
+            edits.push(edit);
         });
         
         Object.keys(textChanges).forEach(function (changedID) {
             var changedElement = newNode.nodeMap[changedID];
-            var edit = initializeTextEdit(changedElement);
-            edit.type = "textReplace";
-            edit.content = changedElement.content;
+            var edit = {
+                parentID: changedElement.parent.tagID,
+                type: "textReplace",
+                content: changedElement.content
+            };
+            console.log("Parent id", edit.parentID, typeof (edit.parentID));
+            addPositionToTextEdit(edit, changedElement);
             edits.push(edit);
         });
         return edits;
@@ -1091,6 +1109,7 @@ define(function (require, exports, module) {
     exports._allowIncremental           = allowIncremental;
     exports._dumpDOM                    = _dumpDOM;
     exports._getBrowserDiff             = _getBrowserDiff;
+    exports._findElementAndText         = _findElementAndText;
     
     // public API
     exports.scanDocument                = scanDocument;

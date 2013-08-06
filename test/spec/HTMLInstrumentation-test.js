@@ -557,6 +557,79 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("HTML Instrumentation utility functions", function () {
+            it("should locate the correct element and text siblings", function () {
+                var findElementAndText = HTMLInstrumentation._findElementAndText;
+                var parent = {
+                    children: []
+                };
+                var elementOfInterest = { children: [] };
+                var siblings = parent.children;
+                parent.children.push(elementOfInterest);
+                
+                // check to the left
+                var result = findElementAndText(siblings, 0, true);
+                expect(result).toEqual({});
+                
+                // check to the right
+                result = findElementAndText(siblings, 0, false);
+                expect(result).toEqual({});
+                
+                var elementToTheLeft = { children: [] };
+                parent.children.unshift(elementToTheLeft);
+                
+                result = findElementAndText(siblings, 1, true);
+                expect(result).toEqual({
+                    element: elementToTheLeft
+                });
+                
+                result = findElementAndText(siblings, 1, false);
+                expect(result).toEqual({});
+                
+                var elementToTheRight = { children: [] };
+                parent.children.push(elementToTheRight);
+                
+                result = findElementAndText(siblings, 1, true);
+                expect(result).toEqual({
+                    element: elementToTheLeft
+                });
+                
+                result = findElementAndText(siblings, 1, false);
+                expect(result).toEqual({
+                    element: elementToTheRight
+                });
+                
+                var textNode = {};
+                parent.children[0] = textNode;
+                
+                result = findElementAndText(siblings, 1, true);
+                expect(result).toEqual({
+                    text: textNode
+                });
+                
+                var textNode2 = {};
+                parent.children[2] = textNode2;
+                result = findElementAndText(siblings, 1, false);
+                expect(result).toEqual({
+                    text: textNode
+                });
+                
+                parent.children.unshift(elementToTheLeft);
+                result = findElementAndText(siblings, 2, true);
+                expect(result).toEqual({
+                    text: textNode,
+                    element: elementToTheLeft
+                });
+                
+                parent.children.push(elementToTheRight);
+                result = findElementAndText(siblings, 2, false);
+                expect(result).toEqual({
+                    text: textNode2,
+                    element: elementToTheRight
+                });
+            });
+        });
+        
         describe("HTML Instrumentation in dirty files", function () {
                 
             beforeEach(function () {
@@ -765,10 +838,10 @@ define(function (require, exports, module) {
                             console.log("should handle simple altered text - edits: " + JSON.stringify(result.edits));
                             expect(result.edits.length).toEqual(1);
                             expect(previousDOM.children[3].children[1].tag).toEqual("h1");
+                            
                             expect(result.edits[0]).toEqual({
                                 type: "textReplace",
                                 parentID: tagID,
-                                firstChild: true,
                                 content: "GETTING AWESOMER WITH BRACKETS"
                             });
                             
@@ -812,7 +885,6 @@ define(function (require, exports, module) {
                     expect(result.edits[0]).toEqual({
                         type: "textReplace",
                         parentID: tagID,
-                        firstChild: true,
                         content: "GETTING AWESOMER WITH BRACKETS"
                     });
                     // make sure the parent of the change is still the same node as in the old tree
@@ -829,7 +901,6 @@ define(function (require, exports, module) {
                     expect(result.edits[0]).toEqual({
                         type: "textReplace",
                         parentID: tagID,
-                        firstChild: true,
                         content: "GETTING MOAR AWESOME WITH BRACKETS"
                     });
                     
@@ -858,30 +929,45 @@ define(function (require, exports, module) {
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
                             expect(newElement.children[0].content).toEqual("New Content");
                             expect(result.edits.length).toEqual(4);
+                            var beforeID = newElement.parent.children[7].tagID,
+                                afterID = newElement.parent.children[3].tagID;
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID
+                            });
                             expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
                                 tagID: newElement.tagID,
                                 parentID: newElement.parent.tagID,
-                                child: 5
+                                afterID: afterID,
+                                beforeID: beforeID,
+                                afterText: true
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textInsert",
-                                tagID: newElement.tagID,
-                                child: 0,
+                                parentID: newElement.tagID,
                                 content: "New Content"
                             });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.parent.tagID,
+                                afterID: newElement.tagID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
                             
-//                            editor.document.replaceRange(" and Newer", {line: 15, ch: 8});
-//                            var result2 = HTMLInstrumentation._updateDOM(result.dom, ed);
-//                            expect(result2.edits.length).toEqual(1);
-//                            expect(result2.edits[0]).toEqual({
-//                                type: "textReplace",
-//                                parentID: newElement.tagID,
-//                                firstChild: true,
-//                                content: "New and Newer Content"
-//                            });
+                            editor.document.replaceRange(" and Newer", {line: 15, ch: 8});
+                            var result2 = HTMLInstrumentation._updateDOM(result.dom, ed);
+                            expect(result2.edits.length).toEqual(1);
+                            expect(result2.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.tagID,
+                                content: "New and Newer Content"
+                            });
                         }
                     );
                 });
