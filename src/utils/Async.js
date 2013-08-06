@@ -363,6 +363,7 @@ define(function (require, exports, module) {
         
     }
 
+    /**
      * @constructor
      * Creates a queue of async operations that will be executed sequentially. Operations can be added to the
      * queue at any time. If the queue is empty and nothing is currently executing when an operation is added, 
