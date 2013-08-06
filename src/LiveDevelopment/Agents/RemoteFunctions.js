@@ -571,23 +571,36 @@ function RemoteFunctions(experimental) {
      * @param {Object} edit
      */
     function _textReplace(targetElement, edit) {
-        var start       = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : null,
-            end         = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
-            current     = start && start.nextSibling || end && end.previousSibling,
+        var start           = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : null,
+            startMissing    = edit.afterID && !start,
+            end             = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
+            endMissing      = edit.beforeID && !end,
+            moveNext        = start && start.nextSibling,
+            current         = moveNext || (end && end.previousSibling),
             next,
-            textNode    = (edit.content !== undefined) ? document.createTextNode(edit.content) : null;
+            textNode        = (edit.content !== undefined) ? document.createTextNode(edit.content) : null,
+            lastRemovedWasText,
+            isText;
         
         // remove all nodes inside the range
         while (current && (current !== end)) {
+            isText = current.nodeType === Node.TEXT_NODE;
+
             // if start is defined, delete following text nodes
             // if start is not defined, delete preceding text nodes
-            next = (start) ? current.nextSibling : current.previousSibling;
+            next = (moveNext) ? current.nextSibling : current.previousSibling;
 
-            if (current.nodeType !== Node.ELEMENT_NODE) {
+            // only delete up to the nearest element.
+            // if the start/end tag was deleted in a prior edit, stop removing
+            // nodes when we hit adjacent text nodes
+            if ((current.nodeType === Node.ELEMENT_NODE) ||
+                    ((startMissing || endMissing) && (isText && lastRemovedWasText))) {
+                break;
+            } else {
+                lastRemovedWasText = isText;
+
                 current.remove();
                 current = next;
-            } else {
-                break;
             }
         }
         
