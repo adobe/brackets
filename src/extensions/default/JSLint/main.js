@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         var jslintResult = JSLINT(text, null);
         
         if (!jslintResult) {
-            // Remove any trailing null placeholder error
+            // Remove any trailing null placeholder (early-abort indicator)
             var errors = JSLINT.errors.filter(function (err) { return err !== null; });
             
             errors = errors.map(function (jslintError) {

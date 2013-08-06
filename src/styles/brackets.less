@@ -403,9 +403,13 @@ a, img {
         padding: 3px (@sidebar-triangle-size * 2) 3px 0;
         
         cursor: default;
+
+        .directory {
+            font-size: 11px;
+        }
     }
     
-    .extension {
+    .extension, .directory {
         color: @project-panel-text-2;
     }
 }
@@ -914,7 +918,6 @@ a, img {
 
 .lint-disabled {
     background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
-    pointer-events: none;
 }
 
 .lint-errors {
@@ -931,7 +934,6 @@ a, img {
 
 .lint-valid {
     background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
-    pointer-events: none;
 }
 
 #errors-panel {

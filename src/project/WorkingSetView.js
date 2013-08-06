@@ -39,8 +39,13 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
         FileViewController    = require("project/FileViewController"),
+        CollectionUtils       = require("utils/CollectionUtils"),
         ViewUtils             = require("utils/ViewUtils");
     
+    
+    /** @const @type {number} Constants for event.which values */
+    var LEFT_BUTTON = 1,
+        MIDDLE_BUTTON = 2;
     
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
@@ -86,6 +91,108 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Adds directory names to elements representing passed files in working tree
+     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
+     */
+    function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+        // filesList must have at least two files in it for this to make sense
+        if (filesList.length <= 1) {
+            return;
+        }
+
+        // First collect paths from the list of files and fill map with them
+        var map = {}, filePaths = [], displayPaths = [];
+        filesList.forEach(function (file, index) {
+            var fp = file.fullPath.split("/");
+            fp.pop(); // Remove the filename itself
+            displayPaths[index] = fp.pop();
+            filePaths[index] = fp;
+
+            if (!map[displayPaths[index]]) {
+                map[displayPaths[index]] = [index];
+            } else {
+                map[displayPaths[index]].push(index);
+            }
+        });
+
+        // This function is used to loop through map and resolve duplicate names
+        var processMap = function (map) {
+            var didSomething = false;
+            CollectionUtils.forEach(map, function (arr, key) {
+                // length > 1 means we have duplicates that need to be resolved
+                if (arr.length > 1) {
+                    arr.forEach(function (index) {
+                        if (filePaths[index].length !== 0) {
+                            displayPaths[index] = filePaths[index].pop() + "/" + displayPaths[index];
+                            didSomething = true;
+
+                            if (!map[displayPaths[index]]) {
+                                map[displayPaths[index]] = [index];
+                            } else {
+                                map[displayPaths[index]].push(index);
+                            }
+                        }
+                    });
+                }
+                delete map[key];
+            });
+            return didSomething;
+        };
+
+        var repeat;
+        do {
+            repeat = processMap(map);
+        } while (repeat);
+
+        // Go through open files and add directories to appropriate entries
+        $openFilesContainer.find("ul > li").each(function () {
+            var $li = $(this);
+            var io = filesList.indexOf($li.data(_FILE_KEY));
+            if (io !== -1) {
+                var dirSplit = displayPaths[io].split("/");
+                if (dirSplit.length > 3) {
+                    displayPaths[io] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
+                }
+
+                var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
+                $li.children("a").append($dir);
+            }
+        });
+    }
+
+    /**
+     * @private
+     * Looks for files with the same name in the working set
+     * and adds a parent directory name to them
+     */
+    function _checkForDuplicatesInWorkingTree() {
+        var map = {},
+            fileList = DocumentManager.getWorkingSet();
+
+        // We need to always clear current directories as files could be removed from working tree.
+        $openFilesContainer.find("ul > li > a > span.directory").remove();
+
+        // Go through files and fill map with arrays of files.
+        fileList.forEach(function (file) {
+            // Use the same function that is used to create html for file.
+            var displayHtml = ViewUtils.getFileEntryDisplay(file);
+
+            if (!map[displayHtml]) {
+                map[displayHtml] = [];
+            }
+            map[displayHtml].push(file);
+        });
+
+        // Go through the map and solve the arrays with length over 1. Ignore the rest.
+        CollectionUtils.forEach(map, function (value) {
+            if (value.length > 1) {
+                _addDirectoryNamesToWorkingTreeFiles(value);
+            }
+        });
+    }
+
+    /**
+     * @private
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
@@ -95,6 +202,7 @@ define(function (require, exports, module) {
         } else {
             $openFilesContainer.show();
             $workingSetHeader.show();
+            _checkForDuplicatesInWorkingTree();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -239,21 +347,14 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
-            // If file wasnt moved open or close it
+            // If item wasn't dragged, treat as a click
             if (!moved) {
-                if (!fromClose) {
-                /***/
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                /***
-                    // Backing out for Sprint 18 due to issues described in #2394, #2411
-                    if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                    }
-                ***/
-                } else {
+                // Click on close icon, or middle click anywhere - close the item without selecting it first
+                if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                } else {
+                    // Normal right and left click - select the item
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                 }
             
             } else {
@@ -276,7 +377,7 @@ define(function (require, exports, module) {
         
         // Only drag with the left mouse button, and control key is not down
         // on Mac, end the drop in other cases
-        if (event.which !== 1 || (event.ctrlKey && brackets.platform === "mac")) {
+        if (event.which !== LEFT_BUTTON || (event.ctrlKey && brackets.platform === "mac")) {
             drop();
             return;
         }
@@ -355,18 +456,9 @@ define(function (require, exports, module) {
     }
 
     function isOpenAndDirty(file) {
+        // working set item might never have been opened; if so, then it's definitely not dirty
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
-    }
-    
-    /**
-     * @private
-     * @param {$.Event} event The Click Event to respond to.
-     */
-    function _handleMiddleMouseClick(event) {
-        var file = $(event.target).closest("li").data(_FILE_KEY);
-
-        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
     }
     
     /** 
@@ -386,8 +478,6 @@ define(function (require, exports, module) {
 
         $openFilesContainer.find("ul").append($newItem);
         
-        // working set item might never have been opened; if so, then it's definitely not dirty
-        
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
@@ -397,13 +487,6 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
         
-        $newItem.click(function (e) {
-            if (e.which === 2) {
-                _handleMiddleMouseClick(e);
-            }
-            e.preventDefault();
-        });
-
         $newItem.hover(
             function () {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), true);

@@ -22,10 +22,10 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, xdescribe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
         Async                      = require("utils/Async"),
@@ -568,7 +568,7 @@ define(function (require, exports, module) {
     }); // describe("CSSUtils")
 
     
-    describe("CSS Parsing: ", function () {
+    describe("CSS Parsing", function () {
         
         var lastCssCode,
             match,
@@ -639,7 +639,7 @@ define(function (require, exports, module) {
         });
 
 
-        describe("Simple selectors: ", function () {
+        describe("Simple selectors", function () {
         
             it("should match a lone type selector given a type", function () {
                 var result = match("div { color:red }", { tag: "div" });
@@ -1000,6 +1000,7 @@ define(function (require, exports, module) {
                 
                 css = "@import \"null?\\\"{\"; \n" +   // a real-world CSS hack similar to the above case
                       "div { color: red }";
+                
                 result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
@@ -1054,6 +1055,7 @@ define(function (require, exports, module) {
                       "{\n" +
                       "    color: red;\n" +
                       "}";
+                
                 result = match(css, { clazz: "foo" });
                 expect(result.length).toBe(1);
             });
@@ -1366,149 +1368,136 @@ define(function (require, exports, module) {
             
         }); // describe("Known Issues")    
 
-
-        describe("Working with real public CSSUtils API", function () {
-            this.category = "integration";
-            
-            var CSSUtils;
-            
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
-                    // Load module instances from brackets.test
-                    CSSUtils = testWindow.brackets.test.CSSUtils;
-                    
-                    // Load test project
-                    var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files");
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
-            });
-            afterEach(function () {
-                CSSUtils = null;
-                SpecRunnerUtils.closeTestWindow();
-            });
-            
-            it("should include comment preceding selector (issue #403)", function () {
-                var rules;
-                runs(function () {
-                    CSSUtils.findMatchingRules("#issue403")
-                        .done(function (result) { rules = result; });
-                });
-                waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(4);
-                    expect(rules[0].lineEnd).toBe(7);
-                });
-            });
-            
-        });
         
-        
-        describe("Working with unsaved changes", function () {
+        describe("CSS Intgration Tests", function () {
             this.category = "integration";
             
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+                testWindow,
                 CSSUtils,
                 DocumentManager,
-                FileViewController,
-                ProjectManager,
-                brackets;
-    
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                FileViewController;
+            
+            beforeFirst(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+                    
                     // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
                     CSSUtils            = testWindow.brackets.test.CSSUtils;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    ProjectManager      = testWindow.brackets.test.ProjectManager;
-
+                    
+                    // Load test project
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             });
-
-            afterEach(function () {
-                brackets            = null;
+            
+            afterLast(function () {
                 CSSUtils            = null;
                 DocumentManager     = null;
                 FileViewController  = null;
-                ProjectManager      = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             
-            it("should return the correct offsets if the file has changed", function () {
-                var didOpen = false,
-                    gotError = false;
+            afterEach(function () {
+                testWindow.closeAllFiles();
+            });
+            
+            
+            describe("Working with real public CSSUtils API", function () {
                 
-                runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
-                });
-                
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-                
-                var rules = null;
-                
-                runs(function () {
-                    var doc = DocumentManager.getCurrentDocument();
+                it("should include comment preceding selector (issue #403)", function () {
+                    var rules;
+                    runs(function () {
+                        CSSUtils.findMatchingRules("#issue403")
+                            .done(function (result) { rules = result; });
+                    });
+                    waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
-                    // Add several blank lines at the beginning of the text
-                    doc.setText("\n\n\n\n" + doc.getText());
-                    
-                    // Look for ".FIRSTGRADE"
-                    CSSUtils.findMatchingRules(".FIRSTGRADE")
-                        .done(function (result) { rules = result; });
-                    
-                    doc = null;
-                });
-                
-                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(16);
-                    expect(rules[0].lineEnd).toBe(18);
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(4);
+                        expect(rules[0].lineEnd).toBe(7);
+                    });
                 });
             });
             
-            it("should return a newly created rule in an unsaved file", function () {
-                var didOpen = false,
-                    gotError = false;
+            describe("Working with unsaved changes", function () {
                 
-                runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                it("should return the correct offsets if the file has changed", function () {
+                    var didOpen = false,
+                        gotError = false;
+                    
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
+                    
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add several blank lines at the beginning of the text
+                        doc.setText("\n\n\n\n" + doc.getText());
+                        
+                        // Look for ".FIRSTGRADE"
+                        CSSUtils.findMatchingRules(".FIRSTGRADE")
+                            .done(function (result) { rules = result; });
+                        
+                        doc = null;
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(16);
+                        expect(rules[0].lineEnd).toBe(18);
+                    });
                 });
                 
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-                
-                var rules = null;
-                
-                runs(function () {
-                    var doc = DocumentManager.getCurrentDocument();
+                it("should return a newly created rule in an unsaved file", function () {
+                    var didOpen = false,
+                        gotError = false;
                     
-                    // Add a new selector to the file
-                    doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
                     
-                    // Look for the selector we just created
-                    CSSUtils.findMatchingRules(".TESTSELECTOR")
-                        .done(function (result) { rules = result; });
-
-                    doc = null;
-                });
-                
-                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(24);
-                    expect(rules[0].lineEnd).toBe(26);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add a new selector to the file
+                        doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                        
+                        // Look for the selector we just created
+                        CSSUtils.findMatchingRules(".TESTSELECTOR")
+                            .done(function (result) { rules = result; });
+    
+                        doc = null;
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(24);
+                        expect(rules[0].lineEnd).toBe(26);
+                    });
                 });
             });
         });
+        
     }); //describe("CSS Parsing")
 
     // Unit Tests: "HTMLUtils (css)"

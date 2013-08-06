@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $, beforeFirst, afterLast  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -50,22 +50,21 @@ define(function (require, exports, module) {
          * @param {!string} openFile Project relative file path to open in a main editor.
          * @param {!number} openPos The pos within openFile to place the IP.
          */
-        var _initCodeHintTest = function (openFile, openPos) {
-            
+        function initCodeHintTest(openFile, openPos) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
             runs(function () {
                 var promise = SpecRunnerUtils.openProjectFiles([openFile]);
                 waitsForDone(promise);
             });
+            
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
                 editor.setCursorPos(openPos.line, openPos.ch);
             });
-        };
-    
-        beforeEach(function () {
-            initCodeHintTest = _initCodeHintTest.bind(this);
+        }
+        
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
     
@@ -79,9 +78,8 @@ define(function (require, exports, module) {
                 KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
             });
         });
-    
-        afterEach(function () {
-            initCodeHintTest    = null;
+        
+        afterLast(function () {
             testWindow          = null;
             CodeHintManager     = null;
             EditorManager       = null;
@@ -90,6 +88,11 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
         
+        afterEach(function () {
+            runs(function () {
+                testWindow.closeAllFiles();
+            });
+        });
         
         function invokeCodeHints() {
             CommandManager.execute(Commands.SHOW_CODE_HINTS);
@@ -100,13 +103,13 @@ define(function (require, exports, module) {
             var codeHintList = CodeHintManager._getCodeHintList();
             expect(codeHintList).toBeFalsy();
         }
+        
         function expectSomeHints() {
             var codeHintList = CodeHintManager._getCodeHintList();
             expect(codeHintList).toBeTruthy();
             expect(codeHintList.isOpen()).toBe(true);
             return codeHintList;
         }
-        
         
         describe("Hint Provider Registration", function () {
             beforeEach(function () {
@@ -144,6 +147,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["clojure"], 0);
                 });
             });
             
@@ -156,6 +161,8 @@ define(function (require, exports, module) {
                     editor.setCursorPos(3, 1);
                     invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["html"], 1);
                 });
             });
             
@@ -174,6 +181,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["all"], 0);
                 });
             });
         });

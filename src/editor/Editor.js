@@ -713,23 +713,31 @@ define(function (require, exports, module) {
         var cursor = this._codeMirror.getCursor();
         
         if (expandTabs) {
-            var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
-                tabSize = Editor.getTabSize(),
-                column  = 0,
-                i;
-
-            for (i = 0; i < line.length; i++) {
-                if (line[i] === '\t') {
-                    column += (tabSize - (column % tabSize));
-                } else {
-                    column++;
-                }
-            }
-            
-            cursor.ch = column;
+            cursor.ch = this.getColOffset(cursor);
         }
-        
         return cursor;
+    };
+    
+    /**
+     * Returns the display column (zero-based) for a given string-based pos. Differs from pos.ch only
+     * when the line contains preceding \t chars. Result depends on the current tab size setting.
+     * @param {!{line:number, ch:number}}
+     * @return {number}
+     */
+    Editor.prototype.getColOffset = function (pos) {
+        var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
+            tabSize = Editor.getTabSize(),
+            column  = 0,
+            i;
+
+        for (i = 0; i < line.length; i++) {
+            if (line[i] === '\t') {
+                column += (tabSize - (column % tabSize));
+            } else {
+                column++;
+            }
+        }
+        return column;
     };
     
     /**

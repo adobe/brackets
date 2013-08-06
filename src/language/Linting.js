@@ -134,7 +134,7 @@ define(function (require, exports, module) {
      * that the file on disk matches the text given (file may have unsaved changes).
      *
      * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):{errors:Array, aborted:boolean}} provider
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
@@ -190,8 +190,8 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                // Remove the null errors for the template
-                var html   = Mustache.render(ResultsTemplate, {reportList: result.errors});
+                // Update results table
+                var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
                 var $selectedRow;
                 
                 $lintResults.find(".table-container")
@@ -241,6 +241,7 @@ define(function (require, exports, module) {
 
         } else {
             // No linting provider for current file
+            _lastResult = null;
             Resizer.hide($lintResults);
             if (language) {
                 StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
@@ -334,29 +335,32 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
+        // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
         var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
         $lintResults = $("#errors-panel");
         
-        // Status bar icon - icon & tooltip updated by run()
+        $("#errors-panel .close").click(function () {
+            toggleCollapsed(true);
+        });
+        
+        // Status bar indicator - icon & tooltip updated by run()
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
         
-        $("#errors-panel .close").click(function () {
-            toggleCollapsed(true);
-        });
-
         $("#lint-status").click(function () {
-            toggleCollapsed();
+            // Clicking indicator toggles error panel, if any errors in current file
+            if (_lastResult && _lastResult.errors.length) {
+                toggleCollapsed();
+            }
         });
         
         
-        // Called on HTML ready to trigger the initial UI state
+        // Set initial UI state
         setEnabled(_prefs.getValue("enabled"));
         
         toggleCollapsed(_prefs.getValue("collapsed"));
-                
     });
     
     

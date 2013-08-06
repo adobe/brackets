@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
-        Package          = require("extensibility/Package");
+        Package          = require("extensibility/Package"),
+        NodeConnection   = require("utils/NodeConnection");
     
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
     
@@ -52,7 +53,8 @@ define(function (require, exports, module) {
         packageData = undefined;
         
         runs(function () {
-            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", 5000);
+            // Matches NodeConnection CONNECTION_TIMEOUT
+            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", NodeConnection._getConnectionTimeout());
         });
         
         runs(function () {
