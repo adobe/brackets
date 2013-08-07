@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(49);
+                    expect(elementCount).toEqual(15);
                 });
             });
             
@@ -186,23 +186,23 @@ define(function (require, exports, module) {
             
             it("should get 'img' tag for cursor positions inside img tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 58, ch: 4 }, "img");     // before <img
-                    checkTagIdAtPos({ line: 58, ch: 95 }, "img");    // after />
-                    checkTagIdAtPos({ line: 58, ch: 65 }, "img");    // inside src attribute value
+                    checkTagIdAtPos({ line: 37, ch: 4 }, "img");     // before <img
+                    checkTagIdAtPos({ line: 37, ch: 95 }, "img");    // after />
+                    checkTagIdAtPos({ line: 37, ch: 65 }, "img");    // inside src attribute value
                 });
             });
 
             it("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 58, ch: 1 }, "a");    // before "   <img"
-                    checkTagIdAtPos({ line: 59, ch: 0 }, "a");    // before </a>
+                    checkTagIdAtPos({ line: 37, ch: 1 }, "a");    // before "   <img"
+                    checkTagIdAtPos({ line: 38, ch: 0 }, "a");    // before </a>
                 });
             });
 
             it("No tag at cursor positions outside of the 'html' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 0, ch: 4 }, "");    // inside 'doctype' tag
-                    checkTagIdAtPos({ line: 146, ch: 0 }, "");  // after </html>
+                    checkTagIdAtPos({ line: 41, ch: 0 }, "");  // after </html>
                 });
             });
 
@@ -704,8 +704,8 @@ define(function (require, exports, module) {
                     expect(dom.tagID).toEqual(jasmine.any(Number));
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
-                    expect(dom.end).toEqual(5366);
-                    expect(dom.weight).toEqual(4131);
+                    expect(dom.end).toEqual(1269);
+                    expect(dom.weight).toEqual(738);
                     expect(dom.signature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
@@ -727,7 +727,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, dom);
-                    expect(editor._codeMirror.getAllMarks().length).toEqual(49);
+                    expect(editor._codeMirror.getAllMarks().length).toEqual(15);
                 });
             });
             
