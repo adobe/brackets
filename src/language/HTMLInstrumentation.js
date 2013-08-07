@@ -763,7 +763,7 @@ define(function (require, exports, module) {
             result.element = elementOrText;
         } else {
             result.text = elementOrText;
-            nextToCheck = index + step * 2;
+            nextToCheck += step;
             if (nextToCheck !== guard) {
                 result.element = siblings[nextToCheck];
             }

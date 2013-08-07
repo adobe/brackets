@@ -165,7 +165,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         RemoteAgent.call("getSimpleDOM").done(function (res) {
             var browserSimpleDOM = JSON.parse(res.result.value),
                 edits,
-                skipDelta,
                 node,
                 result;
             
@@ -192,9 +191,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                 console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
-                    if (!skipDelta) {
-                        console.log(delta);
-                    }
+                    console.log(delta);
                 });
             }
         });
