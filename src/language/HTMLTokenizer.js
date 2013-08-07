@@ -21,14 +21,12 @@
  * 
  */
 
-// Tokenizer adapted from https://github.com/fb55/htmlparser2
-// (MIT-licensed)
+// A simple HTML tokenizer, originally adapted from https://github.com/fb55/htmlparser2
+// (MIT-licensed), but with significant customizations for use in HTML live development.
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, continue: true */
 /*global define, $, CodeMirror */
 /*unittests: HTML Tokenizer*/
-
-// TODO: add comments/jsdoc
 
 define(function (require, exports, module) {
     
@@ -99,34 +97,78 @@ define(function (require, exports, module) {
         AFTER_STYLE_3 = i++, //L
         AFTER_STYLE_4 = i++; //E
 
-    function whitespace(c) {
+    /**
+     * @private
+     * @param {string} c the character to test
+     * @return {boolean} true if c is whitespace
+     */
+    function isWhitespace(c) {
         return c === " " || c === "\t" || c === "\r" || c === "\n";
     }
     
+    /**
+     * @private
+     * @param {string} c the character to test
+     * @return {boolean} true if c is legal in an HTML tag name
+     */
     function isLegalInTagName(c) {
         return (/[A-Za-z0-9]/).test(c);
     }
     
+    /**
+     * @private
+     * @param {string} c the character to test
+     * @return {boolean} true if c is legal in an HTML attribute name
+     */
     function isLegalInAttributeName(c) {
         return c !== '"' && c !== "'" && c !== "<" && c !== "=";
     }
     
+    /**
+     * @private
+     * @param {string} c the character to test
+     * @return {boolean} true if c is legal in an unquoted attribute value
+     */
     function isLegalInUnquotedAttributeValue(c) {
         return c !== "<" && c !== "=";
     }
     
-    function Tokenizer(text, options) {
+    /**
+     * @constructor
+     * A simple HTML tokenizer. See the description of nextToken() for usage details.
+     * @param {string} text The HTML document to tokenize.
+     */
+    function Tokenizer(text) {
         this._state = TEXT;
         this._buffer = text;
         this._sectionStart = 0;
         this._index = 0;
-        this._options = options || {};
         this._special = 0; // 1 for script, 2 for style
         this._token = null;
         this._nextToken = null;
     }
     
-    //TODO make events conditional
+    /**
+     * Returns the next token in the HTML document, or null if we're at the end of the document.
+     * @return {?{type: string, contents: string, start: number, end: number}} token The next token, with the following fields:
+     *    type: The type of token, one of:
+     *          "error" - invalid syntax was found, tokenization aborted. Calling nextToken() again will produce undefined results.
+     *          "text" - contents contains the text
+     *          "opentagname" - an open tag was started; contents contains the tag name
+     *          "attribname" - an attribute was encountered; contents contains the attribute name
+     *          "attribvalue" - the value for the previous attribname was encountered; contents contains the (unquoted) value
+     *              (Note that attributes like checked and disabled might not have values.)
+     *          "opentagend" - the end of an open tag was encountered; contents is unspecified
+     *          "selfclosingtag" - a "/>" was encountered indicating that a void element was self-closed; contents is unspecified
+     *              (Note that this is optional in HTML; void elements like <img> will end with "opentagend", not "selfclosingtag")
+     *          "closetag" - a close tag was encountered; contents contains the tag name
+     *          "comment" - a comment was encountered; contents contains the body of the comment
+     *          "cdata" - a CDATA block was encountered; contents contains the text inside the block
+     *    contents: the contents of the token, as specified above. Note that "opentagend" and "selfclosingtag" really specify positions,
+     *          not tokens, and so have no contents.
+     *    start: the start index of the token contents within the text, or -1 for "opentagend" and "selfclosingtag"
+     *    end: the end index of the token contents within the text, or the position of the boundary for "opentagend" and "selfclosingtag"
+     */
     Tokenizer.prototype.nextToken = function () {
         this._token = null;
         
@@ -156,13 +198,13 @@ define(function (require, exports, module) {
                     } else if (c === "?") {
                         this._state = IN_PROCESSING_INSTRUCTION;
                         this._sectionStart = this._index + 1;
-                    } else if (!(this._options && this._options.xmlMode) && (c === "s" || c === "S")) {
+                    } else if (c === "s" || c === "S") {
                         this._state = BEFORE_SPECIAL;
                         this._sectionStart = this._index;
                     } else if (!isLegalInTagName(c)) {
                         this._emitSpecialToken("error");
                         break;
-                    } else if (!whitespace(c)) {
+                    } else if (!isWhitespace(c)) {
                         this._state = IN_TAG_NAME;
                         this._sectionStart = this._index;
                     }
@@ -178,7 +220,7 @@ define(function (require, exports, module) {
                     this._emitSpecialToken("opentagend", this._index + 1);
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
-                } else if (whitespace(c)) {
+                } else if (isWhitespace(c)) {
                     this._emitToken("opentagname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 } else if (!isLegalInTagName(c)) {
@@ -198,7 +240,7 @@ define(function (require, exports, module) {
                 } else if (!isLegalInTagName(c)) {
                     this._emitSpecialToken("error");
                     break;
-                } else if (!whitespace(c)) {
+                } else if (!isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index;
                 }
@@ -208,7 +250,7 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                     this._special = 0;
-                } else if (whitespace(c)) {
+                } else if (isWhitespace(c)) {
                     this._emitToken("closetag");
                     this._state = AFTER_CLOSING_TAG_NAME;
                     this._special = 0;
@@ -238,7 +280,7 @@ define(function (require, exports, module) {
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
                     break;
-                } else if (!whitespace(c)) {
+                } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
                 }
@@ -246,7 +288,7 @@ define(function (require, exports, module) {
                 if (c === "=") {
                     this._emitTokenIfNonempty("attribname");
                     this._state = BEFORE_ATTRIBUTE_VALUE;
-                } else if (whitespace(c)) {
+                } else if (isWhitespace(c)) {
                     this._emitTokenIfNonempty("attribname");
                     this._state = AFTER_ATTRIBUTE_NAME;
                 } else if (c === "/" || c === ">") {
@@ -266,7 +308,7 @@ define(function (require, exports, module) {
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
                     break;
-                } else if (!whitespace(c)) {
+                } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
                 }
@@ -280,7 +322,7 @@ define(function (require, exports, module) {
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
                     this._emitSpecialToken("error");
                     break;
-                } else if (!whitespace(c)) {
+                } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_VALUE_NO_QUOTES;
                     this._sectionStart = this._index;
                 }
@@ -300,7 +342,7 @@ define(function (require, exports, module) {
                     this._emitSpecialToken("opentagend", this._index + 1);
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
-                } else if (whitespace(c)) {
+                } else if (isWhitespace(c)) {
                     this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
@@ -361,7 +403,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_COMMENT_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._emitToken("comment");
+                    this._emitToken("comment", this._index - 2);
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 } else if (c !== "-") {
@@ -423,7 +465,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_CDATA_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._emitToken("cdata");
+                    this._emitToken("cdata", this._index - 2);
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
                 } else if (c !== "]") {
@@ -486,7 +528,7 @@ define(function (require, exports, module) {
                     continue; //consume the token again
                 }
             } else if (this._state === BEFORE_SCRIPT_5) {
-                if (c === "/" || c === ">" || whitespace(c)) {
+                if (c === "/" || c === ">" || isWhitespace(c)) {
                     this._special = 1;
                 }
                 this._state = IN_TAG_NAME;
@@ -516,7 +558,7 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                 }
             } else if (this._state === AFTER_SCRIPT_5) {
-                if (c === ">" || whitespace(c)) {
+                if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index - 6;
                     continue; //reconsume the token
@@ -550,7 +592,7 @@ define(function (require, exports, module) {
                     continue; //consume the token again
                 }
             } else if (this._state === BEFORE_STYLE_4) {
-                if (c === "/" || c === ">" || whitespace(c)) {
+                if (c === "/" || c === ">" || isWhitespace(c)) {
                     this._special = 2;
                 }
                 this._state = IN_TAG_NAME;
@@ -574,7 +616,7 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                 }
             } else if (this._state === AFTER_STYLE_4) {
-                if (c === ">" || whitespace(c)) {
+                if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index - 5;
                     continue; //reconsume the token
@@ -597,17 +639,20 @@ define(function (require, exports, module) {
         return this._token;
     };
     
-    Tokenizer.prototype.reset = function () {
-        Tokenizer.call(this, this._options);
-    };
-    
-    Tokenizer.prototype._setToken = function (name, index) {
+    /**
+     * @private
+     * Extract the portion of the buffer since _sectionStart and set it to be the next token we return
+     * from `nextToken()`. If there's already a _token, we stuff it in _nextToken instead.
+     * @param {string} type The token's type (see documentation for `nextToken()`)
+     * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
+     */
+    Tokenizer.prototype._setToken = function (type, index) {
         if (index === undefined) {
             index = this._index;
         }
         var token = {
-            type: name,
-            contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, this._index),
+            type: type,
+            contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, index),
             start: this._sectionStart,
             end: index
         };
@@ -624,21 +669,41 @@ define(function (require, exports, module) {
         }
     };
 
-    Tokenizer.prototype._emitToken = function (name, index) {
-        this._setToken(name, index);
+    /**
+     * @private
+     * Sets the token to be returned from `nextToken()` and resets the section start to an invalid value.
+     * this._sectionStart should be set to a valid value before the next call to one of the `_emit` methods.
+     * @param {string} type The token's type (see documentation for `nextToken()`)
+     * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
+     */
+    Tokenizer.prototype._emitToken = function (type, index) {
+        this._setToken(type, index);
         this._sectionStart = -1;
     };
     
-    Tokenizer.prototype._emitSpecialToken = function (name, index) {
+    /**
+     * @private
+     * Like `_emitToken()`, but used for special tokens that don't have real content (like opentagend and selfclosingtag).
+     * @param {string} type The token's type (see documentation for `nextToken()`)
+     * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
+     */
+    Tokenizer.prototype._emitSpecialToken = function (type, index) {
         // Force the section start to be -1, since these tokens don't have meaningful content--they're
         // just marking particular boundaries we care about (end of an open tag or a self-closing tag).
         this._sectionStart = -1;
-        this._emitToken(name, index);
+        this._emitToken(type, index);
     };
     
-    Tokenizer.prototype._emitTokenIfNonempty = function (name) {
+    /**
+     * @private
+     * Like `_emitToken()`, but only emits a token if there is actually content in it. Note that this still
+     * resets this._sectionStart to an invalid value even if there is no content, so a new section must be
+     * started before the next `_emit`.
+     * @param {string} type The token's type (see documentation for `nextToken()`)
+     */
+    Tokenizer.prototype._emitTokenIfNonempty = function (type) {
         if (this._index > this._sectionStart) {
-            this._setToken(name);
+            this._setToken(type);
         }
         this._sectionStart = -1;
     };

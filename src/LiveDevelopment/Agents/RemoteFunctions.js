@@ -659,12 +659,14 @@ function RemoteFunctions(experimental) {
         var json = { tag: elem.tagName.toLowerCase(), attributes: {}, children: [] },
             i,
             len,
-            node;
+            node,
+            value;
         
         len = elem.attributes.length;
         for (i = 0; i < len; i++) {
             node = elem.attributes.item(i);
-            json.attributes[node.name] = node.nodeValue;
+            value = (node.name === "data-brackets-id") ? parseInt(node.value, 10) : node.value;
+            json.attributes[node.name] = value;
         }
         
         len = elem.childNodes.length;

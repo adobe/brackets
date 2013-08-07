@@ -254,6 +254,7 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
+        // TODO: remove the signatureMap, it's no longer needed
         var signatureMap = {};
         
         function closeTag(endIndex) {
@@ -303,11 +304,17 @@ define(function (require, exports, module) {
                     stack.push(newTag);
                 }
             } else if (token.type === "opentagend" || token.type === "selfclosingtag") {
+                // TODO: disallow <p/>?
                 if (this.currentTag) {
                     // We're closing an open tag. Record the end of the open tag as the end of the
                     // range. (If we later find a close tag for this tag, the end will get overwritten
                     // with the end of the close tag. In the case of a self-closing tag, we should never
                     // encounter that.)
+                    // Note that we don't need to update the signature here because the signature only
+                    // relies on the tag name and ID, and isn't affected by the tag's attributes, so
+                    // the signature we calculated when creating the tag is still the same. If we later
+                    // find a close tag for this tag, we'll update the signature to account for its
+                    // children at that point (in the next "else" case).
                     this.currentTag.end = this.startOffset + token.end;
                     lastClosedTag = this.currentTag;
                     this.currentTag = null;
@@ -347,6 +354,9 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
+                // Set the value to the empty string in case this is an empty attribute. If it's not,
+                // it will get overwritten by the attribvalue later.
+                this.currentTag.attributes[attributeName] = "";
             } else if (token.type === "attribvalue" && attributeName !== null) {
                 this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
@@ -1024,9 +1034,10 @@ define(function (require, exports, module) {
      * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
      * @param {Object} root
      */
-    function _processBrowserSimpleDOM(root) {
+    function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
         var nodeMap         = {},
-            signatureMap    = {};
+            signatureMap    = {},
+            root;
         
         function _processElement(elem) {
             elem.tagID = elem.attributes["data-brackets-id"];
@@ -1055,12 +1066,21 @@ define(function (require, exports, module) {
             
             nodeMap[elem.tagID] = elem;
             signatureMap[elem.signature] = elem;
+
+            // Choose the root element based on the root tag in the editor.
+            // The browser may insert html, head and body elements if missing.
+            if (elem.tagID === editorRootTagID) {
+                root = elem;
+            }
         }
         
-        _processElement(root);
-        
+        _processElement(browserRoot);
+
+        root = root || browserRoot;
         root.nodeMap = nodeMap;
         root.signatureMap = signatureMap;
+
+        return root;
     }
     
     /**
@@ -1071,11 +1091,16 @@ define(function (require, exports, module) {
      */
     function _getBrowserDiff(editor, browserSimpleDOM) {
         var cachedValue = _cachedValues[editor.document.file.fullPath],
-            editorDOM   = cachedValue.dom;
+            editorRoot  = cachedValue.dom,
+            browserRoot;
         
-        _processBrowserSimpleDOM(browserSimpleDOM);
+        browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
         
-        return domdiff(editorDOM, browserSimpleDOM);
+        return {
+            diff    : domdiff(editorRoot, browserRoot),
+            browser : browserRoot,
+            editor  : editorRoot
+        };
     }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
