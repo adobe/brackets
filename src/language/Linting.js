@@ -170,7 +170,7 @@ define(function (require, exports, module) {
         if (provider) {
             perfTimerLint = PerfUtils.markStart("Linting '" + languageId + "':\t" + currentDoc.file.fullPath);
             
-            var result = provider.scanFile(currentDoc.getText(), currentDoc.fullPath);
+            var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
             _lastResult = result;
             
             PerfUtils.addMeasurement(perfTimerLint);
