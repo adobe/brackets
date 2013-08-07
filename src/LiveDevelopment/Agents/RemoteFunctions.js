@@ -534,7 +534,7 @@ function RemoteFunctions(experimental) {
     function _queryBracketsID(id) {
         if (!id) {
             return null;
-        };
+        }
 
         var results = document.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
@@ -545,7 +545,7 @@ function RemoteFunctions(experimental) {
             after  = _queryBracketsID(edit.afterID);
 
         if (edit.firstChild) {
-            before = targetElement.firstChild
+            before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
         }
