@@ -158,6 +158,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "行 {0}, 列 {1}",
+	"STATUSBAR_SELECTION_CH_SINGULAR": "!能=[7111808]  \u2014 Selected {0} column_=!",
+	"STATUSBAR_SELECTION_CH_PLURAL": "!能=[7111807]  \u2014 Selected {0} columns_=!",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": "!能=[7111810]  \u2014 Selected {0} line_=!",
+	"STATUSBAR_SELECTION_LINE_PLURAL": "!能=[7111809]  \u2014 Selected {0} lines_=!",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
@@ -191,7 +195,7 @@ define({
 	"CMD_FILE_DELETE": "削除",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
 	"CMD_EXTENSION_MANAGER": "拡張機能マネージャー\u2026",
-	"CMD_FILE_REFRESH": "更新",
+	"CMD_FILE_REFRESH": "!能=[6967022] Refresh File Tree_=!",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
