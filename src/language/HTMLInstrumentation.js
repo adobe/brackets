@@ -919,15 +919,10 @@ define(function (require, exports, module) {
             } else if (neighbors.right.lastChild) {
                 edit.lastChild = true;
             } else {
-                if (neighbors.left.element) {
-                    edit.afterID = neighbors.left.element.tagID;
-                }
                 if (neighbors.right.element) {
                     edit.beforeID = neighbors.right.element.tagID;
-                }
-                var text = neighbors.left.text;
-                if (edit.beforeID) {
-                    delete edit.afterID;
+                } else if (neighbors.left.element) {
+                    edit.afterID = neighbors.left.element.tagID;
                 }
             }
         }
