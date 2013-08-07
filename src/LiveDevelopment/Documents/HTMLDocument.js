@@ -164,13 +164,22 @@ define(function HTMLDocumentModule(require, exports, module) {
         
         RemoteAgent.call("getSimpleDOM").done(function (res) {
             var browserSimpleDOM = JSON.parse(res.result.value),
-                edits = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM),
+                edits,
                 skipDelta,
-                node;
+                node,
+                result;
             
-            edits = edits.filter(function (delta) {
+            try {
+                result = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM);
+            } catch (err) {
+                console.error("Error comparing in-browser DOM to in-editor DOM");
+                console.error(err.stack);
+                return;
+            }
+            
+            edits = result.diff.filter(function (delta) {
                 // ignore textDelete in html root element
-                node = browserSimpleDOM.nodeMap[delta.parentID];
+                node = result.browser.nodeMap[delta.parentID];
                 
                 if (node && node.tag === "html" && delta.type === "textDelete") {
                     return false;
