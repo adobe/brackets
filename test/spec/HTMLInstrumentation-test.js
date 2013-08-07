@@ -1096,8 +1096,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            // TODO: these tests aren't working yet.
-            xit("should represent simple new tag insert immediately after previous tag", function () {
+            it("should represent simple new tag insert immediately after previous tag before text before tag", function () {
                 runs(function () {
                     var ed;
                     
@@ -1114,7 +1113,9 @@ define(function (require, exports, module) {
                             console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             
                             // first child is whitespace, second child is <h1>, third child is new tag
-                            var newElement = newDOM.children[3].children[2];
+                            var newElement = newDOM.children[3].children[2],
+                                afterID = newElement.parent.children[1].tagID,
+                                beforeID = newElement.parent.children[4].tagID;
                             expect(newElement.tag).toEqual("div");
                             expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
                             expect(newElement.children[0].content).toEqual("New Content");
@@ -1125,48 +1126,59 @@ define(function (require, exports, module) {
                             // - insert text in tag
                             // - re-add \n after tag
                             expect(result.edits.length).toEqual(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID
+                            });
                             expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
                                 tagID: newElement.tagID,
                                 parentID: newElement.parent.tagID,
-                                child: 2
+                                beforeID: beforeID
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textInsert",
-                                tagID: newElement.tagID,
-                                child: 0,
-                                content: "New Content"
+                                content: "New Content",
+                                parentID: newElement.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.parent.tagID,
+                                content: jasmine.any(String),
+                                afterID: newElement.tagID,
+                                beforeID: beforeID
                             });
                         }
                     );
                 });
             });
             
-            // TODO: this isn't working yet--there are issues with the way text around comments 
-            // is being parsed in the test file
-            xit("should handle new text insert between tags", function () {
+            it("should handle new text insert between tags (where there's already whitespace)", function () {
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
-                            editor.document.replaceRange("New Content", {line: 15, ch: 0});
+                            editor.document.replaceRange("New Content", {line: 13, ch: 0});
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            var newElement = newDOM.children[3].children[5];
-                            expect(newElement.tagID).toBeUndefined();
-                            expect(newElement.content).toEqual("New Content");
-                            expect(result.edits.length).toEqual(3);
-                            expect(result.edits[1]).toEqual({
-                                type: "textInsert",
-                                tagID: newDOM.children[3].tagID,
-                                child: 0,
-                                content: "New Content"
+                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
+                            console.log("edits: " + JSON.stringify(result.edits));
+                            var newElement = newDOM.children[3].children[2];
+                            expect(newElement.content).toEqual("\nNew Content");
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                content: "\nNew Content",
+                                parentID: newElement.parent.tagID,
+                                afterID: newDOM.children[3].children[1].tagID,
+                                beforeID: newDOM.children[3].children[3].tagID
                             });
                         }
-                    );
-                    
+                    );                    
                 });
             });
         });
