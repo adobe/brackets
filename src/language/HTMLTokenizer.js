@@ -103,7 +103,7 @@ define(function (require, exports, module) {
         return c === " " || c === "\t" || c === "\r" || c === "\n";
     }
     
-    function isLegalInName(c) {
+    function isLegalInTagName(c) {
         return (/[A-Za-z0-9]/).test(c);
     }
     
@@ -159,8 +159,9 @@ define(function (require, exports, module) {
                     } else if (!(this._options && this._options.xmlMode) && (c === "s" || c === "S")) {
                         this._state = BEFORE_SPECIAL;
                         this._sectionStart = this._index;
-                    } else if (!isLegalInName(c)) {
+                    } else if (!isLegalInTagName(c)) {
                         this._emitSpecialToken("error");
+                        break;
                     } else if (!whitespace(c)) {
                         this._state = IN_TAG_NAME;
                         this._sectionStart = this._index;
@@ -180,8 +181,9 @@ define(function (require, exports, module) {
                 } else if (whitespace(c)) {
                     this._emitToken("opentagname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
-                } else if (!isLegalInName(c)) {
+                } else if (!isLegalInTagName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 }
             } else if (this._state === BEFORE_CLOSING_TAG_NAME) {
                 if (c === ">") {
@@ -193,8 +195,9 @@ define(function (require, exports, module) {
                         this._state = TEXT;
                         continue;
                     }
-                } else if (!isLegalInName(c)) {
+                } else if (!isLegalInTagName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 } else if (!whitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._sectionStart = this._index;
@@ -209,8 +212,9 @@ define(function (require, exports, module) {
                     this._emitToken("closetag");
                     this._state = AFTER_CLOSING_TAG_NAME;
                     this._special = 0;
-                } else if (!isLegalInName(c)) {
+                } else if (!isLegalInTagName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 }
             } else if (this._state === AFTER_CLOSING_TAG_NAME) {
                 //skip everything until ">"
@@ -233,6 +237,7 @@ define(function (require, exports, module) {
                     this._state = AFTER_CLOSING_TAG_NAME;
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
@@ -250,6 +255,7 @@ define(function (require, exports, module) {
                     continue;
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 }
             } else if (this._state === AFTER_ATTRIBUTE_NAME) {
                 if (c === "=") {
@@ -259,6 +265,7 @@ define(function (require, exports, module) {
                     continue;
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
                     this._sectionStart = this._index;
@@ -272,6 +279,7 @@ define(function (require, exports, module) {
                     this._sectionStart = this._index + 1;
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 } else if (!whitespace(c)) {
                     this._state = IN_ATTRIBUTE_VALUE_NO_QUOTES;
                     this._sectionStart = this._index;
@@ -297,6 +305,7 @@ define(function (require, exports, module) {
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
                     this._emitSpecialToken("error");
+                    break;
                 }
     
             /*
@@ -575,6 +584,7 @@ define(function (require, exports, module) {
             } else {
                 console.error("HTMLTokenizer: Encountered unknown state");
                 this._emitSpecialToken("error");
+                break;
             }
     
             this._index++;

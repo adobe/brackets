@@ -152,6 +152,13 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
     
+    /**
+     * @private
+     * For the given editor change, compare the resulting browser DOM with the
+     * in-editor DOM. If there are any diffs, a warning is logged to the
+     * console along with each diff.
+     * @param {Object} change CodeMirror editor change data
+     */
     HTMLDocument.prototype._compareWithBrowser = function (change) {
         var self = this;
         
