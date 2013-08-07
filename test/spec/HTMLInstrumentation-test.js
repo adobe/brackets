@@ -1020,12 +1020,12 @@ define(function (require, exports, module) {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             // Insert a new tag immediately after the body tag.
-                            editor.document.replaceRange("<div>New Content</div>", {line: 33, ch: 0});
+                            editor.document.replaceRange("<strong>New Content</strong>", {line: 33, ch: 0});
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            console.log("new DOM: ");
-                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+//                            console.log("new DOM: ");
+//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[9].children[3],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1036,7 +1036,7 @@ define(function (require, exports, module) {
                                 type: "elementInsert",
                                 parentID: parentID,
                                 lastChild: true,
-                                tag: "div",
+                                tag: "strong",
                                 attributes: {},
                                 tagID: newElement.tagID
                             });
