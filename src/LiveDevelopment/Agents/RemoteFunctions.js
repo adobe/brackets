@@ -571,7 +571,7 @@ function RemoteFunctions(experimental) {
             end             = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
             endMissing      = edit.beforeID && !end,
             moveNext        = start && start.nextSibling,
-            current         = moveNext || (end && end.previousSibling),
+            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes[0],
             next,
             textNode        = (edit.content !== undefined) ? document.createTextNode(edit.content) : null,
             lastRemovedWasText,
