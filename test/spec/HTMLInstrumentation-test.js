@@ -1109,8 +1109,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            console.log("new DOM: ");
-                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             
                             // first child is whitespace, second child is <h1>, third child is new tag
                             var newElement = newDOM.children[3].children[2],
@@ -1157,7 +1155,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should handle new text insert between tags (where there's already whitespace)", function () {
+            it("should handle new text insert between tags after whitespace", function () {
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1165,8 +1163,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            console.log("edits: " + JSON.stringify(result.edits));
                             var newElement = newDOM.children[3].children[2];
                             expect(newElement.content).toEqual("\nNew Content");
                             expect(result.edits.length).toEqual(1);
@@ -1180,6 +1176,46 @@ define(function (require, exports, module) {
                         }
                     );                    
                 });
+            });
+
+            it("should handle inserting an element in the middle of text", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<img>", {line: 12, ch: 19});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[1].children[1];
+                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
+                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
+                            expect(newElement.tag).toEqual("img");
+                            expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
+                            expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
+                            expect(result.edits.length).toEqual(3);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                content: " WITH BRACKETS",
+                                parentID: newElement.parent.tagID,
+                                afterID: newElement.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textReplace",
+                                content: "GETTING STARTED",
+                                parentID: newElement.parent.tagID,
+                                beforeID: newElement.tagID
+                            });
+                        }
+                    );                    
+                });
+                
             });
         });
         
