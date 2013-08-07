@@ -1033,9 +1033,10 @@ define(function (require, exports, module) {
      * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
      * @param {Object} root
      */
-    function _processBrowserSimpleDOM(root) {
+    function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
         var nodeMap         = {},
-            signatureMap    = {};
+            signatureMap    = {},
+            root;
         
         function _processElement(elem) {
             elem.tagID = elem.attributes["data-brackets-id"];
@@ -1064,12 +1065,21 @@ define(function (require, exports, module) {
             
             nodeMap[elem.tagID] = elem;
             signatureMap[elem.signature] = elem;
+
+            // Choose the root element based on the root tag in the editor.
+            // The browser may insert html, head and body elements if missing.
+            if (elem.tagID === editorRootTagID) {
+                root = elem;
+            }
         }
         
-        _processElement(root);
-        
+        _processElement(browserRoot);
+
+        root = root || browserRoot;
         root.nodeMap = nodeMap;
         root.signatureMap = signatureMap;
+
+        return root;
     }
     
     /**
@@ -1080,11 +1090,16 @@ define(function (require, exports, module) {
      */
     function _getBrowserDiff(editor, browserSimpleDOM) {
         var cachedValue = _cachedValues[editor.document.file.fullPath],
-            editorDOM   = cachedValue.dom;
+            editorRoot  = cachedValue.dom,
+            browserRoot;
         
-        _processBrowserSimpleDOM(browserSimpleDOM);
+        browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
         
-        return domdiff(editorDOM, browserSimpleDOM);
+        return {
+            diff    : domdiff(editorRoot, browserRoot),
+            browser : browserRoot,
+            editor  : editorRoot
+        };
     }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
