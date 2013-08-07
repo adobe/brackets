@@ -532,35 +532,30 @@ function RemoteFunctions(experimental) {
     }
 
     function _queryBracketsID(id) {
+        if (!id) {
+            return null;
+        };
+
         var results = document.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
     }
     
     function _insertChildNode(targetElement, childElement, edit) {
-        var index = edit.child || -1;
+        var before = _queryBracketsID(edit.beforeID),
+            after  = _queryBracketsID(edit.afterID);
+
+        if (edit.firstChild) {
+            before = targetElement.firstChild
+        } else if (edit.lastChild) {
+            after = targetElement.lastChild;
+        }
         
-        if (index < 0) {
-            var before = _queryBracketsID(edit.beforeID),
-                after  = _queryBracketsID(edit.afterID);
-            
-            if (before) {
-                targetElement.insertBefore(childElement, before);
-            } else if (after && (after !== targetElement.lastChild)) {
-                targetElement.insertBefore(childElement, after.nextSibling);
-            } else {
-                targetElement.appendChild(childElement);
-            }
+        if (before) {
+            targetElement.insertBefore(childElement, before);
+        } else if (after && (after !== targetElement.lastChild)) {
+            targetElement.insertBefore(childElement, after.nextSibling);
         } else {
-            var children = _getChildNodes(targetElement),
-                childElementCount = children.length;
-            
-            if ((childElementCount === 0 && index === 0) || (index === childElementCount)) {
-                // append new child to empty children or at the end
-                targetElement.appendChild(childElement);
-            } else {
-                // insert new child at requested index
-                targetElement.insertBefore(childElement, children[index]);
-            }
+            targetElement.appendChild(childElement);
         }
     }
     
