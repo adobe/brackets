@@ -87,107 +87,6 @@ define(function (require, exports, module) {
     
     var tagID = 1;
     
-    /**
-     * Scan a document to prepare for HTMLInstrumentation
-     * @param {Document} doc The doc to scan. 
-     * @return {Object} Root DOM node of the scanned document.
-     */
-    function scanDocument(doc) {
-        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
-            $(doc).on("change.htmlInstrumentation", function () {
-                if (_cachedValues[doc.file.fullPath]) {
-                    _cachedValues[doc.file.fullPath].dirty = true;
-                }
-            });
-            
-            // Assign to cache, but don't set a value yet
-            _cachedValues[doc.file.fullPath] = null;
-        }
-        
-        var cachedValue = _cachedValues[doc.file.fullPath];
-        if (cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
-            return cachedValue.dom;
-        }
-        
-        var text = doc.getText(),
-            dom = _buildSimpleDOM(text);
-        
-        if (dom) {
-            // Cache results
-            _cachedValues[doc.file.fullPath] = {
-                timestamp: doc.diskTimestamp,
-                dom: dom,
-                dirty: false
-            };
-        }
-        
-        return dom;
-    }
-    
-    /**
-     * Generate instrumented HTML for the specified document. Each tag has a "data-brackets-id"
-     * attribute with a unique ID for its value. For example, "<div>" becomes something like
-     * "<div data-brackets-id='45'>". The attribute value is just a number that is guaranteed
-     * to be unique. 
-     * @param {Document} doc The doc to scan. 
-     * @return {string} instrumented html content
-     */
-    function generateInstrumentedHTML(doc) {
-        var dom = scanDocument(doc),
-            orig = doc.getText(),
-            gen = "",
-            lastIndex = 0;
-        
-        if (!dom) {
-            return null;
-        }
-        
-        // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
-        // end of the open tag        
-        function walk(node) {
-            if (node.tag) {
-                var attrText = " data-brackets-id='" + node.tagID + "'";
-                
-                // Insert the attribute as the first attribute in the tag.
-                var insertIndex = node.start + node.tag.length + 1;
-                gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
-                lastIndex = insertIndex;
-            }
-            
-            if (node.children) {
-                node.children.forEach(walk);
-            }
-        }
-        
-        walk(dom);
-        gen += orig.substr(lastIndex);
-        
-        return gen;
-    }
-    
-    /**
-     * Mark the text for the specified editor. Either the scanDocument() or 
-     * the generateInstrumentedHTML() function must be called before this function
-     * is called.
-     *
-     * NOTE: This function is "private" for now (has a leading underscore), since
-     * the API is likely to change in the future.
-     *
-     * @param {Editor} editor The editor whose text should be marked.
-     * @return none
-     */
-    function _markText(editor) {
-        var cache = _cachedValues[editor.document.file.fullPath],
-            dom = cache && cache.dom;
-        
-        if (!dom) {
-            console.error("Couldn't find the dom for " + editor.document.file.fullPath);
-            return;
-        }
-        
-        _markTextFromDOM(editor, dom);
-    }
-
     function _getMarkerAtDocumentPos(editor, pos) {
         var i,
             cm = editor._codeMirror,
@@ -514,7 +413,15 @@ define(function (require, exports, module) {
         return result;
     }
     
-    // TODO: I'd be worried about stack overflows here
+    /**
+     * Recursively walks the SimpleDOM starting at node and marking
+     * all tags in the CodeMirror instance. The more useful interface
+     * is the _markTextFromDOM function which clears existing marks
+     * before calling this function to create new ones.
+     *
+     * @param {CodeMirror} cm CodeMirror instance in which to mark tags
+     * @param {Object} node SimpleDOM node to use as the root for marking
+     */
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
             if (childNode.tag) {
@@ -525,6 +432,12 @@ define(function (require, exports, module) {
         mark.tagID = node.tagID;
     }
     
+    /**
+     * Clears the marks from the document and creates new ones.
+     *
+     * @param {Editor} editor Editor object holding this document
+     * @param {Object} dom SimpleDOM root object that contains the parsed structure
+     */
     function _markTextFromDOM(editor, dom) {
         var cm = editor._codeMirror;
         
@@ -801,6 +714,22 @@ define(function (require, exports, module) {
         };
     };
     
+    /**
+     * The position of text nodes and elements are determined by their
+     * surroundings. For a given node, which is provided to this function
+     * as siblings[index], this function will look left or right
+     * through the list of siblings starting at the given index. It
+     * will look for either an element immediately in the chosen direction
+     * or a text node and then an element.
+     *
+     * Note that this function assumes that there are no comment nodes
+     * and no runs of multiple text nodes.
+     *
+     * @param {Array} siblings List of nodes that are siblings to the target node
+     * @param {integer} index Index into the siblings list for the target node
+     * @param {boolean} left True to look left, falsy value to look right
+     * @return {Object} each field of the return is optional. `element` contains the next element found, `text` contains the text node in between if there was one. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
+     */
     function _findElementAndText(siblings, index, left) {
         var step = left ? -1 : 1,
             guard = left ? -1 : siblings.length,
@@ -832,15 +761,32 @@ define(function (require, exports, module) {
         return result;
     }
     
-    function findNeighbors(element) {
-        var siblings = element.parent.children;
-        var childIndex = siblings.indexOf(element);
+    /**
+     * Finds the neighbors around the given SimpleDOM node. The return
+     * value has what it saw to the left and to the right. See
+     * the return value of _findElementAndText to see what left and right
+     * contain.
+     *
+     * @param {Object} node SimpleDOM node for which to find the neighbors
+     * @return {Object} object with left and right neighbors, each with element/text/firstChild/lastChild.
+     */
+    function findNeighbors(node) {
+        var siblings = node.parent.children;
+        var childIndex = siblings.indexOf(node);
         var neighbors = {};
         neighbors.left = _findElementAndText(siblings, childIndex, true);
         neighbors.right = _findElementAndText(siblings, childIndex, false);
         return neighbors;
     }
     
+    /**
+     * Comparison function that compares based on the weight property
+     * of the given objects.
+     *
+     * @param {Object} a first for comparison
+     * @param {Object} b second for comparison
+     * @return {integer} negative number if A > B, 0 if equal, positive if B > A
+     */
     function compareByWeight(a, b) {
         return b.weight - a.weight;
     }
@@ -918,8 +864,18 @@ define(function (require, exports, module) {
             }
         });
         
-        function addPositionToTextEdit(edit, element) {
-            var neighbors = findNeighbors(element);
+        /**
+         * The position of a text node is given by its parent
+         * and, more importantly, the elements immediately surrounding it.
+         * This function will add position information to the given edit as
+         * afterID and beforeID, along with the parentID.
+         * 
+         * @param {Object} edit The edit object to augment with position
+         * @param {Object} node The SimpleDOM node that is the target of the edit
+         */
+        function addPositionToTextEdit(edit, node) {
+            edit.parentID = node.parent.tagID;
+            var neighbors = findNeighbors(node);
             if (neighbors.left.element) {
                 edit.afterID = neighbors.left.element.tagID;
             }
@@ -929,7 +885,22 @@ define(function (require, exports, module) {
             }
         }
         
+        /**
+         * Describing the position of an element insertion follows these
+         * heuristics:
+         *
+         * 1. If the element comes at the beginning or end of the list of
+         *    the parent's children, firstChild or lastChild is set on the edit
+         * 2. If there is an element after the element that is being inserted,
+         *    beforeID is set and the element should be inserted immediately
+         *    before the element with the given ID.
+         * 3. If there is no element after the given one, then afterID is
+         *    given and the new element is inserted immediately after that
+         *    one.
+         * 
+         */
         function addPositionToEdit(edit, element) {
+            edit.parentID = element.parent.tagID;
             var neighbors = findNeighbors(element);
             if (neighbors.left.firstChild) {
                 edit.firstChild = true;
@@ -958,7 +929,6 @@ define(function (require, exports, module) {
                     });
                 } else {
                     var edit = {
-                        parentID: element.parent.tagID,
                         type: "textDelete"
                     };
                     addPositionToTextEdit(edit, element);
@@ -980,8 +950,7 @@ define(function (require, exports, module) {
                 type: "elementInsert",
                 tagID: newElement.tagID,
                 tag: newElement.tag,
-                attributes: newElement.attributes,
-                parentID: newElement.parent.tagID
+                attributes: newElement.attributes
             };
             addPositionToEdit(edit, newElement);
             edits.push(edit);
@@ -991,7 +960,6 @@ define(function (require, exports, module) {
             var newElement = newNode.nodeMap[nonMatchingID];
             var edit = {
                 type: "textInsert",
-                parentID: newElement.parent.tagID,
                 content: newElement.content
             };
             addPositionToTextEdit(edit, newElement);
@@ -1001,7 +969,6 @@ define(function (require, exports, module) {
         Object.keys(textChanges).forEach(function (changedID) {
             var changedElement = newNode.nodeMap[changedID];
             var edit = {
-                parentID: changedElement.parent.tagID,
                 type: "textReplace",
                 content: changedElement.content
             };
@@ -1113,6 +1080,107 @@ define(function (require, exports, module) {
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
     
+    /**
+     * Scan a document to prepare for HTMLInstrumentation
+     * @param {Document} doc The doc to scan. 
+     * @return {Object} Root DOM node of the scanned document.
+     */
+    function scanDocument(doc) {
+        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
+            $(doc).on("change.htmlInstrumentation", function () {
+                if (_cachedValues[doc.file.fullPath]) {
+                    _cachedValues[doc.file.fullPath].dirty = true;
+                }
+            });
+            
+            // Assign to cache, but don't set a value yet
+            _cachedValues[doc.file.fullPath] = null;
+        }
+        
+        var cachedValue = _cachedValues[doc.file.fullPath];
+        if (cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
+            return cachedValue.dom;
+        }
+        
+        var text = doc.getText(),
+            dom = _buildSimpleDOM(text);
+        
+        if (dom) {
+            // Cache results
+            _cachedValues[doc.file.fullPath] = {
+                timestamp: doc.diskTimestamp,
+                dom: dom,
+                dirty: false
+            };
+        }
+        
+        return dom;
+    }
+    
+    /**
+     * Generate instrumented HTML for the specified document. Each tag has a "data-brackets-id"
+     * attribute with a unique ID for its value. For example, "<div>" becomes something like
+     * "<div data-brackets-id='45'>". The attribute value is just a number that is guaranteed
+     * to be unique. 
+     * @param {Document} doc The doc to scan. 
+     * @return {string} instrumented html content
+     */
+    function generateInstrumentedHTML(doc) {
+        var dom = scanDocument(doc),
+            orig = doc.getText(),
+            gen = "",
+            lastIndex = 0;
+        
+        if (!dom) {
+            return null;
+        }
+        
+        // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
+        // end of the open tag        
+        function walk(node) {
+            if (node.tag) {
+                var attrText = " data-brackets-id='" + node.tagID + "'";
+                
+                // Insert the attribute as the first attribute in the tag.
+                var insertIndex = node.start + node.tag.length + 1;
+                gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
+                lastIndex = insertIndex;
+            }
+            
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(dom);
+        gen += orig.substr(lastIndex);
+        
+        return gen;
+    }
+    
+    /**
+     * Mark the text for the specified editor. Either the scanDocument() or 
+     * the generateInstrumentedHTML() function must be called before this function
+     * is called.
+     *
+     * NOTE: This function is "private" for now (has a leading underscore), since
+     * the API is likely to change in the future.
+     *
+     * @param {Editor} editor The editor whose text should be marked.
+     * @return none
+     */
+    function _markText(editor) {
+        var cache = _cachedValues[editor.document.file.fullPath],
+            dom = cache && cache.dom;
+        
+        if (!dom) {
+            console.error("Couldn't find the dom for " + editor.document.file.fullPath);
+            return;
+        }
+        
+        _markTextFromDOM(editor, dom);
+    }
+
     // private methods
     exports._markText                   = _markText;
     exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
