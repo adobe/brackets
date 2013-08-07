@@ -266,6 +266,55 @@ define(function (require, exports, module) {
                     );
                 });
                 
+                it("[async/sync] two sync commands in order are executed completely synchronously", function () {
+                    var promise = null,
+                        done = false,
+                        success = false,
+                        result = null,
+                        flag = true;
+
+                    runs(function () {
+                    
+                        function negate(b) {
+                            return !b;
+                        }
+                        function setFlag(b) {
+                            flag = b;
+                            return flag;
+                        }
+                    
+                        promise = Async.chain([negate, setFlag], [flag]);
+                        promise.done(function (b) {
+                            done = true;
+                            success = true;
+                            result = b;
+                        });
+                        promise.fail(function () {
+                            done = true;
+                            success = false;
+                        });
+                        
+                        // note, we WANT to test this synchronously. This is not a bug
+                        // in the unit test. A series of synchronous functions should
+                        // execute synchronously.
+                        expect(flag).toBe(false);
+                    });
+                    
+                    // With (the current version) of jQuery promises, resolution and
+                    // resolution handlers will get called synchronously. However, if we
+                    // move to a different promise implementation (e.g. Q) then resolution
+                    // handlers will get called asynchronously. So, we check completion
+                    // of the promise on a separate pass.
+                    waitsFor(function () { return done; }, "The chain to complete");
+                    
+                    runs(function () {
+                        expect(done).toBe(true);
+                        expect(success).toBe(true);
+                        expect(result).toBe(flag);
+                    });
+                    
+                });
+                
             });
                         
         });
