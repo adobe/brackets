@@ -730,7 +730,7 @@ define(function (require, exports, module) {
      * as siblings[index], this function will look left or right
      * through the list of siblings starting at the given index. It
      * will look for either an element immediately in the chosen direction
-     * or a text node and then an element.
+     * or a text node and then, optionally, an element.
      *
      * Note that this function assumes that there are no comment nodes
      * and no runs of multiple text nodes.
@@ -738,7 +738,7 @@ define(function (require, exports, module) {
      * @param {Array} siblings List of nodes that are siblings to the target node
      * @param {integer} index Index into the siblings list for the target node
      * @param {boolean} left True to look left, falsy value to look right
-     * @return {Object} each field of the return is optional. `element` contains the next element found, `text` contains the text node in between if there was one. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
+     * @return {Object} each field of the return is optional. `element` contains the next element found if there was one, `text` contains the text node in between if there was one. If there is only a text node in the given direction, then just `text` will be set. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
      */
     function _findElementAndText(siblings, index, left) {
         var step = left ? -1 : 1,
@@ -878,7 +878,9 @@ define(function (require, exports, module) {
          * The position of a text node is given by its parent
          * and, more importantly, the elements immediately surrounding it.
          * This function will add position information to the given edit as
-         * afterID and beforeID, along with the parentID.
+         * afterID and beforeID, along with the parentID. If afterID and
+         * beforeID are missing, that means that the text node is the only
+         * child of the parent.
          * 
          * @param {Object} edit The edit object to augment with position
          * @param {Object} node The SimpleDOM node that is the target of the edit
@@ -924,7 +926,7 @@ define(function (require, exports, module) {
                     edit.beforeID = neighbors.right.element.tagID;
                 }
                 var text = neighbors.left.text;
-                if (edit.beforeID && text && !textInserts[text.tagID]) {
+                if (edit.beforeID) {
                     delete edit.afterID;
                 }
             }
