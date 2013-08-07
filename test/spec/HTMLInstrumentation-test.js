@@ -555,6 +555,11 @@ define(function (require, exports, module) {
             it("should return null if there is a tokenization failure", function () {
                 expect(HTMLInstrumentation._buildSimpleDOM("<div<badtag></div>", true)).toBeNull();
             });
+            
+            it("should handle empty attributes", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<input disabled>", true);
+                expect(dom.attributes.disabled).toEqual("");
+            });
         });
         
         describe("HTML Instrumentation in dirty files", function () {

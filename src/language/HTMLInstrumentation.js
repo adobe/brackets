@@ -355,6 +355,7 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
+        // TODO: remove the signatureMap, it's no longer needed
         var signatureMap = {};
         
         function closeTag(endIndex) {
@@ -404,11 +405,17 @@ define(function (require, exports, module) {
                     stack.push(newTag);
                 }
             } else if (token.type === "opentagend" || token.type === "selfclosingtag") {
+                // TODO: disallow <p/>?
                 if (this.currentTag) {
                     // We're closing an open tag. Record the end of the open tag as the end of the
                     // range. (If we later find a close tag for this tag, the end will get overwritten
                     // with the end of the close tag. In the case of a self-closing tag, we should never
                     // encounter that.)
+                    // Note that we don't need to update the signature here because the signature only
+                    // relies on the tag name and ID, and isn't affected by the tag's attributes, so
+                    // the signature we calculated when creating the tag is still the same. If we later
+                    // find a close tag for this tag, we'll update the signature to account for its
+                    // children at that point (in the next "else" case).
                     this.currentTag.end = this.startOffset + token.end;
                     lastClosedTag = this.currentTag;
                     this.currentTag = null;
@@ -448,6 +455,9 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "attribname") {
                 attributeName = token.contents.toLowerCase();
+                // Set the value to the empty string in case this is an empty attribute. If it's not,
+                // it will get overwritten by the attribvalue later.
+                this.currentTag.attributes[attributeName] = "";
             } else if (token.type === "attribvalue" && attributeName !== null) {
                 this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
