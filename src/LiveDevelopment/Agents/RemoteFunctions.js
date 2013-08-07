@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document, navigator, Node*/
+/*global define, $, window, document, navigator, Node */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -513,28 +513,59 @@ function RemoteFunctions(experimental) {
         }
     }, 1000);
     
+    function _getChildNodes(targetElement) {
+        var children = [],
+            i,
+            len = targetElement.childNodes.length,
+            node;
+        
+        for (i = 0; i < len; i++) {
+            node = targetElement.childNodes.item(i);
+            
+            // skip comment nodes
+            if (node.nodeType !== Node.COMMENT_NODE) {
+                children.push(node);
+            }
+        }
+        
+        return children;
+    }
+    
     function _insertChildNode(targetElement, childElement, index) {
-        var childElementCount = targetElement.childNodes.length;
+        var children = _getChildNodes(targetElement),
+            childElementCount = children.length;
         
         if ((childElementCount === 0 && index === 0) || (index === childElementCount)) {
             // append new child to empty children or at the end
             targetElement.appendChild(childElement);
         } else {
             // insert new child at requested index
-            targetElement.insertBefore(childElement, targetElement.childNodes[index]);
+            targetElement.insertBefore(childElement, children[index]);
         }
     }
     
-    function _getTextNodeIndex(targetElement, afterID) {
+    function _textNodeAtIndex(targetElement, afterID, fn) {
         var pos = 0,
-            children = targetElement.childNodes;
+            children = _getChildNodes(targetElement);
         
         if (afterID) {
-            var afterNode = document.querySelectorAll("[data-brackets-id='" + afterID + "']");
-            pos = Array.prototype.indexOf.call(children, afterNode) + 1;
+            var afterNode = document.querySelectorAll("[data-brackets-id='" + afterID + "']")[0];
+            pos = children.indexOf(afterNode) + 1;
         }
         
-        return pos;
+        fn(children[pos]);
+    }
+    
+    function _textReplace(targetElement, afterID, content) {
+        _textNodeAtIndex(targetElement, afterID, function (textNode) {
+            textNode.nodeValue = content;
+        });
+    }
+    
+    function _textDelete(targetElement, afterID, content) {
+        _textNodeAtIndex(targetElement, afterID, function (textNode) {
+            targetElement.removeChild(textNode);
+        });
     }
     
     function applyDOMEdits(edits) {
@@ -573,12 +604,10 @@ function RemoteFunctions(experimental) {
                 _insertChildNode(targetElement, textElement, edit.child);
                 break;
             case "textReplace":
-                pos = _getTextNodeIndex(targetElement, edit.afterID);
-                targetElement.childNodes[pos].nodeValue = edit.content;
+                _textReplace(targetElement, edit.afterID, edit.content);
                 break;
             case "textDelete":
-                pos = _getTextNodeIndex(targetElement, edit.afterID);
-                targetElement.removeChild(targetElement.childNodes[pos]);
+                _textDelete(targetElement, edit.afterID);
                 break;
             }
         });
