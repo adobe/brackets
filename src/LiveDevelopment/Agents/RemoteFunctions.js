@@ -598,7 +598,7 @@ function RemoteFunctions(experimental) {
         len = elem.attributes.length;
         for (i = 0; i < len; i++) {
             node = elem.attributes.item(i);
-            value = (node.name === "data-brackets-id") ? parseInt(node.value) : node.value;
+            value = (node.name === "data-brackets-id") ? parseInt(node.value, 10) : node.value;
             json.attributes[node.name] = value;
         }
         

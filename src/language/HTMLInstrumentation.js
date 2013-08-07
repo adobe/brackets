@@ -1084,10 +1084,10 @@ define(function (require, exports, module) {
         browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
         
         return {
-            diff    : domdiff(editorDOM, browserRoot),
+            diff    : domdiff(editorRoot, browserRoot),
             browser : browserRoot,
             editor  : editorRoot
-        }
+        };
     }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
