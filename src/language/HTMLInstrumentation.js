@@ -87,28 +87,39 @@ define(function (require, exports, module) {
     
     var tagID = 1;
     
-    function _getMarkerAtDocumentPos(editor, pos) {
+    function _getMarkerAtDocumentPos(editor, pos, preferParent) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
-            match;
+            match,
+            range;
         
-        var _distance = function (mark) {
-            var markerLoc = mark.find();
-            if (markerLoc) {
-                var markPos = markerLoc.from;
-                return (cm.indexFromPos(pos) - cm.indexFromPos(markPos));
-            } else {
-                return Number.MAX_VALUE;
-            }
-        };
+        function posEq(pos1, pos2) {
+            return pos1.line === pos2.line && pos1.ch === pos2.ch;
+        }
         
-        for (i = 0; i < marks.length; i++) {
-            if (!match) {
-                match = marks[i];
-            } else {
-                if (_distance(marks[i]) < _distance(match)) {
-                    match = marks[i];
+        if (!marks.length) {
+            return null;
+        }
+        
+        marks.sort(function (mark1, mark2) {
+            // All marks should exist since we just got them from CodeMirror.
+            var mark1From = mark1.find().from, mark2From = mark2.find().from;
+            return (mark1From.line === mark2From.line ? mark1From.ch - mark2From.ch : mark1From.line - mark2From.line);
+        });
+        
+        // The mark with the latest start is the innermost one.
+        match = marks[marks.length - 1];
+        if (preferParent) {
+            // If the match is exactly at the edge of the range and preferParent is set,
+            // we want to pop upwards.
+            range = match.find();
+            if (posEq(range.from, pos) || posEq(range.to, pos)) {
+                if (marks.length > 1) {
+                    match = marks[marks.length - 2];
+                } else {
+                    // We must be outside the root, so there's no containing tag.
+                    match = null;
                 }
             }
         }
@@ -487,8 +498,10 @@ define(function (require, exports, module) {
             // range after the change, then assume we can just dirty the tag containing them,
             // otherwise punt. (TODO: We could chase upward in the tree to find the common parent if
             // the tags for the beginning and end of the change are different.)
-            var startMark = _getMarkerAtDocumentPos(editor, changeList.from),
-                endMark = _getMarkerAtDocumentPos(editor, changeList.to);
+            // If the edit is right at the beginning or end of a tag, we want to be conservative
+            // and use the parent as the edit range.
+            var startMark = _getMarkerAtDocumentPos(editor, changeList.from, true),
+                endMark = _getMarkerAtDocumentPos(editor, changeList.to, true);
             if (startMark && startMark === endMark) {
                 var newMarkRange = startMark.find();
                 if (newMarkRange) {
@@ -544,7 +557,7 @@ define(function (require, exports, module) {
         updateIDs.forEach(function (id) {
             var node = nodeMap[id],
                 mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
-            mark.tagID = id;
+            mark.tagID = Number(id);
         });
     };
     

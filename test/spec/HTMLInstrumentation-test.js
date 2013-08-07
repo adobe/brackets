@@ -1058,10 +1058,10 @@ define(function (require, exports, module) {
                             editor.document.replaceRange("<strong>New Content</strong>", {line: 29, ch: 59});
                         },
                         function (result, previousDOM, incremental) {
-                            console.log(result.edits);
+                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             var newDOM = result.dom;
-//                            console.log("new DOM: ");
-//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            //console.log("new DOM: ");
+                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[9].children[2],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
