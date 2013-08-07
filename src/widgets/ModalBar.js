@@ -105,10 +105,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {number} Height of the modal bar in pixels, if open.
+     * @return {number} Height of the modal bar in pixels, if open. Minus one to offset negative margin added for transition.
      */
     ModalBar.prototype.height = function () {
-        return this._$root.outerHeight();
+        return this._$root.outerHeight() - 1;
     };
     
     /**

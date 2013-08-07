@@ -90,6 +90,7 @@ a, img {
 }
 
 .main-view {
+    background: @background-color-3; // to keep the theme background consistent
     height: 100%;
 
     .sidebar {
@@ -749,10 +750,12 @@ a, img {
 /* Modal bar for Find/Quick Open */
 
 .modal-bar.hide {
+    height: 0;
+    margin-top: -1px;
     opacity: 0;
+    padding: 0;
     -webkit-transform: translate(0, -44px);
-    transition: opacity 1s, -webkit-transform 0.3s cubic-bezier(0, 0.56, 0, 1);
-    pointer-events: none;
+    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
 }
 
 .modal-bar {
@@ -763,19 +766,19 @@ a, img {
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
+    margin-top: -1px;
+    max-height: 200px;    
     overflow: hidden; 
     opacity: 1;
     padding: 5px 4px 4px 14px;
-    position: absolute;
-    left: 0;
-    right: 0;
-    -webkit-transform: translate(0);
-    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
+    
+    -webkit-transform: translate(0, 1px);
+    transition:-webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
 
     
     body.in-browser & {
         // Separator line between us and the HTML menu/titlebar above
-        border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+//        border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
     }
 }
 
