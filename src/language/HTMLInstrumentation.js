@@ -811,6 +811,11 @@ define(function (require, exports, module) {
         // if there are no more elements in the direction we're going
         // then we are done looking
         if (nextToCheck === guard) {
+            if (left) {
+                result.firstChild = true;
+            } else {
+                result.lastChild = true;
+            }
             return result;
         }
         
@@ -913,23 +918,35 @@ define(function (require, exports, module) {
             }
         });
         
-        function addPositionToEdit(edit, element) {
+        function addPositionToTextEdit(edit, element) {
             var neighbors = findNeighbors(element);
             if (neighbors.left.element) {
                 edit.afterID = neighbors.left.element.tagID;
             }
             var text = neighbors.left.text;
-            if (text && !textInserts[text.tagID]) {
-                edit.afterText = true;
-            }
             if (neighbors.right.element) {
                 edit.beforeID = neighbors.right.element.tagID;
             }
         }
         
-        function addPositionToTextEdit(edit, element) {
-            addPositionToEdit(edit, element);
-            delete edit.afterText;
+        function addPositionToEdit(edit, element) {
+            var neighbors = findNeighbors(element);
+            if (neighbors.left.firstChild) {
+                edit.firstChild = true;
+            } else if (neighbors.right.lastChild) {
+                edit.lastChild = true;
+            } else {
+                if (neighbors.left.element) {
+                    edit.afterID = neighbors.left.element.tagID;
+                }
+                if (neighbors.right.element) {
+                    edit.beforeID = neighbors.right.element.tagID;
+                }
+                var text = neighbors.left.text;
+                if (edit.beforeID && text && !textInserts[text.tagID]) {
+                    delete edit.afterID;
+                }
+            }
         }
         
         var findDeletions = function (element) {
@@ -988,7 +1005,6 @@ define(function (require, exports, module) {
                 type: "textReplace",
                 content: changedElement.content
             };
-            console.log("Parent id", edit.parentID, typeof (edit.parentID));
             addPositionToTextEdit(edit, changedElement);
             edits.push(edit);
         });

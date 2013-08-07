@@ -569,11 +569,11 @@ define(function (require, exports, module) {
                 
                 // check to the left
                 var result = findElementAndText(siblings, 0, true);
-                expect(result).toEqual({});
+                expect(result).toEqual({ firstChild: true });
                 
                 // check to the right
                 result = findElementAndText(siblings, 0, false);
-                expect(result).toEqual({});
+                expect(result).toEqual({ lastChild: true });
                 
                 var elementToTheLeft = { children: [] };
                 parent.children.unshift(elementToTheLeft);
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
                 });
                 
                 result = findElementAndText(siblings, 1, false);
-                expect(result).toEqual({});
+                expect(result).toEqual({ lastChild: true });
                 
                 var elementToTheRight = { children: [] };
                 parent.children.push(elementToTheRight);
@@ -911,11 +911,8 @@ define(function (require, exports, module) {
             
             it("should represent simple new tag insert", function () {
                 runs(function () {
-                    var ed;
-                    
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
-                            ed = editor;
                             //console.log("original DOM: ");
                             //console.log(HTMLInstrumentation._dumpDOM(previousDOM));
                             editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
@@ -943,9 +940,7 @@ define(function (require, exports, module) {
                                 attributes: {},
                                 tagID: newElement.tagID,
                                 parentID: newElement.parent.tagID,
-                                afterID: afterID,
-                                beforeID: beforeID,
-                                afterText: true
+                                beforeID: beforeID
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textInsert",
@@ -959,20 +954,102 @@ define(function (require, exports, module) {
                                 beforeID: beforeID,
                                 content: "\n\n"
                             });
+                        }
+                    );
+                });
+            });
+            
+            it("should handle inserting an element as the first child", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            // Insert a new tag immediately after the body tag.
+                            editor.document.replaceRange("<div>New Content</div>", {line: 10, ch: 12});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+//                            console.log("new DOM: ");
+//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            var newElement = newDOM.children[3].children[0],
+                                parent = newElement.parent,
+                                parentID = parent.tagID,
+                                beforeID = parent.children[2].tagID;
                             
-                            editor.document.replaceRange(" and Newer", {line: 15, ch: 8});
-                            var result2 = HTMLInstrumentation._updateDOM(result.dom, ed);
-                            expect(result2.edits.length).toEqual(1);
-                            expect(result2.edits[0]).toEqual({
-                                type: "textReplace",
+                            // TODO: More optimally, this would take
+                            // 2 edits rather than 4:
+                            // * an elementInsert for the new element
+                            // * a textInsert for the new text of the
+                            //   new element.
+                            //
+                            // It current requires 4 edits because the
+                            // whitespace text node that comes after
+                            // the body tag is deleted and recreated
+                            expect(result.edits.length).toBe(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: parentID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                parentID: parentID,
+                                firstChild: true,
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
                                 parentID: newElement.tagID,
-                                content: "New and Newer Content"
+                                content: "New Content"
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: parentID,
+                                content: "\n\n",
+                                afterID: newElement.tagID,
+                                beforeID: beforeID
                             });
                         }
                     );
                 });
             });
             
+            it("should handle inserting an element as the last child", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            // Insert a new tag immediately after the body tag.
+                            editor.document.replaceRange("<div>New Content</div>", {line: 33, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            console.log("new DOM: ");
+                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            var newElement = newDOM.children[3].children[9].children[3],
+                                parent = newElement.parent,
+                                parentID = parent.tagID,
+                                afterID = parent.children[2].tagID;
+                            
+                            expect(result.edits.length).toBe(2);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                parentID: parentID,
+                                lastChild: true,
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content"
+                            });
+                        }
+                    );
+                });
+            });
+
             // TODO: these tests aren't working yet.
             xit("should represent simple new tag insert immediately after previous tag", function () {
                 runs(function () {
