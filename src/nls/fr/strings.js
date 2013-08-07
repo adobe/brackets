@@ -158,6 +158,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "Ligne {0}, colonne {1}",
+	"STATUSBAR_SELECTION_CH_SINGULAR": "[7111808] !é= \u2014 Selected {0} column=!",
+	"STATUSBAR_SELECTION_CH_PLURAL": "[7111807] !é= \u2014 Selected {0} columns=!",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": "[7111810] !é= \u2014 Selected {0} line=!",
+	"STATUSBAR_SELECTION_LINE_PLURAL": "[7111809] !é= \u2014 Selected {0} lines=!",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
@@ -191,7 +195,7 @@ define({
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
-	"CMD_FILE_REFRESH": "Actualiser",
+	"CMD_FILE_REFRESH": "[6967022] !é=Refresh File Tree=!",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
