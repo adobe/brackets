@@ -649,6 +649,9 @@ function RemoteFunctions(experimental) {
                 break;
             }
         });
+        
+        // update highlight after applying diffs
+        redrawHighlights();
     }
     
     /**
