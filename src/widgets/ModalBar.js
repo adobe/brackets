@@ -49,8 +49,12 @@ define(function (require, exports, module) {
         this._handleInputKeydown = this._handleInputKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
         
-        this._$root = $(".modal-bar")
-            .html(template).removeClass("hide");
+        this._$root = $("<div class='modal-bar hide'/>")
+            .html(template)
+            .insertBefore("#editor-holder");
+
+        window.getComputedStyle(this._$root.get(0)).getPropertyValue("top");
+        this._$root.removeClass("hide");
         
         // If something *other* than an editor (like another modal bar) has focus, set the focus 
         // to the editor here, before opening up the new modal bar. This ensures that the old
