@@ -637,6 +637,29 @@ define(function (require, exports, module) {
                     element: elementToTheRight
                 });
             });
+            
+            it("should skip newly added elements", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div><div>Third</div>");
+                var second = dom.children[1];
+                var third = dom.children[2];
+                var elementInserts = {};
+                elementInserts[second.tagID] = true;
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, elementInserts);
+                expect(result).toEqual({
+                    element: third
+                });
+            });
+            
+            it("should mark the lastChild properly when skipping newly added elements", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div>");
+                var second = dom.children[1];
+                var elementInserts = {};
+                elementInserts[second.tagID] = true;
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, elementInserts);
+                expect(result).toEqual({
+                    lastChild: true
+                });
+            });
         });
         
         describe("HTML Instrumentation in dirty files", function () {
@@ -1102,6 +1125,70 @@ define(function (require, exports, module) {
                                 type: "textInsert",
                                 parentID: newElement.parent.tagID,
                                 afterID: newElement.tagID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                        }
+                    );
+                });
+            });
+            
+            it("should be able to add two tags at once", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>New Content</div><div>More new content</div>", {line: 15, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            var newElement = newDOM.children[3].children[5];
+                            var newElement2 = newDOM.children[3].children[6];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement2.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement2.tagID).not.toEqual(newElement.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            expect(newElement2.children[0].content).toEqual("More new content");
+                            expect(result.edits.length).toEqual(6);
+                            var beforeID = newElement.parent.children[8].tagID,
+                                afterID = newElement.parent.children[3].tagID;
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement2.tagID,
+                                parentID: newElement2.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement2.tagID,
+                                content: "More new content"
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content"
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement2.parent.tagID,
+                                afterID: newElement2.tagID,
                                 beforeID: beforeID,
                                 content: "\n\n"
                             });

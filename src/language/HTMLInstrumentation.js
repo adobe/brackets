@@ -769,34 +769,40 @@ define(function (require, exports, module) {
      * @param {boolean} left True to look left, falsy value to look right
      * @return {Object} each field of the return is optional. `element` contains the next element found if there was one, `text` contains the text node in between if there was one. If there is only a text node in the given direction, then just `text` will be set. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
      */
-    function _findElementAndText(siblings, index, left) {
+    function _findElementAndText(siblings, index, left, newlyInserted) {
         var step = left ? -1 : 1,
             guard = left ? -1 : siblings.length,
-            result = {};
+            result = {},
+            nextToCheck;
         
-        var nextToCheck = index + step;
+        newlyInserted = newlyInserted || {};
+        
+        for (nextToCheck = index + step; nextToCheck < guard; nextToCheck += step) {
+            var elementOrText = siblings[nextToCheck];
+            if (!newlyInserted[elementOrText.tagID]) {
+                if (elementOrText.children) {
+                    result.element = elementOrText;
+                    break;
+                } else {
+                    result.text = elementOrText;
+                    nextToCheck += step;
+                    if (nextToCheck !== guard) {
+                        result.element = siblings[nextToCheck];
+                    }
+                }
+            }
+        }
         
         // if there are no more elements in the direction we're going
         // then we are done looking
-        if (nextToCheck === guard) {
+        if (!result.element && !result.text) {
             if (left) {
                 result.firstChild = true;
             } else {
                 result.lastChild = true;
             }
-            return result;
         }
         
-        var elementOrText = siblings[nextToCheck];
-        if (elementOrText.children) {
-            result.element = elementOrText;
-        } else {
-            result.text = elementOrText;
-            nextToCheck += step;
-            if (nextToCheck !== guard) {
-                result.element = siblings[nextToCheck];
-            }
-        }
         return result;
     }
     
