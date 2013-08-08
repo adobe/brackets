@@ -97,7 +97,6 @@ define(function (require, exports, module) {
     
     /** Clicking any link should open it in browser, not in Brackets shell */
     InlineDocsViewer.prototype._handleLinkClick = function (event) {
-        event.preventDefault();
         var url = $(event.currentTarget).attr("href");
         if (url) {
             NativeApp.openURLInDefaultBrowser(url);

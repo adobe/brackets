@@ -726,6 +726,32 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
+#search-result-summary {
+    .first-page,
+    .prev-page,
+    .next-page,
+    .last-page {
+        .jstree-sprite;
+        width: 6px;
+        display: inline-block;
+        margin: 0 2px;
+        background-position: 0px 4px;
+    }
+    .first-page {
+        background-position: 0px -80px;
+        margin-left: 10px;
+    }
+    .prev-page {
+        background-position: 0px -24px;
+    }
+    .last-page {
+        background-position: 0px -52px;
+    }
+    .disabled {
+        opacity: 0.3;
+    }
+}
+
 #search-results .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
