@@ -360,13 +360,11 @@ define(function (require, exports, module) {
             e.preventDefault();
             var self = this;
             setTimeout(function () {
-                if (e.keyCode === KeyEvent.DOM_VK_TAB) {
-                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
-                }
+                self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
             }, 0);
         }
     };
-            
+    
     /**
      * Called before Smart Autocomplete processes the key, but after the DOM textfield ($searchField) updates its value.
      * After this, Smart Autocomplete doesn't call _handleFilter() & re-render the list until a setTimeout(0) later.
