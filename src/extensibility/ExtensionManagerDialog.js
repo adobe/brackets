@@ -185,7 +185,6 @@ define(function (require, exports, module) {
         // Dialog tabs
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
-                event.preventDefault();
                 $(this).tab("show");
             });
         
