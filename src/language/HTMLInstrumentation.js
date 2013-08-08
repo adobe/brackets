@@ -759,7 +759,10 @@ define(function (require, exports, module) {
      * as siblings[index], this function will look left or right
      * through the list of siblings starting at the given index. It
      * will look for either an element immediately in the chosen direction
-     * or a text node and then, optionally, an element.
+     * or a text node and then, optionally, an element. It will skip over
+     * newly inserted nodes when moving rightwards (but not when moving
+     * leftwards, since those nodes will already exist when a given edit
+     * is processed).
      *
      * Note that this function assumes that there are no comment nodes
      * and no runs of multiple text nodes.
@@ -767,6 +770,7 @@ define(function (require, exports, module) {
      * @param {Array} siblings List of nodes that are siblings to the target node
      * @param {integer} index Index into the siblings list for the target node
      * @param {boolean} left True to look left, falsy value to look right
+     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
      * @return {Object} each field of the return is optional. `element` contains the next element found if there was one, `text` contains the text node in between if there was one. If there is only a text node in the given direction, then just `text` will be set. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
      */
     function _findElementAndText(siblings, index, left, newlyInserted) {
@@ -775,20 +779,28 @@ define(function (require, exports, module) {
             result = {},
             nextToCheck;
         
-        newlyInserted = newlyInserted || {};
+        function isNewlyInserted(element) {
+            return newlyInserted.some(function (hash) {
+                return !!hash[element];
+            });
+        }
         
-        for (nextToCheck = index + step; nextToCheck < guard; nextToCheck += step) {
+        newlyInserted = newlyInserted || [];
+        
+        for (nextToCheck = index + step; (step < 0 ? nextToCheck > guard : nextToCheck < guard); nextToCheck += step) {
             var elementOrText = siblings[nextToCheck];
-            if (!newlyInserted[elementOrText.tagID]) {
+            if (step < 0 || !isNewlyInserted(elementOrText.tagID)) {
                 if (elementOrText.children) {
                     result.element = elementOrText;
                     break;
                 } else {
-                    result.text = elementOrText;
-                    nextToCheck += step;
-                    if (nextToCheck !== guard) {
-                        result.element = siblings[nextToCheck];
+                    if (result.text) {
+                        console.error("HTMLInstrumentation._findElementAndText(): Found multiple text nodes in a row");
+                        break;
                     }
+                    result.text = elementOrText;
+                    // Don't break here--continue around the loop to find the next
+                    // non-newly-inserted element.
                 }
             }
         }
@@ -813,14 +825,15 @@ define(function (require, exports, module) {
      * contain.
      *
      * @param {Object} node SimpleDOM node for which to find the neighbors
+     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
      * @return {Object} object with left and right neighbors, each with element/text/firstChild/lastChild.
      */
-    function findNeighbors(node) {
+    function findNeighbors(node, newlyInserted) {
         var siblings = node.parent.children;
         var childIndex = siblings.indexOf(node);
         var neighbors = {};
-        neighbors.left = _findElementAndText(siblings, childIndex, true);
-        neighbors.right = _findElementAndText(siblings, childIndex, false);
+        neighbors.left = _findElementAndText(siblings, childIndex, true, newlyInserted);
+        neighbors.right = _findElementAndText(siblings, childIndex, false, newlyInserted);
         return neighbors;
     }
     
@@ -922,7 +935,7 @@ define(function (require, exports, module) {
          */
         function addPositionToTextEdit(edit, node) {
             edit.parentID = node.parent.tagID;
-            var neighbors = findNeighbors(node);
+            var neighbors = findNeighbors(node, [elementInserts, textInserts]);
             if (neighbors.left.element) {
                 edit.afterID = neighbors.left.element.tagID;
             }
@@ -954,7 +967,7 @@ define(function (require, exports, module) {
          */
         function addPositionToEdit(edit, element) {
             edit.parentID = element.parent.tagID;
-            var neighbors = findNeighbors(element);
+            var neighbors = findNeighbors(element, [elementInserts, textInserts]);
             if (neighbors.left.firstChild) {
                 edit.firstChild = true;
             } else if (neighbors.right.lastChild) {
@@ -992,6 +1005,16 @@ define(function (require, exports, module) {
         
         findDeletions(oldNode);
         
+        Object.keys(textChanges).forEach(function (changedID) {
+            var changedElement = newNode.nodeMap[changedID];
+            var edit = {
+                type: "textReplace",
+                content: changedElement.content
+            };
+            addPositionToTextEdit(edit, changedElement);
+            edits.push(edit);
+        });
+
         Object.keys(elementInserts).forEach(function (nonMatchingID) {
             var newElement = newNode.nodeMap[nonMatchingID];
             var edit = {
@@ -1014,15 +1037,6 @@ define(function (require, exports, module) {
             edits.push(edit);
         });
         
-        Object.keys(textChanges).forEach(function (changedID) {
-            var changedElement = newNode.nodeMap[changedID];
-            var edit = {
-                type: "textReplace",
-                content: changedElement.content
-            };
-            addPositionToTextEdit(edit, changedElement);
-            edits.push(edit);
-        });
         return edits;
     }
     

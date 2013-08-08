@@ -638,15 +638,42 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should skip newly added elements", function () {
+            it("should skip newly added elements when looking rightward", function () {
                 var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div><div>Third</div>");
                 var second = dom.children[1];
                 var third = dom.children[2];
                 var elementInserts = {};
                 elementInserts[second.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, elementInserts);
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts]);
                 expect(result).toEqual({
                     element: third
+                });
+            });
+            
+            it("should gather text as well as elements when looking rightward, but skip newly inserted nodes", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div>textOne<div>Second</div>textTwo<div>Third</div>");
+                var secondText = dom.children[1];
+                var secondElement = dom.children[2];
+                var thirdText = dom.children[3];
+                var thirdElement = dom.children[4];
+                var elementInserts = {}, textInserts = {};
+                elementInserts[secondText.tagID] = true;
+                textInserts[secondElement.tagID] = true;
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts, textInserts]);
+                expect(result).toEqual({
+                    element: thirdElement,
+                    text: thirdText
+                });
+            });
+            
+            it("should *not* skip newly added elements when looking leftward", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div><div>Third</div>");
+                var second = dom.children[1];
+                var elementInserts = {};
+                elementInserts[second.tagID] = true;
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 2, true, [elementInserts]);
+                expect(result).toEqual({
+                    element: second
                 });
             });
             
@@ -655,7 +682,7 @@ define(function (require, exports, module) {
                 var second = dom.children[1];
                 var elementInserts = {};
                 elementInserts[second.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, elementInserts);
+                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts]);
                 expect(result).toEqual({
                     lastChild: true
                 });
@@ -1067,7 +1094,7 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(">", {line: 12, ch: 44});
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     
-                    console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
+                    //console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
                     newElement = result.dom.children[3].children[2];
                     beforeID = result.dom.children[3].children[4].tagID;
                     expect(newElement.children.length).toEqual(0);
@@ -1141,7 +1168,7 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
+                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[5];
                             var newElement2 = newDOM.children[3].children[6];
                             expect(newElement.tag).toEqual("div");
@@ -1425,28 +1452,31 @@ define(function (require, exports, module) {
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[1].children[1];
+                            
+                            //console.log("newDOM: " + HTMLInstrumentation._dumpDOM(newDOM));
+                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             expect(newElement.tag).toEqual("img");
                             expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
                             expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
                             expect(result.edits.length).toEqual(3);
                             expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                content: "GETTING STARTED",
+                                parentID: newElement.parent.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "img",
                                 attributes: {},
                                 tagID: newElement.tagID,
-                                parentID: newElement.parent.tagID
+                                parentID: newElement.parent.tagID,
+                                lastChild: true
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 content: " WITH BRACKETS",
                                 parentID: newElement.parent.tagID,
                                 afterID: newElement.tagID
-                            });
-                            expect(result.edits[2]).toEqual({
-                                type: "textReplace",
-                                content: "GETTING STARTED",
-                                parentID: newElement.parent.tagID,
-                                beforeID: newElement.tagID
                             });
                         }
                     );
