@@ -125,15 +125,17 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
     
-	"FIND_IN_FILES_TITLE": "\"{4}\" {5} - {0} {1} dans {2} {3}",
+	"FIND_IN_FILES_TITLE": "[6318994] !é=\"{4}\" found {5} &mdash; {0} {1} in {2} {3}=!",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
 	"FIND_IN_FILES_MATCHES": "résultats",
-	"FIND_IN_FILES_MORE_THAN": "Plus de ",
-	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
+	"FIND_IN_FILES_MORE_THAN": "[6495144] !é=Over =!",
+	"FIND_IN_FILES_PAGING": "[7112417] !é={0}&mdash;{1}=!",
+	"FIND_IN_FILES_LESS": "[7112415] !é= <a href='#' class='find-less'>Less</a>=!",
+	"FIND_IN_FILES_MORE": "[7112416] !é= <a href='#' class='find-more'>More</a>=!",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "ligne : {0}",
 
@@ -158,10 +160,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "Ligne {0}, colonne {1}",
-	"STATUSBAR_SELECTION_CH_SINGULAR": "[7111808] !é= \u2014 Selected {0} column=!",
-	"STATUSBAR_SELECTION_CH_PLURAL": "[7111807] !é= \u2014 Selected {0} columns=!",
-	"STATUSBAR_SELECTION_LINE_SINGULAR": "[7111810] !é= \u2014 Selected {0} line=!",
-	"STATUSBAR_SELECTION_LINE_PLURAL": "[7111809] !é= \u2014 Selected {0} lines=!",
+	"STATUSBAR_SELECTION_CH_SINGULAR": " \u2014 {0} colonne sélectionnée",
+	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} colonnes sélectionnées",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} ligne sélectionnée",
+	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} lignes sélectionnées",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
@@ -195,7 +197,7 @@ define({
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
-	"CMD_FILE_REFRESH": "[6967022] !é=Refresh File Tree=!",
+	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -279,7 +281,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
 	"SAVE": "Enregistrer",
