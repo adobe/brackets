@@ -139,7 +139,7 @@ define(function (require, exports, module) {
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
-        EditorManager.focusEditor();               
+        EditorManager.focusEditor();         
     };
     
     /**
