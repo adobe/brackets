@@ -748,7 +748,12 @@ a, img {
 /* Modal bar for Find/Quick Open */
 
 .modal-bar.hide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;    
     -webkit-transform: translate(0, -44px); // Prefix still required.
+    transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);    
 }
 
 .modal-bar {
@@ -764,7 +769,7 @@ a, img {
     padding: 5px 4px 4px 14px;
     
     -webkit-transform: translate(0, 0); // Prefix still required.
-    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
+    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
 
     
     body.in-browser & {
@@ -833,7 +838,7 @@ a, img {
     // so that border won't show when height is 0.
     box-sizing: border-box; 
     
-    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
+    // using this to fix the spacing that break`s item seperators and had to use !important to override inline css
     width: 434px !important;  
 
     /* smart auto complete doesn't correctly position the container
