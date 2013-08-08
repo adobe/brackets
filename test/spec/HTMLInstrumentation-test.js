@@ -564,6 +564,12 @@ define(function (require, exports, module) {
                 var dom = HTMLInstrumentation._buildSimpleDOM("<input disabled>", true);
                 expect(dom.attributes.disabled).toEqual("");
             });
+            
+            it("should merge text nodes around a comment", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<div>Text <!-- comment --> Text2</div>", true);
+                expect(dom.children.length).toBe(1);
+                expect(dom.children[0].content).toBe("Text  Text2");
+            });
         });
         
         describe("HTML Instrumentation utility functions", function () {
@@ -720,7 +726,7 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(1269);
-                    expect(dom.weight).toEqual(738);
+                    expect(dom.weight).toEqual(734);
                     expect(dom.signature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
@@ -1044,7 +1050,6 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(">", {line: 12, ch: 44});
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     
-                    console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
                     newElement = result.dom.children[3].children[2];
                     beforeID = result.dom.children[3].children[4].tagID;
                     expect(newElement.children.length).toEqual(0);
@@ -1080,12 +1085,6 @@ define(function (require, exports, module) {
                             var beforeID = newElement.parent.children[7].tagID,
                                 afterID = newElement.parent.children[3].tagID;
                             expect(result.edits[0]).toEqual({
-                                type: "textDelete",
-                                parentID: newElement.parent.tagID,
-                                afterID: afterID,
-                                beforeID: beforeID
-                            });
-                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -1093,16 +1092,23 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 beforeID: beforeID
                             });
-                            expect(result.edits[2]).toEqual({
+                            expect(result.edits[1]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement.tagID,
                                 content: "New Content"
                             });
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement.parent.tagID,
                                 afterID: newElement.tagID,
                                 beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
                         }
@@ -1176,7 +1182,7 @@ define(function (require, exports, module) {
                             var newDOM = result.dom;
 //                            console.log("new DOM: ");
 //                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
-                            var newElement = newDOM.children[3].children[9].children[3],
+                            var newElement = newDOM.children[3].children[7].children[3],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
                                 afterID = parent.children[2].tagID;
@@ -1213,7 +1219,7 @@ define(function (require, exports, module) {
                             var newDOM = result.dom;
                             //console.log("new DOM: ");
                             //console.log(HTMLInstrumentation._dumpDOM(newDOM));
-                            var newElement = newDOM.children[3].children[9].children[2],
+                            var newElement = newDOM.children[3].children[7].children[2],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
                                 afterID = parent.children[1].tagID,
