@@ -109,7 +109,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {number} Height of the modal bar in pixels, if open. Minus one to offset negative margin added for transition.
+     * @return {number} Height of the modal bar in pixels, if open.
      */
     ModalBar.prototype.height = function () {
         return this._$root.outerHeight();
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
-        EditorManager.focusEditor();         
+        EditorManager.focusEditor();
     };
     
     /**
