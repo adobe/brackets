@@ -125,15 +125,17 @@ define({
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
     
-	"FIND_IN_FILES_TITLE": "「{4}」{5}  - {2} {3} 中 {0} 件の {1} ",
+	"FIND_IN_FILES_TITLE": "!能=[6318994] \"{4}\" found {5} &mdash; {0} {1} in {2} {3}_=!",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "一致",
 	"FIND_IN_FILES_MATCHES": "一致",
-	"FIND_IN_FILES_MORE_THAN": "少なくとも ",
-	"FIND_IN_FILES_MAX": " (先頭 {0} 件を表示しています)",
+	"FIND_IN_FILES_MORE_THAN": "!能=[6495144] Over _=!",
+	"FIND_IN_FILES_PAGING": "!能=[7112417] {0}&mdash;{1}_=!",
+	"FIND_IN_FILES_LESS": "!能=[7112415]  <a href='#' class='find-less'>Less</a>_=!",
+	"FIND_IN_FILES_MORE": "!能=[7112416]  <a href='#' class='find-more'>More</a>_=!",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 
@@ -158,10 +160,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "行 {0}, 列 {1}",
-	"STATUSBAR_SELECTION_CH_SINGULAR": "!能=[7111808]  \u2014 Selected {0} column_=!",
-	"STATUSBAR_SELECTION_CH_PLURAL": "!能=[7111807]  \u2014 Selected {0} columns_=!",
-	"STATUSBAR_SELECTION_LINE_SINGULAR": "!能=[7111810]  \u2014 Selected {0} line_=!",
-	"STATUSBAR_SELECTION_LINE_PLURAL": "!能=[7111809]  \u2014 Selected {0} lines_=!",
+	"STATUSBAR_SELECTION_CH_SINGULAR": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} 行を選択",
+	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} 行を選択",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
@@ -195,7 +197,7 @@ define({
 	"CMD_FILE_DELETE": "削除",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
 	"CMD_EXTENSION_MANAGER": "拡張機能マネージャー\u2026",
-	"CMD_FILE_REFRESH": "!能=[6967022] Refresh File Tree_=!",
+	"CMD_FILE_REFRESH": "ファイルツリーを更新",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -279,7 +281,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
 	"SAVE": "保存",
