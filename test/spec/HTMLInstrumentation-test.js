@@ -1012,6 +1012,8 @@ define(function (require, exports, module) {
                         beforeID = result.dom.children[3].children[3].tagID;
                     expect(result.edits.length).toEqual(3);
                     expect(newElement.tag).toEqual("p");
+                    expect(newElement.children.length).toEqual(1);
+                    expect(newElement.children[0].content).toEqual("\n");
                     expect(result.edits[0]).toEqual({
                         type: "textDelete",
                         parentID: parentID,
@@ -1042,6 +1044,11 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(">", {line: 12, ch: 44});
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     
+                    console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
+                    newElement = result.dom.children[3].children[2];
+                    beforeID = result.dom.children[3].children[4].tagID;
+                    expect(newElement.children.length).toEqual(0);
+                    expect(result.dom.children[3].children[3].content).toEqual("\n");
                     expect(result.edits.length).toEqual(2);
                     expect(result.edits[0]).toEqual({
                         type: "textDelete",
