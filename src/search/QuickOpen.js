@@ -179,6 +179,7 @@ define(function (require, exports, module) {
         // Bind event handlers
         this._handleItemSelect         = this._handleItemSelect.bind(this);
         this._handleItemFocus          = this._handleItemFocus.bind(this);
+        this._handleKeyDown            = this._handleKeyDown.bind(this);
         this._handleKeyUp              = this._handleKeyUp.bind(this);
         this._handleResultsReady       = this._handleResultsReady.bind(this);
         this._handleShowResults        = this._handleShowResults.bind(this);
@@ -346,6 +347,24 @@ define(function (require, exports, module) {
         
     };
 
+    /**
+     * Called before Smart Autocomplete processes the key down events.
+     * After this, Smart Autocomplete doesn't call _handleFilter() & re-render the list until a setTimeout(0) later.
+     * We only handle Tab key here since we don't get key up events for Tab key due to its triggering of Smart AutoComplete to close.
+     */
+    QuickNavigateDialog.prototype._handleKeyDown = function (e) {
+        // Finish the search on Tab key down
+        if (e.keyCode === KeyEvent.DOM_VK_TAB) {
+            // Remove the Tab key event so that CodeMirror won't do indentation on Tab key entered in $searchField.
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            var self = this;
+            setTimeout(function () {
+                self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
+            }, 0);
+        }
+    };
+    
     /**
      * Called before Smart Autocomplete processes the key, but after the DOM textfield ($searchField) updates its value.
      * After this, Smart Autocomplete doesn't call _handleFilter() & re-render the list until a setTimeout(0) later.
@@ -778,6 +797,7 @@ define(function (require, exports, module) {
             showResults: this._handleShowResults,
             itemSelect: this._handleItemSelect,
             itemFocus: this._handleItemFocus,
+            keydown: this._handleKeyDown,
             keyup: this._handleKeyUp,   // it's important we register this BEFORE calling smartAutoComplete(); see handler for details
             blur: this._handleBlur   // can't use lostFocus since smart autocomplete fires it immediately in response to the shortcut's keyup
         });
