@@ -568,7 +568,6 @@ a, img {
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
         
-        -webkit-transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
         transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
     }
 
@@ -753,8 +752,7 @@ a, img {
     height: 0;
     opacity: 0;
     padding: 0;
-    -webkit-transform: translate(0, -44px);
-    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
+    -webkit-transform: translate(0, -44px); // Prefix still required.
 }
 
 .modal-bar {
@@ -770,8 +768,8 @@ a, img {
     opacity: 1;
     padding: 5px 4px 4px 14px;
     
-    -webkit-transform: translate(0, 1px);
-    transition:-webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
+    -webkit-transform: translate(0, 1px); // Prefix still required.
+    transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
 
     
     body.in-browser & {
