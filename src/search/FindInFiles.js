@@ -405,9 +405,7 @@ define(function (require, exports, module) {
                     // Add a row for each file
                     var displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
-                        StringUtils.breakableUrl(FileUtils.getDirectoryPath(fullPath))
-                    );
+                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)), StringUtils.breakableUrl(FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath))));
 
                     searchList.push({
                         file:     searchList.length,
