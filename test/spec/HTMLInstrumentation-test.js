@@ -1174,7 +1174,7 @@ define(function (require, exports, module) {
                                 beforeID: newDOM.children[3].children[3].tagID
                             });
                         }
-                    );                    
+                    );
                 });
             });
 
@@ -1187,8 +1187,8 @@ define(function (require, exports, module) {
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[1].children[1];
-                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
+//                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
+//                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             expect(newElement.tag).toEqual("img");
                             expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
                             expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
@@ -1213,7 +1213,7 @@ define(function (require, exports, module) {
                                 beforeID: newElement.tagID
                             });
                         }
-                    );                    
+                    );
                 });
                 
             });

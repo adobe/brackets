@@ -246,6 +246,19 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Generates a synthetic ID for text nodes. These IDs are only used
+     * for comparison purposes in the SimpleDOM structure, since we can't
+     * apply IDs to text nodes in the browser.
+     *
+     * TODO/Note: When generating a diff, the decision to do a textReplace 
+     * edit rather than a textDelete/textInsert hinges on how this ID
+     * is treated (because it is currently based on the previous or
+     * parent node).
+     *
+     * @param {Object} textNode new node for which we are generating an ID
+     * @return {string} ID for the node
+     */
     function getTextNodeID(textNode) {
         var childIndex = textNode.parent.children.indexOf(textNode);
         if (childIndex === 0) {
@@ -922,6 +935,12 @@ define(function (require, exports, module) {
          * 3. If there is no element after the given one, then afterID is
          *    given and the new element is inserted immediately after that
          *    one.
+         * 4. If the parent element only contains a text node and we're doing
+         *    an element insertion *in the middle of the text*, then the
+         *    only thing that is set is the parent ID. This case is a little
+         *    bit crazy, but the text changes that occur will ultimately
+         *    work out if the new element is appendChild'ed rather than
+         *    inserted at the beginning.
          * 
          */
         function addPositionToEdit(edit, element) {
