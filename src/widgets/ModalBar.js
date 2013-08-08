@@ -112,7 +112,7 @@ define(function (require, exports, module) {
      * @return {number} Height of the modal bar in pixels, if open. Minus one to offset negative margin added for transition.
      */
     ModalBar.prototype.height = function () {
-        return this._$root.outerHeight() - 1;
+        return this._$root.outerHeight();
     };
     
     /**
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
         }
         
         this._$root.addClass("hide").remove();
-
+        
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
         var fullEditor = EditorManager.getCurrentFullEditor(),
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
-        EditorManager.focusEditor();
+        EditorManager.focusEditor();               
     };
     
     /**

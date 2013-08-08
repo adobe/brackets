@@ -698,7 +698,7 @@ a, img {
         
         .selected {
             color: @inline-color-3;
-            transition: color 0.1s ease-out .15s;
+            transition: color 0.03s ease-out .15s;
         }
     }
 }
@@ -748,10 +748,8 @@ a, img {
 /* Modal bar for Find/Quick Open */
 
 .modal-bar.hide {
-    height: 0;
-    opacity: 0;
-    padding: 0;
     -webkit-transform: translate(0, -44px); // Prefix still required.
+    transition: -webkit-transform 250ms cubic-bezier(0, 0.56, 0, 1);
 }
 
 .modal-bar {
@@ -762,12 +760,11 @@ a, img {
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
-    margin-top: -1px;
     overflow: hidden; 
     opacity: 1;
     padding: 5px 4px 4px 14px;
     
-    -webkit-transform: translate(0, 1px); // Prefix still required.
+    -webkit-transform: translate(0, 0); // Prefix still required.
     transition: -webkit-transform 0.1s cubic-bezier(0, 0.56, 0, 1);
 
     
