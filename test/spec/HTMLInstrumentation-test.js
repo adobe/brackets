@@ -541,7 +541,11 @@ define(function (require, exports, module) {
                 expect(HTMLInstrumentation._buildSimpleDOM("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
             });
             it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<p>unclosed para<h1>heading that closes para</h1>", true)).not.toBeNull();
+                var result = HTMLInstrumentation._buildSimpleDOM("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
+                expect(result).not.toBeNull();
+                expect(result.tag).toBe("div");
+                expect(result.children[0].tag).toBe("p");
+                expect(result.children[1].tag).toBe("h1");
             });
             it("should return null for an unclosed non-void/non-implied-close tag", function () {
                 expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
@@ -636,13 +640,18 @@ define(function (require, exports, module) {
         });
         
         describe("HTML Instrumentation in dirty files", function () {
-                
+            var changeList;
+            
             beforeEach(function () {
                 init(this, WellFormedFileEntry);
                 runs(function () {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
+                    $(editor).on("change.instrtest", function (event, editor, change) {
+                        changeList = change;
+                    });
+                    
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
@@ -654,6 +663,7 @@ define(function (require, exports, module) {
                 instrumentedHTML = "";
                 elementCount = 0;
                 elementIds = {};
+                changeList = null;
             });
             
             function doEditTest(origText, editFn, expectationFn, incremental) {
@@ -663,14 +673,9 @@ define(function (require, exports, module) {
                 editor.document.refreshText(origText);
                 
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
-                    changeList,
                     result;
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                $(editor).on("change.instrtest", function (event, editor, change) {
-                    changeList = change;
-                });
                 editFn(editor, previousDOM);
-                $(editor).off(".instrtest");
 
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
                 expectationFn(result, previousDOM, incremental);
@@ -679,9 +684,19 @@ define(function (require, exports, module) {
             function doFullAndIncrementalEditTest(editFn, expectationFn) {
                 var origText = editor.document.getText();
                 doEditTest(origText, editFn, expectationFn, false);
+                changeList = null;
                 
                 if (HTMLInstrumentation._allowIncremental) {
                     doEditTest(origText, editFn, expectationFn, true);
+                }
+            }
+            
+            function typeAndExpectNoEdits(editor, previousDOM, str, pos) {
+                var i, result;
+                for (i = 0; i < str.length; i++) {
+                    editor.document.replaceRange(str.charAt(i), {line: pos.line, ch: pos.ch + i});
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    expect(result).toBeNull();
                 }
             }
             
@@ -869,14 +884,10 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
-                        changeList,
                         tagID = previousDOM.children[3].children[1].tagID,
                         result,
                         origParent = previousDOM.children[3];
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                    $(editor).on("change.instrtest", function (event, editor, change) {
-                        changeList = change;
-                    });
                     
                     editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
                     
@@ -913,6 +924,146 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("in incremental edit, should avoid updating while typing an incomplete tag, then update when it's done", function () {
+                // Short-circuit this test if we're running without incremental updates
+                if (!HTMLInstrumentation._allowIncremental) {
+                    return;
+                }
+                
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+
+                    // While the tag is incomplete, we should get no edits.                    
+                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    
+                    // This simulates our autocomplete behavior. The next case simulates the non-autocomplete case.
+                    editor.document.replaceRange("></p>", {line: 12, ch: 40});
+                    
+                    // We don't pass the changeList here, to simulate doing a full rebuild (which is
+                    // what the normal incremental update logic would do after invalid edits).
+                    // TODO: a little weird that we're not going through the normal update logic
+                    // (in getUnappliedEditList, etc.)
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    
+                    // This should really only have one edit (the tag insertion), but it also
+                    // deletes and recreates the whitespace after it, similar to other insert cases.
+                    var newElement = result.dom.children[3].children[2],
+                        parentID = newElement.parent.tagID,
+                        afterID = result.dom.children[3].children[1].tagID,
+                        beforeID = result.dom.children[3].children[4].tagID;
+                    expect(result.edits.length).toEqual(3);
+                    expect(newElement.tag).toEqual("p");
+                    expect(result.edits[0]).toEqual({
+                        type: "textDelete",
+                        parentID: parentID,
+                        afterID: afterID,
+                        beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "elementInsert",
+                        tag: "p",
+                        tagID: newElement.tagID,
+                        attributes: {},
+                        parentID: parentID,
+                        beforeID: beforeID // TODO: why is there no afterID here?
+                    });
+                    expect(result.edits[2]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: parentID,
+                        afterID: newElement.tagID,
+                        beforeID: beforeID
+                    });
+                });
+            });
+
+            it("in incremental edit, should handle typing of a <p> without a </p> and then adding it later", function () {
+                // Short-circuit this test if we're running without incremental updates
+                if (!HTMLInstrumentation._allowIncremental) {
+                    return;
+                }
+                
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    
+                    // This simulates what would happen if autocomplete were off. We're actually
+                    // valid at this point since <p> is implied close. We want to make sure that
+                    // basically nothing happens if the user types </p> after this.
+                    editor.document.replaceRange(">", {line: 12, ch: 40});
+                    
+                    // We don't pass the changeList here, to simulate doing a full rebuild (which is
+                    // what the normal incremental update logic would do after invalid edits).
+                    // TODO: a little weird that we're not going through the normal update logic
+                    // (in getUnappliedEditList, etc.)
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                                        
+                    // Since the <p> is unclosed, we think the whitespace after it is inside it.
+                    var newElement = result.dom.children[3].children[2],
+                        parentID = newElement.parent.tagID,
+                        afterID = result.dom.children[3].children[1].tagID,
+                        beforeID = result.dom.children[3].children[3].tagID;
+                    expect(result.edits.length).toEqual(3);
+                    expect(newElement.tag).toEqual("p");
+                    expect(newElement.children.length).toEqual(1);
+                    expect(newElement.children[0].content).toEqual("\n");
+                    expect(result.edits[0]).toEqual({
+                        type: "textDelete",
+                        parentID: parentID,
+                        afterID: afterID,
+                        beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "elementInsert",
+                        tag: "p",
+                        tagID: newElement.tagID,
+                        attributes: {},
+                        parentID: parentID,
+                        beforeID: beforeID // TODO: why is there no afterID here?
+                    });
+                    expect(result.edits[2]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: newElement.tagID
+                    });
+                    
+                    // We should get no edits while typing the close tag.
+                    previousDOM = result.dom;
+                    typeAndExpectNoEdits(editor, previousDOM, "</p", {line: 12, ch: 41});
+                    
+                    // When we type the ">" at the end, we should get a delete of the text inside the <p>
+                    // and an insert of text after the </p> since we now know that the close is before the
+                    // text.
+                    editor.document.replaceRange(">", {line: 12, ch: 44});
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    
+                    console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
+                    newElement = result.dom.children[3].children[2];
+                    beforeID = result.dom.children[3].children[4].tagID;
+                    expect(newElement.children.length).toEqual(0);
+                    expect(result.dom.children[3].children[3].content).toEqual("\n");
+                    expect(result.edits.length).toEqual(2);
+                    expect(result.edits[0]).toEqual({
+                        type: "textDelete",
+                        parentID: newElement.tagID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: newElement.parent.tagID,
+                        afterID: newElement.tagID,
+                        beforeID: beforeID
+                    });
+                });
+            });
+
             it("should represent simple new tag insert", function () {
                 runs(function () {
                     doFullAndIncrementalEditTest(
@@ -1187,8 +1338,6 @@ define(function (require, exports, module) {
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[1].children[1];
-//                            console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-//                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             expect(newElement.tag).toEqual("img");
                             expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
                             expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
@@ -1215,7 +1364,6 @@ define(function (require, exports, module) {
                         }
                     );
                 });
-                
             });
         });
         
@@ -1292,11 +1440,11 @@ define(function (require, exports, module) {
                 previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
-                $(editor).on("change.instrtest", changeFunction);
+                $(editor).on("change.perftest", changeFunction);
                 benchmarker.start("Incremental");
                 editFn(editor);
                 benchmarker.end("Incremental");
-                $(editor).off(".instrtest");
+                $(editor).off(".perftest");
             }
             
             var fullChangeFunction = function (event, editor, change) {
@@ -1308,12 +1456,12 @@ define(function (require, exports, module) {
                 previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
-                $(editor).on("change.instrtest", fullChangeFunction);
+                $(editor).on("change.perftest", fullChangeFunction);
                 benchmarker.start("Full");
                 // full test
                 editFn(editor);
                 benchmarker.end("Full");
-                $(editor).off(".instrtest");
+                $(editor).off(".perftest");
             }
             
             benchmarker.report();

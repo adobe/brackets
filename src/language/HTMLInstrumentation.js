@@ -294,7 +294,19 @@ define(function (require, exports, module) {
             if (token.type === "error") {
                 return null;
             } else if (token.type === "opentagname") {
-                var newTag = {
+                var newTagName = token.contents.toLowerCase(),
+                    newTag;
+                
+                if (openImpliesClose.hasOwnProperty(newTagName)) {
+                    var closable = openImpliesClose[newTagName];
+                    while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
+                        // Close the previous tag at the start of this tag.
+                        // Adjust backwards for the < before the tag name.
+                        closeTag(token.start - 1);
+                    }
+                }
+                
+                newTag = {
                     tag: token.contents.toLowerCase(),
                     children: [],
                     attributes: {},
@@ -308,15 +320,6 @@ define(function (require, exports, module) {
                     newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
-                
-                if (openImpliesClose.hasOwnProperty(newTag.tag)) {
-                    var closable = openImpliesClose[newTag.tag];
-                    while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
-                        // Close the previous tag at the start of this tag.
-                        // Adjust backwards for the < before the tag name.
-                        closeTag(token.start - 1);
-                    }
-                }
                 
                 if (voidElements.hasOwnProperty(newTag.tag)) {
                     // This is a self-closing element.
