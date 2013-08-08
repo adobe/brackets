@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document, navigator, Node*/
+/*global define, $, window, document, navigator, Node */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -513,39 +513,110 @@ function RemoteFunctions(experimental) {
         }
     }, 1000);
     
-    function _insertChildNode(targetElement, childElement, index) {
-        var childElementCount = targetElement.childNodes.length;
+    function _getChildNodes(targetElement) {
+        var children = [],
+            i,
+            len = targetElement.childNodes.length,
+            node;
         
-        if ((childElementCount === 0 && index === 0) || (index === childElementCount)) {
-            // append new child to empty children or at the end
-            targetElement.appendChild(childElement);
+        for (i = 0; i < len; i++) {
+            node = targetElement.childNodes.item(i);
+            
+            // skip comment nodes
+            if (node.nodeType !== Node.COMMENT_NODE) {
+                children.push(node);
+            }
+        }
+        
+        return children;
+    }
+
+    function _queryBracketsID(id) {
+        if (!id) {
+            return null;
+        }
+
+        var results = document.querySelectorAll("[data-brackets-id='" + id + "']");
+        return results && results[0];
+    }
+    
+    function _insertChildNode(targetElement, childElement, edit) {
+        var before = _queryBracketsID(edit.beforeID),
+            after  = _queryBracketsID(edit.afterID);
+
+        if (edit.firstChild) {
+            before = targetElement.firstChild;
+        } else if (edit.lastChild) {
+            after = targetElement.lastChild;
+        }
+        
+        if (before) {
+            targetElement.insertBefore(childElement, before);
+        } else if (after && (after !== targetElement.lastChild)) {
+            targetElement.insertBefore(childElement, after.nextSibling);
         } else {
-            // insert new child at requested index
-            targetElement.insertBefore(childElement, targetElement.childNodes[index]);
+            targetElement.appendChild(childElement);
         }
     }
     
-    function _getTextNodeIndex(targetElement, afterID) {
-        var pos = 0,
-            children = targetElement.childNodes;
+    /**
+     * @private
+     * Replace a range of text and comment nodes with an optional new text node
+     * @param {Element} targetElement
+     * @param {Object} edit
+     */
+    function _textReplace(targetElement, edit) {
+        var start           = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : null,
+            startMissing    = edit.afterID && !start,
+            end             = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
+            endMissing      = edit.beforeID && !end,
+            moveNext        = start && start.nextSibling,
+            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes[0],
+            next,
+            textNode        = (edit.content !== undefined) ? document.createTextNode(edit.content) : null,
+            lastRemovedWasText,
+            isText;
         
-        if (afterID) {
-            var afterNode = document.querySelectorAll("[data-brackets-id='" + afterID + "']");
-            pos = Array.prototype.indexOf.call(children, afterNode) + 1;
+        // remove all nodes inside the range
+        while (current && (current !== end)) {
+            isText = current.nodeType === Node.TEXT_NODE;
+
+            // if start is defined, delete following text nodes
+            // if start is not defined, delete preceding text nodes
+            next = (moveNext) ? current.nextSibling : current.previousSibling;
+
+            // only delete up to the nearest element.
+            // if the start/end tag was deleted in a prior edit, stop removing
+            // nodes when we hit adjacent text nodes
+            if ((current.nodeType === Node.ELEMENT_NODE) ||
+                    ((startMissing || endMissing) && (isText && lastRemovedWasText))) {
+                break;
+            } else {
+                lastRemovedWasText = isText;
+
+                current.remove();
+                current = next;
+            }
         }
         
-        return pos;
+        if (textNode) {
+            if (start && start.nextSibling) {
+                targetElement.insertBefore(textNode, start.nextSibling);
+            } else if (end) {
+                targetElement.insertBefore(textNode, end);
+            } else {
+                targetElement.appendChild(textNode);
+            }
+        }
     }
     
     function applyDOMEdits(edits) {
         var targetID,
-            targetElement,
-            pos;
+            targetElement;
         
         edits.forEach(function (edit) {
-            targetID = edit.type === "textReplace" || edit.type === "textDelete" || edit.type === "elementInsert" ? edit.parentID : edit.tagID;
-            targetElement = document.querySelectorAll("[data-brackets-id='" + targetID + "']")[0];
-            pos = -1;
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert/) ? edit.parentID : edit.tagID;
+            targetElement = _queryBracketsID(targetID);
             
             switch (edit.type) {
             case "attrChange":
@@ -566,19 +637,15 @@ function RemoteFunctions(experimental) {
                 });
                 
                 childElement.setAttribute("data-brackets-id", edit.tagID);
-                _insertChildNode(targetElement, childElement, edit.child);
+                _insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
                 var textElement = document.createTextNode(edit.content);
-                _insertChildNode(targetElement, textElement, edit.child);
+                _insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":
-                pos = _getTextNodeIndex(targetElement, edit.afterID);
-                targetElement.childNodes[pos].nodeValue = edit.content;
-                break;
             case "textDelete":
-                pos = _getTextNodeIndex(targetElement, edit.afterID);
-                targetElement.removeChild(targetElement.childNodes[pos]);
+                _textReplace(targetElement, edit);
                 break;
             }
         });

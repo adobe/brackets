@@ -165,7 +165,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         RemoteAgent.call("getSimpleDOM").done(function (res) {
             var browserSimpleDOM = JSON.parse(res.result.value),
                 edits,
-                skipDelta,
                 node,
                 result;
             
@@ -192,9 +191,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                 console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
                 
                 edits.forEach(function (delta) {
-                    if (!skipDelta) {
-                        console.log(delta);
-                    }
+                    console.log(delta);
                 });
             }
         });
@@ -209,10 +206,14 @@ define(function HTMLDocumentModule(require, exports, module) {
             edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
             applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
         
-        // compare in-memory vs. in-browser DOM
-        applyEditsPromise.done(function () {
-            self._compareWithBrowser(change);
-        });
+        // Debug-only: compare in-memory vs. in-browser DOM
+        // edit this file or set a conditional breakpoint at the top of this function:
+        //     "this._debug = true, false"
+        if (this._debug) {
+            applyEditsPromise.done(function () {
+                self._compareWithBrowser(change);
+            });
+        }
         
 //        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
 //            this.editor,
