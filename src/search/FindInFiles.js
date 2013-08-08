@@ -401,11 +401,12 @@ define(function (require, exports, module) {
                         matchesCounter++;
                         i++;
                     }
-                                        
+                                                            
                     // Add a row for each file
                     var displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(fullPath)
+                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                        StringUtils.breakableUrl(FileUtils.getDirectoryPath(fullPath))
                     );
 
                     searchList.push({
