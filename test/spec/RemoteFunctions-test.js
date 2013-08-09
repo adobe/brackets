@@ -418,14 +418,14 @@ define(function (require, exports, module) {
                         parentID: 66,
                         afterID: 67,
                         beforeID: 68
-                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em><em data-brackets-id="68">t</em>he <em data-brackets-id="69">w</em>eb</div>')
+                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em><em data-brackets-id="68">t</em>he <em data-brackets-id="69">w</em>eb</div>');
 
                     applyEdit(MIXED_ELEMENT_BEFORE_AFTER, {
                         type: "textDelete",
                         parentID: 66,
                         afterID: 68,
                         beforeID: 69
-                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>ode <em data-brackets-id="68">t</em><em data-brackets-id="69">w</em>eb</div>')
+                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>ode <em data-brackets-id="68">t</em><em data-brackets-id="69">w</em>eb</div>');
                 });
                 
                 it("should support textReplace with elements", function () {
@@ -463,7 +463,7 @@ define(function (require, exports, module) {
                         afterID: 67,
                         beforeID: 68,
                         content: "BRACKETS "
-                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>BRACKETS <em data-brackets-id="68">t</em>he <em data-brackets-id="69">w</em>eb</div>')
+                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>BRACKETS <em data-brackets-id="68">t</em>he <em data-brackets-id="69">w</em>eb</div>');
 
                     applyEdit(MIXED_ELEMENT_BEFORE_AFTER, {
                         type: "textReplace",
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
                         afterID: 68,
                         beforeID: 69,
                         content: "BRACKETS "
-                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>ode <em data-brackets-id="68">t</em>BRACKETS <em data-brackets-id="69">w</em>eb</div>')
+                    }, '<div data-brackets-id="66"><em data-brackets-id="67">c</em>ode <em data-brackets-id="68">t</em>BRACKETS <em data-brackets-id="69">w</em>eb</div>');
                 });
                 
             });
