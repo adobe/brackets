@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
-        ColorUtils              = require("utils/ColorUtils");
+        ColorUtils              = require("utils/ColorUtils"),
+        NativeApp               = require("utils/NativeApp");
             
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -148,7 +149,7 @@ define(function (require, exports, module) {
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : require("utils/NativeApp"),
+            NativeApp               : NativeApp,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
@@ -346,9 +347,13 @@ define(function (require, exports, module) {
         // navigate. Also, a capture handler is more reliable than bubble.
         window.document.body.addEventListener("click", function (e) {
             // Check parents too, in case link has inline formatting tags
-            var node = e.target;
+            var node = e.target, url;
             while (node) {
                 if (node.tagName === "A") {
+                    url = node.getAttribute("href");
+                    if (url && !url.match(/^#/)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
                     e.preventDefault();
                     break;
                 }

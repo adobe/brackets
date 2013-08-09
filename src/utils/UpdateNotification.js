@@ -208,17 +208,6 @@ define(function (require, exports, module) {
         
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
-        
-        $dlg.on("click", "a", function (e) {
-            var url = $(e.currentTarget).attr("data-url");
-            
-            if (url) {
-                // Make sure the URL has a domain that we know about
-                if (/(brackets\.io|github\.com|adobe\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
-                    NativeApp.openURLInDefaultBrowser(url);
-                }
-            }
-        });
     }
     
     /**
