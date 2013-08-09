@@ -1188,12 +1188,6 @@ define(function (require, exports, module) {
                             var beforeID = newElement.parent.children[8].tagID,
                                 afterID = newElement.parent.children[3].tagID;
                             expect(result.edits[0]).toEqual({
-                                type: "textDelete",
-                                parentID: newElement.parent.tagID,
-                                afterID: afterID,
-                                beforeID: beforeID
-                            });
-                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -1201,7 +1195,7 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 beforeID: beforeID
                             });
-                            expect(result.edits[2]).toEqual({
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -1209,21 +1203,28 @@ define(function (require, exports, module) {
                                 parentID: newElement2.parent.tagID,
                                 beforeID: beforeID
                             });
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement2.tagID,
                                 content: "More new content"
                             });
-                            expect(result.edits[4]).toEqual({
+                            expect(result.edits[3]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement.tagID,
                                 content: "New Content"
                             });
-                            expect(result.edits[5]).toEqual({
+                            expect(result.edits[4]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement2.parent.tagID,
                                 afterID: newElement2.tagID,
                                 beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
                         }
