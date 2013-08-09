@@ -562,12 +562,23 @@ define(function (require, exports, module) {
     
     DOMUpdater.prototype = Object.create(SimpleDOMBuilder.prototype);
     
+    function hasAncestorWithID(tag, id) {
+        var ancestor = tag.parent;
+        while (ancestor && ancestor.tagID !== id) {
+            ancestor = ancestor.parent;
+        }
+        return !!ancestor;
+    }
+    
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
         var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1));
-        if (currentTagID === -1 || (newTag.parent && currentTagID === newTag.parent.tagID)) {
+        
+        // If the new tag is in an unmarked range, or the marked range actually corresponds to an
+        // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
+        if (currentTagID === -1 || hasAncestorWithID(newTag, currentTagID)) {
             currentTagID = tagID++;
         }
         return currentTagID;
@@ -778,7 +789,13 @@ define(function (require, exports, module) {
      * as siblings[index], this function will look left or right
      * through the list of siblings starting at the given index. It
      * will look for either an element immediately in the chosen direction
-     * or a text node and then, optionally, an element.
+     * or a text node and then, optionally, an element. 
+     *
+     * When newlyInserted is set, we skip over newly inserted elements when 
+     * moving rightwards, since those elements will not yet have been
+     * inserted when the current element is inserted. However, when moving 
+     * leftwards, we don't skip over newly inserted elements, since those 
+     * elements will already have been inserted and so are valid as beforeID. 
      *
      * Note that this function assumes that there are no comment nodes
      * and no runs of multiple text nodes.
@@ -786,36 +803,51 @@ define(function (require, exports, module) {
      * @param {Array} siblings List of nodes that are siblings to the target node
      * @param {integer} index Index into the siblings list for the target node
      * @param {boolean} left True to look left, falsy value to look right
+     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
      * @return {Object} each field of the return is optional. `element` contains the next element found if there was one, `text` contains the text node in between if there was one. If there is only a text node in the given direction, then just `text` will be set. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
      */
-    function _findElementAndText(siblings, index, left) {
+    function _findElementAndText(siblings, index, left, newlyInserted) {
         var step = left ? -1 : 1,
             guard = left ? -1 : siblings.length,
-            result = {};
+            result = {},
+            nextToCheck;
         
-        var nextToCheck = index + step;
+        function isNewlyInserted(element) {
+            return newlyInserted.some(function (hash) {
+                return !!hash[element];
+            });
+        }
+        
+        newlyInserted = newlyInserted || [];
+        
+        for (nextToCheck = index + step; (step < 0 ? nextToCheck > guard : nextToCheck < guard); nextToCheck += step) {
+            var elementOrText = siblings[nextToCheck];
+            if (step < 0 || !isNewlyInserted(elementOrText.tagID)) {
+                if (elementOrText.children) {
+                    result.element = elementOrText;
+                    break;
+                } else {
+                    if (result.text) {
+                        console.error("HTMLInstrumentation._findElementAndText(): Found multiple text nodes in a row");
+                        break;
+                    }
+                    result.text = elementOrText;
+                    // Don't break here--continue around the loop to find the next
+                    // non-newly-inserted element.
+                }
+            }
+        }
         
         // if there are no more elements in the direction we're going
         // then we are done looking
-        if (nextToCheck === guard) {
+        if (!result.element && !result.text) {
             if (left) {
                 result.firstChild = true;
             } else {
                 result.lastChild = true;
             }
-            return result;
         }
         
-        var elementOrText = siblings[nextToCheck];
-        if (elementOrText.children) {
-            result.element = elementOrText;
-        } else {
-            result.text = elementOrText;
-            nextToCheck += step;
-            if (nextToCheck !== guard) {
-                result.element = siblings[nextToCheck];
-            }
-        }
         return result;
     }
     
@@ -826,14 +858,15 @@ define(function (require, exports, module) {
      * contain.
      *
      * @param {Object} node SimpleDOM node for which to find the neighbors
+     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
      * @return {Object} object with left and right neighbors, each with element/text/firstChild/lastChild.
      */
-    function findNeighbors(node) {
+    function findNeighbors(node, newlyInserted) {
         var siblings = node.parent.children;
         var childIndex = siblings.indexOf(node);
         var neighbors = {};
-        neighbors.left = _findElementAndText(siblings, childIndex, true);
-        neighbors.right = _findElementAndText(siblings, childIndex, false);
+        neighbors.left = _findElementAndText(siblings, childIndex, true, newlyInserted);
+        neighbors.right = _findElementAndText(siblings, childIndex, false, newlyInserted);
         return neighbors;
     }
     
@@ -935,6 +968,10 @@ define(function (require, exports, module) {
          */
         function addPositionToTextEdit(edit, node) {
             edit.parentID = node.parent.tagID;
+            
+            // Text operations happen after element insertions, so they don't need to
+            // take into account whether their siblings have already been inserted when
+            // finding neighbors. So we don't pass newlyInserted here.
             var neighbors = findNeighbors(node);
             if (neighbors.left.element) {
                 edit.afterID = neighbors.left.element.tagID;
@@ -967,7 +1004,7 @@ define(function (require, exports, module) {
          */
         function addPositionToEdit(edit, element) {
             edit.parentID = element.parent.tagID;
-            var neighbors = findNeighbors(element);
+            var neighbors = findNeighbors(element, [elementInserts, textInserts]);
             if (neighbors.left.firstChild) {
                 edit.firstChild = true;
             } else if (neighbors.right.lastChild) {
@@ -1036,6 +1073,7 @@ define(function (require, exports, module) {
             addPositionToTextEdit(edit, changedElement);
             edits.push(edit);
         });
+
         return edits;
     }
     
