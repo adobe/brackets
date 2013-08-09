@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         BEFORE_CLOSING_TAG_NAME = i++,
         IN_CLOSING_TAG_NAME = i++,
         AFTER_CLOSING_TAG_NAME = i++,
+        AFTER_SELFCLOSE_SLASH = i++,
     
         //attributes
         BEFORE_ATTRIBUTE_NAME = i++,
@@ -214,7 +215,7 @@ define(function (require, exports, module) {
                     this._emitToken("opentagname");
                     // Bit of a hack: assume that this will be followed by the ">".
                     this._emitSpecialToken("selfclosingtag", this._index + 2);
-                    this._state = AFTER_CLOSING_TAG_NAME;
+                    this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (c === ">") {
                     this._emitToken("opentagname");
                     this._emitSpecialToken("opentagend", this._index + 1);
@@ -259,10 +260,22 @@ define(function (require, exports, module) {
                     break;
                 }
             } else if (this._state === AFTER_CLOSING_TAG_NAME) {
-                //skip everything until ">"
                 if (c === ">") {
                     this._state = TEXT;
                     this._sectionStart = this._index + 1;
+                } else if (!isWhitespace(c)) {
+                    // There must be only whitespace in the closing tag after the name until the ">".
+                    this._emitSpecialToken("error");
+                    break;
+                }
+            } else if (this._state === AFTER_SELFCLOSE_SLASH) {
+                // Nothing (even whitespace) can come between the / and > of a self-close.
+                if (c === ">") {
+                    this._state = TEXT;
+                    this._sectionStart = this._index + 1;
+                } else {
+                    this._emitSpecialToken("error");
+                    break;
                 }
     
             /*
@@ -276,7 +289,7 @@ define(function (require, exports, module) {
                 } else if (c === "/") {
                     // Bit of a hack: assume that this will be followed by the ">".
                     this._emitSpecialToken("selfclosingtag", this._index + 2);
-                    this._state = AFTER_CLOSING_TAG_NAME;
+                    this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
                     break;

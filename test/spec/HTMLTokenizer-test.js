@@ -238,6 +238,12 @@ define(function (require, exports, module) {
             it("should fail for unfinished double-quoted value at EOF", function () {
                 expectError("<tag attr=\"unfinishedval");
             });
+            it("should fail for extra text between / and > in a self-close tag", function () {
+                expectError("<img / >");
+            });
+            it("should fail for unmatched double-quotes when there is a slash after the next double-quote", function () {
+                expectError("<p style=\"something></p><img src=\"foo/bar\">");
+            });
         });
     });
 });
