@@ -408,8 +408,7 @@ define(function (require, exports, module) {
                         StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
                         StringUtils.breakableUrl(FileUtils.getDirectoryPath(
                             ProjectManager.makeProjectRelativeIfPossible(fullPath)
-                        )
-                            )
+                        ))
                     );
 
                     searchList.push({
