@@ -553,6 +553,7 @@ define(function (require, exports, module) {
             dialog        = new FindInFilesDialog();
 
         searchResults      = {};
+        currentStart       = 0;
         currentQuery       = "";
         currentScope       = scope;
         maxHitsFoundInFile = false;
