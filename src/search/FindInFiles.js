@@ -80,11 +80,17 @@ define(function (require, exports, module) {
     /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
     var searchResultsPanel;
     
+    /** @type {Document} The current editor used to register the change and delete events */
+    var currentDocument = null;
+    
     /** @type {number} The index of the first result that is displayed */
     var currentStart = 0;
     
     /** @type {string} The current search query */
     var currentQuery = "";
+    
+    /** @type {RegExp} The current search query regular expression */
+    var currentQueryExpr = null;
     
     /** @type {Array.<FileEntry>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
@@ -102,7 +108,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
-     * @param {!string} query - The query from the modal-bar input
+     * @param {string} query  The query from the modal-bar input
      * @return {RegExp}
      */
     function _getQueryRegExp(query) {
@@ -184,8 +190,8 @@ define(function (require, exports, module) {
     
     /**
      * Shows the search dialog
-     * @param {?string} initialString Default text to prepopulate the search field with
-     * @param {?Entry} scope Search scope, or null to search whole project
+     * @param {string=} initialString  Default text to prepopulate the search field with
+     * @param {Entry=} scope  Search scope, or null to search whole project
      * @returns {$.Promise} that is resolved with the string to search for
      */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
@@ -516,8 +522,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @param {!FileInfo} fileInfo File in question
-     * @param {?Entry} scope Search scope, or null if whole project
+     * @param {!FileInfo} fileInfo  File in question
+     * @param {?Entry} scope  Search scope, or null if whole project
      * @return {boolean}
      */
     function _inScope(fileInfo, scope) {
@@ -537,7 +543,7 @@ define(function (require, exports, module) {
      * @private
      * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
      * a find operation across all files in the project.
-     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
      */
     function _doFindInFiles(scope) {
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
@@ -554,15 +560,17 @@ define(function (require, exports, module) {
 
         searchResults      = {};
         currentQuery       = "";
+        currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString, scope)
             .done(function (query) {
                 if (query) {
-                    currentQuery = query;
-                    var queryExpr = _getQueryRegExp(query);
-                    if (!queryExpr) {
+                    currentQuery     = query;
+                    currentQueryExpr = _getQueryRegExp(query);
+                    
+                    if (!currentQueryExpr) {
                         return;
                     }
                     StatusBar.showBusyIndicator(true);
@@ -577,7 +585,7 @@ define(function (require, exports, module) {
                                     // Search one file
                                     DocumentManager.getDocumentForPath(fileInfo.fullPath)
                                         .done(function (doc) {
-                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), queryExpr);
+                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
                                             result.resolve();
                                         })
                                         .fail(function (error) {
@@ -628,6 +636,7 @@ define(function (require, exports, module) {
             $selectedRow.addClass("selected");
         }
     }
+    
     
     /**
      * @private
@@ -681,6 +690,113 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Update the result matches every time the content of a file changes
+     * @param {$.Event} event
+     * @param {Document} doc  The Document that changed, should be the current one
+     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
+     *      A linked list as described in the Document constructor
+     * @param {boolean=} resultsChanged  True when the search results changed from a file change
+     */
+    function _fileChangeHandler(event, doc, change, resultsChanged) {
+        if ($searchResults.is(":visible")) {
+            var i, diff, matches,
+                fullPath = doc.file.fullPath,
+                lines    = [],
+                start    = 0,
+                howMany  = 0;
+            
+            // There is no from or to positions, so the entire file changed, we must search all over again
+            if (!change.from || !change.to) {
+                _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+                _restoreSearchResults();
+            
+            } else {
+                // Get only the lines that changed
+                for (i = 0; i < change.text.length; i++) {
+                    lines.push(doc.getLine(change.from.line + i));
+                }
+                
+                // We need to know how many lines changed to update the rest of the lines
+                if (change.from.line !== change.to.line) {
+                    diff = change.from.line - change.to.line;
+                } else {
+                    diff = 0;
+                }
+                
+                if (searchResults[fullPath]) {
+                    // Search the last match before a replacement, the amount of matches deleted and update
+                    // the lines values for all the matches after the change
+                    searchResults[fullPath].matches.forEach(function (item) {
+                        if (item.end.line < change.from.line) {
+                            start++;
+                        } else if (item.end.line <= change.to.line) {
+                            howMany++;
+                        } else {
+                            item.start.line += diff;
+                            item.end.line   += diff;
+                        }
+                    });
+                    
+                    // Delete the lines that where deleted or replaced
+                    if (howMany > 0) {
+                        searchResults[fullPath].matches.splice(start, howMany);
+                    }
+                    resultsChanged = true;
+                }
+                
+                // Searches only over the lines that changed
+                matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+                if (matches && matches.length) {
+                    // Updates the line numbers, since we only searched part of the file
+                    matches.forEach(function (value, key) {
+                        matches[key].start.line += change.from.line;
+                        matches[key].end.line   += change.from.line;
+                    });
+                    
+                    // If the file index exists, add the new matches to the file at the start index found before
+                    if (searchResults[fullPath]) {
+                        Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
+                    // If not, add the matches to a new file index
+                    } else {
+                        searchResults[fullPath] = {
+                            matches:   matches,
+                            collapsed: false
+                        };
+                    }
+                    resultsChanged = true;
+                }
+                
+                // All the matches where deleted, remove the file from the results
+                if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
+                
+                // This is link to the next change object, so we need to keep searching
+                if (change.next) {
+                    _fileChangeHandler(event, doc, change.next, resultsChanged);
+                
+                // If not we can show the results, but only if something changed
+                } else if (resultsChanged) {
+                    _restoreSearchResults();
+                }
+            }
+        }
+    }
+    
+    /**
+     * @private
+     * Updates the event listeners when the current document changes
+     */
+    function _currentDocumentChangeHandler() {
+        $(currentDocument).off("change", _fileChangeHandler);
+        currentDocument = DocumentManager.getCurrentDocument();
+        $(currentDocument).on("change",  _fileChangeHandler);
+    }
+    
+    
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -693,9 +809,10 @@ define(function (require, exports, module) {
     });
     
     // Initialize: register listeners
-    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
-    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
-    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
+    $(DocumentManager).on("fileNameChange",        _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted",           _pathDeletedHandler);
+    $(DocumentManager).on("currentDocumentChange", _currentDocumentChangeHandler);
+    $(ProjectManager).on("beforeProjectClose",     _hideSearchResults);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
