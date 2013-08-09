@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document, navigator, Node */
+/*global define, $, window, navigator, Node, console */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -34,6 +34,11 @@ function RemoteFunctions(experimental) {
     "use strict";
 
     var lastKeepAliveTime = Date.now();
+    
+    /**
+     * @type {DOMEditHandler}
+     */
+    var _editHandler;
     
     var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
         KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
@@ -475,11 +480,6 @@ function RemoteFunctions(experimental) {
             _remoteHighlight.redraw();
         }
     }
-
-    // init
-    if (experimental) {
-        window.document.addEventListener("keydown", onKeyDown);
-    }
     
     window.addEventListener("resize", redrawHighlights);
     // Add a capture-phase scroll listener to update highlights when
@@ -513,36 +513,39 @@ function RemoteFunctions(experimental) {
         }
     }, 1000);
     
-    function _getChildNodes(targetElement) {
-        var children = [],
-            i,
-            len = targetElement.childNodes.length,
-            node;
-        
-        for (i = 0; i < len; i++) {
-            node = targetElement.childNodes.item(i);
-            
-            // skip comment nodes
-            if (node.nodeType !== Node.COMMENT_NODE) {
-                children.push(node);
-            }
-        }
-        
-        return children;
+    /**
+     * Constructor
+     * @param {Document} htmlDocument
+     */
+    function DOMEditHandler(htmlDocument) {
+        this.htmlDocument = htmlDocument;
     }
 
-    function _queryBracketsID(id) {
+    /**
+     * @private
+     * Find the first matching element with the specified data-brackets-id
+     * @param {string} id
+     * @return {Element}
+     */
+    DOMEditHandler.prototype._queryBracketsID = function (id) {
         if (!id) {
             return null;
         }
 
-        var results = document.querySelectorAll("[data-brackets-id='" + id + "']");
+        var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
-    }
+    };
     
-    function _insertChildNode(targetElement, childElement, edit) {
-        var before = _queryBracketsID(edit.beforeID),
-            after  = _queryBracketsID(edit.afterID);
+    /**
+     * @private
+     * Insert a new child element
+     * @param {Element} targetElement Parent element already in the document
+     * @param {Element} childElement New child element
+     * @param {Object} edit
+     */
+    DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
+        var before = this._queryBracketsID(edit.beforeID),
+            after  = this._queryBracketsID(edit.afterID);
 
         if (edit.firstChild) {
             before = targetElement.firstChild;
@@ -557,7 +560,7 @@ function RemoteFunctions(experimental) {
         } else {
             targetElement.appendChild(childElement);
         }
-    }
+    };
     
     /**
      * @private
@@ -565,13 +568,13 @@ function RemoteFunctions(experimental) {
      * @param {Element} targetElement
      * @param {Object} edit
      */
-    function _textReplace(targetElement, edit) {
-        var start           = (edit.afterID)  ? _queryBracketsID(edit.afterID)  : null,
+    DOMEditHandler.prototype._textReplace = function (targetElement, edit) {
+        var start           = (edit.afterID)  ? this._queryBracketsID(edit.afterID)  : null,
             startMissing    = edit.afterID && !start,
-            end             = (edit.beforeID) ? _queryBracketsID(edit.beforeID) : null,
+            end             = (edit.beforeID) ? this._queryBracketsID(edit.beforeID) : null,
             endMissing      = edit.beforeID && !end,
             moveNext        = start && start.nextSibling,
-            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes[0],
+            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes.item(targetElement.childNodes.length - 1),
             next,
             textNode        = (edit.content !== undefined) ? document.createTextNode(edit.content) : null,
             lastRemovedWasText,
@@ -608,15 +611,26 @@ function RemoteFunctions(experimental) {
                 targetElement.appendChild(textNode);
             }
         }
-    }
+    };
     
-    function applyDOMEdits(edits) {
+    /**
+     * @private
+     * Apply an array of DOM edits to the document
+     * @param {Array.<Object>} edits
+     */
+    DOMEditHandler.prototype.apply = function (edits) {
         var targetID,
-            targetElement;
+            targetElement,
+            self = this;
         
         edits.forEach(function (edit) {
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert/) ? edit.parentID : edit.tagID;
-            targetElement = _queryBracketsID(targetID);
+            targetElement = self._queryBracketsID(targetID);
+            
+            if (!targetElement) {
+                console.error("data-brackets-id=" + targetID + " not found");
+                return;
+            }
             
             switch (edit.type) {
             case "attrChange":
@@ -637,21 +651,25 @@ function RemoteFunctions(experimental) {
                 });
                 
                 childElement.setAttribute("data-brackets-id", edit.tagID);
-                _insertChildNode(targetElement, childElement, edit);
+                self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
                 var textElement = document.createTextNode(edit.content);
-                _insertChildNode(targetElement, textElement, edit);
+                self._insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":
             case "textDelete":
-                _textReplace(targetElement, edit);
+                self._textReplace(targetElement, edit);
                 break;
             }
         });
         
         // update highlight after applying diffs
         redrawHighlights();
+    };
+    
+    function applyDOMEdits(edits) {
+        _editHandler.apply(edits);
     }
     
     /**
@@ -691,7 +709,15 @@ function RemoteFunctions(experimental) {
         return JSON.stringify(_domElementToJSON(document.documentElement));
     }
 
+    // init
+    _editHandler = new DOMEditHandler(window.document);
+    
+    if (experimental) {
+        window.document.addEventListener("keydown", onKeyDown);
+    }
+
     return {
+        "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,
         "showGoto"              : showGoto,
         "hideHighlight"         : hideHighlight,
