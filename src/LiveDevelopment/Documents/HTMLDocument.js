@@ -210,6 +210,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         // edit this file or set a conditional breakpoint at the top of this function:
         //     "this._debug = true, false"
         if (this._debug) {
+            console.log("Edits applied to browser were:");
+            console.log(JSON.stringify(edits, null, 2));
             applyEditsPromise.done(function () {
                 self._compareWithBrowser(change);
             });
