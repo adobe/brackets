@@ -2,11 +2,10 @@
     <tbody>
         {{#searchList}}
         <tr class="file-section" data-file="{{file}}">
-            <td colspan="3"><span class="disclosure-triangle expanded"></span>{{{filename}}}</td>
+            <td colspan="2"><span class="disclosure-triangle expanded"></span>{{{filename}}}</td>
         </tr>
         {{#items}}
         <tr data-file="{{file}}" data-item="{{item}}">
-            <td></td>
             <td class="line-number">{{line}}</td>
             <td>{{pre}}<span class="highlight">{{highlight}}</span>{{post}}</td>
         </tr>

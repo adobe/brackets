@@ -391,7 +391,7 @@ define(function (require, exports, module) {
                         searchItems.push({
                             file:      searchList.length,
                             item:      searchItems.length,
-                            line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1)),
+                            line:      match.start.line + 1,
                             pre:       match.line.substr(0, match.start.ch),
                             highlight: match.line.substring(match.start.ch, match.end.ch),
                             post:      match.line.substr(match.end.ch),
@@ -405,7 +405,12 @@ define(function (require, exports, module) {
                     // Add a row for each file
                     var displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)), StringUtils.breakableUrl(FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath))));
+                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                        StringUtils.breakableUrl(FileUtils.getDirectoryPath(
+                            ProjectManager.makeProjectRelativeIfPossible(fullPath)
+                        )
+                            )
+                    );
 
                     searchList.push({
                         file:     searchList.length,

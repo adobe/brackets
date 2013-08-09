@@ -136,9 +136,8 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Less</a>",
     "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>More</a>",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> —  <span class='dialog-path'>{1}</span>",
-    "FIND_IN_FILES_LINE"                : "{0}",
-
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> —  <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
 
