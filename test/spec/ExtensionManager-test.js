@@ -1131,6 +1131,7 @@ define(function (require, exports, module) {
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
+                            expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
                         });
                     });
@@ -1179,6 +1180,7 @@ define(function (require, exports, module) {
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
+                            expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
                             expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
                         });
