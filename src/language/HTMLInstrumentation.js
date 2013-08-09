@@ -543,12 +543,23 @@ define(function (require, exports, module) {
     
     DOMUpdater.prototype = Object.create(SimpleDOMBuilder.prototype);
     
+    function hasAncestorWithID(tag, id) {
+        var ancestor = tag.parent;
+        while (ancestor && ancestor.tagID !== id) {
+            ancestor = ancestor.parent;
+        }
+        return !!ancestor;
+    }
+    
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
         var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1));
-        if (currentTagID === -1 || (newTag.parent && currentTagID === newTag.parent.tagID)) {
+        
+        // If the new tag is in an unmarked range, or the marked range actually corresponds to an
+        // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
+        if (currentTagID === -1 || hasAncestorWithID(newTag, currentTagID)) {
             currentTagID = tagID++;
         }
         return currentTagID;
@@ -759,10 +770,13 @@ define(function (require, exports, module) {
      * as siblings[index], this function will look left or right
      * through the list of siblings starting at the given index. It
      * will look for either an element immediately in the chosen direction
-     * or a text node and then, optionally, an element. It will skip over
-     * newly inserted nodes when moving rightwards (but not when moving
-     * leftwards, since those nodes will already exist when a given edit
-     * is processed).
+     * or a text node and then, optionally, an element. 
+     *
+     * When newlyInserted is set, we skip over newly inserted elements when 
+     * moving rightwards, since those elements will not yet have been
+     * inserted when the current element is inserted. However, when moving 
+     * leftwards, we don't skip over newly inserted elements, since those 
+     * elements will already have been inserted and so are valid as beforeID. 
      *
      * Note that this function assumes that there are no comment nodes
      * and no runs of multiple text nodes.
@@ -935,7 +949,11 @@ define(function (require, exports, module) {
          */
         function addPositionToTextEdit(edit, node) {
             edit.parentID = node.parent.tagID;
-            var neighbors = findNeighbors(node, [elementInserts, textInserts]);
+            
+            // Text operations happen after element insertions, so they don't need to
+            // take into account whether their siblings have already been inserted when
+            // finding neighbors. So we don't pass newlyInserted here.
+            var neighbors = findNeighbors(node);
             if (neighbors.left.element) {
                 edit.afterID = neighbors.left.element.tagID;
             }
@@ -1005,16 +1023,6 @@ define(function (require, exports, module) {
         
         findDeletions(oldNode);
         
-        Object.keys(textChanges).forEach(function (changedID) {
-            var changedElement = newNode.nodeMap[changedID];
-            var edit = {
-                type: "textReplace",
-                content: changedElement.content
-            };
-            addPositionToTextEdit(edit, changedElement);
-            edits.push(edit);
-        });
-
         Object.keys(elementInserts).forEach(function (nonMatchingID) {
             var newElement = newNode.nodeMap[nonMatchingID];
             var edit = {
@@ -1037,6 +1045,16 @@ define(function (require, exports, module) {
             edits.push(edit);
         });
         
+        Object.keys(textChanges).forEach(function (changedID) {
+            var changedElement = newNode.nodeMap[changedID];
+            var edit = {
+                type: "textReplace",
+                content: changedElement.content
+            };
+            addPositionToTextEdit(edit, changedElement);
+            edits.push(edit);
+        });
+
         return edits;
     }
     
