@@ -274,7 +274,7 @@ define(function (require, exports, module) {
     
     SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
-        var token, tagLabel, lastClosedTag, lastIndex = 0;
+        var token, tagLabel, lastClosedTag, lastTextNode, lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
@@ -291,6 +291,13 @@ define(function (require, exports, module) {
         }
         
         while ((token = this.t.nextToken()) !== null) {
+            // lastTextNode is used to glue text nodes together
+            // If the last node we saw was text but this one is not, then we're done gluing.
+            // If this node is a comment, we might still encounter more text.
+            if (token.type !== "text" && token.type !== "comment" && lastTextNode) {
+                lastTextNode = null;
+            }
+            
             if (token.type === "error") {
                 return null;
             } else if (token.type === "opentagname") {
@@ -390,15 +397,27 @@ define(function (require, exports, module) {
             } else if (token.type === "text") {
                 if (stack.length) {
                     var parent = stack[stack.length - 1];
-                    var newNode = {
-                        parent: stack[stack.length - 1],
-                        content: token.contents,
-                        weight: token.contents.length
-                    };
+                    var newNode;
+                    
+                    // Check to see if we're continuing a previous text.
+                    if (lastTextNode) {
+                        newNode = lastTextNode;
+                        newNode.content += token.contents;
+                        delete signatureMap[newNode.signature];
+                    } else {
+                        newNode = {
+                            parent: stack[stack.length - 1],
+                            content: token.contents,
+                            weight: token.contents.length
+                        };
+                        parent.children.push(newNode);
+                        newNode.tagID = getTextNodeID(newNode);
+                        nodeMap[newNode.tagID] = newNode;
+                        lastTextNode = newNode;
+                    }
+                        
+                    newNode.weight = token.contents.length;
                     newNode.signature = _getTextNodeHash(newNode.content);
-                    parent.children.push(newNode);
-                    newNode.tagID = getTextNodeID(newNode);
-                    nodeMap[newNode.tagID] = newNode;
                     signatureMap[newNode.signature] = newNode;
                 }
             }
