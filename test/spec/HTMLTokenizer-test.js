@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         });
         
         it("should handle attributes", function () {
-            var t = new Tokenizer("<div class='foo bar' style='baz: quux'></div>");
+            var t = new Tokenizer("<div class='foo bar' style=\"baz: quux\" checked></div>");
             expect(t.nextToken()).toEqual({
                 type: "opentagname",
                 contents: "div",
@@ -111,16 +111,22 @@ define(function (require, exports, module) {
                 end: 37
             });
             expect(t.nextToken()).toEqual({
+                type: "attribname",
+                contents: "checked",
+                start: 39,
+                end: 46
+            });
+            expect(t.nextToken()).toEqual({
                 type: "opentagend",
                 contents: "",
                 start: -1,
-                end: 39
+                end: 47
             });
             expect(t.nextToken()).toEqual({
                 type: "closetag",
                 contents: "div",
-                start: 41,
-                end: 44
+                start: 49,
+                end: 52
             });
             expect(t.nextToken()).toEqual(null);
         });
@@ -202,6 +208,15 @@ define(function (require, exports, module) {
             it("should not fail for a tag with a mix of attribute styles", function () {
                 expectError("<goodtag goodname=goodvalue goodname='goodvalue' goodname=\"goodvalue\" goodemptyname attrwithspace = attrval></goodtag>", false);
             });
+            it("should not fail for a tag with a quoted attribute at the end of the tag", function () {
+                expectError("<goodtag goodname=\"goodvalue\"></goodtag>", false);
+            });
+            it("should not fail for a tag with a quoted attribute followed by whitespace at the end of the tag", function () {
+                expectError("<goodtag goodname=\"goodvalue\" ></goodtag>", false);
+            });
+            it("should not fail for a tag with an unquoted attribute followed by whitespace at the end of the tag", function () {
+                expectError("<goodtag goodname=goodvalue ></goodtag>", false);
+            });
             it("should fail for an angle bracket before a tag", function () {
                 expectError("<<notatag>");
             });
@@ -243,6 +258,9 @@ define(function (require, exports, module) {
             });
             it("should fail for unmatched double-quotes when there is a slash after the next double-quote", function () {
                 expectError("<p style=\"something></p><img src=\"foo/bar\">");
+            });
+            it("should fail if there is no whitespace between the end of an attribute and the next attribute name", function () {
+                expectError("<p attr=\"val\"attr2=\"val\"></p>");
             });
         });
     });

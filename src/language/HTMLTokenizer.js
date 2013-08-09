@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     
         //attributes
         BEFORE_ATTRIBUTE_NAME = i++,
+        AFTER_QUOTED_ATTRIBUTE_VALUE = i++,
         IN_ATTRIBUTE_NAME = i++,
         AFTER_ATTRIBUTE_NAME = i++,
         BEFORE_ATTRIBUTE_VALUE = i++,
@@ -213,7 +214,6 @@ define(function (require, exports, module) {
             } else if (this._state === IN_TAG_NAME) {
                 if (c === "/") {
                     this._emitToken("opentagname");
-                    // Bit of a hack: assume that this will be followed by the ">".
                     this._emitSpecialToken("selfclosingtag", this._index + 2);
                     this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (c === ">") {
@@ -287,7 +287,6 @@ define(function (require, exports, module) {
                     this._emitSpecialToken("opentagend", this._index + 1);
                     this._sectionStart = this._index + 1;
                 } else if (c === "/") {
-                    // Bit of a hack: assume that this will be followed by the ">".
                     this._emitSpecialToken("selfclosingtag", this._index + 2);
                     this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (!isLegalInAttributeName(c)) {
@@ -342,11 +341,11 @@ define(function (require, exports, module) {
             } else if (this._state === IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES) {
                 if (c === "\"") {
                     this._emitToken("attribvalue");
-                    this._state = BEFORE_ATTRIBUTE_NAME;
+                    this._state = AFTER_QUOTED_ATTRIBUTE_VALUE;
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_SINGLE_QUOTES) {
                 if (c === "'") {
-                    this._state = BEFORE_ATTRIBUTE_NAME;
+                    this._state = AFTER_QUOTED_ATTRIBUTE_VALUE;
                     this._emitToken("attribvalue");
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_NO_QUOTES) {
@@ -359,6 +358,22 @@ define(function (require, exports, module) {
                     this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
+                    this._emitSpecialToken("error");
+                    break;
+                }
+            } else if (this._state === AFTER_QUOTED_ATTRIBUTE_VALUE) {
+                // There must be at least one whitespace between the end of a quoted
+                // attribute value and the next attribute, if any.
+                if (c === ">") {
+                    this._state = TEXT;
+                    this._emitSpecialToken("opentagend", this._index + 1);
+                    this._sectionStart = this._index + 1;
+                } else if (c === "/") {
+                    this._emitSpecialToken("selfclosingtag", this._index + 2);
+                    this._state = AFTER_SELFCLOSE_SLASH;
+                } else if (isWhitespace(c)) {
+                    this._state = BEFORE_ATTRIBUTE_NAME;
+                } else {
                     this._emitSpecialToken("error");
                     break;
                 }
