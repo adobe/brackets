@@ -124,7 +124,37 @@ define(function (require, exports, module) {
                 }
             });
         }
+        
+        describe("interaction with document and editor", function () {
+            beforeEach(function () {
+                HTMLInstrumentation._resetCache();
+                
+                init(this, WellFormedFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+                });
+            });
             
+            it("should properly regenerate marks when instrumented HTML is re-requested after document is edited", function () {
+                runs(function () {
+                    var instrumented = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    getIdToTagMap(instrumented, elementIds);
+                    checkTagIdAtPos({line: 12, ch: 1}, "h1");
+                    
+                    editor.document.replaceRange("123456789012345678901234567890", {line: 12, ch: 0});
+                    instrumented = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    elementIds = {};
+                    getIdToTagMap(instrumented, elementIds);
+                    checkTagIdAtPos({line: 12, ch: 1}, "body");
+                    checkTagIdAtPos({line: 12, ch: 31}, "h1");
+                    
+                    var lines = instrumented.split("\n");
+                    expect(lines[12]).toMatch(/^123456789012345678901234567890<h1 data-brackets-id='[0-9]+'>GETTING STARTED WITH BRACKETS<\/h1>$/);
+                });
+            });
+        });
+                 
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
@@ -134,7 +164,7 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     spyOn(editor.document, "getText").andCallThrough();
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                     
                     if (elementCount) {
@@ -246,7 +276,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -401,7 +431,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -708,7 +738,7 @@ define(function (require, exports, module) {
                         changeList = change;
                     });
                     
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
             });
@@ -761,7 +791,7 @@ define(function (require, exports, module) {
                     var pos = {line: 15, ch: 0};
                     editor.document.replaceRange("<div>New Content</div>", pos);
                     
-                    var newInstrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document),
+                    var newInstrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor),
                         newElementIds = {},
                         newElementCount = getIdToTagMap(newInstrumentedHTML, newElementIds);
                     
@@ -1663,7 +1693,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
             });
@@ -1756,7 +1786,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
             });
