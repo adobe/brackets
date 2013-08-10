@@ -1212,7 +1212,7 @@ define(function (require, exports, module) {
         }
         
         var cachedValue = _cachedValues[doc.file.fullPath];
-        if (cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
+        if (!doc.isDirty && cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
             return cachedValue.dom;
         }
         
@@ -1232,15 +1232,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Generate instrumented HTML for the specified document. Each tag has a "data-brackets-id"
-     * attribute with a unique ID for its value. For example, "<div>" becomes something like
-     * "<div data-brackets-id='45'>". The attribute value is just a number that is guaranteed
-     * to be unique. 
-     * @param {Document} doc The doc to scan. 
+     * Generate instrumented HTML for the specified editor's document, and mark the associated tag 
+     * ranges in the editor. Each tag has a "data-brackets-id" attribute with a unique ID for its 
+     * value. For example, "<div>" becomes something like "<div data-brackets-id='45'>". The attribute 
+     * value is just a number that is guaranteed to be unique. 
+     * @param {Editor} editor The editor whose document we're instrumenting, and which we should
+     *     mark ranges in.
      * @return {string} instrumented html content
      */
-    function generateInstrumentedHTML(doc) {
-        var dom = scanDocument(doc),
+    function generateInstrumentedHTML(editor) {
+        var doc = editor.document,
+            dom = scanDocument(doc),
             orig = doc.getText(),
             gen = "",
             lastIndex = 0;
@@ -1248,6 +1250,9 @@ define(function (require, exports, module) {
         if (!dom) {
             return null;
         }
+        
+        // Ensure that the marks in the editor are up to date with respect to the given DOM.
+        _markTextFromDOM(editor, dom);
         
         // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
         // end of the open tag        
@@ -1294,6 +1299,14 @@ define(function (require, exports, module) {
         
         _markTextFromDOM(editor, dom);
     }
+    
+    /**
+     * @private
+     * Clear the DOM cache. For unit testing only.
+     */
+    function _resetCache() {
+        _cachedValues = {};
+    }
 
     // private methods
     exports._markText                   = _markText;
@@ -1308,6 +1321,7 @@ define(function (require, exports, module) {
     exports._dumpDOM                    = _dumpDOM;
     exports._getBrowserDiff             = _getBrowserDiff;
     exports._findElementAndText         = _findElementAndText;
+    exports._resetCache                 = _resetCache;
     
     // public API
     exports.scanDocument                = scanDocument;
