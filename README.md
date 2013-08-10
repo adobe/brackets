@@ -36,8 +36,9 @@ what's missing!
 
 Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://download.brackets.io/).
 
-The Linux build is nearly at feature parity with Mac and Windows.
-See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version) for known issues.
+The Linux version has most of the features of the Mac and Windows versions, but
+is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
+for a list of known issues and to find out how you can help.
 
 #### Usage
 
@@ -54,7 +55,7 @@ In addition to the core features built into Brackets, there is a large and growi
 community of developers building extensions that add all sorts of useful functionality.
 See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
 for a list of available extensions. For installation instructions,
-see [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
+see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
 
 #### Need help?
 
