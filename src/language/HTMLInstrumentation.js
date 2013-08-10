@@ -642,9 +642,7 @@ define(function (require, exports, module) {
     };
     
     DOMUpdater.prototype.update = function () {
-        // If we're doing an incremental update, we want to do a stricter parse, and fail
-        // if there are any unbalanced tags.
-        var newSubtree = this.build(this.isIncremental),
+        var newSubtree = this.build(true),
             result = {
                 // default result if we didn't identify a changed portion
                 newDOM: newSubtree,
