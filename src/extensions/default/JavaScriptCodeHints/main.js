@@ -190,8 +190,40 @@ define(function (require, exports, module) {
                 cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType;
+                type.showFunctionType !== cachedType.showFunctionType ||
+                (type.functionCallPos && cachedType.functionCallPos &&
+                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
+
+    /**
+     *  Cache the hints and the hint's context.
+     *
+     *  @param {Array.<string>} hints - array of hints
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                showFunctionType:boolean,
+                context: string,
+                functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
+     */
+    function setCachedHintContext(hints, cursor, type, token) {
+        cachedHints = hints;
+        cachedCursor = cursor;
+        cachedType = type;
+        cachedToken = token;
+    }
+
+    /**
+     *  Reset cached hint context.
+     */
+    function resetCachedHintContext() {
+        cachedHints = null;
+        cachedCursor = null;
+        cachedType = null;
+        cachedToken =  null;
+    }
 
     /**
      *  Have conditions have changed enough to justify closing the hints popup?
@@ -264,18 +296,36 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Check if a hint response is pending.
+     *
+     * @param {jQuery.Deferred} deferredHints - deferred hint response
+     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     */
+    function hintsArePending(deferredHints) {
+        return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
+            deferredHints.state() === "pending");
+    }
+
+    /**
      *  Common code to get the session hints. Will get guesses if there were
      *  no completions for the query.
      *
      * @param {string} query - user text to search hints with
-     * @param {Object} type - the type of query, property vs. identifier
+     *  @param {{line:number, ch:number}} cursor - the location where the hints
+     *  were created.
+     * @param {{property: boolean,
+                 showFunctionType:boolean,
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} type -
+     *  type information about the hints
+     *  @param {Object} token - CodeMirror token
      * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
      * resolve (optional). If not supplied a new Deferred will be created if
      * needed.
      * @return {Object + jQuery.Deferred} - hint response (immediate or
      *     deferred) as defined by the CodeHintManager API
      */
-    function getSessionHints(query, type, $deferredHints) {
+    function getSessionHints(query, cursor, type, token, $deferredHints) {
 
         var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
@@ -287,23 +337,26 @@ define(function (require, exports, module) {
             }
 
             guessesResponse.done(function () {
-                query = session.getQuery();
-                hintResults = session.getHints(query, getStringMatcher());
-                cachedHints = hintResults.hints;
-                var hintResponse = getHintResponse(cachedHints, query, type);
-
-                $deferredHints.resolveWith(null, [hintResponse]);
+                if (hintsArePending($deferredHints)) {
+                    hintResults = session.getHints(query, getStringMatcher());
+                    setCachedHintContext(hintResults.hints, cursor, type, token);
+                    var hintResponse = getHintResponse(cachedHints, query, type);
+                    $deferredHints.resolveWith(null, [hintResponse]);
+                }
+            }).fail(function () {
+                if (hintsArePending($deferredHints)) {
+                    $deferredHints.reject();
+                }
             });
 
             return $deferredHints;
-        } else if ($deferredHints && $deferredHints.state() === "pending") {
-            cachedHints = hintResults.hints;
+        } else if (hintsArePending($deferredHints)) {
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             var hintResponse    = getHintResponse(cachedHints, query, type);
-
             $deferredHints.resolveWith(null, [hintResponse]);
             return null;
         } else {
-            cachedHints = hintResults.hints;
+            setCachedHintContext(hintResults.hints, cursor, type, token);
             return getHintResponse(cachedHints, query, type);
         }
     }
@@ -336,9 +389,7 @@ define(function (require, exports, module) {
                     query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
-                    cachedCursor = null;
-                    cachedHints = null;
-                    cachedToken = null;
+                    resetCachedHintContext();
                     matcher = null;
                 }
                 return true;
@@ -369,35 +420,32 @@ define(function (require, exports, module) {
                 return null;
             }
 
-            cachedCursor = cursor;
-            cachedToken = token;
-
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                // FIXME: passing null keys until can investigate a fix for "empty" updates
-                ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
-                ignoreChange = true;
-
-                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
-
-                if (scopeResponse.hasOwnProperty("promise")) {
-                    var $deferredHints = $.Deferred();
-                    scopeResponse.promise.done(function () {
-                        cachedType = session.getType();
-                        getSessionHints(session.getQuery(), type, $deferredHints);
-                    }).fail(function () {
-                        if ($deferredHints.state() === "pending") {
-                            $deferredHints.reject();
-                        }
-                    });
-
-                    return $deferredHints;
+                if (key) {
+                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ignoreChange = true;
                 }
+
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
+                    $deferredHints = $.Deferred();
+
+                scopeResponse.done(function () {
+                    if (hintsArePending($deferredHints)) {
+                        getSessionHints(query, cursor, type, token, $deferredHints);
+                    }
+                }).fail(function () {
+                    if (hintsArePending($deferredHints)) {
+                        $deferredHints.reject();
+                    }
+                });
+
+                return $deferredHints;
             }
 
             if (cachedHints) {
-                return getSessionHints(query, type);
+                return getSessionHints(query, cursor, type, token);
             }
         }
 
@@ -418,34 +466,8 @@ define(function (require, exports, module) {
             token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
+            end         = {line: cursor.line, ch: cursor.ch},
             delimiter;
-
-        if (token && token.string === ".") {
-            var nextToken  = session.getNextTokenOnLine(cursor);
-
-            if (nextToken && // don't replace delimiters, etc.
-                    HintUtils.maybeIdentifier(nextToken.string) &&
-                    HintUtils.hintable(nextToken)) {
-                end.ch = nextToken.end;
-            }
-        }
-
-        // If the hint is a string literal, choose a delimiter in which
-        // to wrap it, preserving the existing delimiter if possible.
-        if (hint.literal && hint.kind === "string") {
-            if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimiter = HintUtils.DOUBLE_QUOTE;
-            } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimiter = HintUtils.SINGLE_QUOTE;
-            } else {
-                delimiter = hint.delimiter;
-            }
-
-            completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimiter, "\\" + delimiter);
-            completion = delimiter + completion + delimiter;
-        }
 
         if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
@@ -506,13 +528,11 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context to be initialized.
          * @param {Editor} previousEditor - the previous editor.
-         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor, previousEditor, primePump) {
+        function initializeSession(editor, previousEditor) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
-                previousEditor ? previousEditor.document : null,
-                primePump);
+                previousEditor ? previousEditor.document : null);
             cachedHints = null;
         }
 
@@ -525,12 +545,10 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
-            cachedCursor = null;
-            cachedHints = null;
-            cachedType = null;
+            resetCachedHintContext();
 
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, previousEditor, true);
+                initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
@@ -573,8 +591,9 @@ define(function (require, exports, module) {
          */
         function handleJumpToDefinition() {
             var offset,
-                response;
+                handleJumpResponse;
 
+                        
             // Only provide jump-to-definition results when cursor is in JavaScript content
             if (session.editor.getModeForSelection() !== "javascript") {
                 return null;
@@ -582,34 +601,128 @@ define(function (require, exports, module) {
 
             var result = new $.Deferred();
 
-            offset = session.getOffset();
-            response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
-
-            if (response.hasOwnProperty("promise")) {
-                response.promise.done(function (jumpResp) {
-
-                    if (jumpResp.resultFile) {
-                        if (jumpResp.resultFile !== jumpResp.file) {
-                            var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
-                            if (resolvedPath) {
-                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
-                                    .done(function () {
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
-                                    });
-                            }
-                        } else {
-                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
-                        }
-                        result.resolve(true);
-                    } else {
+            /**
+             * Make a jump-to-def request based on the session and offset passed in.
+             * @param {Session} session - the session
+             * @param {number} offset - the offset of where to jump from
+             */
+            function requestJumpToDef(session, offset) {
+                var response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+    
+                if (response.hasOwnProperty("promise")) {
+                    response.promise.done(handleJumpResponse).fail(function () {
                         result.reject();
-                    }
+                    });
+                }
+            }
+            
 
-                }).fail(function () {
-                    result.reject();
-                });
+            /**
+             * Sets the selection to move the cursor to the result position.
+             * Assumes that the editor has already changed files, if necessary.
+             *
+             * Additionally, this will check to see if the selection looks like an
+             * assignment to a member expression - if it is, and the type is a function,
+             * then we will attempt to jump to the RHS of the expression.
+             *
+             * 'exports.foo = foo'
+             *
+             * if the selection is 'foo' in 'exports.foo', then we will attempt to jump to def
+             * on the rhs of the assignment.
+             *
+             * @param {number} start - the start of the selection
+             * @param {number} end - the end of the selection
+             * @param {boolean} isFunction - true if we are jumping to the source of a function def
+             */
+            function setJumpSelection(start, end, isFunction) {
+                
+                /**
+                 * helper function to decide if the tokens on the RHS of an assignment
+                 * look like an identifier, or member expr.
+                 */
+                function validIdOrProp(token) {
+                    if (!token) {
+                        return false;
+                    }
+                    if (token.string === ".") {
+                        return true;
+                    }
+                    var type = token.type;
+                    if (type === "variable-2" || type === "variable" || type === "property") {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                
+                var madeNewRequest = false;
+                
+                if (isFunction) {
+                    // When jumping to function defs, follow the chain back
+                    // to get to the original function def
+                    var cursor = {line: end.line, ch: end.ch},
+                        prev = session._getPreviousToken(cursor),
+                        next,
+                        token,
+                        offset;
+    
+                    // see if the selection is preceded by a '.', indicating we're in a member expr
+                    if (prev.string === ".") {
+                        cursor = {line: end.line, ch: end.ch};
+                        next = session.getNextToken(cursor, true);
+                        // check if the next token indicates an assignment
+                        if (next && next.string === "=") {
+                            next = session.getNextToken(cursor, true);
+                            // find the last token of the identifier, or member expr
+                            while (validIdOrProp(next)) {
+                                offset = session.getOffsetFromCursor({line: cursor.line, ch: next.end});
+                                next = session.getNextToken(cursor, false);
+                            }
+                            if (offset) {
+                                // trigger another jump to def based on the offset of the RHS
+                                requestJumpToDef(session, offset);
+                                madeNewRequest = true;
+                            }
+                        }
+                    }
+                }
+                // We didn't make a new jump-to-def request, so we can resolve the promise
+                // and set the selection
+                if (!madeNewRequest) {
+                    // set the selection
+                    session.editor.setSelection(start, end, true);
+                    result.resolve(true);
+                }
             }
 
+            /**
+             * handle processing of the completed jump-to-def request.              
+             * will open the appropriate file, and set the selection based
+             * on the response.
+             */
+            handleJumpResponse = function (jumpResp) {
+
+                if (jumpResp.resultFile) {
+                    if (jumpResp.resultFile !== jumpResp.file) {
+                        var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                        if (resolvedPath) {
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
+                                .done(function () {
+                                    setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                                });
+                        }
+                    } else {
+                        setJumpSelection(jumpResp.start, jumpResp.end, jumpResp.isFunction);
+                    }
+                } else {
+                    result.reject();
+                }
+            };
+            
+            offset = session.getOffset();
+            // request a jump-to-def
+            requestJumpToDef(session, offset);
+            
             return result.promise();
         }
 
@@ -636,7 +749,11 @@ define(function (require, exports, module) {
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
-        
+
+        $(ProjectManager).on("projectOpen", function () {
+            ScopeManager.handleProjectOpen();
+        });
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

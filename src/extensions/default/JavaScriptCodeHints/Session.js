@@ -104,6 +104,16 @@ define(function (require, exports, module) {
     Session.prototype.getOffset = function () {
         var cursor = this.getCursor();
         
+        return this.getOffsetFromCursor(cursor);
+    };
+    
+    /**
+     * Get the offset of a cursor position
+     *
+     * @param {{line: number, ch: number}} the line/col info
+     * @return {number} - the offset into the current document of the cursor
+     */
+    Session.prototype.getOffsetFromCursor = function (cursor) {
         return this.editor.indexFromPos(cursor);
     };
 
@@ -119,9 +129,9 @@ define(function (require, exports, module) {
         var cm = this.editor._codeMirror;
 
         if (cursor) {
-            return cm.getTokenAt(cursor);
+            return cm.getTokenAt(cursor, true);
         } else {
-            return cm.getTokenAt(this.getCursor());
+            return cm.getTokenAt(this.getCursor(), true);
         }
     };
 
@@ -191,6 +201,38 @@ define(function (require, exports, module) {
         } while (prev.string.trim() === "");
         
         return prev;
+    };
+
+    /**
+     * Get the token after the one at the given cursor position
+     * 
+     * @param {{line: number, ch: number}} cursor - cursor position after
+     *      which a token should be retrieved
+     * @param {boolean} skipWhitespace - true if this should skip over whitespace tokens 
+     * @return {Object} - the CodeMirror token after the one at the given
+     *      cursor position
+     */
+    Session.prototype.getNextToken = function (cursor, skipWhitespace) {
+        var token   = this.getToken(cursor),
+            next    = token,
+            doc     = this.editor.document;
+
+        do {
+            if (next.end > cursor.ch) {
+                cursor.ch = next.end;
+            } else if (next.end < doc.getLine(cursor.line).length) {
+                cursor.ch = next.end + 1;
+            } else if (doc.getLine(cursor.line + 1)) {
+                cursor.ch = 0;
+                cursor.line++;
+            } else {
+                next = null;
+                break;
+            }
+            next = this.getToken(cursor);
+        } while (skipWhitespace && next.string.trim() === "");
+        
+        return next;
     };
     
     /**

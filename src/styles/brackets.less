@@ -55,6 +55,14 @@ html, body {
     
     /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
     -webkit-font-smoothing: antialiased;
+    
+    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
+       It seems that we have to put it here rather than on the animated element in order to prevent the
+       entire window from flashing.
+       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
+    */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 body {
@@ -161,6 +169,10 @@ a, img {
         border: none;
         margin: 6px 10px;
         padding: 0;
+    }
+    
+    #status-language {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
 }
 
@@ -296,47 +308,30 @@ a, img {
 }
 
 #update-notification {
-    margin: 10px 0 5px;
-    .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,14px);
-    //}
-    display:none;
+    .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
 }
 
 #toolbar-go-live {
+	// background-position is 0 0 for 24x24 icons
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
-    //&:hover {
-    //    .sprite-swap(0,16px);
-    //}
+    .sprite-icon(0, 0, 24px, 24px, "images/live_development_sprites.svg");
     // 'Connected' state
     &.success {
-        .sprite-swap(0,32px);
+        .sprite-swap(0, 24px);
     }
-    //&.success:hover {
-    //    .sprite-swap(0,48px);
-    //}
     // 'Connection in progress' state
     &.info {
-        .sprite-swap(0,64px);
+        .sprite-swap(0, 48px);
     }
     // 'Out-of-sync' state
     &.out-of-sync {
-        .sprite-swap(0,80px);
+        .sprite-swap(0, 72px);
     }
-    //&.out-of-sync:hover {
-    //    .sprite-swap(0,96px);
-    //}
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0,0, 20px,20px, "images/topcoat-plugin-20.svg");
-    opacity: 0.7;
-    //&:hover {
-    //    opacity: 0.5;
-    //}
+    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
 }
 
 /* Project panel */
@@ -346,6 +341,7 @@ a, img {
     padding: 10px 0 9px 12px;
     background: #3C3F41;
     color: @project-panel-text-2;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
 
 #sidebar {
@@ -407,9 +403,13 @@ a, img {
         padding: 3px (@sidebar-triangle-size * 2) 3px 0;
         
         cursor: default;
+
+        .directory {
+            font-size: 11px;
+        }
     }
     
-    .extension {
+    .extension, .directory {
         color: @project-panel-text-2;
     }
 }
@@ -461,6 +461,10 @@ a, img {
     ul {
         padding-left: 8px;
     }
+    
+    > ul {
+        padding-bottom: 24px;
+    }
 }
 
 .scroller-shadow {
@@ -497,6 +501,20 @@ a, img {
     height: @jstree-sprite-size;
 }
 
+/** Overriding jsTreeTheme.less
+*/
+.jstree-brackets .jstree-no-dots .jstree-open > ins {
+    background-position: 7px -8px;
+    -webkit-transform: translateZ(0) rotate(90deg);
+    -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
+}
+
+.jstree-brackets .jstree-no-dots .jstree-closed > ins {
+    background-position: 7px -8px;
+    -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
+    -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
+}
+
 /** Classes for icons from bracketSprites.png 
 */
 .bracket-sprite {
@@ -530,16 +548,29 @@ a, img {
     }
     
     &.can-close:active {
-        background-position: -15px 1px;
+        background-position: -15px 0;
+        opacity: @tc-icon-down;
     }
 }
 
 /* Styles for inline editors */
 .inline-widget {
-    background-color:   @inline-background-color-1;
+    position: relative;
+    overflow: hidden;
+
+    background-color: @inline-background-color-1;
     min-width: 250px;
     cursor: default;
-    
+
+    &.animating {
+        // Make the animation use the GPU--especially important for retina.
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        
+        -webkit-transition: height 0.125s ease-out;
+        transition: height 0.125s ease-out;
+    }
+
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
         height: auto;
@@ -616,11 +647,14 @@ a, img {
         width: 100%;
         background: #d0d5d5;
         position: absolute;
-        -webkit-transition: height 0.1s ease-out;
-        -webkit-transition: top 0.1s ease-out;
         border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
         border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
         top: @top-margin;
+        
+        &.animate {
+            -webkit-transition: height 0.1s ease-out;
+            -webkit-transition: top 0.1s ease-out;
+        }
     }
     
     /*
@@ -693,16 +727,43 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
+#search-result-summary {
+    .first-page,
+    .prev-page,
+    .next-page,
+    .last-page {
+        .jstree-sprite;
+        width: 6px;
+        display: inline-block;
+        margin: 0 2px;
+        background-position: 0px 4px;
+    }
+    .first-page {
+        background-position: 0px -80px;
+        margin-left: 10px;
+    }
+    .prev-page {
+        background-position: 0px -24px;
+    }
+    .last-page {
+        background-position: 0px -52px;
+    }
+    .disabled {
+        opacity: 0.3;
+    }
+}
+
 #search-results .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: -(@jstree-sprite-size*1 - 2px) -(@jstree-sprite-size*1 - 1px);
+        background-position: 7px 5px;
+        -webkit-transform: translateZ(0) rotate(90deg);
     }
     &.collapsed {
-        background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
+        background-position: 7px 5px;
     }
 }
 
@@ -717,7 +778,7 @@ a, img {
     text-align: left;
     
     font-family: @sansFontFamily;
-    font-size: 13px;
+    font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
@@ -733,7 +794,9 @@ a, img {
     font-family: @sansFontFamily;
     outline: none;
     width: 20em;
-    margin: .3em .3em;
+    margin: 5px 5px 0;
+    position: relative;
+    top: -3px;    
     &.no-results {
         border: 1px solid #bc0023;
         box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
@@ -788,7 +851,7 @@ a, img {
     box-sizing: border-box; 
     
     // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 400px !important;  
+    width: 434px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
@@ -874,4 +937,10 @@ a, img {
 /* Turn on text selection for JSLint error messages */
 #jslint-results {
     .user-select(text);
+}
+
+/* Line up label text and input text */
+label input {
+    position: relative;
+    top: -2px;
 }

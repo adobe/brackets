@@ -70,6 +70,23 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async");
     
+    
+    /**
+     * @private
+     * File and Folder names which are not displayed or searched
+     * TODO: We should add the rest of the file names that TAR excludes:
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+
+    /**
+     * @private
+     * File names which are not showed in quick open dialog
+     * @type {RegExp}
+     */
+    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -142,10 +159,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * While initially rendering the tree, stores a list of promises for folders waiting to be read.
-     * Is null when tree is not doing its initial rendering.
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.  
      */
-    var _renderPromises = null;
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
     var suppressToggleOpen = false;
     
@@ -402,40 +419,46 @@ define(function (require, exports, module) {
     function _isInRename(element) {
         return ($(element).closest("li").find("input").length > 0);
     }
-    
+        
     /**
-     * Resolves the given deferred when all renderPromises have been resolved. This is necessary in order
-     * to determine when iniital rendering is really finished; we don't actually get a callback from jstree 
-     * once it's handled all of its "reopen" callbacks, so we instead track all of our own async file requests
-     * (which should be the only asynchronicity involved in rendering the tree). Since new requests might get
-     * added in the course of recursing the tree, we can't just do a simple $.when.apply() here.
-     *
-     * @param {$.Deferred} the deferred to resolve when rendering is finished
+     * @private
+     * Reopens a set of nodes in the tree by ID.
+     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
+     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
+     *     be sorted by depth within the tree.
+     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
+     *     reopened.
      */
-    function _whenRenderedResolve(deferred) {
-        if (_renderPromises) {
-            _renderPromises.forEach(function (promise) {
-                // Only listen to each promise once.
-                if (!promise._project_listening) {
-                    promise._project_listening = true;
-                    promise.always(function () {
-                        // One of the promises is completed (either resolved or rejected;
-                        // in either case we want to move on).
-                        // Remove it from the list, then see if we have any more left.
-                        var index = _renderPromises.indexOf(promise);
-                        if (index !== -1) {
-                            _renderPromises.splice(index, 1);
-                        }
-                        if (_renderPromises.length === 0) {
-                            // All done.
-                            deferred.resolve();
-                            _renderPromises = null;
-                        } else {
-                            // Add listeners to any new promises that have shown up.
-                            _whenRenderedResolve(deferred);
-                        }
-                    });
+    function _reopenNodes(nodesByDepth, resultDeferred) {
+        if (nodesByDepth.length === 0) {
+            // All paths are opened and fully rendered.
+            resultDeferred.resolve();
+        } else {
+            var toOpenPaths = nodesByDepth.shift(),
+                toOpenIds   = [],
+                node        = null;
+
+            // use path to lookup ID
+            toOpenPaths.forEach(function (value, index) {
+                node = _projectInitialLoad.fullPathToIdMap[value];
+                
+                if (node) {
+                    toOpenIds.push(node);
                 }
+            });
+            
+            Async.doInParallel(
+                toOpenIds,
+                function (id) {
+                    var result = new $.Deferred();
+                    _projectTree.jstree("open_node", "#" + id, function () {
+                        result.resolve();
+                    }, true);
+                    return result.promise();
+                },
+                false
+            ).always(function () {
+                _reopenNodes(nodesByDepth, resultDeferred);
             });
         }
     }
@@ -450,8 +473,6 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred();
 
-        _renderPromises = [];
-        
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
         // doesn't seem to work properly. 
@@ -471,14 +492,15 @@ define(function (require, exports, module) {
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
                 sort :  function (a, b) {
+                    var a1 = $(a).text(),
+                        b1 = $(b).text();
+                    
+                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                     if (brackets.platform === "win") {
-                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                        var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
-                            b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
-                        return (a1 > b1) ? 1 : -1;
-                    } else {
-                        return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
+                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
+                    return FileUtils.compareFilenames(a1, b1, false);
                 }
             }).bind(
                 "before.jstree",
@@ -494,64 +516,46 @@ define(function (require, exports, module) {
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
-                    if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                    
-                        openResult.done(function () {
-                            // update when tree display state changes
-                            _redraw(true);
-                            _lastSelected = data.rslt.obj;
-                        }).fail(function () {
-                            if (_lastSelected) {
-                                // revert this new selection and restore previous selection
-                                _forceSelection(data.rslt.obj, _lastSelected);
-                            } else {
-                                _projectTree.jstree("deselect_all");
-                                _lastSelected = null;
-                            }
-                        });
-                    } else {
-                        FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
-                        // show selection marker on folders
-                        _redraw(true);
+                    if (entry) {
+                        if (entry.isFile) {
+                            var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                         
-                        // toggle folder open/closed
-                        // suppress if this selection was triggered by clicking the disclousre triangle
-                        if (!suppressToggleOpen) {
-                            _projectTree.jstree("toggle_node", data.rslt.obj);
+                            openResult.done(function () {
+                                // update when tree display state changes
+                                _redraw(true);
+                                _lastSelected = data.rslt.obj;
+                            }).fail(function () {
+                                if (_lastSelected) {
+                                    // revert this new selection and restore previous selection
+                                    _forceSelection(data.rslt.obj, _lastSelected);
+                                } else {
+                                    _projectTree.jstree("deselect_all");
+                                    _lastSelected = null;
+                                }
+                            });
+                        } else {
+                            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
+                            // show selection marker on folders
+                            _redraw(true);
+                            
+                            // toggle folder open/closed
+                            // suppress if this selection was triggered by clicking the disclousre triangle
+                            if (!suppressToggleOpen) {
+                                _projectTree.jstree("toggle_node", data.rslt.obj);
+                            }
                         }
                     }
-                    
                     suppressToggleOpen = false;
                 }
             ).bind(
                 "reopen.jstree",
                 function (event, data) {
-                    // This handler fires for the initial load and subsequent
-                    // reload_nodes events. For each depth level of the tree, we open
-                    // the saved nodes by a fullPath lookup.
-                    if (_projectInitialLoad.previous.length > 0) {
-                        // load previously open nodes by increasing depth
-                        var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [],
-                            node        = null;
-        
-                        // use path to lookup ID
-                        toOpenPaths.forEach(function (value, index) {
-                            node = _projectInitialLoad.fullPathToIdMap[value];
-                            
-                            if (node) {
-                                toOpenIds.push(node);
-                            }
-                        });
-        
-                        // specify nodes to open and load
-                        data.inst.data.core.to_open = toOpenIds;
-                        _projectTree.jstree("reload_nodes", false);
-                    }
-                    if (_projectInitialLoad.previous.length === 0) {
-                        // resolve after all paths are opened and fully rendered
-                        _whenRenderedResolve(result);
+                    if (_projectInitialLoad.previous) {
+                        // Start reopening nodes that were previously open, starting
+                        // with the first recorded depth level. As each level completes,
+                        // it will trigger the next level to finish.
+                        _reopenNodes(_projectInitialLoad.previous, result);
+                        _projectInitialLoad.previous = null;
                     }
                 }
             ).bind(
@@ -589,7 +593,7 @@ define(function (require, exports, module) {
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
-                    if (event.which === 3) {
+                    if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
                         var treenode = $(event.target).closest("li");
                         if (treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
@@ -639,14 +643,16 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db", ".hg"].indexOf(entry.name) > -1) {
-            return false;
-        }
-        var extension = entry.name.split('.').pop();
-        if (["pyc"].indexOf(extension) > -1) {
-            return false;
-        }
-        return true;
+        return !entry.name.match(_exclusionListRegEx);
+    }
+    
+    /**
+     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @param {string} fileName
+     * @return {boolean}
+     */
+    function isBinaryFile(fileName) {
+        return fileName.match(_binaryExclusionListRegEx);
     }
 
     /**
@@ -728,7 +734,7 @@ define(function (require, exports, module) {
                 var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
                 
                 treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                        .addClass(classToAdd);
+                    .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on 
@@ -750,10 +756,6 @@ define(function (require, exports, module) {
             dirEntry = treeNode.data("entry");
         }
         
-        if (_renderPromises) {
-            _renderPromises.push(deferred.promise());
-        }
-
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             processEntries,
@@ -779,6 +781,15 @@ define(function (require, exports, module) {
         );
 
     }
+    
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
+    }
+    
     
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
@@ -834,14 +845,15 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @param {bool} isUpdating Indicates if it's just an update attempt to the
-     *  tree or if another project is being loaded.
+     * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
+     *  if false, a different project is being loaded.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-
     function _loadProject(rootPath, isUpdating) {
+        forceFinishRename();    // in case we're in the middle of renaming a file in the project
+        
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
@@ -1104,27 +1116,28 @@ define(function (require, exports, module) {
 
     /**
      * Invoke project settings dialog.
-     * @return {Dialog}
+     * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
-
+    
     /**
      * @private
-     *
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * @param {string} filename
+     * @param {boolean} isFolder
+     * @return {boolean} Returns true if no illegal characters are found
      */
-    function _checkForValidFilename(filename) {
+    function _checkForValidFilename(filename, isFolder) {
         // Validate file name
-        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
+        // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.INVALID_FILENAME_TITLE,
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
                 Strings.INVALID_FILENAME_MESSAGE
             );
             return false;
@@ -1201,7 +1214,7 @@ define(function (require, exports, module) {
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
-                          .addClass(classToAdd);
+                        .addClass(classToAdd);
                 }
                 
                 result.reject();
@@ -1209,7 +1222,7 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!_checkForValidFilename(data.rslt.name)) {
+                if (!_checkForValidFilename(data.rslt.name, isFolder)) {
                     errorCleanup();
                     return;
                 }
@@ -1244,15 +1257,21 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
-                            (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
+                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
+                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    if (error.name === NativeFileError.PATH_EXISTS_ERR) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.INVALID_FILENAME_TITLE,
-                            StringUtils.format(
-                                Strings.FILE_ALREADY_EXISTS,
-                                StringUtils.breakableUrl(data.rslt.name)
-                            )
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, entryType,
+                                StringUtils.breakableUrl(data.rslt.name))
+                        );
+                    } else if (error.name === NativeFileError.TYPE_MISMATCH_ERR) {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, oppositeEntryType,
+                                StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
@@ -1261,12 +1280,9 @@ define(function (require, exports, module) {
 
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_CREATING_FILE_TITLE,
-                            StringUtils.format(
-                                Strings.ERROR_CREATING_FILE,
-                                StringUtils.breakableUrl(data.rslt.name),
-                                errString
-                            )
+                            StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
+                            StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
+                                StringUtils.breakableUrl(data.rslt.name), errString)
                         );
                     }
 
@@ -1430,7 +1446,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -1507,7 +1523,7 @@ define(function (require, exports, module) {
             DocumentManager.notifyPathDeleted(entry.fullPath);
 
             _redraw(true);
-            result.promise();
+            result.resolve();
         }, function (err) {
             // Show an error alert
             Dialogs.showModalDialog(
@@ -1523,16 +1539,9 @@ define(function (require, exports, module) {
             result.reject(err);
         });
 
-        return result;
+        return result.promise();
     }
     
-    /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1550,23 +1559,6 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
-    
-    if (!_prefs.getValue("welcomeProjectsFixed")) {
-        // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
-        // we would add lots of duplicate entries here.
-        var welcomeProjects = _prefs.getValue("welcomeProjects");
-        if (welcomeProjects) {
-            var newWelcomeProjects = [];
-            var i;
-            for (i = 0; i < welcomeProjects.length; i++) {
-                if (newWelcomeProjects.indexOf(welcomeProjects[i]) === -1) {
-                    newWelcomeProjects.push(welcomeProjects[i]);
-                }
-            }
-            _prefs.setValue("welcomeProjects", newWelcomeProjects);
-            _prefs.setValue("welcomeProjectsFixed", true);
-        }
-    }
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -1584,6 +1576,7 @@ define(function (require, exports, module) {
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
+    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;

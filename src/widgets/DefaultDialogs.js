@@ -37,5 +37,5 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED       = "ext-changed-dialog";
     exports.DIALOG_ID_EXT_DELETED       = "ext-deleted-dialog";
     exports.DIALOG_ID_LIVE_DEVELOPMENT  = "live-development-error-dialog";
-    exports.DIALOG_ID_REMOVE_EXTENSIONS = "remove-marked-extensions";
+    exports.DIALOG_ID_CHANGE_EXTENSIONS = "change-marked-extensions";
 });

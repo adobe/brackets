@@ -43,8 +43,7 @@ define(function (require, exports, module) {
          */
         var menu;
         menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW);
-        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        menu.addMenuItem(Commands.FILE_NEW_UNTITLED);
         menu.addMenuItem(Commands.FILE_OPEN);
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE);
@@ -52,9 +51,9 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE);
         menu.addMenuItem(Commands.FILE_SAVE_ALL);
+        menu.addMenuItem(Commands.FILE_SAVE_AS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
-        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
@@ -115,7 +114,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_ACTIVE_LINE);
         menu.addMenuItem(Commands.TOGGLE_LINE_NUMBERS);
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
-
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
+        
         /*
          * Navigate menu
          */
@@ -192,6 +193,7 @@ define(function (require, exports, module) {
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
+        working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);

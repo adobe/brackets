@@ -80,30 +80,10 @@ define(function (require, exports, module) {
      *      of the clicked button when the dialog is dismissed. Never rejected.
      */
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
-        var $dlg,
-            $title,
-            $baseUrlControl,
+        var $baseUrlControl,
             dialog;
-
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
-            .done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    var baseUrlValue = $baseUrlControl.val();
-                    var result = _validateBaseUrl(baseUrlValue);
-                    if (result === "") {
-                        ProjectManager.setBaseUrl(baseUrlValue);
-                    } else {
-                        // Re-invoke dialog with result (error message)
-                        showProjectPreferencesDialog(baseUrlValue, result);
-                    }
-                }
-            });
-
-        // Populate project settings
-        $dlg = $(".project-settings-dialog.instance");
-
+        
         // Title
-        $title = $dlg.find(".dialog-title");
         var projectName = "",
             projectRoot = ProjectManager.getProjectRoot(),
             title;
@@ -111,20 +91,31 @@ define(function (require, exports, module) {
             projectName = projectRoot.name;
         }
         title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-        $title.text(title);
-
-        // Base URL
-        $baseUrlControl = $dlg.find(".url");
-        if (baseUrl) {
-            $baseUrlControl.val(baseUrl);
-        }
-
-        // Error message
-        if (errorMessage) {
-            $dlg.find(".field-container").append("<div class='alert' style='margin-bottom: 0'>" + errorMessage + "</div>");
-        }
+        
+        var templateVars = {
+            title        : title,
+            baseUrl      : baseUrl,
+            errorMessage : errorMessage,
+            Strings      : Strings
+        };
+        
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
+        
+        dialog.done(function (id) {
+            if (id === Dialogs.DIALOG_BTN_OK) {
+                var baseUrlValue = $baseUrlControl.val();
+                var result = _validateBaseUrl(baseUrlValue);
+                if (result === "") {
+                    ProjectManager.setBaseUrl(baseUrlValue);
+                } else {
+                    // Re-invoke dialog with result (error message)
+                    showProjectPreferencesDialog(baseUrlValue, result);
+                }
+            }
+        });
 
         // Give focus to first control
+        $baseUrlControl = dialog.getElement().find(".url");
         $baseUrlControl.focus();
 
         return dialog;

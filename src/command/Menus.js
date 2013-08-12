@@ -77,17 +77,27 @@ define(function (require, exports, module) {
         FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
         FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
         FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
+        FILE_EXTENSION_MANAGER:             {sectionMarker: Commands.FILE_EXTENSION_MANAGER},
 
+        EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
+        EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
+        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.EDIT_FIND},
         EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
+        EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
+        EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
+        EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
 
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+        VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
 
         NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
-        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
+        NAVIGATE_DOCUMENTS_COMMANDS:        {sectionMarker: Commands.NAVIGATE_NEXT_DOC},
+        NAVIGATE_OS_COMMANDS:               {sectionMarker: Commands.NAVIGATE_SHOW_IN_FILE_TREE},
+        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT},
+        NAVIGATE_QUICK_DOCS_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
     };
 
     
@@ -164,7 +174,7 @@ define(function (require, exports, module) {
     }
     
     function _isHTMLMenu(id) {
-        return (brackets.inBrowser || _isContextMenu(id));
+        return (!$("body").hasClass("has-appshell-menus") || brackets.inBrowser) || _isContextMenu(id);
     }
 
     /**
@@ -835,7 +845,7 @@ define(function (require, exports, module) {
             return menu;
         }
 
-        var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
+        var $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
             $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 
@@ -887,6 +897,9 @@ define(function (require, exports, module) {
                 self.close();
             },
             false);
+        
+        // Listen to ContextMenu's beforeContextMenuOpen event to first close other popups
+        PopUpManager.listenToContextMenu(this);
     }
     ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;

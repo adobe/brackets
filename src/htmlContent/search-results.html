@@ -1,8 +1,16 @@
-<div id="search-results" class="bottom-panel vert-resizable top-resizer no-focus">
-    <div class="toolbar simple-toolbar-layout">
-        <div class="title">{{SEARCH_RESULTS}}</div>
-        <div class="title" id="search-result-summary"></div>
-        <a href="#" class="close">&times;</a>
-    </div>
-    <div class="table-container resizable-content"></div>
-</div>
+<table class="table table-striped table-condensed row-highlight">
+    <tbody>
+        {{#searchList}}
+        <tr class="file-section" data-file="{{file}}">
+            <td colspan="3"><span class="disclosure-triangle expanded"></span>{{{filename}}}</td>
+        </tr>
+        {{#items}}
+        <tr data-file="{{file}}" data-item="{{item}}">
+            <td></td>
+            <td style="white-space: nowrap">{{line}}</td>
+            <td>{{pre}}<span class="highlight">{{highlight}}</span>{{post}}</td>
+        </tr>
+        {{/items}}
+        {{/searchList}}
+    </tbody>
+</table>

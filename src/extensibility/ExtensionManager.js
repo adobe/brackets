@@ -32,6 +32,8 @@
  *     statusChange - indicates that an extension has been installed/uninstalled or
  *         its status has otherwise changed. Second parameter is the id of the
  *         extension.
+ *     registryUpdate - indicates that an existing extension was synchronized
+ *         with new data from the registry.
  */
 
 define(function (require, exports, module) {
@@ -40,6 +42,7 @@ define(function (require, exports, module) {
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
+        Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils");
@@ -65,8 +68,9 @@ define(function (require, exports, module) {
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
      * The set of all known extensions, both from the registry and locally installed. 
-     * The keys are either ids (for extensions that have package metadata) or local file paths (for 
-     * installed legacy extensions with no package metadata). The fields of each record are:
+     * The keys are either "name" from package.json (for extensions that have package metadata) 
+     * or the last segment of local file paths (for installed legacy extensions 
+     * with no package metadata). The fields of each record are:
      *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
      *         and versions). This will be null for legacy extensions.
      *     installInfo: object containing the info for a locally-installed extension:
@@ -79,11 +83,48 @@ define(function (require, exports, module) {
     var extensions = {};
     
     /**
+     * Requested changes to the installed extensions.
+     */
+    var _idsToRemove = [],
+        _idsToUpdate = [];
+        
+    /**
+     * @private
+     * Synchronizes the information between the public registry and the installed
+     * extensions. Specifically, this makes the `owner` available in each and sets
+     * an `updateAvailable` flag.
+     *
+     * @param {string} id of the extension to synchronize
+     */
+    function synchronizeEntry(id) {
+        var entry = extensions[id];
+        
+        // Do nothing if we only have one set of data
+        if (!entry || !entry.installInfo || !entry.registryInfo) {
+            return;
+        }
+        
+        entry.installInfo.owner = entry.registryInfo.owner;
+        if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+            entry.registryInfo.updateAvailable = true;
+            entry.installInfo.updateAvailable = true;
+        } else {
+            entry.installInfo.updateAvailable = false;
+            entry.registryInfo.updateAvailable = false;
+        }
+
+        $(exports).triggerHandler("registryUpdate", [id]);
+    }
+
+    /**
      * @private
      * Sets our data. For unit testing only.
      */
     function _setExtensions(newExtensions) {
         exports.extensions = extensions = newExtensions;
+        Object.keys(extensions).forEach(function (id) {
+            synchronizeEntry(id);
+        });
     }
 
     /**
@@ -92,8 +133,10 @@ define(function (require, exports, module) {
      */
     function _reset() {
         exports.extensions = extensions = {};
+        _idsToRemove = [];
+        _idsToUpdate = [];
     }
-
+    
     /**
      * Downloads the registry of Brackets extensions and stores the information in our
      * extension info.
@@ -114,6 +157,7 @@ define(function (require, exports, module) {
                         extensions[id] = {};
                     }
                     extensions[id].registryInfo = data[id];
+                    synchronizeEntry(id);
                 });
                 result.resolve();
             })
@@ -181,6 +225,7 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
+            synchronizeEntry(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
         
@@ -190,12 +235,13 @@ define(function (require, exports, module) {
             })
             .fail(function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
-                // but we don't have an official ID or metadata for it, so we just store it by its
-                // local path and record that it's enabled. We also create a "title" for it (which is
-                // the last segment of its pathname) that we can display and sort by.
+                // but we don't have an official ID or metadata for it, so we just create an id and
+                // "title" for it (which is the last segment of its pathname) 
+                // and record that it's enabled.
                 var match = path.match(/\/([^\/]+)$/),
-                    metadata = { name: path, title: (match && match[1]) || path };
-                setData(path, metadata);
+                    name = (match && match[1]) || path,
+                    metadata = { name: name, title: name };
+                setData(name, metadata);
             });
     }
         
@@ -266,6 +312,156 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Updates an installed extension with the given package file.
+     * @param {string} id of the extension
+     * @param {string} packagePath path to the package file
+     * @return {$.Promise} A promise that's resolved when the extension is updated or
+     *     rejected with an error if there's a problem with the update.
+     */
+    function update(id, packagePath) {
+        return Package.installUpdate(packagePath, id);
+    }
+
+    /**
+     * Deletes any temporary files left behind by extensions that
+     * were marked for update.
+     */
+    function cleanupUpdates() {
+        Object.keys(_idsToUpdate).forEach(function (id) {
+            var filename = _idsToUpdate[id].localPath;
+            if (filename) {
+                brackets.fs.unlink(filename, function () { });
+            }
+        });
+        _idsToUpdate = {};
+    }
+    
+    /**
+     * Unmarks all extensions marked for removal.
+     */
+    function unmarkAllForRemoval() {
+        _idsToRemove = {};
+    }
+
+    /**
+     * Marks an extension for later removal, or unmarks an extension previously marked.
+     * @param {string} id The id of the extension to mark for removal.
+     * @param {boolean} mark Whether to mark or unmark it.
+     */
+    function markForRemoval(id, mark) {
+        if (mark) {
+            _idsToRemove[id] = true;
+        } else {
+            delete _idsToRemove[id];
+        }
+        $(exports).triggerHandler("statusChange", [id]);
+    }
+    
+    /**
+     * Returns true if an extension is marked for removal.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for removal, false otherwise.
+     */
+    function isMarkedForRemoval(id) {
+        return !!(_idsToRemove[id]);
+    }
+    
+    /**
+     * Returns true if there are any extensions marked for removal.
+     * @return {boolean} true if there are extensions to remove
+     */
+    function hasExtensionsToRemove() {
+        return Object.keys(_idsToRemove).length > 0;
+    }
+    
+    /**
+     * If a downloaded package appears to be an update, mark the extension for update.
+     * If an extension was previously marked for removal, marking for update will
+     * turn off the removal mark.
+     * @param {Object} installationResult info about the install provided by the Package.download function
+     */
+    function updateFromDownload(installationResult) {
+        var installationStatus = installationResult.installationStatus;
+        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
+                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
+                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
+            var id = installationResult.name;
+            delete _idsToRemove[id];
+            _idsToUpdate[id] = installationResult;
+            $(exports).triggerHandler("statusChange", [id]);
+        }
+    }
+    
+    /**
+     * Removes the mark for an extension to be updated on restart. Also deletes the
+     * downloaded package file.
+     * @param {string} id The id of the extension for which the update is being removed
+     */
+    function removeUpdate(id) {
+        var installationResult = _idsToUpdate[id];
+        if (!installationResult) {
+            return;
+        }
+        if (installationResult.localPath) {
+            brackets.fs.unlink(installationResult.localPath, function () {
+            });
+        }
+        delete _idsToUpdate[id];
+        $(exports).triggerHandler("statusChange", [id]);
+    }
+    
+    /**
+     * Returns true if an extension is marked for update.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for update, false otherwise.
+     */
+    function isMarkedForUpdate(id) {
+        return !!(_idsToUpdate[id]);
+    }
+    
+    /**
+     * Returns true if there are any extensions marked for update.
+     * @return {boolean} true if there are extensions to update
+     */
+    function hasExtensionsToUpdate() {
+        return Object.keys(_idsToUpdate).length > 0;
+    }
+    
+    /**
+     * Removes extensions previously marked for removal.
+     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
+     *     if one or more extensions can't be removed. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    function removeMarkedExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToRemove),
+            function (id) {
+                return remove(id);
+            }
+        );
+    }
+    
+    /**
+     * Updates extensions previously marked for update.
+     * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
+     *     if one or more extensions can't be updated. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    function updateExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToUpdate),
+            function (id) {
+                var installationResult = _idsToUpdate[id];
+                return update(installationResult.name, installationResult.localPath);
+            }
+        );
+    }
+    
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -276,7 +472,19 @@ define(function (require, exports, module) {
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
     exports.remove = remove;
+    exports.update = update;
     exports.extensions = extensions;
+    exports.cleanupUpdates = cleanupUpdates;
+    exports.markForRemoval = markForRemoval;
+    exports.isMarkedForRemoval = isMarkedForRemoval;
+    exports.unmarkAllForRemoval = unmarkAllForRemoval;
+    exports.hasExtensionsToRemove = hasExtensionsToRemove;
+    exports.updateFromDownload = updateFromDownload;
+    exports.removeUpdate = removeUpdate;
+    exports.isMarkedForUpdate = isMarkedForUpdate;
+    exports.hasExtensionsToUpdate = hasExtensionsToUpdate;
+    exports.removeMarkedExtensions = removeMarkedExtensions;
+    exports.updateExtensions = updateExtensions;
     
     exports.ENABLED = ENABLED;
     exports.START_FAILED = START_FAILED;

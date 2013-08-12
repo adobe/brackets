@@ -33,12 +33,14 @@ define(function (require, exports, module) {
      */
 
     // FILE
-    exports.FILE_NEW                    = "file.new";
+    exports.FILE_NEW_UNTITLED           = "file.newDoc";
+    exports.FILE_NEW                    = "file.newFile";
     exports.FILE_NEW_FOLDER             = "file.newFolder";
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
     exports.FILE_SAVE_ALL               = "file.saveAll";
+    exports.FILE_SAVE_AS                = "file.saveAs";
     exports.FILE_CLOSE                  = "file.close";
     exports.FILE_CLOSE_ALL              = "file.close_all";
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
@@ -48,7 +50,6 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_DELETE                 = "file.delete";
-    exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_REFRESH                = "file.refresh";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
@@ -119,7 +120,8 @@ define(function (require, exports, module) {
     exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
-    // File shell callbacks
-    exports.APP_ABORT_QUIT              = "app.abort_quit"; // string must MATCH string in native code (appshell_extensions)
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.APP_ABORT_QUIT              = "app.abort_quit";
+    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";
 });
 

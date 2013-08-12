@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         root: true,
         "cs": true,
         "de": true,
+        "fi": true,
         "fr": true,
         "nb": true,
         "es": true,
@@ -50,6 +51,7 @@ define(function (require, exports, module) {
         "tr": true,
         "ru": true,
         "sv": true,
-        "zh-cn": true
+        "zh-cn": true,
+        "hu" : true
     };
 });
