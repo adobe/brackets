@@ -126,15 +126,17 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
     
-    "FIND_IN_FILES_TITLE"               : "für \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "\"{4}\" gefunden {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
-    "FIND_IN_FILES_MORE_THAN"           : "Mehr als ",
-    "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
+    "FIND_IN_FILES_MORE_THAN"           : "Über ",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Weniger</a>",
+    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Mehr</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Datei: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "Zeile: {0}",
 
@@ -159,6 +161,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Zeile {0}, Spalte {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} Spalte ausgewählt",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} Spalten ausgewählt",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} Zeile ausgewählt",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} Zeilen ausgewählt",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicken, um Einrückung auf Leerzeichen umzuschalten",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
@@ -193,6 +199,7 @@ define({
     "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
     "CMD_EXTENSION_MANAGER"               : "Erweiterungs-Verwaltung\u2026",
     "CMD_FILE_REFRESH"                    : "Aktualisieren",
+    "CMD_FILE_REFRESH"                    : "Dateibaum neu laden",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Beenden",
@@ -275,7 +282,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
     "SAVE"                                 : "Speichern",
