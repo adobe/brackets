@@ -103,7 +103,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
         if (this._instrumentationEnabled) {
-            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc);
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
         }
         
         return {
