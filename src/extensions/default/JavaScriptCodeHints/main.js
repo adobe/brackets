@@ -576,7 +576,6 @@ define(function (require, exports, module) {
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
                             ScopeManager.handleFileChange(changeList);
-                            ParameterHintManager.popUpHint();
                         }
                         ignoreChange = false;
                     });
