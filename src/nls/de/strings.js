@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -70,12 +70,12 @@ define({
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
     "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
-    
+
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
     "ERROR_CANT_FIND_CHROME"            : "Der Browser Google Chrome konnte nicht gefunden werden. Bitte stellen Sie sicher, dass er installiert ist.",
     "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Browsers ist ein Fehler aufgetreten. (Fehler {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
@@ -86,18 +86,18 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
-    
+
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Die Live-Vorschau wurde abgebrochen, weil die Entwickler-Tools des Browsers geöffnet wurden",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Die Live-Vorschau wurde abgebrochen, die Seite im Browser geschlossen wurde",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Die Live-Vorschau wurde abgebrochen, weil der Browser eine Seite geladen hat, die nicht Teil des aktuellen Projekts ist",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Die Live-Vorschau wurde aus einem unbekannten Grund abgebrochen ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Änderungen speichern",
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
@@ -109,7 +109,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}." +
                                                 "<br /><br />" +
                                                 "Wollen Sie die Änderungen beibehalten?",
-    
+
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
@@ -125,7 +125,7 @@ define({
     "RELEASE_NOTES"                     : "Release-Notes",
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
-    
+
     "FIND_IN_FILES_TITLE"               : "\"{4}\" gefunden {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
@@ -231,7 +231,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
     "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
-     
+
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
@@ -393,7 +393,7 @@ define({
      */
 
     "UNIT_PIXELS"                          : "Pixel",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
@@ -405,13 +405,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
-    
+
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
-    
+
     /**
      * Locales
      */
@@ -431,7 +431,7 @@ define({
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
@@ -440,10 +440,10 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
-    
+
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "JSLint aktivieren",
     "CMD_JSLINT_FIRST_ERROR"                    : "Gehe zu erstem JSLint-Fehler",
@@ -455,7 +455,7 @@ define({
 
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
