@@ -324,7 +324,7 @@ define(function (require, exports, module) {
 
     /**
      *
-     * @param {Object} cursor - a CodeMirror token
+     * @param {Object} token - a CodeMirror token
      * @return {*} - the lexical state of the token
      */
     function getLexicalState(token) {
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
 
             if (type === "variable-2" || type === "variable" || type === "property") {
                 nextToken = self.getNextToken(localCursor, true);
-                if (nextToken.string === "(") {
+                if (nextToken && nextToken.string === "(") {
                     //nextToken = self.getNextToken(localCursor, true);
                     localLexical = getLexicalState(nextToken);
                     return localLexical;

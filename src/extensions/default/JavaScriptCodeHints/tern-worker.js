@@ -299,7 +299,7 @@ importScripts("thirdparty/requirejs/require.js");
              *  Given a Tern formatted function type string, convert it to an array of Objects, where each object describes
              *  a parameter.
              *
-             * @param {String} newFnType - Tern formatted function type string.
+             * @param {string} newFnType - Tern formatted function type string.
              * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
              */
             function getParameters(newFnType) {
@@ -316,7 +316,7 @@ importScripts("thirdparty/requirejs/require.js");
                  *
                  * @param {Infer.Arr} inferArrType
                  *
-                 * @return {String} - array formatted in google closure style.
+                 * @return {string} - array formatted in google closure style.
                  *
                  */
                 function inferArrTypeToString(inferArrType) {
@@ -341,16 +341,16 @@ importScripts("thirdparty/requirejs/require.js");
                 /**
                  *  Convert an infer type to a string.
                  *
-                 * @param {*} inferType - one of the Infer's types; infer.Prim, infer.Arr, infer.ANull. infer.Fn functions are
+                 * @param {*} inferType - one of the Infer's types; Infer.Prim, Infer.Arr, Infer.ANull. Infer.Fn functions are
                  * not handled here.
                  *
-                 * @return {String}
+                 * @return {string}
                  *
                  */
                 inferTypeToString = function (inferType) {
                     var result;
 
-                    if (inferType instanceof infer.Prim) {
+                    if (inferType instanceof Infer.Prim) {
                         result = inferType.toString();
                         if (result === "string") {
                             result = "String";
@@ -359,11 +359,11 @@ importScripts("thirdparty/requirejs/require.js");
                         } else if (result === "boolean") {
                             result = "Boolean";
                         }
-                    } else if (inferType instanceof infer.Arr) {
+                    } else if (inferType instanceof Infer.Arr) {
                         result = inferArrTypeToString(inferType);
                     } else if (inferType instanceof Infer.Fn) {
                         result = inferFnTypeToString(inferType);
-                    } else if (inferType instanceof infer.Obj) {
+                    } else if (inferType instanceof Infer.Obj) {
                         result = inferType.name;
                     } else {
                         result = "Object";
@@ -394,7 +394,7 @@ importScripts("thirdparty/requirejs/require.js");
                 /**
                  * Convert an infer function type to string.
                  *
-                 * @param {*} inferType - one of the Infer's types; infer.Fn, infer.Prim, infer.Arr, infer.ANull
+                 * @param {*} inferType - one of the Infer's types; Infer.Fn, Infer.Prim, Infer.Arr, Infer.ANull
                  * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
                  */
                 processInferFnTypeParameters = function (inferType) {

@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         hintState = {},
         hintStack = [],    // stack for previous function hint to restore
         preserveHintStack, // close a function hint without clearing stack
-        session;                   // current editor session, updated by main
+        session;           // current editor session, updated by main
 
     // Constants
     var POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
