@@ -338,7 +338,7 @@ define(function (require, exports, module) {
             );
             
             // The last result index displayed
-            var last = currentStart + RESULTS_PER_PAGE > numMatches ? numMatches : currentStart + RESULTS_PER_PAGE;
+            var last = Math.min(currentStart + RESULTS_PER_PAGE, numMatches);
             
             // Insert the search summary
             $searchSummary.html(Mustache.render(searchSummaryTemplate, {
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
                 })
                 // The link to go to the last page
                 .one("click.searchList", ".last-page:not(.disabled)", function () {
-                    currentStart = Math.floor(numMatches / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
+                    currentStart = Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
                     _showSearchResults();
                 });
             
