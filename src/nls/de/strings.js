@@ -198,7 +198,6 @@ define({
     "CMD_FILE_DELETE"                     : "Löschen",
     "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
     "CMD_EXTENSION_MANAGER"               : "Erweiterungs-Verwaltung\u2026",
-    "CMD_FILE_REFRESH"                    : "Aktualisieren",
     "CMD_FILE_REFRESH"                    : "Dateibaum neu laden",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
