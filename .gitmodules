@@ -1,30 +1,30 @@
 [submodule "src/thirdparty/CodeMirror2"]
-	path = src/thirdparty/CodeMirror2
-	url = https://github.com/adobe/CodeMirror2.git
+    path = src/thirdparty/CodeMirror2
+    url = https://github.com/adobe/CodeMirror2.git
 [submodule "src/thirdparty/path-utils"]
-	path = src/thirdparty/path-utils
-	url = https://github.com/jblas/path-utils.git
+    path = src/thirdparty/path-utils
+    url = https://github.com/jblas/path-utils.git
 [submodule "src/thirdparty/smart-auto-complete"]
-	path = src/thirdparty/smart-auto-complete
-	url = https://github.com/laktek/jQuery-Smart-Auto-Complete.git
+    path = src/thirdparty/smart-auto-complete
+    url = https://github.com/laktek/jQuery-Smart-Auto-Complete.git
 [submodule "src/thirdparty/mustache"]
-	path = src/thirdparty/mustache
-	url = https://github.com/janl/mustache.js.git
+    path = src/thirdparty/mustache
+    url = https://github.com/janl/mustache.js.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/thirdparty/tern
-	url = https://github.com/dangoor/tern.git
+    path = src/extensions/default/JavaScriptCodeHints/thirdparty/tern
+    url = https://github.com/marijnh/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
-	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
-	url = https://github.com/dangoor/acorn.git
+    path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
+    url = https://github.com/marijnh/acorn.git
 [submodule "src/thirdparty/requirejs"]
-	path = src/thirdparty/requirejs
-	url = https://github.com/jrburke/requirejs.git
+    path = src/thirdparty/requirejs
+    url = https://github.com/jrburke/requirejs.git
 [submodule "src/thirdparty/text"]
-	path = src/thirdparty/text
-	url = https://github.com/requirejs/text.git
+    path = src/thirdparty/text
+    url = https://github.com/requirejs/text.git
 [submodule "src/thirdparty/i18n"]
-	path = src/thirdparty/i18n
-	url = https://github.com/requirejs/i18n.git
+    path = src/thirdparty/i18n
+    url = https://github.com/requirejs/i18n.git
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
-	path = src/extensions/default/JSLint/thirdparty/jslint
-	url = https://github.com/douglascrockford/JSLint.git
+    path = src/extensions/default/JSLint/thirdparty/jslint
+    url = https://github.com/douglascrockford/JSLint.git
