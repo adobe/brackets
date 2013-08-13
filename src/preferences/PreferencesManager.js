@@ -89,7 +89,9 @@ define(function (require, exports, module) {
         var pathExp, pathUrl, clientID;
         
         paths.some(function (path) {
-            pathExp = new RegExp("^" + path);
+            // escape any parentheses in the path (eg. "C:\Program Files (x86)")
+            var searchPath = path.replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+            pathExp = new RegExp("^" + searchPath);
             if (module.uri.match(pathExp)) {
                 pathUrl = path;
                 return true;
