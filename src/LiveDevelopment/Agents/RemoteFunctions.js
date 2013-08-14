@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $, window, document, navigator */
+/*theseus instrument: false */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This

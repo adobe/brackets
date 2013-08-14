@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
-        FileIndex       = require("filesystem/FileIndex");
+        FileIndex       = require("filesystem/FileIndex"),
+        InMemoryFile    = require("filesystem/InMemoryFile");
     
     /**
      * Constructor. FileSystem objects should not be constructed directly.
@@ -97,13 +98,17 @@ define(function (require, exports, module) {
      
     /**
      * Return an File object that does *not* exist on disk. Any attempts to write to this
-     * file will result in a Save As dialog.
+     * file will result in a Save As dialog. Any attempt to read will fail.
      *
      * @return {File} The File object.
      */
-    function newUnsavedFile() {
-        // TODO: Implement me
-    }
+    FileSystem.prototype.getInMemoryFile = function (path) {
+        var file = new InMemoryFile(path);
+        
+        // TODO: Add to index?
+        
+        return file;
+    };
     
     /**
      * Return a Directory object for the specified path.

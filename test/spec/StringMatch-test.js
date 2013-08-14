@@ -821,14 +821,26 @@ define(function (require, exports, module) {
                 // Object.prototype has toString
                 var toStringResult = matcher.match("toString", "t");
                 expect(toStringResult).toBeTruthy();
+                toStringResult = matcher.match("toString", "x");
+                expect(toStringResult).toBeFalsy();
+                toStringResult = matcher.match("toString", "xx");   // 2nd no-match to test _noMatchCache
+                expect(toStringResult).toBeFalsy();
                 
                 // Array.prototype has length
                 var lengthResult = matcher.match("length", "l");
                 expect(lengthResult).toBeTruthy();
+                lengthResult = matcher.match("length", "x");
+                expect(lengthResult).toBeFalsy();
+                lengthResult = matcher.match("length", "xx");   // 2nd no-match to test _noMatchCache
+                expect(lengthResult).toBeFalsy();
                 
                 // Object.prototype has hasOwnProperty
                 var hasOwnPropertyResult = matcher.match("hasOwnProperty", "h");
                 expect(hasOwnPropertyResult).toBeTruthy();
+                hasOwnPropertyResult = matcher.match("hasOwnProperty", "x");
+                expect(hasOwnPropertyResult).toBeFalsy();
+                hasOwnPropertyResult = matcher.match("hasOwnProperty", "xx");   // 2nd no-match to test _noMatchCache
+                expect(hasOwnPropertyResult).toBeFalsy();
             });
             
             it("can reset the caches", function () {

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+/*global require, define, brackets: true, $, window, navigator, Mustache */
 
 require.config({
     paths: {
@@ -94,6 +94,7 @@ define(function (require, exports, module) {
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
+        DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils");
             
     // Load modules that self-register and just need to get included in the main project
@@ -140,6 +141,7 @@ define(function (require, exports, module) {
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
+            Dialogs                 : Dialogs,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
@@ -293,16 +295,25 @@ define(function (require, exports, module) {
         // handle drops.
         $(window.document.body)
             .on("dragover", function (event) {
+                var dropEffect = "none";
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "none";
+                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                        dropEffect = "copy";
+                    }
+                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
                 }
             })
             .on("drop", function (event) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
+                    brackets.app.getDroppedFiles(function (err, files) {
+                        if (!err) {
+                            DragAndDrop.openDroppedFiles(files);
+                        }
+                    });
                 }
             });
         
@@ -341,6 +352,22 @@ define(function (require, exports, module) {
                 e.preventDefault();
             }
         });
+        
+        // Prevent clicks on any link from navigating to a different page (which could lose unsaved
+        // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
+        // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
+        // navigate. Also, a capture handler is more reliable than bubble.
+        window.document.body.addEventListener("click", function (e) {
+            // Check parents too, in case link has inline formatting tags
+            var node = e.target;
+            while (node) {
+                if (node.tagName === "A") {
+                    e.preventDefault();
+                    break;
+                }
+                node = node.parentElement;
+            }
+        }, true);
     }
 
     // Dispatch htmlReady event

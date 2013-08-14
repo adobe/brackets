@@ -206,7 +206,7 @@ define(function (require, exports, module) {
                 if (errorCallback) {
                     errorCallback(err);
                 }
-                console.log("Directory \"%s\" does not exist", dir);
+                console.log("Unable to refresh directory: ", err);
             });
     }
 

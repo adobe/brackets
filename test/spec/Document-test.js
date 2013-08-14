@@ -102,8 +102,9 @@ define(function (require, exports, module) {
                     // Close inline editor
                     var hostEditor = EditorManager.getCurrentFullEditor();
                     var inlineWidget = hostEditor.getInlineWidgets()[0];
-                    EditorManager.closeInlineWidget(hostEditor, inlineWidget);
-                    
+                    waitsForDone(EditorManager.closeInlineWidget(hostEditor, inlineWidget), "close inline editor");
+                });
+                runs(function () {
                     // Now there are no parts of Brackets that need to keep the CSS Document alive (its only ref is its own master
                     // Editor and that Editor isn't accessible in the UI anywhere). It's ready to get "GCed" by DocumentManager as
                     // soon as it hits a trigger point for doing so.

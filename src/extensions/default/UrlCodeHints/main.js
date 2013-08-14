@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
@@ -68,12 +69,7 @@ define(function (require, exports, module) {
             return result;
         }
 
-        var docUrl = window.PathUtils.parseUrl(doc.file.fullPath);
-        if (!docUrl) {
-            return result;
-        }
-
-        var docDir = docUrl.domain + docUrl.directory;
+        var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
 
         // get relative path from query string
         // TODO: handle site-root relative
