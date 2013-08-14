@@ -77,7 +77,7 @@ define(function (require, exports, module) {
         return Async.doInParallel(files, function (file, idx) {
             var result = new $.Deferred();
             
-            // Only open files
+            // Only open files. TODO: FileSystem
             brackets.fs.stat(file, function (err, stat) {
                 if (!err && stat.isFile()) {
                     // If the file is already open, and this isn't the last

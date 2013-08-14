@@ -51,6 +51,8 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
+        FileViewController    = require("project/FileViewController"),
+        InMemoryFile          = require("filesystem/InMemoryFile"),
         PanelManager          = require("view/PanelManager"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
@@ -534,7 +536,7 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
     function _doFindInFiles(scope) {
-        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+        if (scope instanceof InMemoryFile) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
                 CommandManager.execute(Commands.EDIT_FIND);
             });
@@ -561,7 +563,6 @@ define(function (require, exports, module) {
                         return;
                     }
                     StatusBar.showBusyIndicator(true);
-<<<<<<< HEAD
                     var fileList = ProjectManager.getFileSystem().getFileList();
                     Async.doInParallel(fileList, function (file) {
                         var result = new $.Deferred();

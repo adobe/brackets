@@ -103,7 +103,7 @@ define(function (require, exports, module) {
      * @return {File} The File object.
      */
     FileSystem.prototype.getInMemoryFile = function (path) {
-        var file = new InMemoryFile(path);
+        var file = new InMemoryFile(path, this._impl);
         
         // TODO: Add to index?
         

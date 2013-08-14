@@ -70,6 +70,27 @@ define(function (require, exports, module) {
         return new $.Deferred().reject().promise();  // TODO: Error code?
     };
     
+    // Stub out invalid calls inherited from FileSystemEntry
+    InMemoryFile.prototype.exists = function () {
+        return new $.Deferred().resolve(false).promise();
+    };
+    
+    InMemoryFile.prototype.stat = function () {
+        return new $.Deferred().reject().promise(); // TODO: Error
+    };
+    
+    InMemoryFile.prototype.unlink = function () {
+        return new $.Deferred().reject().promise(); // TODO: Error
+    };
+    
+    InMemoryFile.prototype.rename = function (newName) {
+        return new $.Deferred().reject().promise(); // TODO: Error
+    };
+    
+    InMemoryFile.prototype.moveToTrash = function () {
+        return new $.Deferred().reject().promise(); // TODO: Error
+    };
+    
     // Export this class
     module.exports = InMemoryFile;
 });

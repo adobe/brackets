@@ -28,9 +28,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        EditorManager       = require("editor/EditorManager"),
+    var EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        InMemoryFile        = require("filesystem/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager");
     
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
      * @return {boolean} - whether or not the document is untitled
      */
     Document.prototype.isUntitled = function () {
-        return this.file instanceof NativeFileSystem.InaccessibleFileEntry;
+        return this.file instanceof InMemoryFile;
     };
 
 
