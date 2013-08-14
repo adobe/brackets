@@ -139,11 +139,11 @@ define(function (require, exports, module) {
         
         this._impl.exists(path, function (exists) {
             if (exists) {
-                result.resolve();
+                result.resolve(this._index.getEntry(path));
             } else {
                 result.reject();
             }
-        });
+        }.bind(this));
         
         return result.promise();
     };

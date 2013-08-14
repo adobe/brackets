@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    require("filesystem/impls/dropbox/dropbox.min.js");
+    require("filesystem/impls/dropbox/dropbox.min");
     
     var client;
     

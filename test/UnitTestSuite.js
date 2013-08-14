@@ -51,10 +51,10 @@ define(function (require, exports, module) {
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
-    require("spec/LowLevelFileIO-test");
+    //require("spec/LowLevelFileIO-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
-    require("spec/NativeFileSystem-test");
+    //require("spec/NativeFileSystem-test");
     require("spec/NativeMenu-test");
     require("spec/NodeConnection-test");
     require("spec/PreferencesManager-test");

@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
@@ -57,15 +56,13 @@ define(function (require, exports, module) {
     function resolveNativeFileSystemPath(path) {
         var deferred = new $.Deferred();
         
-        NativeFileSystem.resolveNativeFileSystemPath(
-            path,
-            function success(entry) {
-                deferred.resolve(entry);
-            },
-            function error(domError) {
+        brackets.appFileSystem.pathExists(path)
+            .done(function (item) {
+                deferred.resolve(item);
+            })
+            .fail(function () {
                 deferred.reject();
-            }
-        );
+            });
         
         return deferred.promise();
     }
@@ -179,7 +176,7 @@ define(function (require, exports, module) {
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var dummyFile = brackets.appFileSystem.getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set

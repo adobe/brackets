@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -81,7 +81,15 @@ define(function (require, exports, module) {
     
     // Set default file system
     setDefaultFileSystem("appshell");
-        
+    
+    // Initialze the app file system. This is used to load application files like
+    // extensions and config.json.
+    // This file system is created with the "default" file system implementation,
+    // which is different when running in the shell and in browsers.
+    if (!appshell.appFileSystem) {
+        appshell.appFileSystem = createFileSystem();
+    }
+    
     // Export public API
     exports.registerFileSystemImp   = registerFileSystemImpl;
     exports.setDefaultFileSystem    = setDefaultFileSystem;

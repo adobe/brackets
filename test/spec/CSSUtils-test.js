@@ -22,26 +22,25 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
+/*global brackets, define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
-        Async                      = require("utils/Async"),
+    var Async                      = require("utils/Async"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
         SpecRunnerUtils            = require("spec/SpecRunnerUtils");
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css"),
-        embeddedHtmlFileEntry      = new NativeFileSystem.FileEntry(testPath + "/embedded.html");
+        simpleCssFileEntry         = brackets.appFileSystem.getFileForPath(testPath + "/simple.css"),
+        universalCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/universal.css"),
+        groupsFileEntry            = brackets.appFileSystem.getFileForPath(testPath + "/groups.css"),
+        offsetsCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
+        embeddedHtmlFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/embedded.html");
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
@@ -200,7 +199,7 @@ define(function (require, exports, module) {
         describe("with sprint 4 exemptions", function () {
         
             beforeEach(function () {
-                var sprint4exemptions = new NativeFileSystem.FileEntry(testPath + "/sprint4.css");
+                var sprint4exemptions = brackets.appFileSystem.getFileForPath(testPath + "/sprint4.css");
                 init(this, sprint4exemptions);
             });
             

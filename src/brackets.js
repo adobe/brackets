@@ -162,13 +162,7 @@ define(function (require, exports, module) {
             
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
-        
-        // Initialze the app file system. This is used to load application files like
-        // extensions and config.json.
-        // This file system is created with the "default" file system implementation,
-        // which is different when running in the shell and in browsers.
-        brackets.appFileSystem = FileSystemManager.createFileSystem();
-        
+
         EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet

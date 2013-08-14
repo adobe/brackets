@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
         FileUtils               = require("file/FileUtils"),
+        FileSystemManager       = require("filesystem/FileSystemManager"),
         Menus                   = require("command/Menus"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
@@ -372,6 +373,6 @@ define(function (require, exports, module) {
     brackets.testing = {
         getNodeConnectionDeferred: getNodeConnectionDeferred
     };
-
+    
     init();
 });

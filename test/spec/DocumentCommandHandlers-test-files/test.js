@@ -1,1 +1,1 @@
-var myContent="This is awesome!";
+hello world
