@@ -705,7 +705,7 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
-     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
      * @return !{line:number, ch:number}
      */
@@ -721,7 +721,7 @@ define(function (require, exports, module) {
     /**
      * Returns the display column (zero-based) for a given string-based pos. Differs from pos.ch only
      * when the line contains preceding \t chars. Result depends on the current tab size setting.
-     * @param {!{line:number, ch:number}}
+     * @param {!{line:number, ch:number}} pos
      * @return {number}
      */
     Editor.prototype.getColOffset = function (pos) {
@@ -742,11 +742,16 @@ define(function (require, exports, module) {
     
     /**
      * Sets the cursor position within the editor. Removes any selection.
-     * @param {number} line The 0 based line number.
+     * @param {number} line  The 0 based line number.
      * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
-     * @param {boolean} center  true if the view should be centered on the new cursor position
+     * @param {boolean=} center  True if the view should be centered on the new cursor position.
+     * @param {boolean=} expandTabs  If true, use the actual visual column number instead of the character offset as
+     *      the "ch" parameter.
      */
-    Editor.prototype.setCursorPos = function (line, ch, center) {
+    Editor.prototype.setCursorPos = function (line, ch, center, expandTabs) {
+        if (expandTabs) {
+            ch = this.getColOffset({line: line, ch: ch});
+        }
         this._codeMirror.setCursor(line, ch);
         if (center) {
             this.centerOnCursor();
