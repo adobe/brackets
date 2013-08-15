@@ -131,7 +131,7 @@ define(function (require, exports, module) {
         describe("Create clientID for preference store", function () {
             it("should return clientID for module that exists in extension directories", function () {
                 spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
-                    return ['/local/Extension/Folder/Extensions/', '/User/test/Library/Application Support/Brackets/extensions/user/'];
+                    return ['/local/Extension/Folder/Extensions/', '/User/test/Library/Application Support/Brackets/extensions/user/', 'c:/Program Files (x86)/Brackets/wwww/extensions/default/'];
                 });
 
                 var module = {id: 'utils/Resizer', uri: '/local/Extension/Folder/Extensions/utils/Resizer.js'};
@@ -141,6 +141,9 @@ define(function (require, exports, module) {
 
                 clientID = PreferencesManager.getClientID({id: 'main', uri: '/User/test/Library/Application Support/Brackets/extensions/user/HelloWorld/main.js'});
                 expect(clientID).toBe("com.adobe.brackets.HelloWorld/main.js");
+                
+                clientID = PreferencesManager.getClientID({id: 'main', uri: 'c:/Program Files (x86)/Brackets/wwww/extensions/default/JSLint/main.js'});
+                expect(clientID).toBe("com.adobe.brackets.JSLint/main.js");
             });
 
             it("should always return a clientID for a module that doesn't exist in extension directories", function () {
