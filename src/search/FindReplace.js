@@ -289,7 +289,7 @@ define(function (require, exports, module) {
     var doReplaceConfirm = Strings.CMD_REPLACE +
             '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
             '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
-            '</button> <button class="btn">' + Strings.BUTTON_STOP + '</button>';
+            '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
 
     function replace(editor, all) {
         var cm = editor._codeMirror;
@@ -343,6 +343,9 @@ define(function (require, exports, module) {
                                 doReplace(match);
                             } else if (e.target.id === "replace-no") {
                                 advance();
+                            } else if (e.target.id === "replace-stop") {
+                                // Destroy modalBar on stop
+                                modalBar = null;
                             }
                         });
                     };

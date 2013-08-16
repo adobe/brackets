@@ -334,6 +334,14 @@ define(function (require, exports, module) {
                 brackets.fs.unlink(filename, function () { });
             }
         });
+        _idsToUpdate = {};
+    }
+    
+    /**
+     * Unmarks all extensions marked for removal.
+     */
+    function unmarkAllForRemoval() {
+        _idsToRemove = {};
     }
 
     /**
@@ -469,6 +477,7 @@ define(function (require, exports, module) {
     exports.cleanupUpdates = cleanupUpdates;
     exports.markForRemoval = markForRemoval;
     exports.isMarkedForRemoval = isMarkedForRemoval;
+    exports.unmarkAllForRemoval = unmarkAllForRemoval;
     exports.hasExtensionsToRemove = hasExtensionsToRemove;
     exports.updateFromDownload = updateFromDownload;
     exports.removeUpdate = removeUpdate;

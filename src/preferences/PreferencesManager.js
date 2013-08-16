@@ -89,8 +89,7 @@ define(function (require, exports, module) {
         var pathExp, pathUrl, clientID;
         
         paths.some(function (path) {
-            pathExp = new RegExp("^" + path);
-            if (module.uri.match(pathExp)) {
+            if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
                 pathUrl = path;
                 return true;
             }
