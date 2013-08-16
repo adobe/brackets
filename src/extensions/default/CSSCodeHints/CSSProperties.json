@@ -37,7 +37,7 @@
     "border-image-slice":          {"values": []},
     "border-image-source":         {"values": []},
     "border-image-repeat":         {"values": ["repeat", "round", "space", "stretch"]},
-    "border-image-width":          {"values": ["auto"]},
+    "border-image-width":          {"values": ["auto"]},    
     "border-left":                 {"values": []},
     "border-left-color":           {"values": ["currentColor", "transparent", "inherit"]},
     "border-left-style":           {"values": ["dashed", "dotted", "double", "groove", "hidden", "inset", "none", "outset", "ridge", "solid", "inherit"]},
@@ -201,3 +201,4 @@
     "word-wrap":                   {"values": ["break-word", "normal"]},
     "z-index":                     {"values": ["auto", "inherit"]}
 }
+
