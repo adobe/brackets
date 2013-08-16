@@ -90,6 +90,7 @@ a, img {
 }
 
 .main-view {
+    background: @background-color-3; // to keep the theme background consistent
     height: 100%;
 
     .sidebar {
@@ -215,7 +216,7 @@ a, img {
     left: 0;
     top: -1px;
     width: 6px;
-    -webkit-transition: 0.1s linear all;
+    transition: 0.1s linear all;
 }
 
 #indent-width-input:focus {
@@ -567,8 +568,7 @@ a, img {
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
         
-        -webkit-transition: height 0.125s ease-out;
-        transition: height 0.125s ease-out;
+        transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
     }
 
     .CodeMirror {
@@ -652,8 +652,7 @@ a, img {
         top: @top-margin;
         
         &.animate {
-            -webkit-transition: height 0.1s ease-out;
-            -webkit-transition: top 0.1s ease-out;
+            transition: top 0.1s ease-out;
         }
     }
     
@@ -699,7 +698,7 @@ a, img {
         
         .selected {
             color: @inline-color-3;
-            -webkit-transition: color 0.1s ease-out .15s;
+            transition: color 0.1s ease-out .15s;
         }
     }
 }
@@ -774,17 +773,38 @@ a, img {
 
 /* Modal bar for Find/Quick Open */
 
+.modal-bar.hide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;    
+    -webkit-transform: translate(0, -44px);
+    transform: translate(0, -44px);
+    transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
+    transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
+    
+    body:not(.has-appshell-menus) & {
+        top: 37px;
+    }    
+}
+
 .modal-bar {
+    display: block;
     text-align: left;
     
     font-family: @sansFontFamily;
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
+    overflow: hidden; 
     padding: 5px 4px 4px 14px;
-    overflow: hidden;
     
-    body.in-browser & {
+    -webkit-transform: translate(0, 0); // Prefix still required.
+    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    z-index: @z-index-brackets-modalbar;       
+    
+    body.in-browser &,
+    body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
         border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
     }
