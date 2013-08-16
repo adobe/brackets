@@ -53,6 +53,7 @@ define(function (require, exports, module) {
             .html(template)
             .insertBefore("#editor-holder");
 
+        // Forcing the renderer to do a layout, which will cause it to apply the transform for the "hide" class, so it will animate when you remove the class.
         window.getComputedStyle(this._$root.get(0)).getPropertyValue("top");
         this._$root.removeClass("hide");
         
