@@ -30,7 +30,6 @@ define(function (require, exports, module) {
 
     var CommandManager,         // loaded from brackets.test
         EditorManager,          // loaded from brackets.test
-        FileIndexManager,       // loaded from brackets.test
         PerfUtils,              // loaded from brackets.test
         JSUtils,                // loaded from brackets.test
         
@@ -117,7 +116,6 @@ define(function (require, exports, module) {
                     testWindow          = w;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     CommandManager      = testWindow.brackets.test.CommandManager;
-                    FileIndexManager    = testWindow.brackets.test.FileIndexManager; // TODO: FileSystem - update tests
                     JSUtils             = testWindow.brackets.test.JSUtils;
                 });
                 
@@ -192,7 +190,6 @@ define(function (require, exports, module) {
                 testWindow          = null;
                 EditorManager       = null;
                 CommandManager      = null;
-                FileIndexManager    = null;
                 JSUtils             = null;
                 SpecRunnerUtils.closeTestWindow();
             });
