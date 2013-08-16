@@ -566,11 +566,11 @@ define(function (require, exports, module) {
      * changes are reset.
      *
      * @param {!Session} session - the current session
-     * @param {boolean=} forceFullUpdate - if true, only a full update is allowed.
+     * @param {boolean=} preventPartialUpdates - if true, disallow partial updates.
      * Optional, defaults to false.
      * @return {{type: string, name: string, offsetLines: number, text: string}}
      */
-    function getFileInfo(session, forceFullUpdate) {
+    function getFileInfo(session, preventPartialUpdates) {
         var start = session.getCursor(),
             end = start,
             document = session.editor.document,
@@ -582,11 +582,11 @@ define(function (require, exports, module) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 text: session.getJavascriptText()};
-        } else if (!forceFullUpdate && !documentChanges) {
+        } else if (!documentChanges) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_EMPTY,
                 name: path,
                 text: ""};
-        } else if (!forceFullUpdate && session.editor.lineCount() > LARGE_LINE_COUNT &&
+        } else if (!preventPartialUpdates && session.editor.lineCount() > LARGE_LINE_COUNT &&
                 (documentChanges.to - documentChanges.from < LARGE_LINE_CHANGE) &&
                 documentChanges.from <= start.line &&
                 documentChanges.to > end.line) {
