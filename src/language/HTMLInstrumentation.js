@@ -278,8 +278,6 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
-        // TODO: remove the signatureMap, it's no longer needed
-        var signatureMap = {};
         
         function closeTag(endIndex) {
             lastClosedTag = stack[stack.length - 1];
@@ -287,7 +285,6 @@ define(function (require, exports, module) {
             _updateHash(lastClosedTag);
             
             lastClosedTag.end = self.startOffset + endIndex;
-            signatureMap[lastClosedTag.signature] = lastClosedTag;
         }
         
         while ((token = this.t.nextToken()) !== null) {
@@ -333,7 +330,6 @@ define(function (require, exports, module) {
                     tagLabel = newTag.tag + newTag.tagID;
                     newTag.weight = 0;
                     newTag.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
-                    signatureMap[newTag.signature] = newTag;
                 } else {
                     stack.push(newTag);
                 }
@@ -403,12 +399,10 @@ define(function (require, exports, module) {
                     if (lastTextNode) {
                         newNode = lastTextNode;
                         newNode.content += token.contents;
-                        delete signatureMap[newNode.signature];
                     } else {
                         newNode = {
                             parent: stack[stack.length - 1],
-                            content: token.contents,
-                            weight: token.contents.length
+                            content: token.contents
                         };
                         parent.children.push(newNode);
                         newNode.tagID = getTextNodeID(newNode);
@@ -416,9 +410,8 @@ define(function (require, exports, module) {
                         lastTextNode = newNode;
                     }
                         
-                    newNode.weight = token.contents.length;
+                    newNode.weight = newNode.content.length;
                     newNode.signature = _getTextNodeHash(newNode.content);
-                    signatureMap[newNode.signature] = newNode;
                 }
             }
             lastIndex = token.end;
@@ -435,7 +428,6 @@ define(function (require, exports, module) {
         
         var dom = lastClosedTag;
         dom.nodeMap = nodeMap;
-        dom.signatureMap = signatureMap;
         return dom;
     };
     
