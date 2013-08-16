@@ -566,9 +566,11 @@ define(function (require, exports, module) {
      * changes are reset.
      *
      * @param {!Session} session - the current session
+     * @param {boolean=} forceFullUpdate - if true, only a full update is allowed.
+     * Optional, defaults to false.
      * @return {{type: string, name: string, offsetLines: number, text: string}}
      */
-    function getFileInfo(session) {
+    function getFileInfo(session, forceFullUpdate) {
         var start = session.getCursor(),
             end = start,
             document = session.editor.document,
@@ -580,11 +582,11 @@ define(function (require, exports, module) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 text: session.getJavascriptText()};
-        } else if (!documentChanges) {
+        } else if (!forceFullUpdate && !documentChanges) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_EMPTY,
                 name: path,
                 text: ""};
-        } else if (session.editor.lineCount() > LARGE_LINE_COUNT &&
+        } else if (!forceFullUpdate && session.editor.lineCount() > LARGE_LINE_COUNT &&
                 (documentChanges.to - documentChanges.from < LARGE_LINE_CHANGE) &&
                 documentChanges.from <= start.line &&
                 documentChanges.to > end.line) {
@@ -1286,7 +1288,7 @@ define(function (require, exports, module) {
      */
     function requestParameterHint(session, functionOffset) {
         var $deferredHints = $.Deferred(),
-            fileInfo = getFileInfo(session),
+            fileInfo = getFileInfo(session, true),
             offset = getOffset(session, fileInfo, functionOffset),
             fnTypePromise = getTernFunctionType(fileInfo, offset);
 

@@ -373,7 +373,6 @@ define(function (require, exports, module) {
             if (type === "variable-2" || type === "variable" || type === "property") {
                 nextToken = self.getNextToken(localCursor, true);
                 if (nextToken && nextToken.string === "(") {
-                    //nextToken = self.getNextToken(localCursor, true);
                     localLexical = getLexicalState(nextToken);
                     return localLexical;
                 }
@@ -426,7 +425,7 @@ define(function (require, exports, module) {
                     lexical = lexical.prev;
                 }
 
-                var col = lexical.info === "call" ? lexical.column : lexical.prev,
+                var col = lexical.info === "call" ? lexical.column : lexical.prev.column,
                     line,
                     e,
                     found;

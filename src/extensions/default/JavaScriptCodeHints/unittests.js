@@ -819,8 +819,8 @@ define(function (require, exports, module) {
             });
 
             it("should list function type", function () {
-                var start = { line: 36, ch: 0 },
-                    middle = { line: 36, ch: 5 };
+                var start = { line: 37, ch: 0 },
+                    middle = { line: 37, ch: 5 };
                 
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
@@ -1199,8 +1199,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            // Tern issue #207. Tern can't parse its own function hint.
-            xit("should list parameter hint for record type annotation", function () {
+            it("should list parameter hint for record type annotation", function () {
                 var testPos = { line: 178, ch: 25 };
 
                 testEditor.setCursorPos(testPos);
