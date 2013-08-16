@@ -23,21 +23,20 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
+/*global brackets, define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils"),
+    var FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-        WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
-        NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
-        InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
+        WellFormedFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/wellformed.html"),
+        NotWellFormedFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/omitEndTags.html"),
+        InvalidHTMLFileEntry =  brackets.appFileSystem.getFileForPath(testPath + "/invalidHTML.html"),
         editor,
         instrumentedHTML,
         elementCount,

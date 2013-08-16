@@ -35,8 +35,8 @@ define(function (require, exports, module) {
         DocumentManager,         // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
+        ProjectManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
-        NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils                = require("file/FileUtils"),
         StringUtils              = require("utils/StringUtils");
     
@@ -62,6 +62,7 @@ define(function (require, exports, module) {
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
                 FileViewController      = testWindow.brackets.test.FileViewController;
+                ProjectManager          = testWindow.brackets.test.ProjectManager;
             });
         });
         
@@ -658,7 +659,7 @@ define(function (require, exports, module) {
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(filePath))
+                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(filePath))
                         .done(function (actualText) {
                             expect(actualText).toBe(TEST_JS_NEW_CONTENT);
                         });
@@ -667,7 +668,7 @@ define(function (require, exports, module) {
 
                 // reset file contents
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(filePath), TEST_JS_CONTENT);
+                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(filePath), TEST_JS_CONTENT);
                     waitsForDone(promise, "Revert test file");
                 });
             });
@@ -682,11 +683,11 @@ define(function (require, exports, module) {
                 
                 // create test files (Git rewrites line endings, so these can't be kept in src control)
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(crlfPath), crlfText);
+                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(crlfPath), crlfText);
                     waitsForDone(promise, "Create CRLF test file");
                 });
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(lfPath), lfText);
+                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(lfPath), lfText);
                     waitsForDone(promise, "Create LF test file");
                 });
                 
@@ -716,7 +717,7 @@ define(function (require, exports, module) {
                 
                 // verify file contents
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(crlfPath))
+                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(crlfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
                         });
@@ -724,7 +725,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(lfPath))
+                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(lfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
                         });

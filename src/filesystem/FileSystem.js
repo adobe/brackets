@@ -149,6 +149,40 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Resolve a path.
+     *
+     * @param {string} path The path to resolve
+     * @return {$.Promise} Promise that is resolved with a File or Directory object, if it exists,
+     *     or rejected if there is an error.
+     */
+    FileSystem.prototype.resolve = function (path) {
+        var result = new $.Deferred();
+        
+        this.pathExists(path)
+            .done(function () {
+                this._impl.stat(path, function (err, stat) {
+                    var item;
+                    
+                    if (err) {
+                        result.reject(err);
+                        return;
+                    }
+                    if (stat.isFile()) {
+                        item = this.getFileForPath(path);
+                    } else {
+                        item = this.getDirectoryForPath(path);
+                    }
+                    result.resolve(item);
+                }.bind(this));
+            }.bind(this))
+            .fail(function () {
+                result.reject();
+            });
+        
+        return result.promise();
+    };
+    
+    /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
@@ -306,6 +340,10 @@ define(function (require, exports, module) {
      *         passed. 
      */
     FileSystem.prototype._watcherCallback = function (path, stat) {
+        if (!this._index) {
+            return;
+        }
+        
         var entry = this._index.getEntry(path);
         
         if (entry) {
@@ -373,7 +411,7 @@ define(function (require, exports, module) {
             $(exports).trigger("change", entry);
         }
         // console.log("File/directory change: " + path + ", stat: " + stat);
-    };
+    }.bind(this);
     
     /**
      * Set the root directory for the project. This clears any existing file cache

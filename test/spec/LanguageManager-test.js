@@ -403,7 +403,8 @@ define(function (require, exports, module) {
         
         describe("rename file extension", function () {
             
-            it("should update the document's language when a file is renamed", function () {
+            // TODO: FileSystem rename
+            xit("should update the document's language when a file is renamed", function () {
                 var javascript  = LanguageManager.getLanguage("javascript"),
                     html        = LanguageManager.getLanguage("html"),
                     doc         = SpecRunnerUtils.createMockActiveDocument({ filename: "foo.js", language: "javascript" }),

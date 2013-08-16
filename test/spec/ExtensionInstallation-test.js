@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
         NodeConnection   = require("utils/NodeConnection");
     
@@ -151,11 +150,11 @@ define(function (require, exports, module) {
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
-                NativeFileSystem.resolveNativeFileSystemPath(extensionsRoot + "/user/basic-valid-extension/main.js",
-                    function () {
+                brackets.appFileSystem.pathExists(extensionsRoot + "/user/basic-valid-extension/main.js")
+                    .done(function () {
                         mainCheckComplete = true;
-                    },
-                    function () {
+                    })
+                    .fail(function () {
                         mainCheckComplete = true;
                         expect("basic-valid-extension directory and main.js to exist").toEqual(true);
                     });
@@ -174,11 +173,11 @@ define(function (require, exports, module) {
                 expect(packageData.disabledReason).not.toBeNull();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
-                NativeFileSystem.resolveNativeFileSystemPath(extensionsRoot + "/disabled/incompatible-version",
-                    function () {
+                brackets.appFileSystem.pathExists(extensionsRoot + "/disabled/incompatible-version")
+                    .done(function () {
                         directoryCheckComplete = true;
-                    },
-                    function () {
+                    })
+                    .fail(function () {
                         directoryCheckComplete = true;
                         expect("incompatible-version path to exist in the disabled directory").toEqual(true);
                     });
@@ -196,12 +195,12 @@ define(function (require, exports, module) {
                 handlePackage(installPath, Package.remove);
             });
             runs(function () {
-                NativeFileSystem.resolveNativeFileSystemPath(installPath,
-                    function () {
+                brackets.appFileSystem.pathExists(installPath)
+                    .done(function () {
                         checkComplete = true;
                         expect("installation path was removed").toEqual(true);
-                    },
-                    function () {
+                    })
+                    .fail(function () {
                         checkComplete = true;
                     });
 

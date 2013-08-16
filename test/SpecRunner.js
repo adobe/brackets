@@ -48,7 +48,6 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         FileSystemManager       = require("filesystem/FileSystemManager"),
         Menus                   = require("command/Menus"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
@@ -147,21 +146,22 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.fs.stat(path, function (err, stat) {
-            if (err === brackets.fs.ERR_NOT_FOUND) {
-                // file not found, write the new file with xml content
-                brackets.fs.writeFile(path, text, NativeFileSystem._FSEncodings.UTF8, function (err) {
-                    if (err) {
-                        _writeResults.reject();
-                    } else {
-                        _writeResults.resolve();
-                    }
-                });
-            } else {
+        brackets.appFileSystem.pathExists(path)
+            .done(function () {
                 // file exists, do not overwrite
                 _writeResults.reject();
-            }
-        });
+            })
+            .fail(function () {
+                // file not found, write the new file with xml content
+                var file = brackets.appFileSystem.getFileForPath(path);
+                FileUtils.writeText(file, text)
+                    .done(function () {
+                        _writeResults.resolve();
+                    })
+                    .fail(function (err) {
+                        _writeResults.reject(err);
+                    });
+            });
     }
     
     /**

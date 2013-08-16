@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
+/*global brackets, $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -31,7 +31,6 @@ define(function (require, exports, module) {
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils               = require("file/FileUtils"),
         DefaultDialogs          = require("widgets/DefaultDialogs");
 
@@ -328,7 +327,7 @@ define(function (require, exports, module) {
                 instrumentedHtml = "",
                 elementIds = {},
                 testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-                WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html");
+                WellFormedFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/wellformed.html");
           
             function init(fileEntry) {
                 if (fileEntry) {

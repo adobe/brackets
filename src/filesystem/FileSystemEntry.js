@@ -161,6 +161,7 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype.unlink = function () {
         var result = new $.Deferred();
         
+        this._stat = null;
         this._impl.unlink(this._path, function (err) {
             if (err) {
                 result.reject(err);
@@ -186,6 +187,7 @@ define(function (require, exports, module) {
         
         var result = new $.Deferred();
         
+        this._stat = null;
         this._impl.moveToTrash(this._path, function (err) {
             if (err) {
                 result.reject(err);

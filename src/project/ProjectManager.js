@@ -328,7 +328,7 @@ define(function (require, exports, module) {
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
-            return absPath.slice(_projectRoot.fullPath.length);
+            return absPath.slice(_projectRoot.fullPath.length + 1);
         }
         return absPath;
     }
@@ -1323,28 +1323,36 @@ define(function (require, exports, module) {
                 
                 var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
                 
-                if (isFolder) {
-                    var directory = _fileSystem.getDirectoryForPath(newItemPath);
-                    
-                    directory.create()
-                        .done(function () {
-                            successCallback(directory);
-                        })
-                        .fail(function (err) {
-                            errorCallback(err);
-                        });
-                } else {
-                    // Create an empty file
-                    var file = _fileSystem.getFileForPath(newItemPath);
-                    
-                    file.write("")
-                        .done(function () {
-                            successCallback(file);
-                        })
-                        .fail(function (err) {
-                            errorCallback(err);
-                        });
-                }
+                _fileSystem.resolve(newItemPath)
+                    .done(function (item) {
+                        // Item already exists, fail with error
+                        errorCallback(2);   // TODO: FileSystem error code
+                    })
+                    .fail(function () {
+                        if (isFolder) {
+                            var directory = _fileSystem.getDirectoryForPath(newItemPath);
+                            
+                            directory.create()
+                                .done(function () {
+                                    successCallback(directory);
+                                })
+                                .fail(function (err) {
+                                    errorCallback(err);
+                                });
+                        } else {
+                            // Create an empty file
+                            var file = _fileSystem.getFileForPath(newItemPath);
+                            
+                            file.write("")
+                                .done(function () {
+                                    successCallback(file);
+                                })
+                                .fail(function (err) {
+                                    errorCallback(err);
+                                });
+                        }
+                    });
+                
             } else { //escapeKeyPressed
                 errorCleanup();
             }
