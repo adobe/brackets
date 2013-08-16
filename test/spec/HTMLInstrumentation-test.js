@@ -598,7 +598,10 @@ define(function (require, exports, module) {
             it("should merge text nodes around a comment", function () {
                 var dom = HTMLInstrumentation._buildSimpleDOM("<div>Text <!-- comment --> Text2</div>", true);
                 expect(dom.children.length).toBe(1);
-                expect(dom.children[0].content).toBe("Text  Text2");
+                var textNode = dom.children[0];
+                expect(textNode.content).toBe("Text  Text2");
+                expect(textNode.weight).toBe(11);
+                expect(textNode.signature).toBeDefined();
             });
         });
         
@@ -806,7 +809,7 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(1269);
-                    expect(dom.weight).toEqual(734);
+                    expect(dom.weight).toEqual(738);
                     expect(dom.signature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
@@ -820,7 +823,6 @@ define(function (require, exports, module) {
                     expect(dom.children[1].parent).toEqual(dom);
                     expect(dom.nodeMap[meta.tagID]).toBe(meta);
                     expect(meta.signature).toEqual(jasmine.any(Number));
-                    expect(dom.signatureMap[meta.signature]).toBe(meta);
                 });
             });
             
@@ -1165,6 +1167,9 @@ define(function (require, exports, module) {
                             expect(result.edits.length).toEqual(4);
                             var beforeID = newElement.parent.children[7].tagID,
                                 afterID = newElement.parent.children[3].tagID;
+                            
+                            // The new tag is inserted with its content and then the
+                            // text/comment *before* the new element is replaced.
                             expect(result.edits[0]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
