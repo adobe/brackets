@@ -386,8 +386,12 @@ a, img {
         min-height: 18px;
         vertical-align: baseline;
         
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+        
         &.selected .extension {
-            color: #fff;
+            color: @open-working-file-ext-highlight;
         }
     }
             
