@@ -88,6 +88,17 @@ define(function (require, exports, module) {
             return callback;
         }
     
+        function specialDirectorySpy() {
+            var callback = function (err, directory) {
+                callback.error = err;
+                callback.wasCalled = true;
+                callback.directory = directory;
+            };
+            callback.wasCalled = false;
+            
+            return callback;
+        }
+        
         beforeEach(function () {
             runs(function () {
                 // create the test folder and init the test files
@@ -731,6 +742,95 @@ define(function (require, exports, module) {
                 }
             });
             // TODO: More testing of error cases? 
+        });
+        
+        describe("copyFile", function () {
+            var error, complete;
+            
+            it("should copy a file", function () {
+                var fileName     = baseDir + "/file_one.txt",
+                    copyName     = baseDir + "/file_one_copy.txt",
+                    copyCB       = errSpy(),
+                    unlinkCB     = errSpy(),
+                    statCB       = statSpy();
+                
+                complete = false;
+                
+                runs(function () {
+                    brackets.fs.copyFile(fileName, copyName, copyCB);
+                });
+                
+                waitsFor(function () { return copyCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(copyCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify new file is found 
+                runs(function () {
+                    brackets.fs.stat(copyName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+
+                runs(function () {
+                    statCB = statSpy();
+                    brackets.fs.stat(copyName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Delete the new copy
+                runs(function () {
+                    brackets.fs.unlink(copyName, unlinkCB);
+                });
+                
+                waitsFor(function () { return unlinkCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(unlinkCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                    
+            });
+        });
+        
+        describe("specialDirectories", function () {
+            it("should have a Documents Directory", function () {
+                var dirCB = specialDirectorySpy();
+                    
+                runs(function () {
+                    brackets.fs.getDocumentsDir(dirCB);
+                });
+                
+                waitsFor(function () { return dirCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(dirCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(dirCB.directory.length).toNotBe(0);
+                });
+            });
+            it("should have a Home Directory", function () {
+                var dirCB = specialDirectorySpy();
+                    
+                runs(function () {
+                    brackets.fs.getHomeDir(dirCB);
+                });
+                
+                waitsFor(function () { return dirCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(dirCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(dirCB.directory.length).toNotBe(0);
+                });
+            });
         });
         
         describe("moveToTrash", function () {
