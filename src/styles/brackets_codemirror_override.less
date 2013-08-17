@@ -43,7 +43,7 @@
 @code-padding: 15px;
 
 .CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor !important; 
+    background: @activeline-bgcolor; 
 }
 
 .cm-s-default {
@@ -171,10 +171,10 @@
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2); 
     }
     &.CodeMirror-focused .CodeMirror .CodeMirror-activeline-background {
-        background: transparent !important; 
+        background: transparent; 
     }
 }
 
