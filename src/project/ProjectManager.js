@@ -920,6 +920,7 @@ define(function (require, exports, module) {
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                             $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
+                            $(exports).triggerHandler("projectRefresh", _projectRoot);
                             result.resolve();
                         }
                     });
