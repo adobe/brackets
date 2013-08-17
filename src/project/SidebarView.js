@@ -29,8 +29,8 @@
  * The view that controls the showing and hiding of the sidebar.
  * 
  * Although the sidebar view doesn't dispatch any events directly, it is a
- * resizable element (../utils/Resizer.js), which means it can listen for
- * Resizer events.  For example, if you want to listen for the sidebar showing
+ * resizable element (../utils/Resizer.js), which means it can dispatch Resizer
+ * events.  For example, if you want to listen for the sidebar showing
  * or hiding itself, set up listeners for the corresponding Resizer events,
  * panelCollapsed and panelExpanded:
  * 
