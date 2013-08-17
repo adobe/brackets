@@ -189,6 +189,7 @@
     "white-space":                 {"values": ["normal", "nowrap", "pre", "pre-line", "pre-wrap", "inherit"]},
     "widows":                      {"values": ["inherit"]},
     "width":                       {"values": ["auto", "inherit"]},
+    "word-break":                  {"values": ["normal", "break-all", "keep-all"]},
     "word-spacing":                {"values": ["normal", "inherit"]},
     "word-wrap":                   {"values": ["break-word", "normal"]},
     "z-index":                     {"values": ["auto", "inherit"]}
