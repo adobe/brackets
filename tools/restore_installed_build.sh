@@ -23,17 +23,17 @@ if [[ ${1} == "" ]]; then
   echo ""
   echo "Parameters: application - full path to the Brackets application"
   echo "Example: ./setup_for_hacking.sh \"$default_app_directory\""
-  exit;
+  exit 0;
 fi
 
 if [ ! -d "${1}" ]; then
   echo "$1 not found."
-  exit;
+  exit 1;
 fi
 
 link_name="${1}/$symlink"
 
 if [[ -d "$link_name" || -n $(find -L "$link_name" -type l) ]]; then
-  rm "$link_name"
+  rm "$link_name" || exit 1;
   echo "$1 has been restored to the installed configuration."
 fi

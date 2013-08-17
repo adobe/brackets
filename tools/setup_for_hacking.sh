@@ -23,12 +23,12 @@ if [[ ${1} == "" ]]; then
   echo ""
   echo "Parameters: application - full path to the Brackets application"
   echo "Example: ./setup_for_hacking.sh \"$default_app_directory\""
-  exit;
+  exit 0;
 fi
 
 if [ ! -d "${1}" ]; then
   echo "$1 not found."
-  exit;
+  exit 1;
 fi
 
 # Get the full path of this script
@@ -45,11 +45,11 @@ link_name="${1}/$symlink"
 
 # Remove existing symlink, if present
 if [[ -d "$link_name" || -n $(find -L "$link_name" -type l) ]]; then
-  rm "$link_name";
+  rm "$link_name" || exit 1;
 fi
 
 # Make new symlink
-ln -s "$root_dir" "$link_name";
+ln -s "$root_dir" "$link_name" || exit 1;
 
 echo "Brackets will now use the files in $root_dir"
 echo "Run the restore_installed_build.sh script to revert back to the installed source files"
