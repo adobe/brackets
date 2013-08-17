@@ -679,6 +679,39 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
             });
         });
+
+        describe("Search -> Replace", function () {
+            beforeEach(setupFullEditor);
+
+            it("should find and replace one string", function () {
+                runs(function () {
+                    CommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("foo");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("bar");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    expectSelection(fooExpectedMatches[0]);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect($("#replace-yes").is(":visible")).toBe(true);
+                    $("#replace-yes").click();
+                    $("#replace-stop").click();
+
+                    myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
+                    expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+        });
     });
     
 });
