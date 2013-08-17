@@ -357,8 +357,8 @@ define(function (require, exports, module) {
         // This text contains some formatting, so all the strings are assumed to be already escaped
         var summary = StringUtils.format(
             Strings.FIND_REPLACE_TITLE,
-            replaceWhat.toString(),
-            replaceWith.toString(),
+            StringUtils.htmlEscape(replaceWhat.toString()),
+            StringUtils.htmlEscape(replaceWith.toString()),
             results.length,
             results.length >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
         );
