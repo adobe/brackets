@@ -1,12 +1,25 @@
 #!/bin/bash
 
+# Detect the user's operating system
+platform=`uname -s`;
+if [[ "$platform" == 'Linux' ]]; then
+   # This is the default directory for Ubuntu installations (if installed with the *.deb).
+   # May have to adjust if other operating systems use different directories.
+   default_app_directory='/opt/brackets';
+elif [[ "$platform" == 'Darwin' ]]; then # MAC OSX
+   default_app_directory='/Applications/Brackets Sprint 14.app';
+else
+   # Warn for unknown operating system?
+   default_app_directory='/opt/brackets';
+fi
+
 # Make sure the appname was passed in and is valid
 if [[ ${1} == "" ]]; then
   echo "Usage: setup_for_hacking.sh <application>"
   echo "Setup Brackets to use the HTML/CSS/JS files pulled from GitHub."
   echo ""
   echo "Parameters: application - full path to the Brackets application"
-  echo "Example: ./setup_for_hacking.sh \"/Applications/Brackets Sprint 14.app\""
+  echo "Example: ./setup_for_hacking.sh \"$default_app_directory\""
   exit;
 fi
 
