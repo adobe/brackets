@@ -80,9 +80,6 @@ define(function (require, exports, module) {
     /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
     var searchResultsPanel;
     
-    /** @type {Document} The current editor used to register the change and delete events */
-    var currentDocument = null;
-    
     /** @type {number} The index of the first result that is displayed */
     var currentStart = 0;
     
@@ -632,7 +629,7 @@ define(function (require, exports, module) {
         _showSearchResults();
         
         $searchContent.scrollTop(scrollTop);
-        if ($selectedRow) {
+        if (index) {
             $selectedRow = $searchContent.find("tr:eq(" + index + ")");
             $selectedRow.addClass("selected");
         }
@@ -723,7 +720,7 @@ define(function (require, exports, module) {
                 if (change.from.line !== change.to.line) {
                     diff = change.from.line - change.to.line;
                 } else {
-                    diff = 0;
+                    diff = lines.length - 1;
                 }
                 
                 if (searchResults[fullPath]) {
@@ -789,12 +786,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Updates the event listeners when the current document changes
+     * Updates the event listeners when the current editor changes
+     * @param {$.Event} event
+     * @param {Editor} current
+     * @param {Editor} previous
      */
-    function _currentDocumentChangeHandler() {
-        $(currentDocument).off("change", _fileChangeHandler);
-        currentDocument = DocumentManager.getCurrentDocument();
-        $(currentDocument).on("change",  _fileChangeHandler);
+    function _currentEditorChangeHandler(event, current, previous) {
+        if (previous) {
+            previous.document.releaseRef();
+            $(previous.document).off("change", _fileChangeHandler);
+        }
+        if (_inScope(current.document.file, currentScope)) {
+            current.document.addRef();
+            $(current.document).on("change", _fileChangeHandler);
+        }
     }
     
     
@@ -810,10 +815,10 @@ define(function (require, exports, module) {
     });
     
     // Initialize: register listeners
-    $(DocumentManager).on("fileNameChange",        _fileNameChangeHandler);
-    $(DocumentManager).on("pathDeleted",           _pathDeletedHandler);
-    $(DocumentManager).on("currentDocumentChange", _currentDocumentChangeHandler);
-    $(ProjectManager).on("beforeProjectClose",     _hideSearchResults);
+    $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
+    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
+    $(EditorManager).on("activeEditorChange",  _currentEditorChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
