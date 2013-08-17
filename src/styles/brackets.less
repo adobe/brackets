@@ -865,9 +865,7 @@ a, img {
 // transparent; it has to look good atop both the selection color AND the regular text bg color.
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
-    background-clip: padding-box;
     background-color: @match-highlight;
-    border: 3px solid @match-highlight;
     border-radius: @tc-inline-border-radius;
     box-shadow: @tc-small-shadow-bottom;
     color: @match-text !important;      
@@ -879,7 +877,6 @@ a, img {
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
     background-color: @current-match-highlight;
-    border: 3px solid @current-match-highlight;    
     border-radius: @tc-inline-border-radius;
     
 	-webkit-animation-duration: 2.8167s;
