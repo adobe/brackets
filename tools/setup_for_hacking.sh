@@ -44,7 +44,7 @@ root_dir=${full_path%/*/*}
 link_name="${1}/$symlink"
 
 # Remove existing symlink, if present
-if [[ -d "$link_name" || -n $(find -L "$link_name" -type l) ]]; then
+if [[ -L "$link_name" ]]; then
   rm "$link_name" || exit 1;
 fi
 
