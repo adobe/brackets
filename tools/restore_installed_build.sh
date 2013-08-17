@@ -6,11 +6,14 @@ if [[ "$platform" == 'Linux' ]]; then
    # This is the default directory for Ubuntu installations (if installed with the *.deb).
    # May have to adjust if other operating systems use different directories.
    default_app_directory='/opt/brackets';
+   symlink='dev';
 elif [[ "$platform" == 'Darwin' ]]; then # MAC OSX
    default_app_directory='/Applications/Brackets Sprint 14.app';
+   symlink='Contents/dev';
 else
    # Warn for unknown operating system?
    default_app_directory='/opt/brackets';
+   symlink='dev';
 fi
 
 # Make sure the appname was passed in and is valid
@@ -28,7 +31,9 @@ if [ ! -d "${1}" ]; then
   exit;
 fi
 
-if [[ -d "${1}/Contents/dev" || -n $(find -L "${1}/Contents/dev" -type l) ]]; then
-  rm "${1}/Contents/dev"
+link_name="${1}/$symlink"
+
+if [[ -d "$link_name" || -n $(find -L "$link_name" -type l) ]]; then
+  rm "$link_name"
   echo "$1 has been restored to the installed configuration."
 fi
