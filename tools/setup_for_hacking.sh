@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Make sure the appname was passed in and is valid
 if [[ ${1} == "" ]]; then
