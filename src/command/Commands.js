@@ -33,7 +33,8 @@ define(function (require, exports, module) {
      */
 
     // FILE
-    exports.FILE_NEW                    = "file.new";
+    exports.FILE_NEW_UNTITLED           = "file.newDoc";
+    exports.FILE_NEW                    = "file.newFile";
     exports.FILE_NEW_FOLDER             = "file.newFolder";
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";

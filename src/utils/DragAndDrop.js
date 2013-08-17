@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
+        DocumentManager = require("document/DocumentManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -73,12 +74,22 @@ define(function (require, exports, module) {
     function openDroppedFiles(files) {
         var errorFiles = [];
         
-        return Async.doInParallel(files, function (file) {
+        return Async.doInParallel(files, function (file, idx) {
             var result = new $.Deferred();
             
             // Only open files
             brackets.fs.stat(file, function (err, stat) {
                 if (!err && stat.isFile()) {
+                    // If the file is already open, and this isn't the last
+                    // file in the list, return. If this *is* the last file,
+                    // always open it so it gets selected.
+                    if (idx < files.length - 1) {
+                        if (DocumentManager.findInWorkingSet(file) !== -1) {
+                            result.resolve();
+                            return;
+                        }
+                    }
+                    
                     CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
                                            {fullPath: file, silent: true})
                         .done(function () {

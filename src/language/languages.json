@@ -12,6 +12,12 @@
         "lineComment": ["//"]
     },
    
+    "properties": {
+        "name": "Properties",
+        "mode": ["properties", "text/x-properties"],
+        "fileExtensions": ["ini", "properties"]
+    },
+
     "css": {
         "name": "CSS",
         "mode": "css",
@@ -30,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -59,7 +65,7 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -88,7 +94,7 @@
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs"],
+        "fileExtensions": ["cs", "cshtml", "asax", "ashx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -104,6 +110,12 @@
         "name": "Java",
         "mode": ["clike", "text/x-java"],
         "fileExtensions": ["java"]
+    },
+
+    "scala": {
+        "name": "Scala",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["scala", "sbt"]
     },
 
     "coffeescript": {
@@ -135,7 +147,7 @@
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw"]
+        "fileExtensions": ["py", "pyw", "wsgi"]
     },
 
     "sass": {

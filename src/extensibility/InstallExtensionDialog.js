@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, PathUtils, Mustache, document */
+/*global define, window, $, brackets, Mustache, document */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -60,10 +60,11 @@ define(function (require, exports, module) {
      * Creates a new extension installer dialog.
      * @param {{install: function(url), cancel: function()}} installer The installer backend to use.
      */
-    function InstallExtensionDialog(installer) {
+    function InstallExtensionDialog(installer, _isUpdate) {
         this._installer = installer;
         this._state = STATE_CLOSED;
         this._installResult = null;
+        this._isUpdate = _isUpdate;
 
         // Timeout before we allow user to leave STATE_INSTALL_CANCELING without waiting for a resolution
         // (per-instance so we can poke it for unit testing)
@@ -309,6 +310,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleUrlInput = function () {
         var url = this.$url.val(),
             valid = (url !== "");
+            console.log(this.$url);
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
@@ -343,8 +345,17 @@ define(function (require, exports, module) {
         // lifecycle of the dialog ourselves.
         Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, Strings), false);
 
+        var context = {
+            Strings: Strings,
+            isUpdate: this._isUpdate
+        };
+
+        // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the
+        // lifecycle of the dialog ourselves.
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, context), false);
+
         this.$dlg          = $(".install-extension-dialog.instance");
-        this.$url          = this.$dlg.find(".url").focus();
+        this.$url          = this.$dlg.find(".url").eq(1).focus();
         this.$okButton     = this.$dlg.find(".dialog-button[data-button-id='ok']");
         this.$cancelButton = this.$dlg.find(".dialog-button[data-button-id='cancel']");
         this.$inputArea    = this.$dlg.find(".input-field");
@@ -415,13 +426,28 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    function installUsingDialog(urlToInstall) {
-        var dlg = new InstallExtensionDialog(new InstallerFacade());
+    function installUsingDialog(urlToInstall, _isUpdate) {
+        var dlg = new InstallExtensionDialog(new InstallerFacade(), _isUpdate);
         return dlg.show(urlToInstall);
     }
 
     exports.showDialog = showDialog;
     exports.installUsingDialog = installUsingDialog;
+
+    /**
+     * @private
+     * Show the update dialog and automatically begin downloading the update from the given URL.
+     * @param {string} urlToUpdate URL to download
+     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     *     has finished downloading, or rejected if the dialog is cancelled.
+     */
+    function updateUsingDialog(urlToUpdate) {
+        return installUsingDialog(urlToUpdate, true);
+    }
+
+    exports.showDialog          = showDialog;
+    exports.installUsingDialog  = installUsingDialog;
+    exports.updateUsingDialog   = updateUsingDialog;
 
     // Exposed for unit testing only
     exports._Dialog = InstallExtensionDialog;

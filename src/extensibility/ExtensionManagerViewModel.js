@@ -29,9 +29,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Async            = require("utils/Async"),
         Package          = require("extensibility/Package"),
-        registry_utils   = require("extensibility/registry_utils");
+        registry_utils   = require("extensibility/registry_utils"),
+        Strings          = require("strings");
 
     /**
      * @private
@@ -52,6 +52,12 @@ define(function (require, exports, module) {
      *
      */
     function ExtensionManagerViewModel() {
+        this._handleStatusChange = this._handleStatusChange.bind(this);
+        
+        // Listen for extension status changes.
+        $(ExtensionManager)
+            .on("statusChange." + this.source, this._handleStatusChange)
+            .on("registryUpdate." + this.source, this._handleStatusChange);
     }
     
     /**
@@ -98,39 +104,30 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
     /**
-     * @private
-     * @type {Object.<string, boolean>}
-     * Map of extensions marked for removal when the view is closed.
+     * @type {string}
+     * Info message to display to the user when listing extensions
      */
-    ExtensionManagerViewModel.prototype._idsToRemove = null;
-        
+    ExtensionManagerViewModel.prototype.infoMessage = null;
+    
     /**
-     * @private
-     * @type {Object.<string, boolean>}
-     * Map of extensions marked for update when the view is closed.
+     * @type {string}
+     * An optional message to display to the user
      */
-    ExtensionManagerViewModel.prototype._idsToUpdate = null;
-        
+    ExtensionManagerViewModel.prototype.message = null;
+    
+    /**
+     * @private {$.Promise}
+     * Internal use only to track when initialization fails, see usage in _updateMessage.
+     */
+    ExtensionManagerViewModel.prototype._initializeFromSourcePromise = null;
+    
     /**
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
-        $(ExtensionManager).off("statusChange", this._handleStatusChange);
+        $(ExtensionManager).off("." + this.source);
     };
     
-    /**
-     * Deletes any temporary files left behind by extensions that
-     * were marked for update.
-     */
-    ExtensionManagerViewModel.prototype.cleanupUpdates = function () {
-        Object.keys(this._idsToUpdate).forEach(function (id) {
-            var filename = this._idsToUpdate[id].localPath;
-            if (filename) {
-                brackets.fs.unlink(filename, function () { });
-            }
-        }.bind(this));
-    };
-
     /**
      * @private
      * Sets up the initial filtered set based on the sorted full set.
@@ -152,14 +149,13 @@ define(function (require, exports, module) {
      * Initializes the model from the source.
      */
     ExtensionManagerViewModel.prototype.initialize = function () {
-        this._handleStatusChange = this._handleStatusChange.bind(this);
-        this._idsToRemove = {};
-        this._idsToUpdate = {};
+        var self = this;
+
+        this._initializeFromSourcePromise = this._initializeFromSource().always(function () {
+            self._updateMessage();
+        });
         
-        // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", this._handleStatusChange);
-        
-        return this._initializeFromSource();
+        return this._initializeFromSourcePromise;
     };
     
     /**
@@ -194,10 +190,7 @@ define(function (require, exports, module) {
         
         query = query.toLowerCase();
         initialList.forEach(function (id) {
-            var entry = self.extensions[id];
-            if (entry) {
-                entry = (self.source === self.SOURCE_INSTALLED ? entry.installInfo : entry.registryInfo);
-            }
+            var entry = self._getEntry(id);
             if (entry && self._entryMatchesQuery(entry, query)) {
                 newFilterSet.push(id);
             }
@@ -205,7 +198,36 @@ define(function (require, exports, module) {
         
         this._lastQuery = query;
         this.filterSet = newFilterSet;
+
+        this._updateMessage();
+
         $(this).triggerHandler("filter");
+    };
+
+    /**
+     * @private
+     * Updates an optional message displayed to the user along with the extension list.
+     */
+    ExtensionManagerViewModel.prototype._updateMessage = function () {
+        if (this._initializeFromSourcePromise && this._initializeFromSourcePromise.state() === "rejected") {
+            this.message = Strings.EXTENSION_MANAGER_ERROR_LOAD;
+        } else if (this.filterSet && this.filterSet.length === 0) {
+            this.message = this.sortedFullSet && this.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS;
+        } else {
+            this.message = null;
+        }
+    };
+    
+    /**
+     * @private
+     * This is to be overridden by subclasses to provide the metadata for the extension
+     * with the provided `id`.
+     *
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    ExtensionManagerViewModel.prototype._getEntry = function (id) {
+        return null;
     };
     
     /**
@@ -239,125 +261,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Marks an extension for later removal, or unmarks an extension previously marked.
-     * @param {string} id The id of the extension to mark for removal.
-     * @param {boolean} mark Whether to mark or unmark it.
-     */
-    ExtensionManagerViewModel.prototype.markForRemoval = function (id, mark) {
-        if (mark) {
-            this._idsToRemove[id] = true;
-        } else {
-            delete this._idsToRemove[id];
-        }
-        $(this).triggerHandler("change", [id]);
-    };
-    
-    /**
-     * Returns true if an extension is marked for removal.
-     * @param {string} id The id of the extension to check.
-     * @return {boolean} true if it's been marked for removal, false otherwise.
-     */
-    ExtensionManagerViewModel.prototype.isMarkedForRemoval = function (id) {
-        return !!(this._idsToRemove[id]);
-    };
-    
-    /**
-     * Returns true if there are any extensions marked for removal.
-     * @return {boolean} true if there are extensions to remove
-     */
-    ExtensionManagerViewModel.prototype.hasExtensionsToRemove = function () {
-        return Object.keys(this._idsToRemove).length > 0;
-    };
-    
-    /**
-     * If a downloaded package appears to be an update, mark the extension for update.
-     * If an extension was previously marked for removal, marking for update will
-     * turn off the removal mark.
-     * @param {Object} installationResult info about the install provided by the Package.download function
-     */
-    ExtensionManagerViewModel.prototype.updateFromDownload = function (installationResult) {
-        var installationStatus = installationResult.installationStatus;
-        if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
-                installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
-                installationStatus === Package.InstallationStatuses.SAME_VERSION ||
-                installationStatus === Package.InstallationStatuses.OLDER_VERSION) {
-            var id = installationResult.name;
-            delete this._idsToRemove[id];
-            this._idsToUpdate[id] = installationResult;
-            $(this).triggerHandler("change", [id]);
-        }
-    };
-    
-    /**
-     * Removes the mark for an extension to be updated on restart. Also deletes the
-     * downloaded package file.
-     * @param {string} id The id of the extension for which the update is being removed
-     */
-    ExtensionManagerViewModel.prototype.removeUpdate = function (id) {
-        var installationResult = this._idsToUpdate[id];
-        if (!installationResult) {
-            return;
-        }
-        if (installationResult.localPath) {
-            brackets.fs.unlink(installationResult.localPath, function () {
-            });
-        }
-        delete this._idsToUpdate[id];
-        $(this).triggerHandler("change", [id]);
-    };
-    
-    /**
-     * Returns true if an extension is marked for update.
-     * @param {string} id The id of the extension to check.
-     * @return {boolean} true if it's been marked for update, false otherwise.
-     */
-    ExtensionManagerViewModel.prototype.isMarkedForUpdate = function (id) {
-        return !!(this._idsToUpdate[id]);
-    };
-    
-    /**
-     * Returns true if there are any extensions marked for update.
-     * @return {boolean} true if there are extensions to update
-     */
-    ExtensionManagerViewModel.prototype.hasExtensionsToUpdate = function () {
-        return Object.keys(this._idsToUpdate).length > 0;
-    };
-    
-    /**
-     * Removes extensions previously marked for removal.
-     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
-     *     if one or more extensions can't be removed. When rejected, the argument will be an
-     *     array of error objects, each of which contains an "item" property with the id of the
-     *     failed extension and an "error" property with the actual error.
-     */
-    ExtensionManagerViewModel.prototype.removeMarkedExtensions = function () {
-        return Async.doInParallel_aggregateErrors(
-            Object.keys(this._idsToRemove),
-            function (id) {
-                return ExtensionManager.remove(id);
-            }
-        );
-    };
-    
-    /**
-     * Updates extensions previously marked for update.
-     * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
-     *     if one or more extensions can't be updated. When rejected, the argument will be an
-     *     array of error objects, each of which contains an "item" property with the id of the
-     *     failed extension and an "error" property with the actual error.
-     */
-    ExtensionManagerViewModel.prototype.updateExtensions = function () {
-        var self = this;
-        return Async.doInParallel_aggregateErrors(
-            Object.keys(self._idsToUpdate),
-            function (id) {
-                var installationResult = self._idsToUpdate[id];
-                return ExtensionManager.update(installationResult.name, installationResult.localPath);
-            }
-        );
-    };
-    
-    /**
      * @constructor
      * The model for the ExtensionManagerView that is responsible for handling registry-based extensions. 
      * This extends ExtensionManagerViewModel.
@@ -368,9 +271,12 @@ define(function (require, exports, module) {
      *     filter - triggered whenever the filtered set changes (including on initialize).
      */
     function RegistryViewModel() {
+        ExtensionManagerViewModel.call(this);
+        this.infoMessage = Strings.REGISTRY_SANITY_CHECK_WARNING;
     }
     
-    RegistryViewModel.prototype = new ExtensionManagerViewModel();
+    RegistryViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    RegistryViewModel.prototype.constructor = RegistryViewModel;
     
     /**
      * @type {string}
@@ -398,7 +304,27 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
+            })
+            .fail(function () {
+                self.extensions = [];
+                self.sortedFullSet = [];
+                self.filterSet = [];
             });
+    };
+    
+    /**
+     * @private
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    RegistryViewModel.prototype._getEntry = function (id) {
+        var entry = this.extensions[id];
+        if (entry) {
+            return entry.registryInfo;
+        }
+        return entry;
     };
     
     /**
@@ -412,9 +338,11 @@ define(function (require, exports, module) {
      *     filter - triggered whenever the filtered set changes (including on initialize).
      */
     function InstalledViewModel() {
+        ExtensionManagerViewModel.call(this);
     }
     
-    InstalledViewModel.prototype = new ExtensionManagerViewModel();
+    InstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    InstalledViewModel.prototype.constructor = InstalledViewModel;
     
     /**
      * @type {string}
@@ -437,7 +365,7 @@ define(function (require, exports, module) {
             });
         this._sortFullSet();
         this._setInitialFilter();
-        return new $.Deferred().resolve();
+        return new $.Deferred().resolve().promise();
     };
     
     /**
@@ -486,6 +414,21 @@ define(function (require, exports, module) {
             this.filter(this._lastQuery || "", true);
         }
         ExtensionManagerViewModel.prototype._handleStatusChange.call(this, e, id);
+    };
+    
+    /**
+     * @private
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    InstalledViewModel.prototype._getEntry = function (id) {
+        var entry = this.extensions[id];
+        if (entry) {
+            return entry.installInfo;
+        }
+        return entry;
     };
 
     exports.RegistryViewModel = RegistryViewModel;

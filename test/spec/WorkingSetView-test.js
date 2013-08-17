@@ -23,27 +23,46 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $: false, define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    // Load dependent modules from brackets.test
-    var CommandManager,
-        Commands,
-        DocumentManager,
-        FileViewController,
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+    var CommandManager,         // Load from brackets.test
+        Commands,               // Load from brackets.test
+        DocumentManager,        // Load from brackets.test
+        FileViewController,     // Load from brackets.test
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+
 
     describe("WorkingSetView", function () {
         
         this.category = "integration";
     
-        var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
-        var testWindow;
+        var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
+            testWindow,
+            workingSetCount;
+        
+        function openAndMakeDirty(path) {
+            var doc, didOpen = false, gotError = false;
+                
+            // open file
+            runs(function () {
+                FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
+                    .done(function () { didOpen = true; })
+                    .fail(function () { gotError = true; });
+            });
+            waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
-        beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+            // change editor content to make doc dirty which adds it to the working set
+            runs(function () {
+                doc = DocumentManager.getCurrentDocument();
+                doc.setText("dirty document");
+            });
+        }
+        
+        function createTestWindow(spec, loadProject) {
+            SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -53,10 +72,10 @@ define(function (require, exports, module) {
                 FileViewController  = testWindow.brackets.test.FileViewController;
 
                 // Open a directory
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                if (loadProject) {
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                }
             });
-
-            var workingSetCount = 0;
             
             runs(function () {
                 // Initialize: register listeners
@@ -64,24 +83,25 @@ define(function (require, exports, module) {
                     workingSetCount++;
                 });
             });
-            
-            var openAndMakeDirty = function (path) {
-                var doc, didOpen = false, gotError = false;
-                
-                // open file
-                runs(function () {
-                    FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
-                });
-                waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
-
-                // change editor content to make doc dirty which adds it to the working set
-                runs(function () {
-                    doc = DocumentManager.getCurrentDocument();
-                    doc.setText("dirty document");
-                });
-            };
+        }
+        
+        function closeTestWindow() {
+            testWindow          = null;
+            CommandManager      = null;
+            Commands            = null;
+            DocumentManager     = null;
+            FileViewController  = null;
+            SpecRunnerUtils.closeTestWindow();
+        }
+        
+        beforeFirst(function () {
+            createTestWindow(this, true);
+        });
+        
+        afterLast(closeTestWindow);
+        
+        beforeEach(function () {
+            workingSetCount = 0;
             
             openAndMakeDirty(testPath + "/file_one.js");
             openAndMakeDirty(testPath + "/file_two.js");
@@ -89,14 +109,9 @@ define(function (require, exports, module) {
             // Wait for both files to be added to the working set
             waitsFor(function () { return workingSetCount === 2; }, 1000);
         });
-
+        
         afterEach(function () {
-            testWindow          = null;
-            CommandManager      = null;
-            Commands            = null;
-            DocumentManager     = null;
-            FileViewController  = null;
-            SpecRunnerUtils.closeTestWindow();
+            testWindow.closeAllFiles();
         });
 
         it("should add a list item when a file is dirtied", function () {
@@ -132,7 +147,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var $ = testWindow.$;
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 var $listItems = $("#open-files-container > ul").children();
                 expect($($listItems[0]).hasClass("selected")).not.toBeTruthy();
@@ -153,12 +168,10 @@ define(function (require, exports, module) {
             });
 
             // close test window while working set has 2 files (see beforeEach())
-            SpecRunnerUtils.closeTestWindow();
+            closeTestWindow();
 
             // reopen brackets test window to initialize unit test working set
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-            });
+            createTestWindow(this, false);
             
             var $listItems;
             
@@ -188,7 +201,7 @@ define(function (require, exports, module) {
         it("should close a file when the user clicks the close button", function () {
             var $ = testWindow.$;
             var didClose = false;
-                    
+            
             // make 2nd doc clean
             var fileList = DocumentManager.getWorkingSet();
 
@@ -196,22 +209,22 @@ define(function (require, exports, module) {
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
                 var doc1 = DocumentManager.getOpenDocumentForPath(fileList[1].fullPath);
                 doc1._markClean();
-                                
+                
                 // make the first one active
                 DocumentManager.setCurrentDocument(doc0);
-                                
+                
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
-                secondItem.trigger('mouseover');
+                secondItem.trigger("mouseover");
                 var closeIcon = secondItem.find(".file-status-icon");
                 expect(closeIcon.length).toBe(1);
-                                
+                
                 // simulate click
                 $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
                     didClose = true;
                 });
 
-                closeIcon.trigger('mousedown');
+                closeIcon.trigger("mousedown");
             });
             
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
@@ -240,7 +253,7 @@ define(function (require, exports, module) {
                 var $ = testWindow.$;
                 var secondItem =  $("#open-files-container > ul").children().eq(1);
                 var fileName = secondItem.text();
-                secondItem.trigger('click');
+                secondItem.trigger("click");
                 
                 // Calling FILE_RENAME synchronously works fine here since the item is already visible in project file tree.
                 // However, if the selected item is not already visible in the tree, this command will complete asynchronously.
@@ -250,6 +263,67 @@ define(function (require, exports, module) {
                 var $projectFileItems = $("#project-files-container > ul").children();
     
                 expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+            });
+        });
+
+        it("should show a directory name next to the file name when two files with same names are opened", function () {
+            runs(function () {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // First we need to open another file
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+
+                // Wait for file to be added to the working set
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+
+                runs(function () {
+                    // Two files with the same name file_one.js should be now opened
+                    var $list = testWindow.$("#open-files-container > ul");
+                    expect($list.find(".directory").length).toBe(2);
+
+                    // Now close last opened file to hide the directories again
+                    DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
+                    var didClose = false, gotError = false;
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
+
+                    // there should be no more directories shown
+                    runs(function () {
+                        expect($list.find(".directory").length).toBe(0);
+                    });
+                });
+            });
+        });
+
+        it("should show different directory names, when two files of the same name are opened, located in folders with same name", function () {
+            runs(function () {
+                // Count currently opened files
+                var workingSetCountBeforeTest = workingSetCount;
+
+                // Open both files
+                openAndMakeDirty(testPath + "/directory/file_one.js");
+                openAndMakeDirty(testPath + "/directory/directory/file_one.js");
+
+                // Wait for them to load
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+
+                runs(function () {
+                    // Collect all directory names displayed
+                    var $list = testWindow.$("#open-files-container > ul");
+                    var names = $list.find(".directory").map(function () {
+                        return $(this).text();
+                    }).toArray();
+
+                    // All directory names should be unique
+                    var uniq = 0, map = {};
+                    names.forEach(function (name) {
+                        if (!map[name]) {
+                            map[name] = true;
+                            uniq++;
+                        }
+                    });
+                    expect(uniq).toBe(names.length);
+                });
             });
         });
             

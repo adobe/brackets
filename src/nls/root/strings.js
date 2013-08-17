@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -103,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
@@ -123,15 +125,17 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "\"{4}\" found {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
-    "FIND_IN_FILES_MORE_THAN"           : "More than ",
-    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
+    "FIND_IN_FILES_MORE_THAN"           : "Over ",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Less</a>",
+    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>More</a>",
     "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line: {0}",
 
@@ -156,6 +160,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selected {0} column",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
@@ -171,6 +179,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
+    "CMD_FILE_NEW_UNTITLED"               : "New",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
@@ -182,13 +191,13 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
-    "CMD_FILE_REFRESH"                    : "Refresh",
+    "CMD_FILE_REFRESH"                    : "Refresh File Tree",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -272,11 +281,11 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
     "SAVE"                                 : "Save",
     "CANCEL"                               : "Cancel",
+    "DELETE"                               : "Delete",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
@@ -304,10 +313,13 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Install",
+    "UPDATE"                               : "Update",
     "REMOVE"                               : "Remove",
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
+    "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
     "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
@@ -369,8 +381,12 @@ define({
     "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
     "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click the Install from URL button below to get started.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     /**
      * Unit names
@@ -403,6 +419,7 @@ define({
     "LOCALE_DE"                                 : "German",
     "LOCALE_EN"                                 : "English",
     "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FI"                                 : "Finnish",
     "LOCALE_FR"                                 : "French",
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
@@ -437,7 +454,7 @@ define({
     "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
     "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
     // extensions/default/WebPlatformDocs
