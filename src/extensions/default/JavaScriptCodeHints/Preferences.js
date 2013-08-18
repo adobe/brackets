@@ -172,7 +172,7 @@ define(function (require, exports, module) {
     /**
      * Get the regular expression for excluded directories.
      *
-     * @returns {?RegExp} Regular expression matching the directories that should
+     * @return {?RegExp} Regular expression matching the directories that should
      * be excluded. Returns null if no directories are excluded.
      */
     Preferences.prototype.getExcludedDirectories = function () {
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
     /**
      * Get the regular expression for excluded files.
      *
-     * @returns {?RegExp} Regular expression matching the files that should
+     * @return {?RegExp} Regular expression matching the files that should
      * be excluded. Returns null if no files are excluded.
      */
     Preferences.prototype.getExcludedFiles = function () {
@@ -192,7 +192,7 @@ define(function (require, exports, module) {
     /**
      * Get the maximum number of files that will be analyzed.
      *
-     * @returns {number}
+     * @return {number}
      */
     Preferences.prototype.getMaxFileCount = function () {
         return this._maxFileCount;
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
      * Get the maximum size of a file that will be analyzed. Files that are
      * larger will be ignored.
      *
-     * @returns {number}
+     * @return {number}
      */
     Preferences.prototype.getMaxFileSize = function () {
         return this._maxFileSize;
