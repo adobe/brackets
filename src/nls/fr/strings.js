@@ -115,7 +115,9 @@ define({
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
+	"BUTTON_ALL": "[7118973] !é=All=!",
 	"BUTTON_STOP": "Arrêter",
+	"BUTTON_REPLACE": "Remplacer",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -124,7 +126,9 @@ define({
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
-    
+
+	"FIND_REPLACE_TITLE": "[7118975] !é=Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches=!",
+
 	"FIND_IN_FILES_TITLE": "« {4} » a trouvé {5} &mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",

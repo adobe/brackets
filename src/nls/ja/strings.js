@@ -115,7 +115,9 @@ define({
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
+	"BUTTON_ALL": "すべて",
 	"BUTTON_STOP": "終了",
+	"BUTTON_REPLACE": "置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -124,7 +126,9 @@ define({
 	"RELEASE_NOTES": "リリースノート",
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
-    
+
+	"FIND_REPLACE_TITLE": "!能=[7118975] Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches_=!",
+
 	"FIND_IN_FILES_TITLE": "「{4}」が見つかりました {5} &mdash; {0} {1} / {2} {3}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
