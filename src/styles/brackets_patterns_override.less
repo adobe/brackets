@@ -319,8 +319,11 @@
 }
 
 .codehint-menu {
+    transition: left 170ms, right 170ms;
+
     .dropdown-menu {
-        .box-shadow(none);
+        box-shadow: @tc-dropdown-shadow;
+        border: none;
         max-height: 160px;
         overflow-y: auto;
 
