@@ -448,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-    
+	"CMD_SHOW_PARAMETER_HINT": "!能=[7119026] Show Parameter Hint_=!",
+	"NO_ARGUMENTS": "!能=[7119027] <no parameters>_=!",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",

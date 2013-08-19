@@ -448,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-    
+	"CMD_SHOW_PARAMETER_HINT": "[7119026] !é=Show Parameter Hint=!",
+	"NO_ARGUMENTS": "[7119027] !é=<no parameters>=!",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
