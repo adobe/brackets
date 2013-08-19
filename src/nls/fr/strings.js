@@ -129,14 +129,14 @@ define({
 
 	"FIND_REPLACE_TITLE": "[7118975] !é=Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches=!",
 
-	"FIND_IN_FILES_TITLE": "« {4} » a trouvé {5} &mdash; {0} {1} dans {2} {3}",
+	"FIND_IN_FILES_TITLE": "« {4} » trouvé {5} &mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
 	"FIND_IN_FILES_MATCHES": "résultats",
-	"FIND_IN_FILES_MORE_THAN": "Par-dessus ",
+	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>Moins</a>",
 	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>Plus</a>",
