@@ -103,7 +103,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"CONFIRM_FOLDER_DELETE_TITLE": "削除確認",
+	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
@@ -115,7 +115,9 @@ define({
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
+	"BUTTON_ALL": "すべて",
 	"BUTTON_STOP": "終了",
+	"BUTTON_REPLACE": "置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -124,18 +126,20 @@ define({
 	"RELEASE_NOTES": "リリースノート",
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
-    
-	"FIND_IN_FILES_TITLE": "!能=[6318994] \"{4}\" found {5} &mdash; {0} {1} in {2} {3}_=!",
+
+	"FIND_REPLACE_TITLE": "!能=[7118975] Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches_=!",
+
+	"FIND_IN_FILES_TITLE": "「{4}」の検索結果 {5} &mdash; {2} {3} / {0} {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "一致",
 	"FIND_IN_FILES_MATCHES": "一致",
-	"FIND_IN_FILES_MORE_THAN": "!能=[6495144] Over _=!",
-	"FIND_IN_FILES_PAGING": "!能=[7112417] {0}&mdash;{1}_=!",
-	"FIND_IN_FILES_LESS": "!能=[7112415]  <a href='#' class='find-less'>Less</a>_=!",
-	"FIND_IN_FILES_MORE": "!能=[7112416]  <a href='#' class='find-more'>More</a>_=!",
+	"FIND_IN_FILES_MORE_THAN": "以上",
+	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
+	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>表示数を減らす</a>",
+	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>表示数を増やす</a>",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 
@@ -444,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-    
+	"CMD_SHOW_PARAMETER_HINT": "!能=[7119026] Show Parameter Hint_=!",
+	"NO_ARGUMENTS": "!能=[7119027] <no parameters>_=!",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",

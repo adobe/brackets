@@ -65,4 +65,26 @@
     font-style: italic;
 }
 
+#function-hint-container {
+    display: none;
 
+    background: #e0e1e3;
+    position: absolute;
+    z-index: 15;
+    left: 200px;
+    top: 40px;
+    pointer-events: none;
+
+    padding: 1px 3px;
+    text-align: center;
+
+    border-radius: 2px;
+    border: 1px solid #a6a8a8;
+}
+
+#function-hint-container .function-hint-content {
+}
+
+.brackets-js-hints .current-parameter {
+    font-weight: 500;
+}
