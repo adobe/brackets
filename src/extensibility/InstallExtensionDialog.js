@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -27,7 +27,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
+    require("thirdparty/path-utils/path-utils.min");
+
     var Dialogs                = require("widgets/Dialogs"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
@@ -50,8 +52,10 @@ define(function (require, exports, module) {
         STATE_ALREADY_INSTALLED   = 9,
         STATE_OVERWRITE_CONFIRMED = 10,
         STATE_NEEDS_UPDATE        = 11;
-    
-    /** 
+
+    var _installQueue;
+
+    /**
      * @constructor
      * Creates a new extension installer dialog.
      * @param {{install: function(url), cancel: function()}} installer The installer backend to use.
@@ -66,42 +70,42 @@ define(function (require, exports, module) {
         // (per-instance so we can poke it for unit testing)
         this._cancelTimeout = 10 * 1000;
     }
-    
+
     /** @type {jQuery} The dialog root. */
     InstallExtensionDialog.prototype.$dlg = null;
-    
+
     /** @type {jQuery} The url input field. */
     InstallExtensionDialog.prototype.$url = null;
-    
+
     /** @type {jQuery} The ok button. */
     InstallExtensionDialog.prototype.$okButton = null;
-    
+
     /** @type {jQuery} The cancel button. */
     InstallExtensionDialog.prototype.$cancelButton = null;
-    
+
     /** @type {jQuery} The area containing the url input label and field. */
     InstallExtensionDialog.prototype.$inputArea = null;
-    
+
     /** @type {jQuery} The area containing the installation message and spinner. */
     InstallExtensionDialog.prototype.$msgArea = null;
-    
+
     /** @type {jQuery} The span containing the installation message. */
     InstallExtensionDialog.prototype.$msg = null;
-    
+
     /** @type {jQuery} The "Browse Extensions" button. */
     InstallExtensionDialog.prototype.$browseExtensionsButton = null;
-    
+
     /** @type {$.Deferred} A deferred that's resolved/rejected when the dialog is closed and
         something has/hasn't been installed successfully. */
     InstallExtensionDialog.prototype._dialogDeferred = null;
-    
-    
+
+
     /** @type {{install: function(url), cancel: function()}} installer The installer backend for this dialog. */
     InstallExtensionDialog.prototype._installer = null;
-    
+
     /** @type {number} The current state of the dialog; one of the STATE_* constants above. */
     InstallExtensionDialog.prototype._state = null;
-    
+
     /**
      * @private
      * Transitions the dialog into a new state as the installation proceeds.
@@ -112,11 +116,11 @@ define(function (require, exports, module) {
             msg,
             self = this,
             prevState = this._state;
-        
+
         // Store the new state up front in case some of the processing below ends up changing
         // the state again immediately.
         this._state = newState;
-        
+
         switch (newState) {
         case STATE_START:
             // This should match the default appearance of the dialog when it first opens.
@@ -127,13 +131,13 @@ define(function (require, exports, module) {
                 .prop("disabled", true)
                 .text(Strings.INSTALL);
             break;
-                
+
         case STATE_VALID_URL:
             this.$okButton.prop("disabled", false);
             break;
-            
+
         case STATE_INSTALLING:
-            url = this.$url.val();
+            url = _installQueue[0];
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
@@ -142,6 +146,7 @@ define(function (require, exports, module) {
             this.$okButton.prop("disabled", true);
             this._installer.install(url)
                 .done(function (result) {
+                    _installQueue.shift();
                     self._installResult = result;
                     if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                             result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
@@ -151,6 +156,9 @@ define(function (require, exports, module) {
                         self._enterState(STATE_NEEDS_UPDATE);
                     } else {
                         self._enterState(STATE_INSTALLED);
+                    }
+                    if (_installQueue.length > 0) {
+                        self._enterState(STATE_INSTALLING);
                     }
                 })
                 .fail(function (err) {
@@ -164,7 +172,7 @@ define(function (require, exports, module) {
                     }
                 });
             break;
-            
+
         case STATE_CANCELING_INSTALL:
             // This should call back the STATE_INSTALLING fail() handler above, unless it's too late to cancel
             // in which case we'll still jump to STATE_INSTALLED after this
@@ -177,14 +185,14 @@ define(function (require, exports, module) {
                 }
             }, this._cancelTimeout);
             break;
-            
+
         case STATE_CANCELING_HUNG:
             this.$msg.text(Strings.CANCELING_HUNG);
             this.$okButton
                 .removeAttr("disabled")
                 .text(Strings.CLOSE);
             break;
-            
+
         case STATE_INSTALLED:
         case STATE_INSTALL_FAILED:
         case STATE_INSTALL_CANCELED:
@@ -207,7 +215,7 @@ define(function (require, exports, module) {
                 .text(Strings.CLOSE);
             this.$cancelButton.hide();
             break;
-        
+
         case STATE_ALREADY_INSTALLED:
             var installResult = this._installResult;
             var status = installResult.installationStatus;
@@ -220,14 +228,14 @@ define(function (require, exports, module) {
                 .prop("disabled", false)
                 .text(Strings.OVERWRITE);
             break;
-        
+
         case STATE_OVERWRITE_CONFIRMED:
             this._enterState(STATE_CLOSED);
             break;
-        
+
         case STATE_CLOSED:
             $(document.body).off(".installDialog");
-            
+
            // Only resolve as successful if we actually installed something.
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
             if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE ||
@@ -262,7 +270,7 @@ define(function (require, exports, module) {
             this._enterState(STATE_CLOSED);
         }
     };
-    
+
     /**
      * @private
      * Handle a click on the default button, which is "Install" while we're waiting for the
@@ -278,12 +286,13 @@ define(function (require, exports, module) {
             // success.
             this._enterState(STATE_CLOSED);
         } else if (this._state === STATE_VALID_URL) {
+            _installQueue = this.$url.val().replace(/\s/gm, '').split(',');
             this._enterState(STATE_INSTALLING);
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             this._enterState(STATE_OVERWRITE_CONFIRMED);
         }
     };
-    
+
     /**
      * @private
      * Handle key up events on the document. We use this to detect the Esc key.
@@ -293,7 +302,7 @@ define(function (require, exports, module) {
             this._handleCancel();
         }
     };
-    
+
     /**
      * @private
      * Handle typing in the URL field.
@@ -301,13 +310,14 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleUrlInput = function () {
         var url = this.$url.val(),
             valid = (url !== "");
+            console.log(this.$url);
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
             this._enterState(STATE_VALID_URL);
         }
     };
-    
+
     /**
      * @private
      * Closes the dialog if it's not already closed. For unit testing only.
@@ -331,17 +341,21 @@ define(function (require, exports, module) {
             return this._dialogDeferred.promise();
         }
 
+        // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the
+        // lifecycle of the dialog ourselves.
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, Strings), false);
+
         var context = {
             Strings: Strings,
             isUpdate: this._isUpdate
         };
-        
-        // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
+
+        // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the
         // lifecycle of the dialog ourselves.
         Dialogs.showModalDialogUsingTemplate(Mustache.render(InstallDialogTemplate, context), false);
-        
+
         this.$dlg          = $(".install-extension-dialog.instance");
-        this.$url          = this.$dlg.find(".url").focus();
+        this.$url          = this.$dlg.find(".url").eq(1).focus();
         this.$okButton     = this.$dlg.find(".dialog-button[data-button-id='ok']");
         this.$cancelButton = this.$dlg.find(".dialog-button[data-button-id='cancel']");
         this.$inputArea    = this.$dlg.find(".input-field");
@@ -356,7 +370,7 @@ define(function (require, exports, module) {
             NativeApp.openURLInDefaultBrowser(brackets.config.extension_wiki_url);
         });
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
-        
+
         this._enterState(STATE_START);
         if (urlToInstall) {
             // Act as if the user had manually entered the URL.
@@ -368,8 +382,8 @@ define(function (require, exports, module) {
         this._dialogDeferred = new $.Deferred();
         return this._dialogDeferred.promise();
     };
-    
-    
+
+
     /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
     function InstallerFacade() { }
     InstallerFacade.prototype.install = function (url) {
@@ -378,21 +392,21 @@ define(function (require, exports, module) {
             return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
         }
         this.pendingInstall = Package.installFromURL(url);
-        
+
         // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
         var promise = this.pendingInstall.promise;
-        
+
         var self = this;
         this.pendingInstall.promise.always(function () {
             self.pendingInstall = null;
         });
-        
+
         return promise;
     };
     InstallerFacade.prototype.cancel = function () {
         this.pendingInstall.cancel();
     };
-    
+
     /**
      * @private
      * Show a dialog that allows the user to enter the URL of an extension ZIP file to install.
@@ -403,7 +417,7 @@ define(function (require, exports, module) {
         var dlg = new InstallExtensionDialog(new InstallerFacade());
         return dlg.show();
     }
-    
+
     /**
      * @private
      * Show the installation dialog and automatically begin installing the given URL.
@@ -416,7 +430,10 @@ define(function (require, exports, module) {
         var dlg = new InstallExtensionDialog(new InstallerFacade(), _isUpdate);
         return dlg.show(urlToInstall);
     }
-    
+
+    exports.showDialog = showDialog;
+    exports.installUsingDialog = installUsingDialog;
+
     /**
      * @private
      * Show the update dialog and automatically begin downloading the update from the given URL.
@@ -427,7 +444,7 @@ define(function (require, exports, module) {
     function updateUsingDialog(urlToUpdate) {
         return installUsingDialog(urlToUpdate, true);
     }
-    
+
     exports.showDialog          = showDialog;
     exports.installUsingDialog  = installUsingDialog;
     exports.updateUsingDialog   = updateUsingDialog;
