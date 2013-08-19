@@ -635,7 +635,7 @@ define(function (require, exports, module) {
     /**
      * The position of the function call for the current fnType.
      *
-     * @param functionCallPos
+     * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
      */
     Session.prototype.setFunctionCallPos = function (functionCallPos) {
         this.functionCallPos = functionCallPos;
