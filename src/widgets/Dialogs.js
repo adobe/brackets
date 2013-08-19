@@ -64,24 +64,24 @@ define(function (require, exports, module) {
     /**
      * @private
      * Dismises a modal dialog
-     * @param {$.Element} dlg
+     * @param {$.Element} $dlg
      * @param {string} buttonId
      */
-    function _dismissDialog(dlg, buttonId) {
-        dlg.data("buttonId", buttonId);
-        $(".clickable-link", dlg).off("click");
-        dlg.modal("hide");
+    function _dismissDialog($dlg, buttonId) {
+        $dlg.data("buttonId", buttonId);
+        $(".clickable-link", $dlg).off("click");
+        $dlg.modal("hide");
     }
 
     /**
      * @private
      * Returns true if the modal dialog has a button with the given ID
-     * @param {$.Element} dlg
+     * @param {$.Element} $dlg
      * @param {string} buttonId
      * @return {boolean}
      */
-    function _hasButton(dlg, buttonId) {
-        return (dlg.find("[data-button-id='" + buttonId + "']").length > 0);
+    function _hasButton($dlg, buttonId) {
+        return ($dlg.find("[data-button-id='" + buttonId + "']").length > 0);
     }
 
 
@@ -89,12 +89,12 @@ define(function (require, exports, module) {
      * @private
      * Handles the use of Tab so that it stays inside the Dialog
      * @param {$.Event} event
-     * @param {$.Element} $element
+     * @param {$.Element} $dlg
      */
-    function _watchTab(event, $element) {
-        var $inputs = $(":input:enabled, :checkbox, :radio, a", $element).filter(":visible");
+    function _handleTab(event, $dlg) {
+        var $inputs = $(":input:enabled, a", $dlg).filter(":visible");
 
-        if ($(event.target).closest($element).length) {
+        if ($(event.target).closest($dlg).length) {
             // If it's the first or last tabbable element, focus the last/first element
             if ((!event.shiftKey && event.target === $inputs[$inputs.length - 1]) ||
                     (event.shiftKey && event.target === $inputs[0])) {
@@ -121,23 +121,23 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     var _keydownHook = function (e, autoDismiss) {
-        var primaryBtn = this.find(".primary"),
-            buttonId   = null,
-            which      = String.fromCharCode(e.which);
+        var $primaryBtn = this.find(".primary"),
+            buttonId    = null,
+            which       = String.fromCharCode(e.which);
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inTextArea    = (e.target.tagName === "TEXTAREA"),
             inTypingField = inTextArea || ($(e.target).filter(":text, :password").length > 0);
         
         if (e.which === KeyEvent.DOM_VK_TAB) {
-            _watchTab(e, this);
+            _handleTab(e, this);
         } else if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
         } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
-            primaryBtn.click();
+            $primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
-            // Space bar on focused button
+            // Space bar on focused button or link
             this.find(".dialog-button:focus, a:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
@@ -225,12 +225,11 @@ define(function (require, exports, module) {
             autoDismiss = true;
         }
         
-        var result = $.Deferred(),
-            promise = result.promise();
-        
-        var $dlg = $(template)
-            .addClass("instance")
-            .appendTo(window.document.body);
+        var result  = $.Deferred(),
+            promise = result.promise(),
+            $dlg    = $(template)
+                .addClass("instance")
+                .appendTo(window.document.body);
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
@@ -291,7 +290,7 @@ define(function (require, exports, module) {
                 show:     true,
                 keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
             })
-            // Updates the z-index of the modal dialog and the blackdrop
+            // Updates the z-index of the modal dialog and the backdrop
             .css("z-index", zIndex + 1)
             .next().css("z-index", zIndex);
         
@@ -331,9 +330,9 @@ define(function (require, exports, module) {
      * @param {string} dlgClass The class name identifier for the dialog.
      */
     function cancelModalDialogIfOpen(dlgClass) {
-        $("." + dlgClass + ".instance").each(function (index, dlg) {
-            if ($(dlg).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog($(dlg), DIALOG_CANCELED);
+        $("." + dlgClass + ".instance").each(function () {
+            if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+                _dismissDialog($(this), DIALOG_CANCELED);
             }
         });
     }
