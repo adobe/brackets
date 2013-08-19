@@ -2412,10 +2412,10 @@ define(function (require, exports, module) {
         });
       
         describe("Open Line Above and Below", function () {
-            var indentUnit  = Editor.getUseTabChar() ? 1 : Editor.getSpaceUnits(),
+            var indentUnit  = SpecRunnerUtils.EDITOR_USE_TABS ? 1 : SpecRunnerUtils.EDITOR_SPACE_UNITS,
                 indentation = (function () {
                     // generate indent string once
-                    if (Editor.getUseTabChar()) {
+                    if (SpecRunnerUtils.EDITOR_USE_TABS) {
                         return "\t";
                     }
                     var spaces = [];
