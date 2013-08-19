@@ -320,6 +320,7 @@
 }
 
 .codehint-menu {
+    opacity: 0;
     .dropdown-menu {
         box-shadow: @tc-dropdown-shadow;
         max-height: 160px;
@@ -348,8 +349,13 @@
     }
 }
 
+.codehint-menu.open {
+    opacity: 1;
+    transition: opacity 67ms cubic-bezier(0.03, 0.78, 0.17, 0.97);
+}
+
 .codehint-menu.apply-transition {
-    transition: top 170ms, right 170ms, bottom 170ms, left 170ms;
+    transition: top 167ms, right 167ms, bottom 167ms, left 167ms;
 }
 
 #context-menu-bar {
