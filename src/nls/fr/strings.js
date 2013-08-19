@@ -115,7 +115,9 @@ define({
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
+	"BUTTON_ALL": "[7118973] !é=All=!",
 	"BUTTON_STOP": "Arrêter",
+	"BUTTON_REPLACE": "Remplacer",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -124,15 +126,17 @@ define({
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
-    
-	"FIND_IN_FILES_TITLE": "« {4} » a trouvé {5} &mdash; {0} {1} dans {2} {3}",
+
+	"FIND_REPLACE_TITLE": "[7118975] !é=Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches=!",
+
+	"FIND_IN_FILES_TITLE": "« {4} » trouvé {5} &mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
 	"FIND_IN_FILES_MATCHES": "résultats",
-	"FIND_IN_FILES_MORE_THAN": "Par-dessus ",
+	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>Moins</a>",
 	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>Plus</a>",
@@ -444,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-    
+	"CMD_SHOW_PARAMETER_HINT": "[7119026] !é=Show Parameter Hint=!",
+	"NO_ARGUMENTS": "[7119027] !é=<no parameters>=!",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
