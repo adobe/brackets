@@ -320,8 +320,6 @@
 }
 
 .codehint-menu {
-    transition: left 170ms, right 170ms;
-
     .dropdown-menu {
         box-shadow: @tc-dropdown-shadow;
         max-height: 160px;
@@ -348,6 +346,10 @@
             }
         }
     }
+}
+
+.codehint-menu.apply-transition {
+    transition: top 170ms, right 170ms, bottom 170ms, left 170ms;
 }
 
 #context-menu-bar {
