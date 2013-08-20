@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -75,7 +75,7 @@ define({
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Webbläsaren kunde inte öppnas.",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome kunde inte hittas. Kontrollera att den är installerad.",
-    "ERROR_LAUNCHING_BROWSER"           : "Ett fel inträffade då webbläsare skulle startas. (error {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Ett fel inträffade då webbläsare skulle startas. (fel {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Förhandsvisning misslyckades",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Ansluter till webbläsare",
@@ -94,15 +94,17 @@ define({
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Koppla från förhandsvisningen",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Förhandsvisning: Klicka för att koppla från (Spara filen för att uppdatera)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was cancelled because the browser navigated to a page that is not part of the current project",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was cancelled for an unknown reason ({0})",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Förhandsgranskningen avbröts eftersom webbläsarens utvecklarverktyg öppnades.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Förhandsgranskningen avbröst eftersom sidan stängdes i webbläsaren.",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Förhandsgranskningen avbröts eftersom webbläsaren navigerades till en sida som inte är del av det nuvarande projektet.",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Förhandsgranskningen avbröts på grund av ett okänt fel. ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Spara ändringar?",
     "SAVE_CLOSE_MESSAGE"                : "Vill du spara de ändringar i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vill du spara ändringarna du gjort i dessa dokument?",
     "EXT_MODIFIED_TITLE"                : "Externa ändringar",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekräfta borttagning",
+    "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera katalogen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> har ändrats men har också osparade ändringar i {APP_NAME}.<br /><br />Vilken version vill du behålla?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> har raderats man har också osparade ändringar i {APP_NAME}.<br /><br />Vill du behålla dina ändringar?",
@@ -155,10 +157,12 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"             : "Rad {0}, Kolumn {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicka för att använda mellanslag för indrag",
+    "STATUSBAR_CURSOR_POSITION"             : "Rad {0}, kolumn {1}",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Markerade {0} kolumner",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Markerade {0} rader",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicka för att använda tabbar för indrag",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicka för att ändra antalet mellanslag som används vid indrag",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicka för att använda mellanslag för indrag",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicka för att ändra antalet mellanslag som används för indrag",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicka för att ändra bredden på tabbtecken",
     "STATUSBAR_SPACES"                      : "Mellanslag",
     "STATUSBAR_TAB_SIZE"                    : "Tabbstorlek",
@@ -278,6 +282,7 @@ define({
     "DONT_SAVE"                            : "Spara inte",
     "SAVE"                                 : "Spara",
     "CANCEL"                               : "Avbryt",
+    "DELETE"                               : "Radera",
     "RELOAD_FROM_DISK"                     : "Ladda om",
     "KEEP_CHANGES_IN_EDITOR"               : "Behåll ändringar i redigeraren",
     "CLOSE_DONT_SAVE"                      : "Stäng (Spara inte)",
@@ -410,6 +415,7 @@ define({
     "LOCALE_DE"                                 : "Tyska",
     "LOCALE_EN"                                 : "Engelska",
     "LOCALE_ES"                                 : "Spanska",
+    "LOCALE_FI"                                 : "Finska",
     "LOCALE_FR"                                 : "Franska",
     "LOCALE_IT"                                 : "Italienska",
     "LOCALE_JA"                                 : "Japanska",
