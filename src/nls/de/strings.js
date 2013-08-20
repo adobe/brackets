@@ -116,7 +116,9 @@ define({
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
+    "BUTTON_ALL"                        : "Alle",
     "BUTTON_STOP"                       : "Stopp",
+    "BUTTON_REPLACE"                    : "Ersetzen",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -125,6 +127,8 @@ define({
     "RELEASE_NOTES"                     : "Release-Notes",
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
+
+    "FIND_REPLACE_TITLE"                : "\"{0}\" durch \"{1}\" ersetzen &mdash; {3} {2} Treffer",
 
     "FIND_IN_FILES_TITLE"               : "\"{4}\" gefunden {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
@@ -442,6 +446,8 @@ define({
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
+    "NO_ARGUMENTS"                              : "<keine Parameter>",
 
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "JSLint aktivieren",
