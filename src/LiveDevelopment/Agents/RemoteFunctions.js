@@ -577,7 +577,7 @@ function RemoteFunctions(experimental) {
             moveNext        = start && start.nextSibling,
             current         = moveNext || (end && end.previousSibling) || targetElement.childNodes.item(targetElement.childNodes.length - 1),
             next,
-            textNode        = (edit.content !== undefined) ? document.createTextNode(edit.content) : null,
+            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(edit.content) : null,
             lastRemovedWasText,
             isText;
         
@@ -645,7 +645,7 @@ function RemoteFunctions(experimental) {
                 targetElement.remove();
                 break;
             case "elementInsert":
-                var childElement = document.createElement(edit.tag);
+                var childElement = self.htmlDocument.createElement(edit.tag);
                 
                 Object.keys(edit.attributes).forEach(function (attr) {
                     childElement.setAttribute(attr, edit.attributes[attr]);
@@ -655,7 +655,7 @@ function RemoteFunctions(experimental) {
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
-                var textElement = document.createTextNode(edit.content);
+                var textElement = self.htmlDocument.createTextNode(edit.content);
                 self._insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":

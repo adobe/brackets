@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine, Node */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
@@ -33,8 +33,11 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         MurmurHash3         = require("thirdparty/murmurhash3_gc");
+    
+    RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
         WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
@@ -45,6 +48,191 @@ define(function (require, exports, module) {
         instrumentedHTML,
         elementCount,
         elementIds = {};
+    
+    var domFeatures = Object.create({
+        insertBefore: function (newElement, referenceElement) {
+            var index = this.children.indexOf(referenceElement);
+            this.children.splice(index, 0, newElement);
+            newElement.parent = this;
+        },
+        appendChild: function (newElement) {
+            newElement.parent = this;
+            this.children.push(newElement);
+        },
+        remove: function () {
+            var siblings = this.siblings;
+            var index = siblings.indexOf(this);
+            siblings.splice(index, 1);
+        },
+        getNodeMap: function () {
+            var elem = this,
+                nodeMap;
+            while (elem) {
+                nodeMap = elem.nodeMap;
+                if (nodeMap) {
+                    break;
+                }
+                elem = elem.parent;
+            }
+            return nodeMap;
+        },
+        setAttribute: function (key, value) {
+            if (key === "data-brackets-id") {
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    nodeMap[key] = this;
+                } else {
+                    console.error("no nodemap found for ", this);
+                }
+
+            }
+            this.attributes[key] = value;
+        },
+        removeAttribute: function (key) {
+            delete this.attributes[key];
+        },
+        compare: function (other) {
+            if (this.children) {
+                expect(this.tag).toEqual(other.tag);
+                delete this.attributes["data-brackets-id"];
+                expect(this.attributes).toEqual(other.attributes);
+                console.log(this.children, other.children);
+                expect(this.children.length).toEqual(other.children.length);
+                var i;
+                for (i = 0; i < this.children.length; i++) {
+                    this.children[i].compare(other.children[i]);
+                }
+            } else {
+                expect(this.content).toEqual(other.content);
+            }
+        }
+    }, {
+        firstChild: {
+            get: function () {
+                return this.children[0];
+            }
+        },
+        lastChild: {
+            get: function () {
+                return this.children[this.children.length - 1];
+            }
+        },
+        siblings: {
+            get: function () {
+                return this.parent.children;
+            }
+        },
+        nextSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index + 1];
+            }
+        },
+        previousSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index - 1];
+            }
+        },
+        nodeType: {
+            get: function () {
+                if (this.children) {
+                    return Node.ELEMENT_NODE;
+                } else if (this.content) {
+                    return Node.TEXT_NODE;
+                }
+            }
+        },
+        childNodes: {
+            get: function () {
+                var children = this.children;
+                if (!children.item) {
+                    children.item = function (index) {
+                        return children[index];
+                    };
+                }
+                return children;
+            }
+        }
+    });
+    
+    // This style of setting __proto__ is purely to keep JSLint happy :(
+    var proto = '__proto__';
+    
+    function addDOMFeatures(node) {
+        node[proto] = domFeatures;
+        if (node.children) {
+            node.children.forEach(function (childNode) {
+                // put the parent back if it was cleared during cloneDOM
+                childNode.parent = node;
+                addDOMFeatures(childNode);
+            });
+        }
+    }
+    
+    function cloneDOM(root) {
+        var nodeMap = {};
+        
+        function doClone(parent, node) {
+            var newNode = Object.create(domFeatures);
+            newNode.parent = parent;
+            if (node.tagID) {
+                nodeMap[node.tagID] = newNode;
+                newNode.tagID = node.tagID;
+            }
+            newNode.content = node.content;
+            if (node.children) {
+                newNode.tag = node.tag;
+                newNode.attributes = $.extend({}, node.attributes);
+                newNode.children = node.children.map(function (child) {
+                    return doClone(newNode, child);
+                });
+            } else {
+                newNode.content = node.content;
+            }
+            return newNode;
+        }
+        
+        var newRoot = doClone(null, root);
+        newRoot.nodeMap = nodeMap;
+        return newRoot;
+    }
+    
+    var FakeDocument = function (nodeMap) {
+        this.nodeMap = nodeMap;
+    };
+    
+    var bracketsIdQuery = /\[data-brackets-id='(\d+)'\]/;
+    
+    FakeDocument.prototype = {
+        createTextNode: function (content) {
+            var text = Object.create(domFeatures);
+            text.content = content;
+            return text;
+        },
+        createElement: function (tag) {
+            var el = Object.create(domFeatures);
+            el.tag = tag;
+            el.attributes = {};
+            el.children = [];
+            el.nodeMap = this.nodeMap;
+            return el;
+        },
+        querySelectorAll: function (query) {
+            var match = bracketsIdQuery.exec(query);
+            expect(match).not.toBeNull();
+            if (!match) {
+                return [];
+            }
+            var id = match[1];
+            var element = this.nodeMap[id];
+            if (element) {
+                return [element];
+            }
+        }
+    };
     
     function init(spec, fileEntry) {
         spec.fileContent = null;
@@ -763,10 +951,17 @@ define(function (require, exports, module) {
                 
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                     result;
+                
+                var clonedDOM = cloneDOM(previousDOM);
+                
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 editFn(editor, previousDOM);
 
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                var htmlDocument = new FakeDocument(clonedDOM.nodeMap);
+                var editHandler = new RemoteFunctions.DOMEditHandler(htmlDocument);
+                editHandler.apply(result.edits);
+                clonedDOM.compare(result.dom);
                 expectationFn(result, previousDOM, incremental);
             }
 
