@@ -166,6 +166,7 @@ define({
     "CMD_LIVE_FILE_PREVIEW"               : "Canlı Önizleme",
     "CMD_PROJECT_SETTINGS"                : "Proje Ayarları\u2026",
     "CMD_FILE_RENAME"                     : "Yeniden Adlandır",
+    "CMD_FILE_DELETE"                     : "Sil",
     "CMD_QUIT"                            : "Çık",
 
     // Edit menu commands
@@ -210,6 +211,7 @@ define({
     "CMD_NEXT_DOC"                        : "Sonraki Dosya",
     "CMD_PREV_DOC"                        : "Önceki Dosya",
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
+    "CMD_SHOW_IN_OS"                      : "Bulunduğu Konumu Aç",
     
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
