@@ -50,6 +50,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
         StringUtils         = require("utils/StringUtils");
 
@@ -203,8 +204,13 @@ define(function HTMLDocumentModule(require, exports, module) {
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
         var self                = this,
+            perfTimerName       = PerfUtils.markStart("HTMLDocument applyDOMEdits"),
             edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
             applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
+
+        applyEditsPromise.always(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        });
         
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:
