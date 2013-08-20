@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $, window */
 
 define(function (require, exports, module) {
@@ -279,13 +279,13 @@ define(function (require, exports, module) {
                 end.ch = start.ch;
             }
 
-            var parenMatch = hint.match(/url\([\w\W]*?\)/i);
+            var parenMatch = hint.match(/\(.*?\)/);
             if (parenMatch) {
-                // value has url(...), so place cursor inside opening paren
+                // value has (...), so place cursor inside opening paren
                 // and keep hints open
                 adjustCursor = true;
                 newCursor = { line: cursor.line,
-                              ch: cursor.ch + 4 - this.info.offset };
+                              ch: start.ch + parenMatch.index + 1 };
                 keepHints = true;
             }
         }
