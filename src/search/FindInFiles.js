@@ -310,14 +310,14 @@ define(function (require, exports, module) {
      * @return {{files: number, matches: number}}
      */
     function _countFilesMatches() {
-		var numFiles = 0, numMatches = 0;
+        var numFiles = 0, numMatches = 0;
         CollectionUtils.forEach(searchResults, function (item) {
             numFiles++;
             numMatches += item.matches.length;
         });
-        
+
         return {files: numFiles, matches: numMatches};
-	}
+    }
     
     /**
      * @private
