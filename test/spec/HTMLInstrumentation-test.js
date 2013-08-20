@@ -86,6 +86,12 @@ define(function (require, exports, module) {
             }
         },
         remove: function () {
+            if (this.tagID) {
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    delete nodeMap[this.tagID];
+                }
+            }
             var siblings = this.siblings;
             var index = siblings.indexOf(this);
             siblings.splice(index, 1);
@@ -109,6 +115,7 @@ define(function (require, exports, module) {
         },
         setAttribute: function (key, value) {
             if (key === "data-brackets-id") {
+                this.tagID = value;
                 var nodeMap = this.getNodeMap();
                 if (nodeMap) {
                     nodeMap[key] = this;
@@ -129,6 +136,7 @@ define(function (require, exports, module) {
         compare: function (other) {
             if (this.children) {
                 expect(this.tag).toEqual(other.tag);
+                expect(this.tagID).toEqual(other.tagID);
                 delete this.attributes["data-brackets-id"];
                 expect(this.attributes).toEqual(other.attributes);
                 expect(this.children.length).toEqual(other.children.length);
@@ -204,11 +212,7 @@ define(function (require, exports, module) {
     function addDOMFeatures(node) {
         node[proto] = domFeatures;
         if (node.children) {
-            node.children.forEach(function (childNode) {
-                // put the parent back if it was cleared during cloneDOM
-                childNode.parent = node;
-                addDOMFeatures(childNode);
-            });
+            node.children.forEach(addDOMFeatures);
         }
     }
     

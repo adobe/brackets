@@ -667,7 +667,6 @@ define(function (require, exports, module) {
                     // Overwrite any node mappings in the parent DOM with the
                     // mappings for the new subtree. We keep the nodeMap around
                     // on the new subtree so that the differ can use it later.
-                    // TODO: should we ever null out the nodeMap on the subtree?
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
                     
                     // Update marked ranges for all items in the new subtree.
@@ -1078,6 +1077,12 @@ define(function (require, exports, module) {
         }
         
         var edits = domdiff(result.oldSubtree, result.newSubtree);
+        
+        // We're done with the nodeMap that was added to the subtree by the updater.
+        if (result.newSubtree !== result.newDOM) {
+            delete result.newSubtree.nodeMap;
+        }
+        
         return {
             dom: result.newDOM,
             edits: edits
