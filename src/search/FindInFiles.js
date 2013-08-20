@@ -404,12 +404,12 @@ define(function (require, exports, module) {
                                                             
                     // Add a row for each file
                     var relativePath = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
+                        directoryPath = FileUtils.getDirectoryPath(relativePath),
                         displayFileName = StringUtils.format(
                             Strings.FIND_IN_FILES_FILE_PATH,
                             StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
-                            StringUtils.breakableUrl(FileUtils.getDirectoryPath(relativePath),
-                                relativePath ? "&mdash;" : ""
-                                )
+                            StringUtils.breakableUrl(directoryPath),
+                            directoryPath ? "&mdash;" : ""
                         );
 
                     searchList.push({
