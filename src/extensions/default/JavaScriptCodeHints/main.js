@@ -27,24 +27,24 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        EditorManager   = brackets.getModule("editor/EditorManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
-        Commands        = brackets.getModule("command/Commands"),
-        CommandManager  = brackets.getModule("command/CommandManager"),
-        Menus           = brackets.getModule("command/Menus"),
-        Strings         = brackets.getModule("strings"),
-        AppInit         = brackets.getModule("utils/AppInit"),
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        PerfUtils       = brackets.getModule("utils/PerfUtils"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
-        StringMatch     = brackets.getModule("utils/StringMatch"),
-        LanguageManager = brackets.getModule("language/LanguageManager"),
-        ProjectManager  = brackets.getModule("project/ProjectManager"),
-        HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager"),
-        Session         = require("Session"),
-        Acorn           = require("thirdparty/acorn/acorn");
+    var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
+        EditorManager        = brackets.getModule("editor/EditorManager"),
+        DocumentManager      = brackets.getModule("document/DocumentManager"),
+        Commands             = brackets.getModule("command/Commands"),
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        Menus                = brackets.getModule("command/Menus"),
+        AppInit              = brackets.getModule("utils/AppInit"),
+        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+        PerfUtils            = brackets.getModule("utils/PerfUtils"),
+        StringUtils          = brackets.getModule("utils/StringUtils"),
+        StringMatch          = brackets.getModule("utils/StringMatch"),
+        LanguageManager      = brackets.getModule("language/LanguageManager"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        ParameterHintManager = require("ParameterHintManager"),
+        HintUtils            = require("HintUtils"),
+        ScopeManager         = require("ScopeManager"),
+        Session              = require("Session"),
+        Acorn                = require("thirdparty/acorn/acorn");
 
     var session      = null,  // object that encapsulates the current session state
         cachedCursor = null,  // last cursor of the current hinting session
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
     /**
      *  Get the value of current session.
      *  Used for unit testing.
-     * @returns {Session} - the current session.
+     * @return {Session} - the current session.
      */
     function getSession() {
         return session;
@@ -187,12 +187,12 @@ define(function (require, exports, module) {
             type    = session.getType();
 
         return !cachedHints || !cachedCursor || !cachedType ||
-                cachedCursor.line !== cursor.line ||
-                type.property !== cachedType.property ||
-                type.context !== cachedType.context ||
-                type.showFunctionType !== cachedType.showFunctionType ||
-                (type.functionCallPos && cachedType.functionCallPos &&
-                    type.functionCallPos.ch !== cachedType.functionCallPos.ch);
+            cachedCursor.line !== cursor.line ||
+            type.property !== cachedType.property ||
+            type.context !== cachedType.context ||
+            type.showFunctionType !== cachedType.showFunctionType ||
+            (type.functionCallPos && cachedType.functionCallPos &&
+            type.functionCallPos.ch !== cachedType.functionCallPos.ch);
     };
 
     /**
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
     /**
      *  Create a new StringMatcher instance, if needed.
      *
-     * @returns {StringMatcher} - a StringMatcher instance.
+     * @return {StringMatcher} - a StringMatcher instance.
      */
     function getStringMatcher() {
         if (!matcher) {
@@ -299,7 +299,7 @@ define(function (require, exports, module) {
      *  Check if a hint response is pending.
      *
      * @param {jQuery.Deferred} deferredHints - deferred hint response
-     * @returns {boolean} - true if deferred hints are pending, false otherwise.
+     * @return {boolean} - true if deferred hints are pending, false otherwise.
      */
     function hintsArePending(deferredHints) {
         return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
@@ -467,14 +467,9 @@ define(function (require, exports, module) {
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: cursor.ch},
-            delimiter;
+            invalidPropertyName = false,
+            displayFunctionHint = false;
 
-        if (session.getType().showFunctionType) {
-            // function types show up as hints, so don't insert anything
-            // if we were displaying a function type            
-            return false;
-        }
-        
         if (session.getType().property) {
             // if we're inserting a property name, we need to make sure the 
             // hint is a valid property name.  
@@ -482,9 +477,8 @@ define(function (require, exports, module) {
             // it should result in one token, and that token should either be 
             // a 'name' or a 'keyword', as javascript allows keywords as property names
             var tokenizer = Acorn.tokenize(completion);
-            var currentToken = tokenizer(),
-                invalidPropertyName = false;
-            
+            var currentToken = tokenizer();
+
             // the name is invalid if the hint is not a 'name' or 'keyword' token
             if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
                 invalidPropertyName = true;
@@ -508,6 +502,14 @@ define(function (require, exports, module) {
                 }
             }
         }
+
+        // If the completion is for a valid function, then append
+        // "()" to the function name.
+        if (!invalidPropertyName && /^fn\(/.test(hint.type)) {
+            completion = completion.concat("()");
+            displayFunctionHint = true;
+        }
+
         // Replace the current token with the completion
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The
@@ -515,11 +517,31 @@ define(function (require, exports, module) {
         // inline editors are open.
         session.editor._codeMirror.replaceRange(completion, start, end);
 
+        // If displaying a function hint, move the cursor inside the "()".
+        // Then pop-up a function hint.
+        if (displayFunctionHint) {
+            var pos = {line: start.line, ch: start.ch + completion.length - 1};
+
+            // stop cursor tracking before setting the cursor to avoid bringing
+            // down the current hint.
+            if (ParameterHintManager.isHintDisplayed()) {
+                ParameterHintManager.stopCursorTracking(session);
+            }
+
+            session.editor._codeMirror.setCursor(pos);
+
+            if (ParameterHintManager.isHintDisplayed()) {
+                ParameterHintManager.startCursorTracking(session);
+            }
+
+            ParameterHintManager.popUpHint(ParameterHintManager.PUSH_EXISTING_HINT);
+        }
+
         // Return false to indicate that another hinting session is not needed
         return false;
     };
 
-     // load the extension
+    // load the extension
     AppInit.appReady(function () {
 
         /*
@@ -533,6 +555,7 @@ define(function (require, exports, module) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
                 previousEditor ? previousEditor.document : null);
+            ParameterHintManager.setSession(session);
             cachedHints = null;
         }
 
@@ -556,6 +579,8 @@ define(function (require, exports, module) {
                         }
                         ignoreChange = false;
                     });
+
+                ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
             }
@@ -762,6 +787,8 @@ define(function (require, exports, module) {
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
+
+        ParameterHintManager.addCommands();
 
         // for unit testing
         exports.getSession = getSession;

@@ -116,16 +116,16 @@
 
     background: @main-toolbar-background-color;
     padding: 7px 0px;
-    
+
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
     .box-flex(1);
     text-align: center;
-    
+
     .buttons {
         text-align: center;
         margin: 0;
-    
+
         > a {
             border-radius: 3px;
             background-repeat: none;
@@ -134,15 +134,15 @@
             margin: 7px 0px 0px 3px;
             width: 24px;
         }
-        
+
         > a:hover {
             background-color: rgba(0, 0, 0, 0.24) !important;
         }
-    
+
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }     
+    }
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
@@ -239,9 +239,9 @@
 
         margin-top: 0;
         background-color: @bc-white;
-        border: 1px solid #c8c8c8;
         .border-radius(0 0 3px 3px);
-        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        box-shadow: @tc-dropdown-shadow;
+        border: none;
 
         // Menu items
         li {
@@ -311,6 +311,7 @@
 
     .dropdown-menu {
         .border-radius(3px);
+        box-shadow: @tc-dropdown-shadow;
     }
 
     .menu-shortcut {
@@ -319,11 +320,11 @@
 }
 
 .codehint-menu {
+    opacity: 0;
     .dropdown-menu {
-        .box-shadow(none);
+        box-shadow: @tc-dropdown-shadow;
         max-height: 160px;
         overflow-y: auto;
-
         padding: 0;
 
         li {
@@ -338,7 +339,7 @@
                     background-color: @bc-white;
                 }
 
-				// ...except for selected item
+                // ...except for selected item
                 &.highlight:hover {
                     color: @bc-black;
                     background-color: @item-highlight-color;
@@ -346,6 +347,15 @@
             }
         }
     }
+}
+
+.codehint-menu.open {
+    opacity: 1;
+    transition: opacity 67ms cubic-bezier(0.03, 0.78, 0.17, 0.97);
+}
+
+.codehint-menu.apply-transition {
+    transition: top 167ms, right 167ms, bottom 167ms, left 167ms;
 }
 
 #context-menu-bar {
@@ -518,11 +528,11 @@
         border-bottom: none;
         padding: 0;
         width: auto;
-        
+
         .nav-tabs {
             margin: 0;
             border-color: #c3c6c5;
-            
+
             /* Tab styling */
             > li > a {
                 min-width: 80px;
@@ -530,32 +540,32 @@
                 color: black;
                 cursor: default;
                 font-size: 12px;
-                
+
                 .box;
                 box-sizing: border-box;
                 .box-align(center);
                 .box-pack(center);
                 padding: 0;
                 margin: 0;
-                
+
                 text-align: center;
-                
+
                 &:hover {
                     background-color: rgba(0, 0, 0, 0.04);
                     border-color: rgba(0, 0, 0, 0.04);
                 }
-                
+
                 > img {
                     margin-top: 5px;
                     padding-bottom: 2px;
                 }
             }
-            
+
             /* Remove border-left from the first tab */
             > li:nth-child(1) > a {
                 border-left: transparent;
             }
-            
+
             /* Colors for the active tab, remove bottom border */
             > .active > a,
             > .active > a:hover {
@@ -563,7 +573,7 @@
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
         }
-        
+
         /* Search box */
         > :nth-child(2) {
             position: absolute;
@@ -616,12 +626,12 @@
             margin-top: -1em;
             text-align: center;
         }
-        
+
         .info-message {
             background-color: @tc-gray-panel;
             padding: 1em;
         }
-        
+
         .spinner {
             position: absolute;
             top: 50%;
@@ -812,13 +822,14 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
+    cursor: default;
     font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
     .border-radius(@tc-control-border-radius);
     box-shadow: @tc-button-highlight;
+    -webkit-font-smoothing: antialiased;
 
     &:hover {
         background-color: @tc-button-background;
@@ -844,7 +855,7 @@ input[type="color"],
 
     &.disabled, &[disabled] {
         opacity: @tc-disabled-opacity;
-    }    
+    }
 
     // Primary Button Type
     &.primary {
@@ -962,4 +973,42 @@ dt,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
     color: @tc-warning-text;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    margin: 0;
+}
+
+input[type="checkbox"] {
+    height: 13px;
+    width: 13px;
+    vertical-align: middle;
+    border: 1px solid @tc-gray-component-border;
+    border-radius: 3px;
+    background-color: @tc-button-background;
+    -webkit-appearance: none;
+    box-shadow: @tc-button-highlight;
+}
+
+input[type="checkbox"]:active:not(:disabled) {
+    background-color: @tc-button-down-background;
+    box-shadow: @tc-button-down-shadow;
+}
+
+input[type="checkbox"]:focus {
+    outline:none;
+    border: 1px solid @tc-gray-component-focused-border;
+    box-shadow: @tc-input-glow;
+}
+
+input[type="checkbox"]:checked:before {
+    font-weight: bold;
+    color: @tc-text;
+    content: '\2713';
+    -webkit-margin-start: 0;
+    position: relative;
+    left: 2px;
+    top: -7px;
+    font-size: 16px;
 }
