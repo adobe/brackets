@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
+        DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
@@ -69,7 +70,8 @@ define(function (require, exports, module) {
     
     /** @cost Constants used to define the maximum results show per page and found in a single file */
     var RESULTS_PER_PAGE = 100,
-        FIND_IN_FILE_MAX = 300;
+        FIND_IN_FILE_MAX = 300,
+        UPDATE_TIMEOUT   = 400;
     
     /**
      * Map of all the last search results
@@ -94,6 +96,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
+    
+    /** @type {string} The setTimeout id, used to clear it if required */
+    var timeoutID = null;
     
     /** @type {$.Element} jQuery elements used in the search results */
     var $searchResults,
@@ -623,15 +628,17 @@ define(function (require, exports, module) {
      * Shows the search results and tries to restore the previous scroll and selection
      */
     function _restoreSearchResults() {
-        var scrollTop = $searchContent.scrollTop(),
-            index     = $selectedRow ? $selectedRow.index() : null;
-        
-        _showSearchResults();
-        
-        $searchContent.scrollTop(scrollTop);
-        if (index) {
-            $selectedRow = $searchContent.find("tr:eq(" + index + ")");
-            $selectedRow.addClass("selected");
+        if (searchResultsPanel.isVisible()) {
+            var scrollTop = $searchContent.scrollTop(),
+                index     = $selectedRow ? $selectedRow.index() : null;
+            
+            _showSearchResults();
+            
+            $searchContent.scrollTop(scrollTop);
+            if (index) {
+                $selectedRow = $searchContent.find("tr:eq(" + index + ")");
+                $selectedRow.addClass("selected");
+            }
         }
     }
     
@@ -690,115 +697,116 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Update the result matches every time the content of a file changes
-     * @param {$.Event} event
+     * Update the search results using the given list of changes fr the given document
      * @param {Document} doc  The Document that changed, should be the current one
      * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
      *      A linked list as described in the Document constructor
-     * @param {boolean=} resultsChanged  True when the search results changed from a file change
+     * @param {boolean} resultsChanged  True when the search results changed from a file change
      */
-    function _fileChangeHandler(event, doc, change, resultsChanged) {
-        if ($searchResults.is(":visible")) {
-            var i, diff, matches,
-                fullPath = doc.file.fullPath,
-                lines    = [],
-                start    = 0,
-                howMany  = 0;
+    function _updateSearchResults(doc, change, resultsChanged) {
+        var i, diff, matches,
+            fullPath = doc.file.fullPath,
+            lines    = [],
+            start    = 0,
+            howMany  = 0;
             
-            // There is no from or to positions, so the entire file changed, we must search all over again
-            if (!change.from || !change.to) {
-                _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
-                _restoreSearchResults();
-            
+        // There is no from or to positions, so the entire file changed, we must search all over again
+        if (!change.from || !change.to) {
+            _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+            resultsChanged = true;
+        
+        } else {
+            // Get only the lines that changed
+            for (i = 0; i < change.text.length; i++) {
+                lines.push(doc.getLine(change.from.line + i));
+            }
+                
+            // We need to know how many lines changed to update the rest of the lines
+            if (change.from.line !== change.to.line) {
+                diff = change.from.line - change.to.line;
             } else {
-                // Get only the lines that changed
-                for (i = 0; i < change.text.length; i++) {
-                    lines.push(doc.getLine(change.from.line + i));
-                }
-                
-                // We need to know how many lines changed to update the rest of the lines
-                if (change.from.line !== change.to.line) {
-                    diff = change.from.line - change.to.line;
-                } else {
-                    diff = lines.length - 1;
-                }
-                
-                if (searchResults[fullPath]) {
-                    // Search the last match before a replacement, the amount of matches deleted and update
-                    // the lines values for all the matches after the change
-                    searchResults[fullPath].matches.forEach(function (item) {
-                        if (item.end.line < change.from.line) {
-                            start++;
-                        } else if (item.end.line <= change.to.line) {
-                            howMany++;
-                        } else {
-                            item.start.line += diff;
-                            item.end.line   += diff;
-                        }
-                    });
-                    
-                    // Delete the lines that where deleted or replaced
-                    if (howMany > 0) {
-                        searchResults[fullPath].matches.splice(start, howMany);
-                    }
-                    resultsChanged = true;
-                }
-                
-                // Searches only over the lines that changed
-                matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
-                if (matches && matches.length) {
-                    // Updates the line numbers, since we only searched part of the file
-                    matches.forEach(function (value, key) {
-                        matches[key].start.line += change.from.line;
-                        matches[key].end.line   += change.from.line;
-                    });
-                    
-                    // If the file index exists, add the new matches to the file at the start index found before
-                    if (searchResults[fullPath]) {
-                        Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
-                    // If not, add the matches to a new file index
+                diff = lines.length - 1;
+            }
+            
+            if (searchResults[fullPath]) {
+                // Search the last match before a replacement, the amount of matches deleted and update
+                // the lines values for all the matches after the change
+                searchResults[fullPath].matches.forEach(function (item) {
+                    if (item.end.line < change.from.line) {
+                        start++;
+                    } else if (item.end.line <= change.to.line) {
+                        howMany++;
                     } else {
-                        searchResults[fullPath] = {
-                            matches:   matches,
-                            collapsed: false
-                        };
+                        item.start.line += diff;
+                        item.end.line   += diff;
                     }
-                    resultsChanged = true;
-                }
+                });
                 
-                // All the matches where deleted, remove the file from the results
-                if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
+                // Delete the lines that where deleted or replaced
+                if (howMany > 0) {
+                    searchResults[fullPath].matches.splice(start, howMany);
                 }
+                resultsChanged = true;
+            }
+            
+            // Searches only over the lines that changed
+            matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+            if (matches && matches.length) {
+                // Updates the line numbers, since we only searched part of the file
+                matches.forEach(function (value, key) {
+                    matches[key].start.line += change.from.line;
+                    matches[key].end.line   += change.from.line;
+                });
                 
-                // This is link to the next change object, so we need to keep searching
-                if (change.next) {
-                    _fileChangeHandler(event, doc, change.next, resultsChanged);
-                
-                // If not we can show the results, but only if something changed
-                } else if (resultsChanged) {
-                    _restoreSearchResults();
+                // If the file index exists, add the new matches to the file at the start index found before
+                if (searchResults[fullPath]) {
+                    Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
+                // If not, add the matches to a new file index
+                } else {
+                    searchResults[fullPath] = {
+                        matches:   matches,
+                        collapsed: false
+                    };
                 }
+                resultsChanged = true;
+            }
+            
+            // All the matches where deleted, remove the file from the results
+            if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
+                delete searchResults[fullPath];
+                resultsChanged = true;
+            }
+            
+            // This is link to the next change object, so we need to keep searching
+            if (change.next) {
+                return _updateSearchResults(doc, change.next, resultsChanged);
             }
         }
+        return resultsChanged;
     }
     
     /**
      * @private
-     * Updates the event listeners when the current editor changes
+     * Tries to update the search result on document changes
      * @param {$.Event} event
-     * @param {Editor} current
-     * @param {Editor} previous
+     * @param {Document} document
+     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
+     *      A linked list as described in the Document constructor
      */
-    function _currentEditorChangeHandler(event, current, previous) {
-        if (previous) {
-            previous.document.releaseRef();
-            $(previous.document).off("change", _fileChangeHandler);
-        }
-        if (_inScope(current.document.file, currentScope)) {
-            current.document.addRef();
-            $(current.document).on("change", _fileChangeHandler);
+    function _documentChangeHandler(event, document, change) {
+        if (searchResultsPanel.isVisible() && _inScope(document.file, currentScope)) {
+            var updateResults = _updateSearchResults(document, change, false);
+            
+            if (timeoutID) {
+                window.clearTimeout(timeoutID);
+                updateResults = true;
+            }
+            if (updateResults) {
+                timeoutID = window.setTimeout(function () {
+                    _restoreSearchResults();
+                    timeoutID = null;
+                }, UPDATE_TIMEOUT);
+            }
         }
     }
     
@@ -818,7 +826,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
     $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
-    $(EditorManager).on("activeEditorChange",  _currentEditorChangeHandler);
+    $(DocumentModule).on("documentChange",     _documentChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
