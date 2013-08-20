@@ -403,13 +403,14 @@ define(function (require, exports, module) {
                     }
                                                             
                     // Add a row for each file
-                    var displayFileName = StringUtils.format(
-                        Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
-                        StringUtils.breakableUrl(FileUtils.getDirectoryPath(
-                            ProjectManager.makeProjectRelativeIfPossible(fullPath)
-                        ))
-                    );
+                    var relativePath = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
+                        displayFileName = StringUtils.format(
+                            Strings.FIND_IN_FILES_FILE_PATH,
+                            StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                            StringUtils.breakableUrl(FileUtils.getDirectoryPath(relativePath),
+                                relativePath ? "&mdash;" : ""
+                                )
+                        );
 
                     searchList.push({
                         file:     searchList.length,
