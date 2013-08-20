@@ -446,7 +446,9 @@ define(function (require, exports, module) {
                                  " region-break-before: \n;" + // line 6
                                  " -ms-region\n;" + // line 7
                                  " -webkit-region\n;" + // line 8
-                                 "}\n"; // line 9
+                                 " flow-from: \n;" + // line 9
+                                 " flow-into: \n;" + // line 10
+                                 "}\n"; // line 11
 
             beforeEach(function () {
                 // create dummy Document for the Editor
@@ -513,6 +515,20 @@ define(function (require, exports, module) {
                 hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "region-break-after");  // first hint should be region-break-after
                 verifyAllValues(hintList, ["region-break-after", "region-break-before", "region-break-inside", "region-fragment"]);
+            });
+            
+            it("should list 2 value-name hints for flow-from", function () {
+                testEditor.setCursorPos({ line: 9, ch: 12 });    // after flow-from
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "inherit");  // first hint should be inherit
+                verifyAllValues(hintList, ["inherit", "none"]);
+            });
+
+            it("should list 1 value-name hint for flow-into", function () {
+                testEditor.setCursorPos({ line: 10, ch: 12 });    // after flow-into
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "none");  // first hint should be none
+                verifyAllValues(hintList, ["none"]);
             });
         });
     });
