@@ -58,8 +58,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
         
-        // supress redundant quit menu item on mac
-        if (brackets.platform !== "mac" && brackets.nativeMenus) {
+        // suppress redundant quit menu item on mac
+        if (brackets.platform !== "mac" || !brackets.nativeMenus) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
