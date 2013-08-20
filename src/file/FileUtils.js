@@ -390,7 +390,7 @@ define(function (require, exports, module) {
      */
     function _getFilenameWithoutExtension(filename) {
         var extension = getFilenameExtension(filename);
-        return extension ? filename.replace(new RegExp("\." + extension + "$"), "") : filename;
+        return extension ? filename.replace(new RegExp("." + extension + "$"), "") : filename;
     }
     
     /**
