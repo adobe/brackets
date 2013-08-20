@@ -166,6 +166,42 @@ define(function (require, exports, module) {
         },
 
         /**
+         * Shows a modal dialog for selecting a new file name
+         *
+         * @param {string} title The title of the dialog.
+         * @param {string} initialPath The folder opened inside the window initially. If initialPath
+         *                          is not set, or it doesn't exist, the window would show the last
+         *                          browsed folder depending on the OS preferences.
+         * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
+         *                          on the current file name plus an additional suffix
+         * @param {function(string} successCallback Callback function for successful operations.
+                                    Receives the path of the selected file name.
+         * @param {function(DOMError)=} errorCallback Callback function for error operations.
+         */
+        showSaveDialog: function (title,
+                                    initialPath,
+                                    proposedNewFilename,
+                                    successCallback,
+                                    errorCallback) {
+            if (!successCallback) {
+                return;
+            }
+
+            var newFile = brackets.fs.showSaveDialog(
+                title,
+                initialPath,
+                proposedNewFilename,
+                function (err, data) {
+                    if (!err) {
+                        successCallback(data);
+                    } else if (errorCallback) {
+                        errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                    }
+                }
+            );
+        },
+
+        /**
          * Implementation of w3 requestFileSystem entry point
          * @param {string} path Path to a directory. This directory will serve as the root of the 
          *                          FileSystem instance.
@@ -365,13 +401,26 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deletes a file or directory
+     * Deletes a file or directory by moving to the trash/recycle bin.
      * @param {function()} successCallback Callback function for successful operations
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+        var deleteFunc = brackets.fs.moveToTrash; // Future: Could fallback to unlink 
+        
+        if (!deleteFunc) {
+            // Running in a shell that doesn't support moveToTrash. Return an error.
+            errorCallback(brackets.fs.ERR_UNKNOWN);
+            return;
+        }
+        
+        deleteFunc(this.fullPath, function (err) {
+            if (err === brackets.fs.NO_ERROR) {
+                successCallback();
+            } else {
+                errorCallback(err);
+            }
+        });
     };
     
     /**
@@ -595,6 +644,44 @@ define(function (require, exports, module) {
         successCallback(newFile);
 
         // TODO (issue #241): errorCallback
+    };
+    
+    /**
+     * An InaccessibleFileEntry represents an inaccessible file on a file system.
+     * In particular, InaccessibleFileEntry objects are used as in the representation
+     * of untitled Documents.
+     *
+     * @constructor
+     * @param {string} name Full path of the file in the file system
+     * @param {FileSystem} fs File system that contains this entry
+     * @extends {FileEntry}
+     */
+    NativeFileSystem.InaccessibleFileEntry = function (name, mtime) {
+        NativeFileSystem.FileEntry.call(this, name, false);
+        this.mtime = mtime;
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype = Object.create(NativeFileSystem.FileEntry.prototype);
+    NativeFileSystem.InaccessibleFileEntry.prototype.constructor = NativeFileSystem.InaccessibleFileEntry;
+    NativeFileSystem.InaccessibleFileEntry.prototype.parentClass = NativeFileSystem.FileEntry.prototype;
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.createWriter is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.file = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.file is unsupported");
+        errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.getMetadata = function (successCallback, errorCallback) {
+        successCallback(new NativeFileSystem.Metadata(this.mtime));
+    };
+    
+    NativeFileSystem.InaccessibleFileEntry.prototype.remove = function (successCallback, errorCallback) {
+        console.error("InaccessibleFileEntry.remove is unsupported");
+        errorCallback(new NativeFileError(NativeFileSystem.NOT_FOUND_ERR));
     };
 
     /**

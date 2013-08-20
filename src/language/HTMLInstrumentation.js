@@ -211,19 +211,22 @@ define(function (require, exports, module) {
      */
     function generateInstrumentedHTML(doc) {
         var tags = scanDocument(doc).slice(),
-            gen = doc.getText();
+            orig = doc.getText(),
+            gen = "",
+            lastIndex = 0;
         
         // Walk through the tags and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var i, insertCount = 0;
+        var i;
         tags.forEach(function (tag) {
             var attrText = " data-brackets-id='" + tag.tagID + "'";
 
             // Insert the attribute as the first attribute in the tag.
-            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
-            gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
-            insertCount += attrText.length;
+            var insertIndex = tag.offset + tag.name.length + 1;
+            gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
+            lastIndex = insertIndex;
         });
+        gen += orig.substr(lastIndex);
         
         return gen;
     }

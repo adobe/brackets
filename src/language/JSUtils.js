@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, CodeMirror */
+/*global define, $, brackets, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
+        FileUtils               = require("file/FileUtils"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -365,19 +366,24 @@ define(function (require, exports, module) {
      *
      * @param {!String} functionName The name to match.
      * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
+     * @param {boolean=} keepAllFiles If true, don't ignore non-javascript files.
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
      */
-    function findMatchingFunctions(functionName, fileInfos) {
+    function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
         var result          = new $.Deferred(),
             jsFiles         = [],
             docEntries      = [];
         
-        // Filter fileInfos for .js files
-        jsFiles = fileInfos.filter(function (fileInfo) {
-            return (/^\.js/i).test(PathUtils.filenameExtension(fileInfo.fullPath));
-        });
+        if (!keepAllFiles) {
+            // Filter fileInfos for .js files
+            jsFiles = fileInfos.filter(function (fileInfo) {
+                return (/^\.js/i).test(FileUtils.getFilenameExtension(fileInfo.fullPath));
+            });
+        } else {
+            jsFiles = fileInfos;
+        }
         
         // RegExp search (or cache lookup) for all functions in the project
         _getFunctionsInFiles(jsFiles).done(function (docEntries) {

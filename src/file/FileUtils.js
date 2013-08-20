@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
@@ -79,6 +80,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
@@ -104,6 +107,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();
@@ -177,7 +182,7 @@ define(function (require, exports, module) {
     
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
@@ -201,6 +206,22 @@ define(function (require, exports, module) {
             return path.substr(1);
         }
         
+        return path;
+    }
+    
+    /**
+     * Convert a Windows-native path to use Unix style slashes.
+     * On Windows, this converts "C:\foo\bar\baz.txt" to "C:/foo/bar/baz.txt".
+     * On Mac, this does nothing, since Mac paths are already in Unix syntax.
+     * (Note that this does not add an initial forward-slash. Internally, our
+     * APIs generally use the "C:/foo/bar/baz.txt" style for "native" paths.)
+     * @param {string} path A native-style path.
+     * @return {string} A Unix-style path.
+     */
+    function convertWindowsPathToUnixPath(path) {
+        if (brackets.platform === "win") {
+            path = path.replace(/\\/g, "/");
+        }
         return path;
     }
     
@@ -311,7 +332,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
@@ -324,7 +345,7 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {string} file name with extension or just a file extension
+     * @param {string} fileExt file name with extension or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
@@ -334,6 +355,79 @@ define(function (require, exports, module) {
 
         return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
+    
+    /**
+     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory
+     */
+    function getDirectoryPath(fullPath) {
+        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
+    }
+
+    /**
+     * Get the base name of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        fullPath = canonicalizeFolderPath(fullPath);
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+    }
+
+    /**
+     * Get the filename extension.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getFilenameExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx      = baseName.lastIndexOf(".");
+
+        if (idx === -1) {
+            return "";
+        }
+
+        return baseName.substr(idx);
+    }
+    
+    /**
+     * @private
+     * Get the file name without the extension.
+     * @param {string} filename File name of a file or directory
+     * @return {string} Returns the file name without the extension
+     */
+    function _getFilenameWithoutExtension(filename) {
+        var extension = getFilenameExtension(filename);
+        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
+    }
+    
+    /**
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the
+     * extension first and then the extensions to fix issue #4409
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
+     * @return {number} The result of the local compare function
+     */
+    function compareFilenames(filename1, filename2, extFirst) {
+        var ext1   = getFilenameExtension(filename1),
+            ext2   = getFilenameExtension(filename2),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            cmpNames;
+        
+        if (brackets.platform === "win") {
+            filename1 = _getFilenameWithoutExtension(filename1);
+            filename2 = _getFilenameWithoutExtension(filename2);
+        }
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        
+        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+    }
+
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -346,6 +440,7 @@ define(function (require, exports, module) {
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
+    exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
@@ -353,4 +448,8 @@ define(function (require, exports, module) {
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
+    exports.getDirectoryPath               = getDirectoryPath;
+    exports.getBaseName                    = getBaseName;
+    exports.getFilenameExtension           = getFilenameExtension;
+    exports.compareFilenames               = compareFilenames;
 });

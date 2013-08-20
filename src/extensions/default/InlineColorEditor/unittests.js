@@ -399,7 +399,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         makeUI(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
     
                         // Not sure why the tolerances need to be larger for these.
@@ -413,10 +413,10 @@ define(function (require, exports, module) {
                     waits(1);
                     
                     runs(function () {
-                        checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
-                        checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$hueSelector[0].style.bottom, 25);
+                        checkPercentageNear(colorEditor.$opacitySelector[0].style.bottom, 50);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
                 
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
-                        expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
+                        expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
@@ -439,10 +439,10 @@ define(function (require, exports, module) {
                     waits(1);
 
                     runs(function () {
-                        checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
-                        checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$hueSelector[0].style.bottom, 25);
+                        checkPercentageNear(colorEditor.$opacitySelector[0].style.bottom, 50);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
     

@@ -23,15 +23,18 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
+/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    // Load dependent modules
     var ProjectManager,     // Load from brackets.test
         CommandManager,     // Load from brackets.test
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+
 
     describe("ProjectManager", function () {
         
@@ -41,26 +44,31 @@ define(function (require, exports, module) {
             testWindow,
             brackets;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
                 
                 // Load module instances from brackets.test
-                brackets = testWindow.brackets;
+                brackets       = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 CommandManager = testWindow.brackets.test.CommandManager;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
 
-        afterEach(function () {
+        afterLast(function () {
+            testWindow     = null;
+            brackets       = null;
+            ProjectManager = null;
+            CommandManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
+        
 
         describe("createNewItem", function () {
             it("should create a new file with a given name", function () {
                 var didCreate = false, gotError = false;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     // skip rename
@@ -106,8 +114,6 @@ define(function (require, exports, module) {
             it("should fail when a file already exists", function () {
                 var didCreate = false, gotError = false;
 
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-
                 runs(function () {
                     // skip rename
                     ProjectManager.createNewItem(testPath, "file.js", true)
@@ -119,13 +125,13 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
 
             it("should fail when a file name matches a directory that already exists", function () {
                 var didCreate = false, gotError = false;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     // skip rename
@@ -138,6 +144,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
 
@@ -146,8 +154,6 @@ define(function (require, exports, module) {
                 var i = 0;
                 var len = chars.length;
                 var charAt, didCreate, gotError;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 function createFile() {
                     // skip rename
@@ -163,6 +169,8 @@ define(function (require, exports, module) {
                 function assertFile() {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 }
                 
                 for (i = 0; i < len; i++) {
@@ -175,13 +183,245 @@ define(function (require, exports, module) {
                     runs(assertFile);
                 }
             });
+            it("should fail when file name is invalid", function () {
+                var files = ['com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+                              'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+                              'nul', 'con', 'prn', 'aux', '.', '..', '...'];
+                var i = 0;
+                var len = files.length;
+                var fileAt, didCreate, gotError;
+
+                function createFile() {
+                    // skip rename
+                    ProjectManager.createNewItem(testPath, fileAt, true)
+                        .done(function () { didCreate = true; })
+                        .fail(function () { gotError = true; });
+                }
+                
+                function waitForFileCreate() {
+                    return didCreate || gotError;
+                }
+                
+                function assertFile() {
+                    expect(gotError).toBeTruthy();
+                    expect(didCreate).toBeFalsy();
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                }
+                
+                for (i = 0; i < len; i++) {
+                    didCreate = false;
+                    gotError = false;
+                    fileAt = files[i];
+
+                    runs(createFile);
+                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
+                    runs(assertFile);
+                }
+            });
+        });
+        
+        describe("deleteItem", function () {
+            it("should delete the selected file in the project tree", function () {
+                var complete    = false,
+                    newFileName = testPath + "/delete_me.js",
+                    selectedFile,
+                    error,
+                    stat;
+
+                // Make sure we don't have any test file left from previous failure 
+                // by explicitly deleting the test file if it exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.unlink(newFileName, function (err) {
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
+
+                // Create a file and select it in the project tree.
+                runs(function () {
+                    complete = false;
+                    ProjectManager.createNewItem(testPath, "delete_me.js", true)
+                        .always(function () { complete = true; });
+                });
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFileName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                // Verify the existence of the new file and make sure it is selected in the project tree.
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isFile()).toBe(true);
+                    selectedFile = ProjectManager.getSelectedItem();
+                    expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
+                });
+
+                // Delete the selected file.
+                runs(function () {
+                    complete = false;
+                    // delete the new file
+                    ProjectManager.deleteItem(selectedFile)
+                        .always(function () { complete = true; });
+                });
+
+                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
+
+                // Verify that file no longer exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFileName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+
+                    // Verify that some other file is selected in the project tree.
+                    var curSelectedFile = ProjectManager.getSelectedItem();
+                    expect(curSelectedFile).not.toBe(selectedFile);
+                });
+            });
+
+            it("should delete the selected folder and all items in it.", function () {
+                var complete       = false,
+                    newFolderName  = testPath + "/toDelete/",
+                    rootFolderName = newFolderName,
+                    rootFolderEntry,
+                    error,
+                    stat;
+
+                // Make sure we don't have any test files/folders left from previous failure 
+                // by explicitly deleting the root test folder if it exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.moveToTrash(rootFolderName, function (err) {
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
+
+                // Create a folder
+                runs(function () {
+                    complete = false;
+                    ProjectManager.createNewItem(testPath, "toDelete", true, true)
+                        .always(function () { complete = true; });
+                });
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isDirectory()).toBe(true);
+
+                    rootFolderEntry = ProjectManager.getSelectedItem();
+                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
+                });
+
+                // Create a sub folder
+                runs(function () {
+                    complete = false;
+                    ProjectManager.createNewItem(newFolderName, "toDelete1", true, true)
+                        .always(function () { complete = true; });
+                });
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    newFolderName += "toDelete1/";
+                    complete = false;
+                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isDirectory()).toBe(true);
+                });
+
+                // Create a file in the sub folder just created.
+                runs(function () {
+                    complete = false;
+                    ProjectManager.createNewItem(newFolderName, "toDelete2.txt", true)
+                        .always(function () { complete = true; });
+                });
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newFolderName + "toDelete2.txt", function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBeFalsy();
+                    expect(stat.isFile()).toBe(true);
+                });
+                
+                // Delete the root folder and all files/folders in it.
+                runs(function () {
+                    complete = false;
+
+                    ProjectManager.deleteItem(rootFolderEntry)
+                        .always(function () { complete = true; });
+                });
+                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
+
+                // Verify that the root folder no longer exists.
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(rootFolderName, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+
+                    // Verify that some other file is selected in the project tree.
+                    var curSelectedFile = ProjectManager.getSelectedItem();
+                    expect(curSelectedFile).not.toBe(rootFolderEntry);
+                });
+            });
         });
         
         describe("Selection indicator", function () {
             
             function expectSelected(fullPath) {
-                var $projectTreeItems = testWindow.$("#project-files-container > ul").children();
-                var $selectedItem = $projectTreeItems.find("a.jstree-clicked");
+                var $projectTreeItems = testWindow.$("#project-files-container > ul").children(),
+                    $selectedItem     = $projectTreeItems.find("a.jstree-clicked");
+                
                 if (!fullPath) {
                     expect($selectedItem.length).toBe(0);
                 } else {
@@ -191,7 +431,6 @@ define(function (require, exports, module) {
             }
             
             it("should deselect after opening file not rendered in tree", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     exposedFile   = testPath + "/file.js",
                     unexposedFile = testPath + "/directory/file.js";
@@ -211,10 +450,10 @@ define(function (require, exports, module) {
                 });
             });
             
-            
             function findExtantNode(fullPath) {
                 var $treeItems = testWindow.$("#project-files-container li"),
                     $result;
+                
                 $treeItems.is(function () {
                     var $treeNode = testWindow.$(this),
                         entry = $treeNode.data("entry");
@@ -226,6 +465,7 @@ define(function (require, exports, module) {
                 });
                 return $result;
             }
+            
             function toggleFolder(fullPath, open) {
                 var $treeNode = findExtantNode(fullPath);
                 
@@ -241,7 +481,6 @@ define(function (require, exports, module) {
             }
             
             it("should reselect previously selected file when made visible again", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     initialFile  = testPath + "/file.js",
                     folder       = testPath + "/directory/",
@@ -269,11 +508,11 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expectSelected(fileInFolder);
+                    toggleFolder(folder, false);    // close folder
                 });
             });
             
             it("should deselect after opening file hidden in tree, but select when made visible again", function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 var promise,
                     initialFile  = testPath + "/file.js",
                     folder       = testPath + "/directory/",
@@ -300,6 +539,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expectSelected(fileInFolder);
+                    toggleFolder(folder, false);    // close folder
                 });
             });
         });
@@ -311,10 +551,22 @@ define(function (require, exports, module) {
                     return { name: name };
                 };
                 
+                expect(shouldShow(makeEntry(".git"))).toBe(false);
+                expect(shouldShow(makeEntry(".svn"))).toBe(false);
+                expect(shouldShow(makeEntry(".DS_Store"))).toBe(false);
+                expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
+                expect(shouldShow(makeEntry(".hg"))).toBe(false);
                 expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitignore"))).toBe(false);
                 expect(shouldShow(makeEntry("foobar"))).toBe(true);
                 expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
                 expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
+                expect(shouldShow(makeEntry("CVS"))).toBe(false);
+                expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
+                
             });
         });
 

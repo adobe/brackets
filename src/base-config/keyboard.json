@@ -1,5 +1,5 @@
 {
-    "file.new":  [
+    "file.newDoc":  [
         "Ctrl-N"
     ],
     "file.open":  [
@@ -7,6 +7,9 @@
     ],
     "file.close":  [
         "Ctrl-W"
+    ],
+    "file.openFolder": [
+        "Ctrl-Alt-O"
     ],
     "file.close_all":  [
         "Ctrl-Shift-W"
@@ -17,6 +20,9 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
+    "file.saveAs":  [
+        "Ctrl-Shift-S"
+    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -148,6 +154,15 @@
             "platform": "mac"
         }
     ],
+    "edit.showCodeHints":  [
+        {
+            "key": "Ctrl-Space"
+        },
+        {
+            "key": "Ctrl-Space",
+            "platform": "mac"
+        }
+    ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"
     ],
@@ -206,6 +221,9 @@
     ],
     "navigate.gotoDefinition":  [
         "Ctrl-T"
+    ],
+    "navigate.jumptoDefinition":  [
+        "Ctrl-J"
     ],
     "navigate.nextDoc":  [
         {

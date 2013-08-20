@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -36,7 +36,9 @@ define({
 	"NOT_READABLE_ERR": "ファイルを読み取れません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
-	"FILE_EXISTS_ERR": "ファイルは既に存在しています。",
+	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
+	"FILE": "ファイル",
+	"DIRECTORY": "ディレクトリ",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
@@ -47,17 +49,20 @@ define({
     // File open/save error string
 	"ERROR_OPENING_FILE_TITLE": "ファイルを開く際にエラーが発生しました。",
 	"ERROR_OPENING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を開く際にエラーが発生しました。{1}",
+	"ERROR_OPENING_FILES": "次のファイルを開くときにエラーが発生しました :",
 	"ERROR_RELOADING_FILE_TITLE": "ディスクから変更を再読み込みする際にエラーが発生しました。",
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
 	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_FILE_TITLE": "ファイルの名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
-	"INVALID_FILENAME_TITLE": "ファイル名が不正です。",
-	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\|",
-	"FILE_ALREADY_EXISTS": "ファイル <span class='dialog-filename'>{0}</span> は既に存在しています。",
-	"ERROR_CREATING_FILE_TITLE": "ファイルを作成する際にエラーが発生しました。",
-	"ERROR_CREATING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を作成する際にエラーが発生しました。{1}",
+	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
+	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
+	"INVALID_FILENAME_TITLE": "無効な{0}名",
+	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\| またはシステムのすべての予約語",
+	"FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span> は既に存在しています。",
+	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
+	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -98,6 +103,9 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
+	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
+	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
+	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
@@ -107,26 +115,33 @@ define({
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
+	"BUTTON_ALL": "すべて",
 	"BUTTON_STOP": "終了",
+	"BUTTON_REPLACE": "置換",
 
 	"OPEN_FILE": "ファイルを開く",
+	"SAVE_FILE_AS": "ファイルを保存",
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
-    
-	"FIND_IN_FILES_TITLE": "「{4}」{5}  - {2} {3} 中 {0} 件の {1} ",
+
+	"FIND_REPLACE_TITLE": "!能=[7118975] Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches_=!",
+
+	"FIND_IN_FILES_TITLE": "「{4}」の検索結果 {5} &mdash; {2} {3} / {0} {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "一致",
 	"FIND_IN_FILES_MATCHES": "一致",
-	"FIND_IN_FILES_MORE_THAN": "少なくとも ",
-	"FIND_IN_FILES_MAX": " (先頭 {0} 件を表示しています)",
+	"FIND_IN_FILES_MORE_THAN": "以上",
+	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
+	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>表示数を減らす</a>",
+	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>表示数を増やす</a>",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_LINE": "行 :&nbsp;{0}",
+	"FIND_IN_FILES_LINE": "行 : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
@@ -143,20 +158,24 @@ define({
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
-	"KEYBOARD_SPACE": "スペース",
+	"KEYBOARD_SPACE": "Space",
     
     /**
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "行 {0}, 列 {1}",
+	"STATUSBAR_SELECTION_CH_SINGULAR": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} 行を選択",
+	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} 行を選択",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
-	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
+	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
     /**
      * Command Name Constants
@@ -164,6 +183,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "ファイル",
+	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
@@ -173,12 +193,15 @@ define({
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
 	"CMD_FILE_SAVE": "保存",
 	"CMD_FILE_SAVE_ALL": "すべて保存",
+	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
+	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
+	"CMD_FILE_DELETE": "削除",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
-	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
+	"CMD_EXTENSION_MANAGER": "拡張機能マネージャー\u2026",
+	"CMD_FILE_REFRESH": "ファイルツリーを更新",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -209,6 +232,7 @@ define({
 	"CMD_OPEN_LINE_ABOVE": "上の行を開く",
 	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
+	"CMD_SHOW_CODE_HINTS": "コードヒントを表示",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -239,6 +263,7 @@ define({
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
+	"CMD_SHOW_IN_OS": "OS で表示",
     
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
@@ -255,15 +280,16 @@ define({
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
 	"CMD_ABORT_QUIT": "強制終了する",
+	"CMD_BEFORE_MENUPOPUP": "ポップアップメニュー表示前",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
 	"SAVE": "保存",
 	"CANCEL": "キャンセル",
+	"DELETE": "削除",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
@@ -271,18 +297,18 @@ define({
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "!能=[6307069] Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein._=!",
+	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "!能=[6781670] Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>._=!",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "!能=[6499087] To use a local server, enter a url like http://localhost:8000/_=!",
+	"PROJECT_SETTING_BASE_URL_HINT": "http://localhost:8000/ 等のURLを入力してローカルサーバーを使用",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
@@ -291,9 +317,13 @@ define({
     
     // Extension Management strings
 	"INSTALL": "インストール",
+	"UPDATE": "更新",
 	"REMOVE": "削除",
-	"CANT_REMOVE_DEV": "!能=[6958946] Extensions in the \"dev\" folder must be manually deleted._=!",
+	"OVERWRITE": "上書き",
+	"CANT_REMOVE_DEV": "dev フォルダーの拡張機能は手動で削除する必要があります。",
+	"CANT_UPDATE": "アップデートはこのバージョンの {APP_NAME} と互換性がありません。",
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"UPDATE_EXTENSION_TITLE": "拡張機能を更新",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
 	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
@@ -309,11 +339,13 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
-	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
-	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
+	"INVALID_BRACKETS_VERSION": "{APP_NAME} 互換文字列 {0} は無効です。",
+	"DISALLOWED_WORDS": "{1} は {0} フィールドでは使用できません。",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
-	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
+	"EXTENSION_ALREADY_INSTALLED": "このパッケージをインストールすると以前にインストールした拡張機能が上書きされます。古い拡張機能を上書きしますか？",
+	"EXTENSION_SAME_VERSION": "このパッケージのバージョンは現在インストールされているバージョンと同じです。既存のインストールを上書きしますか？",
+	"EXTENSION_OLDER_VERSION": "このパッケージのバージョン ({0}) は、現在インストールされているバージョン ({1}) よりも古いバージョンです。既存のインストールを上書きしますか？",
 	"DOWNLOAD_ID_IN_USE": "内部エラー : ダウンロード ID は既に使用されています。",
 	"NO_SERVER_RESPONSE": "サーバーに接続できません。",
 	"BAD_HTTP_STATUS": "ファイルがサーバー (HTTP {0}) に見つかりません。",
@@ -323,7 +355,7 @@ define({
 	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
-	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_TITLE": "拡張機能マネージャー",
 	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
 	"EXTENSION_AUTHOR": "作成者",
@@ -331,16 +363,34 @@ define({
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
 	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
+	"EXTENSION_MORE_INFO": "詳細情報...",
+	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
 	"EXTENSION_INSTALLED": "インストール完了",
+	"EXTENSION_UPDATE_INSTALLED": "この拡張機能のアップデートがダウンロードされました。{APP_NAME} を終了したときにインストールされます。",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
 	"EXTENSION_MORE_INFO_LINK": "詳細",
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
-	"EXTENSION_MANAGER_REMOVE": "!能=[6958947] Remove Extension_=!",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "!能=[6958948] Unable to remove extension: {{0}}_=!",
-	"QUIT_BRACKETS_AFTER_REMOVAL": "!能=[6958951] After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes._=!",
-	"QUIT_BRACKETS": "!能=[6958950] Quit Brackets_=!",
-	"EXTENSION_NOT_INSTALLED": "!能=[6958949] Couldn't remove extension {{0}} because it wasn't installed._=!",
+	"EXTENSION_MANAGER_REMOVE": "拡張機能を削除",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "1 つ以上の拡張機能 ({0}) を削除できません。{APP_NAME} が終了中です。",
+	"EXTENSION_MANAGER_UPDATE": "拡張機能を更新",
+	"EXTENSION_MANAGER_UPDATE_ERROR": "1 つ以上の拡張機能 ({0}) を更新できません。{APP_NAME} が終了中です。",
+	"MARKED_FOR_REMOVAL": "削除予定",
+	"UNDO_REMOVE": "取り消し",
+	"MARKED_FOR_UPDATE": "更新予定",
+	"UNDO_UPDATE": "取り消し",
+	"CHANGE_AND_QUIT_TITLE": "拡張機能を変更",
+	"CHANGE_AND_QUIT_MESSAGE": "更新予定または削除予定の拡張機能を更新または削除するには、{APP_NAME} を一度終了して再起動する必要があります。未保存の変更を保存するかどうか確認されます。",
+	"REMOVE_AND_QUIT": "拡張機能を削除して終了",
+	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
+	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
+	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
+	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
+	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
+	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
+	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
     /**
      * Unit names
@@ -373,17 +423,19 @@ define({
 	"LOCALE_DE": "ドイツ語",
 	"LOCALE_EN": "英語",
 	"LOCALE_ES": "スペイン語",
+	"LOCALE_FI": "フィンランド語",
 	"LOCALE_FR": "フランス語",
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
 	"LOCALE_NB": "ノルウェー語",
 	"LOCALE_PL": "ポーランド語",
-	"LOCALE_PT_BR": "!能=[6862304] Portuguese, Brazil_=!",
+	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
-	"LOCALE_ZH_CN": "!能=[6862309] Chinese, simplified_=!",
+	"LOCALE_ZH_CN": "中国語 (簡体字)",
+	"LOCALE_HU": "ハンガリー語",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
@@ -396,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-    
+	"CMD_SHOW_PARAMETER_HINT": "!能=[7119026] Show Parameter Hint_=!",
+	"NO_ARGUMENTS": "!能=[7119027] <no parameters>_=!",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
@@ -406,7 +460,7 @@ define({
 	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
 	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
     
     // extensions/default/WebPlatformDocs

@@ -1,5 +1,11 @@
 {
-    "jumptoDefinition":  [
-        "Ctrl-J"
+    "showParameterHint":  [
+        {
+            "key": "Ctrl-Shift-Space"
+        },
+        {
+            "key": "Ctrl-Shift-Space",
+            "platform": "mac"
+        }
     ]
 }

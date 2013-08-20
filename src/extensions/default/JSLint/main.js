@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands                = brackets.getModule("command/Commands"),
+        PanelManager            = brackets.getModule("view/PanelManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Menus                   = brackets.getModule("command/Menus"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
@@ -55,9 +56,10 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
         JSLintOptions = JSON.parse(require("text!config.json"));
     
-    var INDICATOR_ID = "JSLintStatus",
+    var INDICATOR_ID = "jslint-status",
         defaultPrefs = {
-            enabled: JSLintOptions.enabled_by_default
+            enabled: JSLintOptions.enabled_by_default,
+            collapsed: false
         };
     
     
@@ -79,6 +81,12 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {boolean}
+     */
+    var _collapsed = false;
+    
+    /**
+     * @private
      * @type {$.Element}
      */
     var $lintResults;
@@ -88,6 +96,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _gotoEnabled = false;
+    
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _hasErrors = false;
+    
     
     /**
      * Enable or disable the "Go to First JSLint Error" command
@@ -131,8 +146,10 @@ define(function (require, exports, module) {
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
-                // Remove the null errors for the template
+                // Remove any null error (early-abort indicator) before rendering results
                 var errors = JSLINT.errors.filter(function (err) { return err !== null; });
+                
+                // Update results table
                 var html   = Mustache.render(ResultsTemplate, {reportList: errors});
                 var $selectedRow;
 
@@ -156,14 +173,16 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.show();
+                _hasErrors = true;
+                if (!_collapsed) {
+                    Resizer.show($lintResults);
+                }
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
-                    // Return the number of non-null errors
+                    // Error count string: if we filtered out a null above, there was a stop error so the
+                    // total number of errors is indeterminate. Append a '+' to indicate that.
                     var numberOfErrors = errors.length;
-                    // If there was a null value it means there was a stop notice and an indeterminate
-                    // upper bound on the number of JSLint errors, which we'll represent by appending a '+'
                     if (numberOfErrors !== JSLINT.errors.length) {
                         // First discard the stop notice
                         numberOfErrors -= 1;
@@ -175,7 +194,8 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
-                $lintResults.hide();
+                _hasErrors = false;
+                Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
@@ -184,12 +204,11 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
-            $lintResults.hide();
+            _hasErrors = false;
+            Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -228,6 +247,27 @@ define(function (require, exports, module) {
     }
     
     
+    /** 
+     * Toggle the collapsed state for the panel
+     * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
+     */
+    function toggleCollapsed(collapsed) {
+        if (collapsed === undefined) {
+            collapsed = !_collapsed;
+        }
+        
+        _collapsed = collapsed;
+        _prefs.setValue("collapsed", _collapsed);
+        
+        if (_collapsed) {
+            Resizer.hide($lintResults);
+        } else {
+            if (JSLINT.errors && JSLINT.errors.length) {
+                Resizer.show($lintResults);
+            }
+        }
+    }
+    
     /** Command to toggle enablement */
     function handleToggleEnabled() {
         setEnabled(!_enabled);
@@ -248,8 +288,8 @@ define(function (require, exports, module) {
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
-    menu.addMenuDivider(Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
+    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.FILE_LIVE_HIGHLIGHT);
+    menu.addMenuDivider(Menus.AFTER, Commands.FILE_LIVE_HIGHLIGHT);
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
@@ -262,21 +302,34 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
+        // Create bottom panel to list error details
         var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
-        $(jsLintHtml).insertBefore("#status-bar");
-        
-        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#9733;</div>", Strings);
-        $(goldStarHtml).insertBefore("#status-file");
-        
+        var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
-        StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
+        var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
+        $(lintStatusHtml).insertBefore("#status-language");
+        $("#jslint-results .close").click(function () {
+            toggleCollapsed(true);
+        });
         
-        // Called on HTML ready to trigger the initial UI state
+        // Create status bar indicator
+        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
+
+        $("#jslint-status").click(function (event) {
+            // Clicking indicator toggles error panel, if any errors in current file
+            if (_hasErrors) {
+                toggleCollapsed();
+            }
+        });
+        
+        // Set initial UI state
         setEnabled(_prefs.getValue("enabled"));
         
-        // AppInit.htmlReady() has already executed before extensions are loaded
-        // so, for now, we need to call this ourself
-        Resizer.makeResizable($lintResults.get(0), "vert", "top", 100);
+        toggleCollapsed(_prefs.getValue("collapsed"));
     });
+    
+    
+    // for unit tests
+    exports.setEnabled = setEnabled;
 });

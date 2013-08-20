@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                 
                 function setLanguage(event) {
                     locale = $select.val();
-                    $submit.attr("disabled", false);
+                    $submit.prop("disabled", false);
                 }
                 
                 // returns the localized label for the given locale
@@ -187,18 +187,16 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                var template = Mustache.render(LanguageDialogTemplate, $.extend({languages: languages}, Strings));
-                Dialogs.showModalDialogUsingTemplate(template).done(function () {
-                    if (locale === undefined) {
-                        return;
-                    } else if (locale !== curLocale) {
+                var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
+                Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
                         brackets.setLocale(locale);
                         CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     }
                 });
                 
                 $dialog = $(".switch-language.instance");
-                $submit = $dialog.find(".dialog-button[data-button-id='ok']");
+                $submit = $dialog.find(".dialog-button[data-button-id='" + Dialogs.DIALOG_BTN_OK + "']");
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);

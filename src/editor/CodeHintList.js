@@ -28,13 +28,14 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus           = require("command/Menus"),
-        StringUtils     = require("utils/StringUtils"),
-        PopUpManager    = require("widgets/PopUpManager"),
-        ViewUtils       = require("utils/ViewUtils"),
-        KeyEvent        = require("utils/KeyEvent");
+    var Menus             = require("command/Menus"),
+        StringUtils       = require("utils/StringUtils"),
+        PopUpManager      = require("widgets/PopUpManager"),
+        ViewUtils         = require("utils/ViewUtils"),
+        KeyBindingManager = require("command/KeyBindingManager"),
+        KeyEvent          = require("utils/KeyEvent");
     
-    var CodeHintListHTML = require("text!htmlContent/code-hint-list.html");
+    var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 
     /**
      * Displays a popup list of hints for a given editor context.
@@ -100,9 +101,11 @@ define(function (require, exports, module) {
          */
         this.$hintMenu =
             $("<li class='dropdown codehint-menu'></li>")
-                .append($("<a href='#' class='dropdown-toggle'></a>")
+                .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
                 .append("<ul class='dropdown-menu'></ul>");
+        
+        this._keydownHook = this._keydownHook.bind(this);
     }
 
     /**
@@ -148,6 +151,7 @@ define(function (require, exports, module) {
             _addHint;
 
         this.hints = hintObj.hints;
+        this.hints.handleWideResults = hintObj.handleWideResults;
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
@@ -214,6 +218,11 @@ define(function (require, exports, module) {
                 }
             });
             
+            // Lists with wide results require different formatting
+            if (this.hints.handleWideResults) {
+                $ul.find("li a").addClass("wide-result");
+            }
+            
             // attach to DOM
             $parent.append($ul);
             
@@ -222,10 +231,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Computes top left location for hint list so that the list is not clipped by the window
+     * Computes top left location for hint list so that the list is not clipped by the window.
+     * Also computes the largest available width.
      *
      * @private
-     * @return {{left: number, top: number}}
+     * @return {{left: number, top: number, width: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
         var cursor      = this.editor._codeMirror.cursorCoords(),
@@ -244,21 +254,38 @@ define(function (require, exports, module) {
         }
 
         posTop -= 30;   // shift top for hidden parent element
-
-        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
+        
+        var menuWidth = $menuWindow.width();
+        var availableWidth = menuWidth;
+        var rightOverhang = posLeft + menuWidth - $window.width();
         if (rightOverhang > 0) {
             posLeft = Math.max(0, posLeft - rightOverhang);
+        } else if (this.hints.handleWideResults) {
+            // Right overhang is negative
+            availableWidth = menuWidth + Math.abs(rightOverhang);
         }
 
-        return {left: posLeft, top: posTop};
+        return {left: posLeft, top: posTop, width: availableWidth};
     };
     
+    /**
+     * Check whether keyCode is one of the keys that we handle or not.
+     *
+     * @param {number} keyCode
+     */
+    CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
+        return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
+                keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
+                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
+        
+    };
+
     /**
      * Convert keydown events into hint list navigation actions.
      *
      * @param {KeyBoardEvent} keyEvent
      */
-    CodeHintList.prototype.handleKeyEvent = function (event) {
+    CodeHintList.prototype._keydownHook = function (event) {
         var keyCode,
             self = this;
 
@@ -312,12 +339,27 @@ define(function (require, exports, module) {
 
             return itemsPerPage;
         }
+        
+        // If we're no longer visible, skip handling the key and end the session.
+        if (!this.isOpen()) {
+            this.handleClose();
+            return false;
+        }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown") {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
             keyCode = event.keyCode;
 
-            if (keyCode === KeyEvent.DOM_VK_UP) {
+            if (event.shiftKey &&
+                    (event.keyCode === KeyEvent.DOM_VK_UP ||
+                     event.keyCode === KeyEvent.DOM_VK_DOWN ||
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
+                this.handleClose();
+                
+                // Let the event bubble.
+                return false;
+            } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
@@ -330,12 +372,17 @@ define(function (require, exports, module) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
-                // only prevent default handler when the list handles the event
-                return;
+                // Let the event bubble.
+                return false;
             }
             
+            event.stopImmediatePropagation();
             event.preventDefault();
+            return true;
         }
+        
+        // If we didn't handle it, let other global keydown hooks handle it.
+        return false;
     };
 
     /**
@@ -371,10 +418,12 @@ define(function (require, exports, module) {
             var hintPos = this._calcHintListLocation();
             
             this.$hintMenu.addClass("open")
-                .css({"left": hintPos.left, "top": hintPos.top});
+                .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
             
             PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
+            
+            KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
 
@@ -385,12 +434,14 @@ define(function (require, exports, module) {
      *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
+        this.$hintMenu.addClass("apply-transition");
         this._buildListView(hintObj);
 
         // Update the CodeHintList location
         if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
-            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top,
+                                "width": hintPos.width + "px"});
         }
     };
 
@@ -403,6 +454,8 @@ define(function (require, exports, module) {
         
         PopUpManager.removePopUp(this.$hintMenu);
         this.$hintMenu.remove();
+        
+        KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
 
     /**
@@ -423,8 +476,9 @@ define(function (require, exports, module) {
         // TODO: Due to #1381, this won't get called if the user clicks out of
         // the code hint menu. That's (sort of) okay right now since it doesn't
         // really matter if a single old invisible code hint list is lying 
-        // around (it'll get closed the next time the user pops up a code 
-        // hint). Once #1381 is fixed this issue should go away.
+        // around (it will ignore keydown events, and it'll get closed the next 
+        // time the user pops up a code hint). Once #1381 is fixed this issue 
+        // should go away.
         this.handleClose = callback;
     };
 

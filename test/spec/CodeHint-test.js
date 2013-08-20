@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $, beforeFirst, afterLast  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
         CommandManager,
-        CodeHintManager;
+        CodeHintManager,
+        KeyBindingManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
         testWindow,
@@ -49,22 +50,21 @@ define(function (require, exports, module) {
          * @param {!string} openFile Project relative file path to open in a main editor.
          * @param {!number} openPos The pos within openFile to place the IP.
          */
-        var _initCodeHintTest = function (openFile, openPos) {
-            
+        function initCodeHintTest(openFile, openPos) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
             runs(function () {
                 var promise = SpecRunnerUtils.openProjectFiles([openFile]);
                 waitsForDone(promise);
             });
+            
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
                 editor.setCursorPos(openPos.line, openPos.ch);
             });
-        };
-    
-        beforeEach(function () {
-            initCodeHintTest = _initCodeHintTest.bind(this);
+        }
+        
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
     
@@ -75,22 +75,27 @@ define(function (require, exports, module) {
                 CodeHintManager     = testWindow.brackets.test.CodeHintManager;
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 CommandManager      = testWindow.brackets.test.CommandManager;
+                KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
             });
         });
-    
-        afterEach(function () {
+        
+        afterLast(function () {
+            testWindow          = null;
+            CodeHintManager     = null;
+            EditorManager       = null;
+            CommandManager      = null;
+            KeyBindingManager   = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
+        afterEach(function () {
+            runs(function () {
+                testWindow.closeAllFiles();
+            });
+        });
         
-        function simulateCtrlSpace(editor) {
-            var e = $.Event("keydown");
-            e.keyCode = KeyEvent.DOM_VK_SPACE;
-            e.ctrlKey = true;
-            
-            // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-            // here, but it does not yet support modifer keys
-            CodeHintManager.handleKeyEvent(editor, e);
+        function invokeCodeHints() {
+            CommandManager.execute(Commands.SHOW_CODE_HINTS);
         }
         
         // Note: these don't request hint results - they only examine hints that might already be open
@@ -98,13 +103,13 @@ define(function (require, exports, module) {
             var codeHintList = CodeHintManager._getCodeHintList();
             expect(codeHintList).toBeFalsy();
         }
+        
         function expectSomeHints() {
             var codeHintList = CodeHintManager._getCodeHintList();
             expect(codeHintList).toBeTruthy();
             expect(codeHintList.isOpen()).toBe(true);
             return codeHintList;
         }
-        
         
         describe("Hint Provider Registration", function () {
             beforeEach(function () {
@@ -132,7 +137,7 @@ define(function (require, exports, module) {
                     CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
                     
                     // Ensure no hints in language we didn't register for
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectNoHints();
                     
                     // Expect hints in language we did register for
@@ -140,8 +145,10 @@ define(function (require, exports, module) {
                     waitsForDone(promise);
                 });
                 runs(function () {
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["clojure"], 0);
                 });
             });
             
@@ -152,8 +159,10 @@ define(function (require, exports, module) {
                     // Expect hints to replace default HTML hints
                     var editor = EditorManager.getCurrentFullEditor();
                     editor.setCursorPos(3, 1);
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["html"], 1);
                 });
             });
             
@@ -162,7 +171,7 @@ define(function (require, exports, module) {
                     CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
                     
                     // Expect hints in language that already had hints (when not colliding with original provider)
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
                     
                     // Expect hints in language that had no hints before
@@ -170,8 +179,10 @@ define(function (require, exports, module) {
                     waitsForDone(promise);
                 });
                 runs(function () {
-                    simulateCtrlSpace(EditorManager.getCurrentFullEditor());
+                    invokeCodeHints();
                     expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["all"], 0);
                 });
             });
         });
@@ -189,7 +200,6 @@ define(function (require, exports, module) {
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
@@ -197,7 +207,7 @@ define(function (require, exports, module) {
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
                     expectSomeHints();
                 });
 
@@ -209,7 +219,7 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    CodeHintManager.handleKeyEvent(editor, e);
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
@@ -218,23 +228,20 @@ define(function (require, exports, module) {
                     
                     // and popup should auto-close
                     expectNoHints();
+
+                    editor = null;
                 });
             });
 
             it("should dismiss code hints menu with Esc key", function () {
-                var editor,
-                    pos = {line: 3, ch: 1};
+                var pos = {line: 3, ch: 1};
 
                 // minimal markup with an open '<' before IP
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    
-                    simulateCtrlSpace(editor);
+                    invokeCodeHints();
 
                     // verify list is open
                     expectSomeHints();
@@ -248,6 +255,79 @@ define(function (require, exports, module) {
 
                     // verify list is no longer open
                     expectNoHints();
+                });
+            });
+
+            it("should dismiss code hints menu when launching a command", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                });
+
+                // Call Undo command to remove "di" and then verify no code hints
+                runs(function () {
+                    CommandManager.execute(Commands.EDIT_UNDO);
+                    
+                    // verify list is no longer open
+                    expectNoHints();
+
+                    editor = null;
+                });
+            });
+            
+            it("should stop handling keydowns if closed by a click outside", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                    
+                    // get the document text and make sure it doesn't change if we
+                    // click outside and then keydown
+                    var text = editor.document.getText();
+                    
+                    testWindow.$("body").click();
+                    KeyBindingManager._handleKeyEvent({
+                        keyCode: KeyEvent.DOM_VK_ENTER,
+                        stopImmediatePropagation: function () { },
+                        stopPropagation: function () { },
+                        preventDefault: function () { }
+                    });
+                    
+                    // Verify that after the keydown, the session is closed 
+                    // (not just the hint popup). Because of #1381, we don't
+                    // actually have a way to close the session as soon as the
+                    // popup is dismissed by Bootstrap, so we do so on the next
+                    // keydown. Eventually, once that's fixed, we should be able
+                    // to move this expectNoHints() up after the click.
+                    expectNoHints();
+                    expect(editor.document.getText()).toEqual(text);
+
+                    editor = null;
                 });
             });
         });

@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * The ratio of line-height to font-size when they use the same units
      * @type {float}
      */
-    var LINE_HEIGHT = 1.3;
+    var LINE_HEIGHT = 1.25;
     
     /**
      * @private
@@ -171,7 +171,14 @@ define(function (require, exports, module) {
         var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
         
         var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = (fsUnits === lhUnits) ? fsNew * LINE_HEIGHT : lhOld;
+        var lhNew   = lhOld;
+        if (fsUnits === lhUnits) {
+            lhNew = fsNew * LINE_HEIGHT;
+            if (lhUnits === "px") {
+                // Use integer px value to avoid rounding differences
+                lhNew = Math.ceil(lhNew);
+            }
+        }
         
         var fsStr   = fsNew + fsUnits;
         var lhStr   = lhNew + lhUnits;
@@ -350,10 +357,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
-
-    // There are no menu items, so bind commands directly
-    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
-    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 
     // Initialize the PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);

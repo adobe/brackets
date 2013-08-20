@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils"),
@@ -207,11 +208,11 @@ define(function (require, exports, module) {
     /**
      * @param {FileError} error
      * @param {!Document} doc
-     * @return {$.Promise}
+     * @return {Dialog}
      */
     function showReloadError(error, doc) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
@@ -237,11 +238,12 @@ define(function (require, exports, module) {
      * about each one. Processing is sequential: if the user chooses to reload a document, the next
      * prompt is not shown until after the reload has completed.
      *
+     * @param {string} title Title of the dialog.
      * @return {$.Promise} Resolved/rejected after all documents have been prompted and (if
      *      applicable) reloaded (and any resulting error UI has been dismissed). Rejected if any
      *      one reload failed.
      */
-    function presentConflicts() {
+    function presentConflicts(title) {
         
         var allConflicts = editConflicts.concat(deleteConflicts);
         
@@ -254,33 +256,58 @@ define(function (require, exports, module) {
                 return promise;
             }
             
-            var message;
-            var dialogId;
             var toClose;
+            var dialogId;
+            var message;
+            var buttons;
             
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
-                dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
+                dialogId = DefaultDialogs.DIALOG_ID_EXT_CHANGED;
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.breakableUrl(
                         ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
+                buttons = [
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
+                        text:      Strings.RELOAD_FROM_DISK
+                    },
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id:        Dialogs.DIALOG_BTN_CANCEL,
+                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                    }
+                ];
                 
             } else {
                 toClose = true;
-                dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
+                dialogId = DefaultDialogs.DIALOG_ID_EXT_DELETED;
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.breakableUrl(
                         ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
+                buttons = [
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
+                        text:      Strings.CLOSE_DONT_SAVE
+                    },
+                    {
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id:        Dialogs.DIALOG_BTN_CANCEL,
+                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                    }
+                ];
             }
             
-            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
+            Dialogs.showModalDialog(dialogId, title, message, buttons)
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
@@ -296,7 +323,7 @@ define(function (require, exports, module) {
                                 .fail(function (error) {
                                     // Unable to load changed version from disk - show error UI
                                     showReloadError(error, doc)
-                                        .always(function () {
+                                        .done(function () {
                                             // After user dismisses, move on to next conflict prompt
                                             result.reject();
                                         });
@@ -326,8 +353,12 @@ define(function (require, exports, module) {
      * Brackets synced up with the copy on disk (either by loading or saving the file). For clean
      * files, we silently upate the editor automatically. For files with unsaved changes, we prompt
      * the user.
+     *
+     * @param {string} title Title to use for document. Default is "External Changes".
      */
-    function syncOpenDocuments() {
+    function syncOpenDocuments(title) {
+        
+        title = title || Strings.EXT_MODIFIED_TITLE;
         
         // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
         // done -- easy if a prompt dialog is left open. Since the user may have left Brackets to
@@ -339,8 +370,8 @@ define(function (require, exports, module) {
             
             // Close dialog if it was open. This will 'unblock' presentConflict(), which bails back
             // to us immediately upon seeing _restartPending. We then restart the sync - see below
-            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_CHANGED);
-            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_DELETED);
+            Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_CHANGED);
+            Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_DELETED);
             
             return;
         }
@@ -378,7 +409,7 @@ define(function (require, exports, module) {
                                 closeDeletedDocs();
                                 
                                 // 5) Prompt for dirty editors (conflicts)
-                                presentConflicts()
+                                presentConflicts(title)
                                     .always(function () {
                                         if (_restartPending) {
                                             // Restart the sync if needed
