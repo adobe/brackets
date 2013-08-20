@@ -88,17 +88,6 @@ define(function (require, exports, module) {
             return callback;
         }
     
-        function specialDirectorySpy() {
-            var callback = function (err, directory) {
-                callback.error = err;
-                callback.wasCalled = true;
-                callback.directory = directory;
-            };
-            callback.wasCalled = false;
-            
-            return callback;
-        }
-        
         beforeEach(function () {
             runs(function () {
                 // create the test folder and init the test files
@@ -803,32 +792,14 @@ define(function (require, exports, module) {
         });
         
         describe("specialDirectories", function () {
-            it("should have a Documents Directory", function () {
-                var dirCB = specialDirectorySpy();
-                    
+            it("should have an application support directory", function () {
                 runs(function () {
-                    brackets.fs.getDocumentsDir(dirCB);
-                });
-                
-                waitsFor(function () { return dirCB.wasCalled; }, 1000);
-                
-                runs(function () {
-                    expect(dirCB.error).toBe(brackets.fs.NO_ERROR);
-                    expect(dirCB.directory.length).toNotBe(0);
+                    expect(brackets.app.getApplicationSupportDirectory().length).toNotBe(0);
                 });
             });
-            it("should have a Home Directory", function () {
-                var dirCB = specialDirectorySpy();
-                    
+            it("should have a user documents directory", function () {
                 runs(function () {
-                    brackets.fs.getHomeDir(dirCB);
-                });
-                
-                waitsFor(function () { return dirCB.wasCalled; }, 1000);
-                
-                runs(function () {
-                    expect(dirCB.error).toBe(brackets.fs.NO_ERROR);
-                    expect(dirCB.directory.length).toNotBe(0);
+                    expect(brackets.app.getUserDocumentsDirectory().length).toNotBe(0);
                 });
             });
         });
