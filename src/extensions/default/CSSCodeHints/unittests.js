@@ -518,14 +518,14 @@ define(function (require, exports, module) {
             });
             
             it("should list 2 value-name hints for flow-from", function () {
-                testEditor.setCursorPos({ line: 9, ch: 12 });    // after shape-inside
+                testEditor.setCursorPos({ line: 9, ch: 12 });    // after flow-from
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "inherit");  // first hint should be inherit
                 verifyAllValues(hintList, ["inherit", "none"]);
             });
 
             it("should list 1 value-name hint for flow-into", function () {
-                testEditor.setCursorPos({ line: 10, ch: 12 });    // after shape-inside
+                testEditor.setCursorPos({ line: 10, ch: 12 });    // after flow-into
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "none");  // first hint should be none
                 verifyAllValues(hintList, ["none"]);
