@@ -49,21 +49,52 @@ define(function (require, exports, module) {
         elementCount,
         elementIds = {};
     
+    /**
+     * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
+     * features of a real DOM object. It specifically adds the features required for
+     * the RemoteFunctions code that applies patches and is not a general DOM implementation.
+     *
+     * Standard DOM methods below are not documented, but the ones unique to this test harness
+     * are.
+     */
     var domFeatures = Object.create({
         insertBefore: function (newElement, referenceElement) {
             var index = this.children.indexOf(referenceElement);
             this.children.splice(index, 0, newElement);
             newElement.parent = this;
+            newElement.addToNodeMap();
         },
         appendChild: function (newElement) {
-            newElement.parent = this;
             this.children.push(newElement);
+            newElement.parent = this;
+            newElement.addToNodeMap();
+        },
+        
+        /**
+         * The nodeMap keeps track of the Brackets-assigned tag ID to node object mapping.
+         * This method adds this element to the nodeMap if it has a data-brackets-id
+         * attribute set (something that the client-side applyEdits code will do).
+         */
+        addToNodeMap: function () {
+            if (this.attributes && this.attributes["data-brackets-id"]) {
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    nodeMap[this.attributes["data-brackets-id"]] = this;
+                } else {
+                    console.error("Unable to get nodeMap from", this);
+                }
+            }
         },
         remove: function () {
             var siblings = this.siblings;
             var index = siblings.indexOf(this);
             siblings.splice(index, 1);
         },
+        
+        /**
+         * Search node by node up the tree until a nodeMap is found. Returns undefined
+         * if no nodeMap is found.
+         */
         getNodeMap: function () {
             var elem = this,
                 nodeMap;
@@ -91,12 +122,15 @@ define(function (require, exports, module) {
         removeAttribute: function (key) {
             delete this.attributes[key];
         },
+        
+        /**
+         * Compares two SimpleDOMs with the expectation that they are exactly the same.
+         */
         compare: function (other) {
             if (this.children) {
                 expect(this.tag).toEqual(other.tag);
                 delete this.attributes["data-brackets-id"];
                 expect(this.attributes).toEqual(other.attributes);
-                console.log(this.children, other.children);
                 expect(this.children.length).toEqual(other.children.length);
                 var i;
                 for (i = 0; i < this.children.length; i++) {
@@ -161,6 +195,12 @@ define(function (require, exports, module) {
     // This style of setting __proto__ is purely to keep JSLint happy :(
     var proto = '__proto__';
     
+    /**
+     * Adds the domFeatures defined above to a SimpleDOM node and all of its children.
+     * This works by changing the __proto__ property of the node.
+     *
+     * @param {Object} node SimpleDOM node to augment
+     */
     function addDOMFeatures(node) {
         node[proto] = domFeatures;
         if (node.children) {
@@ -172,6 +212,13 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Creates a deep clone of a SimpleDOM tree, adding the domFeatures as it goes
+     * along.
+     * 
+     * @param {Object} root root node of the SimpleDOM to clone
+     * @return {Object} cloned SimpleDOM with domFeatures applied
+     */
     function cloneDOM(root) {
         var nodeMap = {};
         
@@ -200,10 +247,18 @@ define(function (require, exports, module) {
         return newRoot;
     }
     
+    /**
+     * The RemoteFunctions code that applies edits to the DOM expects only a few things to
+     * be present on the document object. This FakeDocument bridges the gap between a
+     * SimpleDOM and real DOM for the purposes of applying edits.
+     *
+     * @param {Object} nodeMap A map from tagID to node object that is generally at the root of a SimpleDOM
+     */
     var FakeDocument = function (nodeMap) {
         this.nodeMap = nodeMap;
     };
     
+    // The DOM edit code only performs this kind of query
     var bracketsIdQuery = /\[data-brackets-id='(\d+)'\]/;
     
     FakeDocument.prototype = {
@@ -233,87 +288,6 @@ define(function (require, exports, module) {
             }
         }
     };
-    
-    function createRealDocument(dom) {
-        var document = window.document.implementation.createHTMLDocument();
-        
-        function addNode(parent, node) {
-            if (node.content) {
-                var textNode = document.createTextNode(node.content);
-                parent.appendChild(textNode);
-            } else {
-                var el;
-                if (node.tag === "html" || node.tag === "body" || node.tag === "head") {
-                    el = document.querySelector(node.tag);
-                } else {
-                    el = document.createElement(node.tag);
-                    parent.appendChild(el);
-                }
-                el.setAttribute("data-brackets-id", node.tagID);
-                Object.keys(node.attributes).forEach(function (key) {
-                    el.setAttribute(key, node.attributes[key]);
-                });
-                node.children.forEach(function (child) {
-                    addNode(el, child);
-                });
-            }
-        }
-        addNode(document.querySelector("html"), dom);
-        return document;
-    }
-    
-    function compareDOMs(previousHTML, newSimple) {
-        var previousRoot = previousHTML.querySelector("html");
-        
-        function compare(previousEl, newNode) {
-            if (newNode.content) {
-                expect(previousEl.nodeType).toEqual(Node.TEXT_NODE);
-                expect(previousEl.data).toEqual(newNode.content);
-            } else {
-                expect(previousEl.tagName.toLowerCase()).toEqual(newNode.tag.toLowerCase());
-                
-                if (newNode.tag.toLowerCase() === "html") {
-                    newNode.children.forEach(function (child) {
-                        if (!child.tag) {
-                            return;
-                        }
-                        var childTag = child.tag.toLowerCase();
-                        if (childTag === "head") {
-                            compare(previousHTML.querySelector("head"), child);
-                        } else if (childTag === "body") {
-                            compare(previousHTML.querySelector("body"), child);
-                        }
-                    });
-                    return;
-                }
-                
-                var previousAttributes = previousEl.attributes,
-                    newAttributes = newNode.attributes,
-                    newAttributeNames = Object.keys(newAttributes),
-                    previousAttributeCount = previousAttributes.length;
-                
-                // The SimpleDOM does not contain data-brackets-id but the browser does,
-                // so we eliminate any data-brackets-id attributes that have been added
-                if (previousAttributes.getNamedItem("data-brackets-id")) {
-                    previousAttributeCount--;
-                }
-                expect(previousAttributeCount).toEqual(newAttributeNames.length);
-                newAttributeNames.forEach(function (key) {
-                    expect(previousAttributes.getNamedItem(key)).toEqual(newAttributes[key]);
-                });
-                
-                var previousChildren = previousEl.childNodes,
-                    newChildren = newNode.children;
-                expect(previousChildren.length).toEqual(newChildren.length);
-                var i;
-                for (i = 0; i < previousChildren.length; i++) {
-                    compare(previousChildren.item(i), newChildren[i]);
-                }
-            }
-        }
-        
-        compare(previousRoot, newSimple);
-    }
     
     function init(spec, fileEntry) {
         spec.fileContent = null;
@@ -1033,15 +1007,16 @@ define(function (require, exports, module) {
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                     result;
                 
-                var previousHTMLDocument = createRealDocument(previousDOM);
+                var clonedDOM = cloneDOM(previousDOM);
                 
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 editFn(editor, previousDOM);
 
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
-                var editHandler = new RemoteFunctions.DOMEditHandler(previousHTMLDocument);
+                var doc = new FakeDocument(clonedDOM.nodeMap);
+                var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
-                compareDOMs(previousHTMLDocument, result.dom);
+                clonedDOM.compare(result.dom);
                 expectationFn(result, previousDOM, incremental);
             }
 
