@@ -234,6 +234,87 @@ define(function (require, exports, module) {
         }
     };
     
+    function createRealDocument(dom) {
+        var document = window.document.implementation.createHTMLDocument();
+        
+        function addNode(parent, node) {
+            if (node.content) {
+                var textNode = document.createTextNode(node.content);
+                parent.appendChild(textNode);
+            } else {
+                var el;
+                if (node.tag === "html" || node.tag === "body" || node.tag === "head") {
+                    el = document.querySelector(node.tag);
+                } else {
+                    el = document.createElement(node.tag);
+                    parent.appendChild(el);
+                }
+                el.setAttribute("data-brackets-id", node.tagID);
+                Object.keys(node.attributes).forEach(function (key) {
+                    el.setAttribute(key, node.attributes[key]);
+                });
+                node.children.forEach(function (child) {
+                    addNode(el, child);
+                });
+            }
+        }
+        addNode(document.querySelector("html"), dom);
+        return document;
+    }
+    
+    function compareDOMs(previousHTML, newSimple) {
+        var previousRoot = previousHTML.querySelector("html");
+        
+        function compare(previousEl, newNode) {
+            if (newNode.content) {
+                expect(previousEl.nodeType).toEqual(Node.TEXT_NODE);
+                expect(previousEl.data).toEqual(newNode.content);
+            } else {
+                expect(previousEl.tagName.toLowerCase()).toEqual(newNode.tag.toLowerCase());
+                
+                if (newNode.tag.toLowerCase() === "html") {
+                    newNode.children.forEach(function (child) {
+                        if (!child.tag) {
+                            return;
+                        }
+                        var childTag = child.tag.toLowerCase();
+                        if (childTag === "head") {
+                            compare(previousHTML.querySelector("head"), child);
+                        } else if (childTag === "body") {
+                            compare(previousHTML.querySelector("body"), child);
+                        }
+                    });
+                    return;
+                }
+                
+                var previousAttributes = previousEl.attributes,
+                    newAttributes = newNode.attributes,
+                    newAttributeNames = Object.keys(newAttributes),
+                    previousAttributeCount = previousAttributes.length;
+                
+                // The SimpleDOM does not contain data-brackets-id but the browser does,
+                // so we eliminate any data-brackets-id attributes that have been added
+                if (previousAttributes.getNamedItem("data-brackets-id")) {
+                    previousAttributeCount--;
+                }
+                expect(previousAttributeCount).toEqual(newAttributeNames.length);
+                newAttributeNames.forEach(function (key) {
+                    expect(previousAttributes.getNamedItem(key)).toEqual(newAttributes[key]);
+                });
+                
+                var previousChildren = previousEl.childNodes,
+                    newChildren = newNode.children;
+                expect(previousChildren.length).toEqual(newChildren.length);
+                var i;
+                for (i = 0; i < previousChildren.length; i++) {
+                    compare(previousChildren.item(i), newChildren[i]);
+                }
+            }
+        }
+        
+        compare(previousRoot, newSimple);
+    }
+    
     function init(spec, fileEntry) {
         spec.fileContent = null;
         
@@ -952,16 +1033,15 @@ define(function (require, exports, module) {
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                     result;
                 
-                var clonedDOM = cloneDOM(previousDOM);
+                var previousHTMLDocument = createRealDocument(previousDOM);
                 
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 editFn(editor, previousDOM);
 
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
-                var htmlDocument = new FakeDocument(clonedDOM.nodeMap);
-                var editHandler = new RemoteFunctions.DOMEditHandler(htmlDocument);
+                var editHandler = new RemoteFunctions.DOMEditHandler(previousHTMLDocument);
                 editHandler.apply(result.edits);
-                clonedDOM.compare(result.dom);
+                compareDOMs(previousHTMLDocument, result.dom);
                 expectationFn(result, previousDOM, incremental);
             }
 
