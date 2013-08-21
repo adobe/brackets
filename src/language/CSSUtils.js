@@ -1117,13 +1117,20 @@ define(function (require, exports, module) {
     
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/gi,
+            result = [],
             matches;
         
-        matches = namedFlowRegEx.exec(text);
-        if (matches && matches.length > 1) {
-            return matches.slice(1);
-        }
-        return [];
+        matches = text.match(namedFlowRegEx) || [];
+        
+        matches.forEach(function (match) {
+            var nameRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/i,
+                thisMatch = nameRegEx.exec(match);
+            if (thisMatch && thisMatch.length === 2) {
+                result.push(thisMatch[1]);
+            }
+        });
+        
+        return result;
     }
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only

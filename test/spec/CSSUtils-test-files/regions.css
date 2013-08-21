@@ -5,3 +5,12 @@ article.content {
 section.layout > div {
     flow-from: main;
 }
+
+
+#jeff.content {
+    flow-into: jeff;
+}
+
+#jeff.layout > div {
+    flow-from: jeff;
+}
