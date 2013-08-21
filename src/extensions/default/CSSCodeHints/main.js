@@ -146,6 +146,8 @@ define(function (require, exports, module) {
             valueNeedle = "",
             context = this.info.context,
             result,
+            valueArray,
+            colorHints = ["hsl()", "hsla()", "rgb()", "rgba()"],
             selectInitial = false;
             
         
@@ -175,7 +177,13 @@ define(function (require, exports, module) {
                 valueNeedle = valueNeedle.substr(0, this.info.offset);
             }
             
-            result = $.map(properties[needle].values, function (pvalue, pindex) {
+            // Auto generate color formats if we're in a CSS color property value.
+            valueArray = properties[needle].values;
+            if (properties[needle].type === "color") {
+                valueArray = valueArray.concat(colorHints);
+            }
+            
+            result = $.map(valueArray, function (pvalue, pindex) {
                 if (pvalue.indexOf(valueNeedle) === 0) {
                     return pvalue;
                 }
