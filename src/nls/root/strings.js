@@ -113,7 +113,7 @@ define({
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
-    "FIND_NO_RESULTS"            : "No results",
+    "FIND_NO_RESULTS"                   : "No results",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",

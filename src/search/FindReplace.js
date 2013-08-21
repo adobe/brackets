@@ -242,9 +242,9 @@ define(function (require, exports, module) {
                     }
 
                     if (resultCount === 0) {
-                        $("#find-counter").text(StringUtils.format(Strings.FIND_NO_RESULTS));
+                        $("#find-counter").text(Strings.FIND_NO_RESULTS);
                     } else if (resultCount === 1) {
-                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT_SINGLE));
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                     } else {
                         $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
                     }
