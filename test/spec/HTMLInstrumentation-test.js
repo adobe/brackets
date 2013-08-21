@@ -35,16 +35,15 @@ define(function (require, exports, module) {
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        MurmurHash3         = require("thirdparty/murmurhash3_gc");
+        MurmurHash3         = require("thirdparty/murmurhash3_gc"),
+        WellFormedDoc       = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
+        NotWellFormedDoc    = require("text!spec/HTMLInstrumentation-test-files/omitEndTags.html"),
+        InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
+        BigDoc              = require("text!spec/HTMLInstrumentation-test-files/REC-widgets-20121127.html");
     
     RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
     
-    var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-        WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
-        NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
-        InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
-        BigFileEntry = new NativeFileSystem.FileEntry(testPath + "/REC-widgets-20121127.html"),
-        editor,
+    var editor,
         instrumentedHTML,
         elementCount,
         elementIds = {};
@@ -293,21 +292,6 @@ define(function (require, exports, module) {
         }
     };
     
-    function init(spec, fileEntry) {
-        spec.fileContent = null;
-        
-        if (fileEntry) {
-            runs(function () {
-                FileUtils.readAsText(fileEntry)
-                    .done(function (text) {
-                        spec.fileContent = text;
-                    });
-            });
-            
-            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
-        }
-    }
-        
     describe("HTML Instrumentation", function () {
         
         function getIdToTagMap(instrumentedHTML, map) {
@@ -376,9 +360,8 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 HTMLInstrumentation._resetCache();
                 
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
                 });
             });
@@ -405,9 +388,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     spyOn(editor.document, "getText").andCallThrough();
@@ -518,9 +500,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in valid but not wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, NotWellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(NotWellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -673,9 +654,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
                 
             beforeEach(function () {
-                init(this, InvalidHTMLFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(InvalidHTMLDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -976,12 +956,16 @@ define(function (require, exports, module) {
         });
         
         describe("HTML Instrumentation in dirty files", function () {
-            var changeList;
-            
-            beforeEach(function () {
-                init(this, WellFormedFileEntry);
+            var changeList, offsets;
+
+            function setupEditor(docText, useOffsets) {
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    if (useOffsets) {
+                        var result = SpecRunnerUtils.parseOffsetsFromText(docText);
+                        docText = result.text;
+                        offsets = result.offsets;
+                    }
+                    editor = SpecRunnerUtils.createMockEditor(docText, "html").editor;
                     expect(editor).toBeTruthy();
 
                     $(editor).on("change.instrtest", function (event, editor, change) {
@@ -991,8 +975,8 @@ define(function (require, exports, module) {
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
-            });
-    
+            }
+            
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(editor.document);
                 editor = null;
@@ -1046,6 +1030,7 @@ define(function (require, exports, module) {
             }
             
             it("should re-instrument after document is dirtied", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var pos = {line: 15, ch: 0};
                     editor.document.replaceRange("<div>New Content</div>", pos);
@@ -1059,6 +1044,7 @@ define(function (require, exports, module) {
             });
             
             it("should build simple DOM", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     expect(dom.tagID).toEqual(jasmine.any(Number));
@@ -1083,6 +1069,7 @@ define(function (require, exports, module) {
             });
             
             it("should mark editor text based on the simple DOM", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, dom);
@@ -1091,6 +1078,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle no diff", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1101,6 +1089,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle attribute change", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1133,6 +1122,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle new attributes", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1164,6 +1154,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle deleted attributes", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1193,6 +1184,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle simple altered text", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1231,6 +1223,7 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.children[3].children[1].tagID,
@@ -1278,6 +1271,7 @@ define(function (require, exports, module) {
             });
             
             it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
@@ -1329,6 +1323,7 @@ define(function (require, exports, module) {
             });
 
             it("should handle typing of a <p> without a </p> and then adding it later", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
@@ -1408,6 +1403,7 @@ define(function (require, exports, module) {
             });
 
             it("should represent simple new tag insert", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1463,6 +1459,7 @@ define(function (require, exports, module) {
             });
             
             it("should be able to add two tags at once", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1533,6 +1530,7 @@ define(function (require, exports, module) {
             });
             
             it("should be able to paste a tag with a nested tag", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1601,6 +1599,7 @@ define(function (require, exports, module) {
             });
 
             it("should handle inserting an element as the first child", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1661,6 +1660,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle inserting an element as the last child", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1701,6 +1701,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle inserting an element before an existing text node", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     editor.document.replaceRange("<strong>pre-edit child</strong>", {line: 33, ch: 0});
 
@@ -1753,6 +1754,7 @@ define(function (require, exports, module) {
             });
 
             it("should represent simple new tag insert immediately after previous tag before text before tag", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var ed;
                     
@@ -1817,6 +1819,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle new text insert between tags after whitespace", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1844,6 +1847,7 @@ define(function (require, exports, module) {
             });
 
             it("should handle inserting an element in the middle of text", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1992,9 +1996,8 @@ define(function (require, exports, module) {
         
         xdescribe("Performance Tests", function () {
             beforeEach(function () {
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -2085,9 +2088,8 @@ define(function (require, exports, module) {
         
         xdescribe("Big File Performance Tests", function () {
             beforeEach(function () {
-                init(this, BigFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(BigDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
