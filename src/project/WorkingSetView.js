@@ -606,14 +606,6 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     */
-    function _handleDocumentSelectionChange() {
-        _updateListSelection();
-        _fireSelectionChanged();
-    }
-
-    /** 
-     * @private
      * @param {FileEntry} file
      * @param {boolean=} suppressRedraw If true, suppress redraw
      */
@@ -720,7 +712,7 @@ define(function (require, exports, module) {
             _handleFileNameChanged(oldName, newName);
         });
         
-        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _updateListSelection);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
