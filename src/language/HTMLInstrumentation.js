@@ -233,14 +233,21 @@ define(function (require, exports, module) {
     function _updateHash(node) {
         if (node.children) {
             var i,
-                weight = 0,
-                hashes = "";
+                weight = 1,
+                hashes = "",
+                textHashes = "",
+                child;
             for (i = 0; i < node.children.length; i++) {
-                weight += node.children[i].weight;
-                hashes += node.children[i].signature;
+                child = node.children[i];
+                weight += child.weight;
+                hashes += child.signature;
+                if (!child.children) {
+                    textHashes += child.signature;
+                }
             }
             node.weight = weight;
             node.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
+            node.textSignature = MurmurHash3.hashString(textHashes, textHashes.length, seed);
         } else {
             var tagLabel = node.tag + node.tagID;
             node.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
@@ -422,8 +429,10 @@ define(function (require, exports, module) {
                         nodeMap[newNode.tagID] = newNode;
                         lastTextNode = newNode;
                     }
-                        
-                    newNode.weight = newNode.content.length;
+                    
+                    // TODO is there any performance impact of using a floating point
+                    // number vs. integer here?
+                    newNode.weight = 1 + Math.log(newNode.content.length);
                     newNode.signature = _getTextNodeHash(newNode.content);
                 }
             }
@@ -893,6 +902,7 @@ define(function (require, exports, module) {
             elementInserts = {},
             textInserts = {},
             textChanges = {},
+            elementsWithTextChanges = {},
             currentElement,
             oldElement,
             elementDeletes = {};
