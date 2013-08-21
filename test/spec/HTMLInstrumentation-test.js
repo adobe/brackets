@@ -1009,6 +1009,9 @@ define(function (require, exports, module) {
                 var doc = new FakeDocument(clonedDOM.nodeMap);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
+                console.log("old DOM: " + HTMLInstrumentation._dumpDOM(previousDOM));
+                console.log("newDOM: " + HTMLInstrumentation._dumpDOM(result.dom));
+                console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                 clonedDOM.compare(result.dom);
                 expectationFn(result, previousDOM, incremental);
             }
@@ -2194,6 +2197,51 @@ define(function (require, exports, module) {
                                 // this should not have been an incremental edit since it changed the DOM structure
                                 expect(result._wasIncremental).toBe(false);
                             }
+                        }
+                    );
+                });
+            });
+            
+            it("should support deleting across tags", function () {
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 20, ch: 11}, {line: 28, ch: 3});
+                        },
+                        function (result, previousDOM, incremental) {
+                            if (incremental) {
+                                return;
+                            }
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[1].children[1];
+                            
+                            console.log("old DOM: " + HTMLInstrumentation._dumpDOM(previousDOM));
+                            console.log("newDOM: " + HTMLInstrumentation._dumpDOM(newDOM));
+                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
+                            expect(newElement.tag).toEqual("img");
+                            expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
+                            expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
+                            expect(result.edits.length).toEqual(3);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                content: " WITH BRACKETS",
+                                parentID: newElement.parent.tagID,
+                                afterID: newElement.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textReplace",
+                                content: "GETTING STARTED",
+                                parentID: newElement.parent.tagID,
+                                beforeID: newElement.tagID
+                            });
                         }
                     );
                 });

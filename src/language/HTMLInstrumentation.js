@@ -917,7 +917,8 @@ define(function (require, exports, module) {
             currentElement = queue.shift();
             
             oldElement = oldNode.nodeMap[currentElement.tagID];
-            if (oldElement) {
+            var parentMatch = oldElement.parent === currentElement.parent || (oldElement.parent && currentElement.parent && oldElement.parent.tagID === currentElement.parent.tagID);
+            if (oldElement && parentMatch) {
                 matches[currentElement.tagID] = true;
                 if (oldElement.children) {
                     if (oldElement.signature !== currentElement.signature) {
@@ -1033,6 +1034,7 @@ define(function (require, exports, module) {
         }
         
         var findDeletions = function (element) {
+            console.log("Deletion checking", element.tagID, matches[element.tagID]);
             if (!matches[element.tagID]) {
                 if (element.children) {
                     edits.push({
