@@ -115,7 +115,7 @@ define({
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
-	"BUTTON_ALL": "[7118973] !é=All=!",
+	"BUTTON_ALL": "Tout",
 	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
 
@@ -127,7 +127,7 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
-	"FIND_REPLACE_TITLE": "[7118975] !é=Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches=!",
+	"FIND_REPLACE_TITLE": "Remplacer « {0} » par « {1} » &mdash; {3} {2} résultats",
 
 	"FIND_IN_FILES_TITLE": "« {4} » trouvé {5} &mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
@@ -448,8 +448,8 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-	"CMD_SHOW_PARAMETER_HINT": "[7119026] !é=Show Parameter Hint=!",
-	"NO_ARGUMENTS": "[7119027] !é=<no parameters>=!",
+	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
+	"NO_ARGUMENTS": "<aucun paramètre>",
 
     // extensions/default/JSLint
 	"CMD_JSLINT": "Activer JSLint",
