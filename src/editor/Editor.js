@@ -362,6 +362,7 @@ define(function (require, exports, module) {
             lineNumbers: _showLineNumbers,
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
+            coverGutterNextToScrollbar: true,
             matchBrackets: true,
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
