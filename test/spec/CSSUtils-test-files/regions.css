@@ -14,3 +14,27 @@ section.layout > div {
 #jeff.layout > div {
     flow-from: jeff;
 }
+
+/*
+p.content {
+    flow-into: carter;
+}
+
+p.layout > div {
+    flow-from: carter;
+}
+*/
+
+div {
+    content: "/* p.content { flow-into: carter; } p.layout > div { flow-from: carter; } */"
+}
+
+/*
+div.content {
+    content: "flow-into: martin;"
+}
+
+div.layout > div {
+    content: "flow-from: martin;"
+}
+*/

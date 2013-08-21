@@ -1115,13 +1115,34 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
+    function _minimize(_content) {
+        var content = _content;
+        content = content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/|[\r\n\t]+/g, '');
+        // now all comments, newlines and tabs have been removed
+        content = content.replace(/ {2,}/g, ' ');
+        // now there are no more than single adjacent spaces left
+        // now unnecessary: content = content.replace( /(\s)+\./g, ' .' );
+        content = content.replace(/ ([{:}]) /g, '$1');
+        content = content.replace(/([;,]) /g, '$1');
+        content = content.replace(/ !/g, '!');
+        return content;
+    }
+    
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/gi,
             result = [],
             matches;
         
+        // Minimize the CSS so that strings and comments
+        //  do not match results
+        text = _minimize(text);
+        
+        // Find the lines that match.  This will return an array of 
+        //  matched css properties (flow-into: junk;)
         matches = text.match(namedFlowRegEx) || [];
         
+        // Parse the matches to extract the name of the flow
         matches.forEach(function (match) {
             var nameRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/i,
                 thisMatch = nameRegEx.exec(match);
