@@ -1930,7 +1930,9 @@ define(function (require, exports, module) {
         });
         
         it("should find named flows", function () {
-            expect(CSSUtils.extractAllNamedFlows(this.fileContent).length).toNotBe(0);
+            var namedFlows = CSSUtils.extractAllNamedFlows(this.fileContent);
+            expect(namedFlows.length).toBe(1);
+            expect(namedFlows[0]).toBe("main");
         });
         
     });

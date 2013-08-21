@@ -1,0 +1,7 @@
+article.content {
+    flow-into: main;
+}
+
+section.layout > div {
+    flow-from: main;
+}
