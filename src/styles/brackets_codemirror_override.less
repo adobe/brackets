@@ -111,6 +111,14 @@
     .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
         background-color: #ebebeb;
     }
+    .platform-mac & {
+        .CodeMirror-scrollbar-filler {
+            background-image: url(images/scrollbar-mac-corner.png);
+        }
+        .CodeMirror-gutter-filler {
+            background-image: url(images/scrollbar-mac-bg.png);
+        }
+    }
     .CodeMirror-linenumber {
         color: @accent-comment;
         min-width: 2.5em;
