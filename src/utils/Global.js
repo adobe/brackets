@@ -68,6 +68,8 @@ define(function (require, exports, module) {
     global.brackets.shellAPI = require("utils/ShellAPI");
     
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
+
+    global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
     
     if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
         global.brackets.platform = "mac";

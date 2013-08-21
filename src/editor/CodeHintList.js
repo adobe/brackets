@@ -434,6 +434,7 @@ define(function (require, exports, module) {
      *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
+        this.$hintMenu.addClass("apply-transition");
         this._buildListView(hintObj);
 
         // Update the CodeHintList location
