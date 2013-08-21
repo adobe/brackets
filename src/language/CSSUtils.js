@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
@@ -1115,10 +1115,62 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    // removes css comments from the content
+    function _removeComments(_content) {
+        return _content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
+    }
+    
+    // removes strings from the content 
+    function _removeStrings(_content) {
+        return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
+    }
+    
+    /**
+     * Reduces the style sheet by removing comments and strings 
+     *  so that the  content can be parsed using a regular expression
+     * @param {!String} content to reduce
+     * @return {String} reduced content 
+     */
+    function reduceStyleSheetForRegExParsing(content) {
+        return _removeStrings(_removeComments(content));
+    }
+    
+    /**
+     * Extracts all named flow instances
+     * @param {!String} text to extract from
+     * @return {?Array.<string>} array of unique flow names 
+     */
+    function extractAllNamedFlows(text) {
+        var namedFlowRegEx = /(?:flow\-(into|from)\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
+            result = [],
+            names = {},
+            thisMatch;
+        
+        // Reduce the content so that matches 
+        //  inside strings and comments are ignored 
+        text = reduceStyleSheetForRegExParsing(text);
+
+        // Find the first match
+        thisMatch = namedFlowRegEx.exec(text);
+        
+        // Iterate over the matches and add them to result
+        while (thisMatch) {
+            var thisName = thisMatch[2];
+            if (!names.hasOwnProperty(thisName)) {
+                names[thisName] = result.push(thisName);
+            }
+            thisMatch = namedFlowRegEx.exec(text);
+        }
+        
+        return result;
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+    exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
