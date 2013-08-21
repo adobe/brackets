@@ -22,7 +22,7 @@ if [[ ${1} == "" ]]; then
   echo "Restore Brackets to use the installed HTML/CSS/JS files."
   echo ""
   echo "Parameters: application - full path to the Brackets application"
-  echo "Example: ./setup_for_hacking.sh \"$default_app_directory\""
+  echo "Example: ./restore_installed_build.sh \"$default_app_directory\""
   exit 0;
 fi
 
