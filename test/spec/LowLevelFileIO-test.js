@@ -745,6 +745,18 @@ define(function (require, exports, module) {
                 
                 complete = false;
                 
+                // Verify new file does not exist
+                runs(function () {
+                    brackets.fs.stat(copyName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+                
+                // make the copy
                 runs(function () {
                     brackets.fs.copyFile(fileName, copyName, copyCB);
                 });
@@ -757,16 +769,6 @@ define(function (require, exports, module) {
                 
                 // Verify new file is found 
                 runs(function () {
-                    brackets.fs.stat(copyName, statCB);
-                });
-                
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
-                
-                runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
-                });
-
-                runs(function () {
                     statCB = statSpy();
                     brackets.fs.stat(copyName, statCB);
                 });
@@ -776,8 +778,20 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
                 });
+
+                // Verify the origin file still exists
+                runs(function () {
+                    statCB = statSpy();
+                    brackets.fs.stat(fileName, statCB);
+                });
                 
-                // Delete the new copy
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Delete the copy
                 runs(function () {
                     brackets.fs.unlink(copyName, unlinkCB);
                 });
