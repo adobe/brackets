@@ -1016,6 +1016,8 @@ define(function (require, exports, module) {
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 editFn(editor, previousDOM);
 
+                // Note that even if we pass a change list, `_updateDOM` will still choose to do a
+                // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
                 var doc = new FakeDocument(clonedDOM.nodeMap);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
@@ -1117,6 +1119,8 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
+                                // this should have been a true incremental edit
+                                expect(result._wasIncremental).toBe(true);
                                 // make sure the parent of the change is still the same node as in the old tree
                                 expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                             } else {
@@ -1147,12 +1151,13 @@ define(function (require, exports, module) {
                             });
 
                             if (incremental) {
-                                // make sure the parent of the change is still the same node as in the old tree
-                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
-                            } else {
-                                // entire tree should be different
-                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
                             }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+
                         }
                     );
                 });
@@ -1176,12 +1181,12 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
-                                // make sure the parent of the change is still the same node as in the old tree
-                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
-                            } else {
-                                // entire tree should be different
-                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
                             }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
                         }
                     );
                 });
@@ -1207,6 +1212,8 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
+                                // this should have been an incremental edit since it was just typing
+                                expect(result._wasIncremental).toBe(true);
                                 // make sure the parent of the change is still the same node as in the old tree
                                 expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                             } else {
@@ -1244,6 +1251,8 @@ define(function (require, exports, module) {
                         parentID: tagID,
                         content: "GETTING AWESOMER WITH BRACKETS"
                     });
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
                     // make sure the parent of the change is still the same node as in the old tree
                     expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                     
@@ -1261,17 +1270,14 @@ define(function (require, exports, module) {
                         content: "GETTING MOAR AWESOME WITH BRACKETS"
                     });
                     
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
                     // make sure the parent of the change is still the same node as in the old tree
                     expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                 });
             });
             
-            it("in incremental edit, should avoid updating while typing an incomplete tag, then update when it's done", function () {
-                // Short-circuit this test if we're running without incremental updates
-                if (!HTMLInstrumentation._allowIncremental) {
-                    return;
-                }
-                
+            it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
@@ -1289,7 +1295,7 @@ define(function (require, exports, module) {
                     // TODO: a little weird that we're not going through the normal update logic
                     // (in getUnappliedEditList, etc.)
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    
+                                        
                     // This should really only have one edit (the tag insertion), but it also
                     // deletes and recreates the whitespace after it, similar to other insert cases.
                     var newElement = result.dom.children[3].children[2],
@@ -1322,12 +1328,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("in incremental edit, should handle typing of a <p> without a </p> and then adding it later", function () {
-                // Short-circuit this test if we're running without incremental updates
-                if (!HTMLInstrumentation._allowIncremental) {
-                    return;
-                }
-                
+            it("should handle typing of a <p> without a </p> and then adding it later", function () {
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
@@ -1451,6 +1452,11 @@ define(function (require, exports, module) {
                                 beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1516,6 +1522,11 @@ define(function (require, exports, module) {
                                 beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
+
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1579,6 +1590,11 @@ define(function (require, exports, module) {
                                 content: "New ",
                                 beforeID: newChild.tagID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1634,6 +1650,11 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1669,6 +1690,11 @@ define(function (require, exports, module) {
                                 parentID: newElement.tagID,
                                 content: "New Content"
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1716,6 +1742,11 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1775,6 +1806,11 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1798,6 +1834,10 @@ define(function (require, exports, module) {
                                 afterID: newDOM.children[3].children[1].tagID,
                                 beforeID: newDOM.children[3].children[3].tagID
                             });
+                            if (incremental) {
+                                // this should have been an incremental edit since it was just text
+                                expect(result._wasIncremental).toBe(true);
+                            }
                         }
                     );
                 });
@@ -1839,6 +1879,11 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 beforeID: newElement.tagID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });

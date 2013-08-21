@@ -508,35 +508,32 @@ define(function (require, exports, module) {
 
         this.isIncremental = false;
         
-        // TODO: if there's more than one change in the changelist, we need to figure out how
-        // to find all the affected ranges since we can't directly map the ranges of intermediate
-        // changes to marked ranges after the fact. 
-        //
-        // Probably the best we can do is try to determine what the first and last affected positions
-        // are in the whole changelist, then figure out what marks those positions are in, and walk
-        // up the tree to the common parent. However, that's not trivial since each change's position
-        // is specified in terms of the document's state after the previous change. It's probably easy
-        // to find the first affected position, but harder to find the last. Perhaps we could just
-        // dirty the whole doc after the first affected position.
-        //
-        // For now, just punt and redo the whole doc if there's more than one change.
+        function isDangerousEdit(text) {
+            // We don't consider & dangerous since entities only affect text content, not
+            // overall DOM structure.
+            return (/[<>\/=\"\']/).test(text);
+        }
+        
+        // If there's more than one change, be conservative and assume we have to do a full reparse.
         if (changeList && !changeList.next) {
-            // If both the beginning and end of the change are still within the same marked
-            // range after the change, then assume we can just dirty the tag containing them,
-            // otherwise punt. (TODO: We could chase upward in the tree to find the common parent if
-            // the tags for the beginning and end of the change are different.)
-            // If the edit is right at the beginning or end of a tag, we want to be conservative
-            // and use the parent as the edit range.
-            var startMark = _getMarkerAtDocumentPos(editor, changeList.from, true),
-                endMark = _getMarkerAtDocumentPos(editor, changeList.to, true);
-            if (startMark && startMark === endMark) {
-                var newMarkRange = startMark.find();
-                if (newMarkRange) {
-                    text = editor._codeMirror.getRange(newMarkRange.from, newMarkRange.to);
-                    //console.log("incremental update: " + text);
-                    this.changedTagID = startMark.tagID;
-                    startOffset = editor._codeMirror.indexFromPos(newMarkRange.from);
-                    this.isIncremental = true;
+            // If the inserted or removed text doesn't have any characters that could change the
+            // structure of the DOM (e.g. by adding or removing a tag boundary), then we can do
+            // an incremental reparse of just the parent tag containing the edit. This should just
+            // be the marked range that contains the beginning of the edit range, since that position
+            // isn't changed by the edit.
+            if (!isDangerousEdit(changeList.text) && !isDangerousEdit(changeList.removed)) {
+                // If the edit is right at the beginning or end of a tag, we want to be conservative
+                // and use the parent as the edit range.
+                var startMark = _getMarkerAtDocumentPos(editor, changeList.from, true);
+                if (startMark) {
+                    var range = startMark.find();
+                    if (range) {
+                        text = editor._codeMirror.getRange(range.from, range.to);
+                        //console.log("incremental update: " + text);
+                        this.changedTagID = startMark.tagID;
+                        startOffset = editor._codeMirror.indexFromPos(range.from);
+                        this.isIncremental = true;
+                    }
                 }
             }
         }
@@ -1085,7 +1082,8 @@ define(function (require, exports, module) {
         
         return {
             dom: result.newDOM,
-            edits: edits
+            edits: edits,
+            _wasIncremental: updater.isIncremental // for unit tests only
         };
     }
     
