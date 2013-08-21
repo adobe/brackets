@@ -444,6 +444,15 @@ define(function LiveDevelopment(require, exports, module) {
         $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
+    /** Documents are considered to be out-of-sync if they are dirty and
+     *  do not have "update while editing" support
+     * @param {Document} doc
+     */
+    function _docIsOutOfSync(doc) {
+        var docClass = _classForDocument(doc);
+        return (doc.isDirty && docClass !== CSSDocument && docClass !== HTMLDocument);
+    }
+    
     /** Triggered by Inspector.error */
     function _onError(event, error) {
         var message;
@@ -574,7 +583,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 relatedDocumentsPromise
                     .done(function () {
-                        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                        if (_docIsOutOfSync(doc)) {
                             status = STATUS_OUT_OF_SYNC;
                         }
                         _setStatus(status);
@@ -1037,7 +1046,7 @@ define(function LiveDevelopment(require, exports, module) {
             promise
                 .fail(close)
                 .done(function () {
-                    if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                    if (_docIsOutOfSync(doc)) {
                         status = STATUS_OUT_OF_SYNC;
                     }
                     _setStatus(status);
@@ -1059,10 +1068,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+        if (doc && Inspector.connected() &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
-            _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
+            _setStatus(_docIsOutOfSync(doc) ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
     }
 
