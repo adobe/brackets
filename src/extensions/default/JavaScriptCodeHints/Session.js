@@ -32,7 +32,9 @@ define(function (require, exports, module) {
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager");
+        ScopeManager    = require("ScopeManager"),
+        Acorn           = require("thirdparty/acorn/acorn"),
+        Acorn_Loose     = require("thirdparty/acorn/acorn_loose");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -53,7 +55,7 @@ define(function (require, exports, module) {
     /**
      *  Get the builtin libraries tern is using.
      *
-     * @returns {Array.<string>} - array of library names.
+     * @return {Array.<string>} - array of library names.
      * @private
      */
     Session.prototype._getBuiltins = function () {
@@ -271,7 +273,7 @@ define(function (require, exports, module) {
      * 
      * @param {{line: number, ch: number}} cursor - the cursor position
      *      at which context information is to be retrieved
-     * @param {number} depth - the current depth of the parenthesis stack, or
+     * @param {number=} depth - the current depth of the parenthesis stack, or
      *      undefined if the depth is 0.
      * @return {string} - the context for the property that was looked up
      */
@@ -319,42 +321,150 @@ define(function (require, exports, module) {
         }
         return undefined;
     };
-    
+
+    /**
+     *
+     * @param {Object} token - a CodeMirror token
+     * @return {*} - the lexical state of the token
+     */
+    function getLexicalState(token) {
+        if (token.state.lexical) {
+            // in a javascript file this is just in the state field
+            return token.state.lexical;
+        } else if (token.state.localState && token.state.localState.lexical) {
+            // inline javascript in an html file will have this in
+            // the localState field
+            return token.state.localState.lexical;
+        }
+    }
+
+
+    /**
+     * Determine if the caret is either within a function call or on the function call itself.
+     *
+     * @return {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number}}}
+     * inFunctionCall - true if the caret if either within a function call or on the
+     * function call itself.
+     * functionCallPos - the offset of the '(' character of the function call if inFunctionCall
+     * is true, otherwise undefined.
+     */
+    Session.prototype.getFunctionInfo = function () {
+        var inFunctionCall   = false,
+            cursor           = this.getCursor(),
+            functionCallPos,
+            token            = this.getToken(cursor),
+            lexical,
+            self = this,
+            foundCall = false;
+
+        /**
+         * Test if the cursor is on a function identifier
+         *
+         * @return {Object} - lexical state if on a function identifier, null otherwise.
+         */
+        function isOnFunctionIdentifier() {
+
+            // Check if we might be on function identifier of the function call.
+            var type = token.type,
+                nextToken,
+                localLexical,
+                localCursor = {line: cursor.line, ch: token.end};
+
+            if (type === "variable-2" || type === "variable" || type === "property") {
+                nextToken = self.getNextToken(localCursor, true);
+                if (nextToken && nextToken.string === "(") {
+                    localLexical = getLexicalState(nextToken);
+                    return localLexical;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Test is a lexical state is in a function call.
+         *
+         * @param {Object} lex - lexical state.
+         * @return {Object | boolean}
+         *
+         */
+        function isInFunctionalCall(lex) {
+            // in a call, or inside array or object brackets that are inside a function.
+            return (lex && (lex.info === "call" ||
+                (lex.info === undefined && (lex.type === "]" || lex.type === "}") &&
+                    lex.prev.info === "call")));
+        }
+
+        if (token) {
+            // if this token is part of a function call, then the tokens lexical info
+            // will be annotated with "call".
+            // If the cursor is inside an array, "[]", or object, "{}", the lexical state
+            // will be undefined, not "call". lexical.prev will be the function state.
+            // Handle this case and then set "lexical" to lexical.prev.
+            // Also test if the cursor is on a function identifier of a function call.
+            lexical = getLexicalState(token);
+            foundCall = isInFunctionalCall(lexical);
+
+            if (!foundCall) {
+                lexical = isOnFunctionIdentifier();
+                foundCall = isInFunctionalCall(lexical);
+            }
+
+            if (foundCall) {
+                // we need to find the location of the called function so that we can request the functions type.
+                // the token's lexical info will contain the column where the open "(" for the
+                // function call occurs, but for whatever reason it does not have the line, so
+                // we have to walk back and try to find the correct location.  We do this by walking
+                // up the lines starting with the line the token is on, and seeing if any of the lines
+                // have "(" at the column indicated by the tokens lexical state.
+                // We walk back 9 lines, as that should be far enough to find most function calls,
+                // and it will prevent us from walking back thousands of lines if something went wrong.
+                // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
+                // working well
+                if (lexical.info === undefined) {
+                    lexical = lexical.prev;
+                }
+
+                var col = lexical.info === "call" ? lexical.column : lexical.prev.column,
+                    line,
+                    e,
+                    found;
+                for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
+                    if (this.getLine(line).charAt(col) === "(") {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    inFunctionCall = true;
+                    functionCallPos = {line: line, ch: col};
+                }
+            }
+        }
+
+        return {
+            inFunctionCall: inFunctionCall,
+            functionCallPos: functionCallPos
+        };
+    };
+
     /**
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
      * @return {{property: boolean, 
-                 showFunctionType:boolean, 
-                 context: string,
-                 functionCallPos: {line:number, ch:number}}} - an Object consisting
+                 context: string} - an Object consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of
      *      the property lookup, or null if there is none. The context is
      *      always null for non-property lookups.
-     *      a {boolean} "showFunctionType" indicating if the function type should
-     *      be displayed instead of normal hints.  If "showFunctionType" is true, then
-     *      then "functionCallPos" will be an object with line & col information of the
-     *      function being called     
      */
     Session.prototype.getType = function () {
-        function getLexicalState(token) {
-            if (token.state.lexical) {
-                // in a javascript file this is just in the state field
-                return token.state.lexical;
-            } else if (token.state.localState && token.state.localState.lexical) {
-                // inline javascript in an html file will have this in 
-                // the localState field
-                return token.state.localState.lexical;
-            }
-        }
         var propertyLookup   = false,
-            inFunctionCall   = false,
-            showFunctionType = false,
             context          = null,
             cursor           = this.getCursor(),
-            functionCallPos,
             token            = this.getToken(cursor),
             lexical;
 
@@ -362,38 +472,6 @@ define(function (require, exports, module) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call"
             lexical = getLexicalState(token);
-            if (lexical.info === "call") {
-                inFunctionCall = true;
-                if (this.getQuery().length > 0) {
-                    inFunctionCall = false;
-                    showFunctionType = false;
-                } else {
-                    showFunctionType = true;
-                    // we need to find the location of the called function so that we can request the functions type.
-                    // the token's lexical info will contain the column where the open "(" for the
-                    // function call occurrs, but for whatever reason it does not have the line, so 
-                    // we have to walk back and try to find the correct location.  We do this by walking
-                    // up the lines starting with the line the token is on, and seeing if any of the lines
-                    // have "(" at the column indicated by the tokens lexical state.  
-                    // We walk back 9 lines, as that should be far enough to find most function calls,
-                    // and it will prevent us from walking back thousands of lines if something went wrong.
-                    // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
-                    // working well
-                    var col = lexical.column,
-                        line,
-                        e,
-                        found;
-                    for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
-                        if (this.getLine(line).charAt(col) === "(") {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        functionCallPos = {line: line, ch: col};
-                    }
-                }
-            }
             if (token.type === "property") {
                 propertyLookup = true;
             }
@@ -403,14 +481,10 @@ define(function (require, exports, module) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
             }
-            if (propertyLookup) { showFunctionType = false; }
         }
         
         return {
             property: propertyLookup,
-            inFunctionCall: inFunctionCall,
-            showFunctionType: showFunctionType,
-            functionCallPos: functionCallPos,
             context: context
         };
     };
@@ -442,7 +516,7 @@ define(function (require, exports, module) {
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
-     * @returns {hints: Array.<string>, needGuesses: boolean} - array of
+     * @return {hints: Array.<string>, needGuesses: boolean} - array of
      * matching hints. If needGuesses is true, then the caller needs to
      * request guesses and call getHints again.
      */
@@ -483,6 +557,7 @@ define(function (require, exports, module) {
                 if (searchResult) {
                     searchResult.value = hint.value;
                     searchResult.guess = hint.guess;
+                    searchResult.type = hint.type;
 
                     if (hint.keyword !== undefined) {
                         searchResult.keyword = hint.keyword;
@@ -524,8 +599,6 @@ define(function (require, exports, module) {
             }
 
             StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
-        } else if (type.showFunctionType) {
-            hints = this.getFunctionTypeHint();
         } else {     // identifiers, literals, and keywords
             hints = this.ternHints || [];
             hints = hints.concat(HintUtils.LITERALS);
@@ -549,39 +622,119 @@ define(function (require, exports, module) {
         this.ternGuesses = newGuesses;
     };
 
+    /**
+     * Set a new function type hint.
+     *
+     * @param {Array<{name: string, type: string, isOptional: boolean}>} newFnType -
+     * Array of function hints.
+     */
     Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;
     };
-    
+
     /**
-     * Get the function type hint.  This will format the hint so
-     * that it has the called variable name instead of just "fn()".
+     * The position of the function call for the current fnType.
+     *
+     * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
      */
-    Session.prototype.getFunctionTypeHint = function () {
+    Session.prototype.setFunctionCallPos = function (functionCallPos) {
+        this.functionCallPos = functionCallPos;
+    };
+
+    /**
+     * Get the function type hint.  This will format the hint, showing the
+     * parameter at the cursor in bold.
+     *
+     * @return {{parameters: Array<{name: string, type: string, isOptional: boolean}>,
+     * currentIndex: number}} An Object where the
+     * "parameters" property is an array of parameter objects;
+     * the "currentIndex" property index of the hint the cursor is on, may be
+     * -1 if the cursor is on the function identifier.
+     */
+    Session.prototype.getParameterHint = function () {
         var fnHint = this.fnType,
-            hints = [];
-        
-        if (fnHint && (fnHint.substring(0, 3) === "fn(")) {
-            var sessionType = this.getType(),
-                cursor = sessionType.functionCallPos,
-                token = cursor ? this.getToken(cursor) : undefined,
-                varName;
-            if (token &&
-                    // only change the 'fn' when the token looks like a function
-                    // name, and isn't some other kind of expression
-                    (token.type === "variable" ||
-                     token.type === "variable-2" ||
-                     token.type === "property")) {
-                varName = token.string;
-                if (varName) {
-                    fnHint = varName + fnHint.substr(2);
+            cursor = this.getCursor(),
+            token = this.getToken(this.functionCallPos),
+            start = {line: this.functionCallPos.line, ch: token.start},
+            fragment = this.editor.document.getRange(start,
+                {line: this.functionCallPos.line + 10, ch: 0});
+
+        var ast;
+        try {
+            ast = Acorn.parse(fragment);
+        } catch (e) { ast = Acorn_Loose.parse_dammit(fragment); }
+
+        // find argument as cursor location and bold it.
+        var startOffset = this.getOffsetFromCursor(start),
+            cursorOffset = this.getOffsetFromCursor(cursor),
+            offset = cursorOffset - startOffset,
+            node = ast.body[0],
+            currentArg = -1;
+
+        if (node.type === "ExpressionStatement") {
+            node = node.expression;
+            if (node.type === "SequenceExpression") {
+                node = node.expressions[0];
+            }
+            if (node.type === "BinaryExpression") {
+                if (node.left.type === "CallExpression") {
+                    node = node.left;
+                } else if (node.right.type === "CallExpression") {
+                    node = node.right;
                 }
             }
-            hints[0] = {value: fnHint, positions: []};
+            if (node.type === "CallExpression") {
+                var args = node["arguments"],
+                    i,
+                    n = args.length,
+                    lastEnd = offset,
+                    text;
+                for (i = 0; i < n; i++) {
+                    node = args[i];
+                    if (offset >= node.start && offset <= node.end) {
+                        currentArg = i;
+                        break;
+                    } else if (offset < node.start) {
+                        // The range of nodes can be disjoint so see i f we
+                        // passed the node. If we passed the node look at the
+                        // text between the nodes to figure out which
+                        // arg we are on.
+                        text = fragment.substring(lastEnd, node.start);
+
+                        // test if comma is before or after the offset
+                        if (text.indexOf(",") >= (offset - lastEnd)) {
+                            // comma is after the offset so the current arg is the
+                            // previous arg node.
+                            i--;
+                        } else if (i === 0 && text.indexOf("(") !== -1) {
+                            // the cursor is on the function identifier
+                            currentArg = -1;
+                            break;
+                        }
+
+                        currentArg = Math.max(0, i);
+                        break;
+                    } else if (i + 1 === n) {
+                        // look for a comma after the node.end. This will tell us we
+                        // are on the next argument, even there is no text, and therefore no node,
+                        // for the next argument.
+                        text = fragment.substring(node.end, offset);
+                        if (text.indexOf(",") !== -1) {
+                            currentArg = i + 1; // we know we are after the current arg, but keep looking
+                        }
+                    }
+
+                    lastEnd = node.end;
+                }
+
+                // if there are no args, then figure out if we are on the function identifier
+                if (n === 0 && cursorOffset > this.getOffsetFromCursor(this.functionCallPos)) {
+                    currentArg = 0;
+                }
+            }
         }
-        
-        hints.handleWideResults = true;
-        return hints;
+
+        return {parameters: fnHint, currentIndex: currentArg};
     };
 
     /**
@@ -630,12 +783,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deterimine if the cursor is located in the name of a function declaration.
-     * This is so we can suppress hints when in a funtion name, as we do for variable and
+     * Determine if the cursor is located in the name of a function declaration.
+     * This is so we can suppress hints when in a function name, as we do for variable and
      * parameter declarations, but we can tell those from the token itself rather than having
      * to look at previous tokens.
      * 
-     * @return {boolean} - true if the current cursor position is in the name of a function decl.
+     * @return {boolean} - true if the current cursor position is in the name of a function
+     * declaration.
      */
     Session.prototype.isFunctionName = function () {
         var cursor = this.getCursor(),

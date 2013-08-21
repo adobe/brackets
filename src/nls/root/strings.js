@@ -115,7 +115,9 @@ define({
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
+    "BUTTON_ALL"                        : "All",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Replace",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
@@ -124,7 +126,9 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
-    
+
+    "FIND_REPLACE_TITLE"                : "Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches",
+
     "FIND_IN_FILES_TITLE"               : "\"{4}\" found {5} &mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
@@ -444,7 +448,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
-    
+    "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
+    "NO_ARGUMENTS"                              : "<no parameters>",
+
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Enable JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",

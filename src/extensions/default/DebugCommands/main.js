@@ -188,10 +188,8 @@ define(function (require, exports, module) {
                 });
                 
                 var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
-                Dialogs.showModalDialogUsingTemplate(template).done(function () {
-                    if (locale === undefined) {
-                        return;
-                    } else if (locale !== curLocale) {
+                Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
                         brackets.setLocale(locale);
                         CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     }
