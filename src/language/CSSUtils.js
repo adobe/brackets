@@ -1115,6 +1115,7 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    // Essentially minifies CSS by removing all newlines, tabs and comments 
     // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
     function _minimize(_content) {
         var content = _content;
@@ -1129,6 +1130,20 @@ define(function (require, exports, module) {
         return content;
     }
     
+    // Essentially minifies CSS by removing all newlines, tabs and comments 
+    // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
+    function _reduceStrings(_content) {
+        return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
+    }
+    
+    /**
+     * Extracts all nemd flow instances
+     * @param {!String} text to extract from
+     * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
+     * @return {$.Promise} that will be resolved with an Array of objects containing the
+     *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
+     *      Does not addRef() the documents returned in the array.
+     */
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/gi,
             result = [],
@@ -1136,7 +1151,7 @@ define(function (require, exports, module) {
         
         // Minimize the CSS so that strings and comments
         //  do not match results
-        text = _minimize(text);
+        text = _reduceStrings(_minimize(text));
         
         // Find the lines that match.  This will return an array of 
         //  matched css properties (flow-into: junk;)

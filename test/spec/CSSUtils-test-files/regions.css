@@ -26,15 +26,19 @@ p.layout > div {
 */
 
 div {
-    content: "/* p.content { flow-into: carter; } p.layout > div { flow-from: carter; } */"
+    content: "/* p.content { flow-into: carter; } p.layout > div { flow-from: carter; } */";
+}
+
+div {
+    content: "html.content { flow-into: dexter; } html.layout > div { flow-from: dexter; }";
 }
 
 /*
 div.content {
-    content: "flow-into: martin;"
+    content: "flow-into: martin;";
 }
 
 div.layout > div {
-    content: "flow-from: martin;"
+    content: "flow-from: martin;";
 }
 */
