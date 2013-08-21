@@ -127,7 +127,7 @@ define({
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
-	"FIND_REPLACE_TITLE": "!能=[7118975] Replace \"{0}\" with \"{1}\" &mdash; {3} {2} matches_=!",
+	"FIND_REPLACE_TITLE": "「{0}」を「{1}」に置換 &mdash; {3} {2} 件が見つかりました",
 
 	"FIND_IN_FILES_TITLE": "「{4}」の検索結果 {5} &mdash; {2} {3} / {0} {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
@@ -448,8 +448,8 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-	"CMD_SHOW_PARAMETER_HINT": "!能=[7119026] Show Parameter Hint_=!",
-	"NO_ARGUMENTS": "!能=[7119027] <no parameters>_=!",
+	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
+	"NO_ARGUMENTS": "<パラメーターがありません>",
 
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
