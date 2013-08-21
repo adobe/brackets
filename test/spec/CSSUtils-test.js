@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
         bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
         escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css"),
-        embeddedHtmlFileEntry      = new NativeFileSystem.FileEntry(testPath + "/embedded.html");
+        embeddedHtmlFileEntry      = new NativeFileSystem.FileEntry(testPath + "/embedded.html"),
+        cssRegionsFileEntry        = new NativeFileSystem.FileEntry(testPath + "/regions.css");
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
@@ -1921,5 +1922,16 @@ define(function (require, exports, module) {
                 expectEmptyInfo(80);
             });
         });
+    });
+    
+    describe("CSS Regions", function () {
+        beforeEach(function () {
+            init(this, cssRegionsFileEntry);
+        });
+        
+        it("should find named flows", function () {
+            expect(CSSUtils.extractAllNamedFlows(this.fileContent).length).toNotBe(0);
+        });
+        
     });
 });

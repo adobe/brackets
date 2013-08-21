@@ -1115,9 +1115,21 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    function extractAllNamedFlows(text) {
+        var namedFlowRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/gi,
+            matches;
+        
+        matches = namedFlowRegEx.exec(text);
+        if (matches && matches.length > 1) {
+            return matches.slice(1);
+        }
+        return [];
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
 
     exports.SELECTOR = SELECTOR;
