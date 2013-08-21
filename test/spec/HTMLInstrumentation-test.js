@@ -1020,13 +1020,50 @@ define(function (require, exports, module) {
                 }
             }
             
-            function typeAndExpectNoEdits(editor, previousDOM, str, pos) {
+            /*
+             * Simulates typing the given string character by character. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function typeAndExpect(editor, curDOM, str, pos, edits) {
                 var i, result;
                 for (i = 0; i < str.length; i++) {
                     editor.document.replaceRange(str.charAt(i), {line: pos.line, ch: pos.ch + i});
-                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-                    expect(result).toBeNull();
+                    result = HTMLInstrumentation._updateDOM(curDOM, editor, changeList);
+                    if (!edits) {
+                        expect(result).toBeNull();
+                    } else {
+                        expect(result.edits).toEqual(edits[i]);
+                        curDOM = result.dom;
+                    }
                 }
+                
+                return curDOM;
+            }
+            
+            /*
+             * Simulates deleting the specified number of characters one at a time. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function deleteAndExpect(editor, curDOM, pos, numToDelete, edits) {
+                var i, result;
+                for (i = 0; i < numToDelete; i++) {
+                    editor.document.replaceRange("", {line: pos.line, ch: pos.ch - i - 1}, {line: pos.line, ch: pos.ch - i});
+                    result = HTMLInstrumentation._updateDOM(curDOM, editor, changeList);
+                    if (!edits) {
+                        expect(result).toBeNull();
+                    } else {
+                        expect(result.edits).toEqual(edits[i]);
+                        curDOM = result.dom;
+                    }
+                }
+
+                return curDOM;
             }
             
             it("should re-instrument after document is dirtied", function () {
@@ -1279,7 +1316,7 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     // While the tag is incomplete, we should get no edits.                    
-                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    typeAndExpect(editor, previousDOM, "<p", {line: 12, ch: 38});
                     
                     // This simulates our autocomplete behavior. The next case simulates the non-autocomplete case.
                     editor.document.replaceRange("></p>", {line: 12, ch: 40});
@@ -1330,7 +1367,8 @@ define(function (require, exports, module) {
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     
-                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    // No edits should occur while we're invalid.
+                    typeAndExpect(editor, previousDOM, "<p", {line: 12, ch: 38});
                     
                     // This simulates what would happen if autocomplete were off. We're actually
                     // valid at this point since <p> is implied close. We want to make sure that
@@ -1374,7 +1412,7 @@ define(function (require, exports, module) {
                     
                     // We should get no edits while typing the close tag.
                     previousDOM = result.dom;
-                    typeAndExpectNoEdits(editor, previousDOM, "</p", {line: 12, ch: 41});
+                    typeAndExpect(editor, previousDOM, "</p", {line: 12, ch: 41});
                     
                     // When we type the ">" at the end, we should get a delete of the text inside the <p>
                     // and an insert of text after the </p> since we now know that the close is before the
@@ -1399,6 +1437,96 @@ define(function (require, exports, module) {
                         afterID: newElement.tagID,
                         beforeID: beforeID
                     });
+                });
+            });
+
+            it("should handle typing of a new attribute character-by-character", function () {
+                setupEditor("<p>some text</p>");
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type a space after the tag name, then the attribute name. After the space,
+                    // it should be valid but there should be no actual edits. After that, it should
+                    // look like we're repeatedly adding a new empty attribute and deleting the old one.
+                    // edits to be generated.
+                    previousDOM = typeAndExpect(editor, previousDOM, " class", {line: 0, ch: 2}, [
+                        [], // " "
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " class"
+                            {type: "attrAdd", tagID: tagID, attribute: "class", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                        ]
+                    ]);
+                    
+                    // While typing the "=" and quoted value, nothing should happen until the quote is balanced.
+                    previousDOM = typeAndExpect(editor, previousDOM, "='myclass", {line: 0, ch: 8});
+                    
+                    // When the close quote is typed, we should get an attribute change.
+                    typeAndExpect(editor, previousDOM, "'", {line: 0, ch: 17}, [
+                        [
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: "myclass"}
+                        ]
+                    ]);
+                });
+            });
+
+            it("should handle deleting of an attribute character-by-character", function () {
+                setupEditor("<p class='myclass'>some text</p>");
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Delete the attribute value starting from the end quote. We should be invalid until
+                    // we delete the = sign.
+                    previousDOM = deleteAndExpect(editor, previousDOM, {line: 0, ch: 18}, 9);
+                    
+                    // Delete the = sign, then the name, then the space. This should look like 
+                    // setting the value to "", then changing the attribute name, then an empty edit.
+                    deleteAndExpect(editor, previousDOM, {line: 0, ch: 9}, 6, [
+                        [ // " class"
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: ""}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "class"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " "
+                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                        ],
+                        [] // deletion of space
+                    ]);
                 });
             });
 
