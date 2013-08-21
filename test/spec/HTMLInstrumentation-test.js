@@ -88,6 +88,8 @@ define(function (require, exports, module) {
             if (this.tagID) {
                 var nodeMap = this.getNodeMap();
                 if (nodeMap) {
+                    var node = nodeMap[this.tagID];
+                    expect(node).toBe(this);
                     delete nodeMap[this.tagID];
                 }
             }
