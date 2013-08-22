@@ -1,3 +1,4 @@
+/* basic tests */
 article.content {
     flow-into: main;
 }
@@ -15,6 +16,8 @@ section.layout > div {
     flow-from: jeff;
 }
 
+/* exclude matches inside comments tests */
+
 /*
 p.content {
     flow-into: carter;
@@ -25,13 +28,17 @@ p.layout > div {
 }
 */
 
+/* exclude matches inside strings tests */
+
 div {
     content: "/* p.content { flow-into: carter; } p.layout > div { flow-from: carter; } */";
 }
 
+
 div {
     content: "html.content { flow-into: dexter; } html.layout > div { flow-from: dexter; }";
 }
+
 
 /*
 div.content {
@@ -42,6 +49,8 @@ div.layout > div {
     content: "flow-from: martin;";
 }
 */
+
+/* multi-line property tests */
 
 #randy.content {
     flow-into:   
