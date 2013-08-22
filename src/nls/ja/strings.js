@@ -112,6 +112,8 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
 	"FIND_RESULT_COUNT": "{0} 件",
+	"FIND_RESULT_COUNT_SINGLE": "!能=[7126142] 1 result_=!",
+	"FIND_NO_RESULTS": "!能=[7126141] No results_=!",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
