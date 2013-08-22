@@ -246,6 +246,7 @@ define(function (require, exports, module) {
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
+			$(DocumentModule).off(".findInFiles");
         }
     }
     
@@ -521,109 +522,10 @@ define(function (require, exports, module) {
             _hideSearchResults();
         }
     }
-    
-    /**
-     * @private
-     * @param {!FileInfo} fileInfo  File in question
-     * @param {?Entry} scope  Search scope, or null if whole project
-     * @return {boolean}
-     */
-    function _inScope(fileInfo, scope) {
-        if (scope) {
-            if (scope.isDirectory) {
-                // Dirs always have trailing slash, so we don't have to worry about being
-                // a substring of another dir name
-                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
-            } else {
-                return fileInfo.fullPath === scope.fullPath;
-            }
-        }
-        return true;
-    }
-    
-    /**
-     * @private
-     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
-     * a find operation across all files in the project.
-     * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
-     */
-    function _doFindInFiles(scope) {
-        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
-                CommandManager.execute(Commands.EDIT_FIND);
-            });
-            return;
-        }
-        
-        // Default to searching for the current selection
-        var currentEditor = EditorManager.getActiveEditor(),
-            initialString = currentEditor && currentEditor.getSelectedText(),
-            dialog        = new FindInFilesDialog();
 
-        searchResults      = {};
-        currentStart       = 0;
-        currentQuery       = "";
-        currentQueryExpr   = null;
-        currentScope       = scope;
-        maxHitsFoundInFile = false;
-                            
-        dialog.showDialog(initialString, scope)
-            .done(function (query) {
-                if (query) {
-                    currentQuery     = query;
-                    currentQueryExpr = _getQueryRegExp(query);
-                    
-                    if (!currentQueryExpr) {
-                        return;
-                    }
-                    StatusBar.showBusyIndicator(true);
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (fileListResult) {
-                            Async.doInParallel(fileListResult, function (fileInfo) {
-                                var result = new $.Deferred();
-                                
-                                if (!_inScope(fileInfo, scope)) {
-                                    result.resolve();
-                                } else {
-                                    // Search one file
-                                    DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                                        .done(function (doc) {
-                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
-                                            result.resolve();
-                                        })
-                                        .fail(function (error) {
-                                            // Error reading this file. This is most likely because the file isn't a text file.
-                                            // Resolve here so we move on to the next file.
-                                            result.resolve();
-                                        });
-                                }
-                                return result.promise();
-                            })
-                                .done(function () {
-                                    // Done searching all files: show results
-                                    _showSearchResults();
-                                    StatusBar.hideBusyIndicator();
-                                })
-                                .fail(function () {
-                                    console.log("find in files failed.");
-                                    StatusBar.hideBusyIndicator();
-                                });
-                        });
-                }
-            });
-    }
-    
-    /**
-     * @private
-     * Search within the file/subtree defined by the sidebar selection
-     */
-    function _doFindInSubtree() {
-        var selectedEntry = ProjectManager.getSelectedItem();
-        _doFindInFiles(selectedEntry);
-    }
-    
-    
-    /**
+
+
+	/**
      * @private
      * Shows the search results and tries to restore the previous scroll and selection
      */
@@ -641,60 +543,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
-    
-    /**
-     * @private
-     * Moves the search results from the previous path to the new one and updates the results list, if required
-     * @param {$.Event} event
-     * @param {string} oldName
-     * @param {string} newName
-     */
-    function _fileNameChangeHandler(event, oldName, newName) {
-        var resultsChanged = false;
-        
-        if (searchResultsPanel.isVisible()) {
-            // Update the search results
-            CollectionUtils.forEach(searchResults, function (item, fullPath) {
-                if (fullPath.match(oldName)) {
-                    searchResults[fullPath.replace(oldName, newName)] = item;
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
-                }
-            });
-            
-            // Restore the results if needed
-            if (resultsChanged) {
-                _restoreSearchResults();
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Deletes the results from the deleted file and updates the results list, if required
-     * @param {$.Event} event
-     * @param {string} path
-     */
-    function _pathDeletedHandler(event, path) {
-        var resultsChanged = false;
-        
-        if (searchResultsPanel.isVisible()) {
-            // Update the search results
-            CollectionUtils.forEach(searchResults, function (item, fullPath) {
-                if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
-                }
-            });
-            
-            // Restore the results if needed
-            if (resultsChanged) {
-                _restoreSearchResults();
-            }
-        }
-    }
-    
+
     /**
      * @private
      * Update the search results using the given list of changes fr the given document
@@ -720,7 +569,7 @@ define(function (require, exports, module) {
             for (i = 0; i < change.text.length; i++) {
                 lines.push(doc.getLine(change.from.line + i));
             }
-                
+            
             // We need to know how many lines changed to update the rest of the lines
             if (change.from.line !== change.to.line) {
                 diff = change.from.line - change.to.line;
@@ -784,7 +633,26 @@ define(function (require, exports, module) {
         }
         return resultsChanged;
     }
-    
+
+    /**
+     * @private
+     * @param {!FileInfo} fileInfo  File in question
+     * @param {?Entry} scope  Search scope, or null if whole project
+     * @return {boolean}
+     */
+    function _inScope(fileInfo, scope) {
+        if (scope) {
+            if (scope.isDirectory) {
+                // Dirs always have trailing slash, so we don't have to worry about being
+                // a substring of another dir name
+                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
+            } else {
+                return fileInfo.fullPath === scope.fullPath;
+            }
+        }
+        return true;
+    }
+
     /**
      * @private
      * Tries to update the search result on document changes
@@ -809,6 +677,143 @@ define(function (require, exports, module) {
             }
         }
     }
+
+
+
+    /**
+     * @private
+     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
+     * a find operation across all files in the project.
+     * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
+     */
+    function _doFindInFiles(scope) {
+        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
+                CommandManager.execute(Commands.EDIT_FIND);
+            });
+            return;
+        }
+        
+        // Default to searching for the current selection
+        var currentEditor = EditorManager.getActiveEditor(),
+            initialString = currentEditor && currentEditor.getSelectedText(),
+            dialog        = new FindInFilesDialog();
+
+        searchResults      = {};
+        currentStart       = 0;
+        currentQuery       = "";
+        currentQueryExpr   = null;
+        currentScope       = scope;
+        maxHitsFoundInFile = false;
+                            
+        dialog.showDialog(initialString, scope)
+            .done(function (query) {
+                if (query) {
+                    currentQuery     = query;
+                    currentQueryExpr = _getQueryRegExp(query);
+                    
+                    if (!currentQueryExpr) {
+                        return;
+                    }
+                    StatusBar.showBusyIndicator(true);
+                    FileIndexManager.getFileInfoList("all")
+                        .done(function (fileListResult) {
+                            Async.doInParallel(fileListResult, function (fileInfo) {
+                                var result = new $.Deferred();
+                                
+                                if (!_inScope(fileInfo, scope)) {
+                                    result.resolve();
+                                } else {
+                                    // Search one file
+                                    DocumentManager.getDocumentForPath(fileInfo.fullPath)
+                                        .done(function (doc) {
+                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
+                                            result.resolve();
+                                        })
+                                        .fail(function (error) {
+                                            // Error reading this file. This is most likely because the file isn't a text file.
+                                            // Resolve here so we move on to the next file.
+                                            result.resolve();
+                                        });
+                                }
+                                return result.promise();
+                            })
+                                .done(function () {
+                                    // Done searching all files: show results
+                                    _showSearchResults();
+                                    StatusBar.hideBusyIndicator();
+                                    $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                                })
+                                .fail(function () {
+                                    console.log("find in files failed.");
+                                    StatusBar.hideBusyIndicator();
+                                });
+                        });
+                }
+            });
+    }
+    
+    /**
+     * @private
+     * Search within the file/subtree defined by the sidebar selection
+     */
+    function _doFindInSubtree() {
+        var selectedEntry = ProjectManager.getSelectedItem();
+        _doFindInFiles(selectedEntry);
+    }
+    
+    
+    /**
+     * @private
+     * Moves the search results from the previous path to the new one and updates the results list, if required
+     * @param {$.Event} event
+     * @param {string} oldName
+     * @param {string} newName
+     */
+    function _fileNameChangeHandler(event, oldName, newName) {
+        var resultsChanged = false;
+        
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+                if (fullPath.match(oldName)) {
+                    searchResults[fullPath.replace(oldName, newName)] = item;
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
+            });
+            
+            // Restore the results if needed
+            if (resultsChanged) {
+                _restoreSearchResults();
+            }
+        }
+    }
+    
+    /**
+     * @private
+     * Deletes the results from the deleted file and updates the results list, if required
+     * @param {$.Event} event
+     * @param {string} path
+     */
+    function _pathDeletedHandler(event, path) {
+        var resultsChanged = false;
+        
+        if (searchResultsPanel.isVisible()) {
+            // Update the search results
+            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+                if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
+            });
+            
+            // Restore the results if needed
+            if (resultsChanged) {
+                _restoreSearchResults();
+            }
+        }
+    }
     
     
     
@@ -826,7 +831,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
     $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
-    $(DocumentModule).on("documentChange",     _documentChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
