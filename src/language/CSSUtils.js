@@ -1141,6 +1141,7 @@ define(function (require, exports, module) {
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
             result = [],
+            names = {},
             thisMatch;
         
         // Reduce the content so that matches 
@@ -1152,7 +1153,10 @@ define(function (require, exports, module) {
         
         // Iterate over the matches and add them to result
         while (thisMatch) {
-            result.push(thisMatch[1]);
+            var thisName = thisMatch[1];
+            if (!names.hasOwnProperty(thisName)) {
+                names[thisName] = result.push(thisName);
+            }
             thisMatch = namedFlowRegEx.exec(text);
         }
         

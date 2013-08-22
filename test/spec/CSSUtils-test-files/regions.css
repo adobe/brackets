@@ -61,3 +61,12 @@ div.layout > div {
 #randy.layout > div {
     flow-from:  randy;
 }
+
+/* test to exclude duplicates */
+#yin.content { 
+    flow-into: jeff;
+}
+
+#yin.layout > div {
+    flow-from: jeff;
+}
