@@ -730,7 +730,30 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-result-summary {
+#search-results .title, #replace-all-results .title {
+    .sane-box-model;
+    padding-right: 20px;
+    width: 100%;
+
+    .flex-box;
+    .contracting-col {
+        .flex-item(0);
+        min-width: 1px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fixed-col {
+        .flex-item(0);
+    }
+    .pagination-col {
+        .flex-item(1);
+        min-width: 100px;
+    }
+    .replace-col {
+        .flex-item(1);
+        min-width: 120px;
+        padding-left: 20px;
+    }
     .first-page,
     .prev-page,
     .next-page,
@@ -770,9 +793,11 @@ a, img {
     }
 }
 
-#search-results td {
-    padding-left: 3px;
-    vertical-align: baseline;
+#search-results {
+    td {
+        padding-left: 3px;
+        vertical-align: baseline;
+    }
 }
 
 /* Find-Replace All UI */
@@ -782,7 +807,9 @@ a, img {
         margin: 0px 22px 0px 6px;
     }
     .title {
-        margin-right: 10px;
+        > div {
+            line-height: 1.8em;
+        }
     }
     table {
         td.checkbox-column {
