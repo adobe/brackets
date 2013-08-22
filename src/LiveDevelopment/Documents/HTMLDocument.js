@@ -50,6 +50,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
         StringUtils         = require("utils/StringUtils");
 
@@ -199,12 +200,27 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        // Apply DOM edits is async, so previous PerfUtils timer may still be
+        // running. PerfUtils does not support running multiple timers with same
+        // name, so do not start another timer in this case.
+        var perfTimerName   = "HTMLDocument applyDOMEdits",
+            isNestedTimer   = PerfUtils.isActive(perfTimerName);
+        if (!isNestedTimer) {
+            PerfUtils.markStart(perfTimerName);
+        }
+        
         // Only handles attribute changes currently.
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
         var self                = this,
             edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
             applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
+
+        applyEditsPromise.always(function () {
+            if (!isNestedTimer) {
+                PerfUtils.addMeasurement(perfTimerName);
+            }
+        });
         
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:
