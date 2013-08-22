@@ -1115,8 +1115,7 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
-    // Essentially minifies CSS by removing all newlines, tabs and comments 
-    // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
+    // removes css comments from the content
     function _removeComments(_content) {
         return _content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
     }
