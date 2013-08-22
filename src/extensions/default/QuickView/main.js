@@ -176,8 +176,30 @@ define(function (require, exports, module) {
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
+        function areParensBalanced(str) {
+            var i,
+                nestLevel = 0,
+                content = str.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/+/g, ""), // remove comments
+                len = content.length;
+            
+            for (i = 0; i < len; i++) {
+                switch (content[i]) {
+                case "(":
+                    nestLevel++;
+                    break;
+                case ")":
+                    nestLevel--;
+                    break;
+                }
+            }
+
+            // if parens are balanced, nest level will be 0
+            return (nestLevel === 0);
+        }
+        
         function execGradientMatch(line) {
-            var gradientMatch = gradientRegEx.exec(line),
+            // Unbalanced parens cause infinite loop (see issue #4650)
+            var gradientMatch = (areParensBalanced(line) ? gradientRegEx.exec(line) : null),
                 prefix = "",
                 colorValue;
             
