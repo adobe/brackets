@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
