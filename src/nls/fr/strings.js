@@ -112,6 +112,8 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
+	"FIND_RESULT_COUNT_SINGLE": "[7126142] !é=1 result=!",
+	"FIND_NO_RESULTS": "[7126141] !é=No results=!",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
