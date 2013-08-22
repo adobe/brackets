@@ -112,10 +112,14 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
+	"FIND_RESULT_COUNT_SINGLE": "[7126142] !é=1 result=!",
+	"FIND_NO_RESULTS": "[7126141] !é=No results=!",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
+	"BUTTON_ALL": "Tout",
 	"BUTTON_STOP": "Arrêter",
+	"BUTTON_REPLACE": "Remplacer",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -124,15 +128,17 @@ define({
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
-    
-	"FIND_IN_FILES_TITLE": "« {4} » a trouvé {5} &mdash; {0} {1} dans {2} {3}",
+
+	"FIND_REPLACE_TITLE": "Remplacer « {0} » par « {1} » &mdash; {3} {2} résultats",
+
+	"FIND_IN_FILES_TITLE": "« {4} » trouvé {5} &mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
 	"FIND_IN_FILES_MATCHES": "résultats",
-	"FIND_IN_FILES_MORE_THAN": "Par-dessus ",
+	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>Moins</a>",
 	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>Plus</a>",
@@ -444,7 +450,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-    
+	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
+	"NO_ARGUMENTS": "<aucun paramètre>",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",

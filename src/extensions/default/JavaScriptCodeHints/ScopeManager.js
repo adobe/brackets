@@ -1282,7 +1282,7 @@ define(function (require, exports, module) {
      * Request a parameter hint from Tern.
      *
      * @param {Session} session - the active hinting session
-     * @param {{line: number, ch: number}} functionOffset - the offset the function call.
+     * @param {{line: number, ch: number}} functionOffset - the offset of the function call.
      * @return {jQuery.Promise} - The promise will not complete until the
      *      hint has completed.
      */

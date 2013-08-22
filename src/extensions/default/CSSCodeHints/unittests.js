@@ -84,9 +84,17 @@ define(function (require, exports, module) {
             expect(selection.start).toEqual(selection.end);
             expect(selection.start).toEqual(pos);
         }
-        
+
+        // Helper function to
+        // a) ensure the hintList and the list with the available values have the same size
+        // b) ensure that all possible values are mentioned in the hintList
+        function verifyAllValues(hintList, values) {
+            expect(hintList.length).toBe(values.length);
+            expect(hintList.sort().toString()).toBe(values.sort().toString());
+        }
+
         describe("CSS properties in general (selection of correct property based on input)", function () {
-   
+    
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
                 var mock = SpecRunnerUtils.createMockEditor(defaultContent, "css");
@@ -397,5 +405,132 @@ define(function (require, exports, module) {
                 expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
         });
+
+        describe("CSS hint provider cursor placement inside value functions", function () {
+            var defaultContent = ".selector { \n" + // line 0
+                                 "shape-inside:\n" + // line 1
+                                 "}\n"; // line 2
+
+            beforeEach(function () {
+                // create dummy Document for the Editor
+                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "css");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testEditor = null;
+                testDocument = null;
+            });
+
+            it("should should place the cursor between the parens of the value function", function () {
+                var expectedString = "shape-inside:polygon()";
+
+                testEditor.setCursorPos({ line: 1, ch: 15 });    // after shape-inside
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                selectHint(CSSCodeHints.cssPropHintProvider, "polygon()");
+                expect(testDocument.getLine(1).length).toBe(expectedString.length);
+                expect(testDocument.getLine(1)).toBe(expectedString);
+                expectCursorAt({ line: 1, ch: expectedString.length - 1 });
+            });
+        });
+
+        describe("CSS hint provider for regions and exclusions", function () {
+            var defaultContent = ".selector { \n" + // line 0
+                                 " shape-inside: \n;" + // line 1
+                                 " shape-outside: \n;" + // line 2
+                                 " region-fragment: \n;" + // line 3
+                                 " region-break-after: \n;" + // line 4
+                                 " region-break-inside: \n;" + // line 5
+                                 " region-break-before: \n;" + // line 6
+                                 " -ms-region\n;" + // line 7
+                                 " -webkit-region\n;" + // line 8
+                                 " flow-from: \n;" + // line 9
+                                 " flow-into: \n;" + // line 10
+                                 "}\n"; // line 11
+
+            beforeEach(function () {
+                // create dummy Document for the Editor
+                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "css");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testEditor = null;
+                testDocument = null;
+            });
+
+            it("should list 7 value-name hints for shape-inside", function () {
+                testEditor.setCursorPos({ line: 1, ch: 15 });    // after shape-inside
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "auto");  // first hint should be auto
+                verifyAllValues(hintList, ["auto", "circle()", "ellipse()", "inherit", "outside-shape", "polygon()", "rectangle()"]);
+            });
+
+            it("should list 6 value-name hints for shape-outside", function () {
+                testEditor.setCursorPos({ line: 2, ch: 16 });    // after shape-outside
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "auto");  // first hint should be auto
+                verifyAllValues(hintList, ["auto", "rectangle()", "circle()", "ellipse()", "polygon()", "inherit"]);
+            });
+
+            it("should list 2 value-name hints for region-fragment", function () {
+                testEditor.setCursorPos({ line: 3, ch: 18 });    // after region-fragment
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "auto");  // first hint should be auto
+                verifyAllValues(hintList, ["auto", "break"]);
+            });
+
+            it("should list 11 value-name hints for region-break-after", function () {
+                testEditor.setCursorPos({ line: 4, ch: 21 });    // after region-break-after
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "always");  // first hint should be always
+                verifyAllValues(hintList, ["always", "auto", "avoid", "avoid-column", "avoid-page", "avoid-region", "column", "left", "page", "region", "right"]);
+            });
+
+            it("should list 5 value-name hints for region-break-inside", function () {
+                testEditor.setCursorPos({ line: 5, ch: 22 });    // after region-break-inside
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "auto");  // first hint should be auto
+                verifyAllValues(hintList, ["auto", "avoid", "avoid-column", "avoid-page", "avoid-region"]);
+            });
+
+            it("should list 11 value-name hints for region-break-before", function () {
+                testEditor.setCursorPos({ line: 6, ch: 23 });    // after region-break-before
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "always");  // first hint should be always
+                verifyAllValues(hintList, ["always", "auto", "avoid", "avoid-column", "avoid-page", "avoid-region", "column", "left", "page", "region", "right"]);
+            });
+
+            it("should list 4 value-name hints for vendor prefixed region-* properties", function () {
+                testEditor.setCursorPos({ line: 7, ch: 16 });    // after -ms-region
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "region-break-after");  // first hint should be region-break-after
+                verifyAllValues(hintList, ["region-break-after", "region-break-before", "region-break-inside", "region-fragment"]);
+
+                testEditor.setCursorPos({ line: 8, ch: 20 });    // after -webkit-region
+                hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "region-break-after");  // first hint should be region-break-after
+                verifyAllValues(hintList, ["region-break-after", "region-break-before", "region-break-inside", "region-fragment"]);
+            });
+            
+            it("should list 2 value-name hints for flow-from", function () {
+                testEditor.setCursorPos({ line: 9, ch: 12 });    // after flow-from
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "inherit");  // first hint should be inherit
+                verifyAllValues(hintList, ["inherit", "none"]);
+            });
+
+            it("should list 1 value-name hint for flow-into", function () {
+                testEditor.setCursorPos({ line: 10, ch: 12 });    // after flow-into
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "none");  // first hint should be none
+                verifyAllValues(hintList, ["none"]);
+            });
+        });
     });
 });
+

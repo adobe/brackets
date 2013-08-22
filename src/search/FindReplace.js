@@ -240,7 +240,15 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                    $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+
+                    if (resultCount === 0) {
+                        $("#find-counter").text(Strings.FIND_NO_RESULTS);
+                    } else if (resultCount === 1) {
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
+                    } else {
+                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                    }
+
                 } else {
                     $("#find-counter").text("");
                 }
