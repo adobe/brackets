@@ -1131,12 +1131,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Extracts all nemd flow instances
+     * Extracts all named flow instances
      * @param {!String} text to extract from
-     * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
-     * @return {$.Promise} that will be resolved with an Array of objects containing the
-     *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
-     *      Does not addRef() the documents returned in the array.
+     * @return {?Array.<string>} array of unique flow names 
      */
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-(into|from)\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
