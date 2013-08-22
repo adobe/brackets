@@ -1931,9 +1931,10 @@ define(function (require, exports, module) {
         
         it("should find named flows", function () {
             var namedFlows = CSSUtils.extractAllNamedFlows(this.fileContent);
-            expect(namedFlows.length).toBe(2);
+            expect(namedFlows.length).toBe(3);
             expect(namedFlows[0]).toBe("main");
             expect(namedFlows[1]).toBe("jeff");
+            expect(namedFlows[2]).toBe("randy");
         });
         
     });

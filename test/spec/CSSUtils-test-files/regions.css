@@ -42,3 +42,13 @@ div.layout > div {
     content: "flow-from: martin;";
 }
 */
+
+#randy.content {
+    flow-into:   
+        randy
+        ;
+}
+
+#randy.layout > div {
+    flow-from:  randy;
+}
