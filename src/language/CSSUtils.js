@@ -1126,6 +1126,11 @@ define(function (require, exports, module) {
         return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
     }
     
+    // removes strings and comments
+    function _reduceContent(_content) {
+        return _removeStrings(_removeComments(_content));
+    }
+    
     /**
      * Extracts all nemd flow instances
      * @param {!String} text to extract from
@@ -1137,24 +1142,20 @@ define(function (require, exports, module) {
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
             result = [],
-            matches;
+            thisMatch;
         
-        // Minimize the CSS so that strings and comments
-        //  do not match results
-        text = _removeStrings(_removeComments(text));
+        // Reduce the content so that matches 
+        //  inside strings and comments are ignored 
+        text = _reduceContent(text);
+
+        // Find the first match
+        thisMatch = namedFlowRegEx.exec(text);
         
-        // Find the lines that match.  This will return an array of 
-        //  matched css properties (flow-into: junk;)
-        matches = text.match(namedFlowRegEx) || [];
-        
-        // Parse the matches to extract the name of the flow
-        matches.forEach(function (match) {
-            var nameRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/i,
-                thisMatch = nameRegEx.exec(match);
-            if (thisMatch && thisMatch.length === 2) {
-                result.push(thisMatch[1]);
-            }
-        });
+        // Iterate over the matches and add them to result
+        while (thisMatch) {
+            result.push(thisMatch[1]);
+            thisMatch = namedFlowRegEx.exec(text);
+        }
         
         return result;
     }
