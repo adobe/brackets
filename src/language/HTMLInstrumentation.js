@@ -930,53 +930,127 @@ define(function (require, exports, module) {
                 newEdit,
                 afterID;
             
+            var addBeforeID = function (beforeID) {
+                newEdits.forEach(function (edit) {
+                    edit.beforeID = beforeID;
+                });
+                edits.push.apply(edits, newEdits);
+                newEdits = [];
+                afterID = beforeID;
+            };
+            
+            var addElementInsert = function () {
+                if (!oldNode.nodeMap[currentChild.tagID]) {
+                    newEdit = {
+                        type: "elementInsert",
+                        tag: currentChild.tag,
+                        tagID: currentChild.tagID,
+                        parentID: currentChild.parent.tagID,
+                        attributes: currentChild.attributes
+                    };
+                    newEdits.push(newEdit);
+                    afterID = currentChild.tagID;
+                    // new element means we need to move on to compare the next
+                    // of the current tree with the one from the old tree that we
+                    // just compared
+                    i += 1;
+                    return true;
+                }
+                return false;
+            };
+            
+            var addElementDelete = function () {
+                if (!newNode.nodeMap[oldChild.tagID]) {
+                    newEdit = {
+                        type: "elementDelete",
+                        tagID: oldChild.tagID
+                    };
+                    newEdits.push(newEdit);
+                    j += 1;
+                    return true;
+                }
+                return false;
+            };
+            
+            console.log("cur elem", _dumpDOM(currentElement));
+            console.log("old elem", _dumpDOM(oldElement));
             while (i < currentChildren.length && j < oldChildren.length) {
                 currentChild = currentChildren[i];
                 oldChild = oldChildren[j];
-                if (currentChild.children && oldChild.children) {
-                    if (currentChild.tagID !== oldChild.tagID) {
-                        if (!oldNode.nodeMap[currentChild.tagID]) {
+                if (currentChild.children || oldChild.children) {
+                    if (currentChild.children && !oldChild.children) {
+                        newEdit = {
+                            type: "textDelete"
+                        };
+                        j += 1;
+                        newEdit.parentID = currentChild.parent.tagID;
+                        if (afterID) {
+                            newEdit.afterID = afterID;
+                        }
+                        newEdits.push(newEdit);
+                        addElementInsert();
+                    } else if (oldChild.children && !currentChild.children) {
+                        if (!addElementDelete()) {
                             newEdit = {
-                                type: "elementInsert",
-                                tag: currentChild.tag,
-                                tagID: currentChild.tagID,
-                                parentID: currentChild.parent.tagID
+                                type: "textInsert",
+                                content: currentChild.content
                             };
+                            i += 1;
+                            newEdit.parentID = currentChild.parent.tagID;
                             if (afterID) {
                                 newEdit.afterID = afterID;
                             }
                             newEdits.push(newEdit);
-                            // new element means we need to move on to compare the next
-                            // of the current tree with the one from the old tree that we
-                            // just compared
-                            i += 1;
-                        } else {
+                        }
+                    } else if (currentChild.tagID !== oldChild.tagID) {
+                        if (!addElementInsert() && !addElementDelete()) {
                             i += 1;
                             j += 1;
                         }
                     } else {
+                        addBeforeID(oldChild.tagID);
                         i += 1;
                         j += 1;
                     }
                 } else if (currentChild.textSignature !== oldChild.textSignature) {
-                    newEdit = {
-                        type: "textReplace",
-                        parentID: currentChild.parent.tagID,
-                        content: currentChild.content
-                    };
+                    if (currentChild.textSignature && !oldChild.textSignature) {
+                        newEdit = {
+                            type: "textInsert",
+                            content: currentChild.content
+                        };
+                        i += 1;
+                    } else if (oldChild.textSignature && !currentChild.textSignature) {
+                        newEdit = {
+                            type: "textDelete"
+                        };
+                        j += 1;
+                    } else {
+                        newEdit = {
+                            type: "textReplace",
+                            content: currentChild.content
+                        };
+                        i += 1;
+                        j += 1;
+                    }
+                    newEdit.parentID = currentChild.parent.tagID;
                     if (afterID) {
                         newEdit.afterID = afterID;
                     }
                     newEdits.push(newEdit);
-                    i += 1;
-                    j += 1;
                 } else {
                     i += 1;
                     j += 1;
                 }
             }
+            if (afterID) {
+                newEdits.forEach(function (edit) {
+                    if (!edit.beforeID && !edit.afterID) {
+                        edit.afterID = afterID;
+                    }
+                });
+            }
             edits.push.apply(edits, newEdits);
-            
+            console.log("edits", edits);
             // TODO deletions/insertions at the end
         };
         
