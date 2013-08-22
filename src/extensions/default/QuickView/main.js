@@ -179,8 +179,13 @@ define(function (require, exports, module) {
         function areParensBalanced(str) {
             var i,
                 nestLevel = 0,
-                content = str.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/+/g, ""), // remove comments
-                len = content.length;
+                content,
+                len;
+
+            // Remove comments & strings
+            content = str.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/+/g, "");
+            content = content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+            len = content.length;
             
             for (i = 0; i < len; i++) {
                 switch (content[i]) {
@@ -189,6 +194,9 @@ define(function (require, exports, module) {
                     break;
                 case ")":
                     nestLevel--;
+                    break;
+                case "\\":
+                    i++;    // next char is escaped, so skip it
                     break;
                 }
             }
