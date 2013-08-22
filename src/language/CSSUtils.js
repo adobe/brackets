@@ -1119,9 +1119,7 @@ define(function (require, exports, module) {
     // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
     function _minimize(_content) {
         var content = _content;
-        content = content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/|[\r\n\t]+/g, '');
-        // now all comments, newlines and tabs have been removed
-        content = content.replace(/ {2,}/g, ' ');
+        content = content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
         // now there are no more than single adjacent spaces left
         // now unnecessary: content = content.replace( /(\s)+\./g, ' .' );
         content = content.replace(/ ([{:}]) /g, '$1');
@@ -1144,7 +1142,7 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function extractAllNamedFlows(text) {
-        var namedFlowRegEx = /(?:flow\-into\: *)([a-z0-9_\-]+)(?: *;)/gi,
+        var namedFlowRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
             result = [],
             matches;
         
@@ -1158,7 +1156,7 @@ define(function (require, exports, module) {
         
         // Parse the matches to extract the name of the flow
         matches.forEach(function (match) {
-            var nameRegEx = /(?:flow\-into\: *)([a-z0-9_\-]+)(?: *;)/i,
+            var nameRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/i,
                 thisMatch = nameRegEx.exec(match);
             if (thisMatch && thisMatch.length === 2) {
                 result.push(thisMatch[1]);
