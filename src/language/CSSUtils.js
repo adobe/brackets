@@ -1130,8 +1130,7 @@ define(function (require, exports, module) {
         return content;
     }
     
-    // Essentially minifies CSS by removing all newlines, tabs and comments 
-    // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
+    // removes strings from the content 
     function _reduceStrings(_content) {
         return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
     }
