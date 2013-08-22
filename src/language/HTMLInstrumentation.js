@@ -279,7 +279,12 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
-        var perfTimerName = PerfUtils.markStart("HTMLInstrumentation Build DOM");
+        
+        // Start timers for building full and partial DOMs.
+        // Appropriate timer is used, and the other is discarded.
+        var timerBuildFull = "HTMLInstr. Build DOM Full";
+        var timerBuildPart = "HTMLInstr. Build DOM Partial";
+        PerfUtils.markStart([timerBuildFull, timerBuildPart]);
         
         function closeTag(endIndex) {
             lastClosedTag = stack[stack.length - 1];
@@ -298,7 +303,8 @@ define(function (require, exports, module) {
             }
             
             if (token.type === "error") {
-                PerfUtils.finalizeMeasurement(perfTimerName);
+                PerfUtils.finalizeMeasurement(timerBuildFull);  // discard
+                PerfUtils.addMeasurement(timerBuildPart);       // use
                 return null;
             } else if (token.type === "opentagname") {
                 var newTagName = token.contents.toLowerCase(),
@@ -366,7 +372,8 @@ define(function (require, exports, module) {
                     }
                     if (strict && i !== stack.length - 1) {
                         // If we're in strict mode, treat unbalanced tags as invalid.
-                        PerfUtils.finalizeMeasurement(perfTimerName);
+                        PerfUtils.finalizeMeasurement(timerBuildFull);
+                        PerfUtils.addMeasurement(timerBuildPart);
                         return null;
                     }
                     if (i >= 0) {
@@ -382,7 +389,8 @@ define(function (require, exports, module) {
                         // If we're in strict mode, treat unmatched close tags as invalid. Otherwise
                         // we just silently ignore them.
                         if (strict) {
-                            PerfUtils.finalizeMeasurement(perfTimerName);
+                            PerfUtils.finalizeMeasurement(timerBuildFull);
+                            PerfUtils.addMeasurement(timerBuildPart);
                             return null;
                         }
                     }
@@ -425,7 +433,8 @@ define(function (require, exports, module) {
         // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,
         // otherwise close them at the end of the document.
         if (strict && stack.length) {
-            PerfUtils.finalizeMeasurement(perfTimerName);
+            PerfUtils.finalizeMeasurement(timerBuildFull);
+            PerfUtils.addMeasurement(timerBuildPart);
             return null;
         }
         while (stack.length) {
@@ -434,7 +443,8 @@ define(function (require, exports, module) {
         
         var dom = lastClosedTag;
         dom.nodeMap = nodeMap;
-        PerfUtils.addMeasurement(perfTimerName);
+        PerfUtils.addMeasurement(timerBuildFull);       // use
+        PerfUtils.finalizeMeasurement(timerBuildPart);  // discard
         
         return dom;
     };
