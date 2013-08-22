@@ -1117,19 +1117,12 @@ define(function (require, exports, module) {
     
     // Essentially minifies CSS by removing all newlines, tabs and comments 
     // From http://stackoverflow.com/questions/4402220/regex-to-minimize-css
-    function _minimize(_content) {
-        var content = _content;
-        content = content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
-        // now there are no more than single adjacent spaces left
-        // now unnecessary: content = content.replace( /(\s)+\./g, ' .' );
-        content = content.replace(/ ([{:}]) /g, '$1');
-        content = content.replace(/([;,]) /g, '$1');
-        content = content.replace(/ !/g, '!');
-        return content;
+    function _removeComments(_content) {
+        return _content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
     }
     
     // removes strings from the content 
-    function _reduceStrings(_content) {
+    function _removeStrings(_content) {
         return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
     }
     
@@ -1148,7 +1141,7 @@ define(function (require, exports, module) {
         
         // Minimize the CSS so that strings and comments
         //  do not match results
-        text = _reduceStrings(_minimize(text));
+        text = _removeStrings(_removeComments(text));
         
         // Find the lines that match.  This will return an array of 
         //  matched css properties (flow-into: junk;)
