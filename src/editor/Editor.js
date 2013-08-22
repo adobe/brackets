@@ -1550,10 +1550,15 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {Editor} Current editor
      */
-    Editor.setShowActiveLine = function (value) {
+    Editor.setShowActiveLine = function (value, editor) {
         _styleActiveLine = value;
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
+        
+        if (editor.hasSelection()) {
+            editor._codeMirror.setOption("styleActiveLine", false);
+        }
     };
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */
