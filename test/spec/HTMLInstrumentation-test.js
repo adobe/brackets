@@ -830,7 +830,7 @@ define(function (require, exports, module) {
                 var textNode = dom.children[0];
                 expect(textNode.content).toBe("Text  Text2");
                 expect(textNode.weight).toBeCloseTo(3.4, 2);
-                expect(textNode.signature).toBeDefined();
+                expect(textNode.textSignature).toBeDefined();
             });
         });
         
@@ -1118,9 +1118,9 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(1269);
-                    expect(dom.weight).toBeCloseTo(83.7, 1);
-                    expect(dom.signature).toEqual(jasmine.any(Number));
-                    expect(dom.textSignature).toEqual(jasmine.any(Number));
+                    expect(dom.weight).toBeCloseTo(88.7, 1);
+                    expect(dom.subtreeSignature).toEqual(jasmine.any(Number));
+                    expect(dom.childSignature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
                     expect(Object.keys(meta.attributes).length).toEqual(1);
@@ -1129,10 +1129,10 @@ define(function (require, exports, module) {
                     expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
                     expect(titleContents.weight).toBeCloseTo(4.4, 1);
                     expect(titleContents.parent.weight).toBeCloseTo(5.4, 1);
-                    expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
+                    expect(titleContents.textSignature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
                     expect(dom.nodeMap[meta.tagID]).toBe(meta);
-                    expect(meta.signature).toEqual(jasmine.any(Number));
+                    expect(meta.childSignature).toEqual(jasmine.any(Number));
                 });
             });
             

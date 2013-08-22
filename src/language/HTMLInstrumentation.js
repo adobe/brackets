@@ -234,24 +234,31 @@ define(function (require, exports, module) {
         if (node.children) {
             var i,
                 weight = 1,
-                hashes = "",
-                textHashes = "",
+                subtreeHashes = "",
+                childHashes = "",
                 child;
             for (i = 0; i < node.children.length; i++) {
                 child = node.children[i];
                 weight += child.weight;
-                hashes += child.signature;
-                if (!child.children) {
-                    textHashes += child.signature;
+                if (child.children) {
+                    childHashes += child.tagID;
+                    subtreeHashes += child.attributeSignature + child.subtreeSignature;
+                } else {
+                    childHashes += child.textSignature;
+                    subtreeHashes += child.textSignature;
                 }
             }
             node.weight = weight;
-            node.signature = MurmurHash3.hashString(hashes, hashes.length, seed);
-            node.textSignature = MurmurHash3.hashString(textHashes, textHashes.length, seed);
+            node.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, seed);
+            node.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, seed);
         } else {
-            var tagLabel = node.tag + node.tagID;
-            node.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
+            node.textSignature = MurmurHash3.hashString(node.content, node.content.length, seed);
         }
+    }
+    
+    function _updateAttributeHash(node) {
+        var attributeString = JSON.stringify(node.attributes);
+        node.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
     }
     
     /**
@@ -276,10 +283,6 @@ define(function (require, exports, module) {
     }
     
 
-    function _getTextNodeHash(text) {
-        return MurmurHash3.hashString(text, text.length, seed);
-    }
-    
     SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
         var token, tagLabel, lastClosedTag, lastTextNode, lastIndex = 0;
@@ -344,8 +347,7 @@ define(function (require, exports, module) {
                 if (voidElements.hasOwnProperty(newTag.tag)) {
                     // This is a self-closing element.
                     tagLabel = newTag.tag + newTag.tagID;
-                    newTag.weight = 0;
-                    newTag.signature = MurmurHash3.hashString(tagLabel, tagLabel.length, seed);
+                    _updateHash(newTag);
                 } else {
                     stack.push(newTag);
                 }
@@ -363,6 +365,7 @@ define(function (require, exports, module) {
                     // children at that point (in the next "else" case).
                     this.currentTag.end = this.startOffset + token.end;
                     lastClosedTag = this.currentTag;
+                    _updateAttributeHash(this.currentTag);
                     this.currentTag = null;
                 }
             } else if (token.type === "closetag") {
@@ -433,7 +436,7 @@ define(function (require, exports, module) {
                     // TODO is there any performance impact of using a floating point
                     // number vs. integer here?
                     newNode.weight = 1 + Math.log(newNode.content.length);
-                    newNode.signature = _getTextNodeHash(newNode.content);
+                    _updateHash(newNode);
                 }
             }
             lastIndex = token.end;
@@ -910,65 +913,93 @@ define(function (require, exports, module) {
         queue.push(newNode);
         
         // extract forEach iterator callback
-        var queuePush = function (child) { queue.push(child); };
+        var queuePush = function (child) {
+            if (child.children) {
+                queue.push(child);
+            }
+        };
+        
+        var generateChildEdits = function (currentElement, oldElement) {
+            var i = 0,
+                j = 0,
+                currentChildren = currentElement.children,
+                oldChildren = oldElement.children,
+                currentChild,
+                oldChild,
+                newEdits = [],
+                newEdit,
+                afterID;
+            
+            while (i < currentChildren.length && j < oldChildren.length) {
+                currentChild = currentChildren[i];
+                oldChild = oldChildren[j];
+                if (currentChild.children && oldChild.children) {
+                    if (currentChild.tagID !== oldChild.tagID) {
+                        if (!oldNode.nodeMap[currentChild.tagID]) {
+                            newEdit = {
+                                type: "elementInsert",
+                                tag: currentChild.tag,
+                                tagID: currentChild.tagID,
+                                parentID: currentChild.parent.tagID
+                            };
+                            if (afterID) {
+                                newEdit.afterID = afterID;
+                            }
+                            newEdits.push(newEdit);
+                            // new element means we need to move on to compare the next
+                            // of the current tree with the one from the old tree that we
+                            // just compared
+                            i += 1;
+                        } else {
+                            i += 1;
+                            j += 1;
+                        }
+                    } else {
+                        i += 1;
+                        j += 1;
+                    }
+                } else if (currentChild.textSignature !== oldChild.textSignature) {
+                    newEdit = {
+                        type: "textReplace",
+                        parentID: currentChild.parent.tagID,
+                        content: currentChild.content
+                    };
+                    if (afterID) {
+                        newEdit.afterID = afterID;
+                    }
+                    newEdits.push(newEdit);
+                    i += 1;
+                    j += 1;
+                } else {
+                    i += 1;
+                    j += 1;
+                }
+            }
+            edits.push.apply(edits, newEdits);
+            
+            // TODO deletions/insertions at the end
+        };
         
         do {
             // we can assume queue is non-empty for the first loop iteration
             currentElement = queue.shift();
             
             oldElement = oldNode.nodeMap[currentElement.tagID];
-            var parentMatch = oldElement.parent === currentElement.parent || (oldElement.parent && currentElement.parent && oldElement.parent.tagID === currentElement.parent.tagID);
-            if (oldElement && parentMatch) {
-                matches[currentElement.tagID] = true;
-                if (oldElement.children) {
-                    if (oldElement.signature !== currentElement.signature) {
-                        if (currentElement.children) {
-                            currentElement.children.forEach(queuePush);
-                        }
-                    }
-                } else {
-                    if (oldElement.signature !== currentElement.signature) {
-                        textChanges[currentElement.tagID] = true;
-                    }
+            
+            if (oldElement) {
+                if (currentElement.attributeSignature !== oldElement.attributeSignature) {
+                    attributeCompare(edits, oldElement, currentElement);
                 }
-            } else {
-                if (currentElement.children) {
-                    elementInserts[currentElement.tagID] = true;
-                } else {
-                    textInserts[currentElement.tagID] = true;
+                
+                if (currentElement.childSignature !== oldElement.childSignature) {
+                    generateChildEdits(currentElement, oldElement);
                 }
-                if (currentElement.children) {
+                
+                if (currentElement.subtreeSignature !== oldElement.subtreeSignature) {
                     currentElement.children.forEach(queuePush);
                 }
             }
         } while (queue.length);
-        
-        Object.keys(matches).forEach(function (tagID) {
-            var subtreeRoot = newNode.nodeMap[tagID];
-            if (subtreeRoot.children) {
-                attributeCompare(edits, oldNode.nodeMap[tagID], subtreeRoot);
-                var nav = new DOMNavigator(subtreeRoot),
-                    currentElement;
-                
-                // breadth-first traversal of DOM tree to diff attributes and match up the old and new nodes
-                while (true) {
-                    currentElement = nav.next();
-                    
-                    if (!currentElement) {
-                        break;
-                    }
-                    
-                    var currentTagID = currentElement.tagID;
-                    
-                    if (oldNode.nodeMap[currentTagID]) {
-                        matches[currentTagID] = true;
-                        if (currentElement.children) {
-                            attributeCompare(edits, oldNode.nodeMap[currentTagID], currentElement);
-                        }
-                    }
-                }
-            }
-        });
         
         /**
          * The position of a text node is given by its parent
@@ -1056,7 +1087,7 @@ define(function (require, exports, module) {
             }
         };
         
-        findDeletions(oldNode);
+//        findDeletions(oldNode);
         
         Object.keys(elementInserts).forEach(function (nonMatchingID) {
             var newElement = newNode.nodeMap[nonMatchingID];
@@ -1166,7 +1197,7 @@ define(function (require, exports, module) {
                     _processElement(child);
                 } else if (child.content) {
                     child.weight = child.content.length;
-                    child.signature = _getTextNodeHash(child.content);
+                    _updateHash(child);
                     child.tagID = getTextNodeID(child);
                     
                     nodeMap[child.tagID] = child;
