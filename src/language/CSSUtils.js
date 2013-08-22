@@ -1144,7 +1144,7 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function extractAllNamedFlows(text) {
-        var namedFlowRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/gi,
+        var namedFlowRegEx = /(?:flow\-into\: *)([a-z0-9_\-]+)(?: *;)/gi,
             result = [],
             matches;
         
@@ -1158,7 +1158,7 @@ define(function (require, exports, module) {
         
         // Parse the matches to extract the name of the flow
         matches.forEach(function (match) {
-            var nameRegEx = /(?:flow\-into\: *)([a-zA-Z0-9_\-]+)(?: *;)/i,
+            var nameRegEx = /(?:flow\-into\: *)([a-z0-9_\-]+)(?: *;)/i,
                 thisMatch = nameRegEx.exec(match);
             if (thisMatch && thisMatch.length === 2) {
                 result.push(thisMatch[1]);
