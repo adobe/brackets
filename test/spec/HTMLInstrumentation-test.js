@@ -984,6 +984,7 @@ define(function (require, exports, module) {
                 elementCount = 0;
                 elementIds = {};
                 changeList = null;
+                offsets = null;
             });
             
             function doEditTest(origText, editFn, expectationFn, incremental) {
@@ -1020,6 +1021,40 @@ define(function (require, exports, module) {
                 }
             }
             
+            // Common functionality between typeAndExpect() and deleteAndExpect().
+            function doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid, numIterations, operationFn, posUpdateFn) {
+                var i, result, clonedDOM;
+                for (i = 0; i < numIterations; i++) {
+                    clonedDOM = cloneDOM(curDOM);
+                    
+                    operationFn(i, pos);
+                    result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
+                    if (!edits) {
+                        expect(result).toBeNull();
+                        wasInvalid = true;
+                    } else {
+                        var expectedEdit = edits[i];
+                        if (typeof expectedEdit === "function") {
+                            // This lets the caller access the most recent updated DOM values when
+                            // specifying the expected edit.
+                            expectedEdit = expectedEdit(result.dom);
+                        }
+                        expect(result.edits).toEqual(expectedEdit);
+                        wasInvalid = false;
+                        
+                        var doc = new FakeDocument(clonedDOM.nodeMap);
+                        var editHandler = new RemoteFunctions.DOMEditHandler(doc);
+                        editHandler.apply(result.edits);
+                        clonedDOM.compare(result.dom);
+                        
+                        curDOM = result.dom;
+                    }
+                    posUpdateFn(pos);
+                }
+                
+                return {finalDOM: curDOM, finalPos: pos, finalInvalid: wasInvalid};
+            }
+            
             /*
              * Simulates typing the given string character by character. If edits is specified, then
              * each successive character is expected to generate the edits at that position in the array.
@@ -1027,20 +1062,15 @@ define(function (require, exports, module) {
              * step, so no edits should be generated.
              * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
              */
-            function typeAndExpect(editor, curDOM, str, pos, edits) {
-                var i, result;
-                for (i = 0; i < str.length; i++) {
-                    editor.document.replaceRange(str.charAt(i), {line: pos.line, ch: pos.ch + i});
-                    result = HTMLInstrumentation._updateDOM(curDOM, editor, changeList);
-                    if (!edits) {
-                        expect(result).toBeNull();
-                    } else {
-                        expect(result.edits).toEqual(edits[i]);
-                        curDOM = result.dom;
-                    }
-                }
-                
-                return curDOM;
+            function typeAndExpect(editor, curDOM, pos, str, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    str.length,
+                    function (i, pos) {
+                        editor.document.replaceRange(str.charAt(i), pos);
+                    },
+                    function (pos) {
+                        pos.ch++;
+                    });
             }
             
             /*
@@ -1050,20 +1080,15 @@ define(function (require, exports, module) {
              * step, so no edits should be generated.
              * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
              */
-            function deleteAndExpect(editor, curDOM, pos, numToDelete, edits) {
-                var i, result;
-                for (i = 0; i < numToDelete; i++) {
-                    editor.document.replaceRange("", {line: pos.line, ch: pos.ch - i - 1}, {line: pos.line, ch: pos.ch - i});
-                    result = HTMLInstrumentation._updateDOM(curDOM, editor, changeList);
-                    if (!edits) {
-                        expect(result).toBeNull();
-                    } else {
-                        expect(result.edits).toEqual(edits[i]);
-                        curDOM = result.dom;
-                    }
-                }
-
-                return curDOM;
+            function deleteAndExpect(editor, curDOM, pos, numToDelete, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    numToDelete,
+                    function (i, pos) {
+                        editor.document.replaceRange("", {line: pos.line, ch: pos.ch - 1}, pos);
+                    },
+                    function (pos) {
+                        pos.ch--;
+                    });
             }
             
             it("should re-instrument after document is dirtied", function () {
@@ -1316,7 +1341,8 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     // While the tag is incomplete, we should get no edits.                    
-                    typeAndExpect(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // This simulates our autocomplete behavior. The next case simulates the non-autocomplete case.
                     editor.document.replaceRange("></p>", {line: 12, ch: 40});
@@ -1368,7 +1394,8 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     
                     // No edits should occur while we're invalid.
-                    typeAndExpect(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // This simulates what would happen if autocomplete were off. We're actually
                     // valid at this point since <p> is implied close. We want to make sure that
@@ -1412,7 +1439,8 @@ define(function (require, exports, module) {
                     
                     // We should get no edits while typing the close tag.
                     previousDOM = result.dom;
-                    typeAndExpect(editor, previousDOM, "</p", {line: 12, ch: 41});
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 41}, "</p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // When we type the ">" at the end, we should get a delete of the text inside the <p>
                     // and an insert of text after the </p> since we now know that the close is before the
@@ -1439,9 +1467,51 @@ define(function (require, exports, module) {
                     });
                 });
             });
+            
+            it("should handle deleting of an empty tag character-by-character", function () {
+                setupEditor("<p><img>{{0}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        imgTagID = previousDOM.children[0].tagID,
+                        result;
+ 
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                                        
+                    // First four deletions should keep it in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 4);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: imgTagID}]
+                    ], true);
+                });
+            });
+
+            it("should handle deleting of a non-empty tag character-by-character", function () {
+                setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        pTagID = previousDOM.children[0].tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // All the deletions until we get to the "<" should leave the document in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 14);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: pTagID}]
+                    ], true);
+                });
+            });
 
             it("should handle typing of a new attribute character-by-character", function () {
-                setupEditor("<p>some text</p>");
+                setupEditor("<p{{0}}>some text</p>", true);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.tagID,
@@ -1453,7 +1523,7 @@ define(function (require, exports, module) {
                     // it should be valid but there should be no actual edits. After that, it should
                     // look like we're repeatedly adding a new empty attribute and deleting the old one.
                     // edits to be generated.
-                    previousDOM = typeAndExpect(editor, previousDOM, " class", {line: 0, ch: 2}, [
+                    result = typeAndExpect(editor, previousDOM, offsets[0], " class", [
                         [], // " "
                         [ // " c"
                             {type: "attrAdd", tagID: tagID, attribute: "c", value: ""}
@@ -1477,32 +1547,42 @@ define(function (require, exports, module) {
                     ]);
                     
                     // While typing the "=" and quoted value, nothing should happen until the quote is balanced.
-                    previousDOM = typeAndExpect(editor, previousDOM, "='myclass", {line: 0, ch: 8});
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, "='myclass");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
                     
                     // When the close quote is typed, we should get an attribute change.
-                    typeAndExpect(editor, previousDOM, "'", {line: 0, ch: 17}, [
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, "'", [
                         [
                             {type: "attrChange", tagID: tagID, attribute: "class", value: "myclass"}
                         ]
-                    ]);
+                    ], true);
                 });
             });
 
             it("should handle deleting of an attribute character-by-character", function () {
-                setupEditor("<p class='myclass'>some text</p>");
+                setupEditor("<p class='myclass'{{0}}>some text</p>", true);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
-                        tagID = previousDOM.tagID;
+                        tagID = previousDOM.tagID,
+                        result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     
                     // Delete the attribute value starting from the end quote. We should be invalid until
                     // we delete the = sign.
-                    previousDOM = deleteAndExpect(editor, previousDOM, {line: 0, ch: 18}, 9);
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 9);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does)
+                    // for the first edit.
                     
                     // Delete the = sign, then the name, then the space. This should look like 
                     // setting the value to "", then changing the attribute name, then an empty edit.
-                    deleteAndExpect(editor, previousDOM, {line: 0, ch: 9}, 6, [
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 6, [
                         [ // " class"
                             {type: "attrChange", tagID: tagID, attribute: "class", value: ""}
                         ],
@@ -1526,10 +1606,56 @@ define(function (require, exports, module) {
                             {type: "attrDel", tagID: tagID, attribute: "c"}
                         ],
                         [] // deletion of space
-                    ]);
+                    ], true);
                 });
             });
-
+            
+            it("should handle wrapping a tag around some text character by character", function () {
+                setupEditor("<p>{{0}}some text{{1}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<span>");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Type the end tag--should be invalid until we type the closing character
+                    // The offset is 6 characters later than the original position of offset 1 since we
+                    // inserted the opening tag.
+                    result = typeAndExpect(editor, result.finalDOM, {line: offsets[1].line, ch: offsets[1].ch + 6}, "</span", null, true);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag.
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "textDelete",
+                                    parentID: dom.tagID
+                                },
+                                {
+                                    type: "elementInsert",
+                                    tag: "span",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    firstChild: true
+                                },
+                                {
+                                    type: "textInsert",
+                                    parentID: dom.children[0].tagID,
+                                    content: "some text"
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+            
             it("should represent simple new tag insert", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
@@ -2010,6 +2136,55 @@ define(function (require, exports, module) {
                                 content: "GETTING STARTED",
                                 parentID: newElement.parent.tagID,
                                 beforeID: newElement.tagID
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle reordering of children in one step as a delete/insert", function () {
+                setupEditor("<p>{{0}}<img><br>{{1}}</p>", true);
+                var oldImgID, oldBrID;
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            oldImgID = previousDOM.children[0].tagID;
+                            oldBrID = previousDOM.children[1].tagID;
+                            editor.document.replaceRange("<br><img>", offsets[0], offsets[1]);
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newBrElement = result.dom.children[0],
+                                newImgElement = result.dom.children[1];
+                            
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "br",
+                                attributes: {},
+                                tagID: newBrElement.tagID,
+                                parentID: result.dom.tagID,
+                                firstChild: true
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newImgElement.tagID,
+                                parentID: result.dom.tagID,
+                                lastChild: true
                             });
                             
                             if (incremental) {
