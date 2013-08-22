@@ -1419,6 +1419,7 @@ define(function (require, exports, module) {
                         parentID = newElement.parent.tagID,
                         afterID = result.dom.children[3].children[1].tagID,
                         beforeID = result.dom.children[3].children[3].tagID;
+                    console.log("Final edits", result.edits);
                     expect(result.edits.length).toEqual(3);
                     expect(newElement.tag).toEqual("p");
                     expect(newElement.children.length).toEqual(1);
@@ -1435,7 +1436,7 @@ define(function (require, exports, module) {
                         tagID: newElement.tagID,
                         attributes: {},
                         parentID: parentID,
-                        beforeID: beforeID // TODO: why is there no afterID here?
+                        beforeID: beforeID // No afterID because beforeID is preferred given the insertBefore DOM API
                     });
                     expect(result.edits[2]).toEqual({
                         type: "textInsert",
@@ -1461,15 +1462,15 @@ define(function (require, exports, module) {
                     expect(result.dom.children[3].children[3].content).toEqual("\n");
                     expect(result.edits.length).toEqual(2);
                     expect(result.edits[0]).toEqual({
-                        type: "textDelete",
-                        parentID: newElement.tagID
-                    });
-                    expect(result.edits[1]).toEqual({
                         type: "textInsert",
                         content: "\n",
                         parentID: newElement.parent.tagID,
                         afterID: newElement.tagID,
                         beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "textDelete",
+                        parentID: newElement.tagID
                     });
                 });
             });

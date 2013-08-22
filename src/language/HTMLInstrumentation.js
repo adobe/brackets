@@ -899,7 +899,7 @@ define(function (require, exports, module) {
     }
     
     function domdiff(oldNode, newNode) {
-        var queue = new PriorityQueue(compareByWeight),
+        var queue = [],
             edits = [],
             matches = {},
             elementInserts = {},
@@ -910,20 +910,11 @@ define(function (require, exports, module) {
             oldElement,
             elementDeletes = {};
         
-        queue.push(newNode);
-        
-        // extract forEach iterator callback
-        var queuePush = function (child) {
-            if (child.children) {
-                queue.push(child);
-            }
-        };
-        
         var generateChildEdits = function (currentElement, oldElement) {
             var i = 0,
                 j = 0,
                 currentChildren = currentElement.children,
-                oldChildren = oldElement.children,
+                oldChildren = oldElement ? oldElement.children : [],
                 currentChild,
                 oldChild,
                 newEdits = [],
@@ -949,6 +940,7 @@ define(function (require, exports, module) {
                         attributes: currentChild.attributes
                     };
                     newEdits.push(newEdit);
+                    queue.push(currentChild);
                     afterID = currentChild.tagID;
                     // new element means we need to move on to compare the next
                     // of the current tree with the one from the old tree that we
@@ -972,35 +964,48 @@ define(function (require, exports, module) {
                 return false;
             };
             
+            var addTextInsert = function () {
+                newEdit = {
+                    type: "textInsert",
+                    content: currentChild.content
+                };
+                i += 1;
+                newEdit.parentID = currentChild.parent.tagID;
+                if (afterID) {
+                    newEdit.afterID = afterID;
+                }
+                newEdits.push(newEdit);
+            };
+            var addTextDelete = function () {
+                newEdit = {
+                    type: "textDelete"
+                };
+                j += 1;
+                newEdit.parentID = oldChild.parent.tagID;
+                if (oldChild.parent.children.length === 1) {
+                    edits.push(newEdit);
+                } else {
+                    if (afterID) {
+                        newEdit.afterID = afterID;
+                    }
+                    newEdits.push(newEdit);
+                }
+            };
+            
             console.log("cur elem", _dumpDOM(currentElement));
-            console.log("old elem", _dumpDOM(oldElement));
+            if (oldElement) {
+                console.log("old elem", _dumpDOM(oldElement));
+            }
             while (i < currentChildren.length && j < oldChildren.length) {
                 currentChild = currentChildren[i];
                 oldChild = oldChildren[j];
                 if (currentChild.children || oldChild.children) {
                     if (currentChild.children && !oldChild.children) {
-                        newEdit = {
-                            type: "textDelete"
-                        };
-                        j += 1;
-                        newEdit.parentID = currentChild.parent.tagID;
-                        if (afterID) {
-                            newEdit.afterID = afterID;
-                        }
-                        newEdits.push(newEdit);
+                        addTextDelete();
                         addElementInsert();
                     } else if (oldChild.children && !currentChild.children) {
                         if (!addElementDelete()) {
-                            newEdit = {
-                                type: "textInsert",
-                                content: currentChild.content
-                            };
-                            i += 1;
-                            newEdit.parentID = currentChild.parent.tagID;
-                            if (afterID) {
-                                newEdit.afterID = afterID;
-                            }
-                            newEdits.push(newEdit);
+                            addTextInsert();
                         }
                     } else if (currentChild.tagID !== oldChild.tagID) {
                         if (!addElementInsert() && !addElementDelete()) {
@@ -1042,22 +1047,49 @@ define(function (require, exports, module) {
                     j += 1;
                 }
             }
+            
+            while (j < oldChildren.length) {
+                oldChild = oldChildren[i];
+                if (oldChild.children) {
+                    addElementDelete();
+                } else {
+                    addTextDelete();
+                }
+            }
+            
+            while (i < currentChildren.length) {
+                currentChild = currentChildren[i];
+                if (currentChild.children) {
+                    addElementInsert();
+                } else {
+                    addTextInsert();
+                }
+            }
+            
             if (afterID) {
                 newEdits.forEach(function (edit) {
-                    if (!edit.beforeID && !edit.afterID) {
+                    if (afterID === edit.tagID) {
+                        edit.firstChild = true;
+                    } else if (!edit.beforeID && !edit.afterID) {
                         edit.afterID = afterID;
                     }
                 });
             }
             edits.push.apply(edits, newEdits);
             console.log("edits", edits);
-            // TODO deletions/insertions at the end
         };
         
+        var queuePush = function (node) {
+            if (node.children && oldNode.nodeMap[node.tagID]) {
+                queue.push(node);
+            }
+        };
+        
+        queue.push(newNode);
+        
         do {
-            // we can assume queue is non-empty for the first loop iteration
-            currentElement = queue.shift();
-            
+            currentElement = queue.pop();
+            console.log("*** walking", currentElement.tagID);
             oldElement = oldNode.nodeMap[currentElement.tagID];
             
             if (oldElement) {
@@ -1072,6 +1104,8 @@ define(function (require, exports, module) {
                 if (currentElement.subtreeSignature !== oldElement.subtreeSignature) {
                     currentElement.children.forEach(queuePush);
                 }
+            } else {
+                generateChildEdits(currentElement, null);
             }
         } while (queue.length);
         
