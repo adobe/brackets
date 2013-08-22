@@ -70,3 +70,8 @@ div.layout > div {
 #yin.layout > div {
     flow-from: jeff;
 }
+
+/* flow-from only tests */
+#raymond.layout > div {
+    flow-from: lim;
+}

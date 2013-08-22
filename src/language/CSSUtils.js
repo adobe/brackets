@@ -1139,7 +1139,7 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function extractAllNamedFlows(text) {
-        var namedFlowRegEx = /(?:flow\-into\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
+        var namedFlowRegEx = /(?:flow\-(into|from)\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
             result = [],
             names = {},
             thisMatch;
@@ -1153,7 +1153,7 @@ define(function (require, exports, module) {
         
         // Iterate over the matches and add them to result
         while (thisMatch) {
-            var thisName = thisMatch[1];
+            var thisName = thisMatch[2];
             if (!names.hasOwnProperty(thisName)) {
                 names[thisName] = result.push(thisName);
             }
