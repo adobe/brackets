@@ -48,8 +48,13 @@
 .CodeMirror-focused .CodeMirror-activeline-background {
     background: @activeline-bgcolor;
 }
-.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-	background: @activeline-bgcolor;
+.CodeMirror-focused .CodeMirror-activeline {
+    & > div, .CodeMirror-gutter-elt {
+        height: 100%;
+    }
+    .CodeMirror-gutter-elt {
+        background: @activeline-bgcolor;
+    }
 }
 
 
