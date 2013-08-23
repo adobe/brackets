@@ -1135,7 +1135,7 @@ define(function (require, exports, module) {
     
     /**
      * Reduces the style sheet by removing comments and strings 
-     *  so that the  content can be parsed using a regular expression
+     * so that the  content can be parsed using a regular expression
      * @param {!string} content to reduce
      * @return {string} reduced content 
      */
@@ -1155,7 +1155,7 @@ define(function (require, exports, module) {
             thisMatch;
         
         // Reduce the content so that matches 
-        //  inside strings and comments are ignored 
+        // inside strings and comments are ignored 
         text = reduceStyleSheetForRegExParsing(text);
 
         // Find the first match
