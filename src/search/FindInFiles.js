@@ -328,13 +328,11 @@ define(function (require, exports, module) {
 
             // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
-                Strings.FIND_IN_FILES_TITLE,
+                Strings.FIND_IN_FILES_TITLE_PART3,
                 numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 numFiles,
-                (numFiles > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                StringUtils.htmlEscape(currentQuery),
-                currentScope ? _labelForScope(currentScope) : ""
+                (numFiles > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
             );
             
             // The last result index displayed
@@ -342,11 +340,14 @@ define(function (require, exports, module) {
             
             // Insert the search summary
             $searchSummary.html(Mustache.render(searchSummaryTemplate, {
+                query:    currentQuery,
+                scope:    currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
                 summary:  summary,
                 hasPages: numMatches > RESULTS_PER_PAGE,
                 results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
                 hasPrev:  currentStart > 0,
-                hasNext:  last < numMatches
+                hasNext:  last < numMatches,
+                Strings:  Strings
             }));
             
             // Create the results template search list
@@ -689,7 +690,7 @@ define(function (require, exports, module) {
         searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
         
         $searchResults = $("#search-results");
-        $searchSummary = $("#search-result-summary");
+        $searchSummary = $searchResults.find(".title");
         $searchContent = $("#search-results .table-container");
     });
     
