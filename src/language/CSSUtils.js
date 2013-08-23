@@ -48,6 +48,11 @@ define(function (require, exports, module) {
         PROP_VALUE = "prop.value",
         IMPORT_URL = "import.url";
 
+    var RESERVED_FLOW_NAMES = ['content', 'element'],
+        INVALID_FLOW_NAMES = ['none', 'inherit', 'default', 'auto', 'initial'],
+        IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
+    
+    
     /**
      * @private
      * Checks if the current cursor position is inside the property name context
@@ -1164,7 +1169,8 @@ define(function (require, exports, module) {
         // Iterate over the matches and add them to result
         while (thisMatch) {
             var thisName = thisMatch[2];
-            if (!names.hasOwnProperty(thisName)) {
+            
+            if (IGNORED_FLOW_NAMES.indexOf(thisName) === -1 && !names.hasOwnProperty(thisName)) {
                 names[thisName] = result.push(thisName);
             }
             thisMatch = namedFlowRegEx.exec(text);

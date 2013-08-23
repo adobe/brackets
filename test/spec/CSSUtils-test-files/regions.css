@@ -80,3 +80,14 @@ div.layout > div {
 #ingo.content {
     flow-from: edge-code_now_shipping; 
 }
+
+/* invalid / ignored flows */
+#test364.content {
+    flow-from: default; 
+    flow-from: none; 
+    flow-from: inherit;
+    flow-from: auto;
+    flow-from: initial;
+    flow-from: content;
+    flow-from: element;
+}
