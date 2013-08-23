@@ -1170,6 +1170,7 @@ define(function (require, exports, module) {
     exports.extractAllSelectors = extractAllSelectors;
     exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+    exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
