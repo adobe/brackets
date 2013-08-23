@@ -868,7 +868,6 @@ define(function (require, exports, module) {
                 expect(dom.children.length).toBe(1);
                 var textNode = dom.children[0];
                 expect(textNode.content).toBe("Text  Text2");
-                expect(textNode.weight).toBeCloseTo(3.4, 2);
                 expect(textNode.textSignature).toBeDefined();
             });
         });
@@ -1031,7 +1030,6 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(1269);
-                    expect(dom.weight).toBeCloseTo(88.7, 1);
                     expect(dom.subtreeSignature).toEqual(jasmine.any(Number));
                     expect(dom.childSignature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
@@ -1040,8 +1038,6 @@ define(function (require, exports, module) {
                     expect(meta.attributes.charset).toEqual("utf-8");
                     var titleContents = dom.children[1].children[5].children[0];
                     expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
-                    expect(titleContents.weight).toBeCloseTo(4.4, 1);
-                    expect(titleContents.parent.weight).toBeCloseTo(5.4, 1);
                     expect(titleContents.textSignature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
                     expect(dom.nodeMap[meta.tagID]).toBe(meta);

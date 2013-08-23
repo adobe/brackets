@@ -232,13 +232,11 @@ define(function (require, exports, module) {
     function _updateHash(node) {
         if (node.children) {
             var i,
-                weight = 1,
                 subtreeHashes = "",
                 childHashes = "",
                 child;
             for (i = 0; i < node.children.length; i++) {
                 child = node.children[i];
-                weight += child.weight;
                 if (child.children) {
                     childHashes += child.tagID;
                     subtreeHashes += child.attributeSignature + child.subtreeSignature;
@@ -247,7 +245,6 @@ define(function (require, exports, module) {
                     subtreeHashes += child.textSignature;
                 }
             }
-            node.weight = weight;
             node.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, seed);
             node.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, seed);
         } else {
@@ -333,8 +330,7 @@ define(function (require, exports, module) {
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
-                    start: this.startOffset + token.start - 1,
-                    weight: 0
+                    start: this.startOffset + token.start - 1
                 };
                 newTag.tagID = this.getID(newTag);
                 nodeMap[newTag.tagID] = newTag;
@@ -432,9 +428,6 @@ define(function (require, exports, module) {
                         lastTextNode = newNode;
                     }
                     
-                    // TODO is there any performance impact of using a floating point
-                    // number vs. integer here?
-                    newNode.weight = 1 + Math.log(newNode.content.length);
                     _updateHash(newNode);
                 }
             }
@@ -797,18 +790,6 @@ define(function (require, exports, module) {
         };
     };
     
-    /**
-     * Comparison function that compares based on the weight property
-     * of the given objects.
-     *
-     * @param {Object} a first for comparison
-     * @param {Object} b second for comparison
-     * @return {integer} negative number if A > B, 0 if equal, positive if B > A
-     */
-    function compareByWeight(a, b) {
-        return b.weight - a.weight;
-    }
-
     function getParentID(node) {
         if (!node.parent) {
             return null;
@@ -1142,7 +1123,6 @@ define(function (require, exports, module) {
         
         function _processElement(elem) {
             elem.tagID = elem.attributes["data-brackets-id"];
-            elem.weight = 0;
             
             // remove data-brackets-id attribute for diff
             delete elem.attributes["data-brackets-id"];
@@ -1154,7 +1134,6 @@ define(function (require, exports, module) {
                 if (child.children) {
                     _processElement(child);
                 } else if (child.content) {
-                    child.weight = child.content.length;
                     _updateHash(child);
                     child.tagID = getTextNodeID(child);
                     
