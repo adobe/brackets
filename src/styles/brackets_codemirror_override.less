@@ -42,9 +42,21 @@
 
 @code-padding: 15px;
 
-.CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor; 
+.CodeMirror-activeline-background {
+    background: transparent;
 }
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: @activeline-bgcolor;
+}
+.CodeMirror-focused .CodeMirror-activeline {
+    & > div, .CodeMirror-gutter-elt {
+        height: 100%;
+    }
+    .CodeMirror-gutter-elt {
+        background: @activeline-bgcolor;
+    }
+}
+
 
 .cm-s-default {
     span.cm-keyword {color: @accent-keyword;}
@@ -181,11 +193,18 @@
         cursor: default;
     }
     
-    .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2); 
+    .CodeMirror .CodeMirror-activeline-background {
+        background: transparent;
     }
-    &.CodeMirror-focused .CodeMirror .CodeMirror-activeline-background {
-        background: transparent; 
+    .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: transparent;
+    }
+    
+    .CodeMirror-focused .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+    }
+    .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
     }
 }
 
