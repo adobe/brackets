@@ -683,6 +683,8 @@ function RemoteFunctions(experimental) {
             }
         });
         
+        this.rememberedNodes = {};
+        
         // update highlight after applying diffs
         redrawHighlights();
     };
