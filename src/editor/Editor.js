@@ -459,6 +459,7 @@ define(function (require, exports, module) {
         $(this.document).off("change", this._handleDocumentChange);
         $(this.document).off("deleted", this._handleDocumentDeleted);
         $(this.document).off("languageChanged", this._handleDocumentLanguageChanged);
+        $(this.document).off("cursorActivity", this._handleCursorActivity);
         
         if (this._visibleRange) {   // TextRange also refs the Document
             this._visibleRange.dispose();
@@ -1575,7 +1576,7 @@ define(function (require, exports, module) {
         _styleActiveLine = value;
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
         
-        if (editor.hasSelection()) {
+        if (editor && editor.hasSelection()) {
             editor._codeMirror.setOption("styleActiveLine", false);
         }
     };
