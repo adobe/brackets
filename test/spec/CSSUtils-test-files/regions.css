@@ -75,3 +75,8 @@ div.layout > div {
 #raymond.layout > div {
     flow-from: lim;
 }
+
+/* underscores and dashes */
+#ingo.content {
+    flow-from: edge-code_now_shipping; 
+}

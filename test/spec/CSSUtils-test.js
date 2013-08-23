@@ -1931,11 +1931,12 @@ define(function (require, exports, module) {
         
         it("should find named flows", function () {
             var namedFlows = CSSUtils.extractAllNamedFlows(this.fileContent);
-            expect(namedFlows.length).toBe(4);
+            expect(namedFlows.length).toBe(5);
             expect(namedFlows[0]).toBe("main");
             expect(namedFlows[1]).toBe("jeff");
             expect(namedFlows[2]).toBe("randy");
             expect(namedFlows[3]).toBe("lim");
+            expect(namedFlows[4]).toBe("edge-code_now_shipping");
         });
         
     });
