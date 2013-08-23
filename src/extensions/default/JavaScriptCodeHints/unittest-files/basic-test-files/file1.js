@@ -160,6 +160,60 @@ require(["MyModule"], function (myModule) {
     var x = myModule.c;
 });
 
+
+/**
+ *  Test record type google annoations.
+ *
+ *  @param {{index: number, name: string}} t
+ */
+function testRecordTypeAnnotation(t) {
+    'use strict';
+    
+}
+
+// More parameter hint testing
+function functionHintTesting() {
+    "use strict";
+
+    // function with record type argument
+    testRecordTypeAnnotation();
+    
+    // function with a function argument
+    arr.sort();
+
+    // function with array argument
+    arr.concat();
+
+    s.lastIndexOf(s, 5);
+
+}
+
+/**
+ *  Test Array annotation
+ * 
+ *  @param {Array.<string>} a
+ */
+function testArrayAnnotation(a) {
+    "use strict";
+    
+}
+
+testArrayAnnotation();
+
+/**
+ *  Test multiple optional args
+ *
+ * @param {number=} a
+ * @param {string=} b
+ *
+ */
+function testOptionalArgs(a, b) {
+    "use strict";
+    
+}
+
+testOptionalArgs();
+
 /* Add large comment to make this test over 250 lines which will trigger
  *  partial updates to be used.
  *

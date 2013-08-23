@@ -86,7 +86,7 @@ define({
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a class=\"clickable-link\" data-href=\"{0}\">Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "!能=[6499050] For more information, see <a href='#' class='clickable-link' data-href='{0}'>Troubleshooting Live Development connection errors</a>._=!",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
@@ -103,7 +103,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"CONFIRM_FOLDER_DELETE_TITLE": "削除確認",
+	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
@@ -112,10 +112,14 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
 	"FIND_RESULT_COUNT": "{0} 件",
+	"FIND_RESULT_COUNT_SINGLE": "1 件",
+	"FIND_NO_RESULTS": "該当なし",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
+	"BUTTON_ALL": "すべて",
 	"BUTTON_STOP": "終了",
+	"BUTTON_REPLACE": "置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -124,8 +128,14 @@ define({
 	"RELEASE_NOTES": "リリースノート",
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
-    
-	"FIND_IN_FILES_TITLE": "「{4}」が見つかりました {5} &mdash; {0} {1} / {2} {3}",
+
+	"FIND_REPLACE_TITLE_PART1": "!能=[7126727] Replace \"_=!",
+	"FIND_REPLACE_TITLE_PART2": "!能=[7126728] \" with \"_=!",
+	"FIND_REPLACE_TITLE_PART3": "!能=[7126729] \" &mdash; {2} {0} {1}_=!",
+
+	"FIND_IN_FILES_TITLE_PART1": "\"",
+	"FIND_IN_FILES_TITLE_PART2": "!能=[7126725] \" found_=!",
+	"FIND_IN_FILES_TITLE_PART3": "!能=[7126726] &mdash; {0} {1} in {2} {3}_=!",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
@@ -293,11 +303,11 @@ define({
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
-	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
+	"ABOUT_TEXT_LINE3": "!能=[6307069] Notices, terms and conditions pertaining to third party software are located at <a href='#' class='clickable-link' data-href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein._=!",
+	"ABOUT_TEXT_LINE4": "!能=[6307070] Documentation and source at <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>_=!",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "!能=[6781670] Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>._=!",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
@@ -444,7 +454,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-    
+	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
+	"NO_ARGUMENTS": "<パラメーターがありません>",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",

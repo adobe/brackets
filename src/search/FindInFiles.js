@@ -347,13 +347,11 @@ define(function (require, exports, module) {
 
             // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
-                Strings.FIND_IN_FILES_TITLE,
+                Strings.FIND_IN_FILES_TITLE_PART3,
                 numMatchesStr,
                 (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 count.files,
-                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                StringUtils.htmlEscape(currentQuery),
-                currentScope ? _labelForScope(currentScope) : ""
+                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
             );
             
             // The last result index displayed
@@ -361,11 +359,14 @@ define(function (require, exports, module) {
             
             // Insert the search summary
             $searchSummary.html(Mustache.render(searchSummaryTemplate, {
+                query:    currentQuery,
+                scope:    currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
                 summary:  summary,
                 hasPages: count.matches > RESULTS_PER_PAGE,
                 results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
                 hasPrev:  currentStart > 0,
-                hasNext:  last < count.matches
+                hasNext:  last < count.matches,
+                Strings:  Strings
             }));
             
             // Create the results template search list
@@ -712,7 +713,7 @@ define(function (require, exports, module) {
         searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
         
         $searchResults = $("#search-results");
-        $searchSummary = $("#search-result-summary");
+        $searchSummary = $searchResults.find(".title");
         $searchContent = $("#search-results .table-container");
     });
     

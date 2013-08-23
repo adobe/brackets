@@ -249,7 +249,25 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
+    function _handleCursorActivity(jqEvent, editor, event) {
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
+        if (editor.hasSelection()) {
+            if (editor._codeMirror.getOption("styleActiveLine")) {
+                editor._codeMirror.setOption("styleActiveLine", false);
+            }
+        } else {
+            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
+        }
+    }
+    
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
@@ -362,6 +380,7 @@ define(function (require, exports, module) {
             lineNumbers: _showLineNumbers,
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
+            coverGutterNextToScrollbar: true,
             matchBrackets: true,
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
@@ -381,6 +400,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
+            .on("cursorActivity", _handleCursorActivity)
             .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
@@ -705,7 +725,7 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
-     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
      * @return !{line:number, ch:number}
      */
@@ -721,7 +741,7 @@ define(function (require, exports, module) {
     /**
      * Returns the display column (zero-based) for a given string-based pos. Differs from pos.ch only
      * when the line contains preceding \t chars. Result depends on the current tab size setting.
-     * @param {!{line:number, ch:number}}
+     * @param {!{line:number, ch:number}} pos
      * @return {number}
      */
     Editor.prototype.getColOffset = function (pos) {
@@ -742,11 +762,16 @@ define(function (require, exports, module) {
     
     /**
      * Sets the cursor position within the editor. Removes any selection.
-     * @param {number} line The 0 based line number.
+     * @param {number} line  The 0 based line number.
      * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
-     * @param {boolean} center  true if the view should be centered on the new cursor position
+     * @param {boolean=} center  True if the view should be centered on the new cursor position.
+     * @param {boolean=} expandTabs  If true, use the actual visual column number instead of the character offset as
+     *      the "ch" parameter.
      */
-    Editor.prototype.setCursorPos = function (line, ch, center) {
+    Editor.prototype.setCursorPos = function (line, ch, center, expandTabs) {
+        if (expandTabs) {
+            ch = this.getColOffset({line: line, ch: ch});
+        }
         this._codeMirror.setCursor(line, ch);
         if (center) {
             this.centerOnCursor();
@@ -1544,10 +1569,15 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {Editor} editor Current, focused editor (main or inline)
      */
-    Editor.setShowActiveLine = function (value) {
+    Editor.setShowActiveLine = function (value, editor) {
         _styleActiveLine = value;
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
+        
+        if (editor.hasSelection()) {
+            editor._codeMirror.setOption("styleActiveLine", false);
+        }
     };
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */

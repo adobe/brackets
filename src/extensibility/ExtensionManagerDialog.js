@@ -131,6 +131,7 @@ define(function (require, exports, module) {
                             });
                     } else {
                         ExtensionManager.cleanupUpdates();
+                        ExtensionManager.unmarkAllForRemoval();
                     }
                 });
         }
