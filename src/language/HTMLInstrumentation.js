@@ -559,7 +559,6 @@ define(function (require, exports, module) {
                     var range = startMark.find();
                     if (range) {
                         text = editor._codeMirror.getRange(range.from, range.to);
-                        //console.log("incremental update: " + text);
                         this.changedTagID = startMark.tagID;
                         startOffset = editor._codeMirror.indexFromPos(range.from);
                         this.isIncremental = true;
@@ -810,6 +809,14 @@ define(function (require, exports, module) {
     function compareByWeight(a, b) {
         return b.weight - a.weight;
     }
+
+    function getParentID(node) {
+        if (!node.parent) {
+            return null;
+        }
+        
+        return node.parent.tagID;
+    }
     
     function domdiff(oldNode, newNode) {
         var queue = [],
@@ -824,8 +831,10 @@ define(function (require, exports, module) {
             elementDeletes = {};
         
         var generateChildEdits = function (currentElement, oldElement) {
-            var i = 0,
-                j = 0,
+            /*jslint continue: true */
+            
+            var currentIndex = 0,
+                oldIndex = 0,
                 currentChildren = currentElement.children,
                 oldChildren = oldElement ? oldElement.children : [],
                 currentChild,
@@ -858,7 +867,7 @@ define(function (require, exports, module) {
                     // new element means we need to move on to compare the next
                     // of the current tree with the one from the old tree that we
                     // just compared
-                    i += 1;
+                    currentIndex += 1;
                     return true;
                 }
                 return false;
@@ -871,7 +880,7 @@ define(function (require, exports, module) {
                         tagID: oldChild.tagID
                     };
                     edits.push(newEdit);
-                    j += 1;
+                    oldIndex += 1;
                     return true;
                 }
                 return false;
@@ -882,7 +891,7 @@ define(function (require, exports, module) {
                     type: "textInsert",
                     content: currentChild.content
                 };
-                i += 1;
+                currentIndex += 1;
                 newEdit.parentID = currentChild.parent.tagID;
                 if (textAfterID) {
                     newEdit.afterID = textAfterID;
@@ -891,11 +900,27 @@ define(function (require, exports, module) {
                 }
                 newEdits.push(newEdit);
             };
+            
+            var lastNodeSeen = function () {
+                if (currentIndex > 0) {
+                    return currentElement.children[currentIndex - 1];
+                }
+                return null;
+            };
+            
             var addTextDelete = function () {
-                newEdit = {
-                    type: "textDelete"
-                };
-                j += 1;
+                var last = lastNodeSeen();
+                if (last && !last.children) {
+                    newEdit = {
+                        type: "textReplace",
+                        content: last.content
+                    };
+                } else {
+                    newEdit = {
+                        type: "textDelete"
+                    };
+                }
+                oldIndex += 1;
                 newEdit.parentID = oldChild.parent.tagID;
                 if (oldChild.parent.children.length === 1) {
                     edits.push(newEdit);
@@ -907,13 +932,39 @@ define(function (require, exports, module) {
                 }
             };
             
-            console.log("cur elem", _dumpDOM(currentElement));
-            if (oldElement) {
-                console.log("old elem", _dumpDOM(oldElement));
-            }
-            while (i < currentChildren.length && j < oldChildren.length) {
-                currentChild = currentChildren[i];
-                oldChild = oldChildren[j];
+            var addElementMove = function () {
+                var possiblyMovedElement = oldNode.nodeMap[currentChild.tagID];
+                if (possiblyMovedElement &&
+                        getParentID(currentChild) !== getParentID(possiblyMovedElement)) {
+                    newEdit = {
+                        type: "elementMove",
+                        tagID: currentChild.tagID,
+                        parentID: currentChild.parent.tagID
+                    };
+                    newEdits.push(newEdit);
+                    currentIndex += 1;
+                    return true;
+                }
+                return false;
+            };
+            
+            while (currentIndex < currentChildren.length && oldIndex < oldChildren.length) {
+                currentChild = currentChildren[currentIndex];
+                
+                // Check to see if the currentChild has been moved
+                if (currentChild.children && addElementMove()) {
+                    continue;
+                }
+                
+                oldChild = oldChildren[oldIndex];
+                
+                // Check to see if the oldChild has been moved to another parent.
+                // If it has, we deal with it on the other side.
+                if (getParentID(oldChild) !== currentElement.tagID) {
+                    oldIndex++;
+                    continue;
+                }
+                
                 if (currentChild.children || oldChild.children) {
                     if (currentChild.children && !oldChild.children) {
                         addTextDelete();
@@ -925,13 +976,13 @@ define(function (require, exports, module) {
                     } else {
                         if (currentChild.tagID !== oldChild.tagID) {
                             if (!addElementInsert() && !addElementDelete()) {
-                                i += 1;
-                                j += 1;
+                                currentIndex += 1;
+                                oldIndex += 1;
                             }
                         } else {
                             addBeforeID(oldChild.tagID);
-                            i += 1;
-                            j += 1;
+                            currentIndex += 1;
+                            oldIndex += 1;
                         }
                     }
                 } else if (currentChild.textSignature !== oldChild.textSignature) {
@@ -949,42 +1000,46 @@ define(function (require, exports, module) {
                             newEdit.afterID = textAfterID;
                         }
                         newEdits.push(newEdit);
-                        i += 1;
-                        j += 1;
+                        currentIndex += 1;
+                        oldIndex += 1;
                     }
                 } else {
-                    i += 1;
-                    j += 1;
+                    currentIndex += 1;
+                    oldIndex += 1;
                 }
             }
             
-            while (j < oldChildren.length) {
-                oldChild = oldChildren[i];
-                if (oldChild.children) {
+            while (oldIndex < oldChildren.length) {
+                oldChild = oldChildren[oldIndex];
+                if (getParentID(oldChild) !== currentElement.tagID) {
+                    // This element has moved
+                    oldIndex++;
+                } else if (oldChild.children) {
                     addElementDelete();
                 } else {
                     addTextDelete();
                 }
             }
             
-            while (i < currentChildren.length) {
-                currentChild = currentChildren[i];
+            while (currentIndex < currentChildren.length) {
+                currentChild = currentChildren[currentIndex];
                 if (currentChild.children) {
-                    addElementInsert();
+                    if (!addElementMove()) {
+                        addElementInsert();
+                    }
                 } else {
                     addTextInsert();
                 }
             }
             
             newEdits.forEach(function (edit) {
-                if (edit.type === "textInsert" || edit.type === "elementInsert") {
+                if (edit.type === "textInsert" || edit.type === "elementInsert" || edit.type === "elementMove") {
                     edit.lastChild = true;
                     delete edit.firstChild;
                     delete edit.afterID;
                 }
             });
             edits.push.apply(edits, newEdits);
-            console.log("edits", edits);
         };
         
         var queuePush = function (node) {

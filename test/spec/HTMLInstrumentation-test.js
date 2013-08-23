@@ -58,12 +58,18 @@ define(function (require, exports, module) {
      */
     var domFeatures = Object.create({
         insertBefore: function (newElement, referenceElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
             var index = this.children.indexOf(referenceElement);
             this.children.splice(index, 0, newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
         },
         appendChild: function (newElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
             this.children.push(newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
@@ -131,23 +137,48 @@ define(function (require, exports, module) {
             delete this.attributes[key];
         },
         
+        returnFailure: function (other) {
+            console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
+            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this));
+            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other));
+            return false;
+        },
+        
         /**
          * Compares two SimpleDOMs with the expectation that they are exactly the same.
          */
         compare: function (other) {
             if (this.children) {
-                expect(this.tag).toEqual(other.tag);
-                expect(this.tagID).toEqual(other.tagID);
+                if (this.tag !== other.tag) {
+                    expect("Tag " + this.tag + " for tagID " + this.tagID).toEqual(other.tag);
+                    return this.returnFailure(other);
+                }
+                
+                if (this.tagID !== other.tagID) {
+                    expect("tagID " + this.tagID).toEqual(other.tagID);
+                    return this.returnFailure(other);
+                }
+                
                 delete this.attributes["data-brackets-id"];
                 expect(this.attributes).toEqual(other.attributes);
-                expect(this.children.length).toEqual(other.children.length);
+                
+                if (this.children.length !== other.children.length) {
+                    expect("tagID " + this.tagID + " has " + this.children.length + " children").toEqual(other.children.length);
+                    return this.returnFailure(other);
+                }
                 var i;
                 for (i = 0; i < this.children.length; i++) {
-                    this.children[i].compare(other.children[i]);
+                    if (!this.children[i].compare(other.children[i])) {
+                        return false;
+                    }
                 }
             } else {
-                expect(this.content).toEqual(other.content);
+                if (this.content !== other.content) {
+                    expect(this.content).toEqual(other.content);
+                    return this.returnFailure(other);
+                }
             }
+            return true;
         }
     }, {
         firstChild: {
@@ -886,9 +917,6 @@ define(function (require, exports, module) {
                 var doc = new FakeDocument(clonedDOM.nodeMap);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
-                console.log("old DOM: " + HTMLInstrumentation._dumpDOM(previousDOM));
-                console.log("newDOM: " + HTMLInstrumentation._dumpDOM(result.dom));
-                console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                 clonedDOM.compare(result.dom);
                 expectationFn(result, previousDOM, incremental);
             }
@@ -1296,7 +1324,6 @@ define(function (require, exports, module) {
                         parentID = newElement.parent.tagID,
                         afterID = result.dom.children[3].children[1].tagID,
                         beforeID = result.dom.children[3].children[3].tagID;
-                    console.log("Final edits", result.edits);
                     expect(result.edits.length).toEqual(3);
                     expect(newElement.tag).toEqual("p");
                     expect(newElement.children.length).toEqual(1);
@@ -1333,7 +1360,6 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(">", {line: 12, ch: 44});
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     
-                    //console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
                     newElement = result.dom.children[3].children[2];
                     beforeID = result.dom.children[3].children[4].tagID;
                     expect(newElement.children.length).toEqual(0);
@@ -1606,7 +1632,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[5];
                             var newElement2 = newDOM.children[3].children[6];
                             expect(newElement.tag).toEqual("div");
@@ -1679,8 +1704,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            //console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             
                             var newElement = newDOM.children[3].children[3],
                                 newChild = newElement.children[1];
@@ -1749,8 +1772,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-//                            console.log("new DOM: ");
-//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[0],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1812,8 +1833,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-//                            console.log("new DOM: ");
-//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[7].children[3],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1854,10 +1873,7 @@ define(function (require, exports, module) {
                             editor.document.replaceRange("<strong>New Content</strong>", {line: 29, ch: 59});
                         },
                         function (result, previousDOM, incremental) {
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             var newDOM = result.dom;
-                            //console.log("new DOM: ");
-                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[7].children[2],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1905,8 +1921,6 @@ define(function (require, exports, module) {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             ed = editor;
-                            //console.log("original DOM: ");
-                            //console.log(HTMLInstrumentation._dumpDOM(previousDOM));
                             editor.document.replaceRange("<div>New Content</div>", {line: 12, ch: 38});
                         },
                         function (result, previousDOM, incremental) {
@@ -2002,8 +2016,6 @@ define(function (require, exports, module) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[1].children[1];
                             
-                            //console.log("newDOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             expect(newElement.tag).toEqual("img");
                             expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
                             expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
@@ -2066,7 +2078,7 @@ define(function (require, exports, module) {
                                 attributes: {},
                                 tagID: newBrElement.tagID,
                                 parentID: result.dom.tagID,
-                                firstChild: true
+                                lastChild: true
                             });
                             expect(result.edits[3]).toEqual({
                                 type: "elementInsert",
@@ -2098,34 +2110,47 @@ define(function (require, exports, module) {
                                 return;
                             }
                             var newDOM = result.dom;
-                            var newElement = newDOM.children[3].children[1].children[1];
+                            var modifiedParagraph = newDOM.children[3].children[5];
+                            expect(modifiedParagraph.tag).toEqual("p");
+                            expect(modifiedParagraph.children.length).toEqual(3);
                             
-                            console.log("old DOM: " + HTMLInstrumentation._dumpDOM(previousDOM));
-                            console.log("newDOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            console.log("edits: " + JSON.stringify(result.edits, null, "  "));
-                            expect(newElement.tag).toEqual("img");
-                            expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
-                            expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
-                            expect(result.edits.length).toEqual(3);
+                            var emTag = modifiedParagraph.children[1];
+                            expect(emTag.tag).toEqual("em");
+                            
+                            var deletedParagraph = previousDOM.children[3].children[7];
+                            expect(deletedParagraph.tag).toEqual("p");
+                            
+                            var aTag = previousDOM.children[3].children[9];
+                            expect(aTag.tag).toEqual("a");
+                            
+                            expect(result.edits.length).toEqual(5);
                             expect(result.edits[0]).toEqual({
-                                type: "elementInsert",
-                                tag: "img",
-                                attributes: {},
-                                tagID: newElement.tagID,
-                                parentID: newElement.parent.tagID,
-                                lastChild: true
+                                type: "elementDelete",
+                                tagID: deletedParagraph.tagID
                             });
                             expect(result.edits[1]).toEqual({
-                                type: "textInsert",
-                                content: " WITH BRACKETS",
-                                parentID: newElement.parent.tagID,
-                                afterID: newElement.tagID
+                                type: "textReplace",
+                                content: "\n\n\n",
+                                parentID: modifiedParagraph.parent.tagID,
+                                afterID: modifiedParagraph.tagID,
+                                beforeID: aTag.tagID
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textReplace",
-                                content: "GETTING STARTED",
-                                parentID: newElement.parent.tagID,
-                                beforeID: newElement.tagID
+                                content: "\n    Welcome\n    ",
+                                parentID: modifiedParagraph.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementMove",
+                                tagID: emTag.tagID,
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true,
+                                content: jasmine.any(String)
                             });
                         }
                     );

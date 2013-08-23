@@ -622,10 +622,11 @@ function RemoteFunctions(experimental) {
     DOMEditHandler.prototype.apply = function (edits) {
         var targetID,
             targetElement,
+            childElement,
             self = this;
         
         edits.forEach(function (edit) {
-            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert/) ? edit.parentID : edit.tagID;
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
             
             if (!targetElement) {
@@ -645,13 +646,18 @@ function RemoteFunctions(experimental) {
                 targetElement.remove();
                 break;
             case "elementInsert":
-                var childElement = self.htmlDocument.createElement(edit.tag);
+                childElement = self.htmlDocument.createElement(edit.tag);
                 
                 Object.keys(edit.attributes).forEach(function (attr) {
                     childElement.setAttribute(attr, edit.attributes[attr]);
                 });
                 
                 childElement.setAttribute("data-brackets-id", edit.tagID);
+                self._insertChildNode(targetElement, childElement, edit);
+                break;
+            case "elementMove":
+                childElement = self._queryBracketsID(edit.tagID);
+                console.log("Doing move", targetElement, childElement, edit);
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
