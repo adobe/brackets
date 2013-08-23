@@ -1135,7 +1135,7 @@ define(function (require, exports, module) {
     
     /**
      * Reduces the style sheet by removing comments and strings 
-     * so that the  content can be parsed using a regular expression
+     * so that the content can be parsed using a regular expression
      * @param {!string} content to reduce
      * @return {string} reduced content 
      */
