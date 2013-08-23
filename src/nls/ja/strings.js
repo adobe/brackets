@@ -129,9 +129,13 @@ define({
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
-	"FIND_REPLACE_TITLE": "「{0}」を「{1}」に置換 &mdash; {3} {2} 件が見つかりました",
+	"FIND_REPLACE_TITLE_PART1": "!能=[7126727] Replace \"_=!",
+	"FIND_REPLACE_TITLE_PART2": "!能=[7126728] \" with \"_=!",
+	"FIND_REPLACE_TITLE_PART3": "!能=[7126729] \" &mdash; {2} {0} {1}_=!",
 
-	"FIND_IN_FILES_TITLE": "「{4}」の検索結果 {5} &mdash; {2} {3} / {0} {1}",
+	"FIND_IN_FILES_TITLE_PART1": "\"",
+	"FIND_IN_FILES_TITLE_PART2": "!能=[7126725] \" found_=!",
+	"FIND_IN_FILES_TITLE_PART3": "!能=[7126726] &mdash; {0} {1} in {2} {3}_=!",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
