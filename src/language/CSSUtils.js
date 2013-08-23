@@ -48,8 +48,8 @@ define(function (require, exports, module) {
         PROP_VALUE = "prop.value",
         IMPORT_URL = "import.url";
 
-    var RESERVED_FLOW_NAMES = ['content', 'element'],
-        INVALID_FLOW_NAMES = ['none', 'inherit', 'default', 'auto', 'initial'],
+    var RESERVED_FLOW_NAMES = ["content", "element"],
+        INVALID_FLOW_NAMES = ["none", "inherit", "default", "auto", "initial"],
         IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
     
     
