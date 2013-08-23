@@ -21,73 +21,27 @@
  *
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
+
 /*
  * LiveDevServerManager Overview:
  *
  * The LiveDevServerManager allows extensions to register to be Live Development
- * server providers. Providers are queried for their ability to serve a page in
+ * servers. Servers are queried for their ability to serve a page in
  * order of descending priority by way their canServe methods.
  *
  * NOTE: This API is currently experimental and intented to be internal-only.
  * It is very likely that it will be changed in the near future and/or
  * removed entirely.
  *
- * # LiveDevServerManager.getProvider(localPath)
+ * # LiveDevServerManager.getServer(localPath)
  *
- * Returns highest priority provider that can serve the local file.
+ * Returns highest priority server (BaseServer) that can serve the local file.
  *
- * @param {String} url
- * A url to file being served.
- *
- * @return {LiveDevServerProvider}
- * Provider or null.
- *
- *
- * LiveDevServerProvider Overview:
- *
- * A Live Development server provider must implement the following three functions:
- *
- * LiveDevServerProvider.canServe(localPath)
- * LiveDevServerProvider.getBaseUrl()
- * LiveDevServerProvider.readyToServe()
- *
- * The behavior of these three functions is described in detail below.
- *
- * # LiveDevServerProvider.canServe(localPath)
- *
- * The method by which a provider indicates intent to serve a local file.
- * The manager calls this method when querying providers
- *
- * param {String} url
- * A url for the page to be served.
- *
- * return {Boolean}
- * Determines whether the current provider is able to serve the url.
- *
- *
- * # LiveDevServerProvider.getBaseUrl()
- *
- * The method by which a provider provides the base url for the current
- * Brackets project.
- *
- * return {String}
- *
- *
- * # LiveDevServerProvider.readyToServe()
- *
- * This method is called when Live Development is starting to check if the
- * provider that has been selected is ready to serve. The provider returns a
- * jQuery promise. The Live Development launch process waits until the promise
- * resolves/rejects. If the promise rejects, an error window is shown
- * and Live Development does not start.
- *
- * return {jQuery.Promise}
- *
+ * A Live Development server must implement the BaseServer API. See
+ * LiveDevelopment/Servers/BaseServer base class.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -98,7 +52,10 @@ define(function (require, exports, module) {
     var _serverProviders   = [];
 
     /**
+     * @private
      * Comparator to sort providers based on their priority
+     * @param {number} a
+     * @param {number} b
      */
     function _providerSort(a, b) {
         return b.priority - a.priority;
@@ -107,20 +64,18 @@ define(function (require, exports, module) {
     /**
      * Determines which provider can serve a file with a local path.
      *
-     * @param {String} localPath
-     * A local path to file being served.
-     *
-     * @return {LiveDevServerProvider}
-     * true for yes, otherwise false.
+     * @param {string} localPath A local path to file being served.
+     * @return {?BaseServer} A server no null if no servers can serve the file
      */
-    function getProvider(localPath) {
-
-        var provider, i;
+    function getServer(localPath) {
+        var provider, server, i;
 
         for (i = 0; i < _serverProviders.length; i++) {
-            provider = _serverProviders[i].provider;
-            if (provider.canServe(localPath)) {
-                return provider;
+            provider = _serverProviders[i];
+            server = provider.create();
+
+            if (server.canServe(localPath)) {
+                return server;
             }
         }
 
@@ -128,26 +83,36 @@ define(function (require, exports, module) {
     }
 
     /**
-     * The method by which a LiveDevServerProvider registers itself.
+     * The method by which a server registers itself.
      *
-     * @param {LiveDevServerProvider} provider
-     * The provider to be registered, described below.
-     *
-     * @param {Integer} priority
-     * A non-negative number used to break ties among providers for a
-     * particular url. Providers that register with a higher priority will
-     * have the opportunity to provide a given url before those with a
-     * lower priority. The higher the number, the higher the priority.
+     * @param {BaseServer|{create: function():BaseServer}} provider
+     *  The provider to be registered, described below.
+     * @param {number} priority
+     *  A non-negative number used to break ties among providers for a
+     *  particular url. Providers that register with a higher priority will
+     *  have the opportunity to provide a given url before those with a
+     *  lower priority. The higher the number, the higher the priority.
      */
-    function registerProvider(provider, priority) {
-        var providerObj = { provider: provider,
-                            priority: priority || 0 };
+    function registerServer(provider, priority) {
+        if (!provider.create) {
+            console.error("Incompatible live development server provider");
+            return;
+        }
+
+        var providerObj = {};
+
+        providerObj.create = provider.create;
+        providerObj.priority = priority || 0;
 
         _serverProviders.push(providerObj);
         _serverProviders.sort(_providerSort);
     }
+    
+    // Backwards compatibility
+    exports.getProvider         = getServer;
+    exports.registerProvider    = registerServer;
 
     // Define public API
-    exports.getProvider         = getProvider;
-    exports.registerProvider    = registerProvider;
+    exports.getServer           = getServer;
+    exports.registerServer      = registerServer;
 });
