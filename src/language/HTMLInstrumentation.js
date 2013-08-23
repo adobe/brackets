@@ -45,7 +45,6 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
-        PriorityQueue   = require("thirdparty/priority_queue").PriorityQueue,
         MurmurHash3     = require("thirdparty/murmurhash3_gc"),
         PerfUtils       = require("utils/PerfUtils");
     
