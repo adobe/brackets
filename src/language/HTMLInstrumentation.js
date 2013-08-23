@@ -894,6 +894,9 @@ define(function (require, exports, module) {
                         attributes: currentChild.attributes
                     };
                     newEdits.push(newEdit);
+                    
+                    // This newly inserted node needs to have edits generated for its
+                    // children, so we add it to the queue.
                     queue.push(currentChild);
                     
                     // A textInsert edit that follows this elementInsert should use
@@ -1098,12 +1101,8 @@ define(function (require, exports, module) {
                     }
                 
                 // We know we're comparing two texts. Just match up their signatures.
-                } else if (currentChild.textSignature !== oldChild.textSignature) {
-                    if (currentChild.textSignature && !oldChild.textSignature) {
-                        addTextInsert();
-                    } else if (oldChild.textSignature && !currentChild.textSignature) {
-                        addTextDelete();
-                    } else {
+                } else {
+                    if (currentChild.textSignature !== oldChild.textSignature) {
                         newEdit = {
                             type: "textReplace",
                             content: currentChild.content,
@@ -1113,38 +1112,66 @@ define(function (require, exports, module) {
                             newEdit.afterID = textAfterID;
                         }
                         newEdits.push(newEdit);
-                        currentIndex += 1;
-                        oldIndex += 1;
                     }
-                } else {
+                    
+                    // Either we've done a text replace or both sides matched. In either
+                    // case we're ready to move forward among both the old and new children.
                     currentIndex += 1;
                     oldIndex += 1;
                 }
             }
             
+            // At this point, we've used up all of the children in at least one of the
+            // two sets of children.
+            
+            
+            /**
+             * Take care of any remaining children in the old tree.
+             */
             while (oldIndex < oldChildren.length) {
                 oldChild = oldChildren[oldIndex];
+                
+                // Check for an element that has moved
                 if (getParentID(oldChild) !== currentElement.tagID) {
-                    // This element has moved
+                    // This element has moved, so we skip it on this side (the move
+                    // is handled on the new tree side).
                     oldIndex++;
+                
+                // is this an element? if so, delete it
                 } else if (oldChild.children) {
                     addElementDelete();
+                
+                // must be text. delete that.
                 } else {
                     addTextDelete();
                 }
             }
             
+            /**
+             * Take care of the remaining children in the new tree.
+             */
             while (currentIndex < currentChildren.length) {
                 currentChild = currentChildren[currentIndex];
+                
+                // Is this an element?
                 if (currentChild.children) {
+                    
+                    // Look to see if the element has moved here.
                     if (!addElementMove()) {
+                        // Not a move, so we insert this element.
                         addElementInsert();
                     }
+                
+                // not a new element, so it must be new text.
                 } else {
                     addTextInsert();
                 }
             }
             
+            /**
+             * Finalize remaining edits. For inserts and moves, we can set the `lastChild`
+             * flag and the browser can simple use `appendChild` to add these items.
+             */
             newEdits.forEach(function (edit) {
                 if (edit.type === "textInsert" || edit.type === "elementInsert" || edit.type === "elementMove") {
                     edit.lastChild = true;
@@ -1155,35 +1182,55 @@ define(function (require, exports, module) {
             edits.push.apply(edits, newEdits);
         };
         
+        /**
+         * Adds elements to the queue for generateChildEdits.
+         * Only elements (and not text nodes) are added. New nodes (ones that aren't in the
+         * old nodeMap, are not added here because they will be added when generateChildEdits
+         * creates the elementInsert edit.
+         */
         var queuePush = function (node) {
             if (node.children && oldNode.nodeMap[node.tagID]) {
                 queue.push(node);
             }
         };
         
+        // Start at the root of the current tree.
         queue.push(newNode);
         
         do {
             currentElement = queue.pop();
             oldElement = oldNode.nodeMap[currentElement.tagID];
             
+            // Do we need to compare elements?
             if (oldElement) {
+                
+                // Are attributes different?
                 if (currentElement.attributeSignature !== oldElement.attributeSignature) {
+                    // generate attribute edits
                     attributeCompare(edits, oldElement, currentElement);
                 }
                 
+                // Has there been a change to this node's immediate children?
                 if (currentElement.childSignature !== oldElement.childSignature) {
                     generateChildEdits(currentElement, oldElement);
                 }
                 
+                // If there's a change farther down in the tree, add the children to the queue.
+                // If not, we can skip that whole subtree.
                 if (currentElement.subtreeSignature !== oldElement.subtreeSignature) {
                     currentElement.children.forEach(queuePush);
                 }
+            
+            // This is a new element, so go straight to generating child edits (which will
+            // create the appropriate Insert edits).
             } else {
                 generateChildEdits(currentElement, null);
             }
         } while (queue.length);
         
+        // Special handling for moves: add edits to the beginning of the list so that
+        // moved nodes are set aside to ensure that they remain available at the time of their
+        // move.
         if (moves.length > 0) {
             edits.unshift({
                 type: "rememberNodes",
