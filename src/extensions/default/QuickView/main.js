@@ -29,16 +29,16 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
-        PerfUtils           = brackets.getModule("utils/PerfUtils"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings"),
-        ColorUtils          = brackets.getModule("utils/ColorUtils");
+        Strings             = brackets.getModule("strings");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -181,12 +181,10 @@ define(function (require, exports, module) {
             var i,
                 nestLevel = 0,
                 content,
-                len,
-                timerParens = PerfUtils.markStart("QuickView balanced parens");
+                len;
 
             // Remove comments & strings
-            content = str.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/+/g, "");
-            content = content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+            content = CSSUtils.reduceStyleSheetForRegExParsing(str);
             len = content.length;
             
             for (i = 0; i < len; i++) {
@@ -203,8 +201,6 @@ define(function (require, exports, module) {
                 }
             }
 
-            PerfUtils.addMeasurement(timerParens);
-            
             // if parens are balanced, nest level will be 0
             return (nestLevel === 0);
         }
@@ -559,7 +555,6 @@ define(function (require, exports, module) {
         }
         
         // Check main editor
-        var timerScan = PerfUtils.markStart("QuickView scan line");
         if (!editor) {
             if (divContainsMouse($(fullEditor.getRootElement()), event)) {
                 editor = fullEditor;
@@ -611,8 +606,6 @@ define(function (require, exports, module) {
             // Mouse not over any Editor - immediately hide popover
             hidePreview();
         }
-        
-        PerfUtils.addMeasurement(timerScan);
     }
     
     function onActiveEditorChange(event, current, previous) {
