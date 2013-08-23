@@ -249,8 +249,16 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
     function _handleCursorActivity(jqEvent, editor, event) {
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
         if (editor.hasSelection()) {
             if (editor._codeMirror.getOption("styleActiveLine")) {
                 editor._codeMirror.setOption("styleActiveLine", false);
@@ -1561,7 +1569,7 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
-     * @param {Editor} Current editor
+     * @param {Editor} editor Current, focused editor (main or inline)
      */
     Editor.setShowActiveLine = function (value, editor) {
         _styleActiveLine = value;
