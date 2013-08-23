@@ -276,7 +276,7 @@ define(function (require, exports, module) {
     CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
-                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
+                keyCode === KeyEvent.DOM_VK_RETURN);
         
     };
 
