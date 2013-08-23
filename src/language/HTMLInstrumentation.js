@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 child = node.children[i];
                 if (child.children) {
                     childHashes += child.tagID;
-                    subtreeHashes += child.attributeSignature + child.subtreeSignature;
+                    subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
                 } else {
                     childHashes += child.textSignature;
                     subtreeHashes += child.textSignature;
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
 
     SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
-        var token, tagLabel, lastClosedTag, lastTextNode, lastIndex = 0;
+        var token, lastClosedTag, lastTextNode, lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
@@ -341,7 +341,6 @@ define(function (require, exports, module) {
                 
                 if (voidElements.hasOwnProperty(newTag.tag)) {
                     // This is a self-closing element.
-                    tagLabel = newTag.tag + newTag.tagID;
                     _updateHash(newTag);
                 } else {
                     stack.push(newTag);
