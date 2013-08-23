@@ -259,7 +259,7 @@ define(function (require, exports, module) {
      */
     function _handleCursorActivity(jqEvent, editor, event) {
         // If there is a selection in the editor, temporarily hide Active Line Highlight
-        if (editor && editor.hasSelection()) {
+        if (editor.hasSelection()) {
             if (editor._codeMirror.getOption("styleActiveLine")) {
                 editor._codeMirror.setOption("styleActiveLine", false);
             }
