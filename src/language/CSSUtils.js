@@ -1146,7 +1146,7 @@ define(function (require, exports, module) {
     /**
      * Extracts all named flow instances
      * @param {!string} text to extract from
-     * @return {?Array.<string>} array of unique flow names 
+     * @return {Array.<string>} array of unique flow names found in the content (empty if none)
      */
     function extractAllNamedFlows(text) {
         var namedFlowRegEx = /(?:flow\-(into|from)\:\s*)([\w\-_]+)(?:\s*;)/gi,
