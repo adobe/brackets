@@ -368,7 +368,7 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                 _rotateSelection.call(this, _itemsPerPage());
             } else if (this.selectedIndex !== -1 &&
-                    (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
+                    (keyCode === KeyEvent.DOM_VK_RETURN)) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
