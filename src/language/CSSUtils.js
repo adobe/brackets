@@ -501,7 +501,7 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-     * @param text {!String} CSS text to extract from
+     * @param text {!string} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text) {
@@ -851,8 +851,8 @@ define(function (require, exports, module) {
      * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
      * we know the selector applies.
      *
-     * @param text {!String} CSS text to search
-     * @param selector {!String} selector to search for
+     * @param text {!string} CSS text to search
+     * @param selector {!string} selector to search for
      * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
      *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
      *      matched selector.
@@ -984,7 +984,7 @@ define(function (require, exports, module) {
      *  div .foo .bar {}
      *  .foo.bar {}
      *
-     * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @param {!string} selector The selector to match. This can be a tag selector, class selector or id selector
      * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
@@ -1128,8 +1128,8 @@ define(function (require, exports, module) {
     /**
      * Reduces the style sheet by removing comments and strings 
      *  so that the  content can be parsed using a regular expression
-     * @param {!String} content to reduce
-     * @return {String} reduced content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
      */
     function reduceStyleSheetForRegExParsing(content) {
         return _removeStrings(_removeComments(content));
@@ -1137,11 +1137,11 @@ define(function (require, exports, module) {
     
     /**
      * Extracts all named flow instances
-     * @param {!String} text to extract from
+     * @param {!string} text to extract from
      * @return {?Array.<string>} array of unique flow names 
      */
     function extractAllNamedFlows(text) {
-        var namedFlowRegEx = /(?:flow\-(into|from)\:[ \t\n\r]*)([a-z0-9_\-]+)(?:[ \t\n\r]*;)/gi,
+        var namedFlowRegEx = /(?:flow\-(into|from)\:\s*)([a-z0-9_\-]+)(?:\s*;)/gi,
             result = [],
             names = {},
             thisMatch;
