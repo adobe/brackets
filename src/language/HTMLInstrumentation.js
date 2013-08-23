@@ -827,6 +827,7 @@ define(function (require, exports, module) {
             elementsWithTextChanges = {},
             currentElement,
             oldElement,
+            moves = [],
             elementDeletes = {};
         
         var generateChildEdits = function (currentElement, oldElement) {
@@ -940,6 +941,7 @@ define(function (require, exports, module) {
                         tagID: currentChild.tagID,
                         parentID: currentChild.parent.tagID
                     };
+                    moves.push(newEdit.tagID);
                     newEdits.push(newEdit);
                     currentIndex += 1;
                     return true;
@@ -1069,6 +1071,13 @@ define(function (require, exports, module) {
                 generateChildEdits(currentElement, null);
             }
         } while (queue.length);
+        
+        if (moves.length > 0) {
+            edits.unshift({
+                type: "rememberNodes",
+                tagIDs: moves
+            });
+        }
         
         return edits;
     }

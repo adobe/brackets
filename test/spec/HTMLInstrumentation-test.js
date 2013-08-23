@@ -48,6 +48,16 @@ define(function (require, exports, module) {
         elementCount,
         elementIds = {};
     
+    function removeDescendentsFromNodeMap(nodeMap, node) {
+        var mappedNode = nodeMap[node.tagID];
+        delete nodeMap[node.tagID];
+        if (node.children) {
+            node.children.forEach(function (child) {
+                removeDescendentsFromNodeMap(nodeMap, child);
+            });
+        }
+    }
+    
     /**
      * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
      * features of a real DOM object. It specifically adds the features required for
@@ -94,9 +104,7 @@ define(function (require, exports, module) {
             if (this.tagID) {
                 var nodeMap = this.getNodeMap();
                 if (nodeMap) {
-                    var node = nodeMap[this.tagID];
-                    expect(node).toBe(this);
-                    delete nodeMap[this.tagID];
+                    removeDescendentsFromNodeMap(nodeMap, this);
                 }
             }
             var siblings = this.siblings;
@@ -2123,30 +2131,35 @@ define(function (require, exports, module) {
                             var aTag = previousDOM.children[3].children[9];
                             expect(aTag.tag).toEqual("a");
                             
-                            expect(result.edits.length).toEqual(5);
+                            expect(result.edits.length).toEqual(6);
                             expect(result.edits[0]).toEqual({
+                                type: "rememberNodes",
+                                tagIDs: [emTag.tagID]
+                            });
+                            
+                            expect(result.edits[1]).toEqual({
                                 type: "elementDelete",
                                 tagID: deletedParagraph.tagID
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textReplace",
                                 content: "\n\n\n",
                                 parentID: modifiedParagraph.parent.tagID,
                                 afterID: modifiedParagraph.tagID,
                                 beforeID: aTag.tagID
                             });
-                            expect(result.edits[2]).toEqual({
+                            expect(result.edits[3]).toEqual({
                                 type: "textReplace",
                                 content: "\n    Welcome\n    ",
                                 parentID: modifiedParagraph.tagID
                             });
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[4]).toEqual({
                                 type: "elementMove",
                                 tagID: emTag.tagID,
                                 parentID: modifiedParagraph.tagID,
                                 lastChild: true
                             });
-                            expect(result.edits[4]).toEqual({
+                            expect(result.edits[5]).toEqual({
                                 type: "textInsert",
                                 parentID: modifiedParagraph.tagID,
                                 lastChild: true,

@@ -520,6 +520,7 @@ function RemoteFunctions(experimental) {
      */
     function DOMEditHandler(htmlDocument) {
         this.htmlDocument = htmlDocument;
+        this.rememberedNodes = null;
     }
 
     /**
@@ -532,7 +533,11 @@ function RemoteFunctions(experimental) {
         if (!id) {
             return null;
         }
-
+        
+        if (this.rememberedNodes && this.rememberedNodes[id]) {
+            return this.rememberedNodes[id];
+        }
+        
         var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
     };
@@ -625,7 +630,15 @@ function RemoteFunctions(experimental) {
             childElement,
             self = this;
         
+        this.rememberedNodes = {};
+        
         edits.forEach(function (edit) {
+            if (edit.type === "rememberNodes") {
+                edit.tagIDs.forEach(function (tagID) {
+                    self.rememberedNodes[tagID] = self._queryBracketsID(tagID);
+                });
+            }
+            
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
             
@@ -657,7 +670,6 @@ function RemoteFunctions(experimental) {
                 break;
             case "elementMove":
                 childElement = self._queryBracketsID(edit.tagID);
-                console.log("Doing move", targetElement, childElement, edit);
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
