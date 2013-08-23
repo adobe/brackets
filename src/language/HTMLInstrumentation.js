@@ -800,93 +800,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * The position of text nodes and elements are determined by their
-     * surroundings. For a given node, which is provided to this function
-     * as siblings[index], this function will look left or right
-     * through the list of siblings starting at the given index. It
-     * will look for either an element immediately in the chosen direction
-     * or a text node and then, optionally, an element. 
-     *
-     * When newlyInserted is set, we skip over newly inserted elements when 
-     * moving rightwards, since those elements will not yet have been
-     * inserted when the current element is inserted. However, when moving 
-     * leftwards, we don't skip over newly inserted elements, since those 
-     * elements will already have been inserted and so are valid as beforeID. 
-     *
-     * Note that this function assumes that there are no comment nodes
-     * and no runs of multiple text nodes.
-     *
-     * @param {Array} siblings List of nodes that are siblings to the target node
-     * @param {integer} index Index into the siblings list for the target node
-     * @param {boolean} left True to look left, falsy value to look right
-     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
-     * @return {Object} each field of the return is optional. `element` contains the next element found if there was one, `text` contains the text node in between if there was one. If there is only a text node in the given direction, then just `text` will be set. `firstChild` and `lastChild` reflect if the index is at the beginning or end of the list.
-     */
-    function _findElementAndText(siblings, index, left, newlyInserted) {
-        var step = left ? -1 : 1,
-            guard = left ? -1 : siblings.length,
-            result = {},
-            nextToCheck;
-        
-        function isNewlyInserted(element) {
-            return newlyInserted.some(function (hash) {
-                return !!hash[element];
-            });
-        }
-        
-        newlyInserted = newlyInserted || [];
-        
-        for (nextToCheck = index + step; (step < 0 ? nextToCheck > guard : nextToCheck < guard); nextToCheck += step) {
-            var elementOrText = siblings[nextToCheck];
-            if (step < 0 || !isNewlyInserted(elementOrText.tagID)) {
-                if (elementOrText.children) {
-                    result.element = elementOrText;
-                    break;
-                } else {
-                    if (result.text) {
-                        console.error("HTMLInstrumentation._findElementAndText(): Found multiple text nodes in a row");
-                        break;
-                    }
-                    result.text = elementOrText;
-                    // Don't break here--continue around the loop to find the next
-                    // non-newly-inserted element.
-                }
-            }
-        }
-        
-        // if there are no more elements in the direction we're going
-        // then we are done looking
-        if (!result.element && !result.text) {
-            if (left) {
-                result.firstChild = true;
-            } else {
-                result.lastChild = true;
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Finds the neighbors around the given SimpleDOM node. The return
-     * value has what it saw to the left and to the right. See
-     * the return value of _findElementAndText to see what left and right
-     * contain.
-     *
-     * @param {Object} node SimpleDOM node for which to find the neighbors
-     * @param {Array.<Object>} newlyInserted An array of hashes of tag IDs of newly inserted elements.
-     * @return {Object} object with left and right neighbors, each with element/text/firstChild/lastChild.
-     */
-    function findNeighbors(node, newlyInserted) {
-        var siblings = node.parent.children;
-        var childIndex = siblings.indexOf(node);
-        var neighbors = {};
-        neighbors.left = _findElementAndText(siblings, childIndex, true, newlyInserted);
-        neighbors.right = _findElementAndText(siblings, childIndex, false, newlyInserted);
-        return neighbors;
-    }
-    
-    /**
      * Comparison function that compares based on the weight property
      * of the given objects.
      *
@@ -919,7 +832,7 @@ define(function (require, exports, module) {
                 oldChild,
                 newEdits = [],
                 newEdit,
-                afterID;
+                textAfterID = null;
             
             var addBeforeID = function (beforeID) {
                 newEdits.forEach(function (edit) {
@@ -927,7 +840,7 @@ define(function (require, exports, module) {
                 });
                 edits.push.apply(edits, newEdits);
                 newEdits = [];
-                afterID = beforeID;
+                textAfterID = beforeID;
             };
             
             var addElementInsert = function () {
@@ -941,7 +854,7 @@ define(function (require, exports, module) {
                     };
                     newEdits.push(newEdit);
                     queue.push(currentChild);
-                    afterID = currentChild.tagID;
+                    textAfterID = currentChild.tagID;
                     // new element means we need to move on to compare the next
                     // of the current tree with the one from the old tree that we
                     // just compared
@@ -957,7 +870,7 @@ define(function (require, exports, module) {
                         type: "elementDelete",
                         tagID: oldChild.tagID
                     };
-                    newEdits.push(newEdit);
+                    edits.push(newEdit);
                     j += 1;
                     return true;
                 }
@@ -971,8 +884,10 @@ define(function (require, exports, module) {
                 };
                 i += 1;
                 newEdit.parentID = currentChild.parent.tagID;
-                if (afterID) {
-                    newEdit.afterID = afterID;
+                if (textAfterID) {
+                    newEdit.afterID = textAfterID;
+                } else {
+                    newEdit.firstChild = true;
                 }
                 newEdits.push(newEdit);
             };
@@ -985,8 +900,8 @@ define(function (require, exports, module) {
                 if (oldChild.parent.children.length === 1) {
                     edits.push(newEdit);
                 } else {
-                    if (afterID) {
-                        newEdit.afterID = afterID;
+                    if (textAfterID) {
+                        newEdit.afterID = textAfterID;
                     }
                     newEdits.push(newEdit);
                 }
@@ -1007,41 +922,36 @@ define(function (require, exports, module) {
                         if (!addElementDelete()) {
                             addTextInsert();
                         }
-                    } else if (currentChild.tagID !== oldChild.tagID) {
-                        if (!addElementInsert() && !addElementDelete()) {
+                    } else {
+                        if (currentChild.tagID !== oldChild.tagID) {
+                            if (!addElementInsert() && !addElementDelete()) {
+                                i += 1;
+                                j += 1;
+                            }
+                        } else {
+                            addBeforeID(oldChild.tagID);
                             i += 1;
                             j += 1;
                         }
-                    } else {
-                        addBeforeID(oldChild.tagID);
-                        i += 1;
-                        j += 1;
                     }
                 } else if (currentChild.textSignature !== oldChild.textSignature) {
                     if (currentChild.textSignature && !oldChild.textSignature) {
-                        newEdit = {
-                            type: "textInsert",
-                            content: currentChild.content
-                        };
-                        i += 1;
+                        addTextInsert();
                     } else if (oldChild.textSignature && !currentChild.textSignature) {
-                        newEdit = {
-                            type: "textDelete"
-                        };
-                        j += 1;
+                        addTextDelete();
                     } else {
                         newEdit = {
                             type: "textReplace",
-                            content: currentChild.content
+                            content: currentChild.content,
+                            parentID: currentChild.parent.tagID
                         };
+                        if (textAfterID) {
+                            newEdit.afterID = textAfterID;
+                        }
+                        newEdits.push(newEdit);
                         i += 1;
                         j += 1;
                     }
-                    newEdit.parentID = currentChild.parent.tagID;
-                    if (afterID) {
-                        newEdit.afterID = afterID;
-                    }
-                    newEdits.push(newEdit);
                 } else {
                     i += 1;
                     j += 1;
@@ -1066,15 +976,13 @@ define(function (require, exports, module) {
                 }
             }
             
-            if (afterID) {
-                newEdits.forEach(function (edit) {
-                    if (afterID === edit.tagID) {
-                        edit.firstChild = true;
-                    } else if (!edit.beforeID && !edit.afterID) {
-                        edit.afterID = afterID;
-                    }
-                });
-            }
+            newEdits.forEach(function (edit) {
+                if (edit.type === "textInsert" || edit.type === "elementInsert") {
+                    edit.lastChild = true;
+                    delete edit.firstChild;
+                    delete edit.afterID;
+                }
+            });
             edits.push.apply(edits, newEdits);
             console.log("edits", edits);
         };
@@ -1089,7 +997,6 @@ define(function (require, exports, module) {
         
         do {
             currentElement = queue.pop();
-            console.log("*** walking", currentElement.tagID);
             oldElement = oldNode.nodeMap[currentElement.tagID];
             
             if (oldElement) {
@@ -1109,126 +1016,6 @@ define(function (require, exports, module) {
             }
         } while (queue.length);
         
-        /**
-         * The position of a text node is given by its parent
-         * and, more importantly, the elements immediately surrounding it.
-         * This function will add position information to the given edit as
-         * afterID and beforeID, along with the parentID. If afterID and
-         * beforeID are missing, that means that the text node is the only
-         * child of the parent.
-         * 
-         * @param {Object} edit The edit object to augment with position
-         * @param {Object} node The SimpleDOM node that is the target of the edit
-         */
-        function addPositionToTextEdit(edit, node) {
-            edit.parentID = node.parent.tagID;
-            
-            // Text operations happen after element insertions, so they don't need to
-            // take into account whether their siblings have already been inserted when
-            // finding neighbors. So we don't pass newlyInserted here.
-            var neighbors = findNeighbors(node);
-            if (neighbors.left.element) {
-                edit.afterID = neighbors.left.element.tagID;
-            }
-            var text = neighbors.left.text;
-            if (neighbors.right.element) {
-                edit.beforeID = neighbors.right.element.tagID;
-            }
-        }
-        
-        /**
-         * Describing the position of an element insertion follows these
-         * heuristics:
-         *
-         * 1. If the element comes at the beginning or end of the list of
-         *    the parent's children, firstChild or lastChild is set on the edit
-         * 2. If there is an element after the element that is being inserted,
-         *    beforeID is set and the element should be inserted immediately
-         *    before the element with the given ID.
-         * 3. If there is no element after the given one, then afterID is
-         *    given and the new element is inserted immediately after that
-         *    one.
-         * 4. If the parent element only contains a text node and we're doing
-         *    an element insertion *in the middle of the text*, then the
-         *    only thing that is set is the parent ID. This case is a little
-         *    bit crazy, but the text changes that occur will ultimately
-         *    work out if the new element is appendChild'ed rather than
-         *    inserted at the beginning.
-         * 
-         */
-        function addPositionToEdit(edit, element) {
-            edit.parentID = element.parent.tagID;
-            var neighbors = findNeighbors(element, [elementInserts, textInserts]);
-            if (neighbors.left.firstChild) {
-                edit.firstChild = true;
-            } else if (neighbors.right.lastChild) {
-                edit.lastChild = true;
-            } else {
-                if (neighbors.right.element) {
-                    edit.beforeID = neighbors.right.element.tagID;
-                } else if (neighbors.left.element) {
-                    edit.afterID = neighbors.left.element.tagID;
-                }
-            }
-        }
-        
-        var findDeletions = function (element) {
-            console.log("Deletion checking", element.tagID, matches[element.tagID]);
-            if (!matches[element.tagID]) {
-                if (element.children) {
-                    edits.push({
-                        type: "elementDelete",
-                        tagID: element.tagID
-                    });
-                } else {
-                    var edit = {
-                        type: "textDelete"
-                    };
-                    addPositionToTextEdit(edit, element);
-                    edits.push(edit);
-                }
-            } else if (element.children) {
-                var i;
-                for (i = 0; i < element.children.length; i++) {
-                    findDeletions(element.children[i]);
-                }
-            }
-        };
-        
-//        findDeletions(oldNode);
-        
-        Object.keys(elementInserts).forEach(function (nonMatchingID) {
-            var newElement = newNode.nodeMap[nonMatchingID];
-            var edit = {
-                type: "elementInsert",
-                tagID: newElement.tagID,
-                tag: newElement.tag,
-                attributes: newElement.attributes
-            };
-            addPositionToEdit(edit, newElement);
-            edits.push(edit);
-        });
-        
-        Object.keys(textInserts).forEach(function (nonMatchingID) {
-            var newElement = newNode.nodeMap[nonMatchingID];
-            var edit = {
-                type: "textInsert",
-                content: newElement.content
-            };
-            addPositionToTextEdit(edit, newElement);
-            edits.push(edit);
-        });
-        
-        Object.keys(textChanges).forEach(function (changedID) {
-            var changedElement = newNode.nodeMap[changedID];
-            var edit = {
-                type: "textReplace",
-                content: changedElement.content
-            };
-            addPositionToTextEdit(edit, changedElement);
-            edits.push(edit);
-        });
-
         return edits;
     }
     
@@ -1482,7 +1269,6 @@ define(function (require, exports, module) {
     exports._allowIncremental           = allowIncremental;
     exports._dumpDOM                    = _dumpDOM;
     exports._getBrowserDiff             = _getBrowserDiff;
-    exports._findElementAndText         = _findElementAndText;
     exports._resetCache                 = _resetCache;
     
     // public API
