@@ -1115,14 +1115,22 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
-    // removes css comments from the content
-    function _removeComments(_content) {
-        return _content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
+    /**
+     * removes CSS comments from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeComments(content) {
+        return content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '');
     }
     
-    // removes strings from the content 
-    function _removeStrings(_content) {
-        return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
+    /**
+     * removes strings from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeStrings(content) {
+        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
     }
     
     /**
