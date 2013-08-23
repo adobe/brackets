@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     }
     
     FileServer.prototype = Object.create(BaseServer.prototype);
-    FileServer.prototype.constructor = BaseServer;
+    FileServer.prototype.constructor = FileServer;
 
     /**
      * Determines whether we can serve local file.
