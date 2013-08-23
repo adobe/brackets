@@ -1125,9 +1125,14 @@ define(function (require, exports, module) {
         return _content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, '');
     }
     
-    // removes strings and comments
-    function _reduceContent(_content) {
-        return _removeStrings(_removeComments(_content));
+    /**
+     * Reduces the style sheet by removing comments and strings 
+     *  so that the  content can be parsed using a regular expression
+     * @param {!String} content to reduce
+     * @return {String} reduced content 
+     */
+    function reduceStyleSheetForRegExParsing(content) {
+        return _removeStrings(_removeComments(content));
     }
     
     /**
@@ -1143,7 +1148,7 @@ define(function (require, exports, module) {
         
         // Reduce the content so that matches 
         //  inside strings and comments are ignored 
-        text = _reduceContent(text);
+        text = reduceStyleSheetForRegExParsing(text);
 
         // Find the first match
         thisMatch = namedFlowRegEx.exec(text);
