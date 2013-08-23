@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
+        PerfUtils           = brackets.getModule("utils/PerfUtils"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
         ColorUtils          = brackets.getModule("utils/ColorUtils");
@@ -180,7 +181,8 @@ define(function (require, exports, module) {
             var i,
                 nestLevel = 0,
                 content,
-                len;
+                len,
+                timerParens = PerfUtils.markStart("QuickView balanced parens");
 
             // Remove comments & strings
             content = str.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/+/g, "");
@@ -201,6 +203,8 @@ define(function (require, exports, module) {
                 }
             }
 
+            PerfUtils.addMeasurement(timerParens);
+            
             // if parens are balanced, nest level will be 0
             return (nestLevel === 0);
         }
@@ -555,6 +559,7 @@ define(function (require, exports, module) {
         }
         
         // Check main editor
+        var timerScan = PerfUtils.markStart("QuickView scan line");
         if (!editor) {
             if (divContainsMouse($(fullEditor.getRootElement()), event)) {
                 editor = fullEditor;
@@ -606,6 +611,8 @@ define(function (require, exports, module) {
             // Mouse not over any Editor - immediately hide popover
             hidePreview();
         }
+        
+        PerfUtils.addMeasurement(timerScan);
     }
     
     function onActiveEditorChange(event, current, previous) {
