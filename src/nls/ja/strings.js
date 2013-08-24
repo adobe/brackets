@@ -144,8 +144,6 @@ define({
 	"FIND_IN_FILES_MATCHES": "一致",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>表示数を減らす</a>",
-	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>表示数を増やす</a>",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 

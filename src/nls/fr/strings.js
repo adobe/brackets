@@ -144,8 +144,6 @@ define({
 	"FIND_IN_FILES_MATCHES": "résultats",
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_LESS": " <a href='#' class='find-less'>Moins</a>",
-	"FIND_IN_FILES_MORE": " <a href='#' class='find-more'>Plus</a>",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "ligne : {0}",
 
