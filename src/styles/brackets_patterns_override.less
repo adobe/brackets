@@ -31,6 +31,20 @@
  *
  */
 
+// Links
+// -------------------------
+
+a {
+    color: @tc-link;
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: @tc-link-hover;
+    text-decoration: underline;
+}
+
 .panel {
     .vbox;
     .box-flex(1);
@@ -392,6 +406,7 @@
     background-color: @tc-gray-panel;
     border-top: 1px solid @tc-gray-panel-separator;
     box-shadow: none;
+    padding: 10px 15px 12px;
     white-space: nowrap;
 }
 
@@ -430,6 +445,7 @@
 .modal-backdrop {
     opacity: 0;
 }
+
 .modal-backdrop:last-child {
     /* Only show the last modal backdrop */
     opacity: 0.5;
@@ -440,17 +456,17 @@
     color: @tc-light-weight-text;
     margin-bottom: 0;
     margin-top: 0;
-    font-size: 26px;
-    line-height: 40px;
-    font-weight: @font-weight-light;
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: normal;
 }
 
 .dialog-message {
-    color: @tc-light-weight-text;
+    color: @tc-text;
     font-size: 14px;
     line-height: 20px;
     margin-bottom: 20px;
-    font-weight: @font-weight-light;
+    font-weight: normal;
 }
 
 .dialog-message li {
@@ -658,16 +674,16 @@
                 width: 220px;
             }
             .ext-name {
-                color: #000;
+                color: @tc-text;
                 display: block;
                 font-size: 15px;
-                font-weight: @font-weight-light;
+                font-weight: normal;
                 .user-select(text);
                 cursor: text;
             }
             .ext-desc {
-                color: #000;
-                font-weight: @font-weight-light;
+                color: @tc-text;
+                font-weight: normal;
                 width: auto;
                 .user-select(text);
                 cursor: text;
@@ -727,7 +743,7 @@
         }
         .about-contributors {
             min-height: 100px;
-            
+
             a {
                 text-decoration: none;
             }
@@ -778,6 +794,8 @@ input[type="color"],
     border: 1px solid @tc-input-border;
     color: @tc-text;
     font-size: @baseFontSize + 1px;
+    font-weight: @font-weight-semibold;
+    -webkit-font-smoothing: antialiased;
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
