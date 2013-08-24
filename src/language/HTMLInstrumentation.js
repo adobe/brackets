@@ -1124,7 +1124,6 @@ define(function (require, exports, module) {
             // At this point, we've used up all of the children in at least one of the
             // two sets of children.
             
-            
             /**
              * Take care of any remaining children in the old tree.
              */
@@ -1139,7 +1138,10 @@ define(function (require, exports, module) {
                 
                 // is this an element? if so, delete it
                 } else if (oldChild.children) {
-                    addElementDelete();
+                    if (!addElementDelete()) {
+                        console.error("HTML Instrumentation: failed to add elementDelete for remaining element in the original DOM. This should not happen.");
+                        oldIndex++;
+                    }
                 
                 // must be text. delete that.
                 } else {
@@ -1159,7 +1161,10 @@ define(function (require, exports, module) {
                     // Look to see if the element has moved here.
                     if (!addElementMove()) {
                         // Not a move, so we insert this element.
-                        addElementInsert();
+                        if (!addElementInsert()) {
+                            console.error("HTML Instrumentation: failed to add elementInsert for remaining element in the updated DOM. This should not happen.");
+                            currentIndex++;
+                        }
                     }
                 
                 // not a new element, so it must be new text.

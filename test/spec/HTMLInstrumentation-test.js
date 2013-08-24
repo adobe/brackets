@@ -2165,6 +2165,46 @@ define(function (require, exports, module) {
                     );
                 });
             });
+            
+            it("should support reparenting a node", function () {
+                setupEditor(WellFormedDoc);
+                var currentText = WellFormedDoc;
+                runs(function () {
+                    doEditTest(currentText,
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
+                            currentText = editor.document.getText();
+                        },
+                        function (result, previousDOM, incremental) {
+                        },
+                        false
+                        );
+                });
+                runs(function () {
+                    doEditTest(currentText,
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
+                            currentText = editor.document.getText();
+                        },
+                        function (result, previousDOM, incremental) {
+                        },
+                        false
+                        );
+                });
+                runs(function () {
+                    doEditTest(currentText,
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("</div>", { line: 24, ch: 0 });
+                            currentText = editor.document.getText();
+                            console.log("CT", currentText);
+                        },
+                        function (result, previousDOM, incremental) {
+                        },
+                        false
+                        );
+                });
+                    
+            });
         });
         
         var benchmarker = {
