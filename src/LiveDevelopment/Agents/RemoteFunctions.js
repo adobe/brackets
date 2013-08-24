@@ -637,6 +637,7 @@ function RemoteFunctions(experimental) {
                 edit.tagIDs.forEach(function (tagID) {
                     self.rememberedNodes[tagID] = self._queryBracketsID(tagID);
                 });
+                return;
             }
             
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
@@ -652,7 +653,7 @@ function RemoteFunctions(experimental) {
             case "attrAdd":
                 targetElement.setAttribute(edit.attribute, edit.value);
                 break;
-            case "attrDel":
+            case "attrDelete":
                 targetElement.removeAttribute(edit.attribute);
                 break;
             case "elementDelete":

@@ -737,7 +737,7 @@ define(function (require, exports, module) {
         });
         Object.keys(oldAttributes).forEach(function (attributeName) {
             edits.push({
-                type: "attrDel",
+                type: "attrDelete",
                 tagID: oldNode.tagID,
                 attribute: attributeName
             });
@@ -796,11 +796,7 @@ define(function (require, exports, module) {
      * @return {int?} ID or null if there is no parent
      */
     function getParentID(node) {
-        if (!node.parent) {
-            return null;
-        }
-        
-        return node.parent.tagID;
+        return node.parent && node.parent.tagID;
     }
     
     /**
@@ -813,7 +809,7 @@ define(function (require, exports, module) {
      * * textInsert
      * * textDelete
      * * textReplace
-     * * attrDel
+     * * attrDelete
      * * attrChange
      * * attrAdd
      * * rememberNodes (a special instruction that reflects the need to hang on to moved nodes)
@@ -842,16 +838,16 @@ define(function (require, exports, module) {
          *
          * This adds to the edit list in place and does not return anything.
          *
-         * @param {Object} currentElement SimpleDOM node for the current state of the element
-         * @param {?Object} oldElement SimpleDOM node for the previous state of this element, undefined if the element is new
+         * @param {Object} currentParent SimpleDOM node for the current state of the element
+         * @param {?Object} oldParent SimpleDOM node for the previous state of this element, undefined if the element is new
          */
-        var generateChildEdits = function (currentElement, oldElement) {
+        var generateChildEdits = function (currentParent, oldParent) {
             /*jslint continue: true */
             
             var currentIndex = 0,
                 oldIndex = 0,
-                currentChildren = currentElement.children,
-                oldChildren = oldElement ? oldElement.children : [],
+                currentChildren = currentParent.children,
+                oldChildren = oldParent ? oldParent.children : [],
                 currentChild,
                 oldChild,
                 newEdits = [],
@@ -859,6 +855,11 @@ define(function (require, exports, module) {
                 textAfterID = null;
             
             /**
+             * The `beforeID` that appears in many edits tells the browser to make the
+             * change before the element with the given ID. In other words, an
+             * elementInsert with a `beforeID` of 32 would result in something like
+             * `parentElement.insertBefore(newChildElement, _queryBracketsID(32))`
+             *
              * Many new edits are captured in the `newEdits` array so that a suitable
              * `beforeID` can be added to them before they are added to the main edits
              * list. This function sets the `beforeID` on any pending edits and adds
@@ -881,6 +882,10 @@ define(function (require, exports, module) {
             /**
              * If the current element was not in the old DOM, then we will create
              * an elementInsert edit for it.
+             *
+             * If the element was in the old DOM, this will return false and the
+             * main loop will either spot this element later in the child list
+             * or the element has been moved.
              *
              * @return {boolean} true if an elementInsert was created
              */
@@ -906,7 +911,7 @@ define(function (require, exports, module) {
                     // new element means we need to move on to compare the next
                     // of the current tree with the one from the old tree that we
                     // just compared
-                    currentIndex += 1;
+                    currentIndex++;
                     return true;
                 }
                 return false;
@@ -915,6 +920,10 @@ define(function (require, exports, module) {
             /**
              * If the old element that we're looking at does not appear in the new
              * DOM, that means it was deleted and we'll create an elementDelete edit.
+             *
+             * If the element is in the new DOM, then this will return false and
+             * the main loop with either spot this node later on or the element
+             * has been moved.
              *
              * @return {boolean} true if elementDelete was generated
              */
@@ -926,8 +935,10 @@ define(function (require, exports, module) {
                     };
                     edits.push(newEdit);
                     
-                    // we're now done with that old element so move the index
-                    oldIndex += 1;
+                    // deleted element means we need to move on to compare the next
+                    // of the old tree with the one from the current tree that we
+                    // just compared
+                    oldIndex++;
                     return true;
                 }
                 return false;
@@ -953,7 +964,7 @@ define(function (require, exports, module) {
                 newEdits.push(newEdit);
                 
                 // The text node is in the new tree, so we move to the next new tree item
-                currentIndex += 1;
+                currentIndex++;
             };
             
             /**
@@ -961,9 +972,9 @@ define(function (require, exports, module) {
              *
              * @return {?Object} previous child or null if there wasn't one
              */
-            var lastNodeSeen = function () {
+            var prevNode = function () {
                 if (currentIndex > 0) {
-                    return currentElement.children[currentIndex - 1];
+                    return currentParent.children[currentIndex - 1];
                 }
                 return null;
             };
@@ -971,19 +982,19 @@ define(function (require, exports, module) {
             /**
              * Adds a textDelete edit for text node that is not in the new tree.
              * Note that we actually create a textReplace rather than a textDelete
-             * if the last node in current tree was a text node. We do this because
+             * if the previous node in current tree was a text node. We do this because
              * text nodes are not individually addressable and a delete event would
-             * end up clearing out both that last text node that we want to keep
+             * end up clearing out both that previous text node that we want to keep
              * and this text node that we want to eliminate. Instead, we just log
              * a textReplace which will result in the deletion of this node and
              * the maintaining of the old content.
              */
             var addTextDelete = function () {
-                var last = lastNodeSeen();
-                if (last && !last.children) {
+                var prev = prevNode();
+                if (prev && !prev.children) {
                     newEdit = {
                         type: "textReplace",
-                        content: last.content
+                        content: prev.content
                     };
                 } else {
                     newEdit = {
@@ -1007,7 +1018,7 @@ define(function (require, exports, module) {
                 
                 // This text appeared in the old tree but not the new one, so we
                 // increment the old children counter.
-                oldIndex += 1;
+                oldIndex++;
             };
             
             /**
@@ -1027,7 +1038,7 @@ define(function (require, exports, module) {
                 // different parent.
                 var possiblyMovedElement = oldNode.nodeMap[currentChild.tagID];
                 if (possiblyMovedElement &&
-                        currentElement.tagID !== getParentID(possiblyMovedElement)) {
+                        currentParent.tagID !== getParentID(possiblyMovedElement)) {
                     newEdit = {
                         type: "elementMove",
                         tagID: currentChild.tagID,
@@ -1038,7 +1049,7 @@ define(function (require, exports, module) {
                     
                     // this element in the new tree was a move to this spot, so we can move
                     // on to the next child in the new tree.
-                    currentIndex += 1;
+                    currentIndex++;
                     return true;
                 }
                 return false;
@@ -1048,7 +1059,8 @@ define(function (require, exports, module) {
             while (currentIndex < currentChildren.length && oldIndex < oldChildren.length) {
                 currentChild = currentChildren[currentIndex];
                 
-                // Check to see if the currentChild has been moved
+                // Check to see if the currentChild has been reparented from somewhere 
+                // else in the old tree
                 if (currentChild.children && addElementMove()) {
                     continue;
                 }
@@ -1057,7 +1069,7 @@ define(function (require, exports, module) {
                 
                 // Check to see if the oldChild has been moved to another parent.
                 // If it has, we deal with it on the other side (see above)
-                if (getParentID(oldChild) !== currentElement.tagID) {
+                if (getParentID(oldChild) !== currentParent.tagID) {
                     oldIndex++;
                     continue;
                 }
@@ -1086,8 +1098,8 @@ define(function (require, exports, module) {
                             // as appropriate
                             if (!addElementInsert() && !addElementDelete()) {
                                 console.error("HTML Instrumentation: This should not happen. Two elements have different tags and there was no insert/delete. This generally means there was a reordering of elements.");
-                                currentIndex += 1;
-                                oldIndex += 1;
+                                currentIndex++;
+                                oldIndex++;
                             }
                         
                         // The tagIDs match, so there's no change here
@@ -1095,8 +1107,8 @@ define(function (require, exports, module) {
                             // Since this element hasn't moved, it is a suitable "beforeID"
                             // for the edits we've logged.
                             addBeforeID(oldChild.tagID);
-                            currentIndex += 1;
-                            oldIndex += 1;
+                            currentIndex++;
+                            oldIndex++;
                         }
                     }
                 
@@ -1116,8 +1128,8 @@ define(function (require, exports, module) {
                     
                     // Either we've done a text replace or both sides matched. In either
                     // case we're ready to move forward among both the old and new children.
-                    currentIndex += 1;
-                    oldIndex += 1;
+                    currentIndex++;
+                    oldIndex++;
                 }
             }
             
@@ -1131,7 +1143,7 @@ define(function (require, exports, module) {
                 oldChild = oldChildren[oldIndex];
                 
                 // Check for an element that has moved
-                if (getParentID(oldChild) !== currentElement.tagID) {
+                if (getParentID(oldChild) !== currentParent.tagID) {
                     // This element has moved, so we skip it on this side (the move
                     // is handled on the new tree side).
                     oldIndex++;

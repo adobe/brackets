@@ -1143,7 +1143,7 @@ define(function (require, exports, module) {
                         function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(result.edits[0]).toEqual({
-                                type: "attrDel",
+                                type: "attrDelete",
                                 tagID: tagID,
                                 attribute: "content"
                             });
@@ -1445,19 +1445,19 @@ define(function (require, exports, module) {
                         ],
                         [ // " cl"
                             {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
                         ],
                         [ // " cla"
                             {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
                         ],
                         [ // " clas"
                             {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
                         ],
                         [ // " class"
                             {type: "attrAdd", tagID: tagID, attribute: "class", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
                         ]
                     ]);
                     
@@ -1503,22 +1503,22 @@ define(function (require, exports, module) {
                         ],
                         [ // " clas"
                             {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "class"}
+                            {type: "attrDelete", tagID: tagID, attribute: "class"}
                         ],
                         [ // " cla"
                             {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
                         ],
                         [ // " cl"
                             {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
                         ],
                         [ // " c"
                             {type: "attrAdd", tagID: tagID, attribute: "c", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
                         ],
                         [ // " "
-                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
                         ],
                         [] // deletion of space
                     ], true);
