@@ -1144,16 +1144,6 @@ define(function (require, exports, module) {
         }
         return true;
     }
- 
-    /**
-     * Handle a mouse click in the main view
-    * @param {jQueryObject} jqEvent jQuery event object
-     */
-    function _handleMainViewClick(jqEvent) {
-        if (jqEvent.target.className !== "jstree-rename-input") {
-            forceFinishRename();
-        }
-    }
     
     /**
      * Create a new item in the project tree.
@@ -1561,7 +1551,12 @@ define(function (require, exports, module) {
             _redraw(false); // redraw jstree when working set size changes
         });
         
-        $(".main-view").click(_handleMainViewClick);
+        $(".main-view").click(function (jqEvent) {
+            if (jqEvent.target.className !== "jstree-rename-input") {
+                forceFinishRename();
+            }
+        });
+        
         $("#sidebar").on("panelResizeStart", forceFinishRename);
     });
 
