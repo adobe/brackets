@@ -534,7 +534,7 @@ define(function (require, exports, module) {
         if (!document._masterEditor) {
             createdNewEditor = true;
 
-            // Performance (see #4650) Chrome wastes time messing with selection
+            // Performance (see #4757) Chrome wastes time messing with selection
             // that will just be changed at end, so clear it for now
             if (window.getSelection && window.getSelection().empty) {  // Chrome
                 window.getSelection().empty();
