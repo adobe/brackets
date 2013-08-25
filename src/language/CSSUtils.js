@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         }
         
         lastToken = state.stack[state.stack.length - 1];
-        return (lastToken === "{" || lastToken === "rule");
+        return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
     /**
@@ -94,7 +94,8 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "propertyValue" && state.stack[state.stack.length - 2] === "rule");
+        return (state.stack[state.stack.length - 1] === "propertyValue" &&
+                (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block"));
     }
     
     /**
@@ -450,7 +451,7 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
             return createInfo();
         }
 
