@@ -6,7 +6,7 @@
 .dropdown-arrow {
     display: inline-block;
     width: 5px;
-    height: 9px;
+    height: 10px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
     position: relative;
@@ -45,11 +45,10 @@
     border-radius: 3px;
     border: 1px solid #2d2f31;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
-    color: #a0a0a0;
     text-decoration: none;
 }
 #project-dropdown-toggle:hover .dropdown-arrow {
-    background-image: url("down-arrow-hover.svg");
+    background-image: url("down-arrow.svg");
 }
 
 /* TODO: style the dropdown content */

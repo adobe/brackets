@@ -17,7 +17,7 @@ and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/mast
 
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
-on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets' blog](http://blog.brackets.io/).
+on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
 
 
 How to install and run Brackets
@@ -34,11 +34,11 @@ what's missing!
 
 #### Download
 
-Installers for the latest stable build for Mac and Windows can be [downloaded here](http://download.brackets.io/).
+Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://download.brackets.io/).
 
-A Linux port is in the works; check out the
-[Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version).
-
+The Linux version has most of the features of the Mac and Windows versions, but
+is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
+for a list of known issues and to find out how you can help.
 
 #### Usage
 
@@ -53,8 +53,9 @@ for a list of new features and known issues in each build.
 
 In addition to the core features built into Brackets, there is a large and growing
 community of developers building extensions that add all sorts of useful functionality.
-See the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions)
-for a list of extensions and instructions on how to install them.
+See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
+for a list of available extensions. For installation instructions,
+see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
 
 #### Need help?
 

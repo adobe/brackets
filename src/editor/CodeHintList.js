@@ -276,7 +276,7 @@ define(function (require, exports, module) {
     CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
-                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
+                keyCode === KeyEvent.DOM_VK_RETURN);
         
     };
 
@@ -368,7 +368,7 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                 _rotateSelection.call(this, _itemsPerPage());
             } else if (this.selectedIndex !== -1 &&
-                    (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
+                    (keyCode === KeyEvent.DOM_VK_RETURN)) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
@@ -434,6 +434,7 @@ define(function (require, exports, module) {
      *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
+        this.$hintMenu.addClass("apply-transition");
         this._buildListView(hintObj);
 
         // Update the CodeHintList location

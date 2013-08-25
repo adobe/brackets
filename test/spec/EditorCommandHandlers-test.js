@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -94,22 +94,23 @@ define(function (require, exports, module) {
         }
         
         
-        // Helper function for creating a window with an inline editor
-        function createWindowWithInlineEditor(spec) {
+        // Helper function for creating a test window
+        function createTestWindow(spec) {
+            SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
+                testWindow = w;
+                
+                // Load module instances from brackets.test
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
+        }
+        
+        // Helper function to open a new inline editor
+        function openInlineEditor(spec) {
             var promise;
-            
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
-                    testWindow = w;
-                    
-                    // Load module instances from brackets.test
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    EditorManager       = testWindow.brackets.test.EditorManager;
-                   
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
-            }
             
             runs(function () {
                 promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
@@ -142,17 +143,13 @@ define(function (require, exports, module) {
             });
         }
         
-        // Helper function for closing the test window. This must be used in the last spec in the suite.
+        // Helper function for closing the test window
         function closeTestWindow() {
-            runs(function () {
-                this.after(function () {
-                    SpecRunnerUtils.closeTestWindow();
-                    testWindow      = null;
-                    CommandManager  = null;
-                    Commands        = null;
-                    EditorManager   = null;
-                });
-            });
+            testWindow      = null;
+            CommandManager  = null;
+            Commands        = null;
+            EditorManager   = null;
+            SpecRunnerUtils.closeTestWindow();
         }
         
 
@@ -2135,8 +2132,16 @@ define(function (require, exports, module) {
                               "    color: red;\n" +
                               "}";
             
+            beforeFirst(function () {
+                createTestWindow(this);
+            });
+            
+            afterLast(function () {
+                closeTestWindow();
+            });
+            
             beforeEach(function () {
-                createWindowWithInlineEditor(this);
+                openInlineEditor(this);
             });
             
             afterEach(function () {
@@ -2192,8 +2197,6 @@ define(function (require, exports, module) {
                 expect(myEditor.document.getText()).toEqual(expectedText);
                 expect(myEditor.getFirstVisibleLine()).toBe(0);
                 expect(myEditor.getLastVisibleLine()).toBe(2);
-                
-                closeTestWindow();
             });
         });
         
@@ -2409,14 +2412,16 @@ define(function (require, exports, module) {
         });
       
         describe("Open Line Above and Below", function () {
-            var indentUnit = Editor.getSpaceUnits();
-            
-            var indentation = (function () {
-                // generate indent string once
-                var spaces = [];
-                spaces.length = indentUnit + 1;
-                return spaces.join(" ");
-            }());
+            var indentUnit  = SpecRunnerUtils.EDITOR_USE_TABS ? 1 : SpecRunnerUtils.EDITOR_SPACE_UNITS,
+                indentation = (function () {
+                    // generate indent string once
+                    if (SpecRunnerUtils.EDITOR_USE_TABS) {
+                        return "\t";
+                    }
+                    var spaces = [];
+                    spaces.length = indentUnit + 1;
+                    return spaces.join(" ");
+                }());
             
             beforeEach(setupFullEditor);
 
@@ -2511,11 +2516,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines.splice(2, 0, "    " + indentation);
+                lines.splice(2, 0, indentation + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 2, ch: 4 + indentUnit});
+                expectCursorAt({line: 2, ch: indentUnit * 2});
             });
 
             it("should insert new line below when no selection", function () {
@@ -2595,11 +2600,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines.splice(3, 0, "    " + indentation);
+                lines.splice(3, 0, indentation + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 3, ch: 4 + indentUnit});
+                expectCursorAt({line: 3, ch: indentUnit * 2});
             });
 
             it("should insert new line below when multiple line selection", function () {
@@ -2609,11 +2614,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
 
                 var lines = defaultContent.split("\n");
-                lines.splice(5, 0, "    " + indentation);
+                lines.splice(5, 0, indentation + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 5, ch: 4 + indentUnit});
+                expectCursorAt({line: 5, ch: indentUnit * 2});
             });
         });
 
@@ -2625,13 +2630,22 @@ define(function (require, exports, module) {
                           "    color: red;\n" +
                           "}";
             
+            beforeFirst(function () {
+                createTestWindow(this);
+            });
+            
+            afterLast(function () {
+                closeTestWindow();
+            });
+            
             beforeEach(function () {
-                createWindowWithInlineEditor(this);
+                openInlineEditor(this);
             });
             
             afterEach(function () {
                 closeFilesInTestWindow();
             });
+            
 
             it("should insert new line above the first line of the inline editor", function () {
                 myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
@@ -2709,8 +2723,6 @@ define(function (require, exports, module) {
                 expect(myEditor.document.getText()).toEqual(expectedText);
                 expect(myEditor.getFirstVisibleLine()).toBe(0);
                 expect(myEditor.getLastVisibleLine()).toBe(3);
-                
-                closeTestWindow();
             });
         });
     });

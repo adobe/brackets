@@ -58,8 +58,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
         
-        // supress redundant quit menu item on mac
-        if (brackets.platform !== "mac" && !brackets.inBrowser) {
+        // suppress redundant quit menu item on mac
+        if (brackets.platform !== "mac" || !brackets.nativeMenus) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
@@ -161,7 +161,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
 
 
-        var hasAboutItem = (brackets.platform !== "mac" || brackets.inBrowser);
+        var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
         // Add final divider only if we have a twitter URL or about item
         if (hasAboutItem || brackets.config.twitter_url) {
@@ -183,7 +183,6 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
-        project_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
         project_cmenu.addMenuItem(Commands.FILE_DELETE);
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();

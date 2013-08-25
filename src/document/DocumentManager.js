@@ -70,10 +70,11 @@
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetSort -- When the workingSet array is sorted. Notifies the working set view to redraw
- *      the new sorted list. Listener receives no arguments.
- *    - workingSetDisableAutoSorting -- When working set is manually re-sorted via dragging and dropping
- *      a file to disable automatic sorting. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *      Listener receives no arguments.
+ * 
+ *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -81,6 +82,8 @@
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
+ * 
+ * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -367,8 +370,8 @@ define(function (require, exports, module) {
     
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!number} index - old file index
-     * @param {!number} index - new file index
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
@@ -378,13 +381,15 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            $(exports).triggerHandler("workingSetSort");
             $(exports).triggerHandler("workingSetDisableAutoSorting");
         }
     }
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -422,7 +427,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
@@ -812,43 +817,32 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
-        
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                    var doc = _openDocuments[path];
-                    
-                    // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
-                    _openDocuments[newKey] = doc;
-                    
-                    keysToDelete.push(path);
-                    
-                    // Update document file
-                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
-                    doc._notifyFilePathChanged();
-                    
-                    if (!isFolder) {
-                        // If the path name is a file, there can only be one matched entry in the open document
-                        // list, which we just updated. Break out of the for .. in loop. 
-                        break;
-                    }
-                }
+        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                // Copy value to new key
+                var newKey = path.replace(oldName, newName);
+                _openDocuments[newKey] = doc;
+                
+                keysToDelete.push(path);
+                
+                // Update document file
+                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                doc._notifyFilePathChanged();
             }
-        }
+        });
+        
         // Delete the old keys
-        for (i = 0; i < keysToDelete.length; i++) {
-            delete _openDocuments[keysToDelete[i]];
-        }
+        keysToDelete.forEach(function (fullPath) {
+            delete _openDocuments[fullPath];
+        });
         
         // Update working set
-        for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
-        }
+        _workingSet.forEach(function (fileEntry) {
+            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);

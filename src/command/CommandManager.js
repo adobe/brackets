@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         
         if (command) {
             try {
-                $(exports).triggerHandler("beforeExecuteCommand");
+                $(exports).triggerHandler("beforeExecuteCommand", id);
             } catch (err) {
                 console.error(err);
             }
