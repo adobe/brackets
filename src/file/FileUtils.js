@@ -314,18 +314,6 @@ define(function (require, exports, module) {
         return false;
     }
 
-    /**
-     * Returns the file extension for a file name
-     * @param {string} fileName file name with extension or just a file extension
-     * @return {string} File extension if found, otherwise return the original file name
-     */
-    function _getFileExtension(fileName) {
-        var i = fileName.lastIndexOf("."),
-            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
-
-        return ext;
-    }
-    
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
@@ -339,8 +327,8 @@ define(function (require, exports, module) {
         if (!fileExt) {
             return false;
         }
-
-        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
+        
+        return (_staticHtmlFileExts.indexOf(fileExt.toLowerCase()) !== -1);
     }
 
     /**
@@ -353,7 +341,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(fileExt.toLowerCase()) !== -1);
     }
     
     /**
