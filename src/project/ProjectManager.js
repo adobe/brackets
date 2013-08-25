@@ -1546,10 +1546,13 @@ define(function (require, exports, module) {
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
-
+        
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
+        
+        $(".main-view").click(forceFinishRename);
+        $("#sidebar").on("panelResizeStart", forceFinishRename);
     });
 
     // Init PreferenceStorage
@@ -1568,7 +1571,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
-
+    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP, Commands.APP_BEFORE_MENUPOPUP, forceFinishRename);
+    
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
