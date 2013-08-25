@@ -29,20 +29,21 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
+        SidebarView             = brackets.getModule("project/SidebarView"),
         PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
+        Menus                   = brackets.getModule("command/Menus"),
+        EditorManager           = brackets.getModule("editor/EditorManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
-        Strings                 = brackets.getModule("strings"),
-        SidebarView             = brackets.getModule("project/SidebarView"),
-        Menus                   = brackets.getModule("command/Menus"),
-        PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PopUpManager            = brackets.getModule("widgets/PopUpManager"),
+        Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
@@ -220,20 +221,25 @@ define(function (require, exports, module) {
         // will call cleanupDropdown().
         if ($dropdown) {
             PopUpManager.removePopUp($dropdown);
-            KeyBindingManager.removeGlobalKeydownHook(keydownHook);
         }
     }
     
     /**
      * Remove the various event handlers that close the dropdown. This is called by the
      * PopUpManager when the dropdown is closed.
+     * @param {KeyboardEvent=} keyEvent
      */
-    function cleanupDropdown() {
+    function cleanupDropdown(keyEvent) {
         $("html").off("click", closeDropdown);
         $("#project-files-container").off("scroll", closeDropdown);
         $(SidebarView).off("hide", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
+
+        if (keyEvent && keyEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+            EditorManager.focusEditor();
+        }
+		KeyBindingManager.removeGlobalKeydownHook(keydownHook);
     }
     
     
@@ -397,16 +403,18 @@ define(function (require, exports, module) {
      * Show or hide the recent projects dropdown from the toogle command.
      */
     function handleKeyEvent() {
-        if (!SidebarView.isVisible()) {
-            SidebarView.show();
-        }
-        
-        if ($dropdown) {
-            closeDropdown();
-        } else {
+        if (!$dropdown) {
+            if (!SidebarView.isVisible()) {
+                SidebarView.show();
+            }
+            
             showDropdown();
             $dropdownItem = $dropdown.find("a").first();
             $dropdownItem.addClass("selected");
+            
+            if (EditorManager.getFocusedEditor()) {
+                EditorManager.getFocusedEditor()._codeMirror.getInputField().blur();
+            }
         }
     }
     
