@@ -113,6 +113,8 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
+    "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -128,9 +130,13 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
-    "FIND_REPLACE_TITLE"                : "\"{0}\" durch \"{1}\" ersetzen &mdash; {3} {2} Treffer",
+    "FIND_REPLACE_TITLE_PART1"          : "\"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" durch \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" ersetzen &mdash; {2} {0} {1}",
 
-    "FIND_IN_FILES_TITLE"               : "\"{4}\" gefunden {5} &mdash; {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
     "FIND_IN_FILES_FILE"                : "Datei",
@@ -139,8 +145,6 @@ define({
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Weniger</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Mehr</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Datei: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "Zeile: {0}",
 
