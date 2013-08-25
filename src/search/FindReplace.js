@@ -62,6 +62,9 @@ define(function (require, exports, module) {
 
     /** @type {$.Element} jQuery elements used in the replaceAll panel */
     var $replaceAllContainer,
+        $replaceAllWhat,
+        $replaceAllWith,
+        $replaceAllSummary,
         $replaceAllTable;
 
     var modalBar,
@@ -240,7 +243,15 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                    $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+
+                    if (resultCount === 0) {
+                        $("#find-counter").text(Strings.FIND_NO_RESULTS);
+                    } else if (resultCount === 1) {
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
+                    } else {
+                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                    }
+
                 } else {
                     $("#find-counter").text("");
                 }
@@ -355,16 +366,18 @@ define(function (require, exports, module) {
         }
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
-        var summary = StringUtils.format(
-            Strings.FIND_REPLACE_TITLE,
-            StringUtils.htmlEscape(replaceWhat.toString()),
-            StringUtils.htmlEscape(replaceWith.toString()),
-            results.length,
-            results.length >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
-        );
+        var resultsLength = results.length,
+            summary = StringUtils.format(
+                Strings.FIND_REPLACE_TITLE_PART3,
+                resultsLength,
+                resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                resultsLength >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+            );
 
         // Insert the search summary
-        $replaceAllContainer.find(".title").html(summary);
+        $replaceAllWhat.text(replaceWhat.toString());
+        $replaceAllWith.text(replaceWith.toString());
+        $replaceAllSummary.html(summary);
 
         // All checkboxes are checked by default
         $replaceAllContainer.find(".check-all").prop("checked", true);
@@ -530,6 +543,9 @@ define(function (require, exports, module) {
         var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);
         replaceAllPanel      = PanelManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
         $replaceAllContainer = replaceAllPanel.$panel;
+        $replaceAllWhat      = $replaceAllContainer.find(".replace-what");
+        $replaceAllWith      = $replaceAllContainer.find(".replace-with");
+        $replaceAllSummary   = $replaceAllContainer.find(".replace-summary");
         $replaceAllTable     = $replaceAllContainer.children(".table-container");
 
         // Attach events to the panel

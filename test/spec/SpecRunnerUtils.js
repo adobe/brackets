@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
+        EDITOR_USE_TABS         = false,
+        EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
@@ -262,6 +264,8 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
         EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
@@ -1120,8 +1124,10 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
-    
+    exports.TEST_PREFERENCES_KEY            = TEST_PREFERENCES_KEY;
+    exports.EDITOR_USE_TABS                 = EDITOR_USE_TABS;
+    exports.EDITOR_SPACE_UNITS              = EDITOR_SPACE_UNITS;
+
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;

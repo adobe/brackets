@@ -78,6 +78,7 @@ define(function LiveDevelopment(require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
+        FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NativeFileError      = require("file/NativeFileError"),
@@ -85,7 +86,8 @@ define(function LiveDevelopment(require, exports, module) {
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils");
+        StringUtils          = require("utils/StringUtils"),
+        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -141,7 +143,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
-    var _serverProvider;      // current LiveDevServerProvider
+    var _server;              // current live dev server
     var _closeReason;         // reason why live preview was closed
     var _openDeferred;        // promise returned for each call to open()
     
@@ -150,96 +152,11 @@ define(function LiveDevelopment(require, exports, module) {
                 (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
     }
 
-    /** Convert a URL to a local full file path */
-    function _urlToPath(url) {
-        var path,
-            baseUrl = "";
-
-        if (_serverProvider) {
-            baseUrl = _serverProvider.getBaseUrl();
-        }
-
-        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translate to local file path.
-            // Need to use encoded project path because it's decoded below.
-            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
-
-        } else if (url.indexOf("file://") === 0) {
-            // Convert a file URL to local file path
-            path = url.slice(7);
-            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
-                path = path.slice(1);
-            }
-        }
-        return decodeURI(path);
-    }
-
-    /** Convert a local full file path to a URL */
-    function _pathToUrl(path) {
-        var url,
-            baseUrl = "";
-
-        if (_serverProvider) {
-            baseUrl = _serverProvider.getBaseUrl();
-        }
-
-        // See if base url has been specified and path is within project
-        if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
-            // Map to server url. Base url is already encoded, so don't encode again.
-            var encodedDocPath = encodeURI(path);
-            var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
-            url = encodedDocPath.replace(encodedProjectPath, baseUrl);
-
-        } else {
-            var prefix = "file://";
-    
-            if (brackets.platform === "win") {
-                // The path on Windows starts with a drive letter (e.g. "C:").
-                // In order to make it a valid file: URL we need to add an
-                // additional slash to the prefix.
-                prefix += "/";
-            }
-    
-            url = encodeURI(prefix + path);
-        }
-
-        return url;
-    }
-
-    /** Augments the given Brackets document with information that's useful for live development. */
-    function _setDocInfo(doc) {
-
-        var parentUrl,
-            rootUrl,
-            matches;
-
-        // FUTURE: some of these things should just be moved into core Document; others should
-        // be in a LiveDevelopment-specific object attached to the doc.
-        matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-        if (!matches) {
-            return;
-        }
-
-        doc.extension = matches[3];
-
-        parentUrl = _pathToUrl(matches[1]);
-        doc.url = parentUrl + encodeURI(matches[2]);
-
-        // the root represents the document that should be displayed in the browser
-        // for live development (the file for HTML files)
-        // TODO: Issue #2033 Improve how default page is determined
-        doc.root = { url: doc.url };
-    }
-
     /** Get the current document from the document manager
      * _adds extension, url and root to the document
      */
     function _getCurrentDocument() {
-        var doc = DocumentManager.getCurrentDocument();
-        if (doc) {
-            _setDocInfo(doc);
-        }
-        return doc;
+        return DocumentManager.getCurrentDocument();
     }
 
     /** Determine which document class should be used for a given document
@@ -253,7 +170,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (_isHtmlFileExt(doc.extension)) {
+        if (_isHtmlFileExt(doc.file.fullPath)) {
             return HTMLDocument;
         }
 
@@ -294,27 +211,21 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _handleRelatedDocumentDeleted(event, liveDoc) {
         var index = _relatedDocuments.indexOf(liveDoc);
+        
         if (index !== -1) {
-            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
             _relatedDocuments.splice(index, 1);
+            _server.remove(liveDoc);
         }
     }
 
-    /** Close a live document */
-    function _closeDocument() {
+    /**
+     * @private
+     * Close all live documents
+     */
+    function _closeDocuments() {
         if (_liveDocument) {
             _liveDocument.close();
             _liveDocument = undefined;
-        }
-        
-        if (_serverProvider) {
-            // Stop listening for requests
-            if (_serverProvider.setRequestFilterPaths) {
-                _serverProvider.setRequestFilterPaths([]);
-            }
-
-            // Remove any "request" listeners that were added previously
-            $(_serverProvider).off(".livedev");
         }
         
         if (_relatedDocuments) {
@@ -322,49 +233,27 @@ define(function LiveDevelopment(require, exports, module) {
                 liveDoc.close();
                 $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
+            
             _relatedDocuments = undefined;
         }
+        
+        // Clear all documents from request filtering
+        _server.clear();
     }
 
-    /** Create a live version of a Brackets document */
+    /**
+     * @private
+     * Create a live version of a Brackets document
+     * @param {Document} doc
+     * @param {Editor} editor
+     * @return {?(HTMLDocument|CSSDocument)}
+     */
     function _createDocument(doc, editor) {
         var DocClass = _classForDocument(doc);
         if (DocClass) {
             return new DocClass(doc, editor);
         } else {
             return null;
-        }
-    }
-
-    /**
-     * @private
-     * Open a live document
-     * @param {Document} source document to open
-     */
-    function _openDocument(doc, editor) {
-        _closeDocument();
-        _liveDocument = _createDocument(doc, editor);
-        
-        // Enable instrumentation
-        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
-            var enableInstrumentation = false;
-            
-            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
-                enableInstrumentation = true;
-                
-                _serverProvider.setRequestFilterPaths(
-                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))]
-                );
-                
-                // Send custom HTTP response for the current live document
-                $(_serverProvider).on("request.livedev", function (event, request) {
-                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
-                    var response = _liveDocument && _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
-                    request.send(response);
-                });
-            }
-                
-            _liveDocument.setInstrumentationEnabled(enableInstrumentation);
         }
     }
     
@@ -374,29 +263,38 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _getRelatedDocuments() {
         function createLiveStylesheet(url) {
-            var stylesheetDeferred = $.Deferred();
-                
-            DocumentManager.getDocumentForPath(_urlToPath(url))
-                .fail(function () {
-                    // A failure to open a related file is benign
-                    stylesheetDeferred.resolve();
-                })
-                .done(function (doc) {
-                    // CSSAgent includes containing HTMLDocument in list returned
-                    // from getStyleSheetURLS() (which could be useful for collecting
-                    // embedded style sheets) but we need to filter doc out here.
-                    if ((_classForDocument(doc) === CSSDocument) &&
-                            (!_liveDocument || (doc !== _liveDocument.doc))) {
-                        _setDocInfo(doc);
-                        var liveDoc = _createDocument(doc);
-                        if (liveDoc) {
-                            _relatedDocuments.push(liveDoc);
-                            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            var stylesheetDeferred  = $.Deferred(),
+                promise             = stylesheetDeferred.promise(),
+                path                = _server.urlToPath(url);
+
+            // path may be null if loading an external stylesheet
+            if (path) {
+                DocumentManager.getDocumentForPath(path)
+                    .fail(function () {
+                        // A failure to open a related file is benign
+                        stylesheetDeferred.resolve();
+                    })
+                    .done(function (doc) {
+                        // CSSAgent includes containing HTMLDocument in list returned
+                        // from getStyleSheetURLS() (which could be useful for collecting
+                        // embedded style sheets) but we need to filter doc out here.
+                        if ((_classForDocument(doc) === CSSDocument) &&
+                                (!_liveDocument || (doc !== _liveDocument.doc))) {
+                            var liveDoc = _createDocument(doc);
+                            if (liveDoc) {
+                                _relatedDocuments.push(liveDoc);
+                                _server.add(liveDoc);
+                                
+                                $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                            }
                         }
-                    }
-                    stylesheetDeferred.resolve();
-                });
-            return stylesheetDeferred.promise();
+                        stylesheetDeferred.resolve();
+                    });
+            } else {
+                stylesheetDeferred.resolve();
+            }
+
+            return promise;
         }
 
         // Gather related CSS documents.
@@ -619,12 +517,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         // Any local file is OK
-        if (url.match(/^file:\/\//i) || !_serverProvider) {
+        if (url.match(/^file:\/\//i) || !_server) {
             return;
         }
 
         // Need base url to build reg exp
-        baseUrl = _serverProvider.getBaseUrl();
+        baseUrl = _server.getBaseUrl();
         if (!baseUrl) {
             return;
         }
@@ -636,7 +534,7 @@ define(function LiveDevelopment(require, exports, module) {
             Inspector.disconnect();
             _closeReason = "navigated_away";
             _setStatus(STATUS_INACTIVE);
-            _serverProvider = null;
+            _server = null;
         }
     }
 
@@ -646,7 +544,13 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector.Page).off("frameNavigated.livedev");
 
         unloadAgents();
-        _closeDocument();
+        
+        // Stop listening for requests when disconnected
+        _server.stop();
+        
+        // Close live documents 
+        _closeDocuments();
+        
         _setStatus(STATUS_INACTIVE);
     }
 
@@ -685,7 +589,6 @@ define(function LiveDevelopment(require, exports, module) {
          */
         function cleanup() {
             _setStatus(STATUS_INACTIVE);
-            _serverProvider = null;
             deferred.resolve();
         }
         
@@ -767,7 +670,7 @@ define(function LiveDevelopment(require, exports, module) {
             if (doc) {
                 // Navigate from interstitial to the document
                 // Fires a frameNavigated event
-                Inspector.Page.navigate(doc.root.url);
+                Inspector.Page.navigate(doc.url);
             } else {
                 // Unlikely that we would get to this state where
                 // a connection is in process but there is no current
@@ -919,7 +822,11 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_CONNECTING);
         
         // create live document
-        _openDocument(_getCurrentDocument(), EditorManager.getCurrentFullEditor());
+        _liveDocument = _createDocument(_getCurrentDocument(), EditorManager.getCurrentFullEditor());
+
+        // start listening for requests
+        _server.add(_liveDocument);
+        _server.start();
 
         // Install a one-time event handler when connected to the launcher page
         $(Inspector).one("connect", _onConnect);
@@ -931,9 +838,9 @@ define(function LiveDevelopment(require, exports, module) {
     function _prepareServer(doc) {
         var deferred = new $.Deferred();
         
-        _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+        _server = LiveDevServerManager.getServer(doc.file.fullPath);
         
-        if (!exports.config.experimental && !_serverProvider) {
+        if (!exports.config.experimental && !_server) {
             if (FileUtils.isServerHtmlFileExt(doc.extension)) {
                 PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
                     .done(function (id) {
@@ -952,7 +859,7 @@ define(function LiveDevelopment(require, exports, module) {
                 deferred.resolve();
             }
         } else {
-            var readyPromise = _serverProvider.readyToServe();
+            var readyPromise = _server.readyToServe();
             if (!readyPromise) {
                 _showLiveDevServerNotReadyError();
                 deferred.reject();
@@ -969,20 +876,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open the Connection and go live */
     function open() {
+        _closeReason = null;
         _openDeferred = new $.Deferred();
 
-        var doc = _getCurrentDocument();
-
-        _closeReason = null;
+        var doc = _getCurrentDocument(),
+            prepareServerPromise = _prepareServer(doc);
         
-        if (!doc || !doc.root) {
-            // invalid document
+        // wait for server (StaticServer, Base URL or file:)
+        prepareServerPromise.done(_doLaunchAfterServerReady);
+        prepareServerPromise.fail(function () {
             _showWrongDocError();
             _openDeferred.reject();
-        } else {
-            // wait for server (StaticServer, Base URL or file:)
-            _prepareServer(doc).then(_doLaunchAfterServerReady, _openDeferred.reject);
-        }
+        });
 
         return _openDeferred.promise();
     }
@@ -1010,11 +915,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Triggered by a document change from the DocumentManager */
+    /**
+     * @private
+     * DocumentManager currentDocumentChange event handler. 
+     */
     function _onDocumentChange() {
-        var doc = _getCurrentDocument(),
-            status = STATUS_ACTIVE,
-            promise;
+        var doc = _getCurrentDocument();
         
         if (!doc) {
             return;
@@ -1022,26 +928,17 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (Inspector.connected()) {
             hideHighlight();
-            if (agents.network && agents.network.wasURLRequested(doc.url)) {
-                _openDocument(doc, EditorManager.getCurrentFullEditor());
-                
-                promise = _getRelatedDocuments();
-            } else {
-                if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
-                    promise = close().done(open);
-                } else {
-                    promise = $.Deferred().resolve();
-                }
-            }
             
-            promise
-                .fail(close)
-                .done(function () {
-                    if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                        status = STATUS_OUT_OF_SYNC;
-                    }
-                    _setStatus(status);
-                });
+            // close the current session and begin a new session if the current
+            // document changes to an HTML document that was not loaded yet
+            var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
+                isHTML = exports.config.experimental || _isHtmlFileExt(doc.extension);
+            
+            if (!wasRequested && isHTML) {
+                // TODO (jasonsanjose): optimize this by reusing the same connection
+                // no need to fully teardown.
+                close().done(open);
+            }
         }
     }
 
@@ -1066,53 +963,21 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /**
-     * @constructor
-     *
-     * LiveDevServerProvider for user specified server as defined with Live Preview Base Url
-     * Project setting. In a clean installation of Brackets, this is the highest priority
-     * server provider, if defined.
-     */
-    function UserServerProvider() {}
-
-    /**
-     * Determines whether we can serve local file.
-     * @param {String} localPath A local path to file being served.
-     * @return {Boolean} true for yes, otherwise false.
-     */
-    UserServerProvider.prototype.canServe = function (localPath) {
-        var baseUrl = ProjectManager.getBaseUrl();
-        if (!baseUrl) {
-            return false;
-        }
-
-        if (!ProjectManager.isWithinProject(localPath)) {
-            return false;
-        }
-
-        return _isHtmlFileExt(localPath);
-    };
-
-    /**
-     * Returns a base url for current project.
-     * @return {String}  Base url for current project.
-     */
-    UserServerProvider.prototype.getBaseUrl = function () {
-        return ProjectManager.getBaseUrl();
-    };
-
-    /**
-     * # LiveDevServerProvider.readyToServe()
-     *
-     * Used to check if the server has finished launching after opening
-     * the project. User is required to make sure their external sever
-     * is ready, so indicate that we're always ready.
-     *
-     * @return {jQuery.Promise} Promise that is already resolved
-     */
-    UserServerProvider.prototype.readyToServe = function () {
-        return $.Deferred().resolve().promise();
-    };
+    function getCurrentProjectServerConfig() {
+        return {
+            baseUrl: ProjectManager.getBaseUrl(),
+            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
+            root: ProjectManager.getProjectRoot().fullPath
+        };
+    }
+    
+    function _createUserServer() {
+        return new UserServer(getCurrentProjectServerConfig());
+    }
+    
+    function _createFileServer() {
+        return new FileServer(getCurrentProjectServerConfig());
+    }
 
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
@@ -1126,22 +991,20 @@ define(function LiveDevelopment(require, exports, module) {
         $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
 
         // Register user defined server provider
-        var userServerProvider = new UserServerProvider();
-        LiveDevServerManager.registerProvider(userServerProvider, 99);
+        LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
+        LiveDevServerManager.registerServer({ create: _createFileServer }, 0);
 
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
     }
 
-    function _setServerProvider(serverProvider) {
-        _serverProvider = serverProvider;
+    function _getServer() {
+        return _server;
     }
 
     // For unit testing
-    exports._pathToUrl          = _pathToUrl;
-    exports._urlToPath          = _urlToPath;
-    exports._setServerProvider  = _setServerProvider;
     exports.launcherUrl         = launcherUrl;
+    exports._getServer          = _getServer;
 
     // Export public functions
     exports.agents              = agents;
@@ -1155,4 +1018,5 @@ define(function LiveDevelopment(require, exports, module) {
     exports.hideHighlight       = hideHighlight;
     exports.redrawHighlight     = redrawHighlight;
     exports.init                = init;
+    exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
 });

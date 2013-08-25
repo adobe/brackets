@@ -427,6 +427,15 @@
     margin-bottom: 0;
 }
 
+.modal-backdrop {
+    opacity: 0;
+}
+.modal-backdrop:last-child {
+    /* Only show the last modal backdrop */
+    opacity: 0.5;
+}
+
+
 .dialog-title {
     color: @tc-light-weight-text;
     margin-bottom: 0;
@@ -718,6 +727,10 @@
         }
         .about-contributors {
             min-height: 100px;
+            
+            a {
+                text-decoration: none;
+            }
         }
         .about-contributors img {
             opacity: 0;
