@@ -317,7 +317,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
     }
     
-    function _removeFromArrays(file) {
+    function _internalRemoveFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -333,19 +333,18 @@ define(function (require, exports, module) {
     }
     
     function removeFromWorkingSet(file, suppressRedraw) {
-        if (_removeFromArrays(file)) {
+        if (_internalRemoveFromWorkingSet(file)) {
             $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
         }
     }
     
-    function closeDocuments(fileList) {
-        
+    function removeFilesFromWorkingSet(fileList) {        
         if (!fileList) {
             return;
         }
         
         fileList.forEach(function (file) {
-            _removeFromArrays(file);
+            _internalRemoveFromWorkingSet(file);
         });
         
         // Dispatch event
@@ -952,7 +951,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
-    exports.closeDocuments              = closeDocuments;
+    exports.removeFilesFromWorkingSet   = removeFilesFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;

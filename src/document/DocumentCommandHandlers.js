@@ -992,7 +992,7 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.closeDocuments(list);
+                DocumentManager.removeFilesFromWorkingSet(list);
             }
         });
         
