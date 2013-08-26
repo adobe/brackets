@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument(),
             windowTitle = brackets.config.app_title;
 
-        if (brackets.inBrowser) {
+        if (!brackets.nativeMenus) {
             if (currentDoc) {
                 _$title.text(_currentTitlePath);
                 _$title.attr("title", currentDoc.file.fullPath);

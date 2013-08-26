@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var AppInit                 = require("utils/AppInit"),
         Editor                  = require("editor/Editor").Editor,
+        EditorManager           = require("editor/EditorManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Strings                 = require("strings");
@@ -48,7 +49,7 @@ define(function (require, exports, module) {
      * Activates/Deactivates showing active line option
      */
     function _toggleActiveLine() {
-        Editor.setShowActiveLine(!Editor.getShowActiveLine());
+        Editor.setShowActiveLine(!Editor.getShowActiveLine(), EditorManager.getCurrentFullEditor());
         CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
     }
     
