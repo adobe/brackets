@@ -2170,15 +2170,11 @@ define(function (require, exports, module) {
                 setupEditor(WellFormedDoc);
                 var currentText = WellFormedDoc;
                 runs(function () {
-                    doEditTest(currentText,
-                        function (editor, previousDOM) {
-                            editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
-                            currentText = editor.document.getText();
-                        },
-                        function (result, previousDOM, incremental) {
-                        },
-                        false
-                        );
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                    }, false);
                 });
                 runs(function () {
                     doEditTest(currentText,
