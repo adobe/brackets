@@ -1271,6 +1271,7 @@ define(function (require, exports, module) {
         }
         
         var edits = domdiff(result.oldSubtree, result.newSubtree);
+        console.log("Edits", JSON.stringify(edits, null, 2));
         
         // We're done with the nodeMap that was added to the subtree by the updater.
         if (result.newSubtree !== result.newDOM) {
