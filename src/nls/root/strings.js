@@ -109,6 +109,9 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
+    "DEFAULT_EDITOR_TITLE"              : "Default Editor",
+    "DEFAULT_EDITOR_MESSAGE"            : "Make {APP_NAME} your default editor for <span class='dialog-filename'>JS</span>, <span class='dialog-filename'>HTML</span>, and <span class='dialog-filename'>CSS</span> files?<br /><br />We'll only ask this once.",
+    
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
