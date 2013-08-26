@@ -109,7 +109,12 @@ define(function (require, exports, module) {
             }
             var siblings = this.siblings;
             var index = siblings.indexOf(this);
-            siblings.splice(index, 1);
+            if (index > -1) {
+                siblings.splice(index, 1);
+                this.parent = null;
+            } else {
+                console.error("Unexpected attempt to remove (not in siblings)", this);
+            }
         },
         
         /**
@@ -2166,9 +2171,10 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should support reparenting a node", function () {
+            it("should support reparenting a node with new parent under the old parent", function () {
                 setupEditor(WellFormedDoc);
                 var currentText = WellFormedDoc;
+                var movingParagraph, newDiv;
                 runs(function () {
                     doEditTest(currentText, function (editor, previousDOM) {
                         editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
@@ -2177,27 +2183,30 @@ define(function (require, exports, module) {
                     }, false);
                 });
                 runs(function () {
-                    doEditTest(currentText,
-                        function (editor, previousDOM) {
-                            editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
-                            currentText = editor.document.getText();
-                        },
-                        function (result, previousDOM, incremental) {
-                        },
-                        false
-                        );
-                });
-                runs(function () {
-                    doEditTest(currentText,
-                        function (editor, previousDOM) {
-                            editor.document.replaceRange("</div>", { line: 24, ch: 0 });
-                            currentText = editor.document.getText();
-                            console.log("CT", currentText);
-                        },
-                        function (result, previousDOM, incremental) {
-                        },
-                        false
-                        );
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        movingParagraph = previousDOM.children[3].children[7];
+                        newDiv = previousDOM.children[3].children[5];
+                        editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
+                        editor.document.replaceRange("</div>", { line: 24, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                        console.log("edits", JSON.stringify(result.edits, null, 2));
+                        expect(movingParagraph.tag).toBe("p");
+                        expect(newDiv.tag).toBe("div");
+                        expect(result.edits.length).toBe(5);
+                        expect(result.edits[0].type).toBe("rememberNodes");
+                        expect(result.edits[0].tagIDs).toEqual([movingParagraph.tagID]);
+                        
+                        // The text replace should not refer to the moving node, because it is
+                        // going to be removed from the DOM.
+                        expect(result.edits[1].type).toEqual("textReplace");
+                        expect(result.edits[1].afterID).not.toEqual(movingParagraph.tagID);
+                        expect(result.edits[1].beforeID).not.toEqual(movingParagraph.tagID);
+                        
+                        expect(result.edits[3].type).toBe("elementMove");
+                        expect(result.edits[3].tagID).toBe(movingParagraph.tagID);
+                        expect(result.edits[3].parentID).toBe(newDiv.tagID);
+                    }, false);
                 });
                     
             });

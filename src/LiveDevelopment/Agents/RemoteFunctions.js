@@ -635,7 +635,9 @@ function RemoteFunctions(experimental) {
         edits.forEach(function (edit) {
             if (edit.type === "rememberNodes") {
                 edit.tagIDs.forEach(function (tagID) {
-                    self.rememberedNodes[tagID] = self._queryBracketsID(tagID);
+                    var node = self._queryBracketsID(tagID);
+                    self.rememberedNodes[tagID] = node;
+                    node.remove();
                 });
                 return;
             }

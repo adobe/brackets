@@ -1067,9 +1067,11 @@ define(function (require, exports, module) {
                 
                 oldChild = oldChildren[oldIndex];
                 
+                var oldChildInNewTree = newNode.nodeMap[oldChild.tagID];
+                
                 // Check to see if the oldChild has been moved to another parent.
                 // If it has, we deal with it on the other side (see above)
-                if (getParentID(oldChild) !== currentParent.tagID) {
+                if (oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree)) {
                     oldIndex++;
                     continue;
                 }
