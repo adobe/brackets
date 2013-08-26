@@ -49,7 +49,7 @@ define(function (require, exports, module) {
      * Activates/Deactivates showing active line option
      */
     function _toggleActiveLine() {
-        Editor.setShowActiveLine(!Editor.getShowActiveLine(), EditorManager.getCurrentFullEditor());
+        Editor.setShowActiveLine(!Editor.getShowActiveLine());
         CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
     }
     
