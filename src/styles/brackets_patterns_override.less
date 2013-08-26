@@ -122,7 +122,8 @@
     .box-flex(1);
     text-align: center;
 
-    .buttons {
+    .buttons,
+    .bottom-buttons {
         text-align: center;
         margin: 0;
 
@@ -144,11 +145,9 @@
         }
     }     
     
-    @toolbar-bottom-gap-px: 5px;
-    
     .bottom-buttons {
         position: absolute;
-        bottom: @toolbar-bottom-gap-px;
+        bottom: 5px;
     }
 }
 
