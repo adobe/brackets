@@ -1556,8 +1556,6 @@ define(function (require, exports, module) {
                 forceFinishRename();
             }
         });
-        
-        $("#sidebar").on("panelResizeStart", forceFinishRename);
     });
 
     // Init PreferenceStorage
@@ -1576,7 +1574,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
-    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP, Commands.APP_BEFORE_MENUPOPUP, forceFinishRename);
     
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
