@@ -103,7 +103,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar Eliminación",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Está seguro que desea eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
@@ -135,7 +135,7 @@ define({
     
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} en {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_FILE"                : "archivo",
