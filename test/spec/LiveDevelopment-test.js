@@ -475,6 +475,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow           = w;
                     Dialogs              = testWindow.brackets.test.Dialogs;
+                    Inspector            = testWindow.brackets.test.Inspector;
                     LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
                     DOMAgent             = testWindow.brackets.test.DOMAgent;
                     DocumentManager      = testWindow.brackets.test.DocumentManager;
@@ -491,6 +492,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow           = null;
                     Dialogs              = null;
+                    Inspector            = null;
                     LiveDevelopment      = null;
                     DOMAgent             = null;
                     DocumentManager      = null;
@@ -600,13 +602,15 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should reapply in-memory css changes after saving changes in html document", function () {
+            function inMemoryReloadTest(doReload) {
                 var localCssText,
                     browserCssText,
                     origHtmlText,
                     updatedHtmlText,
                     browserHtmlText,
                     htmlDoc;
+                
+                doReload = doReload || false;
                 
                 runs(function () {
                     enableAgent(LiveDevelopment, "dom");
@@ -660,14 +664,20 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
 
-                    // Save changes to the test file
-                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
-                    waitsForDone(promise, "Saving modified html document");
+                    if (!doReload) {
+                        waitsForDone(Inspector.Page.reload(), "Reload page in browser");
+                    } else {
+                        // Save changes to the test file
+                        var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
+                        waitsForDone(promise, "Saving modified html document");
+                    }
                 });
                 
-                waitsFor(function () {
-                    return loadingStatus && activeStatus;
-                }, "LiveDevelopment re-load and re-activate", 10000);
+                if (!doReload) {
+                    waitsFor(function () {
+                        return loadingStatus && activeStatus;
+                    }, "LiveDevelopment re-load and re-activate", 10000);
+                }
                 
                 // Grab the node that we've modified in Brackets. 
                 var updatedNode, doneSyncing = false;
@@ -697,6 +707,14 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
+            }
+
+            it("should reapply in-memory css changes after a browser refresh", function () {
+                inMemoryReloadTest(true);
+            });
+
+            it("should reapply in-memory css changes after saving changes in html document", function () {
+                inMemoryReloadTest(false);
             });
         });
         
