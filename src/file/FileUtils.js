@@ -389,7 +389,6 @@ define(function (require, exports, module) {
      * @return {string} Returns the file name without the extension
      */
     function _getFilenameWithoutExtension(filename) {
-        var extension = getFilenameExtension(filename);
         return filename.slice(0, filename.lastIndexOf('.'));
     }
     
