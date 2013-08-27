@@ -37,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
+    "FILE"                              : "Soubor",
+    "DIRECTORY"                         : "Složka",
 
     // Řetězce chyb projektu
     "ERROR_LOADING_PROJECT"             : "Chyba při otevírání projektu",
@@ -47,6 +49,7 @@ define({
     // Řetězce chyb otevírání/ukládání souboru
     "ERROR_OPENING_FILE_TITLE"          : "Chyba při otevírání souboru",
     "ERROR_OPENING_FILE"                : "Došlo k chybě při otevírání souboru <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "Došlo k chybě při otevírání následujících souborů:",
     "ERROR_RELOADING_FILE_TITLE"        : "Chyba při načítání změn z disku",
     "ERROR_RELOADING_FILE"              : "Došlo k chybě při načítání souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Chyba při ukládání souboru",
@@ -83,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Chyba při spouštění HTTP serveru pro soubory živého náhledu. Prosím, zkuste to znovu.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='#' class='clickable-link' data-href='{0}'>Troubleshooting Live Development connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhled",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
@@ -168,6 +171,7 @@ define({
 
     // Příkazy menu Soubor
     "FILE_MENU"                           : "Soubor",
+    "CMD_FILE_NEW_UNTITLED"               : "Nový",
     "CMD_FILE_NEW"                        : "Nový soubor",
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
@@ -281,11 +285,11 @@ define({
     "ABOUT"                                : "O aplikaci",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
+    "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a href='#' class='clickable-link' data-href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a  href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
     "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a href='#' class='clickable-link' data-href='http://creativecommons.org/licenses/by/3.0/'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME} ! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -301,10 +305,13 @@ define({
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
+    "UPDATE"                               : "Aktualizovat",
     "REMOVE"                               : "Odstranit",
     "OVERWRITE"                            : "Přepsat",
     "CANT_REMOVE_DEV"                      : "Doplněk v \"dev\" složce musí být smazán manuálně.",
+    "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
+    "UPDATE_EXTENSION_TITLE"               : "Aktualizovat doplněk",
     "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
     "INSTALL_EXTENSION_HINT"               : "URL adresa zip archivu nebo GitHub repozitáře",
     "INSTALLING_FROM"                      : "Instalace doplňku z {0}\u2026",
@@ -346,7 +353,7 @@ define({
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
-    "EXTENSION_KEYWORDS"                   : "Klíčová slova",    
+    "EXTENSION_KEYWORDS"                   : "Klíčová slova",
     "EXTENSION_INSTALLED"                  : "Nainstalováno",
     "EXTENSION_UPDATE_INSTALLED"           : "Aktualizace doplňku byla stažena a bude nainstalována při ukončení aplikace {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Hledat",
@@ -368,6 +375,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Doplněk {{0}} nemohl být odstraněn, protože nebyl nainstalován.",
     "NO_EXTENSIONS"                        : "Žádný doplněk ještě nebyl nainstalován.<br />Klikněte na tlačítko Instalovat z URL pro zahájení instalace.",
     "NO_EXTENSION_MATCHES"                 : "Žádný doplněk neodpovídá hledání.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Buďte opatrní při instalaci doplňků z neznámých zdrojů.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Nainstalované",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
+    "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     /**
      * Jména jednotek

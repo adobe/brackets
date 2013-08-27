@@ -29,15 +29,16 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings"),
-        ColorUtils          = brackets.getModule("utils/ColorUtils");
+        Strings             = brackets.getModule("strings");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -176,8 +177,37 @@ define(function (require, exports, module) {
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
+        function areParensBalanced(str) {
+            var i,
+                nestLevel = 0,
+                content,
+                len;
+
+            // Remove comments & strings
+            content = CSSUtils.reduceStyleSheetForRegExParsing(str);
+            len = content.length;
+            
+            for (i = 0; i < len; i++) {
+                switch (content[i]) {
+                case "(":
+                    nestLevel++;
+                    break;
+                case ")":
+                    nestLevel--;
+                    break;
+                case "\\":
+                    i++;    // next char is escaped, so skip it
+                    break;
+                }
+            }
+
+            // if parens are balanced, nest level will be 0
+            return (nestLevel === 0);
+        }
+        
         function execGradientMatch(line) {
-            var gradientMatch = gradientRegEx.exec(line),
+            // Unbalanced parens cause infinite loop (see issue #4650)
+            var gradientMatch = (areParensBalanced(line) ? gradientRegEx.exec(line) : null),
                 prefix = "",
                 colorValue;
             

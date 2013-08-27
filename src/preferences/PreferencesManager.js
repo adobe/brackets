@@ -78,24 +78,23 @@ define(function (require, exports, module) {
         }
         return extensionPaths;
     }
-    
+
     /**
      * This method returns a standardized ClientID for a given requireJS module object
      * @param {!{id: string, uri: string}} module - A requireJS module object
      * @return {string} The ClientID
      */
     function getClientID(module) {
-        var paths = _getExtensionPaths();
+        var paths = exports._getExtensionPaths();
         var pathExp, pathUrl, clientID;
-        
+
         paths.some(function (path) {
-            pathExp = new RegExp("^" + path);
-            if (module.uri.match(pathExp)) {
+            if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
                 pathUrl = path;
                 return true;
             }
         });
-        
+
         if (pathUrl) {
             clientID = CLIENT_ID_PREFIX + module.uri.replace(pathUrl, "");
         } else {
@@ -221,4 +220,5 @@ define(function (require, exports, module) {
 
     // Unit test use only
     exports._reset                  = _reset;
+    exports._getExtensionPaths      = _getExtensionPaths;
 });

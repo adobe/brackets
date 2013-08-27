@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var acorn                       = require("thirdparty/acorn/acorn");
+    var Acorn                       = require("thirdparty/acorn/acorn");
 
     var LANGUAGE_ID                 = "javascript",
         HTML_LANGUAGE_ID            = "html",
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
             i;
 
         for (i = 0; i < key.length; i++) {
-            result = acorn.isIdentifierChar(key.charCodeAt(i));
+            result = Acorn.isIdentifierChar(key.charCodeAt(i));
             if (!result) {
                 break;
             }

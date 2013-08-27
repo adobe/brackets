@@ -121,6 +121,13 @@ define(function (require, exports, module) {
             });
         }
         
+        function checkActiveLineOption(editor, shouldBe) {
+            runs(function () {
+                expect(editor).toBeTruthy();
+                expect(editor._codeMirror.getOption("styleActiveLine")).toBe(shouldBe);
+            });
+        }
+        
         function checkLineNumbers(editor, shouldShow) {
             runs(function () {
                 var gutterElement, $lineNumbers;
@@ -267,6 +274,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor();
                     checkActiveLine(editor, 0, true);
+                });
+            });
+            
+            it("should have the active line option be FALSE when the editor has a selection", function () {
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    editor.setSelection({line: 0, ch: 0}, {line: 0, ch: 1});
+                    checkActiveLineOption(editor, false);
                 });
             });
             

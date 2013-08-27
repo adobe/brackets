@@ -18,8 +18,8 @@
         "linting.enabled_by_default" : true
     },
     "name": "Brackets",
-    "version": "0.29.0-0",
-    "apiVersion": "0.29.0",
+    "version": "0.30.0-0",
+    "apiVersion": "0.30.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
