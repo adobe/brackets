@@ -2227,14 +2227,6 @@ define(function (require, exports, module) {
                             
                             expect(result.edits.length).toEqual(4);
                             expect(result.edits[0]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldImgID
-                            });
-                            expect(result.edits[1]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldBrID
-                            });
-                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tag: "br",
                                 attributes: {},
@@ -2242,13 +2234,21 @@ define(function (require, exports, module) {
                                 parentID: result.dom.tagID,
                                 lastChild: true
                             });
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "img",
                                 attributes: {},
                                 tagID: newImgElement.tagID,
                                 parentID: result.dom.tagID,
                                 lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
                             });
                             
                             if (incremental) {

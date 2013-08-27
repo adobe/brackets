@@ -880,7 +880,10 @@ define(function (require, exports, module) {
              */
             var addBeforeID = function (beforeID) {
                 newEdits.forEach(function (edit) {
-                    edit.beforeID = beforeID;
+                    // elementDeletes don't need any positioning information
+                    if (edit.type !== "elementDelete") {
+                        edit.beforeID = beforeID;
+                    }
                 });
                 edits.push.apply(edits, newEdits);
                 newEdits = [];
@@ -941,7 +944,7 @@ define(function (require, exports, module) {
                         type: "elementDelete",
                         tagID: oldChild.tagID
                     };
-                    edits.push(newEdit);
+                    newEdits.push(newEdit);
                     
                     // deleted element means we need to move on to compare the next
                     // of the old tree with the one from the current tree that we
@@ -1029,7 +1032,7 @@ define(function (require, exports, module) {
                 // textDelete/textReplace with the parentID and the browser will
                 // clear all of the children
                 if (oldChild.parent.children.length === 1) {
-                    edits.push(newEdit);
+                    newEdits.push(newEdit);
                 } else {
                     if (textAfterID) {
                         newEdit.afterID = textAfterID;
