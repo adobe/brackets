@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     
     describe("RemoteFunctions", function () {
         
-        describe("DOMEditHanlder", function () {
+        describe("DOMEditHandler", function () {
             
             var htmlDocument,
                 editHandler,
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                 editHandler = new RemoteFunctions.DOMEditHandler(htmlDocument);
                 
                 this.addMatchers({
-                    toHaveEdit: function (edit, parentClone) {
+                    toHaveEdit: function (edit, parentClone, ignoreParent) {
                         var msgArray    = [],
                             target      = getTargetElement(edit),
                             child,
@@ -114,8 +114,12 @@ define(function (require, exports, module) {
                             // elementInsert tagID assignment
                             child = queryBracketsID(edit.tagID);
                             
-                            if (!child || child.parentNode !== target || (edit._isImplicit && child.parentNode.parentNode !== target)) {
+                            if (!child) {
                                 msgArray.push("Could not find new child element \"" + edit.tag + "\" of parentID " + edit.parentID);
+                            } else if (!ignoreParent &&
+                                       (child.parentNode !== target ||
+                                        (edit._isImplicit && child.parentNode.parentNode !== target))) {
+                                msgArray.push("New child element \"" + edit.tag + "\" was not under parentID " + edit.parentID);
                             }
                         } else if (edit.type.match(/textReplace|textInsert/)) {
                             // text node content
@@ -172,14 +176,15 @@ define(function (require, exports, module) {
                 editHandler = null;
             });
             
-            function applyEdit(fixtureHTML, edit, expected) {
+            function applyEdit(fixtureHTML, edit, expected, targetElement, ignoreParent) {
                 var parent,
                     parentClone,
-                    targetElement,
-                    fixture = $(fixtureHTML)[0];
+                    fixture = fixtureHTML && $(fixtureHTML)[0];
                 
                 // add content to document body
-                htmlDocument.body.appendChild(fixture);
+                if (fixture) {
+                    htmlDocument.body.appendChild(fixture);
+                }
                 
                 if (edit.type === "elementInsert") {
                     edit.tagID = tagID;
@@ -197,20 +202,24 @@ define(function (require, exports, module) {
                 }
                 
                 // DOM element compare
-                targetElement = getTargetElement(edit);
+                if (!targetElement) {
+                    targetElement = getTargetElement(edit);
+                }
                 
                 if (edit.type === "elementDelete") {
                     targetElement = targetElement.parentNode;
                 }
             
                 editHandler.apply([edit]);
-                expect(htmlDocument).toHaveEdit(edit, parentClone);
+                expect(htmlDocument).toHaveEdit(edit, parentClone, ignoreParent);
                 
                 if (expected) {
                     expect(targetElement.outerHTML).toBe(expected);
                 }
                 
-                fixture.remove();
+                if (fixture) {
+                    fixture.remove();
+                }
             }
             
             describe("Element edits", function () {
@@ -255,6 +264,28 @@ define(function (require, exports, module) {
                         type: "elementInsert",
                         tag:  "span"
                     }, '<div data-brackets-id="60"><em data-brackets-id="61">code</em><span data-brackets-id="1000"></span> the web</div>');
+                });
+                
+                it("should handle an elementInsert for an <html> tag when one already exists by just setting its id", function () {
+                    applyEdit(null, {
+                        type: "elementInsert",
+                        tag: "html",
+                        parentID: null
+                    }, '<html data-brackets-id="1000"><head></head><body></body></html>', htmlDocument.documentElement, true);
+                });
+                it("should handle an elementInsert for a <head> tag when one already exists by just setting its id", function () {
+                    applyEdit(null, {
+                        type: "elementInsert",
+                        tag: "head",
+                        parentID: 999 // this should be ignored
+                    }, '<html><head data-brackets-id="1000"></head><body></body></html>', htmlDocument.documentElement, true);
+                });
+                it("should handle an elementInsert for a <body> tag when one already exists by just setting its id", function () {
+                    applyEdit(null, {
+                        type: "elementInsert",
+                        tag: "body",
+                        parentID: 999 // this should be ignored
+                    }, '<html><head></head><body data-brackets-id="1000"></body></html>', htmlDocument.documentElement, true);
                 });
                 
                 // FIXME lastChild might need afterID instead for implicit open?
@@ -332,9 +363,9 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="100" class="bar"></div>');
                 });
                 
-                it("should support attrDel", function () {
+                it("should support attrDelete", function () {
                     applyEdit(ATTR_SIMPLE, {
-                        type: "attrDel",
+                        type: "attrDelete",
                         tagID: 100,
                         attribute: "class"
                     }, '<div data-brackets-id="100"></div>');

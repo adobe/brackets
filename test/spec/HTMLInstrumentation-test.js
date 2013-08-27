@@ -48,6 +48,20 @@ define(function (require, exports, module) {
         elementCount,
         elementIds = {};
     
+    function createBlankDOM() {
+        // This creates a DOM for a blank document that we can clone when we want to simulate 
+        // starting from an empty document (which, in the browser, includes implied html/head/body
+        // tags). We have to also strip the tagIDs from this DOM since they won't appear in the
+        // browser in this case.
+        var dom = HTMLInstrumentation._buildSimpleDOM("<html><head></head><body></body></html>", true);
+        Object.keys(dom.nodeMap).forEach(function (key) {
+            var node = dom.nodeMap[key];
+            delete node.tagID;
+        });
+        dom.nodeMap = {};
+        return dom;
+    }
+    
     function removeDescendentsFromNodeMap(nodeMap, node) {
         var mappedNode = nodeMap[node.tagID];
         delete nodeMap[node.tagID];
@@ -175,13 +189,23 @@ define(function (require, exports, module) {
                 delete this.attributes["data-brackets-id"];
                 expect(this.attributes).toEqual(other.attributes);
                 
-                if (this.children.length !== other.children.length) {
-                    expect("tagID " + this.tagID + " has " + this.children.length + " children").toEqual(other.children.length);
+                // Skip implied tags in this (fake browser) DOM. (The editor's DOM
+                // should never have implied tags.)
+                var myChildren = [];
+                this.children.forEach(function (child) {
+                    var isImplied = (child.tag === "html" || child.tag === "head" || child.tag === "body") && child.tagID === undefined;
+                    if (!isImplied) {
+                        myChildren.push(child);
+                    }
+                });
+                
+                if (myChildren.length !== other.children.length) {
+                    expect("tagID " + this.tagID + " has " + myChildren.length + " unimplied children").toEqual(other.children.length);
                     return this.returnFailure(other);
                 }
                 var i;
-                for (i = 0; i < this.children.length; i++) {
-                    if (!this.children[i].compare(other.children[i])) {
+                for (i = 0; i < myChildren.length; i++) {
+                    if (!myChildren[i].compare(other.children[i])) {
                         return false;
                     }
                 }
@@ -271,6 +295,13 @@ define(function (require, exports, module) {
     function cloneDOM(root) {
         var nodeMap = {};
         
+        // If there's no DOM to clone, then we must be starting from an empty document,
+        // so start with a document that already has implied <html>/<head>/<body>, since
+        // that's what the browser does.
+        if (!root) {
+            root = createBlankDOM();
+        }
+        
         function doClone(parent, node) {
             var newNode = Object.create(domFeatures);
             newNode.parent = parent;
@@ -301,10 +332,28 @@ define(function (require, exports, module) {
      * be present on the document object. This FakeDocument bridges the gap between a
      * SimpleDOM and real DOM for the purposes of applying edits.
      *
-     * @param {Object} nodeMap A map from tagID to node object that is generally at the root of a SimpleDOM
+     * @param {Object} dom The DOM we're wrapping with this document.
      */
-    var FakeDocument = function (nodeMap) {
-        this.nodeMap = nodeMap;
+    var FakeDocument = function (dom) {
+        var self = this;
+        this.nodeMap = dom.nodeMap;
+        
+        // Walk the DOM looking for html/head/body tags. We can't use the nodeMap for this
+        // because it might be nulled out in the cases where we're simulating the browser
+        // creating implicit html/head/body tags.
+        function walk(node) {
+            if (node.tag === "html") {
+                self.documentElement = node;
+            } else if (node.tag === "head" || node.tag === "body") {
+                self[node.tag] = node;
+            }
+            
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(dom);
     };
     
     // The DOM edit code only performs this kind of query
@@ -926,7 +975,7 @@ define(function (require, exports, module) {
                 // Note that even if we pass a change list, `_updateDOM` will still choose to do a
                 // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
-                var doc = new FakeDocument(clonedDOM.nodeMap);
+                var doc = new FakeDocument(clonedDOM);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
                 clonedDOM.compare(result.dom);
@@ -964,7 +1013,7 @@ define(function (require, exports, module) {
                         expect(result.edits).toEqual(expectedEdit);
                         wasInvalid = false;
                         
-                        var doc = new FakeDocument(clonedDOM.nodeMap);
+                        var doc = new FakeDocument(clonedDOM);
                         var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                         editHandler.apply(result.edits);
                         clonedDOM.compare(result.dom);
@@ -1577,6 +1626,110 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should handle adding an <html> tag into an empty document", function () {
+                setupEditor("");
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    // Nothing to mark since it's currently an empty document.
+                    expect(previousDOM).toBe(null);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html></html");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "html",
+                                    attributes: {},
+                                    tagID: dom.tagID,
+                                    parentID: null
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                    
+                    // Make sure the mark got properly applied
+                    var marks = editor._codeMirror.getAllMarks();
+                    expect(marks.length).toBe(1);
+                    expect(marks[0].tagID).toEqual(result.finalDOM.tagID);
+                });
+            });
+
+            it("should handle adding a <head> tag into a document", function () {
+                setupEditor("<html>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<head></head");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "head",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
+            it("should handle adding a <body> tag into a document", function () {
+                setupEditor("<html><head></head>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body></body");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "body",
+                                    attributes: {},
+                                    tagID: dom.children[1].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
             it("should represent simple new tag insert", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {

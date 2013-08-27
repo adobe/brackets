@@ -633,6 +633,8 @@ function RemoteFunctions(experimental) {
         this.rememberedNodes = {};
         
         edits.forEach(function (edit) {
+            var editIsSpecialTag = edit.type === "elementInsert" && (edit.tag === "html" || edit.tag === "head" || edit.tag === "body");
+            
             if (edit.type === "rememberNodes") {
                 edit.tagIDs.forEach(function (tagID) {
                     var node = self._queryBracketsID(tagID);
@@ -645,7 +647,7 @@ function RemoteFunctions(experimental) {
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
             
-            if (!targetElement) {
+            if (!targetElement && !editIsSpecialTag) {
                 console.error("data-brackets-id=" + targetID + " not found");
                 return;
             }
@@ -662,14 +664,28 @@ function RemoteFunctions(experimental) {
                 targetElement.remove();
                 break;
             case "elementInsert":
-                childElement = self.htmlDocument.createElement(edit.tag);
+                childElement = null;
+                if (editIsSpecialTag) {
+                    // If we already have one of these elements (which we should), then
+                    // just copy the attributes and set the ID.
+                    childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
+                    if (!childElement) {
+                        // Treat this as a normal insertion.
+                        editIsSpecialTag = false;
+                    }
+                }
+                if (!editIsSpecialTag) {
+                    childElement = self.htmlDocument.createElement(edit.tag);
+                }
                 
                 Object.keys(edit.attributes).forEach(function (attr) {
                     childElement.setAttribute(attr, edit.attributes[attr]);
                 });
-                
                 childElement.setAttribute("data-brackets-id", edit.tagID);
-                self._insertChildNode(targetElement, childElement, edit);
+                
+                if (!editIsSpecialTag) {
+                    self._insertChildNode(targetElement, childElement, edit);
+                }
                 break;
             case "elementMove":
                 childElement = self._queryBracketsID(edit.tagID);
