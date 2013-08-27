@@ -455,7 +455,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     
-    // Linting/errors/warnings
+    // CodeInspection: errors/warnings
     "CMD_TOGGLE_LINTING"                        : "Lint Files on Save",
     "CMD_GOTO_FIRST_ERROR"                      : "Go to First Error/Warning",
     "ERRORS_PANEL_TITLE"                        : "{0} Errors",

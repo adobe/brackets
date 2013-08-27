@@ -97,7 +97,7 @@ define(function (require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
-        Linting                 = require("language/Linting");
+        CodeInspection          = require("language/CodeInspection");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
-            Linting                 : Linting,
+            CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),

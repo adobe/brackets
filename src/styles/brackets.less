@@ -1005,35 +1005,35 @@ a, img {
 }
 
 
-/* Linting panel & status bar indicator */
+/* Problems panel & CodeInspection status bar indicator */
 
-#status-indicators #lint-status {
+#status-indicators #status-inspection {
     border: none;
     cursor: default;
     width: 13px;
 }
 
-.lint-disabled {
+.inspection-disabled {
     background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
 }
 
-.lint-errors {
+.inspection-errors {
     background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
 }
 
-.lint-errors:hover {
+.inspection-errors:hover {
     background-color: rgba(0, 0, 0, 0.03);
 }
 
-.lint-errors:active {
+.inspection-errors:active {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-.lint-valid {
+.inspection-valid {
     background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
 }
 
-#errors-panel {
+#problems-panel {
     .user-select(text);  // allow selecting error messages for easy web searching
     .line {
         text-align: right;  // make line number line up with editor line numbers

@@ -35,12 +35,12 @@ define(function (require, exports, module) {
             testWindow,
             $,
             brackets,
-            Linting,
+            CodeInspection,
             EditorManager;
         
         var toggleJSLintResults = function (visible) {
-            $("#lint-status").triggerHandler("click");
-            expect($("#errors-panel").is(":visible")).toBe(visible);
+            $("#status-inspection").triggerHandler("click");
+            expect($("#problems-panel").is(":visible")).toBe(visible);
         };
 
         beforeEach(function () {
@@ -51,8 +51,8 @@ define(function (require, exports, module) {
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
                     EditorManager = testWindow.brackets.test.EditorManager;
-                    Linting = testWindow.brackets.test.Linting;
-                    Linting.setEnabled(true);
+                    CodeInspection = testWindow.brackets.test.CodeInspection;
+                    CodeInspection.setEnabled(true);
                 });
             });
             

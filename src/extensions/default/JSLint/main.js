@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var Linting            = brackets.getModule("language/Linting"),
+    var CodeInspection     = brackets.getModule("language/CodeInspection"),
         Strings            = brackets.getModule("strings");
     
     
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
                     // JSLint returns 1-based line/col numbers
                     pos: { line: jslintError.line - 1, ch: jslintError.character - 1 },
                     message: jslintError.reason,
-                    type: Linting.Type.WARNING
+                    type: CodeInspection.Type.WARNING
                 };
             });
             
@@ -76,7 +76,7 @@ define(function (require, exports, module) {
             // If array terminated in a null it means there was a stop notice
             if (errors.length !== JSLINT.errors.length) {
                 result.aborted = true;
-                errors[errors.length - 1].type = Linting.Type.META;
+                errors[errors.length - 1].type = CodeInspection.Type.META;
             }
             
             return result;
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
     
     
     // Register for JS files
-    Linting.registerLinter("javascript", {
+    CodeInspection.register("javascript", {
         name: Strings.JSLINT_NAME,
         scanFile: lintOneFile
     });

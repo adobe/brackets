@@ -22,19 +22,19 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
 /*global define, $, Mustache, brackets */
 
 /**
- * Provides a UI and status indicator for linting errors/warnings. Extensions can register providers on a
- * per-language basis.
+ * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
+ * the resulting errors/warnings.
  *
- * Currently, linters are only invoked on the current file and only when it is opened, switched to, or saved.
- * But in the future, linters may be invoked as part of a global scan, at intervals while typing, etc.
- * Currently, linting results are only displayed in a bottom panel list and in a status bar icon. But in the
- * future, results may also be displayed inline in the editor (as gutter markers, squiggly underlines, etc.).
- * In the future, support may also be added for error/warning providers that cannot process a single file at
- * a time (e.g. a full-project compiler).
+ * Currently, inspection providers are only invoked on the current file and only when it is opened, switched to,
+ * or saved. But in the future, inspectors may be invoked as part of a global scan, at intervals while typing, etc.
+ * Currently, results are only displayed in a bottom panel list and in a status bar icon. But in the future,
+ * results may also be displayed inline in the editor (as gutter markers, squiggly underlines, etc.).
+ * In the future, support may also be added for error/warning providers that cannot process a single file at a time
+ * (e.g. a full-project compiler).
  */
 define(function (require, exports, module) {
     "use strict";
@@ -53,23 +53,23 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
-        PanelTemplate           = require("text!htmlContent/linting-panel.html"),
-        ResultsTemplate         = require("text!htmlContent/linting-results-table.html");
+        PanelTemplate           = require("text!htmlContent/problems-panel.html"),
+        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
-    var INDICATOR_ID = "lint-status",
+    var INDICATOR_ID = "status-inspection",
         defaultPrefs = {
             enabled: brackets.config["linting.enabled_by_default"],
             collapsed: false
         };
     
-    /** Values for linting error's 'type' property */
+    /** Values for problem's 'type' property */
     var Type = {
         /** Unambiguous error, such as a syntax error */
-        ERROR: "lint_type_error",
+        ERROR: "problem_type_error",
         /** Maintainability issue, probable error / bad smell, etc. */
-        WARNING: "lint_type_warning",
-        /** Linter unable to continue, code too complex for static analysis, etc. Not counted in error/warning tally. */
-        META: "lint_type_meta"
+        WARNING: "problem_type_warning",
+        /** Inspector unable to continue, code too complex for static analysis, etc. Not counted in error/warning tally. */
+        META: "problem_type_meta"
     };
     
     
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
      * @private
      * @type {$.Element}
      */
-    var $lintResults;
+    var $problemsPanel;
     
     /**
      * @private
@@ -139,21 +139,21 @@ define(function (require, exports, module) {
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
      */
-    function registerLinter(languageId, provider) {
+    function register(languageId, provider) {
         if (_providers[languageId]) {
-            console.warn("Overwriting existing linting provider for language " + languageId);
+            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
         }
         _providers[languageId] = provider;
     }
     
     /**
-     * Run linter applicable to current document. Updates status bar indicator and refreshes error list in
+     * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
      */
     function run() {
         if (!_enabled) {
-            Resizer.hide($lintResults);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", Strings.LINT_DISABLED);
+            Resizer.hide($problemsPanel);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
             return;
         }
@@ -161,20 +161,20 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
         var perfTimerDOM,
-            perfTimerLint;
+            perfTimerInspector;
         
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
         var languageId = language && language.getId();
         var provider = language && _providers[languageId];
         
         if (provider) {
-            perfTimerLint = PerfUtils.markStart("Linting '" + languageId + "':\t" + currentDoc.file.fullPath);
+            perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
             
             var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
             _lastResult = result;
             
-            PerfUtils.addMeasurement(perfTimerLint);
-            perfTimerDOM = PerfUtils.markStart("Linting DOM:\t" + currentDoc.file.fullPath);
+            PerfUtils.addMeasurement(perfTimerInspector);
+            perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
             
             if (result && result.errors.length) {
                 // Augment error objects with additional fields needed by Mustache template
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
                 var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
                 var $selectedRow;
                 
-                $lintResults.find(".table-container")
+                $problemsPanel.find(".table-container")
                     .empty()
                     .append(html)
                     .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
@@ -214,39 +214,39 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
+                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
                 if (!_collapsed) {
-                    Resizer.show($lintResults);
+                    Resizer.show($problemsPanel);
                 }
                 
                 if (numProblems === 1) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
                 } else {
-                    // If linter was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
+                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
                     if (result.aborted) {
                         numProblems += "+";
                     }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "lint-errors",
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
                         StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
                 }
                 setGotoEnabled(true);
             
             } else {
-                Resizer.hide($lintResults);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
+                Resizer.hide($problemsPanel);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
                 setGotoEnabled(false);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
 
         } else {
-            // No linting provider for current file
+            // No provider for current file
             _lastResult = null;
-            Resizer.hide($lintResults);
+            Resizer.hide($problemsPanel);
             if (language) {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
             } else {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "lint-disabled", Strings.NOTHING_TO_LINT);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.NOTHING_TO_LINT);
             }
             setGotoEnabled(false);
         }
@@ -259,21 +259,21 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(DocumentManager)
-                .on("currentDocumentChange.linting", function () {
+                .on("currentDocumentChange.codeInspection", function () {
                     run();
                 })
-                .on("documentSaved.linting documentRefreshed.linting", function (event, document) {
+                .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
                 });
         } else {
-            $(DocumentManager).off(".linting");
+            $(DocumentManager).off(".codeInspection");
         }
     }
     
     /**
-     * Enable or disable all linting.
+     * Enable or disable all inspection.
      * @param {boolean} enabled Enabled state.
      */
     function setEnabled(enabled) {
@@ -290,7 +290,7 @@ define(function (require, exports, module) {
     
     /** 
      * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
-     * the auto collapse due to files with no errors & filetypes with no linter). When explicitly
+     * the auto collapse due to files with no errors & filetypes with no provider). When explicitly
      * collapsed, the panel will not reopen automatically on switch files or save.
      * 
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
@@ -304,10 +304,10 @@ define(function (require, exports, module) {
         _prefs.setValue("collapsed", _collapsed);
         
         if (_collapsed) {
-            Resizer.hide($lintResults);
+            Resizer.hide($problemsPanel);
         } else {
             if (_lastResult && _lastResult.errors.length) {
-                Resizer.show($lintResults);
+                Resizer.show($problemsPanel);
             }
         }
     }
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
     function handleGotoFirstError() {
         run();
         if (_gotoEnabled) {
-            $lintResults.find("tr:first-child").trigger("click");
+            $problemsPanel.find("tr:first-child").trigger("click");
         }
     }
     
@@ -338,18 +338,18 @@ define(function (require, exports, module) {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
         var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
-        $lintResults = $("#errors-panel");
+        $problemsPanel = $("#problems-panel");
         
-        $("#errors-panel .close").click(function () {
+        $("#problems-panel .close").click(function () {
             toggleCollapsed(true);
         });
         
         // Status bar indicator - icon & tooltip updated by run()
-        var lintStatusHtml = Mustache.render("<div id=\"lint-status\">&nbsp;</div>", Strings);
-        $(lintStatusHtml).insertBefore("#status-language");
-        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
+        var statusIconHtml = Mustache.render("<div id=\"status-inspection\">&nbsp;</div>", Strings);
+        $(statusIconHtml).insertBefore("#status-language");
+        StatusBar.addIndicator(INDICATOR_ID, $("#status-inspection"));
         
-        $("#lint-status").click(function () {
+        $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
             if (_lastResult && _lastResult.errors.length) {
                 toggleCollapsed();
@@ -365,7 +365,7 @@ define(function (require, exports, module) {
     
     
     // Public API
-    exports.registerLinter = registerLinter;
+    exports.register       = register;
     exports.Type           = Type;
     
     // for unit tests
