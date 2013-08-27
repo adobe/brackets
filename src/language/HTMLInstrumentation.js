@@ -445,6 +445,13 @@ define(function (require, exports, module) {
         }
         
         var dom = lastClosedTag;
+        if (!dom) {
+            // This can happen if the document has no nontrivial content, or if the user tries to
+            // have something at the root other than the HTML tag. In all such cases, we treat the
+            // document as invalid.
+            return null;
+        }
+        
         dom.nodeMap = nodeMap;
         PerfUtils.addMeasurement(timerBuildFull);       // use
         PerfUtils.finalizeMeasurement(timerBuildPart);  // discard
@@ -829,7 +836,8 @@ define(function (require, exports, module) {
             currentElement,
             oldElement,
             moves = [],
-            elementDeletes = {};
+            elementDeletes = {},
+            oldNodeMap = oldNode ? oldNode.nodeMap : {};
         
         /**
          * When the main loop (see below) determines that something has changed with
@@ -890,7 +898,7 @@ define(function (require, exports, module) {
              * @return {boolean} true if an elementInsert was created
              */
             var addElementInsert = function () {
-                if (!oldNode.nodeMap[currentChild.tagID]) {
+                if (!oldNodeMap[currentChild.tagID]) {
                     newEdit = {
                         type: "elementInsert",
                         tag: currentChild.tag,
@@ -1049,7 +1057,7 @@ define(function (require, exports, module) {
                 // of insert. The check that we're doing here is looking up the current
                 // child's ID in the *old* map and seeing if this child used to have a 
                 // different parent.
-                var possiblyMovedElement = oldNode.nodeMap[currentChild.tagID];
+                var possiblyMovedElement = oldNodeMap[currentChild.tagID];
                 if (possiblyMovedElement &&
                         currentParent.tagID !== getParentID(possiblyMovedElement)) {
                     newEdit = {
@@ -1221,7 +1229,7 @@ define(function (require, exports, module) {
          * creates the elementInsert edit.
          */
         var queuePush = function (node) {
-            if (node.children && oldNode.nodeMap[node.tagID]) {
+            if (node.children && oldNodeMap[node.tagID]) {
                 queue.push(node);
             }
         };
@@ -1231,7 +1239,7 @@ define(function (require, exports, module) {
         
         do {
             currentElement = queue.pop();
-            oldElement = oldNode.nodeMap[currentElement.tagID];
+            oldElement = oldNodeMap[currentElement.tagID];
             
             // Do we need to compare elements?
             if (oldElement) {
@@ -1256,6 +1264,20 @@ define(function (require, exports, module) {
             // This is a new element, so go straight to generating child edits (which will
             // create the appropriate Insert edits).
             } else {
+                // If this is the root (html) tag, we need to manufacture an insert for it here,
+                // because it isn't the child of any other node. The browser-side code doesn't
+                // care about parentage/positioning in this case, and will handle just setting the 
+                // ID on the existing implied HTML tag in the browser without actually creating it.
+                if (!currentElement.parent) {
+                    edits.push({
+                        type: "elementInsert",
+                        tag: currentElement.tag,
+                        tagID: currentElement.tagID,
+                        parentID: null,
+                        attributes: currentElement.attributes
+                    });
+                }
+                
                 generateChildEdits(currentElement, null);
             }
         } while (queue.length);
@@ -1300,25 +1322,24 @@ define(function (require, exports, module) {
     
     function getUnappliedEditList(editor, changeList) {
         var cachedValue = _cachedValues[editor.document.file.fullPath];
-        if (!cachedValue || !cachedValue.dom) {
-            console.warn("No previous DOM to compare change against");
-            return [];
+        // We might not have a previous DOM if the document was empty before this edit.
+        if (!cachedValue || !cachedValue.dom || _cachedValues[editor.document.file.fullPath].invalid) {
+            // We were in an invalid state, so do a full rebuild.
+            changeList = null;
+        }
+        var result = _updateDOM(cachedValue && cachedValue.dom, editor, changeList);
+        if (result) {
+            _cachedValues[editor.document.file.fullPath] = {
+                timestamp: editor.document.diskTimestamp,
+                dom: result.dom,
+                dirty: false
+            };
+            return result.edits;
         } else {
-            if (_cachedValues[editor.document.file.fullPath].invalid) {
-                // We were in an invalid state, so do a full rebuild.
-                changeList = null;
+            if (cachedValue) {
+                cachedValue.invalid = true;
             }
-            var result = _updateDOM(cachedValue.dom, editor, changeList);
-            if (result) {
-                _cachedValues[editor.document.file.fullPath] = {
-                    timestamp: editor.document.diskTimestamp, // TODO: update?
-                    dom: result.dom
-                };
-                return result.edits;
-            } else {
-                _cachedValues[editor.document.file.fullPath].invalid = true;
-                return [];
-            }
+            return [];
         }
     }
     
