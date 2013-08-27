@@ -48,6 +48,30 @@ define(function (require, exports, module) {
         elementCount,
         elementIds = {};
     
+    function createBlankDOM() {
+        // This creates a DOM for a blank document that we can clone when we want to simulate 
+        // starting from an empty document (which, in the browser, includes implied html/head/body
+        // tags). We have to also strip the tagIDs from this DOM since they won't appear in the
+        // browser in this case.
+        var dom = HTMLInstrumentation._buildSimpleDOM("<html><head></head><body></body></html>", true);
+        Object.keys(dom.nodeMap).forEach(function (key) {
+            var node = dom.nodeMap[key];
+            delete node.tagID;
+        });
+        dom.nodeMap = {};
+        return dom;
+    }
+    
+    function removeDescendentsFromNodeMap(nodeMap, node) {
+        var mappedNode = nodeMap[node.tagID];
+        delete nodeMap[node.tagID];
+        if (node.children) {
+            node.children.forEach(function (child) {
+                removeDescendentsFromNodeMap(nodeMap, child);
+            });
+        }
+    }
+    
     /**
      * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
      * features of a real DOM object. It specifically adds the features required for
@@ -58,12 +82,18 @@ define(function (require, exports, module) {
      */
     var domFeatures = Object.create({
         insertBefore: function (newElement, referenceElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
             var index = this.children.indexOf(referenceElement);
             this.children.splice(index, 0, newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
         },
         appendChild: function (newElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
             this.children.push(newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
@@ -88,12 +118,17 @@ define(function (require, exports, module) {
             if (this.tagID) {
                 var nodeMap = this.getNodeMap();
                 if (nodeMap) {
-                    delete nodeMap[this.tagID];
+                    removeDescendentsFromNodeMap(nodeMap, this);
                 }
             }
             var siblings = this.siblings;
             var index = siblings.indexOf(this);
-            siblings.splice(index, 1);
+            if (index > -1) {
+                siblings.splice(index, 1);
+                this.parent = null;
+            } else {
+                console.error("Unexpected attempt to remove (not in siblings)", this);
+            }
         },
         
         /**
@@ -129,23 +164,58 @@ define(function (require, exports, module) {
             delete this.attributes[key];
         },
         
+        returnFailure: function (other) {
+            console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
+            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this));
+            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other));
+            return false;
+        },
+        
         /**
          * Compares two SimpleDOMs with the expectation that they are exactly the same.
          */
         compare: function (other) {
             if (this.children) {
-                expect(this.tag).toEqual(other.tag);
-                expect(this.tagID).toEqual(other.tagID);
+                if (this.tag !== other.tag) {
+                    expect("Tag " + this.tag + " for tagID " + this.tagID).toEqual(other.tag);
+                    return this.returnFailure(other);
+                }
+                
+                if (this.tagID !== other.tagID) {
+                    expect("tagID " + this.tagID).toEqual(other.tagID);
+                    return this.returnFailure(other);
+                }
+                
                 delete this.attributes["data-brackets-id"];
                 expect(this.attributes).toEqual(other.attributes);
-                expect(this.children.length).toEqual(other.children.length);
+                
+                // Skip implied tags in this (fake browser) DOM. (The editor's DOM
+                // should never have implied tags.)
+                var myChildren = [];
+                this.children.forEach(function (child) {
+                    var isImplied = (child.tag === "html" || child.tag === "head" || child.tag === "body") && child.tagID === undefined;
+                    if (!isImplied) {
+                        myChildren.push(child);
+                    }
+                });
+                
+                if (myChildren.length !== other.children.length) {
+                    expect("tagID " + this.tagID + " has " + myChildren.length + " unimplied children").toEqual(other.children.length);
+                    return this.returnFailure(other);
+                }
                 var i;
-                for (i = 0; i < this.children.length; i++) {
-                    this.children[i].compare(other.children[i]);
+                for (i = 0; i < myChildren.length; i++) {
+                    if (!myChildren[i].compare(other.children[i])) {
+                        return false;
+                    }
                 }
             } else {
-                expect(this.content).toEqual(other.content);
+                if (this.content !== other.content) {
+                    expect(this.content).toEqual(other.content);
+                    return this.returnFailure(other);
+                }
             }
+            return true;
         }
     }, {
         firstChild: {
@@ -225,6 +295,13 @@ define(function (require, exports, module) {
     function cloneDOM(root) {
         var nodeMap = {};
         
+        // If there's no DOM to clone, then we must be starting from an empty document,
+        // so start with a document that already has implied <html>/<head>/<body>, since
+        // that's what the browser does.
+        if (!root) {
+            root = createBlankDOM();
+        }
+        
         function doClone(parent, node) {
             var newNode = Object.create(domFeatures);
             newNode.parent = parent;
@@ -255,10 +332,28 @@ define(function (require, exports, module) {
      * be present on the document object. This FakeDocument bridges the gap between a
      * SimpleDOM and real DOM for the purposes of applying edits.
      *
-     * @param {Object} nodeMap A map from tagID to node object that is generally at the root of a SimpleDOM
+     * @param {Object} dom The DOM we're wrapping with this document.
      */
-    var FakeDocument = function (nodeMap) {
-        this.nodeMap = nodeMap;
+    var FakeDocument = function (dom) {
+        var self = this;
+        this.nodeMap = dom.nodeMap;
+        
+        // Walk the DOM looking for html/head/body tags. We can't use the nodeMap for this
+        // because it might be nulled out in the cases where we're simulating the browser
+        // creating implicit html/head/body tags.
+        function walk(node) {
+            if (node.tag === "html") {
+                self.documentElement = node;
+            } else if (node.tag === "head" || node.tag === "body") {
+                self[node.tag] = node;
+            }
+            
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(dom);
     };
     
     // The DOM edit code only performs this kind of query
@@ -827,131 +922,7 @@ define(function (require, exports, module) {
                 expect(dom.children.length).toBe(1);
                 var textNode = dom.children[0];
                 expect(textNode.content).toBe("Text  Text2");
-                expect(textNode.weight).toBe(11);
-                expect(textNode.signature).toBeDefined();
-            });
-        });
-        
-        describe("HTML Instrumentation utility functions", function () {
-            it("should locate the correct element and text siblings", function () {
-                var findElementAndText = HTMLInstrumentation._findElementAndText;
-                var parent = {
-                    children: []
-                };
-                var elementOfInterest = { children: [] };
-                var siblings = parent.children;
-                parent.children.push(elementOfInterest);
-                
-                // check to the left
-                var result = findElementAndText(siblings, 0, true);
-                expect(result).toEqual({ firstChild: true });
-                
-                // check to the right
-                result = findElementAndText(siblings, 0, false);
-                expect(result).toEqual({ lastChild: true });
-                
-                var elementToTheLeft = { children: [] };
-                parent.children.unshift(elementToTheLeft);
-                
-                result = findElementAndText(siblings, 1, true);
-                expect(result).toEqual({
-                    element: elementToTheLeft
-                });
-                
-                result = findElementAndText(siblings, 1, false);
-                expect(result).toEqual({ lastChild: true });
-                
-                var elementToTheRight = { children: [] };
-                parent.children.push(elementToTheRight);
-                
-                result = findElementAndText(siblings, 1, true);
-                expect(result).toEqual({
-                    element: elementToTheLeft
-                });
-                
-                result = findElementAndText(siblings, 1, false);
-                expect(result).toEqual({
-                    element: elementToTheRight
-                });
-                
-                var textNode = {};
-                parent.children[0] = textNode;
-                
-                result = findElementAndText(siblings, 1, true);
-                expect(result).toEqual({
-                    text: textNode
-                });
-                
-                var textNode2 = {};
-                parent.children[2] = textNode2;
-                result = findElementAndText(siblings, 1, false);
-                expect(result).toEqual({
-                    text: textNode
-                });
-                
-                parent.children.unshift(elementToTheLeft);
-                result = findElementAndText(siblings, 2, true);
-                expect(result).toEqual({
-                    text: textNode,
-                    element: elementToTheLeft
-                });
-                
-                parent.children.push(elementToTheRight);
-                result = findElementAndText(siblings, 2, false);
-                expect(result).toEqual({
-                    text: textNode2,
-                    element: elementToTheRight
-                });
-            });
-            
-            it("should skip newly added elements when looking rightward from an element node", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div><div>Third</div>");
-                var second = dom.children[1];
-                var third = dom.children[2];
-                var elementInserts = {};
-                elementInserts[second.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts]);
-                expect(result).toEqual({
-                    element: third
-                });
-            });
-            
-            it("should gather text as well as elements when looking rightward, but skip newly inserted nodes", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div>textOne<div>Second</div>textTwo<div>Third</div>");
-                var secondText = dom.children[1];
-                var secondElement = dom.children[2];
-                var thirdText = dom.children[3];
-                var thirdElement = dom.children[4];
-                var elementInserts = {}, textInserts = {};
-                elementInserts[secondText.tagID] = true;
-                textInserts[secondElement.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts, textInserts]);
-                expect(result).toEqual({
-                    element: thirdElement,
-                    text: thirdText
-                });
-            });
-            
-            it("should *not* skip newly added elements when looking leftward", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div><div>Third</div>");
-                var second = dom.children[1];
-                var elementInserts = {};
-                elementInserts[second.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 2, true, [elementInserts]);
-                expect(result).toEqual({
-                    element: second
-                });
-            });
-            
-            it("should mark the lastChild properly when skipping newly added elements", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<body><div>First</div><div>Second</div>");
-                var second = dom.children[1];
-                var elementInserts = {};
-                elementInserts[second.tagID] = true;
-                var result = HTMLInstrumentation._findElementAndText(dom.children, 0, false, [elementInserts]);
-                expect(result).toEqual({
-                    lastChild: true
-                });
+                expect(textNode.textSignature).toBeDefined();
             });
         });
         
@@ -1004,7 +975,7 @@ define(function (require, exports, module) {
                 // Note that even if we pass a change list, `_updateDOM` will still choose to do a
                 // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
-                var doc = new FakeDocument(clonedDOM.nodeMap);
+                var doc = new FakeDocument(clonedDOM);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
                 clonedDOM.compare(result.dom);
@@ -1042,7 +1013,7 @@ define(function (require, exports, module) {
                         expect(result.edits).toEqual(expectedEdit);
                         wasInvalid = false;
                         
-                        var doc = new FakeDocument(clonedDOM.nodeMap);
+                        var doc = new FakeDocument(clonedDOM);
                         var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                         editHandler.apply(result.edits);
                         clonedDOM.compare(result.dom);
@@ -1113,20 +1084,18 @@ define(function (require, exports, module) {
                     expect(dom.tag).toEqual("html");
                     expect(dom.start).toEqual(16);
                     expect(dom.end).toEqual(1269);
-                    expect(dom.weight).toEqual(738);
-                    expect(dom.signature).toEqual(jasmine.any(Number));
+                    expect(dom.subtreeSignature).toEqual(jasmine.any(Number));
+                    expect(dom.childSignature).toEqual(jasmine.any(Number));
                     expect(dom.children.length).toEqual(5);
                     var meta = dom.children[1].children[1];
                     expect(Object.keys(meta.attributes).length).toEqual(1);
                     expect(meta.attributes.charset).toEqual("utf-8");
                     var titleContents = dom.children[1].children[5].children[0];
                     expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
-                    expect(titleContents.weight).toEqual(29);
-                    expect(titleContents.parent.weight).toEqual(29);
-                    expect(titleContents.signature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
+                    expect(titleContents.textSignature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
                     expect(dom.children[1].parent).toEqual(dom);
                     expect(dom.nodeMap[meta.tagID]).toBe(meta);
-                    expect(meta.signature).toEqual(jasmine.any(Number));
+                    expect(meta.childSignature).toEqual(jasmine.any(Number));
                 });
             });
             
@@ -1228,7 +1197,7 @@ define(function (require, exports, module) {
                         function (result, previousDOM, incremental) {
                             expect(result.edits.length).toEqual(1);
                             expect(result.edits[0]).toEqual({
-                                type: "attrDel",
+                                type: "attrDelete",
                                 tagID: tagID,
                                 attribute: "content"
                             });
@@ -1429,12 +1398,13 @@ define(function (require, exports, module) {
                         tagID: newElement.tagID,
                         attributes: {},
                         parentID: parentID,
-                        beforeID: beforeID // TODO: why is there no afterID here?
+                        beforeID: beforeID // No afterID because beforeID is preferred given the insertBefore DOM API
                     });
                     expect(result.edits[2]).toEqual({
                         type: "textInsert",
                         content: "\n",
-                        parentID: newElement.tagID
+                        parentID: newElement.tagID,
+                        lastChild: true
                     });
                     
                     // We should get no edits while typing the close tag.
@@ -1448,22 +1418,21 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(">", {line: 12, ch: 44});
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     
-                    //console.log("final dom: " + HTMLInstrumentation._dumpDOM(result.dom));
                     newElement = result.dom.children[3].children[2];
                     beforeID = result.dom.children[3].children[4].tagID;
                     expect(newElement.children.length).toEqual(0);
                     expect(result.dom.children[3].children[3].content).toEqual("\n");
                     expect(result.edits.length).toEqual(2);
                     expect(result.edits[0]).toEqual({
-                        type: "textDelete",
-                        parentID: newElement.tagID
-                    });
-                    expect(result.edits[1]).toEqual({
                         type: "textInsert",
                         content: "\n",
                         parentID: newElement.parent.tagID,
                         afterID: newElement.tagID,
                         beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "textDelete",
+                        parentID: newElement.tagID
                     });
                 });
             });
@@ -1530,19 +1499,19 @@ define(function (require, exports, module) {
                         ],
                         [ // " cl"
                             {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
                         ],
                         [ // " cla"
                             {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
                         ],
                         [ // " clas"
                             {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
                         ],
                         [ // " class"
                             {type: "attrAdd", tagID: tagID, attribute: "class", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
                         ]
                     ]);
                     
@@ -1588,22 +1557,22 @@ define(function (require, exports, module) {
                         ],
                         [ // " clas"
                             {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "class"}
+                            {type: "attrDelete", tagID: tagID, attribute: "class"}
                         ],
                         [ // " cla"
                             {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
                         ],
                         [ // " cl"
                             {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
                         ],
                         [ // " c"
                             {type: "attrAdd", tagID: tagID, attribute: "c", value: ""},
-                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
                         ],
                         [ // " "
-                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
                         ],
                         [] // deletion of space
                     ], true);
@@ -1643,12 +1612,13 @@ define(function (require, exports, module) {
                                     attributes: {},
                                     tagID: dom.children[0].tagID,
                                     parentID: dom.tagID,
-                                    firstChild: true
+                                    lastChild: true
                                 },
                                 {
                                     type: "textInsert",
                                     parentID: dom.children[0].tagID,
-                                    content: "some text"
+                                    content: "some text",
+                                    lastChild: true
                                 }
                             ];
                         }
@@ -1656,6 +1626,110 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should handle adding an <html> tag into an empty document", function () {
+                setupEditor("");
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    // Nothing to mark since it's currently an empty document.
+                    expect(previousDOM).toBe(null);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html></html");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "html",
+                                    attributes: {},
+                                    tagID: dom.tagID,
+                                    parentID: null
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                    
+                    // Make sure the mark got properly applied
+                    var marks = editor._codeMirror.getAllMarks();
+                    expect(marks.length).toBe(1);
+                    expect(marks[0].tagID).toEqual(result.finalDOM.tagID);
+                });
+            });
+
+            it("should handle adding a <head> tag into a document", function () {
+                setupEditor("<html>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<head></head");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "head",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
+            it("should handle adding a <body> tag into a document", function () {
+                setupEditor("<html><head></head>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body></body");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "body",
+                                    attributes: {},
+                                    tagID: dom.children[1].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
             it("should represent simple new tag insert", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
@@ -1673,20 +1747,20 @@ define(function (require, exports, module) {
                             var beforeID = newElement.parent.children[7].tagID,
                                 afterID = newElement.parent.children[3].tagID;
                             
-                            // The new tag is inserted with its content and then the
-                            // text/comment *before* the new element is replaced.
                             expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
                                 tagID: newElement.tagID,
                                 parentID: newElement.parent.tagID,
                                 beforeID: beforeID
-                            });
-                            expect(result.edits[1]).toEqual({
-                                type: "textInsert",
-                                parentID: newElement.tagID,
-                                content: "New Content"
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textInsert",
@@ -1696,11 +1770,10 @@ define(function (require, exports, module) {
                                 content: "\n\n"
                             });
                             expect(result.edits[3]).toEqual({
-                                type: "textReplace",
-                                parentID: newElement.parent.tagID,
-                                afterID: afterID,
-                                beforeID: newElement.tagID,
-                                content: "\n\n"
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -1721,7 +1794,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[5];
                             var newElement2 = newDOM.children[3].children[6];
                             expect(newElement.tag).toEqual("div");
@@ -1734,6 +1806,13 @@ define(function (require, exports, module) {
                             var beforeID = newElement.parent.children[8].tagID,
                                 afterID = newElement.parent.children[3].tagID;
                             expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -1741,7 +1820,7 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 beforeID: beforeID
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 attributes: {},
@@ -1749,29 +1828,24 @@ define(function (require, exports, module) {
                                 parentID: newElement2.parent.tagID,
                                 beforeID: beforeID
                             });
-                            expect(result.edits[2]).toEqual({
-                                type: "textInsert",
-                                parentID: newElement2.tagID,
-                                content: "More new content"
-                            });
                             expect(result.edits[3]).toEqual({
-                                type: "textInsert",
-                                parentID: newElement.tagID,
-                                content: "New Content"
-                            });
-                            expect(result.edits[4]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement2.parent.tagID,
                                 afterID: newElement2.tagID,
                                 beforeID: beforeID,
                                 content: "\n\n"
                             });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement2.tagID,
+                                content: "More new content",
+                                lastChild: true
+                            });
                             expect(result.edits[5]).toEqual({
-                                type: "textReplace",
-                                parentID: newElement.parent.tagID,
-                                afterID: afterID,
-                                beforeID: newElement.tagID,
-                                content: "\n\n"
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
                             });
 
                             if (incremental) {
@@ -1792,8 +1866,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-                            //console.log("new DOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             
                             var newElement = newDOM.children[3].children[3],
                                 newChild = newElement.children[1];
@@ -1818,6 +1890,12 @@ define(function (require, exports, module) {
                                 beforeID: beforeID
                             });
                             expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New ",
+                                lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tag: "em",
                                 attributes: {},
@@ -1825,22 +1903,17 @@ define(function (require, exports, module) {
                                 parentID: newElement.tagID,
                                 lastChild: true
                             });
-                            expect(result.edits[2]).toEqual({
+                            expect(result.edits[3]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement.tagID,
                                 content: " Content",
-                                afterID: newChild.tagID
-                            });
-                            expect(result.edits[3]).toEqual({
-                                type: "textInsert",
-                                parentID: newChild.tagID,
-                                content: "Awesome"
+                                lastChild: true
                             });
                             expect(result.edits[4]).toEqual({
                                 type: "textInsert",
-                                parentID: newElement.tagID,
-                                content: "New ",
-                                beforeID: newChild.tagID
+                                parentID: newChild.tagID,
+                                content: "Awesome",
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -1861,8 +1934,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-//                            console.log("new DOM: ");
-//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[0],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1886,22 +1957,23 @@ define(function (require, exports, module) {
                             expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 parentID: parentID,
-                                firstChild: true,
                                 tag: "div",
                                 attributes: {},
-                                tagID: newElement.tagID
+                                tagID: newElement.tagID,
+                                beforeID: beforeID
                             });
                             expect(result.edits[2]).toEqual({
-                                type: "textInsert",
-                                parentID: newElement.tagID,
-                                content: "New Content"
-                            });
-                            expect(result.edits[3]).toEqual({
                                 type: "textInsert",
                                 parentID: parentID,
                                 content: "\n\n",
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -1923,8 +1995,6 @@ define(function (require, exports, module) {
                         },
                         function (result, previousDOM, incremental) {
                             var newDOM = result.dom;
-//                            console.log("new DOM: ");
-//                            console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[7].children[3],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -1942,7 +2012,8 @@ define(function (require, exports, module) {
                             expect(result.edits[1]).toEqual({
                                 type: "textInsert",
                                 parentID: newElement.tagID,
-                                content: "New Content"
+                                content: "New Content",
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -1964,10 +2035,7 @@ define(function (require, exports, module) {
                             editor.document.replaceRange("<strong>New Content</strong>", {line: 29, ch: 59});
                         },
                         function (result, previousDOM, incremental) {
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             var newDOM = result.dom;
-                            //console.log("new DOM: ");
-                            //console.log(HTMLInstrumentation._dumpDOM(newDOM));
                             var newElement = newDOM.children[3].children[7].children[2],
                                 parent = newElement.parent,
                                 parentID = parent.tagID,
@@ -2015,8 +2083,6 @@ define(function (require, exports, module) {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
                             ed = editor;
-                            //console.log("original DOM: ");
-                            //console.log(HTMLInstrumentation._dumpDOM(previousDOM));
                             editor.document.replaceRange("<div>New Content</div>", {line: 12, ch: 38});
                         },
                         function (result, previousDOM, incremental) {
@@ -2052,15 +2118,16 @@ define(function (require, exports, module) {
                             });
                             expect(result.edits[2]).toEqual({
                                 type: "textInsert",
-                                content: "New Content",
-                                parentID: newElement.tagID
-                            });
-                            expect(result.edits[3]).toEqual({
-                                type: "textInsert",
                                 parentID: newElement.parent.tagID,
                                 content: jasmine.any(String),
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "New Content",
+                                parentID: newElement.tagID,
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -2111,13 +2178,16 @@ define(function (require, exports, module) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[1].children[1];
                             
-                            //console.log("newDOM: " + HTMLInstrumentation._dumpDOM(newDOM));
-                            //console.log("edits: " + JSON.stringify(result.edits, null, "  "));
                             expect(newElement.tag).toEqual("img");
                             expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
                             expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
                             expect(result.edits.length).toEqual(3);
                             expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                content: "GETTING STARTED",
+                                parentID: newElement.parent.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "img",
                                 attributes: {},
@@ -2125,17 +2195,11 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 lastChild: true
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 content: " WITH BRACKETS",
                                 parentID: newElement.parent.tagID,
-                                afterID: newElement.tagID
-                            });
-                            expect(result.edits[2]).toEqual({
-                                type: "textReplace",
-                                content: "GETTING STARTED",
-                                parentID: newElement.parent.tagID,
-                                beforeID: newElement.tagID
+                                lastChild: true
                             });
                             
                             if (incremental) {
@@ -2163,28 +2227,28 @@ define(function (require, exports, module) {
                             
                             expect(result.edits.length).toEqual(4);
                             expect(result.edits[0]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldImgID
-                            });
-                            expect(result.edits[1]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldBrID
-                            });
-                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tag: "br",
                                 attributes: {},
                                 tagID: newBrElement.tagID,
                                 parentID: result.dom.tagID,
-                                firstChild: true
+                                lastChild: true
                             });
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[1]).toEqual({
                                 type: "elementInsert",
                                 tag: "img",
                                 attributes: {},
                                 tagID: newImgElement.tagID,
                                 parentID: result.dom.tagID,
                                 lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
                             });
                             
                             if (incremental) {
@@ -2194,6 +2258,110 @@ define(function (require, exports, module) {
                         }
                     );
                 });
+            });
+            
+            it("should support deleting across tags", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 20, ch: 11}, {line: 28, ch: 3});
+                        },
+                        function (result, previousDOM, incremental) {
+                            if (incremental) {
+                                return;
+                            }
+                            var newDOM = result.dom;
+                            var modifiedParagraph = newDOM.children[3].children[5];
+                            expect(modifiedParagraph.tag).toEqual("p");
+                            expect(modifiedParagraph.children.length).toEqual(3);
+                            
+                            var emTag = modifiedParagraph.children[1];
+                            expect(emTag.tag).toEqual("em");
+                            
+                            var deletedParagraph = previousDOM.children[3].children[7];
+                            expect(deletedParagraph.tag).toEqual("p");
+                            
+                            var aTag = previousDOM.children[3].children[9];
+                            expect(aTag.tag).toEqual("a");
+                            
+                            expect(result.edits.length).toEqual(6);
+                            expect(result.edits[0]).toEqual({
+                                type: "rememberNodes",
+                                tagIDs: [emTag.tagID]
+                            });
+                            
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: deletedParagraph.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textReplace",
+                                content: "\n\n\n",
+                                parentID: modifiedParagraph.parent.tagID,
+                                afterID: modifiedParagraph.tagID,
+                                beforeID: aTag.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textReplace",
+                                content: "\n    Welcome\n    ",
+                                parentID: modifiedParagraph.tagID
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "elementMove",
+                                tagID: emTag.tagID,
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true,
+                                content: jasmine.any(String)
+                            });
+                        }
+                    );
+                });
+            });
+            
+            it("should support reparenting a node with new parent under the old parent", function () {
+                setupEditor(WellFormedDoc);
+                var currentText = WellFormedDoc;
+                var movingParagraph, newDiv;
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                    }, false);
+                });
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        movingParagraph = previousDOM.children[3].children[7];
+                        newDiv = previousDOM.children[3].children[5];
+                        editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
+                        editor.document.replaceRange("</div>", { line: 24, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                        console.log("edits", JSON.stringify(result.edits, null, 2));
+                        expect(movingParagraph.tag).toBe("p");
+                        expect(newDiv.tag).toBe("div");
+                        expect(result.edits.length).toBe(5);
+                        expect(result.edits[0].type).toBe("rememberNodes");
+                        expect(result.edits[0].tagIDs).toEqual([movingParagraph.tagID]);
+                        
+                        // The text replace should not refer to the moving node, because it is
+                        // going to be removed from the DOM.
+                        expect(result.edits[1].type).toEqual("textReplace");
+                        expect(result.edits[1].afterID).not.toEqual(movingParagraph.tagID);
+                        expect(result.edits[1].beforeID).not.toEqual(movingParagraph.tagID);
+                        
+                        expect(result.edits[3].type).toBe("elementMove");
+                        expect(result.edits[3].tagID).toBe(movingParagraph.tagID);
+                        expect(result.edits[3].parentID).toBe(newDiv.tagID);
+                    }, false);
+                });
+                    
             });
         });
         
