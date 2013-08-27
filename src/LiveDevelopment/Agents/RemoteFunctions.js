@@ -520,6 +520,7 @@ function RemoteFunctions(experimental) {
      */
     function DOMEditHandler(htmlDocument) {
         this.htmlDocument = htmlDocument;
+        this.rememberedNodes = null;
     }
 
     /**
@@ -532,7 +533,11 @@ function RemoteFunctions(experimental) {
         if (!id) {
             return null;
         }
-
+        
+        if (this.rememberedNodes && this.rememberedNodes[id]) {
+            return this.rememberedNodes[id];
+        }
+        
         var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
     };
@@ -622,13 +627,27 @@ function RemoteFunctions(experimental) {
     DOMEditHandler.prototype.apply = function (edits) {
         var targetID,
             targetElement,
+            childElement,
             self = this;
         
+        this.rememberedNodes = {};
+        
         edits.forEach(function (edit) {
-            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert/) ? edit.parentID : edit.tagID;
+            var editIsSpecialTag = edit.type === "elementInsert" && (edit.tag === "html" || edit.tag === "head" || edit.tag === "body");
+            
+            if (edit.type === "rememberNodes") {
+                edit.tagIDs.forEach(function (tagID) {
+                    var node = self._queryBracketsID(tagID);
+                    self.rememberedNodes[tagID] = node;
+                    node.remove();
+                });
+                return;
+            }
+            
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
             
-            if (!targetElement) {
+            if (!targetElement && !editIsSpecialTag) {
                 console.error("data-brackets-id=" + targetID + " not found");
                 return;
             }
@@ -638,20 +657,38 @@ function RemoteFunctions(experimental) {
             case "attrAdd":
                 targetElement.setAttribute(edit.attribute, edit.value);
                 break;
-            case "attrDel":
+            case "attrDelete":
                 targetElement.removeAttribute(edit.attribute);
                 break;
             case "elementDelete":
                 targetElement.remove();
                 break;
             case "elementInsert":
-                var childElement = self.htmlDocument.createElement(edit.tag);
+                childElement = null;
+                if (editIsSpecialTag) {
+                    // If we already have one of these elements (which we should), then
+                    // just copy the attributes and set the ID.
+                    childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
+                    if (!childElement) {
+                        // Treat this as a normal insertion.
+                        editIsSpecialTag = false;
+                    }
+                }
+                if (!editIsSpecialTag) {
+                    childElement = self.htmlDocument.createElement(edit.tag);
+                }
                 
                 Object.keys(edit.attributes).forEach(function (attr) {
                     childElement.setAttribute(attr, edit.attributes[attr]);
                 });
-                
                 childElement.setAttribute("data-brackets-id", edit.tagID);
+                
+                if (!editIsSpecialTag) {
+                    self._insertChildNode(targetElement, childElement, edit);
+                }
+                break;
+            case "elementMove":
+                childElement = self._queryBracketsID(edit.tagID);
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
@@ -664,6 +701,8 @@ function RemoteFunctions(experimental) {
                 break;
             }
         });
+        
+        this.rememberedNodes = {};
         
         // update highlight after applying diffs
         redrawHighlights();
