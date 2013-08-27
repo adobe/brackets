@@ -778,6 +778,15 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Set the editor size in pixels or percentage
+     * @param {(number|string)} width
+     * @param {(number|string)} height
+     */
+    Editor.prototype.setSize = function (width, height) {
+        this._codeMirror.setSize(width, height);
+    };
+    
     var CENTERING_MARGIN = 0.15;
     
     /**
