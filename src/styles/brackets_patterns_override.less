@@ -427,6 +427,16 @@
     }
 }
 
+// Work around #4568: SourceSans is much fainter on Win than Mac, especially small text with "light" font-weight.
+// We fix some of the most egregious cases by using a heavier font-weight only on Win (and because that's usually
+// overkill, we also make the color paler to dial it back down a bit).
+.less-faint-on-win() {
+    body.platform-win & {
+        font-weight: normal;
+        color: #2e2e2e;
+    }
+}
+
 .modal-body ul {
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
@@ -457,6 +467,7 @@
     line-height: 20px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
+    .less-faint-on-win();
 }
 
 .dialog-message li {
@@ -469,8 +480,12 @@
 }
 
 .dialog-filename {
-    font-weight: normal;
     word-wrap: break-word;
+    
+    font-weight: normal;
+    body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
+        font-weight: @font-weight-semibold;
+    }
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
@@ -664,25 +679,21 @@
                 width: 220px;
             }
             .ext-name {
-                color: #000;
                 display: block;
+                color: #000;
                 font-size: 15px;
                 font-weight: @font-weight-light;
+                .less-faint-on-win();
                 .user-select(text);
                 cursor: text;
             }
             .ext-desc {
                 color: #000;
                 font-weight: @font-weight-light;
+                .less-faint-on-win();
                 width: auto;
                 .user-select(text);
                 cursor: text;
-            }
-            .platform-win & {  // work around #4554
-                .ext-name, .ext-desc {
-                    font-weight: normal;
-                    color: #2e2e2e;
-                }
             }
             .muted {
                 color: #888;
@@ -756,6 +767,7 @@
     .dialog-message {
         font-size: 14px;
         line-height: 17px;
+        .less-faint-on-win();
 
         // Enable text selection
         cursor: auto;
