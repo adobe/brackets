@@ -317,12 +317,15 @@ define(function (require, exports, module) {
     
     /**
      * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
-     * together, using the result of each successive function as the argument(s) to the next.
+     * together, using the result of each successive function as the argument(s) to the next. 
+     * A promise is returned that resolves with the result of the final call if all calls 
+     * resolve or return normally. Otherwise, if any of the functions reject or throw, the 
+     * computation is halted immediately and the promise is rejected with this halting error.
      * 
      * @param {Array.<function(*)>} functions Functions to be chained
      * @param {?Array} args Arguments to call the first function with
-     * @return {jQuery.Promise} Promise that resolves with the results of the
-     *      final call or rejects with the final error
+     * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
+     *      rejects with the first error.
      */
     function chain(functions, args) {
         var deferred = $.Deferred();

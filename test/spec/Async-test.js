@@ -268,9 +268,6 @@ define(function (require, exports, module) {
                 
                 it("[async/sync] two sync commands in order are executed completely synchronously", function () {
                     var promise = null,
-                        done = false,
-                        success = false,
-                        result = null,
                         flag = true;
 
                     runs(function () {
@@ -285,13 +282,7 @@ define(function (require, exports, module) {
                     
                         promise = Async.chain([negate, setFlag], [flag]);
                         promise.done(function (b) {
-                            done = true;
-                            success = true;
-                            result = b;
-                        });
-                        promise.fail(function () {
-                            done = true;
-                            success = false;
+                            expect(b).toBe(flag);
                         });
                         
                         // note, we WANT to test this synchronously. This is not a bug
@@ -300,19 +291,14 @@ define(function (require, exports, module) {
                         expect(flag).toBe(false);
                     });
                     
-                    // With (the current version) of jQuery promises, resolution and
-                    // resolution handlers will get called synchronously. However, if we
-                    // move to a different promise implementation (e.g. Q) then resolution
-                    // handlers will get called asynchronously. So, we check completion
-                    // of the promise on a separate pass.
-                    waitsFor(function () { return done; }, "The chain to complete");
-                    
                     runs(function () {
-                        expect(done).toBe(true);
-                        expect(success).toBe(true);
-                        expect(result).toBe(flag);
+                        // With (the current version) of jQuery promises, resolution and
+                        // resolution handlers will get called synchronously. However, if we
+                        // move to a different promise implementation (e.g. Q) then resolution
+                        // handlers will get called asynchronously. So, we check completion
+                        // of the promise on a separate pass.
+                        waitsForDone(promise, "The chain to complete");
                     });
-                    
                 });
                 
             });
