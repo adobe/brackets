@@ -35,16 +35,15 @@ define(function (require, exports, module) {
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        MurmurHash3         = require("thirdparty/murmurhash3_gc");
+        MurmurHash3         = require("thirdparty/murmurhash3_gc"),
+        WellFormedDoc       = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
+        NotWellFormedDoc    = require("text!spec/HTMLInstrumentation-test-files/omitEndTags.html"),
+        InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
+        BigDoc              = require("text!spec/HTMLInstrumentation-test-files/REC-widgets-20121127.html");
     
     RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
     
-    var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-        WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
-        NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
-        InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
-        BigFileEntry = new NativeFileSystem.FileEntry(testPath + "/REC-widgets-20121127.html"),
-        editor,
+    var editor,
         instrumentedHTML,
         elementCount,
         elementIds = {};
@@ -293,21 +292,6 @@ define(function (require, exports, module) {
         }
     };
     
-    function init(spec, fileEntry) {
-        spec.fileContent = null;
-        
-        if (fileEntry) {
-            runs(function () {
-                FileUtils.readAsText(fileEntry)
-                    .done(function (text) {
-                        spec.fileContent = text;
-                    });
-            });
-            
-            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
-        }
-    }
-        
     describe("HTML Instrumentation", function () {
         
         function getIdToTagMap(instrumentedHTML, map) {
@@ -376,9 +360,8 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 HTMLInstrumentation._resetCache();
                 
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
                 });
             });
@@ -405,9 +388,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     spyOn(editor.document, "getText").andCallThrough();
@@ -518,9 +500,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in valid but not wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, NotWellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(NotWellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -673,9 +654,8 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
                 
             beforeEach(function () {
-                init(this, InvalidHTMLFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(InvalidHTMLDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -976,12 +956,16 @@ define(function (require, exports, module) {
         });
         
         describe("HTML Instrumentation in dirty files", function () {
-            var changeList;
-            
-            beforeEach(function () {
-                init(this, WellFormedFileEntry);
+            var changeList, offsets;
+
+            function setupEditor(docText, useOffsets) {
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    if (useOffsets) {
+                        var result = SpecRunnerUtils.parseOffsetsFromText(docText);
+                        docText = result.text;
+                        offsets = result.offsets;
+                    }
+                    editor = SpecRunnerUtils.createMockEditor(docText, "html").editor;
                     expect(editor).toBeTruthy();
 
                     $(editor).on("change.instrtest", function (event, editor, change) {
@@ -991,8 +975,8 @@ define(function (require, exports, module) {
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
-            });
-    
+            }
+            
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(editor.document);
                 editor = null;
@@ -1000,6 +984,7 @@ define(function (require, exports, module) {
                 elementCount = 0;
                 elementIds = {};
                 changeList = null;
+                offsets = null;
             });
             
             function doEditTest(origText, editFn, expectationFn, incremental) {
@@ -1016,6 +1001,8 @@ define(function (require, exports, module) {
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 editFn(editor, previousDOM);
 
+                // Note that even if we pass a change list, `_updateDOM` will still choose to do a
+                // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
                 var doc = new FakeDocument(clonedDOM.nodeMap);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
@@ -1034,16 +1021,78 @@ define(function (require, exports, module) {
                 }
             }
             
-            function typeAndExpectNoEdits(editor, previousDOM, str, pos) {
-                var i, result;
-                for (i = 0; i < str.length; i++) {
-                    editor.document.replaceRange(str.charAt(i), {line: pos.line, ch: pos.ch + i});
-                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-                    expect(result).toBeNull();
+            // Common functionality between typeAndExpect() and deleteAndExpect().
+            function doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid, numIterations, operationFn, posUpdateFn) {
+                var i, result, clonedDOM;
+                for (i = 0; i < numIterations; i++) {
+                    clonedDOM = cloneDOM(curDOM);
+                    
+                    operationFn(i, pos);
+                    result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
+                    if (!edits) {
+                        expect(result).toBeNull();
+                        wasInvalid = true;
+                    } else {
+                        var expectedEdit = edits[i];
+                        if (typeof expectedEdit === "function") {
+                            // This lets the caller access the most recent updated DOM values when
+                            // specifying the expected edit.
+                            expectedEdit = expectedEdit(result.dom);
+                        }
+                        expect(result.edits).toEqual(expectedEdit);
+                        wasInvalid = false;
+                        
+                        var doc = new FakeDocument(clonedDOM.nodeMap);
+                        var editHandler = new RemoteFunctions.DOMEditHandler(doc);
+                        editHandler.apply(result.edits);
+                        clonedDOM.compare(result.dom);
+                        
+                        curDOM = result.dom;
+                    }
+                    posUpdateFn(pos);
                 }
+                
+                return {finalDOM: curDOM, finalPos: pos, finalInvalid: wasInvalid};
+            }
+            
+            /*
+             * Simulates typing the given string character by character. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function typeAndExpect(editor, curDOM, pos, str, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    str.length,
+                    function (i, pos) {
+                        editor.document.replaceRange(str.charAt(i), pos);
+                    },
+                    function (pos) {
+                        pos.ch++;
+                    });
+            }
+            
+            /*
+             * Simulates deleting the specified number of characters one at a time. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function deleteAndExpect(editor, curDOM, pos, numToDelete, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    numToDelete,
+                    function (i, pos) {
+                        editor.document.replaceRange("", {line: pos.line, ch: pos.ch - 1}, pos);
+                    },
+                    function (pos) {
+                        pos.ch--;
+                    });
             }
             
             it("should re-instrument after document is dirtied", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var pos = {line: 15, ch: 0};
                     editor.document.replaceRange("<div>New Content</div>", pos);
@@ -1057,6 +1106,7 @@ define(function (require, exports, module) {
             });
             
             it("should build simple DOM", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     expect(dom.tagID).toEqual(jasmine.any(Number));
@@ -1081,6 +1131,7 @@ define(function (require, exports, module) {
             });
             
             it("should mark editor text based on the simple DOM", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, dom);
@@ -1089,6 +1140,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle no diff", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1099,6 +1151,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle attribute change", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1117,6 +1170,8 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
+                                // this should have been a true incremental edit
+                                expect(result._wasIncremental).toBe(true);
                                 // make sure the parent of the change is still the same node as in the old tree
                                 expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                             } else {
@@ -1129,6 +1184,7 @@ define(function (require, exports, module) {
             });
             
             it("should handle new attributes", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1147,18 +1203,20 @@ define(function (require, exports, module) {
                             });
 
                             if (incremental) {
-                                // make sure the parent of the change is still the same node as in the old tree
-                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
-                            } else {
-                                // entire tree should be different
-                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
                             }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+
                         }
                     );
                 });
             });
             
             it("should handle deleted attributes", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1176,18 +1234,19 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
-                                // make sure the parent of the change is still the same node as in the old tree
-                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
-                            } else {
-                                // entire tree should be different
-                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
                             }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
                         }
                     );
                 });
             });
             
             it("should handle simple altered text", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var tagID, origParent;
                     doFullAndIncrementalEditTest(
@@ -1207,6 +1266,8 @@ define(function (require, exports, module) {
                             });
                             
                             if (incremental) {
+                                // this should have been an incremental edit since it was just typing
+                                expect(result._wasIncremental).toBe(true);
                                 // make sure the parent of the change is still the same node as in the old tree
                                 expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                             } else {
@@ -1224,6 +1285,7 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.children[3].children[1].tagID,
@@ -1244,6 +1306,8 @@ define(function (require, exports, module) {
                         parentID: tagID,
                         content: "GETTING AWESOMER WITH BRACKETS"
                     });
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
                     // make sure the parent of the change is still the same node as in the old tree
                     expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                     
@@ -1261,17 +1325,15 @@ define(function (require, exports, module) {
                         content: "GETTING MOAR AWESOME WITH BRACKETS"
                     });
                     
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
                     // make sure the parent of the change is still the same node as in the old tree
                     expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
                 });
             });
             
-            it("in incremental edit, should avoid updating while typing an incomplete tag, then update when it's done", function () {
-                // Short-circuit this test if we're running without incremental updates
-                if (!HTMLInstrumentation._allowIncremental) {
-                    return;
-                }
-                
+            it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
@@ -1279,7 +1341,8 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     // While the tag is incomplete, we should get no edits.                    
-                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // This simulates our autocomplete behavior. The next case simulates the non-autocomplete case.
                     editor.document.replaceRange("></p>", {line: 12, ch: 40});
@@ -1289,7 +1352,7 @@ define(function (require, exports, module) {
                     // TODO: a little weird that we're not going through the normal update logic
                     // (in getUnappliedEditList, etc.)
                     result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-                    
+                                        
                     // This should really only have one edit (the tag insertion), but it also
                     // deletes and recreates the whitespace after it, similar to other insert cases.
                     var newElement = result.dom.children[3].children[2],
@@ -1322,19 +1385,17 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("in incremental edit, should handle typing of a <p> without a </p> and then adding it later", function () {
-                // Short-circuit this test if we're running without incremental updates
-                if (!HTMLInstrumentation._allowIncremental) {
-                    return;
-                }
-                
+            it("should handle typing of a <p> without a </p> and then adding it later", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     
-                    typeAndExpectNoEdits(editor, previousDOM, "<p", {line: 12, ch: 38});
+                    // No edits should occur while we're invalid.
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // This simulates what would happen if autocomplete were off. We're actually
                     // valid at this point since <p> is implied close. We want to make sure that
@@ -1378,7 +1439,8 @@ define(function (require, exports, module) {
                     
                     // We should get no edits while typing the close tag.
                     previousDOM = result.dom;
-                    typeAndExpectNoEdits(editor, previousDOM, "</p", {line: 12, ch: 41});
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 41}, "</p");
+                    expect(result.finalInvalid).toBe(true);
                     
                     // When we type the ">" at the end, we should get a delete of the text inside the <p>
                     // and an insert of text after the </p> since we now know that the close is before the
@@ -1405,8 +1467,197 @@ define(function (require, exports, module) {
                     });
                 });
             });
+            
+            it("should handle deleting of an empty tag character-by-character", function () {
+                setupEditor("<p><img>{{0}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        imgTagID = previousDOM.children[0].tagID,
+                        result;
+ 
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                                        
+                    // First four deletions should keep it in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 4);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: imgTagID}]
+                    ], true);
+                });
+            });
 
+            it("should handle deleting of a non-empty tag character-by-character", function () {
+                setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        pTagID = previousDOM.children[0].tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // All the deletions until we get to the "<" should leave the document in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 14);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: pTagID}]
+                    ], true);
+                });
+            });
+
+            it("should handle typing of a new attribute character-by-character", function () {
+                setupEditor("<p{{0}}>some text</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type a space after the tag name, then the attribute name. After the space,
+                    // it should be valid but there should be no actual edits. After that, it should
+                    // look like we're repeatedly adding a new empty attribute and deleting the old one.
+                    // edits to be generated.
+                    result = typeAndExpect(editor, previousDOM, offsets[0], " class", [
+                        [], // " "
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " class"
+                            {type: "attrAdd", tagID: tagID, attribute: "class", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                        ]
+                    ]);
+                    
+                    // While typing the "=" and quoted value, nothing should happen until the quote is balanced.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, "='myclass");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    
+                    // When the close quote is typed, we should get an attribute change.
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, "'", [
+                        [
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: "myclass"}
+                        ]
+                    ], true);
+                });
+            });
+
+            it("should handle deleting of an attribute character-by-character", function () {
+                setupEditor("<p class='myclass'{{0}}>some text</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Delete the attribute value starting from the end quote. We should be invalid until
+                    // we delete the = sign.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 9);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does)
+                    // for the first edit.
+                    
+                    // Delete the = sign, then the name, then the space. This should look like 
+                    // setting the value to "", then changing the attribute name, then an empty edit.
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 6, [
+                        [ // " class"
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: ""}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "class"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "clas"}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""},
+                            {type: "attrDel", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " "
+                            {type: "attrDel", tagID: tagID, attribute: "c"}
+                        ],
+                        [] // deletion of space
+                    ], true);
+                });
+            });
+            
+            it("should handle wrapping a tag around some text character by character", function () {
+                setupEditor("<p>{{0}}some text{{1}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<span>");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Type the end tag--should be invalid until we type the closing character
+                    // The offset is 6 characters later than the original position of offset 1 since we
+                    // inserted the opening tag.
+                    result = typeAndExpect(editor, result.finalDOM, {line: offsets[1].line, ch: offsets[1].ch + 6}, "</span", null, true);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag.
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "textDelete",
+                                    parentID: dom.tagID
+                                },
+                                {
+                                    type: "elementInsert",
+                                    tag: "span",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    firstChild: true
+                                },
+                                {
+                                    type: "textInsert",
+                                    parentID: dom.children[0].tagID,
+                                    content: "some text"
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+            
             it("should represent simple new tag insert", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1451,12 +1702,18 @@ define(function (require, exports, module) {
                                 beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
             
             it("should be able to add two tags at once", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1516,12 +1773,18 @@ define(function (require, exports, module) {
                                 beforeID: newElement.tagID,
                                 content: "\n\n"
                             });
+
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
             
             it("should be able to paste a tag with a nested tag", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1579,12 +1842,18 @@ define(function (require, exports, module) {
                                 content: "New ",
                                 beforeID: newChild.tagID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
 
             it("should handle inserting an element as the first child", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1634,12 +1903,18 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
             
             it("should handle inserting an element as the last child", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1669,12 +1944,18 @@ define(function (require, exports, module) {
                                 parentID: newElement.tagID,
                                 content: "New Content"
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
             
             it("should handle inserting an element before an existing text node", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     editor.document.replaceRange("<strong>pre-edit child</strong>", {line: 33, ch: 0});
 
@@ -1716,12 +1997,18 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
 
             it("should represent simple new tag insert immediately after previous tag before text before tag", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     var ed;
                     
@@ -1775,12 +2062,18 @@ define(function (require, exports, module) {
                                 afterID: newElement.tagID,
                                 beforeID: beforeID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
             });
             
             it("should handle new text insert between tags after whitespace", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1798,12 +2091,17 @@ define(function (require, exports, module) {
                                 afterID: newDOM.children[3].children[1].tagID,
                                 beforeID: newDOM.children[3].children[3].tagID
                             });
+                            if (incremental) {
+                                // this should have been an incremental edit since it was just text
+                                expect(result._wasIncremental).toBe(true);
+                            }
                         }
                     );
                 });
             });
 
             it("should handle inserting an element in the middle of text", function () {
+                setupEditor(WellFormedDoc);
                 runs(function () {
                     doFullAndIncrementalEditTest(
                         function (editor, previousDOM) {
@@ -1839,6 +2137,60 @@ define(function (require, exports, module) {
                                 parentID: newElement.parent.tagID,
                                 beforeID: newElement.tagID
                             });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle reordering of children in one step as a delete/insert", function () {
+                setupEditor("<p>{{0}}<img><br>{{1}}</p>", true);
+                var oldImgID, oldBrID;
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            oldImgID = previousDOM.children[0].tagID;
+                            oldBrID = previousDOM.children[1].tagID;
+                            editor.document.replaceRange("<br><img>", offsets[0], offsets[1]);
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newBrElement = result.dom.children[0],
+                                newImgElement = result.dom.children[1];
+                            
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "br",
+                                attributes: {},
+                                tagID: newBrElement.tagID,
+                                parentID: result.dom.tagID,
+                                firstChild: true
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newImgElement.tagID,
+                                parentID: result.dom.tagID,
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
                         }
                     );
                 });
@@ -1947,9 +2299,8 @@ define(function (require, exports, module) {
         
         xdescribe("Performance Tests", function () {
             beforeEach(function () {
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
@@ -2040,9 +2391,8 @@ define(function (require, exports, module) {
         
         xdescribe("Big File Performance Tests", function () {
             beforeEach(function () {
-                init(this, BigFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(BigDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
