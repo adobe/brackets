@@ -122,7 +122,8 @@
     .box-flex(1);
     text-align: center;
 
-    .buttons {
+    .buttons,
+    .bottom-buttons {
         text-align: center;
         margin: 0;
 
@@ -142,6 +143,11 @@
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
+    }     
+    
+    .bottom-buttons {
+        position: absolute;
+        bottom: 5px;
     }
 }
 
@@ -355,7 +361,7 @@
 }
 
 .codehint-menu.apply-transition {
-    transition: top 167ms, right 167ms, bottom 167ms, left 167ms;
+    transition: right 167ms, left 167ms;
 }
 
 #context-menu-bar {
