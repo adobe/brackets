@@ -533,8 +533,6 @@ define(function LiveDevelopment(require, exports, module) {
             // No longer in site, so terminate live dev, but don't close browser window
             Inspector.disconnect();
             _closeReason = "navigated_away";
-            _setStatus(STATUS_INACTIVE);
-            _server = null;
         }
     }
 
@@ -550,6 +548,9 @@ define(function LiveDevelopment(require, exports, module) {
         
         // Close live documents 
         _closeDocuments();
+
+        // Dispose server
+        _server = null;
         
         _setStatus(STATUS_INACTIVE);
     }
@@ -593,11 +594,15 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         if (Inspector.connected()) {
-            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
-            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
-                Inspector.disconnect();
-                window.clearTimeout(timer);
-                cleanup();
+            // Close the browser tab/window
+            var closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
+
+            // Add a timeout to force cleanup if Inspector does not respond
+            closePromise = Async.withTimeout(closePromise, 5000);
+
+            // Disconnect the Inspector after closing the tab/winow
+            closePromise.always(function () {
+                Inspector.disconnect().always(cleanup);
             });
         } else {
             cleanup();
@@ -922,23 +927,21 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentChange() {
         var doc = _getCurrentDocument();
         
-        if (!doc) {
+        if (!doc || !Inspector.connected()) {
             return;
         }
 
-        if (Inspector.connected()) {
-            hideHighlight();
-            
-            // close the current session and begin a new session if the current
-            // document changes to an HTML document that was not loaded yet
-            var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
-                isHTML = exports.config.experimental || _isHtmlFileExt(doc.extension);
-            
-            if (!wasRequested && isHTML) {
-                // TODO (jasonsanjose): optimize this by reusing the same connection
-                // no need to fully teardown.
-                close().done(open);
-            }
+        hideHighlight();
+        
+        // close the current session and begin a new session if the current
+        // document changes to an HTML document that was not loaded yet
+        var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
+            isViewable = exports.config.experimental || _server.canServe(doc.file.fullPath);
+        
+        if (!wasRequested && isViewable) {
+            // TODO (jasonsanjose): optimize this by reusing the same connection
+            // no need to fully teardown.
+            close().done(open);
         }
     }
 
