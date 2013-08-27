@@ -238,7 +238,9 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         // Clear all documents from request filtering
-        _server.clear();
+        if (_server) {
+            _server.clear();
+        }
     }
 
     /**
@@ -543,14 +545,16 @@ define(function LiveDevelopment(require, exports, module) {
 
         unloadAgents();
         
-        // Stop listening for requests when disconnected
-        _server.stop();
-        
         // Close live documents 
         _closeDocuments();
+        
+        if (_server) {
+            // Stop listening for requests when disconnected
+            _server.stop();
 
-        // Dispose server
-        _server = null;
+            // Dispose server
+            _server = null;
+        }
         
         _setStatus(STATUS_INACTIVE);
     }
