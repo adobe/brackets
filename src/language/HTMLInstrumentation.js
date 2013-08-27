@@ -726,7 +726,7 @@ define(function (require, exports, module) {
         return result;
     };
     
-    function attributeCompare(edits, oldNode, newNode) {
+    function generateAttributeEdits(edits, oldNode, newNode) {
         // shallow copy the old attributes object so that we can modify it
         var oldAttributes = $.extend({}, oldNode.attributes),
             newAttributes = newNode.attributes;
@@ -1103,6 +1103,11 @@ define(function (require, exports, module) {
                     // Current child is an element, old child is a text node
                     if (currentChild.children && !oldChild.children) {
                         addTextDelete();
+                        
+                        // If this element is new, add it and move to the next child
+                        // in the current tree. Otherwise, we'll compare this same
+                        // current element with the next old element on the next pass
+                        // through the loop.
                         addElementInsert();
                     
                     // Current child is a text node, old child is an element
@@ -1120,7 +1125,7 @@ define(function (require, exports, module) {
                             // These are different elements, so we will add an insert and/or delete
                             // as appropriate
                             if (!addElementInsert() && !addElementDelete()) {
-                                console.error("HTML Instrumentation: This should not happen. Two elements have different tags and there was no insert/delete. This generally means there was a reordering of elements.");
+                                console.error("HTML Instrumentation: This should not happen. Two elements have different tag IDs and there was no insert/delete. This generally means there was a reordering of elements.");
                                 currentIndex++;
                                 oldIndex++;
                             }
@@ -1210,7 +1215,7 @@ define(function (require, exports, module) {
             
             /**
              * Finalize remaining edits. For inserts and moves, we can set the `lastChild`
-             * flag and the browser can simple use `appendChild` to add these items.
+             * flag and the browser can simply use `appendChild` to add these items.
              */
             newEdits.forEach(function (edit) {
                 if (edit.type === "textInsert" || edit.type === "elementInsert" || edit.type === "elementMove") {
@@ -1225,7 +1230,7 @@ define(function (require, exports, module) {
         /**
          * Adds elements to the queue for generateChildEdits.
          * Only elements (and not text nodes) are added. New nodes (ones that aren't in the
-         * old nodeMap, are not added here because they will be added when generateChildEdits
+         * old nodeMap), are not added here because they will be added when generateChildEdits
          * creates the elementInsert edit.
          */
         var queuePush = function (node) {
@@ -1247,7 +1252,7 @@ define(function (require, exports, module) {
                 // Are attributes different?
                 if (currentElement.attributeSignature !== oldElement.attributeSignature) {
                     // generate attribute edits
-                    attributeCompare(edits, oldElement, currentElement);
+                    generateAttributeEdits(edits, oldElement, currentElement);
                 }
                 
                 // Has there been a change to this node's immediate children?
