@@ -55,12 +55,11 @@ define(function main(require, exports, module) {
     var prefs;
     var params = new UrlParams();
     var config = {
-        experimental: false,        // enable experimental features
-        debug: true,                // enable debug output and helpers
-        autoconnect: false,         // go live automatically after startup?
-        livehtml: false,            // enable live HTML?
-        highlight: true,            // enable highlighting?
-        highlightConfig: {          // the highlight configuration for the Inspector
+        experimental: false, // enable experimental features
+        debug: true, // enable debug output and helpers
+        autoconnect: false, // go live automatically after startup?
+        highlight: true, // enable highlighting?
+        highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
             contentColor: {r: 111, g: 168, b: 220, a: 0.55},
             marginColor:  {r: 246, g: 178, b: 107, a: 0.66},

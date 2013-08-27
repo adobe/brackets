@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -201,7 +201,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
         // Make sure LiveHTML is turned on
-        if (!LiveDevelopment.config.livehtml) {
+        if (!brackets.livehtml) {
             return;
         }
 
