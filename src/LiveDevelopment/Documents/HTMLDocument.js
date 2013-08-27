@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -200,6 +200,11 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        // Make sure LiveHTML is turned on
+        if (!brackets.livehtml) {
+            return;
+        }
+
         // Apply DOM edits is async, so previous PerfUtils timer may still be
         // running. PerfUtils does not support running multiple timers with same
         // name, so do not start another timer in this case.
