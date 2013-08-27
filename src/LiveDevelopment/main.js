@@ -58,7 +58,7 @@ define(function main(require, exports, module) {
         experimental: false,        // enable experimental features
         debug: true,                // enable debug output and helpers
         autoconnect: false,         // go live automatically after startup?
-        livehtml: true,             // enable live HTML?
+        livehtml: false,            // enable live HTML?
         highlight: true,            // enable highlighting?
         highlightConfig: {          // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
