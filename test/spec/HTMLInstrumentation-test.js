@@ -22,8 +22,9 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine, Node */
+/*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,32 +33,360 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+        RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        MurmurHash3         = require("thirdparty/murmurhash3_gc"),
+        WellFormedDoc       = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
+        NotWellFormedDoc    = require("text!spec/HTMLInstrumentation-test-files/omitEndTags.html"),
+        InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
+        BigDoc              = require("text!spec/HTMLInstrumentation-test-files/REC-widgets-20121127.html");
     
-    var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-        WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html"),
-        NotWellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/omitEndTags.html"),
-        InvalidHTMLFileEntry =  new NativeFileSystem.FileEntry(testPath + "/invalidHTML.html"),
-        editor,
+    RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
+    
+    var editor,
         instrumentedHTML,
         elementCount,
         elementIds = {};
     
-    function init(spec, fileEntry) {
-        spec.fileContent = null;
-        
-        if (fileEntry) {
-            runs(function () {
-                FileUtils.readAsText(fileEntry)
-                    .done(function (text) {
-                        spec.fileContent = text;
-                    });
+    function createBlankDOM() {
+        // This creates a DOM for a blank document that we can clone when we want to simulate 
+        // starting from an empty document (which, in the browser, includes implied html/head/body
+        // tags). We have to also strip the tagIDs from this DOM since they won't appear in the
+        // browser in this case.
+        var dom = HTMLInstrumentation._buildSimpleDOM("<html><head></head><body></body></html>", true);
+        Object.keys(dom.nodeMap).forEach(function (key) {
+            var node = dom.nodeMap[key];
+            delete node.tagID;
+        });
+        dom.nodeMap = {};
+        return dom;
+    }
+    
+    function removeDescendentsFromNodeMap(nodeMap, node) {
+        var mappedNode = nodeMap[node.tagID];
+        delete nodeMap[node.tagID];
+        if (node.children) {
+            node.children.forEach(function (child) {
+                removeDescendentsFromNodeMap(nodeMap, child);
             });
-            
-            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
         }
     }
+    
+    /**
+     * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
+     * features of a real DOM object. It specifically adds the features required for
+     * the RemoteFunctions code that applies patches and is not a general DOM implementation.
+     *
+     * Standard DOM methods below are not documented, but the ones unique to this test harness
+     * are.
+     */
+    var domFeatures = Object.create({
+        insertBefore: function (newElement, referenceElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
+            var index = this.children.indexOf(referenceElement);
+            this.children.splice(index, 0, newElement);
+            newElement.parent = this;
+            newElement.addToNodeMap();
+        },
+        appendChild: function (newElement) {
+            if (newElement.parent && newElement.parent !== this) {
+                newElement.remove();
+            }
+            this.children.push(newElement);
+            newElement.parent = this;
+            newElement.addToNodeMap();
+        },
         
+        /**
+         * The nodeMap keeps track of the Brackets-assigned tag ID to node object mapping.
+         * This method adds this element to the nodeMap if it has a data-brackets-id
+         * attribute set (something that the client-side applyEdits code will do).
+         */
+        addToNodeMap: function () {
+            if (this.attributes && this.attributes["data-brackets-id"]) {
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    nodeMap[this.attributes["data-brackets-id"]] = this;
+                } else {
+                    console.error("Unable to get nodeMap from", this);
+                }
+            }
+        },
+        remove: function () {
+            if (this.tagID) {
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    removeDescendentsFromNodeMap(nodeMap, this);
+                }
+            }
+            var siblings = this.siblings;
+            var index = siblings.indexOf(this);
+            if (index > -1) {
+                siblings.splice(index, 1);
+                this.parent = null;
+            } else {
+                console.error("Unexpected attempt to remove (not in siblings)", this);
+            }
+        },
+        
+        /**
+         * Search node by node up the tree until a nodeMap is found. Returns undefined
+         * if no nodeMap is found.
+         */
+        getNodeMap: function () {
+            var elem = this,
+                nodeMap;
+            while (elem) {
+                nodeMap = elem.nodeMap;
+                if (nodeMap) {
+                    break;
+                }
+                elem = elem.parent;
+            }
+            return nodeMap;
+        },
+        setAttribute: function (key, value) {
+            if (key === "data-brackets-id") {
+                this.tagID = value;
+                var nodeMap = this.getNodeMap();
+                if (nodeMap) {
+                    nodeMap[key] = this;
+                } else {
+                    console.error("no nodemap found for ", this);
+                }
+
+            }
+            this.attributes[key] = value;
+        },
+        removeAttribute: function (key) {
+            delete this.attributes[key];
+        },
+        
+        returnFailure: function (other) {
+            console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
+            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this));
+            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other));
+            return false;
+        },
+        
+        /**
+         * Compares two SimpleDOMs with the expectation that they are exactly the same.
+         */
+        compare: function (other) {
+            if (this.children) {
+                if (this.tag !== other.tag) {
+                    expect("Tag " + this.tag + " for tagID " + this.tagID).toEqual(other.tag);
+                    return this.returnFailure(other);
+                }
+                
+                if (this.tagID !== other.tagID) {
+                    expect("tagID " + this.tagID).toEqual(other.tagID);
+                    return this.returnFailure(other);
+                }
+                
+                delete this.attributes["data-brackets-id"];
+                expect(this.attributes).toEqual(other.attributes);
+                
+                // Skip implied tags in this (fake browser) DOM. (The editor's DOM
+                // should never have implied tags.)
+                var myChildren = [];
+                this.children.forEach(function (child) {
+                    var isImplied = (child.tag === "html" || child.tag === "head" || child.tag === "body") && child.tagID === undefined;
+                    if (!isImplied) {
+                        myChildren.push(child);
+                    }
+                });
+                
+                if (myChildren.length !== other.children.length) {
+                    expect("tagID " + this.tagID + " has " + myChildren.length + " unimplied children").toEqual(other.children.length);
+                    return this.returnFailure(other);
+                }
+                var i;
+                for (i = 0; i < myChildren.length; i++) {
+                    if (!myChildren[i].compare(other.children[i])) {
+                        return false;
+                    }
+                }
+            } else {
+                if (this.content !== other.content) {
+                    expect(this.content).toEqual(other.content);
+                    return this.returnFailure(other);
+                }
+            }
+            return true;
+        }
+    }, {
+        firstChild: {
+            get: function () {
+                return this.children[0];
+            }
+        },
+        lastChild: {
+            get: function () {
+                return this.children[this.children.length - 1];
+            }
+        },
+        siblings: {
+            get: function () {
+                return this.parent.children;
+            }
+        },
+        nextSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index + 1];
+            }
+        },
+        previousSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index - 1];
+            }
+        },
+        nodeType: {
+            get: function () {
+                if (this.children) {
+                    return Node.ELEMENT_NODE;
+                } else if (this.content) {
+                    return Node.TEXT_NODE;
+                }
+            }
+        },
+        childNodes: {
+            get: function () {
+                var children = this.children;
+                if (!children.item) {
+                    children.item = function (index) {
+                        return children[index];
+                    };
+                }
+                return children;
+            }
+        }
+    });
+    
+    // This style of setting __proto__ is purely to keep JSLint happy :(
+    var proto = '__proto__';
+    
+    /**
+     * Adds the domFeatures defined above to a SimpleDOM node and all of its children.
+     * This works by changing the __proto__ property of the node.
+     *
+     * @param {Object} node SimpleDOM node to augment
+     */
+    function addDOMFeatures(node) {
+        node[proto] = domFeatures;
+        if (node.children) {
+            node.children.forEach(addDOMFeatures);
+        }
+    }
+    
+    /**
+     * Creates a deep clone of a SimpleDOM tree, adding the domFeatures as it goes
+     * along.
+     * 
+     * @param {Object} root root node of the SimpleDOM to clone
+     * @return {Object} cloned SimpleDOM with domFeatures applied
+     */
+    function cloneDOM(root) {
+        var nodeMap = {};
+        
+        // If there's no DOM to clone, then we must be starting from an empty document,
+        // so start with a document that already has implied <html>/<head>/<body>, since
+        // that's what the browser does.
+        if (!root) {
+            root = createBlankDOM();
+        }
+        
+        function doClone(parent, node) {
+            var newNode = Object.create(domFeatures);
+            newNode.parent = parent;
+            if (node.tagID) {
+                nodeMap[node.tagID] = newNode;
+                newNode.tagID = node.tagID;
+            }
+            newNode.content = node.content;
+            if (node.children) {
+                newNode.tag = node.tag;
+                newNode.attributes = $.extend({}, node.attributes);
+                newNode.children = node.children.map(function (child) {
+                    return doClone(newNode, child);
+                });
+            } else {
+                newNode.content = node.content;
+            }
+            return newNode;
+        }
+        
+        var newRoot = doClone(null, root);
+        newRoot.nodeMap = nodeMap;
+        return newRoot;
+    }
+    
+    /**
+     * The RemoteFunctions code that applies edits to the DOM expects only a few things to
+     * be present on the document object. This FakeDocument bridges the gap between a
+     * SimpleDOM and real DOM for the purposes of applying edits.
+     *
+     * @param {Object} dom The DOM we're wrapping with this document.
+     */
+    var FakeDocument = function (dom) {
+        var self = this;
+        this.nodeMap = dom.nodeMap;
+        
+        // Walk the DOM looking for html/head/body tags. We can't use the nodeMap for this
+        // because it might be nulled out in the cases where we're simulating the browser
+        // creating implicit html/head/body tags.
+        function walk(node) {
+            if (node.tag === "html") {
+                self.documentElement = node;
+            } else if (node.tag === "head" || node.tag === "body") {
+                self[node.tag] = node;
+            }
+            
+            if (node.children) {
+                node.children.forEach(walk);
+            }
+        }
+        
+        walk(dom);
+    };
+    
+    // The DOM edit code only performs this kind of query
+    var bracketsIdQuery = /\[data-brackets-id='(\d+)'\]/;
+    
+    FakeDocument.prototype = {
+        createTextNode: function (content) {
+            var text = Object.create(domFeatures);
+            text.content = content;
+            return text;
+        },
+        createElement: function (tag) {
+            var el = Object.create(domFeatures);
+            el.tag = tag;
+            el.attributes = {};
+            el.children = [];
+            el.nodeMap = this.nodeMap;
+            return el;
+        },
+        querySelectorAll: function (query) {
+            var match = bracketsIdQuery.exec(query);
+            expect(match).not.toBeNull();
+            if (!match) {
+                return [];
+            }
+            var id = match[1];
+            var element = this.nodeMap[id];
+            if (element) {
+                return [element];
+            }
+        }
+    };
+    
     describe("HTML Instrumentation", function () {
         
         function getIdToTagMap(instrumentedHTML, map) {
@@ -101,16 +430,65 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
+        // Useful for debugging to see what the mark ranges. Just call it inside one of the following tests.
+        function _dumpMarks() {
+            var cm = editor._codeMirror,
+                marks = cm.getAllMarks();
+            marks.sort(function (mark1, mark2) {
+                var range1 = mark1.find(), range2 = mark2.find();
+                if (range1.from.line === range2.from.line) {
+                    return range1.from.ch - range2.from.ch;
+                } else {
+                    return range1.from.line - range2.from.line;
+                }
+            });
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID")) {
+                    var range = mark.find();
+                    console.log("<" + elementIds[mark.tagID] + "> (" + mark.tagID + ") " +
+                                range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+                }
+            });
+        }
+        
+        describe("interaction with document and editor", function () {
+            beforeEach(function () {
+                HTMLInstrumentation._resetCache();
+                
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
+                    expect(editor).toBeTruthy();
+                });
+            });
+            
+            it("should properly regenerate marks when instrumented HTML is re-requested after document is edited", function () {
+                runs(function () {
+                    var instrumented = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    getIdToTagMap(instrumented, elementIds);
+                    checkTagIdAtPos({line: 12, ch: 1}, "h1");
+                    
+                    editor.document.replaceRange("123456789012345678901234567890", {line: 12, ch: 0});
+                    instrumented = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    elementIds = {};
+                    getIdToTagMap(instrumented, elementIds);
+                    checkTagIdAtPos({line: 12, ch: 1}, "body");
+                    checkTagIdAtPos({line: 12, ch: 31}, "h1");
+                    
+                    var lines = instrumented.split("\n");
+                    expect(lines[12]).toMatch(/^123456789012345678901234567890<h1 data-brackets-id='[0-9]+'>GETTING STARTED WITH BRACKETS<\/h1>$/);
+                });
+            });
+        });
+                 
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, WellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
                     spyOn(editor.document, "getText").andCallThrough();
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                     
                     if (elementCount) {
@@ -130,7 +508,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(49);
+                    expect(elementCount).toEqual(15);
                 });
             });
             
@@ -162,23 +540,23 @@ define(function (require, exports, module) {
             
             it("should get 'img' tag for cursor positions inside img tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 58, ch: 4 }, "img");     // before <img
-                    checkTagIdAtPos({ line: 58, ch: 95 }, "img");    // after />
-                    checkTagIdAtPos({ line: 58, ch: 65 }, "img");    // inside src attribute value
+                    checkTagIdAtPos({ line: 37, ch: 4 }, "img");     // before <img
+                    checkTagIdAtPos({ line: 37, ch: 95 }, "img");    // after />
+                    checkTagIdAtPos({ line: 37, ch: 65 }, "img");    // inside src attribute value
                 });
             });
 
             it("should get the parent 'a' tag for cursor positions between 'img' and its parent 'a' tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 58, ch: 1 }, "a");    // before "   <img"
-                    checkTagIdAtPos({ line: 59, ch: 0 }, "a");    // before </a>
+                    checkTagIdAtPos({ line: 37, ch: 1 }, "a");    // before "   <img"
+                    checkTagIdAtPos({ line: 38, ch: 0 }, "a");    // before </a>
                 });
             });
 
             it("No tag at cursor positions outside of the 'html' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 0, ch: 4 }, "");    // inside 'doctype' tag
-                    checkTagIdAtPos({ line: 146, ch: 0 }, "");  // after </html>
+                    checkTagIdAtPos({ line: 41, ch: 0 }, "");  // after </html>
                 });
             });
 
@@ -217,12 +595,11 @@ define(function (require, exports, module) {
         describe("HTML Instrumentation in valid but not wellformed HTML", function () {
                 
             beforeEach(function () {
-                init(this, NotWellFormedFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(NotWellFormedDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -242,7 +619,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(41);
+                    expect(elementCount).toEqual(43);
                 });
             });
 
@@ -293,8 +670,13 @@ define(function (require, exports, module) {
             it("should get 'table' tag for cursor positions that are not in any unclosed child tags", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 17, ch: 17 }, "table");   // inside an attribute of table tag
-                    checkTagIdAtPos({ line: 21, ch: 0 }, "table");    // after a 'th' but before the start tag of another one 
                     checkTagIdAtPos({ line: 32, ch: 6 }, "table");    // inside </table> tag
+                });
+            });
+            
+            it("should get 'tr' tag for cursor positions between child tags", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 21, ch: 0 }, "tr");    // after a 'th' but before the start tag of another one 
                 });
             });
 
@@ -356,17 +738,22 @@ define(function (require, exports, module) {
                     checkTagIdAtPos({ line: 50, ch: 30 }, "footer");   // in </FOOTER>
                 });
             });
+            
+            it("should get 'body' for text after an h1 that closed a previous uncleosd paragraph", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 53, ch: 2 }, "body"); // in the text content after the h1
+                });
+            });
         });
 
         describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
                 
             beforeEach(function () {
-                init(this, InvalidHTMLFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    editor = SpecRunnerUtils.createMockEditor(InvalidHTMLDoc, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -410,11 +797,16 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get 'i' tag for cursor positions before </b>, inside </b> and after </b>.", function () {
+            it("should get 'i' tag for cursor position before </b>.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 18, ch: 20 }, "i");   // after <i> and before </b>
-                    checkTagIdAtPos({ line: 18, ch: 30 }, "i");   // inside </b>
-                    checkTagIdAtPos({ line: 18, ch: 34 }, "i");   // between </b> and </i>
+                    checkTagIdAtPos({ line: 18, ch: 28 }, "i");   // immediately before </b>
+                });
+            });
+            
+            it("should get 'p' tag after </b> because the </b> closed the overlapping <i>.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 18, ch: 34 }, "p");   // between </b> and </i>
                 });
             });
 
@@ -496,15 +888,1625 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Strict HTML parsing", function () {
+            it("should parse a document with balanced, void and self-closing tags", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
+            });
+            it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
+                var result = HTMLInstrumentation._buildSimpleDOM("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
+                expect(result).not.toBeNull();
+                expect(result.tag).toBe("div");
+                expect(result.children[0].tag).toBe("p");
+                expect(result.children[1].tag).toBe("h1");
+            });
+            it("should return null for an unclosed non-void/non-implied-close tag", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
+            });
+            it("should return null for an extra close tag", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
+            });
+            it("should return null if there are unclosed tags at the end of the document", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
+            });
+            it("should return null if there is a tokenization failure", function () {
+                expect(HTMLInstrumentation._buildSimpleDOM("<div<badtag></div>", true)).toBeNull();
+            });
+            
+            it("should handle empty attributes", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<input disabled>", true);
+                expect(dom.attributes.disabled).toEqual("");
+            });
+            
+            it("should merge text nodes around a comment", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<div>Text <!-- comment --> Text2</div>", true);
+                expect(dom.children.length).toBe(1);
+                var textNode = dom.children[0];
+                expect(textNode.content).toBe("Text  Text2");
+                expect(textNode.textSignature).toBeDefined();
+            });
+        });
+        
         describe("HTML Instrumentation in dirty files", function () {
-                
-            beforeEach(function () {
-                init(this, WellFormedFileEntry);
+            var changeList, offsets;
+
+            function setupEditor(docText, useOffsets) {
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    if (useOffsets) {
+                        var result = SpecRunnerUtils.parseOffsetsFromText(docText);
+                        docText = result.text;
+                        offsets = result.offsets;
+                    }
+                    editor = SpecRunnerUtils.createMockEditor(docText, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    $(editor).on("change.instrtest", function (event, editor, change) {
+                        changeList = change;
+                    });
+                    
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            }
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                changeList = null;
+                offsets = null;
+            });
+            
+            function doEditTest(origText, editFn, expectationFn, incremental, noRefresh) {
+                // We need to fully reset the editor/mark state between the full and incremental tests
+                // because if new DOM nodes are added by the edit, those marks will be present after the
+                // full test, messing up the incremental test.
+                if (!noRefresh) {
+                    editor.document.refreshText(origText);
+                }
+                
+                var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    result;
+                
+                var clonedDOM = cloneDOM(previousDOM);
+                
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                editFn(editor, previousDOM);
+
+                // Note that even if we pass a change list, `_updateDOM` will still choose to do a
+                // full reparse and diff if the change includes a structural character.
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                var doc = new FakeDocument(clonedDOM);
+                var editHandler = new RemoteFunctions.DOMEditHandler(doc);
+                editHandler.apply(result.edits);
+                clonedDOM.compare(result.dom);
+                expectationFn(result, previousDOM, incremental);
+            }
+
+            function doFullAndIncrementalEditTest(editFn, expectationFn) {
+                var origText = editor.document.getText();
+                doEditTest(origText, editFn, expectationFn, false);
+                changeList = null;
+                
+                if (HTMLInstrumentation._allowIncremental) {
+                    doEditTest(origText, editFn, expectationFn, true);
+                }
+            }
+            
+            // Common functionality between typeAndExpect() and deleteAndExpect().
+            function doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid, numIterations, operationFn, posUpdateFn) {
+                var i, result, clonedDOM;
+                for (i = 0; i < numIterations; i++) {
+                    clonedDOM = cloneDOM(curDOM);
+                    
+                    operationFn(i, pos);
+                    result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
+                    if (!edits) {
+                        expect(result).toBeNull();
+                        wasInvalid = true;
+                    } else {
+                        var expectedEdit = edits[i];
+                        if (typeof expectedEdit === "function") {
+                            // This lets the caller access the most recent updated DOM values when
+                            // specifying the expected edit.
+                            expectedEdit = expectedEdit(result.dom);
+                        }
+                        expect(result.edits).toEqual(expectedEdit);
+                        wasInvalid = false;
+                        
+                        var doc = new FakeDocument(clonedDOM);
+                        var editHandler = new RemoteFunctions.DOMEditHandler(doc);
+                        editHandler.apply(result.edits);
+                        clonedDOM.compare(result.dom);
+                        
+                        curDOM = result.dom;
+                    }
+                    posUpdateFn(pos);
+                }
+                
+                return {finalDOM: curDOM, finalPos: pos, finalInvalid: wasInvalid};
+            }
+            
+            /*
+             * Simulates typing the given string character by character. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function typeAndExpect(editor, curDOM, pos, str, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    str.length,
+                    function (i, pos) {
+                        editor.document.replaceRange(str.charAt(i), pos);
+                    },
+                    function (pos) {
+                        pos.ch++;
+                    });
+            }
+            
+            /*
+             * Simulates deleting the specified number of characters one at a time. If edits is specified, then
+             * each successive character is expected to generate the edits at that position in the array.
+             * If edits is unspecified, then the document is expected to be in an invalid state at each
+             * step, so no edits should be generated.
+             * Returns the final DOM after all the edits, or the original DOM if the document is in an invalid state.
+             */
+            function deleteAndExpect(editor, curDOM, pos, numToDelete, edits, wasInvalid) {
+                return doOperationAndExpect(editor, curDOM, pos, edits, wasInvalid,
+                    numToDelete,
+                    function (i, pos) {
+                        editor.document.replaceRange("", {line: pos.line, ch: pos.ch - 1}, pos);
+                    },
+                    function (pos) {
+                        pos.ch--;
+                    });
+            }
+            
+            it("should re-instrument after document is dirtied", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var pos = {line: 15, ch: 0};
+                    editor.document.replaceRange("<div>New Content</div>", pos);
+                    
+                    var newInstrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor),
+                        newElementIds = {},
+                        newElementCount = getIdToTagMap(newInstrumentedHTML, newElementIds);
+                    
+                    expect(newElementCount).toBe(elementCount + 1);
+                });
+            });
+            
+            it("should build simple DOM", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    expect(dom.tagID).toEqual(jasmine.any(Number));
+                    expect(dom.tag).toEqual("html");
+                    expect(dom.start).toEqual(16);
+                    expect(dom.end).toEqual(1269);
+                    expect(dom.subtreeSignature).toEqual(jasmine.any(Number));
+                    expect(dom.childSignature).toEqual(jasmine.any(Number));
+                    expect(dom.children.length).toEqual(5);
+                    var meta = dom.children[1].children[1];
+                    expect(Object.keys(meta.attributes).length).toEqual(1);
+                    expect(meta.attributes.charset).toEqual("utf-8");
+                    var titleContents = dom.children[1].children[5].children[0];
+                    expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
+                    expect(titleContents.textSignature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
+                    expect(dom.children[1].parent).toEqual(dom);
+                    expect(dom.nodeMap[meta.tagID]).toBe(meta);
+                    expect(meta.childSignature).toEqual(jasmine.any(Number));
+                });
+            });
+            
+            it("should mark editor text based on the simple DOM", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, dom);
+                    expect(editor._codeMirror.getAllMarks().length).toEqual(15);
+                });
+            });
+            
+            it("should handle no diff", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    expect(result.edits).toEqual([]);
+                    expect(result.dom).toEqual(previousDOM);
+                });
+            });
+            
+            it("should handle attribute change", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(", awesome", { line: 7, ch: 56 });
+                            tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrChange",
+                                tagID: tagID,
+                                attribute: "content",
+                                value: "An interactive, awesome getting started guide for Brackets."
+                            });
+                            
+                            if (incremental) {
+                                // this should have been a true incremental edit
+                                expect(result._wasIncremental).toBe(true);
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle new attributes", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange(" class='supertitle'", { line: 12, ch: 3 });
+                            tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrAdd",
+                                tagID: tagID,
+                                attribute: "class",
+                                value: "supertitle"
+                            });
+
+                            if (incremental) {
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+
+                        }
+                    );
+                });
+            });
+            
+            it("should handle deleted attributes", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 7, ch: 32}, {line: 7, ch: 93});
+                            tagID = previousDOM.children[1].children[7].tagID;
+                            origParent = previousDOM.children[1];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "attrDelete",
+                                tagID: tagID,
+                                attribute: "content"
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been a true incremental edit since it changed the attribute structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+
+                            // entire tree should be different
+                            expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                        }
+                    );
+                });
+            });
+            
+            it("should handle simple altered text", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var tagID, origParent;
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                            tagID = previousDOM.children[3].children[1].tagID;
+                            origParent = previousDOM.children[3];
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(result.edits.length).toEqual(1);
+                            expect(previousDOM.children[3].children[1].tag).toEqual("h1");
+                            
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: tagID,
+                                content: "GETTING AWESOMER WITH BRACKETS"
+                            });
+                            
+                            if (incremental) {
+                                // this should have been an incremental edit since it was just typing
+                                expect(result._wasIncremental).toBe(true);
+                                // make sure the parent of the change is still the same node as in the old tree
+                                expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                            } else {
+                                // entire tree should be different
+                                expect(result.dom.nodeMap[tagID].parent).not.toBe(origParent);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle two incremental text edits in a row", function () {
+                // Short-circuit this test if we're running without incremental updates
+                if (!HTMLInstrumentation._allowIncremental) {
+                    return;
+                }
+                
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.children[3].children[1].tagID,
+                        result,
+                        origParent = previousDOM.children[3];
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        parentID: tagID,
+                        content: "GETTING AWESOMER WITH BRACKETS"
+                    });
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                    
+                    editor.document.replaceRange("MOAR AWESOME", {line: 12, ch: 12}, {line: 12, ch: 20});
+                    
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+                    
+                    // TODO: how to test that only an appropriate subtree was reparsed/diffed?
+                    expect(result.edits.length).toEqual(1);
+                    expect(result.dom.children[3].children[1].tag).toEqual("h1");
+                    expect(result.dom.children[3].children[1].tagID).toEqual(tagID);
+                    expect(result.edits[0]).toEqual({
+                        type: "textReplace",
+                        parentID: tagID,
+                        content: "GETTING MOAR AWESOME WITH BRACKETS"
+                    });
+                    
+                    // this should have been an incremental edit since it was just typing
+                    expect(result._wasIncremental).toBe(true);
+                    // make sure the parent of the change is still the same node as in the old tree
+                    expect(result.dom.nodeMap[tagID].parent).toBe(origParent);
+                });
+            });
+            
+            it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+
+                    // While the tag is incomplete, we should get no edits.                    
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // This simulates our autocomplete behavior. The next case simulates the non-autocomplete case.
+                    editor.document.replaceRange("></p>", {line: 12, ch: 40});
+                    
+                    // We don't pass the changeList here, to simulate doing a full rebuild (which is
+                    // what the normal incremental update logic would do after invalid edits).
+                    // TODO: a little weird that we're not going through the normal update logic
+                    // (in getUnappliedEditList, etc.)
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                                        
+                    // This should really only have one edit (the tag insertion), but it also
+                    // deletes and recreates the whitespace after it, similar to other insert cases.
+                    var newElement = result.dom.children[3].children[2],
+                        parentID = newElement.parent.tagID,
+                        afterID = result.dom.children[3].children[1].tagID,
+                        beforeID = result.dom.children[3].children[4].tagID;
+                    expect(result.edits.length).toEqual(3);
+                    expect(newElement.tag).toEqual("p");
+                    expect(result.edits[0]).toEqual({
+                        type: "textDelete",
+                        parentID: parentID,
+                        afterID: afterID,
+                        beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "elementInsert",
+                        tag: "p",
+                        tagID: newElement.tagID,
+                        attributes: {},
+                        parentID: parentID,
+                        beforeID: beforeID // TODO: why is there no afterID here?
+                    });
+                    expect(result.edits[2]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: parentID,
+                        afterID: newElement.tagID,
+                        beforeID: beforeID
+                    });
+                });
+            });
+
+            it("should handle typing of a <p> without a </p> and then adding it later", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // No edits should occur while we're invalid.
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 38}, "<p");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // This simulates what would happen if autocomplete were off. We're actually
+                    // valid at this point since <p> is implied close. We want to make sure that
+                    // basically nothing happens if the user types </p> after this.
+                    editor.document.replaceRange(">", {line: 12, ch: 40});
+                    
+                    // We don't pass the changeList here, to simulate doing a full rebuild (which is
+                    // what the normal incremental update logic would do after invalid edits).
+                    // TODO: a little weird that we're not going through the normal update logic
+                    // (in getUnappliedEditList, etc.)
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                                        
+                    // Since the <p> is unclosed, we think the whitespace after it is inside it.
+                    var newElement = result.dom.children[3].children[2],
+                        parentID = newElement.parent.tagID,
+                        afterID = result.dom.children[3].children[1].tagID,
+                        beforeID = result.dom.children[3].children[3].tagID;
+                    expect(result.edits.length).toEqual(3);
+                    expect(newElement.tag).toEqual("p");
+                    expect(newElement.children.length).toEqual(1);
+                    expect(newElement.children[0].content).toEqual("\n");
+                    expect(result.edits[0]).toEqual({
+                        type: "textDelete",
+                        parentID: parentID,
+                        afterID: afterID,
+                        beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "elementInsert",
+                        tag: "p",
+                        tagID: newElement.tagID,
+                        attributes: {},
+                        parentID: parentID,
+                        beforeID: beforeID // No afterID because beforeID is preferred given the insertBefore DOM API
+                    });
+                    expect(result.edits[2]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: newElement.tagID,
+                        lastChild: true
+                    });
+                    
+                    // We should get no edits while typing the close tag.
+                    previousDOM = result.dom;
+                    result = typeAndExpect(editor, previousDOM, {line: 12, ch: 41}, "</p");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // When we type the ">" at the end, we should get a delete of the text inside the <p>
+                    // and an insert of text after the </p> since we now know that the close is before the
+                    // text.
+                    editor.document.replaceRange(">", {line: 12, ch: 44});
+                    result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+                    
+                    newElement = result.dom.children[3].children[2];
+                    beforeID = result.dom.children[3].children[4].tagID;
+                    expect(newElement.children.length).toEqual(0);
+                    expect(result.dom.children[3].children[3].content).toEqual("\n");
+                    expect(result.edits.length).toEqual(2);
+                    expect(result.edits[0]).toEqual({
+                        type: "textInsert",
+                        content: "\n",
+                        parentID: newElement.parent.tagID,
+                        afterID: newElement.tagID,
+                        beforeID: beforeID
+                    });
+                    expect(result.edits[1]).toEqual({
+                        type: "textDelete",
+                        parentID: newElement.tagID
+                    });
+                });
+            });
+            
+            it("should handle deleting of an empty tag character-by-character", function () {
+                setupEditor("<p><img>{{0}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        imgTagID = previousDOM.children[0].tagID,
+                        result;
+ 
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                                        
+                    // First four deletions should keep it in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 4);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: imgTagID}]
+                    ], true);
+                });
+            });
+
+            it("should handle deleting of a non-empty tag character-by-character", function () {
+                setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        pTagID = previousDOM.children[0].tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // All the deletions until we get to the "<" should leave the document in an invalid state.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 14);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
+                        [{type: "elementDelete", tagID: pTagID}]
+                    ], true);
+                });
+            });
+
+            it("should handle typing of a new attribute character-by-character", function () {
+                setupEditor("<p{{0}}>some text</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type a space after the tag name, then the attribute name. After the space,
+                    // it should be valid but there should be no actual edits. After that, it should
+                    // look like we're repeatedly adding a new empty attribute and deleting the old one.
+                    // edits to be generated.
+                    result = typeAndExpect(editor, previousDOM, offsets[0], " class", [
+                        [], // " "
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " class"
+                            {type: "attrAdd", tagID: tagID, attribute: "class", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
+                        ]
+                    ]);
+                    
+                    // While typing the "=" and quoted value, nothing should happen until the quote is balanced.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, "='myclass");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does).
+                    
+                    // When the close quote is typed, we should get an attribute change.
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, "'", [
+                        [
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: "myclass"}
+                        ]
+                    ], true);
+                });
+            });
+
+            it("should handle deleting of an attribute character-by-character", function () {
+                setupEditor("<p class='myclass'{{0}}>some text</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Delete the attribute value starting from the end quote. We should be invalid until
+                    // we delete the = sign.
+                    result = deleteAndExpect(editor, previousDOM, offsets[0], 9);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // We're exiting an invalid state, so we pass "true" for the final argument
+                    // here, which forces a full reparse (the same as getUnappliedEdits() does)
+                    // for the first edit.
+                    
+                    // Delete the = sign, then the name, then the space. This should look like 
+                    // setting the value to "", then changing the attribute name, then an empty edit.
+                    deleteAndExpect(editor, result.finalDOM, result.finalPos, 6, [
+                        [ // " class"
+                            {type: "attrChange", tagID: tagID, attribute: "class", value: ""}
+                        ],
+                        [ // " clas"
+                            {type: "attrAdd", tagID: tagID, attribute: "clas", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "class"}
+                        ],
+                        [ // " cla"
+                            {type: "attrAdd", tagID: tagID, attribute: "cla", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "clas"}
+                        ],
+                        [ // " cl"
+                            {type: "attrAdd", tagID: tagID, attribute: "cl", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "cla"}
+                        ],
+                        [ // " c"
+                            {type: "attrAdd", tagID: tagID, attribute: "c", value: ""},
+                            {type: "attrDelete", tagID: tagID, attribute: "cl"}
+                        ],
+                        [ // " "
+                            {type: "attrDelete", tagID: tagID, attribute: "c"}
+                        ],
+                        [] // deletion of space
+                    ], true);
+                });
+            });
+            
+            it("should handle wrapping a tag around some text character by character", function () {
+                setupEditor("<p>{{0}}some text{{1}}</p>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID = previousDOM.tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<span>");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Type the end tag--should be invalid until we type the closing character
+                    // The offset is 6 characters later than the original position of offset 1 since we
+                    // inserted the opening tag.
+                    result = typeAndExpect(editor, result.finalDOM, {line: offsets[1].line, ch: offsets[1].ch + 6}, "</span", null, true);
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag.
+                    typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "textDelete",
+                                    parentID: dom.tagID
+                                },
+                                {
+                                    type: "elementInsert",
+                                    tag: "span",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                },
+                                {
+                                    type: "textInsert",
+                                    parentID: dom.children[0].tagID,
+                                    content: "some text",
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+            
+            it("should handle adding an <html> tag into an empty document", function () {
+                setupEditor("");
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    // Nothing to mark since it's currently an empty document.
+                    expect(previousDOM).toBe(null);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html></html");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "html",
+                                    attributes: {},
+                                    tagID: dom.tagID,
+                                    parentID: null
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                    
+                    // Make sure the mark got properly applied
+                    var marks = editor._codeMirror.getAllMarks();
+                    expect(marks.length).toBe(1);
+                    expect(marks[0].tagID).toEqual(result.finalDOM.tagID);
+                });
+            });
+
+            it("should handle adding a <head> tag into a document", function () {
+                setupEditor("<html>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<head></head");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "head",
+                                    attributes: {},
+                                    tagID: dom.children[0].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
+            it("should handle adding a <body> tag into a document", function () {
+                setupEditor("<html><head></head>{{0}}</html>", true);
+                runs(function () {
+                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                        tagID,
+                        result;
+                    
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                    
+                    // Type the opening tag--should be invalid all the way
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body></body");
+                    expect(result.finalInvalid).toBe(true);
+                    
+                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // should be treated specially by RemoteFunctions not to actually insert the
+                    // element, but just copy its ID to the autocreated HTML element.
+                    result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
+                        function (dom) { // check for tagIDs relative to the DOM after typing
+                            return [
+                                {
+                                    type: "elementInsert",
+                                    tag: "body",
+                                    attributes: {},
+                                    tagID: dom.children[1].tagID,
+                                    parentID: dom.tagID,
+                                    lastChild: true
+                                }
+                            ];
+                        }
+                    ], true); // because we were invalid before this operation
+                });
+            });
+
+            it("should represent simple new tag insert", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[5];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            expect(result.edits.length).toEqual(4);
+                            var beforeID = newElement.parent.children[7].tagID,
+                                afterID = newElement.parent.children[3].tagID;
+                            
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.parent.tagID,
+                                afterID: newElement.tagID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should be able to add two tags at once", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>New Content</div><div>More new content</div>", {line: 15, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[5];
+                            var newElement2 = newDOM.children[3].children[6];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement2.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement2.tagID).not.toEqual(newElement.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            expect(newElement2.children[0].content).toEqual("More new content");
+                            expect(result.edits.length).toEqual(6);
+                            var beforeID = newElement.parent.children[8].tagID,
+                                afterID = newElement.parent.children[3].tagID;
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement2.tagID,
+                                parentID: newElement2.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement2.parent.tagID,
+                                afterID: newElement2.tagID,
+                                beforeID: beforeID,
+                                content: "\n\n"
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement2.tagID,
+                                content: "More new content",
+                                lastChild: true
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
+                            });
+
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should be able to paste a tag with a nested tag", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>New <em>Awesome</em> Content</div>", {line: 13, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            
+                            var newElement = newDOM.children[3].children[3],
+                                newChild = newElement.children[1];
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement.children.length).toEqual(3);
+                            expect(newElement.children[0].content).toEqual("New ");
+                            expect(newChild.tag).toEqual("em");
+                            expect(newChild.tagID).not.toEqual(newElement.tagID);
+                            expect(newChild.children.length).toEqual(1);
+                            expect(newChild.children[0].content).toEqual("Awesome");
+                            expect(newElement.children[2].content).toEqual(" Content");
+                            expect(result.edits.length).toEqual(5);
+                            
+                            var beforeID = newElement.parent.children[4].tagID;
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New ",
+                                lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "em",
+                                attributes: {},
+                                tagID: newChild.tagID,
+                                parentID: newElement.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: " Content",
+                                lastChild: true
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: newChild.tagID,
+                                content: "Awesome",
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+
+            it("should handle inserting an element as the first child", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<div>New Content</div>", {line: 10, ch: 12});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[0],
+                                parent = newElement.parent,
+                                parentID = parent.tagID,
+                                beforeID = parent.children[2].tagID;
+                            
+                            // TODO: More optimally, this would take
+                            // 2 edits rather than 4:
+                            // * an elementInsert for the new element
+                            // * a textInsert for the new text of the
+                            //   new element.
+                            //
+                            // It current requires 4 edits because the
+                            // whitespace text node that comes after
+                            // the body tag is deleted and recreated
+                            expect(result.edits.length).toBe(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: parentID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                parentID: parentID,
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                parentID: parentID,
+                                content: "\n\n",
+                                afterID: newElement.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle inserting an element as the last child", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            // insert a new element at the end of a paragraph
+                            editor.document.replaceRange("<strong>New Content</strong>", {line: 33, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[7].children[3],
+                                parent = newElement.parent,
+                                parentID = parent.tagID,
+                                afterID = parent.children[2].tagID;
+                            
+                            expect(result.edits.length).toBe(2);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                parentID: parentID,
+                                lastChild: true,
+                                tag: "strong",
+                                attributes: {},
+                                tagID: newElement.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.tagID,
+                                content: "New Content",
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle inserting an element before an existing text node", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    editor.document.replaceRange("<strong>pre-edit child</strong>", {line: 33, ch: 0});
+
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<strong>New Content</strong>", {line: 29, ch: 59});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[7].children[2],
+                                parent = newElement.parent,
+                                parentID = parent.tagID,
+                                afterID = parent.children[1].tagID,
+                                beforeID = parent.children[4].tagID;
+                            
+                            expect(result.edits.length).toBe(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: parentID,
+                                afterID: afterID,
+                                beforeID: beforeID
+                            });
+                                
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                parentID: parentID,
+                                beforeID: beforeID,
+                                tag: "strong",
+                                attributes: {},
+                                tagID: newElement.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                parentID: parentID,
+                                content: jasmine.any(String),
+                                afterID: newElement.tagID,
+                                beforeID: beforeID
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+
+            it("should represent simple new tag insert immediately after previous tag before text before tag", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    var ed;
+                    
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            ed = editor;
+                            editor.document.replaceRange("<div>New Content</div>", {line: 12, ch: 38});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            
+                            // first child is whitespace, second child is <h1>, third child is new tag
+                            var newElement = newDOM.children[3].children[2],
+                                afterID = newElement.parent.children[1].tagID,
+                                beforeID = newElement.parent.children[4].tagID;
+                            expect(newElement.tag).toEqual("div");
+                            expect(newElement.tagID).not.toEqual(newElement.parent.tagID);
+                            expect(newElement.children[0].content).toEqual("New Content");
+                            
+                            // 4 edits: 
+                            // - delete original \n
+                            // - insert new tag
+                            // - insert text in tag
+                            // - re-add \n after tag
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "textDelete",
+                                parentID: newElement.parent.tagID,
+                                afterID: afterID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                parentID: newElement.parent.tagID,
+                                content: jasmine.any(String),
+                                afterID: newElement.tagID,
+                                beforeID: beforeID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "New Content",
+                                parentID: newElement.tagID,
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle new text insert between tags after whitespace", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("New Content", {line: 13, ch: 0});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[2];
+                            expect(newElement.content).toEqual("\nNew Content");
+                            expect(result.edits.length).toEqual(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                content: "\nNew Content",
+                                parentID: newElement.parent.tagID,
+                                afterID: newDOM.children[3].children[1].tagID,
+                                beforeID: newDOM.children[3].children[3].tagID
+                            });
+                            if (incremental) {
+                                // this should have been an incremental edit since it was just text
+                                expect(result._wasIncremental).toBe(true);
+                            }
+                        }
+                    );
+                });
+            });
+
+            it("should handle inserting an element in the middle of text", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("<img>", {line: 12, ch: 19});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newDOM = result.dom;
+                            var newElement = newDOM.children[3].children[1].children[1];
+                            
+                            expect(newElement.tag).toEqual("img");
+                            expect(newDOM.children[3].children[1].children[0].content).toEqual("GETTING STARTED");
+                            expect(newDOM.children[3].children[1].children[2].content).toEqual(" WITH BRACKETS");
+                            expect(result.edits.length).toEqual(3);
+                            expect(result.edits[0]).toEqual({
+                                type: "textReplace",
+                                content: "GETTING STARTED",
+                                parentID: newElement.parent.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newElement.tagID,
+                                parentID: newElement.parent.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                content: " WITH BRACKETS",
+                                parentID: newElement.parent.tagID,
+                                lastChild: true
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should handle reordering of children in one step as a delete/insert", function () {
+                setupEditor("<p>{{0}}<img><br>{{1}}</p>", true);
+                var oldImgID, oldBrID;
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            oldImgID = previousDOM.children[0].tagID;
+                            oldBrID = previousDOM.children[1].tagID;
+                            editor.document.replaceRange("<br><img>", offsets[0], offsets[1]);
+                        },
+                        function (result, previousDOM, incremental) {
+                            var newBrElement = result.dom.children[0],
+                                newImgElement = result.dom.children[1];
+                            
+                            expect(result.edits.length).toEqual(4);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tag: "br",
+                                attributes: {},
+                                tagID: newBrElement.tagID,
+                                parentID: result.dom.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "img",
+                                attributes: {},
+                                tagID: newImgElement.tagID,
+                                parentID: result.dom.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
+                            });
+                            
+                            if (incremental) {
+                                // this should not have been an incremental edit since it changed the DOM structure
+                                expect(result._wasIncremental).toBe(false);
+                            }
+                        }
+                    );
+                });
+            });
+            
+            it("should support deleting across tags", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("", {line: 20, ch: 11}, {line: 28, ch: 3});
+                        },
+                        function (result, previousDOM, incremental) {
+                            if (incremental) {
+                                return;
+                            }
+                            var newDOM = result.dom;
+                            var modifiedParagraph = newDOM.children[3].children[5];
+                            expect(modifiedParagraph.tag).toEqual("p");
+                            expect(modifiedParagraph.children.length).toEqual(3);
+                            
+                            var emTag = modifiedParagraph.children[1];
+                            expect(emTag.tag).toEqual("em");
+                            
+                            var deletedParagraph = previousDOM.children[3].children[7];
+                            expect(deletedParagraph.tag).toEqual("p");
+                            
+                            var aTag = previousDOM.children[3].children[9];
+                            expect(aTag.tag).toEqual("a");
+                            
+                            expect(result.edits.length).toEqual(6);
+                            expect(result.edits[0]).toEqual({
+                                type: "rememberNodes",
+                                tagIDs: [emTag.tagID]
+                            });
+                            
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: deletedParagraph.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textReplace",
+                                content: "\n\n\n",
+                                parentID: modifiedParagraph.parent.tagID,
+                                afterID: modifiedParagraph.tagID,
+                                beforeID: aTag.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textReplace",
+                                content: "\n    Welcome\n    ",
+                                parentID: modifiedParagraph.tagID
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "elementMove",
+                                tagID: emTag.tagID,
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: modifiedParagraph.tagID,
+                                lastChild: true,
+                                content: jasmine.any(String)
+                            });
+                        }
+                    );
+                });
+            });
+            
+            it("should support reparenting a node with new parent under the old parent", function () {
+                setupEditor(WellFormedDoc);
+                var currentText = WellFormedDoc;
+                var movingParagraph, newDiv;
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                    }, false);
+                });
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        movingParagraph = previousDOM.children[3].children[7];
+                        newDiv = previousDOM.children[3].children[5];
+                        editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
+                        editor.document.replaceRange("</div>", { line: 24, ch: 0 });
+                    }, function (result, previousDOM, incremental) {
+                        expect(movingParagraph.tag).toBe("p");
+                        expect(newDiv.tag).toBe("div");
+                        expect(result.edits.length).toBe(5);
+                        expect(result.edits[0].type).toBe("rememberNodes");
+                        expect(result.edits[0].tagIDs).toEqual([movingParagraph.tagID]);
+                        
+                        // The text replace should not refer to the moving node, because it is
+                        // going to be removed from the DOM.
+                        expect(result.edits[1].type).toEqual("textReplace");
+                        expect(result.edits[1].afterID).not.toEqual(movingParagraph.tagID);
+                        expect(result.edits[1].beforeID).not.toEqual(movingParagraph.tagID);
+                        
+                        expect(result.edits[3].type).toBe("elementMove");
+                        expect(result.edits[3].tagID).toBe(movingParagraph.tagID);
+                        expect(result.edits[3].parentID).toBe(newDiv.tagID);
+                    }, false);
+                });
+            });
+            
+            it("should support undo of a tag merge", function () {
+                setupEditor(WellFormedDoc);
+                var currentText = WellFormedDoc;
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.document.replaceRange("", { line: 23, ch: 0 }, { line: 29, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                    }, false);
+                });
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.undo();
+                    }, function (result, previousDOM, incremental) {
+                        var emNode = previousDOM.children[3].children[5].children[1];
+                        expect(emNode.tag).toBe("em");
+                        
+                        expect(result.edits.length).toBe(7);
+                        
+                        var edit = result.edits[0];
+                        expect(edit.type).toBe("rememberNodes");
+                        expect(edit.tagIDs).toEqual([emNode.tagID]);
+                        
+                        edit = result.edits[1];
+                        expect(edit.type).toBe("elementInsert");
+                        expect(edit.tag).toBe("p");
+                        var newParaID = edit.tagID;
+                        
+                        edit = result.edits[5];
+                        expect(edit.type).toBe("elementMove");
+                        expect(edit.tagID).toBe(emNode.tagID);
+                        expect(edit.parentID).toBe(newParaID);
+                    }, false, true);
+                });
+            });
+        });
+        
+        var benchmarker = {
+            starts: {},
+            timings: {},
+            start: function (name) {
+                this.starts[name] = window.performance.webkitNow();
+            },
+            end: function (name) {
+                var end = window.performance.webkitNow();
+                var timeList = this.timings[name];
+                if (timeList === undefined) {
+                    timeList = this.timings[name] = [];
+                }
+                timeList.push(end - this.starts[name]);
+                delete this.starts[name];
+            },
+            report: function () {
+                console.log(this.heading);
+                var timingNames = Object.keys(this.timings);
+                timingNames.forEach(function (name) {
+                    var timings = this.timings[name];
+                    timings.sort(function (a, b) {
+                        return a - b;
+                    });
+                    var min = timings[0];
+                    var max = timings[timings.length - 1];
+                    var med = timings[Math.floor(timings.length / 2)];
+                    console.log(name, "Min:", min.toFixed(2), "ms, Max:", max.toFixed(2), "ms, Median:", med.toFixed(2), "ms (" + timings.length + " runs)");
+                }.bind(this));
+            },
+            reset: function () {
+                this.starts = {};
+                this.timings = {};
+                this.heading = "Test Results";
+            }
+        };
+        
+        function doFullAndIncrementalBenchmarkTest(runs, editFn) {
+            var i;
+            var previousText = editor.document.getText();
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Base edit");
+                editFn(editor);
+                benchmarker.end("Base edit");
+                editor.document.setText(previousText);
+            }
+            
+            benchmarker.start("Initial DOM build");
+            var previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText),
+                changeList,
+                result;
+            benchmarker.end("Initial DOM build");
+            benchmarker.start("Mark text");
+            HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            benchmarker.end("Mark text");
+            
+            for (i = 0; i < runs; i++) {
+                benchmarker.start("Edit with marks");
+                editFn(editor);
+                benchmarker.end("Edit with marks");
+                editor.document.setText(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+            }
+            
+            var changeFunction = function (event, editor, change) {
+                changeList = change;
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.perftest", changeFunction);
+                benchmarker.start("Incremental");
+                editFn(editor);
+                benchmarker.end("Incremental");
+                $(editor).off(".perftest");
+            }
+            
+            var fullChangeFunction = function (event, editor, change) {
+                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
+            };
+            
+            for (i = 0; i < runs; i++) {
+                editor.document.setText(previousText);
+                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+                
+                $(editor).on("change.perftest", fullChangeFunction);
+                benchmarker.start("Full");
+                // full test
+                editFn(editor);
+                benchmarker.end("Full");
+                $(editor).off(".perftest");
+            }
+            
+            benchmarker.report();
+        }
+        
+        xdescribe("Performance Tests", function () {
+            beforeEach(function () {
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
             });
@@ -515,19 +2517,128 @@ define(function (require, exports, module) {
                 instrumentedHTML = "";
                 elementCount = 0;
                 elementIds = {};
+                benchmarker.reset();
             });
             
-            it("should re-instrument after document is dirtied", function () {
+            it("measure performance of text replacement", function () {
+                benchmarker.heading = "Text Replacement";
                 runs(function () {
-                    var pos = {line: 15, ch: 0};
-                    editor.document.replaceRange("<div>New Content</div>", pos);
-                    
-                    var newInstrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document),
-                        newElementIds = {},
-                        newElementCount = getIdToTagMap(newInstrumentedHTML, newElementIds);
-                    
-                    expect(newElementCount).toBe(elementCount + 1);
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
                 });
+            });
+            
+            it("measure performance of simulated typing of text", function () {
+                benchmarker.heading = "Simulated Typing of Text";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("A", {line: 12, ch: 12});
+                            editor.document.replaceRange("W", {line: 12, ch: 13});
+                            editor.document.replaceRange("E", {line: 12, ch: 14});
+                            editor.document.replaceRange("S", {line: 12, ch: 15});
+                            editor.document.replaceRange("O", {line: 12, ch: 16});
+                            editor.document.replaceRange("M", {line: 12, ch: 17});
+                            editor.document.replaceRange("E", {line: 12, ch: 18});
+                            editor.document.replaceRange("R", {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of new tag insertion", function () {
+                benchmarker.heading = "New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        10,
+                        function (editor) {
+                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
+                        }
+                    );
+                });
+            });
+            
+            it("measure performance of typing a new tag", function () {
+                benchmarker.heading = "Typing New Tag";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        5,
+                        function (editor) {
+                            editor.document.replaceRange("<", {line: 15, ch: 0});
+                            editor.document.replaceRange("d", {line: 15, ch: 1});
+                            editor.document.replaceRange("i", {line: 15, ch: 2});
+                            editor.document.replaceRange("v", {line: 15, ch: 3});
+                            editor.document.replaceRange(">", {line: 15, ch: 4});
+                            editor.document.replaceRange("</div>", {line: 15, ch: 5});
+                            editor.document.replaceRange("N", {line: 15, ch: 5});
+                            editor.document.replaceRange("e", {line: 15, ch: 6});
+                            editor.document.replaceRange("w", {line: 15, ch: 7});
+                            editor.document.replaceRange(" ", {line: 15, ch: 8});
+                            editor.document.replaceRange("C", {line: 15, ch: 9});
+                            editor.document.replaceRange("o", {line: 15, ch: 10});
+                            editor.document.replaceRange("n", {line: 15, ch: 11});
+                            editor.document.replaceRange("t", {line: 15, ch: 12});
+                            editor.document.replaceRange("e", {line: 15, ch: 13});
+                            editor.document.replaceRange("n", {line: 15, ch: 14});
+                            editor.document.replaceRange("t", {line: 15, ch: 15});
+                        }
+                    );
+                });
+            });
+        });
+        
+        xdescribe("Big File Performance Tests", function () {
+            beforeEach(function () {
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(BigDoc, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+                benchmarker.reset();
+            });
+            
+            it("should handle a big file", function () {
+                benchmarker.heading = "Big Text Replacement";
+                runs(function () {
+                    doFullAndIncrementalBenchmarkTest(
+                        1,
+                        function (editor) {
+                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                        }
+                    );
+                });
+            });
+        });
+
+        xdescribe("DOMNavigator", function () {
+            it("implements easy depth-first traversal", function () {
+                var dom = HTMLInstrumentation._buildSimpleDOM("<html><body><div>Here is <strong>my text</strong></div></body></html>");
+                var nav = new HTMLInstrumentation._DOMNavigator(dom);
+                expect(nav.next().tag).toEqual("body");
+                expect(nav.next().tag).toEqual("div");
+                expect(nav.next().content).toEqual("Here is ");
+                expect(nav.getPosition()).toEqual({
+                    tagID: dom.children[0].children[0].tagID,
+                    child: 0
+                });
+                expect(nav.next().tag).toEqual("strong");
+                expect(nav.next().content).toEqual("my text");
+                expect(nav.next()).toBeNull();
             });
         });
     });
