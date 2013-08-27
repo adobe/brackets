@@ -958,11 +958,13 @@ define(function (require, exports, module) {
                 offsets = null;
             });
             
-            function doEditTest(origText, editFn, expectationFn, incremental) {
+            function doEditTest(origText, editFn, expectationFn, incremental, noRefresh) {
                 // We need to fully reset the editor/mark state between the full and incremental tests
                 // because if new DOM nodes are added by the edit, those marks will be present after the
-                // full test, messing up the incremental test.                
-                editor.document.refreshText(origText);
+                // full test, messing up the incremental test.
+                if (!noRefresh) {
+                    editor.document.refreshText(origText);
+                }
                 
                 var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
                     result;
@@ -2341,9 +2343,7 @@ define(function (require, exports, module) {
                         newDiv = previousDOM.children[3].children[5];
                         editor.document.replaceRange("", { line: 14, ch: 10 }, { line: 14, ch: 16 });
                         editor.document.replaceRange("</div>", { line: 24, ch: 0 });
-                        currentText = editor.document.getText();
                     }, function (result, previousDOM, incremental) {
-                        console.log("edits", JSON.stringify(result.edits, null, 2));
                         expect(movingParagraph.tag).toBe("p");
                         expect(newDiv.tag).toBe("div");
                         expect(result.edits.length).toBe(5);
@@ -2361,7 +2361,42 @@ define(function (require, exports, module) {
                         expect(result.edits[3].parentID).toBe(newDiv.tagID);
                     }, false);
                 });
-                    
+            });
+            
+            it("should support undo of a tag merge", function () {
+                setupEditor(WellFormedDoc);
+                var currentText = WellFormedDoc;
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.document.replaceRange("", { line: 23, ch: 0 }, { line: 29, ch: 0 });
+                        currentText = editor.document.getText();
+                    }, function (result, previousDOM, incremental) {
+                    }, false);
+                });
+                runs(function () {
+                    doEditTest(currentText, function (editor, previousDOM) {
+                        editor.undo();
+                    }, function (result, previousDOM, incremental) {
+                        var emNode = previousDOM.children[3].children[5].children[1];
+                        expect(emNode.tag).toBe("em");
+                        
+                        expect(result.edits.length).toBe(7);
+                        
+                        var edit = result.edits[0];
+                        expect(edit.type).toBe("rememberNodes");
+                        expect(edit.tagIDs).toEqual([emNode.tagID]);
+                        
+                        edit = result.edits[1];
+                        expect(edit.type).toBe("elementInsert");
+                        expect(edit.tag).toBe("p");
+                        var newParaID = edit.tagID;
+                        
+                        edit = result.edits[5];
+                        expect(edit.type).toBe("elementMove");
+                        expect(edit.tagID).toBe(emNode.tagID);
+                        expect(edit.parentID).toBe(newParaID);
+                    }, false, true);
+                });
             });
         });
         
