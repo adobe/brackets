@@ -199,6 +199,11 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        // Make sure LiveHTML is turned on
+        if (!LiveDevelopment.config.livehtml) {
+            return;
+        }
+        
         // Only handles attribute changes currently.
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them

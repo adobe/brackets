@@ -450,7 +450,8 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _docIsOutOfSync(doc) {
         var docClass = _classForDocument(doc);
-        return (doc.isDirty && docClass !== CSSDocument && docClass !== HTMLDocument);
+        return (doc.isDirty && docClass !== CSSDocument &&
+                (!exports.config.livehtml || docClass !== HTMLDocument));
     }
     
     /** Triggered by Inspector.error */
