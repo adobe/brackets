@@ -427,7 +427,7 @@ define(function (require, exports, module) {
     var doReplaceConfirm = Strings.CMD_REPLACE +
             '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
             '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
-            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_ALL +
+            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
             '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
 
     function replace(editor, all) {
