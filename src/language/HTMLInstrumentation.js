@@ -333,6 +333,14 @@ define(function (require, exports, module) {
                     start: this.startOffset + token.start - 1
                 };
                 newTag.tagID = this.getID(newTag);
+                
+                // During undo in particular, it's possible that tag IDs may be reused and
+                // the marks in the document may be misleading. If a tag ID has been reused,
+                // we apply a new tag ID to ensure that our edits come out correctly.
+                if (nodeMap[newTag.tagID]) {
+                    newTag.tagID = this.getNewID();
+                }
+                
                 nodeMap[newTag.tagID] = newTag;
                 if (newTag.parent) {
                     newTag.parent.children.push(newTag);
@@ -462,6 +470,8 @@ define(function (require, exports, module) {
     SimpleDOMBuilder.prototype.getID = function () {
         return tagID++;
     };
+    
+    SimpleDOMBuilder.prototype.getNewID = SimpleDOMBuilder.prototype.getID;
     
     function _buildSimpleDOM(text, strict) {
         var builder = new SimpleDOMBuilder(text);
@@ -860,7 +870,7 @@ define(function (require, exports, module) {
                 oldChild,
                 newEdits = [],
                 newEdit,
-                textAfterID = null;
+                textAfterID;
             
             /**
              * The `beforeID` that appears in many edits tells the browser to make the
@@ -1079,6 +1089,18 @@ define(function (require, exports, module) {
                 return false;
             };
             
+            /**
+             * Looks to see if the element in the old tree has moved by checking its
+             * current and former parents.
+             *
+             * @return {boolean} true if the element has moved
+             */
+            var hasMoved = function (oldChild) {
+                var oldChildInNewTree = newNode.nodeMap[oldChild.tagID];
+                
+                return oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree);
+            };
+            
             // Loop through the current and old children, comparing them one by one.
             while (currentIndex < currentChildren.length && oldIndex < oldChildren.length) {
                 currentChild = currentChildren[currentIndex];
@@ -1091,11 +1113,9 @@ define(function (require, exports, module) {
                 
                 oldChild = oldChildren[oldIndex];
                 
-                var oldChildInNewTree = newNode.nodeMap[oldChild.tagID];
-                
                 // Check to see if the oldChild has been moved to another parent.
                 // If it has, we deal with it on the other side (see above)
-                if (oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree)) {
+                if (hasMoved(oldChild)) {
                     oldIndex++;
                     continue;
                 }
@@ -1174,7 +1194,7 @@ define(function (require, exports, module) {
                 oldChild = oldChildren[oldIndex];
                 
                 // Check for an element that has moved
-                if (getParentID(oldChild) !== currentParent.tagID) {
+                if (hasMoved(oldChild)) {
                     // This element has moved, so we skip it on this side (the move
                     // is handled on the new tree side).
                     oldIndex++;
@@ -1182,7 +1202,7 @@ define(function (require, exports, module) {
                 // is this an element? if so, delete it
                 } else if (oldChild.children) {
                     if (!addElementDelete()) {
-                        console.error("HTML Instrumentation: failed to add elementDelete for remaining element in the original DOM. This should not happen.");
+                        console.error("HTML Instrumentation: failed to add elementDelete for remaining element in the original DOM. This should not happen.", oldChild);
                         oldIndex++;
                     }
                 
