@@ -117,7 +117,7 @@ define({
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
-	"BUTTON_ALL": "すべて",
+	"BUTTON_REPLACE_ALL": "!能=[7126959] All\u2026_=!",
 	"BUTTON_STOP": "終了",
 	"BUTTON_REPLACE": "置換",
 
