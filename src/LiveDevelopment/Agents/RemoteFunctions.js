@@ -552,8 +552,12 @@ function RemoteFunctions(experimental) {
     DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
         var before = this._queryBracketsID(edit.beforeID),
             after  = this._queryBracketsID(edit.afterID);
-
-        if (edit.firstChild) {
+        
+        if (edit.type === "elementReplace") {
+            // elementReplace is implemented by inserting the new element just before the one
+            // it is replacing.
+            before = this._queryBracketsID(edit.tagID);
+        } else if (edit.firstChild) {
             before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
@@ -565,6 +569,12 @@ function RemoteFunctions(experimental) {
             targetElement.insertBefore(childElement, after.nextSibling);
         } else {
             targetElement.appendChild(childElement);
+        }
+        
+        // There's a special case for replacing an element. Once we've inserted the replacement
+        // before the element that is being replaced, we then remove the replaced element.
+        if (edit.type === "elementReplace") {
+            before.remove();
         }
     };
     
@@ -644,7 +654,7 @@ function RemoteFunctions(experimental) {
                 return;
             }
             
-            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove|elementReplace/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
             
             if (!targetElement && !editIsSpecialTag) {
@@ -664,6 +674,7 @@ function RemoteFunctions(experimental) {
                 targetElement.remove();
                 break;
             case "elementInsert":
+            case "elementReplace":
                 childElement = null;
                 if (editIsSpecialTag) {
                     // If we already have one of these elements (which we should), then
