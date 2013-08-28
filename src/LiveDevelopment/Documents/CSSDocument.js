@@ -69,11 +69,11 @@ define(function CSSDocumentModule(require, exports, module) {
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
         this.onDeleted = this.onDeleted.bind(this);
-        $(this.doc).on("change", this.onChange);
-        $(this.doc).on("deleted", this.onDeleted);
+        $(this.doc).on("change.CSSDocument", this.onChange);
+        $(this.doc).on("deleted.CSSDocument", this.onDeleted);
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
-        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
+        $(EditorManager).on("activeEditorChange.CSSDocument", this.onActiveEditorChange);
         
         if (editor) {
             // Attach now
@@ -113,8 +113,9 @@ define(function CSSDocumentModule(require, exports, module) {
  
     /** Close the document */
     CSSDocument.prototype.close = function close() {
-        $(this.doc).off("change", this.onChange);
-        $(this.doc).off("deleted", this.onDeleted);
+        $(this.doc).off("change.CSSDocument");
+        $(this.doc).off("deleted.CSSDocument");
+        $(EditorManager).off("activeEditorChange.CSSDocument");
         this.doc.releaseRef();
         this.detachFromEditor();
     };
@@ -136,8 +137,8 @@ define(function CSSDocumentModule(require, exports, module) {
         this.editor = editor;
         
         if (this.editor) {
-            $(HighlightAgent).on("highlight", this.onHighlight);
-            $(this.editor).on("cursorActivity", this.onCursorActivity);
+            $(HighlightAgent).on("highlight.CSSDocument", this.onHighlight);
+            $(this.editor).on("cursorActivity.CSSDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
@@ -145,8 +146,8 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(HighlightAgent).off("highlight", this.onHighlight);
-            $(this.editor).off("cursorActivity", this.onCursorActivity);
+            $(HighlightAgent).off("highlight.CSSDocument");
+            $(this.editor).off("cursorActivity.CSSDocument");
             this.onHighlight();
             this.editor = null;
         }

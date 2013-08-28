@@ -641,7 +641,7 @@ define(function (require, exports, module) {
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(388);
+                    originalNode = DOMAgent.nodeAtLocation(396);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
@@ -671,7 +671,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(388);
+                    updatedNode = DOMAgent.nodeAtLocation(396);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {

@@ -144,7 +144,6 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _server;              // current live dev server
-    var _closeReason;         // reason why live preview was closed
     var _openDeferred;        // promise returned for each call to open()
     
     function _isHtmlFileExt(ext) {
@@ -330,17 +329,21 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Update the status
-     * @param {integer} new status
+    /**
+     * Update the status. Triggers a statusChange event.
+     * @param {number} status new status
+     * @param {?string} closeReason Optional string key suffix to display to
+     *     user when closing the live development connection (see LIVE_DEV_* keys)
      */
-    function _setStatus(status) {
+    function _setStatus(status, closeReason) {
         // Don't send a notification when the status didn't actually change
         if (status === exports.status) {
             return;
         }
         
         exports.status = status;
-        var reason = status === STATUS_INACTIVE ? _closeReason : null;
+        
+        var reason = status === STATUS_INACTIVE ? closeReason : null;
         $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
@@ -516,6 +519,48 @@ define(function LiveDevelopment(require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * @private
+     * While still connected to the Inspector, do cleanup for agents,
+     * documents and server.
+     * @return {jQuery.Promise} A promise that is always resolved
+     */
+    function _doInspectorDisconnect(doCloseWindow) {
+        var closePromise,
+            deferred = new $.Deferred();
+
+        $(Inspector.Inspector).off("detached.livedev");
+        $(Inspector.Page).off("frameNavigated.livedev");
+
+        unloadAgents();
+        
+        // Close live documents 
+        _closeDocuments();
+        
+        if (_server) {
+            // Stop listening for requests when disconnected
+            _server.stop();
+
+            // Dispose server
+            _server = null;
+        }
+
+        if (doCloseWindow) {
+            closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
+
+            // Add a timeout to continue cleanup if Inspector does not respond
+            closePromise = Async.withTimeout(closePromise, 5000);
+        } else {
+            closePromise = new $.Deferred().resolve();
+        }
+
+        closePromise.done(function () {
+            Inspector.disconnect().always(deferred.resolve);
+        });
+
+        return deferred.promise();
+    }
+
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -543,41 +588,22 @@ define(function LiveDevelopment(require, exports, module) {
         baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
         if (!url.match(baseUrlRegExp)) {
             // No longer in site, so terminate live dev, but don't close browser window
-            Inspector.disconnect();
-            _closeReason = "navigated_away";
+            _close(false, "navigated_away");
         }
-    }
-
-    /** Triggered by Inspector.disconnect */
-    function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached.livedev");
-        $(Inspector.Page).off("frameNavigated.livedev");
-
-        unloadAgents();
-        
-        // Close live documents 
-        _closeDocuments();
-        
-        if (_server) {
-            // Stop listening for requests when disconnected
-            _server.stop();
-
-            // Dispose server
-            _server = null;
-        }
-        
-        _setStatus(STATUS_INACTIVE);
     }
 
     function _onDetached(event, res) {
-        // If there already is a reason for closing the session, do not overwrite it
-        if (!_closeReason && res && res.reason) {
+        var closeReason;
+
+        if (res && res.reason) {
             // Get the explanation from res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
             // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
             // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
             // Prefix with "detached_" to create a quasi-namespace for Chrome's reasons
-            _closeReason = "detached_" + res.reason;
+            closeReason = "detached_" + res.reason;
         }
+
+        _close(false, closeReason);
     }
 
     /**
@@ -589,13 +615,13 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * @private
      * Close the connection and the associated window asynchronously
-     * 
+     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
+     * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
      * @return {jQuery.Promise} Resolves once the connection is closed
      */
-    function close() {
-        _closeReason = "explicit_close";
-
+    function _close(doCloseWindow, reason) {
         var deferred = $.Deferred();
             
         /*
@@ -603,21 +629,12 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE);
+            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
             deferred.resolve();
         }
         
         if (Inspector.connected()) {
-            // Close the browser tab/window
-            var closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
-
-            // Add a timeout to force cleanup if Inspector does not respond
-            closePromise = Async.withTimeout(closePromise, 5000);
-
-            // Disconnect the Inspector after closing the tab/winow
-            closePromise.always(function () {
-                Inspector.disconnect().always(cleanup);
-            });
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
         } else {
             cleanup();
         }
@@ -627,6 +644,14 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         return deferred.promise();
+    }
+
+    /**
+     * Close the connection and the associated window asynchronously
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
+    function close() {
+        return _close(true);
     }
     
     /**
@@ -855,29 +880,29 @@ define(function LiveDevelopment(require, exports, module) {
     }
     
     function _prepareServer(doc) {
-        var deferred = new $.Deferred();
+        var deferred = new $.Deferred(),
+            showBaseUrlPrompt = false;
         
         _server = LiveDevServerManager.getServer(doc.file.fullPath);
-        
-        if (!exports.config.experimental && !_server) {
-            if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
-                    .done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
-                            // If base url is specifed, then re-invoke _prepareServer() to continue
-                            _prepareServer(doc).then(deferred.resolve, deferred.reject);
-                        } else {
-                            deferred.reject();
-                        }
-                    });
-            } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
-                _showWrongDocError();
-                deferred.reject();
-            } else {
-                // fall-back to file://
-                deferred.resolve();
-            }
-        } else {
+
+        // Optionally prompt for a base URL if no server was found but the
+        // file is a known server file extension
+        showBaseUrlPrompt = !exports.config.experimental && !_server &&
+            FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+
+        if (showBaseUrlPrompt) {
+            // Prompt for a base URL
+            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke _prepareServer() to continue
+                        _prepareServer(doc).then(deferred.resolve, deferred.reject);
+                    } else {
+                        deferred.reject();
+                    }
+                });
+        } else if (_server) {
+            // Startup the server
             var readyPromise = _server.readyToServe();
             if (!readyPromise) {
                 _showLiveDevServerNotReadyError();
@@ -888,6 +913,9 @@ define(function LiveDevelopment(require, exports, module) {
                     deferred.reject();
                 });
             }
+        } else {
+            // No server found
+            deferred.reject();
         }
         
         return deferred.promise();
@@ -895,11 +923,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open the Connection and go live */
     function open() {
-        _closeReason = null;
         _openDeferred = new $.Deferred();
 
         var doc = _getCurrentDocument(),
-            prepareServerPromise = _prepareServer(doc);
+            prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
         
         // wait for server (StaticServer, Base URL or file:)
         prepareServerPromise.done(_doLaunchAfterServerReady);
@@ -999,8 +1026,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        $(Inspector).on("disconnect", _onDisconnect)
-            .on("error", _onError);
+        $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
