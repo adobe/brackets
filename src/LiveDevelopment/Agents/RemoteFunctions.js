@@ -521,6 +521,7 @@ function RemoteFunctions(experimental) {
     function DOMEditHandler(htmlDocument) {
         this.htmlDocument = htmlDocument;
         this.rememberedNodes = null;
+        this.entityParseParent = htmlDocument.createElement("div");
     }
 
     /**
@@ -570,6 +571,22 @@ function RemoteFunctions(experimental) {
     
     /**
      * @private
+     * Given a string containing encoded entity references, returns the string with the entities decoded.
+     * @param {string} text The text to parse.
+     * @return {string} The decoded text.
+     */
+    DOMEditHandler.prototype._parseEntities = function (text) {
+        // Kind of a hack: just set the innerHTML of a div to the text, which will parse the entities, then
+        // read the content out.
+        var result;
+        this.entityParseParent.innerHTML = text;
+        result = this.entityParseParent.textContent;
+        this.entityParseParent.textContent = "";
+        return result;
+    };
+    
+    /**
+     * @private
      * Replace a range of text and comment nodes with an optional new text node
      * @param {Element} targetElement
      * @param {Object} edit
@@ -582,7 +599,7 @@ function RemoteFunctions(experimental) {
             moveNext        = start && start.nextSibling,
             current         = moveNext || (end && end.previousSibling) || targetElement.childNodes.item(targetElement.childNodes.length - 1),
             next,
-            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(edit.content) : null,
+            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(this._parseEntities(edit.content)) : null,
             lastRemovedWasText,
             isText;
         
@@ -655,7 +672,7 @@ function RemoteFunctions(experimental) {
             switch (edit.type) {
             case "attrChange":
             case "attrAdd":
-                targetElement.setAttribute(edit.attribute, edit.value);
+                targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
                 break;
             case "attrDelete":
                 targetElement.removeAttribute(edit.attribute);
@@ -679,7 +696,7 @@ function RemoteFunctions(experimental) {
                 }
                 
                 Object.keys(edit.attributes).forEach(function (attr) {
-                    childElement.setAttribute(attr, edit.attributes[attr]);
+                    childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
                 });
                 childElement.setAttribute("data-brackets-id", edit.tagID);
                 
@@ -692,7 +709,7 @@ function RemoteFunctions(experimental) {
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
-                var textElement = self.htmlDocument.createTextNode(edit.content);
+                var textElement = self.htmlDocument.createTextNode(self._parseEntities(edit.content));
                 self._insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":

@@ -110,6 +110,15 @@ define(function (require, exports, module) {
                             return msgArray.toString();
                         };
                         
+                        
+                        function checkAttributes(target, attrs) {
+                            Object.keys(attrs).forEach(function (attr) {
+                                if (target.getAttribute(attr) !== attrs[attr]) {
+                                    msgArray.push("Expected attribute \"" + attr + "\" to have value: \"" + attrs[attr] + "\"");
+                                }
+                            });
+                        }
+
                         if (edit.type === "elementInsert") {
                             // elementInsert tagID assignment
                             child = queryBracketsID(edit.tagID);
@@ -121,6 +130,8 @@ define(function (require, exports, module) {
                                         (edit._isImplicit && child.parentNode.parentNode !== target))) {
                                 msgArray.push("New child element \"" + edit.tag + "\" was not under parentID " + edit.parentID);
                             }
+                            
+                            checkAttributes(child, edit._attributesExpected || edit.attributes);
                         } else if (edit.type.match(/textReplace|textInsert/)) {
                             // text node content
                             child = (edit.firstChild && target.firstChild) ||
@@ -129,11 +140,17 @@ define(function (require, exports, module) {
                                 (after && after.nextSibling) ||
                                 (!edit.lastChild && target.lastChild);
                             
-                            if (child.nodeValue !== edit.content) {
-                                msgArray.push("Expected text node \"" + child.nodeValue + "\" to have content: \"" + edit.content + "\"");
+                            if ((edit._contentExpected && child.nodeValue !== edit._contentExpected) ||
+                                    (!edit._contentExpected && child.nodeValue !== edit.content)) {
+                                msgArray.push("Expected text node \"" + child.nodeValue + "\" to have content: \"" + (edit._contentExpected || edit.content) + "\"");
                             }
+                        } else if (edit.type.match(/attrAdd|attrChange/)) {
+                            child = queryBracketsID(edit.tagID);
+                            var attrs = {};
+                            attrs[edit.attribute] = edit._valueExpected || edit.value;
+                            checkAttributes(child, attrs);
                         }
-                        
+
                         // FIXME implicit open tag
 //                        if (edit.type.match(/textDelete|elementDelete/)) {
 //                            // childNodes count delete
@@ -266,6 +283,17 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="60"><em data-brackets-id="61">code</em><span data-brackets-id="1000"></span> the web</div>');
                 });
                 
+                it("should parse entities in attribute values when inserting an element", function () {
+                    /* empty parent */
+                    applyEdit(EMPTY_ELEMENT, {
+                        parentID: 10,
+                        type: "elementInsert",
+                        tag:  "span",
+                        attributes: { "class": "And: &amp;, em-dash: &mdash;, heart: &#10084;" },
+                        _attributesExpected: { "class": "And: &, em-dash: —, heart: ❤" }
+                    });
+                });
+                
                 it("should handle an elementInsert for an <html> tag when one already exists by just setting its id", function () {
                     applyEdit(null, {
                         type: "elementInsert",
@@ -371,6 +399,26 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="100"></div>');
                 });
                 
+                it("should parse entities in the value when adding an attribute", function () {
+                    applyEdit(EMPTY_ELEMENT, {
+                        type: "attrAdd",
+                        tagID: 10,
+                        attribute: "class",
+                        value: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _valueExpected: "And: &, em-dash: —, heart: ❤"
+                    });
+                });
+                
+                it("should parse entities in the value when changing an attribute", function () {
+                    applyEdit(ATTR_SIMPLE, {
+                        type: "attrChange",
+                        tagID: 100,
+                        attribute: "class",
+                        value: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _valueExpected: "And: &, em-dash: —, heart: ❤"
+                    });
+                });
+
             });
             
             describe("Text edits", function () {
@@ -399,6 +447,23 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="40"></div>');
                 });
                 
+                it("should parse entities when inserting text content", function () {
+                    applyEdit(EMPTY_ELEMENT, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _contentExpected: "And: &, em-dash: —, heart: ❤",
+                        parentID: 10
+                    });
+                });
+
+                it("should parse entities when replacing text content", function () {
+                    applyEdit(ONE_TEXT_NODE, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _contentExpected: "And: &, em-dash: —, heart: ❤",
+                        parentID: 40
+                    });
+                });
             });
             
             describe("Working with text and elements", function () {
