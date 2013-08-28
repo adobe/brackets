@@ -532,7 +532,7 @@ define(function LiveDevelopment(require, exports, module) {
             connected   = Inspector.connected();
 
         $(Inspector.Page).off("frameNavigated.livedev");
-        $(Inspector).off("disconnect.livedev")
+        $(Inspector).off("disconnect.livedev");
 
         unloadAgents();
         
