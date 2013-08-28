@@ -238,7 +238,7 @@ define(function (require, exports, module) {
             for (i = 0; i < node.children.length; i++) {
                 child = node.children[i];
                 if (child.children) {
-                    childHashes += String(child.tagID) + child.tag;
+                    childHashes += String(child.tagID);
                     subtreeHashes += String(child.tagID) + child.tag + child.attributeSignature + child.subtreeSignature;
                 } else {
                     childHashes += child.textSignature;
@@ -910,8 +910,8 @@ define(function (require, exports, module) {
              */
             var addBeforeID = function (beforeID) {
                 newEdits.forEach(function (edit) {
-                    // elementDeletes and elementReplaces don't need any positioning information
-                    if (edit.type !== "elementDelete" && edit.type !== "elementReplace") {
+                    // elementDeletes don't need any positioning information
+                    if (edit.type !== "elementDelete") {
                         edit.beforeID = beforeID;
                     }
                 });
@@ -928,15 +928,10 @@ define(function (require, exports, module) {
              * main loop will either spot this element later in the child list
              * or the element has been moved.
              *
-             * There is a special case for element insert where we are replacing
-             * an existing element with a new one. If `replacing` is passed in,
-             * then an elementReplace edit will be created.
-             *
-             * @param {boolean} replacing tagID that is being replaced if this is a replacement
              * @return {boolean} true if an elementInsert was created
              */
-            var addElementInsert = function (replacing) {
-                if (replacing || !oldNodeMap[currentChild.tagID]) {
+            var addElementInsert = function () {
+                if (!oldNodeMap[currentChild.tagID]) {
                     newEdit = {
                         type: "elementInsert",
                         tag: currentChild.tag,
@@ -945,9 +940,6 @@ define(function (require, exports, module) {
                         attributes: currentChild.attributes
                     };
                     
-                    if (replacing) {
-                        newEdit.type = "elementReplace";
-                    }
                     newEdits.push(newEdit);
                     
                     // This newly inserted node needs to have edits generated for its
@@ -1130,23 +1122,6 @@ define(function (require, exports, module) {
                 return oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree);
             };
             
-            var removeFromOldNodeMap = function (node) {
-                delete oldNode.nodeMap[node.tagID];
-                if (node.children) {
-                    node.children.forEach(removeFromOldNodeMap);
-                }
-            };
-
-            var addTagChange = function () {
-                if (currentChild.tagID === oldChild.tagID && currentChild.tag !== oldChild.tag) {
-                    addElementInsert(oldChild);
-                    removeFromOldNodeMap(oldChild);
-                    oldIndex++;
-                    return true;
-                }
-                return false;
-            };
-            
             // Loop through the current and old children, comparing them one by one.
             while (currentIndex < currentChildren.length && oldIndex < oldChildren.length) {
                 currentChild = currentChildren[currentIndex];
@@ -1199,9 +1174,8 @@ define(function (require, exports, module) {
                                 oldIndex++;
                             }
                         
-                        // Check to see if the tag changed. If it hadn't then there is 
-                        // no change in the tag we're looking at.
-                        } else if (!addTagChange()) {
+                        // There has been no change in the tag we're looking at.
+                        } else {
                             // Since this element hasn't moved, it is a suitable "beforeID"
                             // for the edits we've logged.
                             addBeforeID(oldChild.tagID);
@@ -1298,6 +1272,50 @@ define(function (require, exports, module) {
         };
         
         /**
+         * Removes the node from the old nodeMap. Recursively removes the child nodes
+         * as well.
+         *
+         * @param {Object} simple DOM node to remove from the old node map
+         */
+        var removeFromOldNodeMap = function (node) {
+            delete oldNode.nodeMap[node.tagID];
+            if (node.children) {
+                node.children.forEach(removeFromOldNodeMap);
+            }
+        };
+        
+        /**
+         * Generates an edit for a tag change (specifically an "elementReplace" edit).
+         * Note that this also manipulates the old DOM to make it appear as if the
+         * child nodes of oldElement do not exist (so that they will be re-added to
+         * the replaced element).
+         *
+         * @param {Array.{Object}} edits the list of edits to which we add the elementReplace
+         * @param {Object} oldElement the previous version of this element
+         * @param {Object} currentElement the current version of this element
+         */
+        var generateTagEdit = function (edits, oldElement, currentElement) {
+            edits.push({
+                type: "elementReplace",
+                tagID: currentElement.tagID,
+                tag: currentElement.tag,
+                attributes: currentElement.attributes,
+                parentID: currentElement.parent ? currentElement.parent.tagID : undefined
+            });
+            
+            // Remove oldElement and its children from the old nodeMap so that
+            // the child nodes will all appear to be new. This will cause all of the
+            // children to be inserted under the replaced element.
+            removeFromOldNodeMap(oldElement);
+            
+            // Next, we clear out other parts of oldElement to trigger generateChildNodes
+            // to run and insert everything afresh.
+            delete oldElement.subtreeSignature;
+            delete oldElement.childSignature;
+            oldElement.children = [];
+        };
+        
+        /**
          * Adds elements to the queue for generateChildEdits.
          * Only elements (and not text nodes) are added. New nodes (ones that aren't in the
          * old nodeMap), are not added here because they will be added when generateChildEdits
@@ -1323,6 +1341,11 @@ define(function (require, exports, module) {
                 if (currentElement.attributeSignature !== oldElement.attributeSignature) {
                     // generate attribute edits
                     generateAttributeEdits(edits, oldElement, currentElement);
+                }
+                
+                // Has the tag changed?
+                if (currentElement.tag !== oldElement.tag) {
+                    generateTagEdit(edits, oldElement, currentElement);
                 }
                 
                 // Has there been a change to this node's immediate children?

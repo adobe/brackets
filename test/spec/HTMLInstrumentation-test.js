@@ -2433,9 +2433,7 @@ define(function (require, exports, module) {
                             editor.document.replaceRange("h3", { line: 13, ch: 25 }, { line: 13, ch: 27 });
                         },
                         function (result, previousDOM, incremental) {
-                            if (incremental) {
-                                return;
-                            }
+                            console.log("Edits", JSON.stringify(result.edits, null, 2));
                             expect(heading.tag).toBe("h2");
                             
                             expect(result.edits.length).toBe(2);
@@ -2451,6 +2449,34 @@ define(function (require, exports, module) {
                                 content: "This is your guide!",
                                 parentID: heading.tagID,
                                 lastChild: true
+                            });
+                        },
+                        false
+                    );
+                });
+            });
+            it("should handle void element tag changes", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("br", { line: 37, ch: 5 }, { line: 37, ch: 8 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            var br = result.dom.children[3].children[9].children[1];
+                            expect(br.tag).toBe("br");
+                            
+                            expect(result.edits.length).toBe(1);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementReplace",
+                                tagID: br.tagID,
+                                parentID: br.parent.tagID,
+                                attributes: {
+                                    "alt": "A screenshot showing CSS Quick Edit",
+                                    "src": "screenshots/brackets-quick-edit.png"
+                                },
+                                tag: "br"
                             });
                         },
                         false
