@@ -117,7 +117,7 @@ define({
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
-    "BUTTON_ALL"                        : "All",
+    "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Replace",
 
@@ -144,8 +144,6 @@ define({
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Less</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>More</a>",
     "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line: {0}",
 
