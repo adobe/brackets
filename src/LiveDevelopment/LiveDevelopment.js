@@ -523,14 +523,16 @@ define(function LiveDevelopment(require, exports, module) {
      * @private
      * While still connected to the Inspector, do cleanup for agents,
      * documents and server.
+     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
      * @return {jQuery.Promise} A promise that is always resolved
      */
     function _doInspectorDisconnect(doCloseWindow) {
         var closePromise,
-            deferred = new $.Deferred();
+            deferred    = new $.Deferred(),
+            connected   = Inspector.connected();
 
-        $(Inspector.Inspector).off("detached.livedev");
         $(Inspector.Page).off("frameNavigated.livedev");
+        $(Inspector).off("disconnect.livedev")
 
         unloadAgents();
         
@@ -545,7 +547,7 @@ define(function LiveDevelopment(require, exports, module) {
             _server = null;
         }
 
-        if (doCloseWindow) {
+        if (doCloseWindow && connected) {
             closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
 
             // Add a timeout to continue cleanup if Inspector does not respond
@@ -555,7 +557,11 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         closePromise.done(function () {
-            Inspector.disconnect().always(deferred.resolve);
+            if (Inspector.connected()) {
+                Inspector.disconnect().always(deferred.resolve);
+            } else {
+                deferred.resolve();
+            }
         });
 
         return deferred.promise();
@@ -570,7 +576,7 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _close(doCloseWindow, reason) {
         var deferred = $.Deferred();
-            
+
         /*
          * Finish closing the live development connection, including setting
          * the status accordingly.
@@ -579,15 +585,18 @@ define(function LiveDevelopment(require, exports, module) {
             _setStatus(STATUS_INACTIVE, reason || "explicit_close");
             deferred.resolve();
         }
-        
-        if (Inspector.connected()) {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
-        } else {
-            cleanup();
-        }
 
-        if (_openDeferred && _openDeferred.state() === "pending") {
-            _openDeferred.reject();
+        if (_openDeferred) {
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
+
+            if (_openDeferred.state() === "pending") {
+                _openDeferred.reject();
+            }
+        } else {
+            // Deferred may not be created yet
+            // We always close attempt to close the live dev connection on
+            // ProjectManager beforeProjectClose and beforeAppClose events
+            cleanup();
         }
         
         return deferred.promise();
@@ -622,6 +631,14 @@ define(function LiveDevelopment(require, exports, module) {
             // No longer in site, so terminate live dev, but don't close browser window
             _close(false, "navigated_away");
         }
+    }
+
+    /**
+     * @private
+     * Triggered by unexpected Inspector disconnect event
+     */
+    function _onDisconnect(event) {
+        _close(false, "closed_unknown_reason");
     }
 
     function _onDetached(event, res) {
@@ -726,7 +743,11 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
+        // When the browser navigates away from the primary live document
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+
+        // When the Inspector WebSocket disconnects unexpectedely
+        $(Inspector).on("disconnect.livedev", _onDisconnect);
 		
         _waitForInterstitialPageLoad()
             .fail(function () {
