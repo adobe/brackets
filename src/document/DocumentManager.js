@@ -331,26 +331,21 @@ define(function (require, exports, module) {
         
         return true;
     }
-    
-    function removeFromWorkingSet(file, suppressRedraw) {
-        if (_internalRemoveFromWorkingSet(file)) {
-            $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
+        
+    function removeFromWorkingSet(content, suppressRedraw) {
+        if (content) {
+            if ($.isArray(content)) {
+                content.forEach(function (file) {
+                    _internalRemoveFromWorkingSet(file);
+                });
+                
+                $(exports).triggerHandler("workingSetRemoveList", [content]);
+                
+            } else if (_internalRemoveFromWorkingSet(content)) {
+                $(exports).triggerHandler("workingSetRemove", [content, suppressRedraw]);
+            }
         }
     }
-    
-    function removeFilesFromWorkingSet(fileList) {        
-        if (!fileList) {
-            return;
-        }
-        
-        fileList.forEach(function (file) {
-            _internalRemoveFromWorkingSet(file);
-        });
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
-    }
-    
 
     /**
      * Removes all files from the working set list.
@@ -951,7 +946,6 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
-    exports.removeFilesFromWorkingSet   = removeFilesFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
