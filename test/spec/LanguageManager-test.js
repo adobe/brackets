@@ -161,14 +161,14 @@ define(function (require, exports, module) {
                     html    = LanguageManager.getLanguage("html"),
                     unknown = LanguageManager.getLanguage("unknown");
                 
-                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(unknown);
-                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.html.noSuchExt")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.noSuchExt")).toBe(unknown);
                 
-                html.addFileExtension("html.erb");
-                ruby.addFileExtension("erb");
+                html.addFileExtension("html.noSuchExt");
+                ruby.addFileExtension("noSuchExt");
                 
-                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(html);
-                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("foo.html.noSuchExt")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("foo.noSuchExt")).toBe(ruby);
             });
             
             it("should map file names to languages", function () {
