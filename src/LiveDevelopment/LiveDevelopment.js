@@ -213,7 +213,10 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (index !== -1) {
             _relatedDocuments.splice(index, 1);
-            _server.remove(liveDoc);
+            
+            if (_server) {
+                _server.remove(liveDoc);
+            }
         }
     }
 
@@ -266,7 +269,7 @@ define(function LiveDevelopment(require, exports, module) {
         function createLiveStylesheet(url) {
             var stylesheetDeferred  = $.Deferred(),
                 promise             = stylesheetDeferred.promise(),
-                path                = _server.urlToPath(url);
+                path                = _server && _server.urlToPath(url);
 
             // path may be null if loading an external stylesheet
             if (path) {
@@ -998,7 +1001,7 @@ define(function LiveDevelopment(require, exports, module) {
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
         var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
-            isViewable = exports.config.experimental || _server.canServe(doc.file.fullPath);
+            isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
             // TODO (jasonsanjose): optimize this by reusing the same connection

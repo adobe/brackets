@@ -73,7 +73,7 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this.doc).on("deleted.CSSDocument", this.onDeleted);
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
-        $(EditorManager).on("activeEditorChange.CSSDocument", this.onActiveEditorChange);
+        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
         
         if (editor) {
             // Attach now
@@ -113,9 +113,8 @@ define(function CSSDocumentModule(require, exports, module) {
  
     /** Close the document */
     CSSDocument.prototype.close = function close() {
-        $(this.doc).off("change.CSSDocument");
-        $(this.doc).off("deleted.CSSDocument");
-        $(EditorManager).off("activeEditorChange.CSSDocument");
+        $(this.doc).off(".CSSDocument");
+        $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
         this.doc.releaseRef();
         this.detachFromEditor();
     };
@@ -137,7 +136,7 @@ define(function CSSDocumentModule(require, exports, module) {
         this.editor = editor;
         
         if (this.editor) {
-            $(HighlightAgent).on("highlight.CSSDocument", this.onHighlight);
+            $(HighlightAgent).on("highlight", this.onHighlight);
             $(this.editor).on("cursorActivity.CSSDocument", this.onCursorActivity);
             this.updateHighlight();
         }
@@ -146,8 +145,8 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(HighlightAgent).off("highlight.CSSDocument");
-            $(this.editor).off("cursorActivity.CSSDocument");
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            $(this.editor).off(".CSSDocument");
             this.onHighlight();
             this.editor = null;
         }
