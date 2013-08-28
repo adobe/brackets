@@ -86,6 +86,10 @@ define(function (require, exports, module) {
                 newElement.remove();
             }
             var index = this.children.indexOf(referenceElement);
+            if (index === -1) {
+                console.error("Unexpected attempt to reference a non-existent element:", referenceElement);
+                console.log(this.children);
+            }
             this.children.splice(index, 0, newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
@@ -336,6 +340,7 @@ define(function (require, exports, module) {
      */
     var FakeDocument = function (dom) {
         var self = this;
+        this.dom = dom;
         this.nodeMap = dom.nodeMap;
         
         // Walk the DOM looking for html/head/body tags. We can't use the nodeMap for this
@@ -380,7 +385,24 @@ define(function (require, exports, module) {
                 return [];
             }
             var id = match[1];
-            var element = this.nodeMap[id];
+            
+            function walk(node) {
+                if (String(node.tagID) === id) {
+                    return node;
+                }
+                if (node.children) {
+                    var i, result;
+                    for (i = 0; i < node.children.length; i++) {
+                        result = walk(node.children[i]);
+                        if (result) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            
+            var element = walk(this.dom);
+                        
             if (element) {
                 return [element];
             }
@@ -2396,6 +2418,43 @@ define(function (require, exports, module) {
                         expect(edit.tagID).toBe(emNode.tagID);
                         expect(edit.parentID).toBe(newParaID);
                     }, false, true);
+                });
+            });
+            
+            it("should handle tag changes", function () {
+                setupEditor(WellFormedDoc);
+                var heading;
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            heading = previousDOM.children[3].children[3];
+                            editor.document.replaceRange("h3", { line: 13, ch: 1 }, { line: 13, ch: 3 });
+                            editor.document.replaceRange("h3", { line: 13, ch: 25 }, { line: 13, ch: 27 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            if (incremental) {
+                                return;
+                            }
+                            expect(heading.tag).toBe("h2");
+                            
+                            expect(result.edits.length).toBe(2);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementReplace",
+                                tagID: heading.tagID,
+                                parentID: heading.parent.tagID,
+                                attributes: {},
+                                tag: "h3"
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textInsert",
+                                content: "This is your guide!",
+                                parentID: heading.tagID,
+                                lastChild: true
+                            });
+                        },
+                        false
+                    );
                 });
             });
         });
