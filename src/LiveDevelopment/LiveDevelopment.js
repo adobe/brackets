@@ -561,6 +561,38 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
+    /**
+     * @private
+     * Close the connection and the associated window asynchronously
+     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
+     * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
+    function _close(doCloseWindow, reason) {
+        var deferred = $.Deferred();
+            
+        /*
+         * Finish closing the live development connection, including setting
+         * the status accordingly.
+         */
+        function cleanup() {
+            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+            deferred.resolve();
+        }
+        
+        if (Inspector.connected()) {
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
+        } else {
+            cleanup();
+        }
+
+        if (_openDeferred && _openDeferred.state() === "pending") {
+            _openDeferred.reject();
+        }
+        
+        return deferred.promise();
+    }
+
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -612,38 +644,6 @@ define(function LiveDevelopment(require, exports, module) {
     function reconnect() {
         unloadAgents();
         loadAgents();
-    }
-
-    /**
-     * @private
-     * Close the connection and the associated window asynchronously
-     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
-     * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
-     * @return {jQuery.Promise} Resolves once the connection is closed
-     */
-    function _close(doCloseWindow, reason) {
-        var deferred = $.Deferred();
-            
-        /*
-         * Finish closing the live development connection, including setting
-         * the status accordingly.
-         */
-        function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
-        }
-        
-        if (Inspector.connected()) {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
-        } else {
-            cleanup();
-        }
-
-        if (_openDeferred && _openDeferred.state() === "pending") {
-            _openDeferred.reject();
-        }
-        
-        return deferred.promise();
     }
 
     /**
