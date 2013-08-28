@@ -1478,6 +1478,14 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            
+            // If there is a selection in the editor, temporarily hide Active Line Highlight
+            if ((cmOption === "styleActiveLine") && (value === true)) {
+                if (editor.hasSelection()) {
+                    editor._codeMirror.setOption("styleActiveLine", false);
+                }
+            }
+            
             $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }
@@ -1569,15 +1577,10 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
-     * @param {Editor} editor Current, focused editor (main or inline)
      */
-    Editor.setShowActiveLine = function (value, editor) {
+    Editor.setShowActiveLine = function (value) {
         _styleActiveLine = value;
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
-        
-        if (editor.hasSelection()) {
-            editor._codeMirror.setOption("styleActiveLine", false);
-        }
     };
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */

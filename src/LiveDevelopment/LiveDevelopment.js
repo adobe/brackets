@@ -144,7 +144,6 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _server;              // current live dev server
-    var _closeReason;         // reason why live preview was closed
     var _openDeferred;        // promise returned for each call to open()
     
     function _isHtmlFileExt(ext) {
@@ -214,7 +213,10 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (index !== -1) {
             _relatedDocuments.splice(index, 1);
-            _server.remove(liveDoc);
+            
+            if (_server) {
+                _server.remove(liveDoc);
+            }
         }
     }
 
@@ -231,14 +233,16 @@ define(function LiveDevelopment(require, exports, module) {
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
-                $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
+                $(liveDoc).off(".livedev");
             });
             
             _relatedDocuments = undefined;
         }
         
         // Clear all documents from request filtering
-        _server.clear();
+        if (_server) {
+            _server.clear();
+        }
     }
 
     /**
@@ -265,7 +269,7 @@ define(function LiveDevelopment(require, exports, module) {
         function createLiveStylesheet(url) {
             var stylesheetDeferred  = $.Deferred(),
                 promise             = stylesheetDeferred.promise(),
-                path                = _server.urlToPath(url);
+                path                = _server && _server.urlToPath(url);
 
             // path may be null if loading an external stylesheet
             if (path) {
@@ -285,7 +289,7 @@ define(function LiveDevelopment(require, exports, module) {
                                 _relatedDocuments.push(liveDoc);
                                 _server.add(liveDoc);
                                 
-                                $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                                $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
                             }
                         }
                         stylesheetDeferred.resolve();
@@ -328,20 +332,34 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Update the status
-     * @param {integer} new status
+    /**
+     * Update the status. Triggers a statusChange event.
+     * @param {number} status new status
+     * @param {?string} closeReason Optional string key suffix to display to
+     *     user when closing the live development connection (see LIVE_DEV_* keys)
      */
-    function _setStatus(status) {
+    function _setStatus(status, closeReason) {
         // Don't send a notification when the status didn't actually change
         if (status === exports.status) {
             return;
         }
         
         exports.status = status;
-        var reason = status === STATUS_INACTIVE ? _closeReason : null;
+        
+        var reason = status === STATUS_INACTIVE ? closeReason : null;
         $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
+    /** Documents are considered to be out-of-sync if they are dirty and
+     *  do not have "update while editing" support
+     * @param {Document} doc
+     */
+    function _docIsOutOfSync(doc) {
+        var docClass = _classForDocument(doc);
+        return (doc.isDirty && docClass !== CSSDocument &&
+                (!brackets.livehtml || docClass !== HTMLDocument));
+    }
+    
     /** Triggered by Inspector.error */
     function _onError(event, error) {
         var message;
@@ -472,7 +490,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 relatedDocumentsPromise
                     .done(function () {
-                        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                        if (_docIsOutOfSync(doc)) {
                             status = STATUS_OUT_OF_SYNC;
                         }
                         _setStatus(status);
@@ -504,6 +522,89 @@ define(function LiveDevelopment(require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * @private
+     * While still connected to the Inspector, do cleanup for agents,
+     * documents and server.
+     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
+     * @return {jQuery.Promise} A promise that is always resolved
+     */
+    function _doInspectorDisconnect(doCloseWindow) {
+        var closePromise,
+            deferred    = new $.Deferred(),
+            connected   = Inspector.connected();
+
+        $(Inspector.Page).off(".livedev");
+        $(Inspector).off(".livedev");
+
+        unloadAgents();
+        
+        // Close live documents 
+        _closeDocuments();
+        
+        if (_server) {
+            // Stop listening for requests when disconnected
+            _server.stop();
+
+            // Dispose server
+            _server = null;
+        }
+
+        if (doCloseWindow && connected) {
+            closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
+
+            // Add a timeout to continue cleanup if Inspector does not respond
+            closePromise = Async.withTimeout(closePromise, 5000);
+        } else {
+            closePromise = new $.Deferred().resolve();
+        }
+
+        closePromise.done(function () {
+            if (Inspector.connected()) {
+                Inspector.disconnect().always(deferred.resolve);
+            } else {
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    }
+
+    /**
+     * @private
+     * Close the connection and the associated window asynchronously
+     * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
+     * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
+    function _close(doCloseWindow, reason) {
+        var deferred = $.Deferred();
+
+        /*
+         * Finish closing the live development connection, including setting
+         * the status accordingly.
+         */
+        function cleanup() {
+            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+            deferred.resolve();
+        }
+
+        if (_openDeferred) {
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
+
+            if (_openDeferred.state() === "pending") {
+                _openDeferred.reject();
+            }
+        } else {
+            // Deferred may not be created yet
+            // We always close attempt to close the live dev connection on
+            // ProjectManager beforeProjectClose and beforeAppClose events
+            cleanup();
+        }
+        
+        return deferred.promise();
+    }
+
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -531,38 +632,30 @@ define(function LiveDevelopment(require, exports, module) {
         baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
         if (!url.match(baseUrlRegExp)) {
             // No longer in site, so terminate live dev, but don't close browser window
-            Inspector.disconnect();
-            _closeReason = "navigated_away";
-            _setStatus(STATUS_INACTIVE);
-            _server = null;
+            _close(false, "navigated_away");
         }
     }
 
-    /** Triggered by Inspector.disconnect */
+    /**
+     * @private
+     * Triggered by unexpected Inspector disconnect event
+     */
     function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached.livedev");
-        $(Inspector.Page).off("frameNavigated.livedev");
-
-        unloadAgents();
-        
-        // Stop listening for requests when disconnected
-        _server.stop();
-        
-        // Close live documents 
-        _closeDocuments();
-        
-        _setStatus(STATUS_INACTIVE);
+        _close(false, "closed_unknown_reason");
     }
 
     function _onDetached(event, res) {
-        // If there already is a reason for closing the session, do not overwrite it
-        if (!_closeReason && res && res.reason) {
+        var closeReason;
+
+        if (res && res.reason) {
             // Get the explanation from res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
             // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
             // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
             // Prefix with "detached_" to create a quasi-namespace for Chrome's reasons
-            _closeReason = "detached_" + res.reason;
+            closeReason = "detached_" + res.reason;
         }
+
+        _close(false, closeReason);
     }
 
     /**
@@ -575,39 +668,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * Close the connection and the associated window asynchronously
-     * 
      * @return {jQuery.Promise} Resolves once the connection is closed
      */
     function close() {
-        _closeReason = "explicit_close";
-
-        var deferred = $.Deferred();
-            
-        /*
-         * Finish closing the live development connection, including setting
-         * the status accordingly.
-         */
-        function cleanup() {
-            _setStatus(STATUS_INACTIVE);
-            deferred.resolve();
-        }
-        
-        if (Inspector.connected()) {
-            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
-            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
-                Inspector.disconnect();
-                window.clearTimeout(timer);
-                cleanup();
-            });
-        } else {
-            cleanup();
-        }
-
-        if (_openDeferred && _openDeferred.state() === "pending") {
-            _openDeferred.reject();
-        }
-        
-        return deferred.promise();
+        return _close(true);
     }
     
     /**
@@ -682,7 +746,11 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
+        // When the browser navigates away from the primary live document
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+
+        // When the Inspector WebSocket disconnects unexpectedely
+        $(Inspector).on("disconnect.livedev", _onDisconnect);
 		
         _waitForInterstitialPageLoad()
             .fail(function () {
@@ -836,29 +904,29 @@ define(function LiveDevelopment(require, exports, module) {
     }
     
     function _prepareServer(doc) {
-        var deferred = new $.Deferred();
+        var deferred = new $.Deferred(),
+            showBaseUrlPrompt = false;
         
         _server = LiveDevServerManager.getServer(doc.file.fullPath);
-        
-        if (!exports.config.experimental && !_server) {
-            if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
-                    .done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
-                            // If base url is specifed, then re-invoke _prepareServer() to continue
-                            _prepareServer(doc).then(deferred.resolve, deferred.reject);
-                        } else {
-                            deferred.reject();
-                        }
-                    });
-            } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
-                _showWrongDocError();
-                deferred.reject();
-            } else {
-                // fall-back to file://
-                deferred.resolve();
-            }
-        } else {
+
+        // Optionally prompt for a base URL if no server was found but the
+        // file is a known server file extension
+        showBaseUrlPrompt = !exports.config.experimental && !_server &&
+            FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+
+        if (showBaseUrlPrompt) {
+            // Prompt for a base URL
+            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke _prepareServer() to continue
+                        _prepareServer(doc).then(deferred.resolve, deferred.reject);
+                    } else {
+                        deferred.reject();
+                    }
+                });
+        } else if (_server) {
+            // Startup the server
             var readyPromise = _server.readyToServe();
             if (!readyPromise) {
                 _showLiveDevServerNotReadyError();
@@ -869,6 +937,9 @@ define(function LiveDevelopment(require, exports, module) {
                     deferred.reject();
                 });
             }
+        } else {
+            // No server found
+            deferred.reject();
         }
         
         return deferred.promise();
@@ -876,11 +947,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open the Connection and go live */
     function open() {
-        _closeReason = null;
         _openDeferred = new $.Deferred();
 
         var doc = _getCurrentDocument(),
-            prepareServerPromise = _prepareServer(doc);
+            prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
         
         // wait for server (StaticServer, Base URL or file:)
         prepareServerPromise.done(_doLaunchAfterServerReady);
@@ -922,23 +992,21 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentChange() {
         var doc = _getCurrentDocument();
         
-        if (!doc) {
+        if (!doc || !Inspector.connected()) {
             return;
         }
 
-        if (Inspector.connected()) {
-            hideHighlight();
-            
-            // close the current session and begin a new session if the current
-            // document changes to an HTML document that was not loaded yet
-            var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
-                isHTML = exports.config.experimental || _isHtmlFileExt(doc.extension);
-            
-            if (!wasRequested && isHTML) {
-                // TODO (jasonsanjose): optimize this by reusing the same connection
-                // no need to fully teardown.
-                close().done(open);
-            }
+        hideHighlight();
+        
+        // close the current session and begin a new session if the current
+        // document changes to an HTML document that was not loaded yet
+        var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
+            isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
+        
+        if (!wasRequested && isViewable) {
+            // TODO (jasonsanjose): optimize this by reusing the same connection
+            // no need to fully teardown.
+            close().done(open);
         }
     }
 
@@ -956,10 +1024,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+        if (doc && Inspector.connected() &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
-            _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
+            _setStatus(_docIsOutOfSync(doc) ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
     }
 
@@ -982,8 +1050,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        $(Inspector).on("disconnect", _onDisconnect)
-            .on("error", _onError);
+        $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
