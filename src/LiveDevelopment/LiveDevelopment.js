@@ -233,7 +233,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
-                $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
+                $(liveDoc).off(".livedev");
             });
             
             _relatedDocuments = undefined;
@@ -289,7 +289,7 @@ define(function LiveDevelopment(require, exports, module) {
                                 _relatedDocuments.push(liveDoc);
                                 _server.add(liveDoc);
                                 
-                                $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                                $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
                             }
                         }
                         stylesheetDeferred.resolve();
@@ -534,8 +534,8 @@ define(function LiveDevelopment(require, exports, module) {
             deferred    = new $.Deferred(),
             connected   = Inspector.connected();
 
-        $(Inspector.Page).off("frameNavigated.livedev");
-        $(Inspector).off("disconnect.livedev");
+        $(Inspector.Page).off(".livedev");
+        $(Inspector).off(".livedev");
 
         unloadAgents();
         
