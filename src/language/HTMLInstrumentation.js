@@ -467,11 +467,24 @@ define(function (require, exports, module) {
         return dom;
     };
     
-    SimpleDOMBuilder.prototype.getID = function () {
+    /**
+     * Returns a new tag ID.
+     *
+     * @return {int} unique tag ID
+     */
+    SimpleDOMBuilder.prototype.getNewID = function () {
         return tagID++;
     };
     
-    SimpleDOMBuilder.prototype.getNewID = SimpleDOMBuilder.prototype.getID;
+    /**
+     * Returns the best tag ID for the new tag object given. 
+     * The default implementation just calls `getNewID`
+     * and returns a unique ID.
+     *
+     * @param {Object} newTag tag object to potentially inspect to choose an ID
+     * @return {int} unique tag ID
+     */
+    SimpleDOMBuilder.prototype.getID = SimpleDOMBuilder.prototype.getNewID;
     
     function _buildSimpleDOM(text, strict) {
         var builder = new SimpleDOMBuilder(text);
@@ -596,6 +609,13 @@ define(function (require, exports, module) {
         return !!ancestor;
     }
     
+    /**
+     * Overrides the `getID` method to return the tag ID from the document. If a viable tag
+     * ID cannot be found in the document marks, then a new ID is returned.
+     *
+     * @param {Object} newTag tag object for the current element
+     * @return {int} best ID
+     */
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
@@ -890,7 +910,7 @@ define(function (require, exports, module) {
              */
             var addBeforeID = function (beforeID) {
                 newEdits.forEach(function (edit) {
-                    // elementDeletes don't need any positioning information
+                    // elementDeletes and elementReplaces don't need any positioning information
                     if (edit.type !== "elementDelete" && edit.type !== "elementReplace") {
                         edit.beforeID = beforeID;
                     }
