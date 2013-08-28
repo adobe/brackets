@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -86,7 +86,7 @@ define({
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a class=\"clickable-link\" data-href=\"{0}\">Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a href='#' class='clickable-link' data-href='{0}'>Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
@@ -103,6 +103,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
+	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
+	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
@@ -110,10 +112,14 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
 	"FIND_RESULT_COUNT": "{0} 件",
+	"FIND_RESULT_COUNT_SINGLE": "1 件",
+	"FIND_NO_RESULTS": "該当なし",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
+	"BUTTON_REPLACE_ALL": "すべて\u2026",
 	"BUTTON_STOP": "終了",
+	"BUTTON_REPLACE": "置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -122,16 +128,22 @@ define({
 	"RELEASE_NOTES": "リリースノート",
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
-    
-	"FIND_IN_FILES_TITLE": "「{4}」{5}  - {2} {3} 中 {0} 件の {1} ",
+
+	"FIND_REPLACE_TITLE_PART1": "「",
+	"FIND_REPLACE_TITLE_PART2": "」を「",
+	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
+
+	"FIND_IN_FILES_TITLE_PART1": "「",
+	"FIND_IN_FILES_TITLE_PART2": "」が見つかりました",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} ({2} {3})",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "一致",
 	"FIND_IN_FILES_MATCHES": "一致",
-	"FIND_IN_FILES_MORE_THAN": "少なくとも ",
-	"FIND_IN_FILES_MAX": " (先頭 {0} 件を表示しています)",
+	"FIND_IN_FILES_MORE_THAN": "以上",
+	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 
@@ -156,6 +168,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "行 {0}, 列 {1}",
+	"STATUSBAR_SELECTION_CH_SINGULAR": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} 列を選択",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} 行を選択",
+	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} 行を選択",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
@@ -189,7 +205,7 @@ define({
 	"CMD_FILE_DELETE": "削除",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
 	"CMD_EXTENSION_MANAGER": "拡張機能マネージャー\u2026",
-	"CMD_FILE_REFRESH": "更新",
+	"CMD_FILE_REFRESH": "ファイルツリーを更新",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -273,11 +289,11 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
 	"SAVE": "保存",
 	"CANCEL": "キャンセル",
+	"DELETE": "削除",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
@@ -285,18 +301,18 @@ define({
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
-	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
+	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='#' class='clickable-link' data-href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "ローカルサーバーを使用するには http://localhost:8000/ などの URL を入力します",
+	"PROJECT_SETTING_BASE_URL_HINT": "http://localhost:8000/ 等のURLを入力してローカルサーバーを使用",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
@@ -411,6 +427,7 @@ define({
 	"LOCALE_DE": "ドイツ語",
 	"LOCALE_EN": "英語",
 	"LOCALE_ES": "スペイン語",
+	"LOCALE_FI": "フィンランド語",
 	"LOCALE_FR": "フランス語",
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
@@ -435,7 +452,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
-    
+	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
+	"NO_ARGUMENTS": "<パラメーターがありません>",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "JSLint を有効にする",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
@@ -445,7 +464,7 @@ define({
 	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
 	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
     
     // extensions/default/WebPlatformDocs

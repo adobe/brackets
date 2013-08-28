@@ -71,14 +71,6 @@ define(function CSSDocumentModule(require, exports, module) {
         this.onDeleted = this.onDeleted.bind(this);
         $(this.doc).on("change", this.onChange);
         $(this.doc).on("deleted", this.onDeleted);
-
-        // get the style sheet
-        this.styleSheet = CSSAgent.styleForURL(this.doc.url);
-
-        // If the CSS document is dirty, push the changes into the browser now
-        if (doc.isDirty) {
-            CSSAgent.reloadCSSForDocument(this.doc);
-        }
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
         $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
@@ -126,6 +118,19 @@ define(function CSSDocumentModule(require, exports, module) {
         this.doc.releaseRef();
         this.detachFromEditor();
     };
+ 
+    /**
+     * Force the browser to update if the file is dirty
+     */
+    CSSDocument.prototype._updateBrowser = function () {
+        // get the style sheet
+        this.styleSheet = CSSAgent.styleForURL(this.doc.url);
+
+        // If the CSS document is dirty, push the changes into the browser now
+        if (this.doc.isDirty) {
+            CSSAgent.reloadCSSForDocument(this.doc);
+        }
+    };
 
     CSSDocument.prototype.attachToEditor = function (editor) {
         this.editor = editor;
@@ -158,6 +163,25 @@ define(function CSSDocumentModule(require, exports, module) {
             }
         }
     };
+    
+    /**
+     * Enable instrumented CSS
+     * @param enabled {boolean} 
+     */
+    CSSDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
+        // no-op
+        // "Instrumentation" is always enabled for CSS, we make no modifications
+    };
+    
+    /**
+     * Returns a JSON object with HTTP response overrides
+     * @returns {{body: string}}
+     */
+    CSSDocument.prototype.getResponseData = function getResponseData(enabled) {
+        return {
+            body: this.doc.getText()
+        };
+    };
 
     /** Event Handlers *******************************************************/
 
@@ -174,6 +198,7 @@ define(function CSSDocumentModule(require, exports, module) {
             HighlightAgent.redraw();
         }
     };
+
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
         // clear the CSS

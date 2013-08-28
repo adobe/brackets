@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Make sure the server root folder was passed in and is valid
 if [[ ${1} == "" ]]; then
@@ -7,12 +7,12 @@ if [[ ${1} == "" ]]; then
   echo ""
   echo "Parameters: server-root-path - local file path to server root folder"
   echo "Example: ./setup_server_smokes.sh \"/Library/WebServer/Documents\""
-  exit;
+  exit 0;
 fi
 
 if [ ! -d "${1}" ]; then
   echo "$1 not found."
-  exit;
+  exit 1;
 fi
 
 # Get the full path of this script
@@ -30,10 +30,10 @@ server_test_dir="$root_dir/test/smokes/server-tests"
 
 # Remove existing "server-tests" symlink, if present
 if [ -d "${1}/server-tests" ]; then
-  rm "${1}/server-tests"
+  rm "${1}/server-tests" || exit 1;
 fi
 
 # Make new symlink
-ln -s "$server_test_dir" "${1}/server-tests"
+ln -s "$server_test_dir" "${1}/server-tests" || exit 1;
 
 echo "Local server now has access to Brackets server-tests smoke test files"

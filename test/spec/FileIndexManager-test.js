@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn, jasmine */
+/*global define, describe, brackets, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn, jasmine, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -194,235 +194,272 @@ define(function (require, exports, module) {
         
             this.category = "integration";
     
-            var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files");
-            var FileIndexManager,
-                ProjectManager,
-                brackets;
-    
-            beforeEach(function () {
+            var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files"),
+                FileIndexManager,
+                ProjectManager;
             
-                runs(function () {
-                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
-                        brackets = testWindow.brackets;
-    
-                        // Load module instances from brackets.test
-                        FileIndexManager  = testWindow.brackets.test.FileIndexManager;
-                        ProjectManager = testWindow.brackets.test.ProjectManager;
-                    });
+            function createTestWindow(spec) {
+                SpecRunnerUtils.createTestWindowAndRun(spec, function (testWindow) {
+                    // Load module instances from brackets.test
+                    FileIndexManager  = testWindow.brackets.test.FileIndexManager;
+                    ProjectManager = testWindow.brackets.test.ProjectManager;
                 });
-            });
-    
-            afterEach(function () {
-                brackets          = null;
+            }
+            
+            function closeTestWindow() {
                 FileIndexManager  = null;
                 ProjectManager    = null;
                 SpecRunnerUtils.closeTestWindow();
-            });
+            }
             
-            it("should index files in directory", function () {
-                // Open a directory
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
-                var allFiles, cssFiles;
-                runs(function () {
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (result) {
-                            allFiles = result;
-                        });
-                });
-                waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
-                
-                runs(function () {
-                    FileIndexManager.getFileInfoList("css")
-                        .done(function (result) {
-                            cssFiles = result;
-                        });
-                });
-                waitsFor(function () { return cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
-    
-                runs(function () {
-                    expect(allFiles.length).toEqual(8);
-                    expect(cssFiles.length).toEqual(3);
+            describe("multiple requests", function () {
+                beforeEach(function () {
+                    createTestWindow(this);
+
+                    // Load spec/FileIndexManager-test-files
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
                 
-            });
-    
-            it("should handle simultaneous requests without doing extra work", function () {  // #330
-                // Open a directory
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
-                var projectRoot;
-                var promise1, promise2;
-                var allFiles1, allFiles2;
-                runs(function () {
-                    projectRoot = ProjectManager.getProjectRoot();
-                    spyOn(projectRoot, "createReader").andCallThrough();
+                afterEach(closeTestWindow);
+                
+                it("should handle identical simultaneous requests without doing extra work", function () {  // #330
+                    var projectRoot,
+                        allFiles1,
+                        allFiles2;
+        
+                    runs(function () {
+                        projectRoot = ProjectManager.getProjectRoot();
+                        spyOn(projectRoot, "createReader").andCallThrough();
+                        
+                        // Kick off two index requests in parallel
+                        var promise1 = FileIndexManager.getFileInfoList("all")
+                            .done(function (result) {
+                                allFiles1 = result;
+                            });
+                        var promise2 = FileIndexManager.getFileInfoList("all") // same request again
+                            .done(function (result) {
+                                allFiles2 = result;
+                            });
+                        
+                        waitsForDone(promise1, "First FileIndexManager.getFileInfoList()");
+                        waitsForDone(promise2, "Second FileIndexManager.getFileInfoList()");
+                    });
                     
-                    // Kick off two index requests in parallel
-                    promise1 = FileIndexManager.getFileInfoList("all")
-                        .done(function (result) {
-                            allFiles1 = result;
-                        });
-                    promise2 = FileIndexManager.getFileInfoList("all")
-                        .done(function (result) {
-                            allFiles2 = result;
-                        });
+                    runs(function () {
+                        // Correct response to both promises
+                        expect(allFiles1.length).toEqual(8);
+                        expect(allFiles2.length).toEqual(8);
+                        
+                        // Didn't scan project tree twice
+                        expect(projectRoot.createReader.callCount).toBe(1);
+                    });
+                });
+                
+                it("should handle differing simultaneous requests without doing extra work", function () {  // #330
+                    var projectRoot,
+                        allFiles1,
+                        allFiles2;
+        
+                    runs(function () {
+                        projectRoot = ProjectManager.getProjectRoot();
+                        spyOn(projectRoot, "createReader").andCallThrough();
+                        
+                        // Kick off two index requests in parallel
+                        var promise1 = FileIndexManager.getFileInfoList("all")
+                            .done(function (result) {
+                                allFiles1 = result;
+                            });
+                        var promise2 = FileIndexManager.getFileInfoList("css") // different request in parallel
+                            .done(function (result) {
+                                allFiles2 = result;
+                            });
+                        
+                        waitsForDone(promise1, "First FileIndexManager.getFileInfoList()");
+                        waitsForDone(promise2, "Second FileIndexManager.getFileInfoList()");
+                    });
                     
-                    waitsForDone(promise1, "First FileIndexManager.getFileInfoList()");
-                    waitsForDone(promise2, "Second FileIndexManager.getFileInfoList()");
-                });
-                
-                runs(function () {
-                    // Correct response to both promises
-                    expect(allFiles1.length).toEqual(8);
-                    expect(allFiles2.length).toEqual(8);
-                    
-                    // Didn't scan project tree twice
-                    expect(projectRoot.createReader.callCount).toBe(1);
+                    runs(function () {
+                        // Correct response to both promises
+                        expect(allFiles1.length).toEqual(8);
+                        expect(allFiles2.length).toEqual(3);
+                        
+                        // Didn't scan project tree twice
+                        expect(projectRoot.createReader.callCount).toBe(1);
+                    });
                 });
             });
             
-            it("should match a specific filename and return the correct FileInfo", function () {
-                // Open a directory
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                
-                var fileList;
-                
-                runs(function () {
-                    FileIndexManager.getFilenameMatches("all", "file_four.css")
-                        .done(function (results) {
-                            fileList = results;
-                        });
+            describe("ProjectManager integration", function () {
+    
+                beforeFirst(function () {
+                    createTestWindow(this);
                 });
-                
-                waitsFor(function () { return fileList; }, 1000);
-                
-                runs(function () {
-                    expect(fileList.length).toEqual(1);
-                    expect(fileList[0].name).toEqual("file_four.css");
-                    expect(fileList[0].fullPath).toEqual(testPath + "/file_four.css");
-                });
-            });
             
-            it("should update the indicies on project change", function () {
-                // Load spec/FileIndexManager-test-files
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
-                var allFiles;
-                runs(function () {
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (result) {
-                            allFiles = result;
-                        });
-                });
-    
-                waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                afterLast(closeTestWindow);
                 
-                runs(function () {
-                    expect(allFiles.length).toEqual(8);
+                beforeEach(function () {
+                    // Load spec/FileIndexManager-test-files
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
                 
-                // load a subfolder in the test project
-                // spec/FileIndexManager-test-files/dir1/dir2
-                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dir1/dir2/");
-    
-                var dir2Files;
-                runs(function () {
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (result) {
-                            dir2Files = result;
-                        });
-                });
-    
-                waitsFor(function () { return dir2Files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
-                
-                runs(function () {
-                    expect(dir2Files.length).toEqual(2);
-                    expect(dir2Files[0].name).toEqual("file_eight.css");
-                    expect(dir2Files[1].name).toEqual("file_seven.js");
-                });
-            });
-            
-            it("should update the indicies after being marked dirty", function () {
-                // Load spec/FileIndexManager-test-files
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
-                var allFiles; // set by checkAllFileCount
-                
-                // helper function to validate base state of 8 files
-                function checkAllFileCount(fileCount) {
-                    var files;
+                it("should index files in directory", function () {
+                    var allFiles, cssFiles;
                     runs(function () {
                         FileIndexManager.getFileInfoList("all")
                             .done(function (result) {
-                                files = result;
+                                allFiles = result;
+                            });
+                    });
+                    waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                    
+                    runs(function () {
+                        FileIndexManager.getFileInfoList("css")
+                            .done(function (result) {
+                                cssFiles = result;
+                            });
+                    });
+                    waitsFor(function () { return cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+        
+                    runs(function () {
+                        expect(allFiles.length).toEqual(8);
+                        expect(cssFiles.length).toEqual(3);
+                    });
+                    
+                });
+                
+                it("should match a specific filename and return the correct FileInfo", function () {
+                    var fileList;
+                    
+                    runs(function () {
+                        FileIndexManager.getFilenameMatches("all", "file_four.css")
+                            .done(function (results) {
+                                fileList = results;
+                            });
+                    });
+                    
+                    waitsFor(function () { return fileList; }, 1000);
+                    
+                    runs(function () {
+                        expect(fileList.length).toEqual(1);
+                        expect(fileList[0].name).toEqual("file_four.css");
+                        expect(fileList[0].fullPath).toEqual(testPath + "/file_four.css");
+                    });
+                });
+                
+                it("should update the indicies on project change", function () {
+                    var allFiles;
+                    runs(function () {
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (result) {
+                                allFiles = result;
                             });
                     });
         
-                    waitsFor(function () { return files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                    waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
                     
                     runs(function () {
-                        allFiles = files;
-                        expect(files.length).toEqual(fileCount);
+                        expect(allFiles.length).toEqual(8);
                     });
-                }
-                
-                // verify 8 files in base state
-                checkAllFileCount(8);
-                
-                // add a temporary file to the folder
-                var entry;
-                
-                // create a 9th file
-                runs(function () {
-                    var root = ProjectManager.getProjectRoot();
-                    root.getFile("new-file.txt",
-                                 { create: true, exclusive: true },
-                                 function (fileEntry) { entry = fileEntry; });
-                });
-                
-                waitsFor(function () { return entry; }, "getFile() timeout", 1000);
-                
-                runs(function () {
-                    // mark FileIndexManager dirty after new file was created
-                    FileIndexManager.markDirty();
-                });
-                
-                // verify 9 files
-                checkAllFileCount(9);
-                
-                var cleanupComplete = false;
-                
-                // verify the new file was added to the "all" index
-                runs(function () {
-                    var filtered = allFiles.filter(function (value) {
-                        return (value.name === "new-file.txt");
-                    });
-                    expect(filtered.length).toEqual(1);
                     
-                    // remove the 9th file
-                    brackets.fs.unlink(entry.fullPath, function (err) {
-                        cleanupComplete = (err === brackets.fs.NO_ERROR);
+                    // load a subfolder in the test project
+                    // spec/FileIndexManager-test-files/dir1/dir2
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dir1/dir2/");
+        
+                    var dir2Files;
+                    runs(function () {
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (result) {
+                                dir2Files = result;
+                            });
+                    });
+        
+                    waitsFor(function () { return dir2Files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(dir2Files.length).toEqual(2);
+                        expect(dir2Files[0].name).toEqual("file_eight.css");
+                        expect(dir2Files[1].name).toEqual("file_seven.js");
                     });
                 });
-    
-                // wait for the file to be deleted
-                waitsFor(function () { return cleanupComplete; }, 1000);
                 
-                runs(function () {
-                    // mark FileIndexManager dirty after new file was deleted
-                    FileIndexManager.markDirty();
-                });
-                
-                // verify that we're back to 8 files
-                checkAllFileCount(8);
-                
-                // make sure the 9th file was removed from the index
-                runs(function () {
-                    var filtered = allFiles.filter(function (value) {
-                        return (value.name === "new-file.txt");
+                it("should update the indicies after being marked dirty", function () {
+                    var allFiles; // set by checkAllFileCount
+                    
+                    // helper function to validate base state of 8 files
+                    function checkAllFileCount(fileCount) {
+                        var files;
+                        runs(function () {
+                            FileIndexManager.getFileInfoList("all")
+                                .done(function (result) {
+                                    files = result;
+                                });
+                        });
+            
+                        waitsFor(function () { return files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                        
+                        runs(function () {
+                            allFiles = files;
+                            expect(files.length).toEqual(fileCount);
+                        });
+                    }
+                    
+                    // verify 8 files in base state
+                    checkAllFileCount(8);
+                    
+                    // add a temporary file to the folder
+                    var entry;
+                    
+                    // create a 9th file
+                    runs(function () {
+                        var root = ProjectManager.getProjectRoot();
+                        root.getFile("new-file.txt",
+                                     { create: true, exclusive: true },
+                                     function (fileEntry) { entry = fileEntry; });
                     });
-                    expect(filtered.length).toEqual(0);
+                    
+                    waitsFor(function () { return entry; }, "getFile() timeout", 1000);
+                    
+                    runs(function () {
+                        // mark FileIndexManager dirty after new file was created
+                        FileIndexManager.markDirty();
+                    });
+                    
+                    // verify 9 files
+                    checkAllFileCount(9);
+                    
+                    var cleanupComplete = false;
+                    
+                    // verify the new file was added to the "all" index
+                    runs(function () {
+                        var filtered = allFiles.filter(function (value) {
+                            return (value.name === "new-file.txt");
+                        });
+                        expect(filtered.length).toEqual(1);
+                        
+                        // remove the 9th file
+                        brackets.fs.unlink(entry.fullPath, function (err) {
+                            cleanupComplete = (err === brackets.fs.NO_ERROR);
+                        });
+                    });
+        
+                    // wait for the file to be deleted
+                    waitsFor(function () { return cleanupComplete; }, 1000);
+                    
+                    runs(function () {
+                        // mark FileIndexManager dirty after new file was deleted
+                        FileIndexManager.markDirty();
+                    });
+                    
+                    // verify that we're back to 8 files
+                    checkAllFileCount(8);
+                    
+                    // make sure the 9th file was removed from the index
+                    runs(function () {
+                        var filtered = allFiles.filter(function (value) {
+                            return (value.name === "new-file.txt");
+                        });
+                        expect(filtered.length).toEqual(0);
+                    });
                 });
             });
         });

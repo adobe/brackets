@@ -34,7 +34,7 @@ define(function NetworkAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
-    var _urlRequested; // url -> request info
+    var _urlRequested = {}; // url -> request info
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -80,14 +80,14 @@ define(function NetworkAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _urlRequested = {};
-
         $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
         $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
+        _urlRequested = {};
+
         $(Inspector.Page).off(".NetworkAgent");
         $(Inspector.Network).off(".NetworkAgent");
     }
