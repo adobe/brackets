@@ -533,6 +533,13 @@ define(function (require, exports, module) {
         var createdNewEditor = false;
         if (!document._masterEditor) {
             createdNewEditor = true;
+
+            // Performance (see #4757) Chrome wastes time messing with selection
+            // that will just be changed at end, so clear it for now
+            if (window.getSelection && window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            }
+            
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }

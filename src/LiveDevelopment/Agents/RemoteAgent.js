@@ -54,40 +54,57 @@ define(function RemoteAgent(require, exports, module) {
         }
     }
 
+    function _call(objectId, method, varargs) {
+        console.assert(objectId, "Attempted to call remote method without objectId set.");
+        var args = Array.prototype.slice.call(arguments, 2),
+            callback,
+            deferred = new $.Deferred();
+
+        // if the last argument is a function it is the callback function
+        if (typeof args[args.length - 1] === "function") {
+            callback = args.pop();
+        }
+
+        // Resolve node parameters
+        args = args.map(function (arg) {
+            if (arg && arg.nodeId) {
+                return arg.resolve();
+            }
+
+            return arg;
+        });
+
+        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
+            var params = [];
+
+            args.forEach(function (arg) {
+                if (arg.objectId) {
+                    params.push({objectId: arg.objectId});
+                } else {
+                    params.push({value: arg});
+                }
+            });
+
+            Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
+                .then(deferred.resolve, deferred.reject);
+        });
+
+        return deferred.promise();
+    }
+
     /** Call a remote function
      * The parameters are passed on to the remote functions. Nodes are resolved
      * and sent as objectIds.
      * @param {string} function name
      */
     function call(method, varargs) {
-        console.assert(_objectId, "Attempted to call remote method without objectId set.");
-        var args = Array.prototype.slice.call(arguments, 1);
+        var argsArray = [_objectId, "_LD." + method];
 
-        // if the last argument is a function it is the callback function
-        var callback;
-        if (typeof args[args.length - 1] === "function") {
-            callback = args.pop();
+        if (arguments.length > 1) {
+            argsArray = argsArray.concat(Array.prototype.slice.call(arguments, 1));
         }
 
-        // Resolve node parameters
-        var i;
-        for (i in args) {
-            if (args[i].nodeId) {
-                args[i] = args[i].resolve();
-            }
-        }
-        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
-            var i, arg, params = [];
-            for (i in arguments) {
-                arg = args[i];
-                if (arg.objectId) {
-                    params.push({objectId: arg.objectId});
-                } else {
-                    params.push({value: arg});
-                }
-            }
-            Inspector.Runtime.callFunctionOn(_objectId, "_LD." + method, params, undefined, callback);
-        });
+        return _call.apply(null, argsArray);
     }
 
     function _stopKeepAliveInterval() {
@@ -116,7 +133,9 @@ define(function RemoteAgent(require, exports, module) {
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ")";
+
+        // inject RemoteFunctions
+        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
