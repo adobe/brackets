@@ -562,8 +562,8 @@ function RemoteFunctions(experimental) {
             }
         }
         
-        if (edit.beforeText && before
-                && before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
+        if (edit.beforeText && before &&
+                before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
             before = before.previousSibling;
         }
         
