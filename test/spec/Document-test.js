@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, jasmine, describe, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -70,7 +70,153 @@ define(function (require, exports, module) {
             HTML_FILE = testPath + "/test.html";
 
 
-        describe("ref counting", function () {
+        describe("Dirty flag and undo", function () {
+            var $, promise, doc;
+            
+            beforeEach(function () {
+                $ = testWindow.$;
+            });
+            
+            it("should not fire dirtyFlagChange when created", function () {
+                var dirtyFlagListener = jasmine.createSpy();
+                
+                runs(function () {
+                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    
+                    promise = DocumentManager.getDocumentForPath(JS_FILE);
+                    waitsForDone(promise, "Create Document");
+                });
+                runs(function () {
+                    expect(dirtyFlagListener.callCount).toBe(0);
+                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                });
+            });
+            
+            it("should clear dirty flag, preserve undo when marked saved", function () {
+                var dirtyFlagListener = jasmine.createSpy();
+                
+                runs(function () {
+                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0);
+                    
+                    // Make an edit (make dirty)
+                    doc.replaceRange("Foo", {line: 0, ch: 0});
+                    expect(doc.isDirty).toBe(true);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+                    expect(dirtyFlagListener.callCount).toBe(1);
+                    
+                    // Mark saved (e.g. called by Save command)
+                    doc.notifySaved();
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1); // still has undo history
+                    expect(dirtyFlagListener.callCount).toBe(2);
+                    
+                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                });
+            });
+            
+            it("should clear dirty flag AND undo when text reset", function () {
+                var dirtyFlagListener = jasmine.createSpy(),
+                    changeListener    = jasmine.createSpy();
+                
+                runs(function () {
+                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+                    $(doc).on("change", changeListener);
+                    
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0);
+                    
+                    // Make an edit (make dirty)
+                    doc.replaceRange("Foo", {line: 0, ch: 0});
+                    expect(doc.isDirty).toBe(true);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+                    expect(dirtyFlagListener.callCount).toBe(1);
+                    expect(changeListener.callCount).toBe(1);
+                    
+                    // Reset text (e.g. called by Revert command, or syncing external changes)
+                    doc.refreshText("New content", Date.now());
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0); // undo history GONE
+                    expect(dirtyFlagListener.callCount).toBe(2);
+                    expect(changeListener.callCount).toBe(2);
+                    
+                    $(doc).off("change", changeListener);
+                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                });
+            });
+            
+            it("should fire change but not dirtyFlagChange when clean text reset, with editor", function () {  // bug #502
+                var dirtyFlagListener = jasmine.createSpy(),
+                    changeListener    = jasmine.createSpy();
+                
+                runs(function () {
+                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+                    $(doc).on("change", changeListener);
+                    
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0);
+                    
+                    doc.refreshText("New content", Date.now());  // e.g. syncing external changes
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0); // still no undo history
+                    expect(dirtyFlagListener.callCount).toBe(0);  // isDirty hasn't changed
+                    expect(changeListener.callCount).toBe(1);     // but still counts as a content change
+                    
+                    $(doc).off("change", changeListener);
+                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                });
+            });
+            
+            it("should fire change but not dirtyFlagChange when clean text reset, without editor", function () {
+                var dirtyFlagListener = jasmine.createSpy(),
+                    changeListener    = jasmine.createSpy(),
+                    doc;
+                
+                runs(function () {
+                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    
+                    promise = DocumentManager.getDocumentForPath(JS_FILE)
+                        .done(function (result) { doc = result; });
+                    waitsForDone(promise, "Create Document");
+                });
+                runs(function () {
+                    $(doc).on("change", changeListener);
+                    
+                    expect(doc._masterEditor).toBeFalsy();
+                    expect(doc.isDirty).toBe(false);
+                    
+                    doc.refreshText("New content", Date.now());  // e.g. syncing external changes
+                    expect(doc.isDirty).toBe(false);
+                    expect(dirtyFlagListener.callCount).toBe(0);
+                    expect(changeListener.callCount).toBe(1);   // resetting text is still a content change
+                    
+                    $(doc).off("change", changeListener);
+                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                });
+            });
+        });
+        
+        
+        describe("Ref counting", function () {
             
             // TODO: additional, simpler ref counting test cases such as Live Development, open/close inline editor (refs from
             //  both editor & rule list TextRanges), navigate files w/o adding to working set, etc.
