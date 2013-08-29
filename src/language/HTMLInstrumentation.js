@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 child = node.children[i];
                 if (child.children) {
                     childHashes += String(child.tagID);
-                    subtreeHashes += String(child.tagID) + child.tag + child.attributeSignature + child.subtreeSignature;
+                    subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
                 } else {
                     childHashes += child.textSignature;
                     subtreeHashes += child.textSignature;
@@ -1117,20 +1117,15 @@ define(function (require, exports, module) {
             
             /**
              * If there have been elementInserts before an unchanged text, we need to
-             * let the browser side code node that these inserts should happen *before*
+             * let the browser side code know that these inserts should happen *before*
              * that unchanged text.
              */
             var fixupElementInsert = function () {
-                var editIndex = newEdits.length - 1,
-                    edit;
-                
-                while (editIndex >= 0) {
-                    edit = newEdits[editIndex];
+                newEdits.forEach(function (edit) {
                     if (edit.type === "elementInsert") {
                         edit.beforeText = true;
                     }
-                    editIndex--;
-                }
+                });
             };
             
             /**
