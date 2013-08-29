@@ -1115,6 +1115,11 @@ define(function (require, exports, module) {
                 return false;
             };
             
+            /**
+             * If there have been elementInserts before an unchanged text, we need to
+             * let the browser side code node that these inserts should happen *before*
+             * that unchanged text.
+             */
             var fixupElementInsert = function () {
                 var editIndex = newEdits.length - 1,
                     edit;

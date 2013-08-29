@@ -2466,6 +2466,7 @@ define(function (require, exports, module) {
                     );
                 });
             });
+            
             it("should handle void element tag changes", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
@@ -2496,6 +2497,72 @@ define(function (require, exports, module) {
                             expect(result.edits[1]).toEqual({
                                 type: "elementDelete",
                                 tagID: img.tagID
+                            });
+                        },
+                        false
+                    );
+                });
+            });
+            
+            it("should handle tag changes with child elements", function () {
+                setupEditor(WellFormedDoc);
+                var para;
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            para = previousDOM.children[3].children[7];
+                            editor.document.replaceRange("div", { line: 28, ch: 1 }, { line: 28, ch: 2 });
+                            editor.document.replaceRange("div", { line: 33, ch: 2 }, { line: 33, ch: 3 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            var div = result.dom.children[3].children[7],
+                                em = div.children[1],
+                                a = result.dom.children[3].children[9];
+                            expect(para.tag).toBe("p");
+                            expect(div.tag).toBe("div");
+                            expect(em.tag).toBe("em");
+                            
+                            expect(result.edits.length).toBe(6);
+                            expect(result.edits[0]).toEqual({
+                                type: "rememberNodes",
+                                tagIDs: [em.tagID]
+                            });
+                            
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                tagID: div.tagID,
+                                parentID: div.parent.tagID,
+                                attributes: {},
+                                beforeText: true,
+                                beforeID: a.tagID
+                            });
+                            
+                            expect(result.edits[2]).toEqual({
+                                type: "elementDelete",
+                                tagID: para.tagID
+                            });
+                            
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "\n    ",
+                                parentID: div.tagID,
+                                lastChild: true
+                            });
+                            
+                            expect(result.edits[4]).toEqual({
+                                type: "elementMove",
+                                tagID: em.tagID,
+                                parentID: div.tagID,
+                                lastChild: true
+                            });
+                            
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: div.tagID,
+                                content: jasmine.any(String),
+                                lastChild: true
                             });
                         },
                         false
