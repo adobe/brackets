@@ -57,24 +57,6 @@ define(function (require, exports, module) {
     // dom is the root node of a simple DOM tree.
     var _cachedValues = {};
 
-    /**
-     * @private
-     * Returns true if the specified tag is empty. This could be an empty HTML tag like 
-     * <meta> or <link>, or a closed tag like <div />
-     */
-    function _isEmptyTag(payload) {
-        if (payload.closed || !payload.nodeName) {
-            return true;
-        }
-        
-        if (/(!doctype|area|base|basefont|br|wbr|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
-                .test(payload.nodeName)) {
-            return true;
-        }
-        
-        return false;
-    }
-    
     /** 
      * Remove a document from the cache
      */
