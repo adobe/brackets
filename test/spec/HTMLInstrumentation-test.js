@@ -170,8 +170,8 @@ define(function (require, exports, module) {
         
         returnFailure: function (other) {
             console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
-            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this));
-            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other));
+            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this.parent || this));
+            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other.parent || other));
             return false;
         },
         
@@ -2423,31 +2423,42 @@ define(function (require, exports, module) {
             
             it("should handle tag changes", function () {
                 setupEditor(WellFormedDoc);
-                var heading;
+                var heading,
+                    para;
                 runs(function () {
                     doEditTest(
                         WellFormedDoc,
                         function (editor, previousDOM) {
                             heading = previousDOM.children[3].children[3];
+                            para = previousDOM.children[3].children[5];
                             editor.document.replaceRange("h3", { line: 13, ch: 1 }, { line: 13, ch: 3 });
                             editor.document.replaceRange("h3", { line: 13, ch: 25 }, { line: 13, ch: 27 });
                         },
                         function (result, previousDOM, incremental) {
-                            console.log("Edits", JSON.stringify(result.edits, null, 2));
                             expect(heading.tag).toBe("h2");
+                            expect(para.tag).toBe("p");
                             
-                            expect(result.edits.length).toBe(2);
+                            var newHeading = result.dom.children[3].children[3];
+                            expect(newHeading.tag).toBe("h3");
+                            
+                            expect(result.edits.length).toBe(3);
                             expect(result.edits[0]).toEqual({
-                                type: "elementReplace",
-                                tagID: heading.tagID,
-                                parentID: heading.parent.tagID,
+                                type: "elementInsert",
+                                tagID: newHeading.tagID,
+                                parentID: newHeading.parent.tagID,
                                 attributes: {},
-                                tag: "h3"
+                                tag: "h3",
+                                beforeID: para.tagID,
+                                beforeText: true
                             });
                             expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: heading.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
                                 type: "textInsert",
                                 content: "This is your guide!",
-                                parentID: heading.tagID,
+                                parentID: newHeading.tagID,
                                 lastChild: true
                             });
                         },
@@ -2464,19 +2475,27 @@ define(function (require, exports, module) {
                             editor.document.replaceRange("br", { line: 37, ch: 5 }, { line: 37, ch: 8 });
                         },
                         function (result, previousDOM, incremental) {
-                            var br = result.dom.children[3].children[9].children[1];
+                            var br = result.dom.children[3].children[9].children[1],
+                                img = previousDOM.children[3].children[9].children[1];
                             expect(br.tag).toBe("br");
+                            expect(img.tag).toBe("img");
                             
-                            expect(result.edits.length).toBe(1);
+                            expect(result.edits.length).toBe(2);
                             expect(result.edits[0]).toEqual({
-                                type: "elementReplace",
+                                type: "elementInsert",
                                 tagID: br.tagID,
                                 parentID: br.parent.tagID,
                                 attributes: {
                                     "alt": "A screenshot showing CSS Quick Edit",
                                     "src": "screenshots/brackets-quick-edit.png"
                                 },
-                                tag: "br"
+                                tag: "br",
+                                lastChild: true,
+                                beforeText: true
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: img.tagID
                             });
                         },
                         false

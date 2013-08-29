@@ -626,6 +626,11 @@ define(function (require, exports, module) {
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
         if (currentTagID === -1 || hasAncestorWithID(newTag, currentTagID)) {
             currentTagID = tagID++;
+        } else {
+            var oldNode = this.previousDOM.nodeMap[currentTagID];
+            if (!oldNode || oldNode.tag !== newTag.tag) {
+                currentTagID = tagID++;
+            }
         }
         return currentTagID;
     };
@@ -1110,6 +1115,19 @@ define(function (require, exports, module) {
                 return false;
             };
             
+            var fixupElementInsert = function () {
+                var editIndex = newEdits.length - 1,
+                    edit;
+                
+                while (editIndex >= 0) {
+                    edit = newEdits[editIndex];
+                    if (edit.type === "elementInsert") {
+                        edit.beforeText = true;
+                    }
+                    editIndex--;
+                }
+            };
+            
             /**
              * Looks to see if the element in the old tree has moved by checking its
              * current and former parents.
@@ -1196,6 +1214,13 @@ define(function (require, exports, module) {
                             newEdit.afterID = textAfterID;
                         }
                         newEdits.push(newEdit);
+                    } else {
+                        // This is a special case: if an element is being inserted but
+                        // there is an unchanged text that follows it, the element being
+                        // inserted may end up in the wrong place because it will get a
+                        // beforeID of the next element when it really needs to come
+                        // before this unchanged text.
+                        fixupElementInsert();
                     }
                     
                     // Either we've done a text replace or both sides matched. In either
@@ -1272,50 +1297,6 @@ define(function (require, exports, module) {
         };
         
         /**
-         * Removes the node from the old nodeMap. Recursively removes the child nodes
-         * as well.
-         *
-         * @param {Object} simple DOM node to remove from the old node map
-         */
-        var removeFromOldNodeMap = function (node) {
-            delete oldNode.nodeMap[node.tagID];
-            if (node.children) {
-                node.children.forEach(removeFromOldNodeMap);
-            }
-        };
-        
-        /**
-         * Generates an edit for a tag change (specifically an "elementReplace" edit).
-         * Note that this also manipulates the old DOM to make it appear as if the
-         * child nodes of oldElement do not exist (so that they will be re-added to
-         * the replaced element).
-         *
-         * @param {Array.{Object}} edits the list of edits to which we add the elementReplace
-         * @param {Object} oldElement the previous version of this element
-         * @param {Object} currentElement the current version of this element
-         */
-        var generateTagEdit = function (edits, oldElement, currentElement) {
-            edits.push({
-                type: "elementReplace",
-                tagID: currentElement.tagID,
-                tag: currentElement.tag,
-                attributes: currentElement.attributes,
-                parentID: currentElement.parent ? currentElement.parent.tagID : undefined
-            });
-            
-            // Remove oldElement and its children from the old nodeMap so that
-            // the child nodes will all appear to be new. This will cause all of the
-            // children to be inserted under the replaced element.
-            removeFromOldNodeMap(oldElement);
-            
-            // Next, we clear out other parts of oldElement to trigger generateChildNodes
-            // to run and insert everything afresh.
-            delete oldElement.subtreeSignature;
-            delete oldElement.childSignature;
-            oldElement.children = [];
-        };
-        
-        /**
          * Adds elements to the queue for generateChildEdits.
          * Only elements (and not text nodes) are added. New nodes (ones that aren't in the
          * old nodeMap), are not added here because they will be added when generateChildEdits
@@ -1341,11 +1322,6 @@ define(function (require, exports, module) {
                 if (currentElement.attributeSignature !== oldElement.attributeSignature) {
                     // generate attribute edits
                     generateAttributeEdits(edits, oldElement, currentElement);
-                }
-                
-                // Has the tag changed?
-                if (currentElement.tag !== oldElement.tag) {
-                    generateTagEdit(edits, oldElement, currentElement);
                 }
                 
                 // Has there been a change to this node's immediate children?
