@@ -553,11 +553,19 @@ function RemoteFunctions(experimental) {
     DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
         var before = this._queryBracketsID(edit.beforeID),
             after  = this._queryBracketsID(edit.afterID);
-
+        
         if (edit.firstChild) {
             before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
+            if (edit.beforeText && after.nodeType === Node.TEXT_NODE) {
+                after = after.previousSibling;
+            }
+        }
+        
+        if (edit.beforeText && before &&
+                before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
+            before = before.previousSibling;
         }
         
         if (before) {
