@@ -884,6 +884,10 @@ define(function (require, exports, module) {
                 textAfterID;
             
             /**
+             * We initially put new edit objects into the `newEdits` array so that we
+             * can fix them up with proper positioning information. This function is
+             * responsible for doing that fixup.
+             *
              * The `beforeID` that appears in many edits tells the browser to make the
              * change before the element with the given ID. In other words, an
              * elementInsert with a `beforeID` of 32 would result in something like
@@ -899,7 +903,7 @@ define(function (require, exports, module) {
              *
              * @param {int} beforeID ID to set on the pending edits
              */
-            var addBeforeID = function (beforeID) {
+            var finalizeNewEdits = function (beforeID) {
                 newEdits.forEach(function (edit) {
                     // elementDeletes don't need any positioning information
                     if (edit.type !== "elementDelete") {
@@ -1182,7 +1186,7 @@ define(function (require, exports, module) {
                         } else {
                             // Since this element hasn't moved, it is a suitable "beforeID"
                             // for the edits we've logged.
-                            addBeforeID(oldChild.tagID);
+                            finalizeNewEdits(oldChild.tagID);
                             currentIndex++;
                             oldIndex++;
                         }
