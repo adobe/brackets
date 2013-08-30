@@ -148,8 +148,8 @@
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }     
-    
+    }
+
     .bottom-buttons {
         position: absolute;
         bottom: 5px;
@@ -486,7 +486,7 @@
 
 .dialog-filename {
     word-wrap: break-word;
-    
+
     font-weight: normal;
     body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
         font-weight: @font-weight-semibold;
@@ -749,7 +749,7 @@
         }
         .about-contributors {
             min-height: 100px;
-            
+
             a {
                 text-decoration: none;
             }
@@ -829,7 +829,7 @@ input[type="color"],
 /* Twipsy tooltips */
 
 .tooltip {
-    &.in { .opacity(100); }
+    &.in { opacity: 1; }
 }
 
 .tooltip-inner {
@@ -840,18 +840,18 @@ input[type="color"],
 }
 
 .tooltip {
-  &.top .tooltip-arrow {
-    left: 50%;
-  }
-  &.right .tooltip-arrow {
-    top: 15px;
-  }
-  &.left .tooltip-arrow {
-    top: 15px;
-  }
-  &.bottom .tooltip-arrow {
-    left: 50%;
-  }
+    &.top .tooltip-arrow {
+        left: 50%;
+    }
+    &.right .tooltip-arrow {
+        top: 15px;
+    }
+    &.left .tooltip-arrow {
+        top: 15px;
+    }
+    &.bottom .tooltip-arrow {
+        left: 50%;
+    }
 }
 
 /* Buttons */
