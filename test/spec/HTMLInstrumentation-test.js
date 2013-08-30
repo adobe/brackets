@@ -72,6 +72,8 @@ define(function (require, exports, module) {
         }
     }
     
+    var entityParsingNode = document.createElement("div");
+    
     /**
      * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
      * features of a real DOM object. It specifically adds the features required for
@@ -86,6 +88,10 @@ define(function (require, exports, module) {
                 newElement.remove();
             }
             var index = this.children.indexOf(referenceElement);
+            if (index === -1) {
+                console.error("Unexpected attempt to reference a non-existent element:", referenceElement);
+                console.log(this.children);
+            }
             this.children.splice(index, 0, newElement);
             newElement.parent = this;
             newElement.addToNodeMap();
@@ -166,8 +172,8 @@ define(function (require, exports, module) {
         
         returnFailure: function (other) {
             console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
-            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this));
-            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other));
+            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this.parent || this));
+            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other.parent || other));
             return false;
         },
         
@@ -266,6 +272,25 @@ define(function (require, exports, module) {
                 }
                 return children;
             }
+        },
+        
+        // At this time, innerHTML and textContent are used for entity parsing
+        // only. If that changes, we'll have bigger issues to deal with.
+        innerHTML: {
+            set: function (text) {
+                entityParsingNode.innerHTML = text;
+            },
+            get: function () {
+                return entityParsingNode.innerHTML;
+            }
+        },
+        textContent: {
+            set: function (text) {
+                entityParsingNode.textContent = text;
+            },
+            get: function () {
+                return entityParsingNode.textContent;
+            }
         }
     });
     
@@ -336,6 +361,7 @@ define(function (require, exports, module) {
      */
     var FakeDocument = function (dom) {
         var self = this;
+        this.dom = dom;
         this.nodeMap = dom.nodeMap;
         
         // Walk the DOM looking for html/head/body tags. We can't use the nodeMap for this
@@ -380,7 +406,24 @@ define(function (require, exports, module) {
                 return [];
             }
             var id = match[1];
-            var element = this.nodeMap[id];
+            
+            function walk(node) {
+                if (String(node.tagID) === id) {
+                    return node;
+                }
+                if (node.children) {
+                    var i, result;
+                    for (i = 0; i < node.children.length; i++) {
+                        result = walk(node.children[i]);
+                        if (result) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            
+            var element = walk(this.dom);
+                        
             if (element) {
                 return [element];
             }
@@ -2396,6 +2439,155 @@ define(function (require, exports, module) {
                         expect(edit.tagID).toBe(emNode.tagID);
                         expect(edit.parentID).toBe(newParaID);
                     }, false, true);
+                });
+            });
+            
+            it("should handle tag changes", function () {
+                setupEditor(WellFormedDoc);
+                var heading,
+                    para;
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            heading = previousDOM.children[3].children[3];
+                            para = previousDOM.children[3].children[5];
+                            editor.document.replaceRange("h3", { line: 13, ch: 1 }, { line: 13, ch: 3 });
+                            editor.document.replaceRange("h3", { line: 13, ch: 25 }, { line: 13, ch: 27 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            expect(heading.tag).toBe("h2");
+                            expect(para.tag).toBe("p");
+                            
+                            var newHeading = result.dom.children[3].children[3];
+                            expect(newHeading.tag).toBe("h3");
+                            
+                            expect(result.edits.length).toBe(3);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tagID: newHeading.tagID,
+                                parentID: newHeading.parent.tagID,
+                                attributes: {},
+                                tag: "h3",
+                                beforeID: para.tagID,
+                                beforeText: true
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: heading.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "textInsert",
+                                content: "This is your guide!",
+                                parentID: newHeading.tagID,
+                                lastChild: true
+                            });
+                        },
+                        false
+                    );
+                });
+            });
+            
+            it("should handle void element tag changes", function () {
+                setupEditor(WellFormedDoc);
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            editor.document.replaceRange("br", { line: 37, ch: 5 }, { line: 37, ch: 8 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            var br = result.dom.children[3].children[9].children[1],
+                                img = previousDOM.children[3].children[9].children[1];
+                            expect(br.tag).toBe("br");
+                            expect(img.tag).toBe("img");
+                            
+                            expect(result.edits.length).toBe(2);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementInsert",
+                                tagID: br.tagID,
+                                parentID: br.parent.tagID,
+                                attributes: {
+                                    "alt": "A screenshot showing CSS Quick Edit",
+                                    "src": "screenshots/brackets-quick-edit.png"
+                                },
+                                tag: "br",
+                                lastChild: true,
+                                beforeText: true
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: img.tagID
+                            });
+                        },
+                        false
+                    );
+                });
+            });
+            
+            it("should handle tag changes with child elements", function () {
+                setupEditor(WellFormedDoc);
+                var para;
+                runs(function () {
+                    doEditTest(
+                        WellFormedDoc,
+                        function (editor, previousDOM) {
+                            para = previousDOM.children[3].children[7];
+                            editor.document.replaceRange("div", { line: 28, ch: 1 }, { line: 28, ch: 2 });
+                            editor.document.replaceRange("div", { line: 33, ch: 2 }, { line: 33, ch: 3 });
+                        },
+                        function (result, previousDOM, incremental) {
+                            var div = result.dom.children[3].children[7],
+                                em = div.children[1],
+                                a = result.dom.children[3].children[9];
+                            expect(para.tag).toBe("p");
+                            expect(div.tag).toBe("div");
+                            expect(em.tag).toBe("em");
+                            
+                            expect(result.edits.length).toBe(6);
+                            expect(result.edits[0]).toEqual({
+                                type: "rememberNodes",
+                                tagIDs: [em.tagID]
+                            });
+                            
+                            expect(result.edits[1]).toEqual({
+                                type: "elementInsert",
+                                tag: "div",
+                                tagID: div.tagID,
+                                parentID: div.parent.tagID,
+                                attributes: {},
+                                beforeText: true,
+                                beforeID: a.tagID
+                            });
+                            
+                            expect(result.edits[2]).toEqual({
+                                type: "elementDelete",
+                                tagID: para.tagID
+                            });
+                            
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "\n    ",
+                                parentID: div.tagID,
+                                lastChild: true
+                            });
+                            
+                            expect(result.edits[4]).toEqual({
+                                type: "elementMove",
+                                tagID: em.tagID,
+                                parentID: div.tagID,
+                                lastChild: true
+                            });
+                            
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: div.tagID,
+                                content: jasmine.any(String),
+                                lastChild: true
+                            });
+                        },
+                        false
+                    );
                 });
             });
         });

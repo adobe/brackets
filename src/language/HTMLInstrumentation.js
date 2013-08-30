@@ -57,24 +57,6 @@ define(function (require, exports, module) {
     // dom is the root node of a simple DOM tree.
     var _cachedValues = {};
 
-    /**
-     * @private
-     * Returns true if the specified tag is empty. This could be an empty HTML tag like 
-     * <meta> or <link>, or a closed tag like <div />
-     */
-    function _isEmptyTag(payload) {
-        if (payload.closed || !payload.nodeName) {
-            return true;
-        }
-        
-        if (/(!doctype|area|base|basefont|br|wbr|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
-                .test(payload.nodeName)) {
-            return true;
-        }
-        
-        return false;
-    }
-    
     /** 
      * Remove a document from the cache
      */
@@ -238,7 +220,7 @@ define(function (require, exports, module) {
             for (i = 0; i < node.children.length; i++) {
                 child = node.children[i];
                 if (child.children) {
-                    childHashes += child.tagID;
+                    childHashes += String(child.tagID);
                     subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
                 } else {
                     childHashes += child.textSignature;
@@ -467,11 +449,24 @@ define(function (require, exports, module) {
         return dom;
     };
     
-    SimpleDOMBuilder.prototype.getID = function () {
+    /**
+     * Returns a new tag ID.
+     *
+     * @return {int} unique tag ID
+     */
+    SimpleDOMBuilder.prototype.getNewID = function () {
         return tagID++;
     };
     
-    SimpleDOMBuilder.prototype.getNewID = SimpleDOMBuilder.prototype.getID;
+    /**
+     * Returns the best tag ID for the new tag object given. 
+     * The default implementation just calls `getNewID`
+     * and returns a unique ID.
+     *
+     * @param {Object} newTag tag object to potentially inspect to choose an ID
+     * @return {int} unique tag ID
+     */
+    SimpleDOMBuilder.prototype.getID = SimpleDOMBuilder.prototype.getNewID;
     
     function _buildSimpleDOM(text, strict) {
         var builder = new SimpleDOMBuilder(text);
@@ -596,6 +591,15 @@ define(function (require, exports, module) {
         return !!ancestor;
     }
     
+    /**
+     * Overrides the `getID` method to return the tag ID from the document. If a viable tag
+     * ID cannot be found in the document marks, then a new ID is returned. This will also
+     * assign a new ID if the tag changed between the previous and current versions of this
+     * node.
+     *
+     * @param {Object} newTag tag object for the current element
+     * @return {int} best ID
+     */
     DOMUpdater.prototype.getID = function (newTag) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
@@ -605,7 +609,14 @@ define(function (require, exports, module) {
         // If the new tag is in an unmarked range, or the marked range actually corresponds to an
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
         if (currentTagID === -1 || hasAncestorWithID(newTag, currentTagID)) {
-            currentTagID = tagID++;
+            currentTagID = this.getNewID();
+        } else {
+            // If the tag has changed between the previous DOM and the new one, we assign a new ID
+            // so that the old tag will be deleted and the new one inserted.
+            var oldNode = this.previousDOM.nodeMap[currentTagID];
+            if (!oldNode || oldNode.tag !== newTag.tag) {
+                currentTagID = this.getNewID();
+            }
         }
         return currentTagID;
     };
@@ -873,6 +884,10 @@ define(function (require, exports, module) {
                 textAfterID;
             
             /**
+             * We initially put new edit objects into the `newEdits` array so that we
+             * can fix them up with proper positioning information. This function is
+             * responsible for doing that fixup.
+             *
              * The `beforeID` that appears in many edits tells the browser to make the
              * change before the element with the given ID. In other words, an
              * elementInsert with a `beforeID` of 32 would result in something like
@@ -888,7 +903,7 @@ define(function (require, exports, module) {
              *
              * @param {int} beforeID ID to set on the pending edits
              */
-            var addBeforeID = function (beforeID) {
+            var finalizeNewEdits = function (beforeID) {
                 newEdits.forEach(function (edit) {
                     // elementDeletes don't need any positioning information
                     if (edit.type !== "elementDelete") {
@@ -919,6 +934,7 @@ define(function (require, exports, module) {
                         parentID: currentChild.parent.tagID,
                         attributes: currentChild.attributes
                     };
+                    
                     newEdits.push(newEdit);
                     
                     // This newly inserted node needs to have edits generated for its
@@ -1090,6 +1106,19 @@ define(function (require, exports, module) {
             };
             
             /**
+             * If there have been elementInserts before an unchanged text, we need to
+             * let the browser side code know that these inserts should happen *before*
+             * that unchanged text.
+             */
+            var fixupElementInsert = function () {
+                newEdits.forEach(function (edit) {
+                    if (edit.type === "elementInsert") {
+                        edit.beforeText = true;
+                    }
+                });
+            };
+            
+            /**
              * Looks to see if the element in the old tree has moved by checking its
              * current and former parents.
              *
@@ -1153,11 +1182,11 @@ define(function (require, exports, module) {
                                 oldIndex++;
                             }
                         
-                        // The tagIDs match, so there's no change here
+                        // There has been no change in the tag we're looking at.
                         } else {
                             // Since this element hasn't moved, it is a suitable "beforeID"
                             // for the edits we've logged.
-                            addBeforeID(oldChild.tagID);
+                            finalizeNewEdits(oldChild.tagID);
                             currentIndex++;
                             oldIndex++;
                         }
@@ -1175,6 +1204,13 @@ define(function (require, exports, module) {
                             newEdit.afterID = textAfterID;
                         }
                         newEdits.push(newEdit);
+                    } else {
+                        // This is a special case: if an element is being inserted but
+                        // there is an unchanged text that follows it, the element being
+                        // inserted may end up in the wrong place because it will get a
+                        // beforeID of the next element when it really needs to come
+                        // before this unchanged text.
+                        fixupElementInsert();
                     }
                     
                     // Either we've done a text replace or both sides matched. In either
