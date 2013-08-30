@@ -221,6 +221,7 @@ define(function (require, exports, module) {
      * @return {Dialog}
      */
     function showModalDialogUsingTemplate(template, autoDismiss) {
+        brackets.app.setModal(true);
         if (autoDismiss === undefined) {
             autoDismiss = true;
         }
@@ -261,6 +262,7 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             $dlg.remove();
+            brackets.app.setModal(false);
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
