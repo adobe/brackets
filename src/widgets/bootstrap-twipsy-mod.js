@@ -183,9 +183,11 @@
           tp = {top: pos.top - actualHeight - this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
           break
         case 'left':
+          /***** [changed for Brackets] *****/
           tp = {top: pos.top + pos.height + 20 - actualHeight, left: pos.left - actualWidth - this.options.offset}
           break
         case 'right':
+          /***** [changed for Brackets] *****/
           tp = {top: pos.top + pos.height + 20 - actualHeight, left: pos.left + pos.width + this.options.offset}
           break
       }
