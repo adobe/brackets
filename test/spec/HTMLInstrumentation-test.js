@@ -72,6 +72,8 @@ define(function (require, exports, module) {
         }
     }
     
+    var entityParsingNode = document.createElement("div");
+    
     /**
      * domFeatures is a prototype object that augments a SimpleDOM object to have more of the
      * features of a real DOM object. It specifically adds the features required for
@@ -269,6 +271,25 @@ define(function (require, exports, module) {
                     };
                 }
                 return children;
+            }
+        },
+        
+        // At this time, innerHTML and textContent are used for entity parsing
+        // only. If that changes, we'll have bigger issues to deal with.
+        innerHTML: {
+            set: function (text) {
+                entityParsingNode.innerHTML = text;
+            },
+            get: function () {
+                return entityParsingNode.innerHTML;
+            }
+        },
+        textContent: {
+            set: function (text) {
+                entityParsingNode.textContent = text;
+            },
+            get: function () {
+                return entityParsingNode.textContent;
             }
         }
     });
