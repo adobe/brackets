@@ -240,6 +240,9 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                //Flag that controls the navigation controls.
+                var enableNavigator = false;
+                
                 // Highlight all matches
                 // (Except on huge documents, where this is too expensive)
                 if (cm.getValue().length < 500000) {
@@ -261,8 +264,7 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                    
-                    var enableNavigator = false;
+                                        
                     if (resultCount === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
                     } else if (resultCount === 1) {
