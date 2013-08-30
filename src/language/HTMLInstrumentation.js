@@ -611,7 +611,9 @@ define(function (require, exports, module) {
     
     /**
      * Overrides the `getID` method to return the tag ID from the document. If a viable tag
-     * ID cannot be found in the document marks, then a new ID is returned.
+     * ID cannot be found in the document marks, then a new ID is returned. This will also
+     * assign a new ID if the tag changed between the previous and current versions of this
+     * node.
      *
      * @param {Object} newTag tag object for the current element
      * @return {int} best ID
@@ -625,11 +627,13 @@ define(function (require, exports, module) {
         // If the new tag is in an unmarked range, or the marked range actually corresponds to an
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
         if (currentTagID === -1 || hasAncestorWithID(newTag, currentTagID)) {
-            currentTagID = tagID++;
+            currentTagID = this.getNewID();
         } else {
+            // If the tag has changed between the previous DOM and the new one, we assign a new ID
+            // so that the old tag will be deleted and the new one inserted.
             var oldNode = this.previousDOM.nodeMap[currentTagID];
             if (!oldNode || oldNode.tag !== newTag.tag) {
-                currentTagID = tagID++;
+                currentTagID = this.getNewID();
             }
         }
         return currentTagID;
