@@ -31,6 +31,11 @@
  *
  */
 
+/* Variable OVerride */
+
+@tooltipBackground:       #fff;
+@tooltipArrowColor:       @tooltipBackground;
+
 .panel {
     .vbox;
     .box-flex(1);
@@ -143,8 +148,8 @@
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }     
-    
+    }
+
     .bottom-buttons {
         position: absolute;
         bottom: 5px;
@@ -481,7 +486,7 @@
 
 .dialog-filename {
     word-wrap: break-word;
-    
+
     font-weight: normal;
     body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
         font-weight: @font-weight-semibold;
@@ -744,7 +749,7 @@
         }
         .about-contributors {
             min-height: 100px;
-            
+
             a {
                 text-decoration: none;
             }
@@ -822,10 +827,31 @@ input[type="color"],
 }
 
 /* Twipsy tooltips */
+
+.tooltip {
+    &.in { opacity: 1; }
+}
+
 .tooltip-inner {
-    .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
-    max-width: none;
-    white-space: nowrap;
+    box-shadow: @tc-dropdown-shadow;
+    color: @tc-text;
+    max-width: 220px;
+    text-align: left;
+}
+
+.tooltip {
+    &.top .tooltip-arrow {
+        left: 50%;
+    }
+    &.right .tooltip-arrow {
+        top: 15px;
+    }
+    &.left .tooltip-arrow {
+        top: 15px;
+    }
+    &.bottom .tooltip-arrow {
+        left: 50%;
+    }
 }
 
 /* Buttons */
