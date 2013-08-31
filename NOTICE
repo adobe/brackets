@@ -2421,3 +2421,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
+
+Peter Zotov , Public Domain Notice (murmurhash3-js)
+The MurmurHash3 algorithm was created by Austin Appleby.  
+This JavaScript port was authored *  by Peter Zotov (based on Java port by Yonik Seeley) 
+and is placed into the public domain. *  The author hereby disclaims copyright to this source code.
