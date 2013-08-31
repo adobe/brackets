@@ -69,7 +69,7 @@ define(function (require, exports, module) {
     
     var tagID = 1;
     
-    function _getMarkerAtDocumentPos(editor, pos, preferParent) {
+    function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
@@ -84,10 +84,18 @@ define(function (require, exports, module) {
             return null;
         }
         
-        marks.sort(function (mark1, mark2) {
+        markCache = markCache || {};
+        marks = marks.filter(function (mark) {
+            return !!mark.tagID;
+        }).map(function (mark) {
             // All marks should exist since we just got them from CodeMirror.
-            var mark1From = mark1.find().from, mark2From = mark2.find().from;
-            return (mark1From.line === mark2From.line ? mark1From.ch - mark2From.ch : mark1From.line - mark2From.line);
+            if (!markCache[mark.tagID]) {
+                markCache[mark.tagID] = {mark: mark, range: mark.find()};
+            }
+            return markCache[mark.tagID];
+        });
+        marks.sort(function (mark1, mark2) {
+            return (mark1.range.from.line === mark2.range.from.line ? mark1.range.from.ch - mark2.range.from.ch : mark1.range.from.line - mark2.range.from.line);
         });
         
         // The mark with the latest start is the innermost one.
@@ -95,8 +103,7 @@ define(function (require, exports, module) {
         if (preferParent) {
             // If the match is exactly at the edge of the range and preferParent is set,
             // we want to pop upwards.
-            range = match.find();
-            if (posEq(range.from, pos) || posEq(range.to, pos)) {
+            if (posEq(match.range.from, pos) || posEq(match.range.to, pos)) {
                 if (marks.length > 1) {
                     match = marks[marks.length - 2];
                 } else {
@@ -106,7 +113,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return match;
+        return match.mark;
     }
     
     /**
@@ -120,8 +127,8 @@ define(function (require, exports, module) {
      * @param {Editor} editor The editor to scan. 
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
-    function _getTagIDAtDocumentPos(editor, pos) {
-        var match = _getMarkerAtDocumentPos(editor, pos);
+    function _getTagIDAtDocumentPos(editor, pos, markCache) {
+        var match = _getMarkerAtDocumentPos(editor, pos, false, markCache);
 
         return (match) ? match.tagID : -1;
     }
@@ -267,6 +274,7 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
+        var markCache = {};
         
         // Start timers for building full and partial DOMs.
         // Appropriate timer is used, and the other is discarded.
@@ -314,7 +322,7 @@ define(function (require, exports, module) {
                     parent: (stack.length ? stack[stack.length - 1] : null),
                     start: this.startOffset + token.start - 1
                 };
-                newTag.tagID = this.getID(newTag);
+                newTag.tagID = this.getID(newTag, markCache);
                 
                 // During undo in particular, it's possible that tag IDs may be reused and
                 // the marks in the document may be misleading. If a tag ID has been reused,
@@ -600,11 +608,11 @@ define(function (require, exports, module) {
      * @param {Object} newTag tag object for the current element
      * @return {int} best ID
      */
-    DOMUpdater.prototype.getID = function (newTag) {
+    DOMUpdater.prototype.getID = function (newTag, markCache) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
-        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1));
+        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1), markCache);
         
         // If the new tag is in an unmarked range, or the marked range actually corresponds to an
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
