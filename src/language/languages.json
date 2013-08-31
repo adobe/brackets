@@ -55,6 +55,14 @@
         "lineComment": ["//"]
     },
 
+    "vbscript": {
+        "name": "VBScript",
+        "mode": "vbscript",
+        "fileExtensions": ["vbscript"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
