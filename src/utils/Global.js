@@ -67,8 +67,6 @@ define(function (require, exports, module) {
     // TODO: (issue #266) load conditionally
     global.brackets.shellAPI = require("utils/ShellAPI");
     
-    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
-    
     if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
         global.brackets.platform = "mac";
     } else if (global.navigator.platform.indexOf("Linux") >= 0) {
@@ -76,6 +74,10 @@ define(function (require, exports, module) {
     } else {
         global.brackets.platform = "win";
     }
+    
+    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
+    
+    global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
     
     global.brackets.isLocaleDefault = function () {
         return !global.localStorage.getItem("locale");

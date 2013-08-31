@@ -924,7 +924,7 @@ define(function (require, exports, module) {
                         }
                     });
                     resultRenderTree.fail(function () {
-                        PerfUtils.terminateMeasurement(perfTimerName);
+                        PerfUtils.finalizeMeasurement(perfTimerName);
                         result.reject();
                     });
                     resultRenderTree.always(function () {
