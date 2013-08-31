@@ -210,12 +210,13 @@ define(function (require, exports, module) {
         wbr: true
     };
     
-    function SimpleDOMBuilder(text, startOffset) {
+    function SimpleDOMBuilder(text, startOffset, startOffsetPos) {
         this.stack = [];
         this.text = text;
         this.t = new Tokenizer(text);
         this.currentTag = null;
         this.startOffset = startOffset || 0;
+        this.startOffsetPos = startOffsetPos || {line: 0, ch: 0};
     }
     
     function _updateHash(node) {
@@ -267,6 +268,14 @@ define(function (require, exports, module) {
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
     
+    function addPos(pos1, pos2) {
+        return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
+    }
+    
+    function offsetPos(pos, offset) {
+        // Simple character offset. Only safe if the offset doesn't cross a line boundary.
+        return {line: pos.line, ch: pos.ch + offset};
+    }
 
     SimpleDOMBuilder.prototype.build = function (strict) {
         var self = this;
@@ -282,12 +291,13 @@ define(function (require, exports, module) {
         var timerBuildPart = "HTMLInstr. Build DOM Partial";
         PerfUtils.markStart([timerBuildFull, timerBuildPart]);
         
-        function closeTag(endIndex) {
+        function closeTag(endIndex, endPos) {
             lastClosedTag = stack[stack.length - 1];
             stack.pop();
             _updateHash(lastClosedTag);
             
             lastClosedTag.end = self.startOffset + endIndex;
+            lastClosedTag.endPos = addPos(self.startOffsetPos, endPos);
         }
         
         while ((token = this.t.nextToken()) !== null) {
@@ -311,7 +321,7 @@ define(function (require, exports, module) {
                     while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
                         // Close the previous tag at the start of this tag.
                         // Adjust backwards for the < before the tag name.
-                        closeTag(token.start - 1);
+                        closeTag(token.start - 1, offsetPos(token.startPos, -1));
                     }
                 }
                 
@@ -320,7 +330,8 @@ define(function (require, exports, module) {
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
-                    start: this.startOffset + token.start - 1
+                    start: this.startOffset + token.start - 1,
+                    startPos: addPos(this.startOffsetPos, offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
                 };
                 newTag.tagID = this.getID(newTag, markCache);
                 
@@ -356,6 +367,7 @@ define(function (require, exports, module) {
                     // find a close tag for this tag, we'll update the signature to account for its
                     // children at that point (in the next "else" case).
                     this.currentTag.end = this.startOffset + token.end;
+                    this.currentTag.endPos = addPos(this.startOffsetPos, token.endPos);
                     lastClosedTag = this.currentTag;
                     _updateAttributeHash(this.currentTag);
                     this.currentTag = null;
@@ -385,7 +397,11 @@ define(function (require, exports, module) {
                             // the start of the tagname). For the actual tag we're explicitly closing, we want the
                             // implied end to be the end of the close tag (which is one character, ">", after the end of
                             // the tagname).
-                            closeTag(stack.length === i + 1 ? token.end + 1 : token.start - 2);
+                            if (stack.length === i + 1) {
+                                closeTag(token.end + 1, offsetPos(token.endPos, 1));
+                            } else {
+                                closeTag(token.start - 2, offsetPos(token.startPos, -2));
+                            }
                         } while (stack.length > i);
                     } else {
                         // If we're in strict mode, treat unmatched close tags as invalid. Otherwise
@@ -433,13 +449,21 @@ define(function (require, exports, module) {
         
         // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,
         // otherwise close them at the end of the document.
-        if (strict && stack.length) {
-            PerfUtils.finalizeMeasurement(timerBuildFull);
-            PerfUtils.addMeasurement(timerBuildPart);
-            return null;
-        }
-        while (stack.length) {
-            closeTag(this.text.length - this.startOffset);
+        if (stack.length) {
+            if (strict) {
+                PerfUtils.finalizeMeasurement(timerBuildFull);
+                PerfUtils.addMeasurement(timerBuildPart);
+                return null;
+            } else {
+                // Manually compute the position of the end of the text (we can't rely on the
+                // tokenizer for this since it may not get to the very end)
+                // TODO: should probably make the tokenizer get to the end...
+                var lines = this.text.split("\n"),
+                    lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
+                while (stack.length) {
+                    closeTag(this.text.length, lastPos);
+                }
+            }
         }
         
         var dom = lastClosedTag;
@@ -517,7 +541,7 @@ define(function (require, exports, module) {
                 _markTags(cm, childNode);
             }
         });
-        var mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+        var mark = cm.markText(node.startPos, node.endPos);
         mark.tagID = node.tagID;
     }
     
@@ -545,7 +569,7 @@ define(function (require, exports, module) {
     }
     
     function DOMUpdater(previousDOM, editor, changeList) {
-        var text, startOffset = 0;
+        var text, startOffset = 0, startOffsetPos;
 
         this.isIncremental = false;
         
@@ -571,7 +595,8 @@ define(function (require, exports, module) {
                     if (range) {
                         text = editor._codeMirror.getRange(range.from, range.to);
                         this.changedTagID = startMark.tagID;
-                        startOffset = editor._codeMirror.indexFromPos(range.from);
+                        startOffsetPos = range.from;
+                        startOffset = editor._codeMirror.indexFromPos(startOffsetPos);
                         this.isIncremental = true;
                     }
                 }
@@ -583,7 +608,7 @@ define(function (require, exports, module) {
             text = editor.document.getText();
         }
         
-        SimpleDOMBuilder.call(this, text, startOffset);
+        SimpleDOMBuilder.call(this, text, startOffset, startOffsetPos);
         this.editor = editor;
         this.cm = editor._codeMirror;
         this.previousDOM = previousDOM;
@@ -612,7 +637,7 @@ define(function (require, exports, module) {
         // TODO: _getTagIDAtDocumentPos is likely a performance bottleneck
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
-        var currentTagID = _getTagIDAtDocumentPos(this.editor, this.cm.posFromIndex(newTag.start + 1), markCache);
+        var currentTagID = _getTagIDAtDocumentPos(this.editor, offsetPos(newTag.startPos, 1), markCache);
         
         // If the new tag is in an unmarked range, or the marked range actually corresponds to an
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
@@ -638,7 +663,7 @@ define(function (require, exports, module) {
             if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
                 var node = nodeMap[mark.tagID];
                 mark.clear();
-                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+                mark = cm.markText(node.startPos, node.endPos);
                 mark.tagID = node.tagID;
                 updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
             }
@@ -647,7 +672,7 @@ define(function (require, exports, module) {
         // Any remaining updateIDs are new.
         updateIDs.forEach(function (id) {
             var node = nodeMap[id],
-                mark = cm.markText(cm.posFromIndex(node.start), cm.posFromIndex(node.end));
+                mark = cm.markText(node.startPos, node.endPos);
             mark.tagID = Number(id);
         });
     };
