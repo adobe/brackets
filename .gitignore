@@ -26,3 +26,6 @@ test/results
 
 # Netbeans
 /nbproject
+
+# PhpStorm
+.idea
