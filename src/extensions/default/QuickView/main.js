@@ -375,8 +375,14 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch < match.index) {
-                // match is past cursor, so stop looping
-                break;
+                // Gradients are matched first, then colors, so...
+                if (gradientMatch.match) {
+                    // ... gradient match is past cursor -- stop looking for gradients, start searching for colors
+                    gradientMatch.match = null;
+                } else {
+                    // ... color match is past cursor -- stop looping
+                    break;
+                }
             } else if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
