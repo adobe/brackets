@@ -374,7 +374,10 @@ define(function (require, exports, module) {
             cm = editor._codeMirror;
 
         while (match) {
-            if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+            if (pos.ch < match.index) {
+                // match is past cursor, so stop looping
+                break;
+            } else if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
                 
@@ -429,7 +432,10 @@ define(function (require, exports, module) {
         } else {
             urlMatch = urlRegEx.exec(line);
             while (urlMatch) {
-                if (pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
+                if (pos.ch < urlMatch.index) {
+                    // match is past cursor, so stop looping
+                    break;
+                } else if (pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
                     tokenString = urlMatch[1];
                     break;
                 }
