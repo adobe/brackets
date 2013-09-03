@@ -820,7 +820,7 @@ define(function (require, exports, module) {
     }
 
     function handleUndoRedo(operation) {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         var result = new $.Deferred();
         
         if (editor) {
