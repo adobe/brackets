@@ -155,7 +155,7 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         this.updateHighlight();
-    }
+    };
     
     /**
      * @private
