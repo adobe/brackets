@@ -2548,21 +2548,22 @@ define(function (require, exports, module) {
 
         
         describe("EditorCommandHandlers Integration", function () {
-        
+            this.category = "integration";
+            
+            beforeFirst(function () {
+                createTestWindow(this);
+            });
+            
+            afterLast(function () {
+                closeTestWindow();
+            });
+            
+            
             describe("Move Lines Up/Down - inline editor", function () {
-                this.category = "integration";
                 
                 var moveContent = ".testClass {\n" +
                                   "    color: red;\n" +
                                   "}";
-                
-                beforeFirst(function () {
-                    createTestWindow(this);
-                });
-                
-                afterLast(function () {
-                    closeTestWindow();
-                });
                 
                 beforeEach(function () {
                     openInlineEditor(this);
@@ -2626,19 +2627,10 @@ define(function (require, exports, module) {
         
         
             describe("Open Line Above and Below - inline editor", function () {
-                this.category = "integration";
                 
                 var content = ".testClass {\n" +
                               "    color: red;\n" +
                               "}";
-                
-                beforeFirst(function () {
-                    createTestWindow(this);
-                });
-                
-                afterLast(function () {
-                    closeTestWindow();
-                });
                 
                 beforeEach(function () {
                     openInlineEditor(this);
