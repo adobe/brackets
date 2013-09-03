@@ -1,28 +1,28 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*
- * This file first imports all of the shared LESS/CSS, and then defines 
+ * This file first imports all of the shared LESS/CSS, and then defines
  * version-specific layout (e.g. layout for the App shell, or layout for
  * the In-Browser version on Firefox).
  *
@@ -31,7 +31,7 @@
  *
  * Anything that is general/reusable should be pushed up into a LESS file
  * in the "styles" directory. See "brackets_shared.less" for the organization
- * 
+ *
  * Date: @DATE
  */
 
@@ -46,16 +46,16 @@
 html, body {
     height: 100%;
     overflow: hidden;
-    
+
     /* Turn off selection for UI elements */
     .user-select(none);
-    
+
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
-    
+
     /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
     -webkit-font-smoothing: antialiased;
-    
+
     /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
        It seems that we have to put it here rather than on the animated element in order to prevent the
        entire window from flashing.
@@ -75,11 +75,11 @@ body {
     width: 100%;
     height: 100%;
     z-index: @z-index-brackets-panel-resizer;
-    
+
     &.horz-resizing {
         cursor: col-resize;
     }
-    
+
     &.vert-resizing {
         cursor: row-resize;
     }
@@ -115,7 +115,7 @@ a, img {
 #titlebar, .modal-bar {
     border-bottom: 1px solid @tc-gray-panel-border;
     box-shadow: @tc-small-shadow-bottom;
-    
+
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
     z-index: @z-index-brackets-toolbar;
@@ -133,17 +133,17 @@ a, img {
     color: @tc-text;
     font-family: @sansFontFamily;
     font-size: 11px;
-    line-height: 25px;    
+    line-height: 25px;
     height: 26px;
     overflow: hidden;
 }
-    
+
 #status-info {
     color: @tc-text;
     left: 10px;
     position: absolute;
     white-space: nowrap;
-    
+
     div {
         display: inline;
     }
@@ -160,7 +160,7 @@ a, img {
     right: 0;
     text-align: right;
     white-space: nowrap;
-        
+
     > div {
         border-left: 1px solid rgba(0, 0, 0, 0.1);
         float: right;
@@ -171,7 +171,7 @@ a, img {
         margin: 6px 10px;
         padding: 0;
     }
-    
+
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
@@ -230,7 +230,7 @@ a, img {
 
 #editor-holder {
     position: relative;
-    
+
     /* Placeholder shown when there is no editor open */
     #not-editor {
         height: 100%;
@@ -266,7 +266,7 @@ a, img {
     border-top-style: solid;
     border-width: 1px;
     border-color: @tc-gray-panel-border;
-    
+
     .toolbar {
         background-color: @tc-gray-panel-top-bar;
         border-bottom: @tc-gray-panel-top-bar-shadow;
@@ -286,7 +286,7 @@ a, img {
             top: 6px;
         }
     }
-    
+
     .table-container {
         height: 170px;
         overflow: auto;
@@ -296,14 +296,15 @@ a, img {
             padding-left: @base-padding;
             padding-right: @base-padding;
         }
-        
+
         .highlight {
             background: #fff;
             border-radius: 2px;
         }
-        
+
         tr.selected td {
-            background-color: @tc-highlight;
+            background-color: @tc-selected-row;
+            color: @bc-black;
         }
     }
 }
@@ -313,7 +314,7 @@ a, img {
 }
 
 #toolbar-go-live {
-	// background-position is 0 0 for 24x24 icons
+    // background-position is 0 0 for 24x24 icons
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
     .sprite-icon(0, 0, 24px, 24px, "images/live_development_sprites.svg");
@@ -358,7 +359,7 @@ a, img {
     opacity: 0;
     cursor: col-resize;
 }
-    
+
 #project-files-header {
     border-top: 1px solid #56595a;
     padding: 8px 0 9px 12px;
@@ -372,48 +373,48 @@ a, img {
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
-    
+
     ul {
         list-style-type: none;
         margin: 0;
         padding-bottom: 23px;
     }
-        
+
     li {
         position: relative; // so that children can be positioned absolute
         line-height: 18px;
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
-        
+
         &.selected a {
             color: @open-working-file-name-highlight;
         }
-        
+
         &.selected .extension {
             color: @open-working-file-ext-highlight;
         }
     }
-            
+
     a {
         color: #fff;
-        
+
         font-size: 13px;
         text-decoration: none;
-        
+
         display: block;
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
         padding: 3px (@sidebar-triangle-size * 2) 3px 0;
-        
+
         cursor: default;
 
         .directory {
             font-size: 11px;
         }
     }
-    
+
     .extension, .directory {
         color: @project-panel-text-2;
     }
@@ -436,18 +437,18 @@ a, img {
 
 .sidebar-selection-triangle.triangle-visible:before {
     content: "";
-    
+
     border-top: @sidebar-triangle-size solid transparent;
-    border-bottom: (@sidebar-triangle-size - 1) solid transparent; 
+    border-bottom: (@sidebar-triangle-size - 1) solid transparent;
     border-left: @sidebar-triangle-size solid #2D2E30;
-    
+
     display: block;
     position: absolute;
     top: -1px;
     right: -9px;
     width: 0;
     height: 0;
-    
+
     .scale-x(0.8, right, top);
 }
 
@@ -458,15 +459,15 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    
+
     .jstree-brackets li > a {
         padding-right: @sidebar-triangle-size * 2;
     }
-    
+
     ul {
         padding-left: 8px;
     }
-    
+
     > ul {
         padding-bottom: 24px;
     }
@@ -478,13 +479,13 @@ a, img {
     height: 5px;
     position: fixed;
     z-index: @z-index-brackets-scroller-shadow;
-    
+
     &.top {
         #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
         background-position: 0 -5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
-    
+
     &.bottom {
         #gradient > .vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
         background-position: 0 5px;
@@ -495,7 +496,7 @@ a, img {
 
 @jstree-sprite-size: 18px;  // this is hardcoded in jsTree's JS code
 
-/** Classes for icons from jsTreeSprites.svg 
+/** Classes for icons from jsTreeSprites.svg
 */
 .jstree-sprite {
     background-image: url("images/jsTreeSprites.svg");
@@ -520,7 +521,7 @@ a, img {
     -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
 }
 
-/** Classes for icons from bracketSprites.png 
+/** Classes for icons from bracketSprites.png
 */
 .bracket-sprite {
     background-image: url("images/close_btn.svg");
@@ -539,19 +540,19 @@ a, img {
     position: absolute;
     left: 0px;
     top: 1px;
-    
+
     &.dirty {
         background-position: -30px 0;
     }
-    
+
     &.can-close {
         background-position: 0 0;
     }
-  
+
     &.can-close:hover {
         background-position: -15px 0;
     }
-    
+
     &.can-close:active {
         background-position: -15px 0;
         opacity: @tc-icon-down;
@@ -571,7 +572,7 @@ a, img {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        
+
         transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
     }
 
@@ -579,32 +580,32 @@ a, img {
         /* remove CodeMirror default height: 300px */
         height: auto;
     }
-        
+
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
-        
+
         .filename {
             font-family: @sansFontFamily;
             font-size: 1.1em;
             color: @inline-color-1;
-            
+
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
             cursor: pointer;
-            
+
             .dirty-indicator {
                 .bracket-sprite;
                 display: inline-block;
                 background-position: -32px 0;
                 padding-top: 3px;
             }
-            
+
             .line-number {
                 color: @inline-color-2;
             }
         }
     }
-    
+
     .shadow {
         display: block;
         height: 4px;
@@ -614,20 +615,20 @@ a, img {
         left: 0;
         z-index: @z-index-brackets-inline-editor-shadow;
     }
-    
+
     .shadow.top {
         top: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
-    
+
     .shadow.bottom {
         bottom: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
-    
+
     .CodeMirror-scroll {
         background-color: transparent;
-        
+
         .CodeMirror-linenumbers {
             background-color: @inline-background-color-1;
         }
@@ -637,7 +638,7 @@ a, img {
 /* CSSInlineEditor rule list */
 .related-container {
     @top-margin: 12px;
-    
+
     float: right;
     position: relative;
     min-height: 100%;
@@ -646,7 +647,7 @@ a, img {
     max-width: 50%;
     overflow: hidden;
     background: @inline-background-color-2;
-    
+
     .selection {
         width: 100%;
         background: #d0d5d5;
@@ -654,12 +655,12 @@ a, img {
         border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
         border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
         top: @top-margin;
-        
+
         &.animate {
             transition: top 0.1s ease-out;
         }
     }
-    
+
     /*
      * CSS triangle hack with anti-alias workarounds:
      * (a) Use selection-background-color instead of transparent.
@@ -677,20 +678,20 @@ a, img {
         top: 50%;
         .scale-x(0.9, left, top);
     }
-    
+
     .related {
         font-size: 12px;
         position: absolute;
         top: 0;
         left: 1px;
         width: 100%;
-        
+
         ul {
             margin: 0;
             padding: @top-margin 0px;
             list-style: none;
         }
-            
+
         li {
             color: @inline-color-2;
             margin: 0;
@@ -699,7 +700,7 @@ a, img {
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        
+
         .selected {
             color: @inline-color-3;
             transition: color 0.1s ease-out .15s;
@@ -798,6 +799,29 @@ a, img {
         padding-left: 3px;
         vertical-align: baseline;
     }
+
+    .dialog-filename {
+        font-size: 13px;
+        font-weight: @font-weight-semibold;
+    }
+
+    .dialog-path {
+        font-size: 11px;
+        font-weight: normal;
+    }
+
+    .line-number {
+        color: @tc-light-weight-quiet-text;
+        font-family: SourceCodePro;
+        font-size: 11px;
+        padding: 0 10px 0 14px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .line-text {
+        width: 100%;
+    }
 }
 
 /* Find-Replace All UI */
@@ -828,32 +852,32 @@ a, img {
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;    
+    top: 0;
     -webkit-transform: translate(0, -44px);
     transform: translate(0, -44px);
     transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
     transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-    
+
     body:not(.has-appshell-menus) & {
         top: 37px;
-    }    
+    }
 }
 
 .modal-bar {
     display: block;
     text-align: left;
-    
+
     font-family: @sansFontFamily;
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
-    overflow: hidden; 
+    overflow: hidden;
     padding: 5px 4px 4px 14px;
-    
+
     -webkit-transform: translate(0, 0); // Prefix still required.
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
-    z-index: @z-index-brackets-modalbar;       
-    
+    z-index: @z-index-brackets-modalbar;
+
     body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
@@ -867,10 +891,10 @@ a, img {
     width: 20em;
     margin: 5px 5px 0;
     position: relative;
-    top: -3px;    
+    top: -3px;
     &.no-results {
         border: 1px solid #bc0023;
-        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
     }
 }
 
@@ -879,7 +903,7 @@ a, img {
 }
 .modal-bar .error {
     display: none;
-    
+
     .alert {
         padding-top: 4px;
         padding-bottom: 4px;
@@ -910,19 +934,19 @@ a, img {
 /* Quick Open search bar & dropdown */
 
 .smart_autocomplete_container {
-    
+
     // the borders show up even if the container is empty, must set height to zero using JS.
     border: 1px solid @tc-gray-panel-border;
-    
+
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-normal-shadow-bottom;
-    
+
     // so that border won't show when height is 0.
-    box-sizing: border-box; 
-    
+    box-sizing: border-box;
+
     // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 434px !important;  
+    width: 434px !important;
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
@@ -943,11 +967,11 @@ a, img {
         cursor: default;
         padding: 6px 10px;
     }
-    
+
     li:nth-child(odd) {
         background-color: #e6e9e9;
     }
-    
+
     li.smart_autocomplete_highlight {
         background-color: @tc-highlight;
     }
@@ -978,7 +1002,7 @@ a, img {
         -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
         visibility: visible;
     }
-    
+
     &.large {
         width: 36px;
         height: 36px;
@@ -991,7 +1015,7 @@ a, img {
     }
 }
 // Retina versions
-@media only screen and (-webkit-min-device-pixel-ratio: 2), 
+@media only screen and (-webkit-min-device-pixel-ratio: 2),
        only screen and (min-device-pixel-ratio: 2) {
     .spinner {
         background-image: url("images/spinner_small_sprites12@2x.png");
