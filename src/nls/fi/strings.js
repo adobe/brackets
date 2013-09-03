@@ -133,7 +133,9 @@ define({
     "FIND_IN_FILES_MATCH"               : "vastaavuus",
     "FIND_IN_FILES_MATCHES"             : "vastaavuutta",
     "FIND_IN_FILES_MORE_THAN"           : "Enemmän kuin ",
-    "FIND_IN_FILES_MAX"                 : " (näytetään ensimmäiset {0} vastaavuutta)",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Vähemmän</a>",
+    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Enemmän</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Tiedosto: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "Rivi: {0}",
 
@@ -151,13 +153,17 @@ define({
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SHIFT"  : "Vaihto",
     "KEYBOARD_SPACE"  : "Välilyönti",
     
     /**
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rivi {0}, Merkki {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Valittu {0} merkki",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Napsauta muuttaaksesi sisennys välilyönneiksi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Napsauta muuttaaksesi sisennys sarkainmerkeiksi",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Napsauta muuttaaksesi sisennyksenä käytettävien välilyöntien määrää",
@@ -275,7 +281,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
-    "SEARCH_RESULTS"                       : "Hakutulokset",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Älä tallenna",
     "SAVE"                                 : "Tallenna",
@@ -387,7 +392,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",
+    "UNIT_PIXELS"                          : "pikselit",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Kehitys",
