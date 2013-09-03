@@ -227,19 +227,16 @@ define(function (require, exports, module) {
     /**
      * Remove the various event handlers that close the dropdown. This is called by the
      * PopUpManager when the dropdown is closed.
-     * @param {KeyboardEvent=} keyEvent
      */
-    function cleanupDropdown(keyEvent) {
+    function cleanupDropdown() {
         $("html").off("click", closeDropdown);
         $("#project-files-container").off("scroll", closeDropdown);
         $(SidebarView).off("hide", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
 
-        if (keyEvent && keyEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-            EditorManager.focusEditor();
-        }
-		KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+        EditorManager.focusEditor();
+        KeyBindingManager.removeGlobalKeydownHook(keydownHook);
     }
     
     
@@ -409,12 +406,14 @@ define(function (require, exports, module) {
             }
             
             showDropdown();
-            $dropdownItem = $dropdown.find("a").first();
+            $dropdown.focus();
+			$dropdownItem = $dropdown.find("a").first();
             $dropdownItem.addClass("selected");
             
-            if (EditorManager.getFocusedEditor()) {
-                EditorManager.getFocusedEditor()._codeMirror.getInputField().blur();
-            }
+            // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
+            window.setTimeout(function () {
+                $dropdown.focus();
+            }, 0);
         }
     }
     

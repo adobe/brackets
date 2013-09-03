@@ -61,15 +61,14 @@ define(function (require, exports, module) {
      * if the pop-up is currently visible and was not originally attached.
      *
      * @param {!jQuery} $popUp
-     * @param {KeyboardEvent=} keyEvent
      */
-    function removePopUp($popUp, keyEvent) {
+    function removePopUp($popUp) {
         // check visible first to help protect against recursive calls
         // via removeHandler
         if ($popUp.find(":visible").length > 0) {
             var removeHandler = $popUp.data("PopUpManager-removeHandler");
             if (removeHandler) {
-                removeHandler(keyEvent);
+                removeHandler();
             }
         }
 
@@ -109,7 +108,7 @@ define(function (require, exports, module) {
                         keyEvent.stopImmediatePropagation();
                     }
                     
-                    removePopUp($popUp, keyEvent);
+                    removePopUp($popUp);
 
                     // TODO: right now Menus and Context Menus do not take focus away from
                     // the editor. We need to have a focus manager to correctly manage focus
