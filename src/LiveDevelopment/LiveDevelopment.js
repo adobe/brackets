@@ -966,7 +966,7 @@ define(function LiveDevelopment(require, exports, module) {
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
         
-        if (doc instanceof CSSDocument) {
+        if (doc.updateHighlight) {
             doc.updateHighlight();
         }
     }
