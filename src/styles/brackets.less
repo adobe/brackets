@@ -90,6 +90,7 @@ a, img {
 }
 
 .main-view {
+    background: @background-color-3; // to keep the theme background consistent
     height: 100%;
 
     .sidebar {
@@ -215,7 +216,7 @@ a, img {
     left: 0;
     top: -1px;
     width: 6px;
-    -webkit-transition: 0.1s linear all;
+    transition: 0.1s linear all;
 }
 
 #indent-width-input:focus {
@@ -236,7 +237,7 @@ a, img {
         .vbox;
         .box-pack(center);
         .box-align(center);
-        background: @background-color-2 url('images/no_content_bg.svg') no-repeat center 45%;
+        background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
 }
 
@@ -385,8 +386,12 @@ a, img {
         min-height: 18px;
         vertical-align: baseline;
         
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+        
         &.selected .extension {
-            color: #fff;
+            color: @open-working-file-ext-highlight;
         }
     }
             
@@ -567,8 +572,7 @@ a, img {
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
         
-        -webkit-transition: height 0.125s ease-out;
-        transition: height 0.125s ease-out;
+        transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
     }
 
     .CodeMirror {
@@ -652,8 +656,7 @@ a, img {
         top: @top-margin;
         
         &.animate {
-            -webkit-transition: height 0.1s ease-out;
-            -webkit-transition: top 0.1s ease-out;
+            transition: top 0.1s ease-out;
         }
     }
     
@@ -699,7 +702,7 @@ a, img {
         
         .selected {
             color: @inline-color-3;
-            -webkit-transition: color 0.1s ease-out .15s;
+            transition: color 0.1s ease-out .15s;
         }
     }
 }
@@ -727,7 +730,30 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-result-summary {
+#search-results .title, #replace-all-results .title {
+    .sane-box-model;
+    padding-right: 20px;
+    width: 100%;
+
+    .flex-box;
+    .contracting-col {
+        .flex-item(0);
+        min-width: 1px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fixed-col {
+        .flex-item(0);
+    }
+    .pagination-col {
+        .flex-item(1);
+        min-width: 100px;
+    }
+    .replace-col {
+        .flex-item(1);
+        min-width: 120px;
+        padding-left: 20px;
+    }
     .first-page,
     .prev-page,
     .next-page,
@@ -767,24 +793,69 @@ a, img {
     }
 }
 
-#search-results td {
-    padding-left: 3px;
-    vertical-align: baseline;
+#search-results {
+    td {
+        padding-left: 3px;
+        vertical-align: baseline;
+    }
+}
+
+/* Find-Replace All UI */
+
+#replace-all-results {
+    .check-all {
+        margin: 0px 22px 0px 6px;
+    }
+    .title {
+        > div {
+            line-height: 1.8em;
+        }
+    }
+    table {
+        td.checkbox-column {
+            width: 20px;
+            text-align: center;
+        }
+        td.line-column {
+            width: 100px;
+        }
+    }
 }
 
 /* Modal bar for Find/Quick Open */
 
+.modal-bar.modal-bar-hide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;    
+    -webkit-transform: translate(0, -44px);
+    transform: translate(0, -44px);
+    transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
+    transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
+    
+    body:not(.has-appshell-menus) & {
+        top: 37px;
+    }    
+}
+
 .modal-bar {
+    display: block;
     text-align: left;
     
     font-family: @sansFontFamily;
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
+    overflow: hidden; 
     padding: 5px 4px 4px 14px;
-    overflow: hidden;
     
-    body.in-browser & {
+    -webkit-transform: translate(0, 0); // Prefix still required.
+    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    z-index: @z-index-brackets-modalbar;       
+    
+    body.in-browser &,
+    body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
         border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
     }

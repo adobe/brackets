@@ -112,10 +112,14 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 result",
+    "FIND_NO_RESULTS"                   : "No results",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
+    "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Replace",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
@@ -124,8 +128,14 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
-    
-    "FIND_IN_FILES_TITLE"               : "\"{4}\" found {5} &mdash; {0} {1} in {2} {3}",
+
+    "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" found",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
@@ -134,8 +144,6 @@ define({
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Less</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>More</a>",
     "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line: {0}",
 
@@ -168,8 +176,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Spaces",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_SPACES"                      : "Spaces:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
@@ -444,7 +452,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
-    
+    "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
+    "NO_ARGUMENTS"                              : "<no parameters>",
+
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Enable JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",

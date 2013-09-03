@@ -21,6 +21,19 @@
 
 /* Brackets mixins */
 
+/* Helpers for working with flex layouts */
+/* see: https://developer.mozilla.org/en-US/docs/Web/CSS/flex */
+.flex-box(@direction: row) {
+    display: -webkit-flex;
+    -webkit-flex-direction: @direction;
+    display: flex;
+    flex-direction: @direction;
+}
+.flex-item(@grow: 0, @shrink: 1, @basis: auto) {
+    -webkit-flex: @grow @shrink @basis;
+    flex: @grow @shrink @basis;
+}
+
 /* Helpers for working with box layouts */
 .box {
     display: -webkit-box;
