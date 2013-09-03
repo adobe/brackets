@@ -31,6 +31,11 @@
  *
  */
 
+/* Variable OVerride */
+
+@tooltipBackground:       #fff;
+@tooltipArrowColor:       @tooltipBackground;
+
 .panel {
     .vbox;
     .box-flex(1);
@@ -116,33 +121,39 @@
 
     background: @main-toolbar-background-color;
     padding: 7px 0px;
-    
+
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
     .box-flex(1);
     text-align: center;
-    
-    .buttons {
+
+    .buttons,
+    .bottom-buttons {
         text-align: center;
         margin: 0;
-    
+
         > a {
             border-radius: 3px;
-            background-repeat: none;
+            background-repeat: no-repeat;
             display: block;
             height: 24px;
             margin: 7px 0px 0px 3px;
             width: 24px;
         }
-        
+
         > a:hover {
             background-color: rgba(0, 0, 0, 0.24) !important;
         }
-    
+
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }     
+    }
+
+    .bottom-buttons {
+        position: absolute;
+        bottom: 5px;
+    }
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
@@ -239,9 +250,9 @@
 
         margin-top: 0;
         background-color: @bc-white;
-        border: 1px solid #c8c8c8;
         .border-radius(0 0 3px 3px);
-        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        box-shadow: @tc-dropdown-shadow;
+        border: none;
 
         // Menu items
         li {
@@ -311,6 +322,7 @@
 
     .dropdown-menu {
         .border-radius(3px);
+        box-shadow: @tc-dropdown-shadow;
     }
 
     .menu-shortcut {
@@ -319,11 +331,11 @@
 }
 
 .codehint-menu {
+    opacity: 0;
     .dropdown-menu {
-        .box-shadow(none);
+        box-shadow: @tc-dropdown-shadow;
         max-height: 160px;
         overflow-y: auto;
-
         padding: 0;
 
         li {
@@ -338,7 +350,7 @@
                     background-color: @bc-white;
                 }
 
-				// ...except for selected item
+                // ...except for selected item
                 &.highlight:hover {
                     color: @bc-black;
                     background-color: @item-highlight-color;
@@ -346,6 +358,15 @@
             }
         }
     }
+}
+
+.codehint-menu.open {
+    opacity: 1;
+    transition: opacity 67ms cubic-bezier(0.03, 0.78, 0.17, 0.97);
+}
+
+.codehint-menu.apply-transition {
+    transition: right 167ms, left 167ms;
 }
 
 #context-menu-bar {
@@ -411,11 +432,30 @@
     }
 }
 
+// Work around #4568: SourceSans is much fainter on Win than Mac, especially small text with "light" font-weight.
+// We fix some of the most egregious cases by using a heavier font-weight only on Win (and because that's usually
+// overkill, we also make the color paler to dial it back down a bit).
+.less-faint-on-win() {
+    body.platform-win & {
+        font-weight: normal;
+        color: #2e2e2e;
+    }
+}
+
 .modal-body ul {
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
     margin-bottom: 0;
 }
+
+.modal-backdrop {
+    opacity: 0;
+}
+.modal-backdrop:last-child {
+    /* Only show the last modal backdrop */
+    opacity: 0.5;
+}
+
 
 .dialog-title {
     color: @tc-light-weight-text;
@@ -432,6 +472,7 @@
     line-height: 20px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
+    .less-faint-on-win();
 }
 
 .dialog-message li {
@@ -444,8 +485,12 @@
 }
 
 .dialog-filename {
-    font-weight: normal;
     word-wrap: break-word;
+
+    font-weight: normal;
+    body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
+        font-weight: @font-weight-semibold;
+    }
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
@@ -518,11 +563,11 @@
         border-bottom: none;
         padding: 0;
         width: auto;
-        
+
         .nav-tabs {
             margin: 0;
             border-color: #c3c6c5;
-            
+
             /* Tab styling */
             > li > a {
                 min-width: 80px;
@@ -530,32 +575,32 @@
                 color: black;
                 cursor: default;
                 font-size: 12px;
-                
+
                 .box;
                 box-sizing: border-box;
                 .box-align(center);
                 .box-pack(center);
                 padding: 0;
                 margin: 0;
-                
+
                 text-align: center;
-                
+
                 &:hover {
                     background-color: rgba(0, 0, 0, 0.04);
                     border-color: rgba(0, 0, 0, 0.04);
                 }
-                
+
                 > img {
                     margin-top: 5px;
                     padding-bottom: 2px;
                 }
             }
-            
+
             /* Remove border-left from the first tab */
             > li:nth-child(1) > a {
                 border-left: transparent;
             }
-            
+
             /* Colors for the active tab, remove bottom border */
             > .active > a,
             > .active > a:hover {
@@ -563,7 +608,7 @@
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
         }
-        
+
         /* Search box */
         > :nth-child(2) {
             position: absolute;
@@ -616,12 +661,12 @@
             margin-top: -1em;
             text-align: center;
         }
-        
+
         .info-message {
             background-color: @tc-gray-panel;
             padding: 1em;
         }
-        
+
         .spinner {
             position: absolute;
             top: 50%;
@@ -639,25 +684,21 @@
                 width: 220px;
             }
             .ext-name {
-                color: #000;
                 display: block;
+                color: #000;
                 font-size: 15px;
                 font-weight: @font-weight-light;
+                .less-faint-on-win();
                 .user-select(text);
                 cursor: text;
             }
             .ext-desc {
                 color: #000;
                 font-weight: @font-weight-light;
+                .less-faint-on-win();
                 width: auto;
                 .user-select(text);
                 cursor: text;
-            }
-            .platform-win & {  // work around #4554
-                .ext-name, .ext-desc {
-                    font-weight: normal;
-                    color: #2e2e2e;
-                }
             }
             .muted {
                 color: #888;
@@ -708,6 +749,10 @@
         }
         .about-contributors {
             min-height: 100px;
+
+            a {
+                text-decoration: none;
+            }
         }
         .about-contributors img {
             opacity: 0;
@@ -727,6 +772,7 @@
     .dialog-message {
         font-size: 14px;
         line-height: 17px;
+        .less-faint-on-win();
 
         // Enable text selection
         cursor: auto;
@@ -781,10 +827,31 @@ input[type="color"],
 }
 
 /* Twipsy tooltips */
+
+.tooltip {
+    &.in { opacity: 1; }
+}
+
 .tooltip-inner {
-    .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
-    max-width: none;
-    white-space: nowrap;
+    box-shadow: @tc-dropdown-shadow;
+    color: @tc-text;
+    max-width: 220px;
+    text-align: left;
+}
+
+.tooltip {
+    &.top .tooltip-arrow {
+        left: 50%;
+    }
+    &.right .tooltip-arrow {
+        top: 15px;
+    }
+    &.left .tooltip-arrow {
+        top: 15px;
+    }
+    &.bottom .tooltip-arrow {
+        left: 50%;
+    }
 }
 
 /* Buttons */
@@ -812,13 +879,14 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
+    cursor: default;
     font-size: @baseFontSize + 1;
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
     .border-radius(@tc-control-border-radius);
     box-shadow: @tc-button-highlight;
+    -webkit-font-smoothing: antialiased;
 
     &:hover {
         background-color: @tc-button-background;
@@ -844,7 +912,7 @@ input[type="color"],
 
     &.disabled, &[disabled] {
         opacity: @tc-disabled-opacity;
-    }    
+    }
 
     // Primary Button Type
     &.primary {
@@ -962,4 +1030,42 @@ dt,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
     color: @tc-warning-text;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    margin: 0;
+}
+
+input[type="checkbox"] {
+    height: 13px;
+    width: 13px;
+    vertical-align: middle;
+    border: 1px solid @tc-gray-component-border;
+    border-radius: 3px;
+    background-color: @tc-button-background;
+    -webkit-appearance: none;
+    box-shadow: @tc-button-highlight;
+}
+
+input[type="checkbox"]:active:not(:disabled) {
+    background-color: @tc-button-down-background;
+    box-shadow: @tc-button-down-shadow;
+}
+
+input[type="checkbox"]:focus {
+    outline:none;
+    border: 1px solid @tc-gray-component-focused-border;
+    box-shadow: @tc-input-glow;
+}
+
+input[type="checkbox"]:checked:before {
+    font-weight: bold;
+    color: @tc-text;
+    content: '\2713';
+    -webkit-margin-start: 0;
+    position: relative;
+    left: 2px;
+    top: -7px;
+    font-size: 16px;
 }

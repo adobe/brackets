@@ -29,13 +29,15 @@ importScripts("thirdparty/requirejs/require.js");
 (function () {
     "use strict";
     
-    var MessageIds;
-    var Tern;
-    require(["./MessageIds"], function (messageIds) {
+    var MessageIds, HintUtils2;
+    var Tern, Infer;
+    require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
+        HintUtils2 = hintUtils2;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
+        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
+            Infer = infer;
 
             var ternServer  = null;
         
@@ -146,6 +148,7 @@ importScripts("thirdparty/requirejs/require.js");
                 query.depths = true;
                 query.guess = true;
                 query.origins = true;
+                query.types = true;
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
 
@@ -233,7 +236,7 @@ importScripts("thirdparty/requirejs/require.js");
                         //_log("tern properties: completions = " + data.completions.length);
                         for (i = 0; i < data.completions.length; ++i) {
                             var property = data.completions[i];
-                            properties.push({value: property, guess: true});
+                            properties.push({value: property, type: property.type, guess: true});
                         }
                     }
         
@@ -291,7 +294,173 @@ importScripts("thirdparty/requirejs/require.js");
                     }
                 });
             }
-        
+
+            /**
+             *  Given a Tern type object, convert it to an array of Objects, where each object describes
+             *  a parameter.
+             *
+             * @param {!Infer.Fn} inferFnType - type to convert.
+             * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+             */
+            function getParameters(inferFnType) {
+
+                // work around define functions before use warning.
+                var recordTypeToString, inferTypeToString, processInferFnTypeParameters, inferFnTypeToString;
+
+                /**
+                 *  Convert an infer array type to a string.
+                 *
+                 *  Formatted using google closure style. For example:
+                 *
+                 *  "Array.<string, number>"
+                 *
+                 * @param {Infer.Arr} inferArrType
+                 *
+                 * @return {string} - array formatted in google closure style.
+                 *
+                 */
+                function inferArrTypeToString(inferArrType) {
+                    var result = "Array.<";
+
+                    inferArrType.props["<i>"].types.forEach(function (value, i) {
+                        if (i > 0) {
+                            result += ", ";
+                        }
+                        result += inferTypeToString(value);
+                    });
+
+                    // workaround case where types is zero length
+                    if (inferArrType.props["<i>"].types.length === 0) {
+                        result += "Object";
+                    }
+                    result += ">";
+
+                    return result;
+                }
+
+                /**
+                 * Convert properties to a record type annotation.
+                 *
+                 * @param {Object} props
+                 * @return {string} - record type annotation
+                 */
+                recordTypeToString = function (props) {
+                    var result = "{",
+                        first = true,
+                        prop;
+
+                    for (prop in props) {
+                        if (Object.prototype.hasOwnProperty.call(props, prop)) {
+                            if (!first) {
+                                result += ", ";
+                            }
+
+                            first = false;
+                            result += prop + ": " + inferTypeToString(props[prop]);
+                        }
+                    }
+
+                    result += "}";
+
+                    return result;
+                };
+
+                /**
+                 *  Convert an infer type to a string.
+                 *
+                 * @param {*} inferType - one of the Infer's types; Infer.Prim, Infer.Arr, Infer.ANull. Infer.Fn functions are
+                 * not handled here.
+                 *
+                 * @return {string}
+                 *
+                 */
+                inferTypeToString = function (inferType) {
+                    var result;
+
+                    if (inferType instanceof Infer.AVal) {
+                        inferType = inferType.types[0];
+                    }
+
+                    if (inferType instanceof Infer.Prim) {
+                        result = inferType.toString();
+                        if (result === "string") {
+                            result = "String";
+                        } else if (result === "number") {
+                            result = "Number";
+                        } else if (result === "boolean") {
+                            result = "Boolean";
+                        }
+                    } else if (inferType instanceof Infer.Arr) {
+                        result = inferArrTypeToString(inferType);
+                    } else if (inferType instanceof Infer.Fn) {
+                        result = inferFnTypeToString(inferType);
+                    } else if (inferType instanceof Infer.Obj) {
+                        if (inferType.name === undefined) {
+                            result = recordTypeToString(inferType.props);
+                        } else {
+                            result = inferType.name;
+                        }
+                    } else {
+                        result = "Object";
+                    }
+
+                    return result;
+                };
+
+                /**
+                 * Convert an infer function type to a Google closure type string.
+                 *
+                 * @param {Infer.Fn} inferType - type to convert.
+                 * @return {string} - function type as a string.
+                 */
+                inferFnTypeToString = function (inferType) {
+                    var result = "function(",
+                        params = processInferFnTypeParameters(inferType);
+
+                    result += HintUtils2.formatParameterHint(params, null, null, true);
+                    if (inferType.retval) {
+                        result += "):";
+                        result += inferTypeToString(inferType.retval);
+                    }
+
+                    return result;
+                };
+
+                /**
+                 * Convert an infer function type to string.
+                 *
+                 * @param {*} inferType - one of the Infer's types; Infer.Fn, Infer.Prim, Infer.Arr, Infer.ANull
+                 * @return {Array<{name: string, type: string, isOptional: boolean}>} where each entry in the array is a parameter.
+                 */
+                processInferFnTypeParameters = function (inferType) {
+                    var params = [],
+                        i;
+
+                    for (i = 0; i < inferType.args.length; i++) {
+                        var param = {},
+                            name = inferType.argNames[i],
+                            type = inferType.args[i];
+
+                        if (name === undefined) {
+                            name = "param" + (i + 1);
+                        }
+
+                        if (name[name.length - 1] === "?") {
+                            name = name.substring(0, name.length - 1);
+                            param.isOptional = true;
+                        }
+
+                        param.name = name;
+                        param.type = inferTypeToString(type);
+                        params.push(param);
+                    }
+
+                    return params;
+                };
+
+                return processInferFnTypeParameters(inferFnType);
+            }
+
             /**
              * Get the function type for the given offset
              *
@@ -305,26 +474,48 @@ importScripts("thirdparty/requirejs/require.js");
              */
             function handleFunctionType(fileInfo, offset) {
                 
-                var request = buildRequest(fileInfo, "type", offset);
+                var request = buildRequest(fileInfo, "type", offset),
+                    error;
                     
-                request.preferFunction = true;
-                
-                //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-                ternServer.request(request, function (error, data) {
-                    var fnType = "";
-                    if (error) {
-                        _log("Error returned from Tern 'type' request: " + error);
-                    } else {
-                        fnType = data.type;
-                    }
-        
-                    // Post a message back to the main thread with the completions
-                    self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
-                                      file: fileInfo.name,
-                                      offset: offset,
-                                      fnType: fnType
-                                     });
-                });
+                request.query.preferFunction = true;
+
+                var fnType = "";
+                try {
+                    ternServer.request(request, function (error, data) {
+
+                        var file = ternServer.findFile(fileInfo.name);
+
+                        // convert query from partial to full offsets
+                        var newOffset = offset;
+                        if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
+                            newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
+                        }
+
+                        request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
+
+                        var expr = Tern.findQueryExpr(file, request.query);
+                        Infer.resetGuessing();
+                        var type = Infer.expressionType(expr);
+                        type = type.getFunctionType() || type.getType();
+                        if (type) {
+                            fnType = getParameters(type);
+                        } else {
+                            error = "No parameter type found";
+                            _log(error);
+                        }
+                    });
+                } catch (e) {
+                    error = e.message;
+                    _log("Error thrown in tern_worker:" + error);
+                }
+
+                // Post a message back to the main thread with the completions
+                self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
+                    file: fileInfo.name,
+                    offset: offset,
+                    fnType: fnType,
+                    error: error
+                    });
             }
         
             /**

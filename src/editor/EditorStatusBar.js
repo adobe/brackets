@@ -49,13 +49,17 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     
+    function _formatCountable(number, singularStr, pluralStr) {
+        return StringUtils.format(number > 1 ? pluralStr : singularStr, number);
+    }
+    
     function _updateLanguageInfo(editor) {
         $languageInfo.text(editor.document.getLanguage().getName());
     }
     
     function _updateFileInfo(editor) {
         var lines = editor.lineCount();
-        $fileInfo.text(StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
+        $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
     }
     
     function _updateIndentType() {
@@ -87,7 +91,26 @@ define(function (require, exports, module) {
         // compute columns, account for tab size
         var cursor = editor.getCursorPos(true);
         
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
+        var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
+        if (editor.hasSelection()) {
+            // Show info about selection size when one exists
+            var sel = editor.getSelection(),
+                selStr;
+            
+            if (sel.start.line !== sel.end.line) {
+                var lines = sel.end.line - sel.start.line + 1;
+                if (sel.end.ch === 0) {
+                    lines--;  // end line is exclusive if ch is 0, inclusive otherwise
+                }
+                selStr = _formatCountable(lines, Strings.STATUSBAR_SELECTION_LINE_SINGULAR, Strings.STATUSBAR_SELECTION_LINE_PLURAL);
+            } else {
+                var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
+                selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
+            }
+            $cursorInfo.text(cursorStr + selStr);
+        } else {
+            $cursorInfo.text(cursorStr);
+        }
     }
     
     function _changeIndentWidth(value) {

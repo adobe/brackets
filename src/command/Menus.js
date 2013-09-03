@@ -174,7 +174,7 @@ define(function (require, exports, module) {
     }
     
     function _isHTMLMenu(id) {
-        return (!$("body").hasClass("has-appshell-menus") || brackets.inBrowser) || _isContextMenu(id);
+        return (!brackets.nativeMenus || _isContextMenu(id));
     }
 
     /**

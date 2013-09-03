@@ -42,9 +42,21 @@
 
 @code-padding: 15px;
 
-.CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor !important; 
+.CodeMirror-activeline-background {
+    background: transparent;
 }
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: @activeline-bgcolor;
+}
+.CodeMirror-focused .CodeMirror-activeline {
+    & > div, .CodeMirror-gutter-elt {
+        height: 100%;
+    }
+    .CodeMirror-gutter-elt {
+        background: @activeline-bgcolor;
+    }
+}
+
 
 .cm-s-default {
     span.cm-keyword {color: @accent-keyword;}
@@ -108,6 +120,17 @@
         background-color: @background-color-3;
         border-right: none;
     }
+    .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+        background-color: #ebebeb;
+    }
+    .platform-mac & {
+        .CodeMirror-scrollbar-filler {
+            background-image: url(images/scrollbar-mac-corner.png);
+        }
+        .CodeMirror-gutter-filler {
+            background-image: url(images/scrollbar-mac-bg.png);
+        }
+    }
     .CodeMirror-linenumber {
         color: @accent-comment;
         min-width: 2.5em;
@@ -170,12 +193,21 @@
         cursor: default;
     }
     
+    .CodeMirror .CodeMirror-activeline-background {
+        background: transparent;
+    }
+    .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: transparent;
+    }
+    
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
     }
-    &.CodeMirror-focused .CodeMirror .CodeMirror-activeline-background {
-        background: transparent !important; 
+    .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
     }
+    
+    .CodeMirror-matchingtag { background:  @background-color-2; }
 }
 
 /*
