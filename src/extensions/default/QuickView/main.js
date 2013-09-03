@@ -144,9 +144,9 @@ define(function (require, exports, module) {
         if (popover) {
             popoverState = popover;
         } else {
-            // Query providers for a new popoverState
+            // Query providers and append to popoverState
             token = cm.getTokenAt(lastPos, true);
-            popoverState = queryPreviewProviders(editor, lastPos, token);
+            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
         }
         
         if (popoverState) {
