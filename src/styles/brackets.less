@@ -267,6 +267,10 @@ a, img {
     border-width: 1px;
     border-color: @tc-gray-panel-border;
 
+    .check-all {
+        margin: 7px 15px 7px 7px;
+    }
+
     .toolbar {
         background-color: @tc-gray-panel-top-bar;
         border-bottom: @tc-gray-panel-top-bar-shadow;
@@ -283,7 +287,10 @@ a, img {
         .close {
             position: absolute;
             right: 10px;
-            top: 6px;
+
+            // vertically centers close button
+            top: 50%;
+            margin-top: -10px;
         }
     }
 
@@ -291,14 +298,8 @@ a, img {
         height: 170px;
         overflow: auto;
 
-        td {
-            font-size: 12px;
-            padding-left: @base-padding;
-            padding-right: @base-padding;
-        }
-
         .highlight {
-            background: #fff;
+            background: @bc-white;
             border-radius: 2px;
         }
 
@@ -308,6 +309,48 @@ a, img {
         }
     }
 }
+
+.bottom-panel-table {
+    td {
+        font-size: 12px;
+        padding-left: 15px;
+        padding-right: 0;
+        vertical-align: baseline;
+    }
+
+    .file-section > td {
+        padding-left: 5px;
+    }
+
+    .checkbox-column {
+        text-align: center;
+    }
+
+    .line-number {
+        color: @tc-light-weight-quiet-text;
+        font-family: SourceCodePro;
+        font-size: 11px;
+        padding: 4px 0 0 15px;
+        text-align: right;
+        white-space: nowrap;
+        width: 5px;
+    }
+
+    .dialog-filename {
+        font-size: 13px;
+        font-weight: @font-weight-semibold;
+    }
+
+    .dialog-path {
+        font-size: 11px;
+        font-weight: normal;
+    }
+
+    .line-text {
+        width: 100%;
+    }
+}
+
 
 #update-notification {
     .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
@@ -735,6 +778,7 @@ a, img {
     .sane-box-model;
     padding-right: 20px;
     width: 100%;
+    line-height: 25px;
 
     .flex-box;
     .contracting-col {
@@ -791,58 +835,6 @@ a, img {
     }
     &.collapsed {
         background-position: 7px 5px;
-    }
-}
-
-#search-results {
-    td {
-        padding-left: 3px;
-        vertical-align: baseline;
-    }
-
-    .dialog-filename {
-        font-size: 13px;
-        font-weight: @font-weight-semibold;
-    }
-
-    .dialog-path {
-        font-size: 11px;
-        font-weight: normal;
-    }
-
-    .line-number {
-        color: @tc-light-weight-quiet-text;
-        font-family: SourceCodePro;
-        font-size: 11px;
-        padding: 0 10px 0 14px;
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    .line-text {
-        width: 100%;
-    }
-}
-
-/* Find-Replace All UI */
-
-#replace-all-results {
-    .check-all {
-        margin: 0px 22px 0px 6px;
-    }
-    .title {
-        > div {
-            line-height: 1.8em;
-        }
-    }
-    table {
-        td.checkbox-column {
-            width: 20px;
-            text-align: center;
-        }
-        td.line-column {
-            width: 100px;
-        }
     }
 }
 
