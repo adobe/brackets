@@ -453,7 +453,6 @@ define(function (require, exports, module) {
      */
     function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
         var nodeMap         = {},
-            signatureMap    = {},
             root;
         
         function _processElement(elem) {
@@ -473,14 +472,12 @@ define(function (require, exports, module) {
                     child.tagID = HTMLSimpleDOM.getTextNodeID(child);
                     
                     nodeMap[child.tagID] = child;
-                    signatureMap[child.signature] = child;
                 }
             });
             
-            elem.signature = HTMLSimpleDOM._updateHash(elem);
+            HTMLSimpleDOM._updateHash(elem);
             
             nodeMap[elem.tagID] = elem;
-            signatureMap[elem.signature] = elem;
 
             // Choose the root element based on the root tag in the editor.
             // The browser may insert html, head and body elements if missing.
@@ -493,7 +490,6 @@ define(function (require, exports, module) {
 
         root = root || browserRoot;
         root.nodeMap = nodeMap;
-        root.signatureMap = signatureMap;
 
         return root;
     }
