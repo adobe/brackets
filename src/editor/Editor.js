@@ -382,6 +382,7 @@ define(function (require, exports, module) {
             styleActiveLine: _styleActiveLine,
             coverGutterNextToScrollbar: true,
             matchBrackets: true,
+            matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
