@@ -55,10 +55,13 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
      */
-    function deletePath(fullPath) {
+    function deletePath(fullPath, silent) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
+                if (!silent) {
+                    console.error("unable to remove " + fullPath + " Error code " + err);
+                }
                 result.reject(err);
             } else {
                 result.resolve();
@@ -243,7 +246,7 @@ define(function (require, exports, module) {
         waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
         waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
         // Remove the test data and anything else left behind from tests
-        waitsForDone(deletePath(baseDir), "delete temp files");
+        waitsForDone(deletePath(baseDir, true), "delete temp files");
     }
     
     function getBracketsSourceRoot() {
