@@ -144,7 +144,7 @@ define({
 	"FIND_IN_FILES_MATCHES": "一致",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_FILE_PATH": "ファイル : <span class='dialog-filename'>{0}</span>",
+	"FIND_IN_FILES_FILE_PATH": "!能=[6318989] <span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>_=!",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
@@ -176,8 +176,8 @@ define({
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
-	"STATUSBAR_SPACES": "スペース",
-	"STATUSBAR_TAB_SIZE": "タブ幅",
+	"STATUSBAR_SPACES": "スペース :",
+	"STATUSBAR_TAB_SIZE": "タブ幅 :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
