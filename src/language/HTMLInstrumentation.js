@@ -659,23 +659,26 @@ define(function (require, exports, module) {
         var updateIDs = Object.keys(nodeMap),
             cm = this.cm,
             marks = cm.getAllMarks();
-        marks.forEach(function (mark) {
-            if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
-                var node = nodeMap[mark.tagID];
-                mark.clear();
-                mark = cm.markText(node.startPos, node.endPos);
-                mark.tagID = node.tagID;
-                updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
-            }
-        });
         
-        // Any remaining updateIDs are new.
-        updateIDs.forEach(function (id) {
-            var node = nodeMap[id], mark;
-            if (node.children) {
-                mark = cm.markText(node.startPos, node.endPos);
-                mark.tagID = Number(id);
-            }
+        cm.operation(function () {
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
+                    var node = nodeMap[mark.tagID];
+                    mark.clear();
+                    mark = cm.markText(node.startPos, node.endPos);
+                    mark.tagID = node.tagID;
+                    updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+                }
+            });
+            
+            // Any remaining updateIDs are new.
+            updateIDs.forEach(function (id) {
+                var node = nodeMap[id], mark;
+                if (node.children) {
+                    mark = cm.markText(node.startPos, node.endPos);
+                    mark.tagID = Number(id);
+                }
+            });
         });
     };
     
