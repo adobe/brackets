@@ -72,6 +72,23 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    
+    /**
+     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForDone = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "resolved";
+        }, "success " + operationName, timeout);
+    };
+        
+    
     /**
      * Get or create a NativeFileSystem rooted at the system root.
      * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.
@@ -127,6 +144,16 @@ define(function (require, exports, module) {
         waitsForDone(deferred, "Create temp directory", 500);
     }
     
+    function removeTempDirectory() {
+        var baseDir = getTempDirectory();
+        
+        // Restore directory permissions before 
+        waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
+        waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
+        // Remove the test data and anything else left behind from tests
+        waitsForDone(deletePath(baseDir), "delete temp files");
+    }
+    
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
         path = path.split("/");
@@ -134,22 +161,7 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
-    
-    /**
-     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
-     * the runs() that generates the promise.
-     * @param {$.Promise} promise
-     * @param {string} operationName  Name used for timeout error message
-     */
-    window.waitsForDone = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
-        expect(promise).toBeTruthy();
-        waitsFor(function () {
-            return promise.state() === "resolved";
-        }, "success " + operationName, timeout);
-    };
-    
+
     /**
      * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
      * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
@@ -1163,4 +1175,5 @@ define(function (require, exports, module) {
     exports.countSpecs                      = countSpecs;
     exports.runBeforeFirst                  = runBeforeFirst;
     exports.runAfterLast                    = runAfterLast;
+    exports.removeTempDirectory             = removeTempDirectory;
 });
