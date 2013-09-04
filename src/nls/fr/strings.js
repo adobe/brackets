@@ -144,7 +144,7 @@ define({
 	"FIND_IN_FILES_MATCHES": "résultats",
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
+	"FIND_IN_FILES_FILE_PATH": "[6318989] !é=<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>=!",
 	"FIND_IN_FILES_LINE": "ligne : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
