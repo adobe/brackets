@@ -115,7 +115,7 @@ define(function (require, exports, module) {
         wbr: true
     };
     
-    function SimpleDOMBuilder(text, startOffset, startOffsetPos) {
+    function Builder(text, startOffset, startOffsetPos) {
         this.stack = [];
         this.text = text;
         this.t = new Tokenizer(text);
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
         return {line: pos.line, ch: pos.ch + offset};
     }
 
-    SimpleDOMBuilder.prototype.build = function (strict, markCache) {
+    Builder.prototype.build = function (strict, markCache) {
         var self = this;
         var token, lastClosedTag, lastTextNode, lastIndex = 0;
         var stack = this.stack;
@@ -392,7 +392,7 @@ define(function (require, exports, module) {
      *
      * @return {int} unique tag ID
      */
-    SimpleDOMBuilder.prototype.getNewID = function () {
+    Builder.prototype.getNewID = function () {
         return tagID++;
     };
     
@@ -404,10 +404,10 @@ define(function (require, exports, module) {
      * @param {Object} newTag tag object to potentially inspect to choose an ID
      * @return {int} unique tag ID
      */
-    SimpleDOMBuilder.prototype.getID = SimpleDOMBuilder.prototype.getNewID;
+    Builder.prototype.getID = Builder.prototype.getNewID;
     
-    function buildSimpleDOM(text, strict) {
-        var builder = new SimpleDOMBuilder(text);
+    function build(text, strict) {
+        var builder = new Builder(text);
         return builder.build(strict);
     }
     
@@ -433,10 +433,10 @@ define(function (require, exports, module) {
     }
     
     exports._dumpDOM                    = _dumpDOM;
-    exports.buildSimpleDOM              = buildSimpleDOM;
+    exports.build                       = build;
     exports._offsetPos                  = offsetPos;
     exports._updateHash                 = _updateHash;
     exports._getTextNodeID              = getTextNodeID;
     exports._seed                       = seed;
-    exports.SimpleDOMBuilder            = SimpleDOMBuilder;
+    exports.Builder                     = Builder;
 });

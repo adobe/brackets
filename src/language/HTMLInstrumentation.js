@@ -45,7 +45,7 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        domdiff         = require("./HTMLDiff").domdiff,
+        HTMLDOMDiff     = require("./HTMLDOMDiff"),
         PerfUtils       = require("utils/PerfUtils");
     
     var allowIncremental = true;
@@ -211,13 +211,13 @@ define(function (require, exports, module) {
             text = editor.document.getText();
         }
         
-        HTMLSimpleDOM.SimpleDOMBuilder.call(this, text, startOffset, startOffsetPos);
+        HTMLSimpleDOM.Builder.call(this, text, startOffset, startOffsetPos);
         this.editor = editor;
         this.cm = editor._codeMirror;
         this.previousDOM = previousDOM;
     }
     
-    DOMUpdater.prototype = Object.create(HTMLSimpleDOM.SimpleDOMBuilder.prototype);
+    DOMUpdater.prototype = Object.create(HTMLSimpleDOM.Builder.prototype);
     
     function hasAncestorWithID(tag, id) {
         var ancestor = tag.parent;
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
             return null;
         }
         
-        var edits = domdiff(result.oldSubtree, result.newSubtree);
+        var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);
         
         // We're done with the nodeMap that was added to the subtree by the updater.
         if (result.newSubtree !== result.newDOM) {
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
         browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
         
         return {
-            diff    : domdiff(editorRoot, browserRoot),
+            diff    : HTMLDOMDiff.domdiff(editorRoot, browserRoot),
             browser : browserRoot,
             editor  : editorRoot
         };
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
         }
         
         var text = doc.getText(),
-            dom = HTMLSimpleDOM.buildSimpleDOM(text);
+            dom = HTMLSimpleDOM.build(text);
         
         if (dom) {
             // Cache results

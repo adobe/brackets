@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         // starting from an empty document (which, in the browser, includes implied html/head/body
         // tags). We have to also strip the tagIDs from this DOM since they won't appear in the
         // browser in this case.
-        var dom = HTMLSimpleDOM.buildSimpleDOM("<html><head></head><body></body></html>", true);
+        var dom = HTMLSimpleDOM.build("<html><head></head><body></body></html>", true);
         Object.keys(dom.nodeMap).forEach(function (key) {
             var node = dom.nodeMap[key];
             delete node.tagID;
@@ -971,7 +971,7 @@ define(function (require, exports, module) {
                     editor.document.refreshText(origText);
                 }
                 
-                var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                     result;
                 
                 var clonedDOM = cloneDOM(previousDOM);
@@ -1086,7 +1086,7 @@ define(function (require, exports, module) {
             it("should mark editor text based on the simple DOM", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var dom = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText());
+                    var dom = HTMLSimpleDOM.build(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, dom);
                     expect(editor._codeMirror.getAllMarks().length).toEqual(15);
                 });
@@ -1095,7 +1095,7 @@ define(function (require, exports, module) {
             it("should handle no diff", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText());
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     expect(result.edits).toEqual([]);
@@ -1240,7 +1240,7 @@ define(function (require, exports, module) {
                 
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID = previousDOM.children[3].children[1].tagID,
                         result,
                         origParent = previousDOM.children[3];
@@ -1288,7 +1288,7 @@ define(function (require, exports, module) {
             it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1341,7 +1341,7 @@ define(function (require, exports, module) {
             it("should handle typing of a <p> without a </p> and then adding it later", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1424,7 +1424,7 @@ define(function (require, exports, module) {
             it("should handle deleting of an empty tag character-by-character", function () {
                 setupEditor("<p><img>{{0}}</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         imgTagID = previousDOM.children[0].tagID,
                         result;
  
@@ -1445,7 +1445,7 @@ define(function (require, exports, module) {
             it("should handle deleting of a non-empty tag character-by-character", function () {
                 setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         pTagID = previousDOM.children[0].tagID,
                         result;
                     
@@ -1466,7 +1466,7 @@ define(function (require, exports, module) {
             it("should handle typing of a new attribute character-by-character", function () {
                 setupEditor("<p{{0}}>some text</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1518,7 +1518,7 @@ define(function (require, exports, module) {
             it("should handle deleting of an attribute character-by-character", function () {
                 setupEditor("<p class='myclass'{{0}}>some text</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1566,7 +1566,7 @@ define(function (require, exports, module) {
             it("should handle wrapping a tag around some text character by character", function () {
                 setupEditor("<p>{{0}}some text{{1}}</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1613,7 +1613,7 @@ define(function (require, exports, module) {
             it("should handle adding an <html> tag into an empty document", function () {
                 setupEditor("");
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -1651,7 +1651,7 @@ define(function (require, exports, module) {
             it("should handle adding a <head> tag into a document", function () {
                 setupEditor("<html>{{0}}</html>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -1684,7 +1684,7 @@ define(function (require, exports, module) {
             it("should handle adding a <body> tag into a document", function () {
                 setupEditor("<html><head></head>{{0}}</html>", true);
                 runs(function () {
-                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -2578,7 +2578,7 @@ define(function (require, exports, module) {
             }
             
             benchmarker.start("Initial DOM build");
-            var previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText),
+            var previousDOM = HTMLSimpleDOM.build(previousText),
                 changeList,
                 result;
             benchmarker.end("Initial DOM build");
@@ -2601,7 +2601,7 @@ define(function (require, exports, module) {
             
             for (i = 0; i < runs; i++) {
                 editor.document.setText(previousText);
-                previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText);
+                previousDOM = HTMLSimpleDOM.build(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
                 $(editor).on("change.perftest", changeFunction);
@@ -2617,7 +2617,7 @@ define(function (require, exports, module) {
             
             for (i = 0; i < runs; i++) {
                 editor.document.setText(previousText);
-                previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText);
+                previousDOM = HTMLSimpleDOM.build(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
                 $(editor).on("change.perftest", fullChangeFunction);

@@ -37,11 +37,11 @@ define(function (require, exports, module) {
     describe("HTML SimpleDOM", function () {
         describe("Strict HTML parsing", function () {
             it("should parse a document with balanced, void and self-closing tags", function () {
-                expect(HTMLSimpleDOM.buildSimpleDOM("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
+                expect(HTMLSimpleDOM.build("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
             });
             
             it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
-                var result = HTMLSimpleDOM.buildSimpleDOM("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
+                var result = HTMLSimpleDOM.build("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
                 expect(result).not.toBeNull();
                 expect(result.tag).toBe("div");
                 expect(result.children[0].tag).toBe("p");
@@ -49,28 +49,28 @@ define(function (require, exports, module) {
             });
             
             it("should return null for an unclosed non-void/non-implied-close tag", function () {
-                expect(HTMLSimpleDOM.buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
+                expect(HTMLSimpleDOM.build("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
             });
             
             it("should return null for an extra close tag", function () {
-                expect(HTMLSimpleDOM.buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
+                expect(HTMLSimpleDOM.build("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
             });
             
             it("should return null if there are unclosed tags at the end of the document", function () {
-                expect(HTMLSimpleDOM.buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
+                expect(HTMLSimpleDOM.build("<div>this has <b>multiple unclosed tags", true)).toBeNull();
             });
             
             it("should return null if there is a tokenization failure", function () {
-                expect(HTMLSimpleDOM.buildSimpleDOM("<div<badtag></div>", true)).toBeNull();
+                expect(HTMLSimpleDOM.build("<div<badtag></div>", true)).toBeNull();
             });
             
             it("should handle empty attributes", function () {
-                var dom = HTMLSimpleDOM.buildSimpleDOM("<input disabled>", true);
+                var dom = HTMLSimpleDOM.build("<input disabled>", true);
                 expect(dom.attributes.disabled).toEqual("");
             });
             
             it("should merge text nodes around a comment", function () {
-                var dom = HTMLSimpleDOM.buildSimpleDOM("<div>Text <!-- comment --> Text2</div>", true);
+                var dom = HTMLSimpleDOM.build("<div>Text <!-- comment --> Text2</div>", true);
                 expect(dom.children.length).toBe(1);
                 var textNode = dom.children[0];
                 expect(textNode.content).toBe("Text  Text2");
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             });
             
             it("should build simple DOM", function () {
-                var dom = HTMLSimpleDOM.buildSimpleDOM(WellFormedDoc);
+                var dom = HTMLSimpleDOM.build(WellFormedDoc);
                 expect(dom.tagID).toEqual(jasmine.any(Number));
                 expect(dom.tag).toEqual("html");
                 expect(dom.start).toEqual(16);
