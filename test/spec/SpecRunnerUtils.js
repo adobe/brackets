@@ -50,6 +50,75 @@ define(function (require, exports, module) {
         _doLoadExtensions,
         nfs;
     
+    
+    /**
+     * @param {string} fullPath
+     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
+     */
+    function deletePath(fullPath) {
+        var result = new $.Deferred();
+        brackets.fs.unlink(fullPath, function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+
+        return result.promise();
+    }
+    
+    
+    /**
+     * Set permissions on a path
+     * @param {!string} path Path to change permissions on
+     * @param {!string} mode New mode as an octal string
+     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
+     */
+    function chmod(path, mode) {
+        var deferred = new $.Deferred();
+
+        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    }
+    
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+        
+    
     /**
      * Resolves a path string to a FileEntry or DirectoryEntry
      * @param {!string} path Path to a file or directory
@@ -86,6 +155,23 @@ define(function (require, exports, module) {
         waitsFor(function () {
             return promise.state() === "resolved";
         }, "success " + operationName, timeout);
+    };
+
+    
+
+    /**
+     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "rejected";
+        }, "failure " + operationName, timeout);
     };
         
     
@@ -147,7 +233,7 @@ define(function (require, exports, module) {
     function removeTempDirectory() {
         var baseDir = getTempDirectory();
         
-        // Restore directory permissions before 
+        // Restore directory permissions before (otherwise the deletePath may fail)
         waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
         waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
         // Remove the test data and anything else left behind from tests
@@ -162,21 +248,6 @@ define(function (require, exports, module) {
         return path.join("/");
     }
 
-    /**
-     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
-     * the runs() that generates the promise.
-     * @param {$.Promise} promise
-     * @param {string} operationName  Name used for timeout error message
-     */
-    window.waitsForFail = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
-        expect(promise).toBeTruthy();
-        waitsFor(function () {
-            return promise.state() === "rejected";
-        }, "failure " + operationName, timeout);
-    };
-    
     /**
      * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
      * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
@@ -803,24 +874,6 @@ define(function (require, exports, module) {
         
         return _testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
-    
-    /**
-     * @param {string} fullPath
-     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
-     */
-    function deletePath(fullPath) {
-        var result = new $.Deferred();
-        brackets.fs.unlink(fullPath, function (err) {
-            if (err) {
-                console.error(err);
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-
-        return result.promise();
-    }
 
     /**
      * Simulate key event. Found this code here:
@@ -902,55 +955,7 @@ define(function (require, exports, module) {
         return message;
     }
 
-    /**
-     * Set permissions on a path
-     * @param {!string} path Path to change permissions on
-     * @param {!string} mode New mode as an octal string
-     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
-     */
-    function chmod(path, mode) {
-        var deferred = new $.Deferred();
-
-        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
-            if (err) {
-                deferred.reject(err);
-            } else {
-                deferred.resolve();
-            }
-        });
-
-        return deferred.promise();
-    }
-    
-    /**
-     * Remove a directory (recursively) or file
-     *
-     * @param {!string} path Path to remove
-     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
-     */
-    function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
-    }
-    
+   
     /**
      * Searches the DOM tree for text containing the given content. Useful for verifying
      * that data you expect to show up in the UI somewhere is actually there.
