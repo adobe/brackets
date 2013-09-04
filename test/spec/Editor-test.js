@@ -200,5 +200,56 @@ define(function (require, exports, module) {
             });
             
         });
+        
+        describe("Column/ch conversion", function () {
+            it("should get mode in HTML file", function () {
+                var content =
+                    "foo () {\n" +
+                    "    one;\n" +
+                    "\ttwo;\n" +
+                    "}\n" +
+                    "\n" +
+                    "\tA\tB";
+                createTestEditor(content, "javascript");
+                
+                // Tab size 4
+                
+                expect(myEditor.getColOffset({line: 1, ch: 0})).toBe(0);
+                expect(myEditor.getColOffset({line: 1, ch: 1})).toBe(1);
+                expect(myEditor.getColOffset({line: 1, ch: 2})).toBe(2);
+                expect(myEditor.getColOffset({line: 1, ch: 3})).toBe(3);
+                expect(myEditor.getColOffset({line: 1, ch: 4})).toBe(4);
+                expect(myEditor.getColOffset({line: 1, ch: 5})).toBe(5);
+                expect(myEditor.getColOffset({line: 2, ch: 0})).toBe(0);
+                expect(myEditor.getColOffset({line: 2, ch: 1})).toBe(4);
+                expect(myEditor.getColOffset({line: 2, ch: 2})).toBe(5);
+                expect(myEditor.getColOffset({line: 4, ch: 0})).toBe(0);
+                expect(myEditor.getColOffset({line: 5, ch: 1})).toBe(4);
+                expect(myEditor.getColOffset({line: 5, ch: 2})).toBe(5);
+                expect(myEditor.getColOffset({line: 5, ch: 3})).toBe(8);
+                expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(9);
+                
+                // Tab size 2
+                Editor.setTabSize(2);
+                
+                expect(myEditor.getColOffset({line: 1, ch: 0})).toBe(0);  // first line is all spaces: should be unchanged
+                expect(myEditor.getColOffset({line: 1, ch: 1})).toBe(1);
+                expect(myEditor.getColOffset({line: 1, ch: 2})).toBe(2);
+                expect(myEditor.getColOffset({line: 1, ch: 3})).toBe(3);
+                expect(myEditor.getColOffset({line: 1, ch: 4})).toBe(4);
+                expect(myEditor.getColOffset({line: 1, ch: 5})).toBe(5);
+                expect(myEditor.getColOffset({line: 2, ch: 0})).toBe(0);  // but line with a tab shows different behavior
+                expect(myEditor.getColOffset({line: 2, ch: 1})).toBe(2);
+                expect(myEditor.getColOffset({line: 2, ch: 2})).toBe(3);
+                expect(myEditor.getColOffset({line: 4, ch: 0})).toBe(0);
+                expect(myEditor.getColOffset({line: 5, ch: 1})).toBe(2);  // same here
+                expect(myEditor.getColOffset({line: 5, ch: 2})).toBe(3);
+                expect(myEditor.getColOffset({line: 5, ch: 3})).toBe(4);
+                expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(5);
+                
+                // Restore default
+                Editor.setTabSize(4);
+            });
+        });
     });
 });

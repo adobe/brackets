@@ -81,15 +81,7 @@ define(function (require, exports, module) {
         
 
         afterEach(function () {
-            runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                waitsForDone(promise, "Close all open files in working set");
-                
-                var $dlg = testWindow.$(".modal.instance");
-                if ($dlg.length) {
-                    SpecRunnerUtils.clickDialogButton("dontsave");
-                }
-            });
+            testWindow.closeAllFiles();
         });
         
         
@@ -126,6 +118,13 @@ define(function (require, exports, module) {
                 } else {
                     expect(lineInfo.wrapClass).toBeUndefined();
                 }
+            });
+        }
+        
+        function checkActiveLineOption(editor, shouldBe) {
+            runs(function () {
+                expect(editor).toBeTruthy();
+                expect(editor._codeMirror.getOption("styleActiveLine")).toBe(shouldBe);
             });
         }
         
@@ -275,6 +274,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor();
                     checkActiveLine(editor, 0, true);
+                });
+            });
+            
+            it("should have the active line option be FALSE when the editor has a selection", function () {
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    editor.setSelection({line: 0, ch: 0}, {line: 0, ch: 1});
+                    checkActiveLineOption(editor, false);
                 });
             });
             

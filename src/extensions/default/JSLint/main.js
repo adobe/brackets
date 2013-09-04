@@ -98,6 +98,13 @@ define(function (require, exports, module) {
     var _gotoEnabled = false;
     
     /**
+     * @private
+     * @type {boolean}
+     */
+    var _hasErrors = false;
+    
+    
+    /**
      * Enable or disable the "Go to First JSLint Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
@@ -139,8 +146,10 @@ define(function (require, exports, module) {
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
-                // Remove the null errors for the template
+                // Remove any null error (early-abort indicator) before rendering results
                 var errors = JSLINT.errors.filter(function (err) { return err !== null; });
+                
+                // Update results table
                 var html   = Mustache.render(ResultsTemplate, {reportList: errors});
                 var $selectedRow;
 
@@ -164,16 +173,16 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
+                _hasErrors = true;
                 if (!_collapsed) {
                     Resizer.show($lintResults);
                 }
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
-                    // Return the number of non-null errors
+                    // Error count string: if we filtered out a null above, there was a stop error so the
+                    // total number of errors is indeterminate. Append a '+' to indicate that.
                     var numberOfErrors = errors.length;
-                    // If there was a null value it means there was a stop notice and an indeterminate
-                    // upper bound on the number of JSLint errors, which we'll represent by appending a '+'
                     if (numberOfErrors !== JSLINT.errors.length) {
                         // First discard the stop notice
                         numberOfErrors -= 1;
@@ -185,6 +194,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
+                _hasErrors = false;
                 Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
@@ -194,6 +204,7 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
+            _hasErrors = false;
             Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
@@ -291,28 +302,33 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
+        // Create bottom panel to list error details
         var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
         var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
         $lintResults = $("#jslint-results");
         
         var lintStatusHtml = Mustache.render("<div id=\"lint-status\" title=\"{{JSLINT_NO_ERRORS}}\">&nbsp;</div>", Strings);
         $(lintStatusHtml).insertBefore("#status-language");
-        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
         $("#jslint-results .close").click(function () {
             toggleCollapsed(true);
         });
+        
+        // Create status bar indicator
+        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
 
-        $("#jslint-status").click(function () {
-            toggleCollapsed();
+        $("#jslint-status").click(function (event) {
+            // Clicking indicator toggles error panel, if any errors in current file
+            if (_hasErrors) {
+                toggleCollapsed();
+            }
         });
-                                                                
-                                
-        // Called on HTML ready to trigger the initial UI state
+        
+        // Set initial UI state
         setEnabled(_prefs.getValue("enabled"));
         
         toggleCollapsed(_prefs.getValue("collapsed"));
-                
     });
+    
     
     // for unit tests
     exports.setEnabled = setEnabled;

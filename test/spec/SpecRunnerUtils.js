@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
+        EDITOR_USE_TABS         = false,
+        EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
@@ -262,6 +264,8 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
         EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
@@ -299,6 +303,32 @@ define(function (require, exports, module) {
         $("#mock-editor-holder").remove();
     }
     
+    /**
+     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
+     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     */
+    function clickDialogButton(buttonId) {
+        // Make sure there's one and only one dialog open
+        var $dlg = _testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
+
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise, "dismiss dialog");
+    }
+    
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -332,9 +362,17 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
-
-            _testWindow.closeAllDocuments = function closeAllDocuments() {
-                _testWindow.brackets.test.DocumentManager.closeAll();
+            
+            _testWindow.closeAllFiles = function closeAllFiles() {
+                runs(function () {
+                    var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    var $dlg = _testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        clickDialogButton("dontsave");
+                    }
+                });
             };
         });
 
@@ -372,32 +410,6 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = null;
             _testWindow = null;
         });
-    }
-    
-    
-    /**
-     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
-     * clients must also wait for any additional promises.
-     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
-     */
-    function clickDialogButton(buttonId) {
-        // Make sure there's one and only one dialog open
-        var $dlg = _testWindow.$(".modal.instance"),
-            promise = $dlg.data("promise");
-        
-        expect($dlg.length).toBe(1);
-        
-        // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
-        
-        // Click the button
-        dismissButton.click();
-
-        // Dialog should resolve/reject the promise
-        waitsForDone(promise, "dismiss dialog");
     }
     
     
@@ -560,15 +572,15 @@ define(function (require, exports, module) {
             FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
                 docs[keys[i]] = doc;
                 one.resolve();
-            }).fail(function () {
-                one.reject();
+            }).fail(function (err) {
+                one.reject(err);
             });
             
             return one.promise();
         }, false).done(function () {
             result.resolve(docs);
-        }).fail(function () {
-            result.reject();
+        }).fail(function (err) {
+            result.reject(err);
         }).always(function () {
             docs = null;
             FileViewController = null;
@@ -595,8 +607,8 @@ define(function (require, exports, module) {
                 }).fail(function () {
                     deferred.reject();
                 });
-            }, function error() {
-                deferred.reject();
+            }, function error(err) {
+                deferred.reject(err);
             });
         });
 
@@ -1112,8 +1124,10 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
-    
+    exports.TEST_PREFERENCES_KEY            = TEST_PREFERENCES_KEY;
+    exports.EDITOR_USE_TABS                 = EDITOR_USE_TABS;
+    exports.EDITOR_SPACE_UNITS              = EDITOR_SPACE_UNITS;
+
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;

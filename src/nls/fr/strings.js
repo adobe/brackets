@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -86,7 +86,7 @@ define({
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS</strong>. Les modifications apportées aux fichiers HTML et JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour en savoir plus, reportez-vous à la rubrique <a class=\"clickable-link\" data-href=\"{0}\">Dépannage des erreurs de connexion Live Development</a>.",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='#' class='clickable-link' data-href='{0}'>Résolution des erreurs de connexion Live Development</a>.",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
@@ -103,6 +103,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
+	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
@@ -110,10 +112,14 @@ define({
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
+	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
+	"FIND_NO_RESULTS": "Aucun résultat",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
+	"BUTTON_REPLACE_ALL": "Tout\u2026",
 	"BUTTON_STOP": "Arrêter",
+	"BUTTON_REPLACE": "Remplacer",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -122,8 +128,14 @@ define({
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
-    
-	"FIND_IN_FILES_TITLE": "\"{4}\" {5} - {0} {1} dans {2} {3}",
+
+	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
+	"FIND_REPLACE_TITLE_PART2": " » par « ",
+	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
+
+	"FIND_IN_FILES_TITLE_PART1": "« ",
+	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} dans {2} {3}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
@@ -131,7 +143,7 @@ define({
 	"FIND_IN_FILES_MATCH": "résultat",
 	"FIND_IN_FILES_MATCHES": "résultats",
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
-	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
+	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_LINE": "ligne : {0}",
 
@@ -156,6 +168,10 @@ define({
      * StatusBar strings
      */
 	"STATUSBAR_CURSOR_POSITION": "Ligne {0}, colonne {1}",
+	"STATUSBAR_SELECTION_CH_SINGULAR": " \u2014 {0} colonne sélectionnée",
+	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} colonnes sélectionnées",
+	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} ligne sélectionnée",
+	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} lignes sélectionnées",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
@@ -189,7 +205,7 @@ define({
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
-	"CMD_FILE_REFRESH": "Actualiser",
+	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -273,11 +289,11 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
 	"SAVE": "Enregistrer",
 	"CANCEL": "Annuler",
+	"DELETE": "Supprimer",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -285,11 +301,11 @@ define({
 	"ABOUT": "A propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
-	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
+	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a href='#' class='clickable-link' data-href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> et sont incluses dans le présent document à titre de référence.",
+	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo Web Platform font l’objet d’une licence Creative Commons Attribution, <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
@@ -411,6 +427,7 @@ define({
 	"LOCALE_DE": "Allemand",
 	"LOCALE_EN": "Anglais",
 	"LOCALE_ES": "Espagnol",
+	"LOCALE_FI": "Finnois",
 	"LOCALE_FR": "Français",
 	"LOCALE_IT": "Italien",
 	"LOCALE_JA": "Japonais",
@@ -435,7 +452,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
-    
+	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
+	"NO_ARGUMENTS": "<aucun paramètre>",
+
     // extensions/default/JSLint
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
@@ -445,7 +464,7 @@ define({
 	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
 	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
     
     // extensions/default/WebPlatformDocs

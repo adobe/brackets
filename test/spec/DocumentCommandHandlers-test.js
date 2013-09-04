@@ -85,7 +85,13 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             promise = null;
-            testWindow.closeAllDocuments();
+            
+            runs(function () {
+                // Call closeAll() directly. Some tests set a spy on the save as
+                // dialog preventing SpecRunnerUtils.closeAllFiles() from
+                // working properly.
+                testWindow.brackets.test.DocumentManager.closeAll();
+            });
         });
 
 

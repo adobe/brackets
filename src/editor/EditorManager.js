@@ -439,12 +439,13 @@ define(function (require, exports, module) {
      *    determine whether it needs to refresh.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
-        
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-                $(curRoot).height(editorAreaHt);
+                // Call setSize() instead of $.height() to allow CodeMirror to
+                // check for options like line wrapping
+                _currentEditor.setSize(null, editorAreaHt);
                 if (refreshFlag === undefined) {
                     refreshFlag = REFRESH_FORCE;
                 }
@@ -533,6 +534,13 @@ define(function (require, exports, module) {
         var createdNewEditor = false;
         if (!document._masterEditor) {
             createdNewEditor = true;
+
+            // Performance (see #4757) Chrome wastes time messing with selection
+            // that will just be changed at end, so clear it for now
+            if (window.getSelection && window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            }
+            
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
