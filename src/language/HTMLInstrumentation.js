@@ -65,16 +65,16 @@ define(function (require, exports, module) {
         }
     }
     
+    function _posEq(pos1, pos2) {
+        return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
+    }
+        
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
             match,
             range;
-        
-        function posEq(pos1, pos2) {
-            return pos1.line === pos2.line && pos1.ch === pos2.ch;
-        }
         
         if (!marks.length) {
             return null;
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         if (preferParent) {
             // If the match is exactly at the edge of the range and preferParent is set,
             // we want to pop upwards.
-            if (posEq(match.range.from, pos) || posEq(match.range.to, pos)) {
+            if (_posEq(match.range.from, pos) || _posEq(match.range.to, pos)) {
                 if (marks.length > 1) {
                     match = marks[marks.length - 2];
                 } else {
@@ -263,10 +263,6 @@ define(function (require, exports, module) {
             cm = this.cm,
             marks = cm.getAllMarks();
         
-        function posEq(pos1, pos2) {
-            return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
-        }
-        
         cm.operation(function () {
             marks.forEach(function (mark) {
                 if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
@@ -274,7 +270,7 @@ define(function (require, exports, module) {
                         markInfo = markCache[mark.tagID];
                     // If the mark's bounds already match, avoid destroying and recreating the mark,
                     // since that incurs some overhead.
-                    if (!(markInfo && posEq(markInfo.range.from, node.startPos) && posEq(markInfo.range.to, node.endPos))) {
+                    if (!(markInfo && _posEq(markInfo.range.from, node.startPos) && _posEq(markInfo.range.to, node.endPos))) {
                         mark.clear();
                         mark = cm.markText(node.startPos, node.endPos);
                         mark.tagID = node.tagID;
