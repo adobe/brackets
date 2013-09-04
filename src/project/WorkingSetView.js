@@ -216,25 +216,26 @@ define(function (require, exports, module) {
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
     function _reorderListItem(event, $listItem, fromClose) {
-        var $prevListItem   = $listItem.prev(),
-            $nextListItem   = $listItem.next(),
-            selected        = $listItem.hasClass("selected"),
-            prevSelected    = $prevListItem.hasClass("selected"),
-            nextSelected    = $nextListItem.hasClass("selected"),
-            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
-            height          = $listItem.height(),
-            startPageY      = event.pageY,
-            listItemTop     = startPageY - $listItem.offset().top,
-            listItemBottom  = $listItem.offset().top + height - startPageY,
-            offsetTop       = $openFilesContainer.offset().top,
-            scrollElement   = $openFilesContainer.get(0),
-            containerHeight = scrollElement.clientHeight,
-            maxScroll       = scrollElement.scrollHeight - containerHeight,
-            hasScroll       = scrollElement.scrollHeight > containerHeight,
-            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
-            addBottomShadow = false,
-            interval        = false,
-            moved           = false;
+        var $prevListItem       = $listItem.prev(),
+            $nextListItem       = $listItem.next(),
+            selected            = $listItem.hasClass("selected"),
+            prevSelected        = $prevListItem.hasClass("selected"),
+            nextSelected        = $nextListItem.hasClass("selected"),
+            index               = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            height              = $listItem.height(),
+            startPageY          = event.pageY,
+            listItemTop         = startPageY - $listItem.offset().top,
+            listItemBottom      = $listItem.offset().top + height - startPageY,
+            offsetTop           = $openFilesContainer.offset().top,
+            scrollElement       = $openFilesContainer.get(0),
+            containerHeight     = scrollElement.clientHeight,
+            maxScroll           = scrollElement.scrollHeight - containerHeight,
+            hasScroll           = scrollElement.scrollHeight > containerHeight,
+            hasBottomShadow     = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
+            addBottomShadow     = false,
+            interval            = false,
+            moved               = false,
+            movedOutOfBoundary  = false;
         
         function drag(e) {
             var top = e.pageY - startPageY;
@@ -293,12 +294,12 @@ define(function (require, exports, module) {
             
             // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
             if (!moved && Math.abs(top) > 3) {
-                Menus.closeAll();
                 moved = true;
                 
                 // Don't redraw the working set for the next events
                 _suppressSortRedraw = true;
             }
+            
         }
         
         function endScroll() {
@@ -347,8 +348,13 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
+            // Clear the menu before rebuilding it
+            if (moved && !movedOutOfBoundary) {
+                Menus.closeAll();
+            }
+            
             // If item wasn't dragged, treat as a click
-            if (!moved) {
+            if (!movedOutOfBoundary && !moved) {
                 // Click on close icon, or middle click anywhere - close the item without selecting it first
                 if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
@@ -356,7 +362,6 @@ define(function (require, exports, module) {
                     // Normal right and left click - select the item
                     FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                 }
-            
             } else {
                 // Update the file selection
                 if (selected) {
@@ -397,8 +402,17 @@ define(function (require, exports, module) {
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        
+        $openFilesContainer.on("mouseleave.workingSet", function (e) {
+            // Set this variable when move out of Filecontainer
+            movedOutOfBoundary = true;
+            
+            $openFilesContainer.off("mousemove.workingSet mouseleave.workingSet");
+            drop();
+        });
+        
+        $openFilesContainer.on("mouseup.workingSet", function (e) {
+            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet");
             drop();
         });
     }
