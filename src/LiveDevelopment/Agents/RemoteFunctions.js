@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document, navigator */
+/*global define, $, window, navigator, Node, console */
 /*theseus instrument: false */
 
 /**
@@ -35,6 +35,11 @@ function RemoteFunctions(experimental) {
     "use strict";
 
     var lastKeepAliveTime = Date.now();
+    
+    /**
+     * @type {DOMEditHandler}
+     */
+    var _editHandler;
     
     var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
         KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
@@ -476,11 +481,6 @@ function RemoteFunctions(experimental) {
             _remoteHighlight.redraw();
         }
     }
-
-    // init
-    if (experimental) {
-        window.document.addEventListener("keydown", onKeyDown);
-    }
     
     window.addEventListener("resize", redrawHighlights);
     // Add a capture-phase scroll listener to update highlights when
@@ -513,13 +513,283 @@ function RemoteFunctions(experimental) {
             window.clearInterval(aliveTest);
         }
     }, 1000);
+    
+    /**
+     * Constructor
+     * @param {Document} htmlDocument
+     */
+    function DOMEditHandler(htmlDocument) {
+        this.htmlDocument = htmlDocument;
+        this.rememberedNodes = null;
+        this.entityParseParent = htmlDocument.createElement("div");
+    }
+
+    /**
+     * @private
+     * Find the first matching element with the specified data-brackets-id
+     * @param {string} id
+     * @return {Element}
+     */
+    DOMEditHandler.prototype._queryBracketsID = function (id) {
+        if (!id) {
+            return null;
+        }
+        
+        if (this.rememberedNodes && this.rememberedNodes[id]) {
+            return this.rememberedNodes[id];
+        }
+        
+        var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
+        return results && results[0];
+    };
+    
+    /**
+     * @private
+     * Insert a new child element
+     * @param {Element} targetElement Parent element already in the document
+     * @param {Element} childElement New child element
+     * @param {Object} edit
+     */
+    DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
+        var before = this._queryBracketsID(edit.beforeID),
+            after  = this._queryBracketsID(edit.afterID);
+        
+        if (edit.firstChild) {
+            before = targetElement.firstChild;
+        } else if (edit.lastChild) {
+            after = targetElement.lastChild;
+            if (edit.beforeText && after.nodeType === Node.TEXT_NODE) {
+                after = after.previousSibling;
+            }
+        }
+        
+        if (edit.beforeText && before &&
+                before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
+            before = before.previousSibling;
+        }
+        
+        if (before) {
+            targetElement.insertBefore(childElement, before);
+        } else if (after && (after !== targetElement.lastChild)) {
+            targetElement.insertBefore(childElement, after.nextSibling);
+        } else {
+            targetElement.appendChild(childElement);
+        }
+    };
+    
+    /**
+     * @private
+     * Given a string containing encoded entity references, returns the string with the entities decoded.
+     * @param {string} text The text to parse.
+     * @return {string} The decoded text.
+     */
+    DOMEditHandler.prototype._parseEntities = function (text) {
+        // Kind of a hack: just set the innerHTML of a div to the text, which will parse the entities, then
+        // read the content out.
+        var result;
+        this.entityParseParent.innerHTML = text;
+        result = this.entityParseParent.textContent;
+        this.entityParseParent.textContent = "";
+        return result;
+    };
+    
+    /**
+     * @private
+     * Replace a range of text and comment nodes with an optional new text node
+     * @param {Element} targetElement
+     * @param {Object} edit
+     */
+    DOMEditHandler.prototype._textReplace = function (targetElement, edit) {
+        var start           = (edit.afterID)  ? this._queryBracketsID(edit.afterID)  : null,
+            startMissing    = edit.afterID && !start,
+            end             = (edit.beforeID) ? this._queryBracketsID(edit.beforeID) : null,
+            endMissing      = edit.beforeID && !end,
+            moveNext        = start && start.nextSibling,
+            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes.item(targetElement.childNodes.length - 1),
+            next,
+            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(this._parseEntities(edit.content)) : null,
+            lastRemovedWasText,
+            isText;
+        
+        // remove all nodes inside the range
+        while (current && (current !== end)) {
+            isText = current.nodeType === Node.TEXT_NODE;
+
+            // if start is defined, delete following text nodes
+            // if start is not defined, delete preceding text nodes
+            next = (moveNext) ? current.nextSibling : current.previousSibling;
+
+            // only delete up to the nearest element.
+            // if the start/end tag was deleted in a prior edit, stop removing
+            // nodes when we hit adjacent text nodes
+            if ((current.nodeType === Node.ELEMENT_NODE) ||
+                    ((startMissing || endMissing) && (isText && lastRemovedWasText))) {
+                break;
+            } else {
+                lastRemovedWasText = isText;
+
+                current.remove();
+                current = next;
+            }
+        }
+        
+        if (textNode) {
+            if (start && start.nextSibling) {
+                targetElement.insertBefore(textNode, start.nextSibling);
+            } else if (end) {
+                targetElement.insertBefore(textNode, end);
+            } else {
+                targetElement.appendChild(textNode);
+            }
+        }
+    };
+    
+    /**
+     * @private
+     * Apply an array of DOM edits to the document
+     * @param {Array.<Object>} edits
+     */
+    DOMEditHandler.prototype.apply = function (edits) {
+        var targetID,
+            targetElement,
+            childElement,
+            self = this;
+        
+        this.rememberedNodes = {};
+        
+        edits.forEach(function (edit) {
+            var editIsSpecialTag = edit.type === "elementInsert" && (edit.tag === "html" || edit.tag === "head" || edit.tag === "body");
+            
+            if (edit.type === "rememberNodes") {
+                edit.tagIDs.forEach(function (tagID) {
+                    var node = self._queryBracketsID(tagID);
+                    self.rememberedNodes[tagID] = node;
+                    node.remove();
+                });
+                return;
+            }
+            
+            targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
+            targetElement = self._queryBracketsID(targetID);
+            
+            if (!targetElement && !editIsSpecialTag) {
+                console.error("data-brackets-id=" + targetID + " not found");
+                return;
+            }
+            
+            switch (edit.type) {
+            case "attrChange":
+            case "attrAdd":
+                targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
+                break;
+            case "attrDelete":
+                targetElement.removeAttribute(edit.attribute);
+                break;
+            case "elementDelete":
+                targetElement.remove();
+                break;
+            case "elementInsert":
+                childElement = null;
+                if (editIsSpecialTag) {
+                    // If we already have one of these elements (which we should), then
+                    // just copy the attributes and set the ID.
+                    childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
+                    if (!childElement) {
+                        // Treat this as a normal insertion.
+                        editIsSpecialTag = false;
+                    }
+                }
+                if (!editIsSpecialTag) {
+                    childElement = self.htmlDocument.createElement(edit.tag);
+                }
+                
+                Object.keys(edit.attributes).forEach(function (attr) {
+                    childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
+                });
+                childElement.setAttribute("data-brackets-id", edit.tagID);
+                
+                if (!editIsSpecialTag) {
+                    self._insertChildNode(targetElement, childElement, edit);
+                }
+                break;
+            case "elementMove":
+                childElement = self._queryBracketsID(edit.tagID);
+                self._insertChildNode(targetElement, childElement, edit);
+                break;
+            case "textInsert":
+                var textElement = self.htmlDocument.createTextNode(self._parseEntities(edit.content));
+                self._insertChildNode(targetElement, textElement, edit);
+                break;
+            case "textReplace":
+            case "textDelete":
+                self._textReplace(targetElement, edit);
+                break;
+            }
+        });
+        
+        this.rememberedNodes = {};
+        
+        // update highlight after applying diffs
+        redrawHighlights();
+    };
+    
+    function applyDOMEdits(edits) {
+        _editHandler.apply(edits);
+    }
+    
+    /**
+     *
+     * @param {Element} elem
+     */
+    function _domElementToJSON(elem) {
+        var json = { tag: elem.tagName.toLowerCase(), attributes: {}, children: [] },
+            i,
+            len,
+            node,
+            value;
+        
+        len = elem.attributes.length;
+        for (i = 0; i < len; i++) {
+            node = elem.attributes.item(i);
+            value = (node.name === "data-brackets-id") ? parseInt(node.value, 10) : node.value;
+            json.attributes[node.name] = value;
+        }
+        
+        len = elem.childNodes.length;
+        for (i = 0; i < len; i++) {
+            node = elem.childNodes.item(i);
+            
+            // ignores comment nodes and visuals generated by live preview
+            if (node.nodeType === Node.ELEMENT_NODE && node.className !== HIGHLIGHT_CLASSNAME) {
+                json.children.push(_domElementToJSON(node));
+            } else if (node.nodeType === Node.TEXT_NODE) {
+                json.children.push({ content: node.nodeValue });
+            }
+        }
+        
+        return json;
+    }
+    
+    function getSimpleDOM() {
+        return JSON.stringify(_domElementToJSON(document.documentElement));
+    }
+
+    // init
+    _editHandler = new DOMEditHandler(window.document);
+    
+    if (experimental) {
+        window.document.addEventListener("keydown", onKeyDown);
+    }
 
     return {
-        "keepAlive": keepAlive,
-        "showGoto": showGoto,
-        "hideHighlight": hideHighlight,
-        "highlight": highlight,
-        "highlightRule": highlightRule,
-        "redrawHighlights": redrawHighlights
+        "DOMEditHandler"        : DOMEditHandler,
+        "keepAlive"             : keepAlive,
+        "showGoto"              : showGoto,
+        "hideHighlight"         : hideHighlight,
+        "highlight"             : highlight,
+        "highlightRule"         : highlightRule,
+        "redrawHighlights"      : redrawHighlights,
+        "applyDOMEdits"         : applyDOMEdits,
+        "getSimpleDOM"          : getSimpleDOM
     };
 }

@@ -27,7 +27,7 @@
   /***** [changed for Brackets] *****/
   // Undefined until the focus state changed once
   var _windowHasFocus;
-  
+
   $(window)
     .focus(function _onWindowGainedFocus() {
       _windowHasFocus = true;
@@ -36,14 +36,14 @@
       _windowHasFocus = false;
     });
   /***** [/changed for Brackets] *****/
-  
+
  /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
   * ======================================================= */
 
   var transitionEnd
 
   $(document).ready(function () {
-      
+
     $.support.transition = (function () {
 
       var transitionEnd = (function () {
@@ -100,7 +100,7 @@
       var $tip
         , that = this;
       /***** [/changed for Brackets] *****/
-      
+
       if (this.hasContent() && this.enabled) {
         $tip = this.tip()
         this.setContent()
@@ -116,7 +116,7 @@
 
 /***** [changed for Brackets] *****/
         this.updatePosition();
-        
+
         $(window).off("resize", this.resizeHandler);
         this.resizeHandler = function(e) {
           that.updatePosition();
@@ -136,7 +136,7 @@
             $(window).one("focus", startAutoHide);
           }
         }
-        
+
         $tip.addClass('in');
       }
     }
@@ -154,20 +154,20 @@
         , $arrow
         , tp
         , that = this
-      
+
       $tip = this.tip()
 
       pos = $.extend({}, this.$element.offset(), {
         width: this.$element[0].offsetWidth
       , height: this.$element[0].offsetHeight
       })
-      
+
       paddingLeft  = parseInt(this.$element.css("padding-left"),  10);
       paddingRight = parseInt(this.$element.css("padding-right"), 10);
-      
+
       pos.left += paddingLeft;
       pos.width -= (paddingLeft + paddingRight);
-      
+
       actualWidth = $tip[0].offsetWidth
       actualHeight = $tip[0].offsetHeight
 
@@ -183,13 +183,15 @@
           tp = {top: pos.top - actualHeight - this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
           break
         case 'left':
-          tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth - this.options.offset}
+          /***** [changed for Brackets] *****/
+          tp = {top: pos.top + pos.height + 20 - actualHeight, left: pos.left - actualWidth - this.options.offset}
           break
         case 'right':
-          tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width + this.options.offset}
+          /***** [changed for Brackets] *****/
+          tp = {top: pos.top + pos.height + 20 - actualHeight, left: pos.left + pos.width + this.options.offset}
           break
       }
-      
+
       shiftArrow = 0;
 
       surplusRight = (tp.left + actualWidth - $(document.body).width());
@@ -200,7 +202,7 @@
         shiftArrow = tp.left;
         tp.left = 0;
       }
-      
+
       if (surplusRight > 0) {
         $arrow = $tip.find(".tooltip-arrow");
         if (! this.defaultMargin) {

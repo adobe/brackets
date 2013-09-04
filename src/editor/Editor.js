@@ -382,6 +382,7 @@ define(function (require, exports, module) {
             styleActiveLine: _styleActiveLine,
             coverGutterNextToScrollbar: true,
             matchBrackets: true,
+            matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
@@ -776,6 +777,15 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor();
         }
+    };
+    
+    /**
+     * Set the editor size in pixels or percentage
+     * @param {(number|string)} width
+     * @param {(number|string)} height
+     */
+    Editor.prototype.setSize = function (width, height) {
+        this._codeMirror.setSize(width, height);
     };
     
     var CENTERING_MARGIN = 0.15;
@@ -1478,6 +1488,14 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            
+            // If there is a selection in the editor, temporarily hide Active Line Highlight
+            if ((cmOption === "styleActiveLine") && (value === true)) {
+                if (editor.hasSelection()) {
+                    editor._codeMirror.setOption("styleActiveLine", false);
+                }
+            }
+            
             $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }
@@ -1569,15 +1587,10 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
-     * @param {Editor} editor Current, focused editor (main or inline)
      */
-    Editor.setShowActiveLine = function (value, editor) {
+    Editor.setShowActiveLine = function (value) {
         _styleActiveLine = value;
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
-        
-        if (editor.hasSelection()) {
-            editor._codeMirror.setOption("styleActiveLine", false);
-        }
     };
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */

@@ -117,7 +117,7 @@ define({
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
-    "BUTTON_ALL"                        : "All",
+    "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Replace",
 
@@ -144,7 +144,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_LINE"                : "line: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
@@ -176,8 +176,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Spaces",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_SPACES"                      : "Spaces:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
