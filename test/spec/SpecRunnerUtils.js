@@ -368,10 +368,10 @@ define(function (require, exports, module) {
                     var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
                     waitsForDone(promise, "Close all open files in working set");
                     
-                    var $dlg = _testWindow.$(".modal.instance");
-                    if ($dlg.length) {
-                        clickDialogButton("dontsave");
-                    }
+                    _testWindow.brackets.test.Dialogs.cancelModalDialogIfOpen(
+                        _testWindow.brackets.test.DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        _testWindow.brackets.test.DefaultDialogs.DIALOG_BTN_DONTSAVE
+                    );
                 });
             };
         });
@@ -1038,6 +1038,22 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Returns an array with the parent suites of the current spec with the top most suite last
+     * @return {Array.<jasmine.Suite>}
+     */
+    function _getParentSuites() {
+        var suite  = jasmine.getEnv().currentSpec.suite,
+            suites = [];
+        
+        while (suite) {
+            suites.push(suite);
+            suite = suite.parentSuite;
+        }
+        return suites;
+    }
+
+    /**
+     * @private
      * Calls each function in the given array of functions
      * @param {Array.<function>} functions
      */
@@ -1049,30 +1065,29 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Calls the before first functions for the parent suites of the current spec when is the first spec of each suite.
+     * Calls the before first functions for the parent suites of the current spec when is the first spec of the suite.
      */
     function runBeforeFirst() {
-        var suite = jasmine.getEnv().currentSpec.suite;
+        var suites = _getParentSuites().reverse();
         
-        // Iterate throught all the parent suites of the current spec
-        while (suite) {
+        // Iterate through all the parent suites of the current spec
+        suites.forEach(function (suite) {
             // If we have functions for this suite and it was never called, initialize the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
                 _callFunctions(_testSuites[suite.id].beforeFirst);
                 _testSuites[suite.id].specCounter = countSpecs(suite);
             }
-            suite = suite.parentSuite;
-        }
+        });
     }
     
     /**
-     * Calls the after last functions for the parent suites of the current spec when is the last spec of each suite.
+     * Calls the after last functions for the parent suites of the current spec when is the last spec of the suite.
      */
     function runAfterLast() {
-        var suite = jasmine.getEnv().currentSpec.suite;
+        var suites = _getParentSuites();
         
         // Iterate throught all the parent suites of the current spec
-        while (suite) {
+        suites.forEach(function (suite) {
             // If we have functions for this suite, reduce the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
                 _testSuites[suite.id].specCounter--;
@@ -1083,8 +1098,7 @@ define(function (require, exports, module) {
                     delete _testSuites[suite.id];
                 }
             }
-            suite = suite.parentSuite;
-        }
+        });
     }
     
     
