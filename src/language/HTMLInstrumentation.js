@@ -277,13 +277,14 @@ define(function (require, exports, module) {
         return {line: pos.line, ch: pos.ch + offset};
     }
 
-    SimpleDOMBuilder.prototype.build = function (strict) {
+    SimpleDOMBuilder.prototype.build = function (strict, markCache) {
         var self = this;
         var token, lastClosedTag, lastTextNode, lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
-        var markCache = {};
+                
+        markCache = markCache || {};
         
         // Start timers for building full and partial DOMs.
         // Appropriate timer is used, and the other is discarded.
@@ -654,19 +655,28 @@ define(function (require, exports, module) {
         return currentTagID;
     };
     
-    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap) {
+    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap, markCache) {
         // TODO: this is really inefficient - should we cache the mark for each node?
         var updateIDs = Object.keys(nodeMap),
             cm = this.cm,
             marks = cm.getAllMarks();
         
+        function posEq(pos1, pos2) {
+            return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
+        }
+        
         cm.operation(function () {
             marks.forEach(function (mark) {
                 if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
-                    var node = nodeMap[mark.tagID];
-                    mark.clear();
-                    mark = cm.markText(node.startPos, node.endPos);
-                    mark.tagID = node.tagID;
+                    var node = nodeMap[mark.tagID],
+                        markInfo = markCache[mark.tagID];
+                    // If the mark's bounds already match, avoid destroying and recreating the mark,
+                    // since that incurs some overhead.
+                    if (!(markInfo && posEq(markInfo.range.from, node.startPos) && posEq(markInfo.range.to, node.endPos))) {
+                        mark.clear();
+                        mark = cm.markText(node.startPos, node.endPos);
+                        mark.tagID = node.tagID;
+                    }
                     updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
                 }
             });
@@ -717,7 +727,8 @@ define(function (require, exports, module) {
     };
     
     DOMUpdater.prototype.update = function () {
-        var newSubtree = this.build(true),
+        var markCache = {},
+            newSubtree = this.build(true, markCache),
             result = {
                 // default result if we didn't identify a changed portion
                 newDOM: newSubtree,
@@ -753,7 +764,7 @@ define(function (require, exports, module) {
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
                     
                     // Update marked ranges for all items in the new subtree.
-                    this._updateMarkedRanges(newSubtree.nodeMap);
+                    this._updateMarkedRanges(newSubtree.nodeMap, markCache);
                     
                     // Build a local nodeMap for the old subtree so the differ can
                     // use it.
