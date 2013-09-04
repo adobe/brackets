@@ -144,7 +144,7 @@ define({
 	"FIND_IN_FILES_MATCHES": "résultats",
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_FILE_PATH": "Fichier : <span class='dialog-filename'>{0}</span>",
+	"FIND_IN_FILES_FILE_PATH": "[6318989] !é=<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>=!",
 	"FIND_IN_FILES_LINE": "ligne : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
@@ -176,8 +176,8 @@ define({
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
-	"STATUSBAR_SPACES": "Espaces",
-	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
+	"STATUSBAR_SPACES": "Espaces :",
+	"STATUSBAR_TAB_SIZE": "Taille de tabulation :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
