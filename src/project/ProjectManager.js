@@ -33,6 +33,8 @@
  *    - beforeProjectClose -- before _projectRoot changes
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after  _projectRoot changes
+ *    - projectRefresh     -- after project tree is rebuilt, when projectOpen is not--
+ *                            dispatched because _projectRoot has not changed
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
  *
@@ -920,6 +922,7 @@ define(function (require, exports, module) {
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                             $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
+                            $(exports).triggerHandler("projectRefresh", _projectRoot);
                             result.resolve();
                         }
                     });
