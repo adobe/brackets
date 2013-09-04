@@ -234,6 +234,12 @@ define(function (require, exports, module) {
         var baseDir = getTempDirectory();
         
         // Restore directory permissions before (otherwise the deletePath may fail)
+        // We need to make sure everything is read/write before we delete it or we won't
+        //  be able to delete the folder.  Ideally we should traverse the directory and 
+        //  change the mode for every file / directory we encounter but, for now,
+        //  since we only have these two folders which we make read / write only
+        //  just chmod these two folder.  This is a MAC only issue.
+        // TODO: Traverse baseDir and chmod everything before we delete.
         waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
         waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
         // Remove the test data and anything else left behind from tests
