@@ -32,9 +32,9 @@
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after  _projectRoot changes
- *    - projectRefresh     -- after project tree is rebuilt, when projectOpen is not--
- *                            dispatched because _projectRoot has not changed
+ *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectRefresh     -- when project tree is re-rendered for a reason other than 
+ *                            a project being opened (e.g. from the Refresh command)
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
  *
