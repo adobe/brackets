@@ -691,10 +691,8 @@ define(function (require, exports, module) {
                                 }
                             });
                             
-                            // Owner--should show the parts, but might format them separately
-                            item.owner.split(":").forEach(function (part) {
-                                expect(view).toHaveText(part);
-                            });
+                            // Owner--should show only the owner name, not the authenticator
+                            expect(view).toHaveText(item.owner.split(":")[1]);
                         });
                     });
                 });
@@ -706,10 +704,8 @@ define(function (require, exports, module) {
                         console.log(view);
                         CollectionUtils.forEach(JSON.parse(mockExtensionList), function (item) {
                             if (item.installInfo && item.registryInfo) {
-                                // Owner--should show the parts, but might format them separately
-                                item.registryInfo.owner.split(":").forEach(function (part) {
-                                    expect(view).toHaveText(part);
-                                });
+                                // Owner--should show only the owner name, not the authenticator
+                                expect(view).toHaveText(item.registryInfo.owner.split(":")[1]);
                             }
                         });
                     });
