@@ -59,8 +59,7 @@
         "name": "VBScript",
         "mode": "vbscript",
         "fileExtensions": ["vbs"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["'"]
+        "lineComment": ["'", "REM"]
     },
 
     "json": {
