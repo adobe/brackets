@@ -379,7 +379,7 @@ define(function (require, exports, module) {
                     // Update the signatures for all parents of the new subtree.
                     var curParent = parent;
                     while (curParent) {
-                        HTMLSimpleDOM._updateHash(curParent);
+                        curParent.update();
                         curParent = curParent.parent;
                     }
                     
@@ -468,14 +468,14 @@ define(function (require, exports, module) {
                 if (child.children) {
                     _processElement(child);
                 } else if (child.content) {
-                    HTMLSimpleDOM._updateHash(child);
+                    child.update();
                     child.tagID = HTMLSimpleDOM.getTextNodeID(child);
                     
                     nodeMap[child.tagID] = child;
                 }
             });
             
-            HTMLSimpleDOM._updateHash(elem);
+            elem.update();
             
             nodeMap[elem.tagID] = elem;
 

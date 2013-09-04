@@ -124,33 +124,52 @@ define(function (require, exports, module) {
         this.startOffsetPos = startOffsetPos || {line: 0, ch: 0};
     }
     
-    function _updateHash(node) {
-        if (node.children) {
-            var i,
-                subtreeHashes = "",
-                childHashes = "",
-                child;
-            for (i = 0; i < node.children.length; i++) {
-                child = node.children[i];
-                if (child.children) {
-                    childHashes += String(child.tagID);
-                    subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
-                } else {
-                    childHashes += child.textSignature;
-                    subtreeHashes += child.textSignature;
-                }
-            }
-            node.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, seed);
-            node.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, seed);
-        } else {
-            node.textSignature = MurmurHash3.hashString(node.content, node.content.length, seed);
-        }
+    function SimpleNode(properties) {
+        $.extend(this, properties);
     }
     
-    function _updateAttributeHash(node) {
-        var attributeString = JSON.stringify(node.attributes);
-        node.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
-    }
+    SimpleNode.prototype = {
+        
+        /**
+         * Updates signatures used to optimize the number of comparisons done during
+         * diffing. This is important to call if you change:
+         *
+         * * children
+         * * child node attributes
+         * * text content of a text node
+         * * child node text
+         */
+        update: function () {
+            if (this.children) {
+                var i,
+                    subtreeHashes = "",
+                    childHashes = "",
+                    child;
+                for (i = 0; i < this.children.length; i++) {
+                    child = this.children[i];
+                    if (child.children) {
+                        childHashes += String(child.tagID);
+                        subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
+                    } else {
+                        childHashes += child.textSignature;
+                        subtreeHashes += child.textSignature;
+                    }
+                }
+                this.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, seed);
+                this.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, seed);
+            } else {
+                this.textSignature = MurmurHash3.hashString(this.content, this.content.length, seed);
+            }
+        },
+        
+        /**
+         * Updates the signature of this node's attributes. Call this after making attribute changes.
+         */
+        updateAttributeSignature: function () {
+            var attributeString = JSON.stringify(this.attributes);
+            this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
+        }
+    };
     
     /**
      * Generates a synthetic ID for text nodes. These IDs are only used
@@ -200,7 +219,7 @@ define(function (require, exports, module) {
         function closeTag(endIndex, endPos) {
             lastClosedTag = stack[stack.length - 1];
             stack.pop();
-            _updateHash(lastClosedTag);
+            lastClosedTag.update();
             
             lastClosedTag.end = self.startOffset + endIndex;
             lastClosedTag.endPos = addPos(self.startOffsetPos, endPos);
@@ -231,14 +250,14 @@ define(function (require, exports, module) {
                     }
                 }
                 
-                newTag = {
+                newTag = new SimpleNode({
                     tag: token.contents.toLowerCase(),
                     children: [],
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
                     start: this.startOffset + token.start - 1,
                     startPos: addPos(this.startOffsetPos, offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
-                };
+                });
                 newTag.tagID = this.getID(newTag, markCache);
                 
                 // During undo in particular, it's possible that tag IDs may be reused and
@@ -256,7 +275,7 @@ define(function (require, exports, module) {
                 
                 if (voidElements.hasOwnProperty(newTag.tag)) {
                     // This is a self-closing element.
-                    _updateHash(newTag);
+                    newTag.update();
                 } else {
                     stack.push(newTag);
                 }
@@ -275,7 +294,7 @@ define(function (require, exports, module) {
                     this.currentTag.end = this.startOffset + token.end;
                     this.currentTag.endPos = addPos(this.startOffsetPos, token.endPos);
                     lastClosedTag = this.currentTag;
-                    _updateAttributeHash(this.currentTag);
+                    this.currentTag.updateAttributeSignature();
                     this.currentTag = null;
                 }
             } else if (token.type === "closetag") {
@@ -337,17 +356,17 @@ define(function (require, exports, module) {
                         newNode = lastTextNode;
                         newNode.content += token.contents;
                     } else {
-                        newNode = {
+                        newNode = new SimpleNode({
                             parent: stack[stack.length - 1],
                             content: token.contents
-                        };
+                        });
                         parent.children.push(newNode);
                         newNode.tagID = getTextNodeID(newNode);
                         nodeMap[newNode.tagID] = newNode;
                         lastTextNode = newNode;
                     }
                     
-                    _updateHash(newNode);
+                    newNode.update();
                 }
             }
             lastIndex = token.end;
@@ -435,7 +454,6 @@ define(function (require, exports, module) {
     exports._dumpDOM                    = _dumpDOM;
     exports.build                       = build;
     exports._offsetPos                  = offsetPos;
-    exports._updateHash                 = _updateHash;
     exports._getTextNodeID              = getTextNodeID;
     exports._seed                       = seed;
     exports.Builder                     = Builder;
