@@ -140,7 +140,7 @@ define(function (require, exports, module) {
      */
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
-            if (childNode.tag) {
+            if (childNode.children) {
                 _markTags(cm, childNode);
             }
         });
@@ -257,26 +257,40 @@ define(function (require, exports, module) {
         return currentTagID;
     };
     
-    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap) {
+    DOMUpdater.prototype._updateMarkedRanges = function (nodeMap, markCache) {
         // TODO: this is really inefficient - should we cache the mark for each node?
         var updateIDs = Object.keys(nodeMap),
             cm = this.cm,
             marks = cm.getAllMarks();
-        marks.forEach(function (mark) {
-            if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
-                var node = nodeMap[mark.tagID];
-                mark.clear();
-                mark = cm.markText(node.startPos, node.endPos);
-                mark.tagID = node.tagID;
-                updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
-            }
-        });
         
-        // Any remaining updateIDs are new.
-        updateIDs.forEach(function (id) {
-            var node = nodeMap[id],
-                mark = cm.markText(node.startPos, node.endPos);
-            mark.tagID = Number(id);
+        function posEq(pos1, pos2) {
+            return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
+        }
+        
+        cm.operation(function () {
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
+                    var node = nodeMap[mark.tagID],
+                        markInfo = markCache[mark.tagID];
+                    // If the mark's bounds already match, avoid destroying and recreating the mark,
+                    // since that incurs some overhead.
+                    if (!(markInfo && posEq(markInfo.range.from, node.startPos) && posEq(markInfo.range.to, node.endPos))) {
+                        mark.clear();
+                        mark = cm.markText(node.startPos, node.endPos);
+                        mark.tagID = node.tagID;
+                    }
+                    updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+                }
+            });
+            
+            // Any remaining updateIDs are new.
+            updateIDs.forEach(function (id) {
+                var node = nodeMap[id], mark;
+                if (node.children) {
+                    mark = cm.markText(node.startPos, node.endPos);
+                    mark.tagID = Number(id);
+                }
+            });
         });
     };
     
@@ -315,7 +329,8 @@ define(function (require, exports, module) {
     };
     
     DOMUpdater.prototype.update = function () {
-        var newSubtree = this.build(true),
+        var markCache = {},
+            newSubtree = this.build(true, markCache),
             result = {
                 // default result if we didn't identify a changed portion
                 newDOM: newSubtree,
@@ -351,7 +366,7 @@ define(function (require, exports, module) {
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
                     
                     // Update marked ranges for all items in the new subtree.
-                    this._updateMarkedRanges(newSubtree.nodeMap);
+                    this._updateMarkedRanges(newSubtree.nodeMap, markCache);
                     
                     // Build a local nodeMap for the old subtree so the differ can
                     // use it.

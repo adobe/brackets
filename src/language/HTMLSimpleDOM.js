@@ -182,13 +182,14 @@ define(function (require, exports, module) {
         return {line: pos.line, ch: pos.ch + offset};
     }
 
-    SimpleDOMBuilder.prototype.build = function (strict) {
+    SimpleDOMBuilder.prototype.build = function (strict, markCache) {
         var self = this;
         var token, lastClosedTag, lastTextNode, lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
-        var markCache = {};
+                
+        markCache = markCache || {};
         
         // Start timers for building full and partial DOMs.
         // Appropriate timer is used, and the other is discarded.
