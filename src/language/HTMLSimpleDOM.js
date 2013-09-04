@@ -168,6 +168,24 @@ define(function (require, exports, module) {
         updateAttributeSignature: function () {
             var attributeString = JSON.stringify(this.attributes);
             this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
+        },
+        
+        /**
+         * Is this node an element node?
+         *
+         * @return {bool} true if it is an element
+         */
+        isElement: function () {
+            return !!this.children;
+        },
+        
+        /**
+         * Is this node a text node?
+         *
+         * @return {bool} true if it is text
+         */
+        isText: function () {
+            return !this.children;
         }
     };
     
