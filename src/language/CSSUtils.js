@@ -94,8 +94,9 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "propertyValue" &&
-                (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block"));
+        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
+                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
+                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
     }
     
     /**
