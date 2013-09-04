@@ -537,7 +537,7 @@ define(function (require, exports, module) {
      */
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
-            if (childNode.tag) {
+            if (childNode.children) {
                 _markTags(cm, childNode);
             }
         });
@@ -671,9 +671,11 @@ define(function (require, exports, module) {
         
         // Any remaining updateIDs are new.
         updateIDs.forEach(function (id) {
-            var node = nodeMap[id],
+            var node = nodeMap[id], mark;
+            if (node.children) {
                 mark = cm.markText(node.startPos, node.endPos);
-            mark.tagID = Number(id);
+                mark.tagID = Number(id);
+            }
         });
     };
     
