@@ -33,9 +33,9 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        HTMLSimpleDOM       = require("language/HTMLSimpleDOM"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        MurmurHash3         = require("thirdparty/murmurhash3_gc"),
         WellFormedDoc       = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
         NotWellFormedDoc    = require("text!spec/HTMLInstrumentation-test-files/omitEndTags.html"),
         InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         // starting from an empty document (which, in the browser, includes implied html/head/body
         // tags). We have to also strip the tagIDs from this DOM since they won't appear in the
         // browser in this case.
-        var dom = HTMLInstrumentation._buildSimpleDOM("<html><head></head><body></body></html>", true);
+        var dom = HTMLSimpleDOM.buildSimpleDOM("<html><head></head><body></body></html>", true);
         Object.keys(dom.nodeMap).forEach(function (key) {
             var node = dom.nodeMap[key];
             delete node.tagID;
@@ -931,44 +931,6 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Strict HTML parsing", function () {
-            it("should parse a document with balanced, void and self-closing tags", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true)).not.toBeNull();
-            });
-            it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
-                var result = HTMLInstrumentation._buildSimpleDOM("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
-                expect(result).not.toBeNull();
-                expect(result.tag).toBe("div");
-                expect(result.children[0].tag).toBe("p");
-                expect(result.children[1].tag).toBe("h1");
-            });
-            it("should return null for an unclosed non-void/non-implied-close tag", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an <b>unclosed bold tag</p>", true)).toBeNull();
-            });
-            it("should return null for an extra close tag", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<p>this has an unopened bold</b> tag</p>", true)).toBeNull();
-            });
-            it("should return null if there are unclosed tags at the end of the document", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<div>this has <b>multiple unclosed tags", true)).toBeNull();
-            });
-            it("should return null if there is a tokenization failure", function () {
-                expect(HTMLInstrumentation._buildSimpleDOM("<div<badtag></div>", true)).toBeNull();
-            });
-            
-            it("should handle empty attributes", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<input disabled>", true);
-                expect(dom.attributes.disabled).toEqual("");
-            });
-            
-            it("should merge text nodes around a comment", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<div>Text <!-- comment --> Text2</div>", true);
-                expect(dom.children.length).toBe(1);
-                var textNode = dom.children[0];
-                expect(textNode.content).toBe("Text  Text2");
-                expect(textNode.textSignature).toBeDefined();
-            });
-        });
-        
         describe("HTML Instrumentation in dirty files", function () {
             var changeList, offsets;
 
@@ -1009,7 +971,7 @@ define(function (require, exports, module) {
                     editor.document.refreshText(origText);
                 }
                 
-                var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                     result;
                 
                 var clonedDOM = cloneDOM(previousDOM);
@@ -1121,33 +1083,10 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should build simple DOM", function () {
-                setupEditor(WellFormedDoc);
-                runs(function () {
-                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
-                    expect(dom.tagID).toEqual(jasmine.any(Number));
-                    expect(dom.tag).toEqual("html");
-                    expect(dom.start).toEqual(16);
-                    expect(dom.end).toEqual(1269);
-                    expect(dom.subtreeSignature).toEqual(jasmine.any(Number));
-                    expect(dom.childSignature).toEqual(jasmine.any(Number));
-                    expect(dom.children.length).toEqual(5);
-                    var meta = dom.children[1].children[1];
-                    expect(Object.keys(meta.attributes).length).toEqual(1);
-                    expect(meta.attributes.charset).toEqual("utf-8");
-                    var titleContents = dom.children[1].children[5].children[0];
-                    expect(titleContents.content).toEqual("GETTING STARTED WITH BRACKETS");
-                    expect(titleContents.textSignature).toEqual(MurmurHash3.hashString(titleContents.content, titleContents.content.length, HTMLInstrumentation._seed));
-                    expect(dom.children[1].parent).toEqual(dom);
-                    expect(dom.nodeMap[meta.tagID]).toBe(meta);
-                    expect(meta.childSignature).toEqual(jasmine.any(Number));
-                });
-            });
-            
             it("should mark editor text based on the simple DOM", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var dom = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    var dom = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, dom);
                     expect(editor._codeMirror.getAllMarks().length).toEqual(15);
                 });
@@ -1156,7 +1095,7 @@ define(function (require, exports, module) {
             it("should handle no diff", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText());
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText());
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                     var result = HTMLInstrumentation._updateDOM(previousDOM, editor);
                     expect(result.edits).toEqual([]);
@@ -1301,7 +1240,7 @@ define(function (require, exports, module) {
                 
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.children[3].children[1].tagID,
                         result,
                         origParent = previousDOM.children[3];
@@ -1349,7 +1288,7 @@ define(function (require, exports, module) {
             it("should avoid updating while typing an incomplete tag, then update when it's done", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1402,7 +1341,7 @@ define(function (require, exports, module) {
             it("should handle typing of a <p> without a </p> and then adding it later", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1485,7 +1424,7 @@ define(function (require, exports, module) {
             it("should handle deleting of an empty tag character-by-character", function () {
                 setupEditor("<p><img>{{0}}</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         imgTagID = previousDOM.children[0].tagID,
                         result;
  
@@ -1506,7 +1445,7 @@ define(function (require, exports, module) {
             it("should handle deleting of a non-empty tag character-by-character", function () {
                 setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         pTagID = previousDOM.children[0].tagID,
                         result;
                     
@@ -1527,7 +1466,7 @@ define(function (require, exports, module) {
             it("should handle typing of a new attribute character-by-character", function () {
                 setupEditor("<p{{0}}>some text</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1579,7 +1518,7 @@ define(function (require, exports, module) {
             it("should handle deleting of an attribute character-by-character", function () {
                 setupEditor("<p class='myclass'{{0}}>some text</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1627,7 +1566,7 @@ define(function (require, exports, module) {
             it("should handle wrapping a tag around some text character by character", function () {
                 setupEditor("<p>{{0}}some text{{1}}</p>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID = previousDOM.tagID,
                         result;
                     
@@ -1674,7 +1613,7 @@ define(function (require, exports, module) {
             it("should handle adding an <html> tag into an empty document", function () {
                 setupEditor("");
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -1712,7 +1651,7 @@ define(function (require, exports, module) {
             it("should handle adding a <head> tag into a document", function () {
                 setupEditor("<html>{{0}}</html>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -1745,7 +1684,7 @@ define(function (require, exports, module) {
             it("should handle adding a <body> tag into a document", function () {
                 setupEditor("<html><head></head>{{0}}</html>", true);
                 runs(function () {
-                    var previousDOM = HTMLInstrumentation._buildSimpleDOM(editor.document.getText()),
+                    var previousDOM = HTMLSimpleDOM.buildSimpleDOM(editor.document.getText()),
                         tagID,
                         result;
                     
@@ -2639,7 +2578,7 @@ define(function (require, exports, module) {
             }
             
             benchmarker.start("Initial DOM build");
-            var previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText),
+            var previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText),
                 changeList,
                 result;
             benchmarker.end("Initial DOM build");
@@ -2662,7 +2601,7 @@ define(function (require, exports, module) {
             
             for (i = 0; i < runs; i++) {
                 editor.document.setText(previousText);
-                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
                 $(editor).on("change.perftest", changeFunction);
@@ -2678,7 +2617,7 @@ define(function (require, exports, module) {
             
             for (i = 0; i < runs; i++) {
                 editor.document.setText(previousText);
-                previousDOM = HTMLInstrumentation._buildSimpleDOM(previousText);
+                previousDOM = HTMLSimpleDOM.buildSimpleDOM(previousText);
                 HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
                 
                 $(editor).on("change.perftest", fullChangeFunction);
@@ -2814,23 +2753,6 @@ define(function (require, exports, module) {
                         }
                     );
                 });
-            });
-        });
-
-        xdescribe("DOMNavigator", function () {
-            it("implements easy depth-first traversal", function () {
-                var dom = HTMLInstrumentation._buildSimpleDOM("<html><body><div>Here is <strong>my text</strong></div></body></html>");
-                var nav = new HTMLInstrumentation._DOMNavigator(dom);
-                expect(nav.next().tag).toEqual("body");
-                expect(nav.next().tag).toEqual("div");
-                expect(nav.next().content).toEqual("Here is ");
-                expect(nav.getPosition()).toEqual({
-                    tagID: dom.children[0].children[0].tagID,
-                    child: 0
-                });
-                expect(nav.next().tag).toEqual("strong");
-                expect(nav.next().content).toEqual("my text");
-                expect(nav.next()).toBeNull();
             });
         });
     });
