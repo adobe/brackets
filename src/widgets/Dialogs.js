@@ -333,7 +333,7 @@ define(function (require, exports, module) {
     function cancelModalDialogIfOpen(dlgClass, buttonId) {
         $("." + dlgClass + ".instance").each(function () {
             if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog($(this), DIALOG_CANCELED);
+                _dismissDialog($(this), buttonId || DIALOG_CANCELED);
             }
         });
     }

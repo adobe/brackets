@@ -1070,7 +1070,7 @@ define(function (require, exports, module) {
     function runBeforeFirst() {
         var suites = _getParentSuites().reverse();
         
-        // Iterate throught all the parent suites of the current spec
+        // Iterate through all the parent suites of the current spec
         suites.forEach(function (suite) {
             // If we have functions for this suite and it was never called, initialize the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
