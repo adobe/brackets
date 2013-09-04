@@ -102,15 +102,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            runs(function () {
-                // Restore directory permissions
-                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
-                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
-            });
-            runs(function () {
-                // Remove the test data and anything else left behind from tests
-                waitsForDone(SpecRunnerUtils.deletePath(baseDir), "delete temp files");
-            });
+            SpecRunnerUtils.removeTempDirectory();
         });
 
         it("should have a brackets.fs namespace", function () {
