@@ -58,9 +58,9 @@
     "vbscript": {
         "name": "VBScript",
         "mode": "vbscript",
-        "fileExtensions": ["vbscript"],
+        "fileExtensions": ["vbs"],
         "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
+        "lineComment": ["'"]
     },
 
     "json": {
