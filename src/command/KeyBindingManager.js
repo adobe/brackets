@@ -349,7 +349,9 @@ define(function (require, exports, module) {
      *
      * @param {string} commandID
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
-     * @param {?string} platform - undefined indicates all platforms
+     * @param {?string} platform
+     *     - "all" indicates all platforms, not overridable
+     *     - undefined indicates all platforms, overridden by platform-specific binding
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
      *     Returns null when key binding platform does not match, binding does not normalize,
      *     or is already assigned.
@@ -360,15 +362,22 @@ define(function (require, exports, module) {
             normalized,
             normalizedDisplay,
             explicitPlatform = keyBinding.platform || platform,
-            targetPlatform = explicitPlatform || brackets.platform,
+            targetPlatform,
             command,
             bindingsToDelete = [],
             existing;
+
+        // For platform: "all", use explicit current plaform
+        if (explicitPlatform && explicitPlatform !== "all") {
+            targetPlatform = explicitPlatform;
+        } else {
+            targetPlatform = brackets.platform;
+        }
         
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
-        if (brackets.platform === "mac" && explicitPlatform === undefined) {
+        if (brackets.platform === "mac" && (explicitPlatform === undefined || explicitPlatform === "all")) {
             key = key.replace("Ctrl", "Cmd");
             if (keyBinding.displayKey !== undefined) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
@@ -392,8 +401,9 @@ define(function (require, exports, module) {
             if (explicitPlatform === "win") {
                 // search for a generic or platform-specific binding if it
                 // already exists
-                if (existing &&
-                        (!existing.explicitPlatform || existing.explicitPlatform === brackets.platform)) {
+                if (existing && (!existing.explicitPlatform ||
+                                 existing.explicitPlatform === brackets.platform ||
+                                 existing.explicitPlatform === "all")) {
                     // do not clobber existing binding with windows-only binding
                     return null;
                 }
