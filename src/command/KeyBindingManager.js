@@ -413,10 +413,7 @@ define(function (require, exports, module) {
             if (!existing.explicitPlatform && explicitPlatform) {
                 // remove the the generic binding to replace with this new platform-specific binding
                 removeBinding(normalized);
-            } else {
-                // do not re-assign a key binding
-                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
-                return null;
+                existing = false;
             }
         }
         
@@ -426,7 +423,8 @@ define(function (require, exports, module) {
         // (2) replacing a generic binding with a platform-specific binding
         var existingBindings = _commandMap[commandID] || [],
             isWindowsCompatible,
-            isReplaceGeneric;
+            isReplaceGeneric,
+            ignoreGeneric;
         
         existingBindings.forEach(function (binding) {
             // remove windows-only bindings in _commandMap
@@ -439,10 +437,23 @@ define(function (require, exports, module) {
             
             if (isWindowsCompatible || isReplaceGeneric) {
                 bindingsToDelete.push(binding);
+            } else {
+                ignoreGeneric = binding.explicitPlatform && !explicitPlatform;
             }
         });
-                
-        // remove generic or windows-compatible bindigns
+
+        if (ignoreGeneric) {
+            // explicit command binding overrides this one
+            return null;
+        }
+        
+        if (existing) {
+            // do not re-assign a key binding
+            console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
+            return null;
+        }
+        
+        // remove generic or windows-compatible bindings
         bindingsToDelete.forEach(function (binding) {
             removeBinding(binding.key);
         });
@@ -519,6 +530,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Sort objects by platform property. Objects with a platform property come
+     * before objects without a platform property.
+     */
+    function sortByPlatform(a, b) {
+        var a1 = (a.platform) ? 1 : 0,
+            b1 = (b.platform) ? 1 : 0;
+        return b1 - a1;
+    }
+
+    /**
      * Add one or more key bindings to a particular Command.
      *
      * @param {!string | Command} command - A command ID or command object
@@ -553,6 +574,9 @@ define(function (require, exports, module) {
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
+
+            // process platform-specific bindings first
+            keyBindings.sort(sortByPlatform);
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
