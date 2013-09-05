@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 
 /**
@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
+        KeyEvent           = require("utils/KeyEvent"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils");
     
@@ -827,7 +828,28 @@ define(function (require, exports, module) {
             editor[operation]();
             result.resolve();
         } else {
-            result.reject();
+            var inlineWidget = EditorManager.getFocusedInlineWidget(),
+                focusedElement = $(document.activeElement);
+
+            // If undo/redo operation is in a non-text inline editor, then we need to
+            // simulate a undo/redo keyboard shortcut and directly send the keyboard 
+            // event to the focused element in the inline editor so that it can handle
+            // undo/redo operation with its own custom key event handlers.
+            if (inlineWidget && focusedElement) {
+                var e = $.Event("keydown");
+                if (brackets.platform === "win") {
+                    e.ctrlKey = true;
+                    e.keyCode = (operation === "undo") ? KeyEvent.DOM_VK_Z : KeyEvent.DOM_VK_Y;
+                } else {
+                    e.metaKey = true;
+                    e.shiftKey = (operation === "undo") ? false : true;
+                    e.keyCode = KeyEvent.DOM_VK_Z;
+                }
+                focusedElement.trigger(e);
+                result.resolve();
+            } else {
+                result.reject();
+            }
         }
         
         return result.promise();
