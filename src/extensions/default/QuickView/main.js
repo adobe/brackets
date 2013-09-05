@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, PathUtils, CodeMirror, queryPreviewProviders */
+/*global define, brackets, $, window, PathUtils, CodeMirror */
 
 define(function (require, exports, module) {
     "use strict";
@@ -131,42 +131,6 @@ define(function (require, exports, module) {
                 top: top
             })
             .addClass("active");
-    }
-    
-    /**
-     * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
-     * its matching text in the editor.
-     */
-    function showPreview(editor, popover) {
-        var token,
-            cm = editor._codeMirror;
-
-        if (popover) {
-            popoverState = popover;
-        } else {
-            // Query providers and append to popoverState
-            token = cm.getTokenAt(lastPos, true);
-            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
-        }
-        
-        if (popoverState) {
-            popoverState.marker = cm.markText(
-                popoverState.start,
-                popoverState.end,
-                {className: "quick-view-highlight"}
-            );
-            
-            $previewContent.append(popoverState.content);
-            $previewContainer.show();
-            
-            popoverState.visible = true;
-            
-            if (popoverState.onShow) {
-                popoverState.onShow();
-            } else {
-                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
-            }
-        }
     }
     
     function divContainsMouse($div, event) {
@@ -539,6 +503,41 @@ define(function (require, exports, module) {
         return null;
     }
     
+    /**
+     * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
+     * its matching text in the editor.
+     */
+    function showPreview(editor, popover) {
+        var token,
+            cm = editor._codeMirror;
+
+        if (popover) {
+            popoverState = popover;
+        } else {
+            // Query providers and append to popoverState
+            token = cm.getTokenAt(lastPos, true);
+            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
+        }
+        
+        if (popoverState) {
+            popoverState.marker = cm.markText(
+                popoverState.start,
+                popoverState.end,
+                {className: "quick-view-highlight"}
+            );
+            
+            $previewContent.append(popoverState.content);
+            $previewContainer.show();
+            
+            popoverState.visible = true;
+            
+            if (popoverState.onShow) {
+                popoverState.onShow();
+            } else {
+                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+            }
+        }
+    }
     
     function handleMouseMove(event) {
         if (!enabled) {
