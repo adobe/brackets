@@ -60,7 +60,6 @@ define(function (require, exports, module) {
     /** @type {number} The z-index used for the dialogs. Each new dialog increase this number by 2 */
     var zIndex = 1050;
 
-
     /**
      * @private
      * Dismises a modal dialog
@@ -69,7 +68,6 @@ define(function (require, exports, module) {
      */
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
-        $(".clickable-link", $dlg).off("click");
         $dlg.modal("hide");
     }
 
@@ -233,13 +231,6 @@ define(function (require, exports, module) {
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
-
-        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
-            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
-            if (e.currentTarget.dataset && e.currentTarget.dataset.href) {
-                NativeApp.openURLInDefaultBrowser(e.currentTarget.dataset.href);
-            }
-        });
 
         var keydownHook = function (e) {
             return _keydownHook.call($dlg, e, autoDismiss);
