@@ -328,11 +328,12 @@ define(function (require, exports, module) {
      * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      * @param {string} dlgClass The class name identifier for the dialog.
+     * @param {string=} buttonId The button id to use when closing the dialog. Defaults to DIALOG_CANCELED
      */
-    function cancelModalDialogIfOpen(dlgClass) {
+    function cancelModalDialogIfOpen(dlgClass, buttonId) {
         $("." + dlgClass + ".instance").each(function () {
             if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog($(this), DIALOG_CANCELED);
+                _dismissDialog($(this), buttonId || DIALOG_CANCELED);
             }
         });
     }
