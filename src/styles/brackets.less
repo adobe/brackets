@@ -65,8 +65,28 @@ html, body {
     backface-visibility: hidden;
 }
 
-body {
-    height: 100%;
+.platform-linux {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track-piece {
+        background: none;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: @custom-scrollbar-thumb;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: none;
+    }
+
+    ::-webkit-scrollbar-thumb:window-inactive {
+        background: @custom-scrollbar-thumb-inactive;
+    }
 }
 
 .resizing-container {
