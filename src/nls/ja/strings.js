@@ -144,7 +144,7 @@ define({
 	"FIND_IN_FILES_MATCHES": "一致",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
-	"FIND_IN_FILES_FILE_PATH": "!能=[6318989] <span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>_=!",
+	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_LINE": "行 : {0}",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
