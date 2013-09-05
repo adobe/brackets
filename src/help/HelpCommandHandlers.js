@@ -105,17 +105,6 @@ define(function (require, exports, module) {
                     $(this).trigger("load");
                 }
             });
-            
-            // Create a link for each contributor image to their github account
-            $contributors.on("click", "img", function (e) {
-                var url = $(e.target).data("url");
-                if (url) {
-                    // Make sure the URL has a domain that we know about
-                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
-                        NativeApp.openURLInDefaultBrowser(url);
-                    }
-                }
-            });
         }).fail(function () {
             $spinner.removeClass("spin");
             $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));

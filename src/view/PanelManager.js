@@ -115,7 +115,10 @@ define(function (require, exports, module) {
         
         // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
         // itself when it sees the window resize event
-        triggerEditorResize("skip");
+        // triggerEditorResize("skip");
+
+        // FIXME (issue #4564) Workaround https://github.com/marijnh/CodeMirror/issues/1787
+        triggerEditorResize();
         
         if (!windowResizing) {
             windowResizing = true;

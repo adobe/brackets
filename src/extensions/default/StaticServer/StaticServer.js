@@ -53,7 +53,7 @@ define(function (require, exports, module) {
     }
     
     StaticServer.prototype = Object.create(BaseServer.prototype);
-    StaticServer.prototype.constructor = BaseServer;
+    StaticServer.prototype.constructor = StaticServer;
 
     /**
      * Determines whether we can serve local file.
