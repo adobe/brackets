@@ -28,11 +28,9 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        ColorUtils          = brackets.getModule("utils/ColorUtils"),
+    var ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
