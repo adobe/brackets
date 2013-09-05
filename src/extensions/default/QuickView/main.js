@@ -519,7 +519,7 @@ define(function (require, exports, module) {
             popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
         }
         
-        if (popoverState) {
+        if (popoverState && popoverState.start && popoverState.end) {
             popoverState.marker = cm.markText(
                 popoverState.start,
                 popoverState.end,
@@ -610,7 +610,7 @@ define(function (require, exports, module) {
             popoverState = {};
             popoverState.hoverTimer = window.setTimeout(function () {
                 // Ready to scan and show now (we'll never get here if mouse movement rendered
-                // this popover inapplicable first - hidePopover() cancels hoverTimer)
+                // this popover inapplicable first - hidePreview() cancels hoverTimer)
                 showPreview(editor, null);
             }, HOVER_DELAY);
             
