@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 oldIndex++;
             
             // is this an element? if so, delete it
-            } else if (oldChild.children) {
+            } else if (oldChild.isElement()) {
                 if (!addElementDelete()) {
                     console.error("HTML Instrumentation: failed to add elementDelete for remaining element in the original DOM. This should not happen.", oldChild);
                     oldIndex++;
@@ -464,7 +464,7 @@ define(function (require, exports, module) {
             newChild = newChildren[newIndex];
             
             // Is this an element?
-            if (newChild.children) {
+            if (newChild.isElement()) {
                 
                 // Look to see if the element has moved here.
                 if (!addElementMove()) {
