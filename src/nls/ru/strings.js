@@ -243,7 +243,7 @@ define({
     "ABOUT"                                : "О программе",
     "CLOSE"                                : "Закрыть",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
+    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> и включены здесь в качестве ссылки.",
     "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",

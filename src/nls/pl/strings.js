@@ -261,7 +261,7 @@ define({
     "ABOUT"                                : "O programie",
     "CLOSE"                                : "Zamknij",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> i zostały załączone jako odnośnik.",
+    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> i zostały załączone jako odnośnik.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentacja i pliki żródłowe dostępne po adresem: <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Wykonano przy użyciu \u2764 i JavaScriptu przez:",
     "ABOUT_TEXT_LINE6"                     : "Mnóstwo ludzi (niestety mamy problem z załadowaniem pełnej listy w tym momencie).",

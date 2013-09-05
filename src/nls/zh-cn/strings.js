@@ -261,7 +261,7 @@ define({
     "ABOUT"                                : "关于",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
+    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> 以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "基于\u2764和JavaScript由以下用户参与贡献设计:",
     "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",

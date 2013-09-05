@@ -290,7 +290,7 @@ define({
     "ABOUT"                                : "Om",
     "CLOSE"                                : "Stäng",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Meddelanden och villkor gällande program från tredje part finns på <a href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> och inkluderas här som referens.",
+    "ABOUT_TEXT_LINE3"                     : "Meddelanden och villkor gällande program från tredje part finns på <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> och inkluderas här som referens.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation och källkod återfinns på <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Skapat med \u2764 och JavaScript av:",
     "ABOUT_TEXT_LINE6"                     : "Massor av människor (men vi har lite problem att visa dessa data just nu).",

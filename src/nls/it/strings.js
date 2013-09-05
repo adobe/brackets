@@ -249,7 +249,7 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Chiudi",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} build sperimentale {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> e incorporati per riferimento in questo documento.",
+    "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> e incorporati per riferimento in questo documento.",
     "ABOUT_TEXT_LINE4"                     : "Documentazione e codice sorgente sono disponibili all'indirizzo <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "E' disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
     "UPDATE_AVAILABLE_TITLE"               : "Aggiornamento disponibile",
