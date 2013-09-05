@@ -275,6 +275,7 @@ define(function (require, exports, module) {
         
         $listElement.on("selectionChanged", updateSelectionMarker);
         $scrollerElement.on("scroll", updateSelectionTriangle);
+        $scrollerElement.on("selectionRedraw", updateSelectionTriangle);
         
         // update immediately
         updateSelectionMarker();

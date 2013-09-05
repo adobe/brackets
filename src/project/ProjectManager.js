@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             }
 
             // reposition the selection triangle
-            $projectTreeContainer.triggerHandler("scroll");
+            $projectTreeContainer.triggerHandler("selectionRedraw");
             
             // in-lieu of resize events, manually trigger contentChanged for every
             // FileViewController focus change. This event triggers scroll shadows
