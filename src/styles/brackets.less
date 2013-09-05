@@ -65,14 +65,18 @@ html, body {
     backface-visibility: hidden;
 }
 
-.platform-linux {
+.platform-linux, .platform-mac {
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
 
-    ::-webkit-scrollbar-track-piece {
-        background: none;
+    ::-webkit-scrollbar-track:vertical {
+        margin: 0 0 8px 0;
+    }
+
+    ::-webkit-scrollbar-track:horizontal {
+        margin: 0 8px 0 0;
     }
 
     ::-webkit-scrollbar-thumb {
