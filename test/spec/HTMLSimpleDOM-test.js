@@ -30,10 +30,14 @@ define(function (require, exports, module) {
     "use strict";
     
     var HTMLSimpleDOM = require("language/HTMLSimpleDOM"),
+        FileUtils     = require("file/FileUtils"),
         WellFormedDoc = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
         MurmurHash3   = require("thirdparty/murmurhash3_gc");
-
-
+    
+    // We test for character document positions here, so LF vs. CRLF line endings make a difference.
+    // Normalize to LF.
+    WellFormedDoc = FileUtils.translateLineEndings(WellFormedDoc, FileUtils.LINE_ENDINGS_LF);
+    
     describe("HTML SimpleDOM", function () {
         describe("Strict HTML parsing", function () {
             it("should parse a document with balanced, void and self-closing tags", function () {
