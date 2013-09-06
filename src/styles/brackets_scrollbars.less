@@ -25,8 +25,8 @@
    FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior.
    Longer-term, we'll need to implement custom scrollbars. */
 
-.platform-mac   .quiet-scrollbars,
-.platform-win   .quiet-scrollbars,
+.platform-mac .quiet-scrollbars,
+.platform-win .quiet-scrollbars,
 .platform-linux .quiet-scrollbars {
 
     ::-webkit-scrollbar {
@@ -72,7 +72,7 @@
     }
 }
 
-.platform-linux, .platform-mac {
+.platform-linux {
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
