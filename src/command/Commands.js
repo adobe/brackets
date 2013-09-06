@@ -88,6 +88,7 @@ define(function (require, exports, module) {
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
     exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
     exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
+    exports.VIEW_TOGGLE_INSPECTION      = "view.toggleCodeInspection";
     exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";
@@ -105,6 +106,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
+    exports.NAVIGATE_GOTO_FIRST_PROBLEM = "navigate.gotoFirstProblem";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
     exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";

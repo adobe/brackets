@@ -1033,10 +1033,41 @@ a, img {
 }
 
 
-/* Turn on text selection for JSLint error messages */
-#jslint-results {
-    .user-select(text);
+/* Problems panel & CodeInspection status bar indicator */
+
+#status-indicators #status-inspection {
+    border: none;
+    cursor: default;
+    width: 13px;
 }
+
+.inspection-disabled {
+    background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
+}
+
+.inspection-errors {
+    background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
+}
+
+.inspection-errors:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.inspection-errors:active {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.inspection-valid {
+    background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
+}
+
+#problems-panel {
+    .user-select(text);  // allow selecting error messages for easy web searching
+    .line {
+        text-align: right;  // make line number line up with editor line numbers
+    }
+}
+
 
 /* Line up label text and input text */
 label input {
