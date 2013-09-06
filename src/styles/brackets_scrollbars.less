@@ -39,7 +39,6 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: rgba(0,0,0,0);
         box-shadow: none;
         border: none;
     }
@@ -52,20 +51,20 @@
         background-color: transparent;
     }
 
-    /* The data URIs for the thumb were generated from the Fireworks files in
-     * styles/vertical-thumb-fw-outline.png and styles/horiz-thumb-fw-outline.png.
-     */
+    :hover::-webkit-scrollbar-thumb,
+    :focus::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6) inset;
+        border: 2px solid transparent;
+    }
+
     :hover::-webkit-scrollbar-thumb:vertical,
     :focus::-webkit-scrollbar-thumb:vertical {
-        border-color: transparent;
-        border-width: 9px 0;
         min-height: 20px;
     }
 
     :hover::-webkit-scrollbar-thumb:horizontal,
     :focus::-webkit-scrollbar-thumb:horizontal {
-        border-color: transparent;
-        border-width: 0 9px;
         min-width: 20px;
     }
 }
@@ -87,7 +86,7 @@
     ::-webkit-scrollbar-thumb {
         border-radius: 999px;
         box-shadow: 0 0 0 4px @custom-scrollbar-thumb inset;
-        border: 2px solid rgba(0, 0, 0, 0);
+        border: 2px solid transparent;
     }
 
     ::-webkit-scrollbar-corner {
