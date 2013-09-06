@@ -608,15 +608,15 @@ define(function (require, exports, module) {
             
             // Initialize popoverState
             popoverState = {};
-            if (showImmediately) {
+            
+            // Set timer to scan and show. This will get cancelled (in hidePreview())
+            // if mouse movement rendered this popover inapplicable before timer fires.
+            // When showing "immediately", still use setTimeout() to make this async
+            // so we return from this mousemove event handler ASAP.
+            popoverState.hoverTimer = window.setTimeout(function () {
                 showPreview(editor, null);
-            } else {
-                popoverState.hoverTimer = window.setTimeout(function () {
-                    // Ready to scan and show now (we'll never get here if mouse movement rendered
-                    // this popover inapplicable first - hidePreview() cancels hoverTimer)
-                    showPreview(editor, null);
-                }, HOVER_DELAY);
-            }
+            }, showImmediately ? 0 : HOVER_DELAY);
+                
         } else {
             // Mouse not over any Editor - immediately hide popover
             hidePreview();
