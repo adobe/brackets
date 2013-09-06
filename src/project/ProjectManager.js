@@ -1553,6 +1553,10 @@ define(function (require, exports, module) {
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
+        
+        $projectTreeContainer.on("contextmenu", function () {
+            forceFinishRename();
+        });
     });
 
     // Init PreferenceStorage
