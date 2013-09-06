@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     require("spec/FileUtils-test");
     require("spec/FindReplace-test");
     require("spec/HTMLInstrumentation-test");
+    require("spec/HTMLSimpleDOM-test");
     require("spec/HTMLTokenizer-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");

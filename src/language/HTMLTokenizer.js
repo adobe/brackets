@@ -135,6 +135,10 @@ define(function (require, exports, module) {
         return c !== "<" && c !== "=";
     }
     
+    function _clonePos(pos, offset) {
+        return pos ? { line: pos.line, ch: pos.ch + (offset || 0)} : null;
+    }
+    
     /**
      * @constructor
      * A simple HTML tokenizer. See the description of nextToken() for usage details.
@@ -144,7 +148,9 @@ define(function (require, exports, module) {
         this._state = TEXT;
         this._buffer = text;
         this._sectionStart = 0;
+        this._sectionStartPos = {line: 0, ch: 0};
         this._index = 0;
+        this._indexPos = {line: 0, ch: 0};
         this._special = 0; // 1 for script, 2 for style
         this._token = null;
         this._nextToken = null;
@@ -186,7 +192,7 @@ define(function (require, exports, module) {
                 if (c === "<") {
                     this._emitTokenIfNonempty("text");
                     this._state = BEFORE_TAG_NAME;
-                    this._sectionStart = this._index;
+                    this._startSection();
                 }
             } else if (this._state === BEFORE_TAG_NAME) {
                 if (c === "/") {
@@ -196,31 +202,31 @@ define(function (require, exports, module) {
                 } else {
                     if (c === "!") {
                         this._state = BEFORE_DECLARATION;
-                        this._sectionStart = this._index + 1;
+                        this._startSection(1);
                     } else if (c === "?") {
                         this._state = IN_PROCESSING_INSTRUCTION;
-                        this._sectionStart = this._index + 1;
+                        this._startSection(1);
                     } else if (c === "s" || c === "S") {
                         this._state = BEFORE_SPECIAL;
-                        this._sectionStart = this._index;
+                        this._startSection();
                     } else if (!isLegalInTagName(c)) {
                         this._emitSpecialToken("error");
                         break;
                     } else if (!isWhitespace(c)) {
                         this._state = IN_TAG_NAME;
-                        this._sectionStart = this._index;
+                        this._startSection();
                     }
                 }
             } else if (this._state === IN_TAG_NAME) {
                 if (c === "/") {
                     this._emitToken("opentagname");
-                    this._emitSpecialToken("selfclosingtag", this._index + 2);
+                    this._emitSpecialToken("selfclosingtag", this._index + 2, _clonePos(this._indexPos, 2));
                     this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (c === ">") {
                     this._emitToken("opentagname");
-                    this._emitSpecialToken("opentagend", this._index + 1);
+                    this._emitSpecialToken("opentagend", this._index + 1, _clonePos(this._indexPos, 1));
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (isWhitespace(c)) {
                     this._emitToken("opentagname");
                     this._state = BEFORE_ATTRIBUTE_NAME;
@@ -243,13 +249,13 @@ define(function (require, exports, module) {
                     break;
                 } else if (!isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
-                    this._sectionStart = this._index;
+                    this._startSection();
                 }
             } else if (this._state === IN_CLOSING_TAG_NAME) {
                 if (c === ">") {
                     this._emitToken("closetag");
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                     this._special = 0;
                 } else if (isWhitespace(c)) {
                     this._emitToken("closetag");
@@ -262,7 +268,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_CLOSING_TAG_NAME) {
                 if (c === ">") {
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (!isWhitespace(c)) {
                     // There must be only whitespace in the closing tag after the name until the ">".
                     this._emitSpecialToken("error");
@@ -272,7 +278,7 @@ define(function (require, exports, module) {
                 // Nothing (even whitespace) can come between the / and > of a self-close.
                 if (c === ">") {
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else {
                     this._emitSpecialToken("error");
                     break;
@@ -284,17 +290,17 @@ define(function (require, exports, module) {
             } else if (this._state === BEFORE_ATTRIBUTE_NAME) {
                 if (c === ">") {
                     this._state = TEXT;
-                    this._emitSpecialToken("opentagend", this._index + 1);
-                    this._sectionStart = this._index + 1;
+                    this._emitSpecialToken("opentagend", this._index + 1, _clonePos(this._indexPos, 1));
+                    this._startSection(1);
                 } else if (c === "/") {
-                    this._emitSpecialToken("selfclosingtag", this._index + 2);
+                    this._emitSpecialToken("selfclosingtag", this._index + 2, _clonePos(this._indexPos, 2));
                     this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (!isLegalInAttributeName(c)) {
                     this._emitSpecialToken("error");
                     break;
                 } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
-                    this._sectionStart = this._index;
+                    this._startSection();
                 }
             } else if (this._state === IN_ATTRIBUTE_NAME) {
                 if (c === "=") {
@@ -322,21 +328,21 @@ define(function (require, exports, module) {
                     break;
                 } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_NAME;
-                    this._sectionStart = this._index;
+                    this._startSection();
                 }
             } else if (this._state === BEFORE_ATTRIBUTE_VALUE) {
                 if (c === "\"") {
                     this._state = IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (c === "'") {
                     this._state = IN_ATTRIBUTE_VALUE_SINGLE_QUOTES;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (!isLegalInUnquotedAttributeValue(c)) {
                     this._emitSpecialToken("error");
                     break;
                 } else if (!isWhitespace(c)) {
                     this._state = IN_ATTRIBUTE_VALUE_NO_QUOTES;
-                    this._sectionStart = this._index;
+                    this._startSection();
                 }
             } else if (this._state === IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES) {
                 if (c === "\"") {
@@ -351,9 +357,9 @@ define(function (require, exports, module) {
             } else if (this._state === IN_ATTRIBUTE_VALUE_NO_QUOTES) {
                 if (c === ">") {
                     this._emitToken("attribvalue");
-                    this._emitSpecialToken("opentagend", this._index + 1);
+                    this._emitSpecialToken("opentagend", this._index + 1, _clonePos(this._indexPos, 1));
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (isWhitespace(c)) {
                     this._emitToken("attribvalue");
                     this._state = BEFORE_ATTRIBUTE_NAME;
@@ -366,10 +372,10 @@ define(function (require, exports, module) {
                 // attribute value and the next attribute, if any.
                 if (c === ">") {
                     this._state = TEXT;
-                    this._emitSpecialToken("opentagend", this._index + 1);
-                    this._sectionStart = this._index + 1;
+                    this._emitSpecialToken("opentagend", this._index + 1, _clonePos(this._indexPos, 1));
+                    this._startSection(1);
                 } else if (c === "/") {
-                    this._emitSpecialToken("selfclosingtag", this._index + 2);
+                    this._emitSpecialToken("selfclosingtag", this._index + 2, _clonePos(this._indexPos, 2));
                     this._state = AFTER_SELFCLOSE_SLASH;
                 } else if (isWhitespace(c)) {
                     this._state = BEFORE_ATTRIBUTE_NAME;
@@ -393,7 +399,7 @@ define(function (require, exports, module) {
                 if (c === ">") {
                     this._emitToken("declaration");
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 }
             
     
@@ -404,7 +410,7 @@ define(function (require, exports, module) {
                 if (c === ">") {
                     this._emitToken("processinginstruction");
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 }
             
     
@@ -414,7 +420,7 @@ define(function (require, exports, module) {
             } else if (this._state === BEFORE_COMMENT) {
                 if (c === "-") {
                     this._state = IN_COMMENT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else {
                     this._state = IN_DECLARATION;
                 }
@@ -431,9 +437,11 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_COMMENT_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._emitToken("comment", this._index - 2);
+                    // It should be okay to just decrement the char position by 2 because we know neither of the previous
+                    // characters is a newline.
+                    this._emitToken("comment", this._index - 2, _clonePos(this._indexPos, -2));
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (c !== "-") {
                     this._state = IN_COMMENT;
                 }
@@ -476,7 +484,7 @@ define(function (require, exports, module) {
             } else if (this._state === BEFORE_CDATA_6) {
                 if (c === "[") {
                     this._state = IN_CDATA;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else {
                     this._state = IN_DECLARATION;
                 }
@@ -493,9 +501,11 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_CDATA_2) {
                 if (c === ">") {
                     //remove 2 trailing chars
-                    this._emitToken("cdata", this._index - 2);
+                    // It should be okay to just decrement the char position by 2 because we know neither of the previous
+                    // characters is a newline.
+                    this._emitToken("cdata", this._index - 2, _clonePos(this._indexPos, -2));
                     this._state = TEXT;
-                    this._sectionStart = this._index + 1;
+                    this._startSection(1);
                 } else if (c !== "]") {
                     this._state = IN_CDATA;
                 }
@@ -588,7 +598,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_SCRIPT_5) {
                 if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
-                    this._sectionStart = this._index - 6;
+                    this._startSection(-6);
                     continue; //reconsume the token
                 } else {
                     this._state = TEXT;
@@ -646,7 +656,7 @@ define(function (require, exports, module) {
             } else if (this._state === AFTER_STYLE_4) {
                 if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
-                    this._sectionStart = this._index - 5;
+                    this._startSection(-5);
                     continue; //reconsume the token
                 } else {
                     this._state = TEXT;
@@ -656,7 +666,13 @@ define(function (require, exports, module) {
                 this._emitSpecialToken("error");
                 break;
             }
-    
+
+            if (c === "\n") {
+                this._indexPos.line++;
+                this._indexPos.ch = 0;
+            } else {
+                this._indexPos.ch++;
+            }
             this._index++;
         }
         
@@ -667,6 +683,17 @@ define(function (require, exports, module) {
         return this._token;
     };
     
+    Tokenizer.prototype._startSection = function (offset) {
+        offset = offset || 0;
+        this._sectionStart = this._index + offset;
+        
+        // Normally it wouldn't be safe to assume that we can just add the offset to the
+        // character position, because there might be a newline, which would require us to
+        // move to the next line. However, in all the cases where this is called, we are
+        // adjusting for characters that we know are not newlines.
+        this._sectionStartPos = _clonePos(this._indexPos, offset);
+    };
+    
     /**
      * @private
      * Extract the portion of the buffer since _sectionStart and set it to be the next token we return
@@ -674,15 +701,20 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._setToken = function (type, index) {
+    Tokenizer.prototype._setToken = function (type, index, indexPos) {
         if (index === undefined) {
             index = this._index;
+        }
+        if (indexPos === undefined) {
+            indexPos = this._indexPos;
         }
         var token = {
             type: type,
             contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, index),
             start: this._sectionStart,
-            end: index
+            end: index,
+            startPos: _clonePos(this._sectionStartPos),
+            endPos: _clonePos(indexPos)
         };
         if (this._token) {
             // Queue this token to be emitted next. In theory it would be more general to have
@@ -704,9 +736,10 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._emitToken = function (type, index) {
-        this._setToken(type, index);
+    Tokenizer.prototype._emitToken = function (type, index, indexPos) {
+        this._setToken(type, index, indexPos);
         this._sectionStart = -1;
+        this._sectionStartPos = null;
     };
     
     /**
@@ -715,11 +748,12 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._emitSpecialToken = function (type, index) {
+    Tokenizer.prototype._emitSpecialToken = function (type, index, indexPos) {
         // Force the section start to be -1, since these tokens don't have meaningful content--they're
         // just marking particular boundaries we care about (end of an open tag or a self-closing tag).
         this._sectionStart = -1;
-        this._emitToken(type, index);
+        this._sectionStartPos = null;
+        this._emitToken(type, index, indexPos);
     };
     
     /**
@@ -734,6 +768,7 @@ define(function (require, exports, module) {
             this._setToken(type);
         }
         this._sectionStart = -1;
+        this._sectionStartPos = null;
     };
     
     exports.Tokenizer = Tokenizer;
