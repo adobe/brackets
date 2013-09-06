@@ -138,7 +138,7 @@
         padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
     }
     &.CodeMirror-focused .CodeMirror-selected {
-        background: @selection-color-focused;
+        background: @selection-color-focused;       
     }
 }
 
@@ -160,7 +160,8 @@
     
     .CodeMirror span.CodeMirror-matchingbracket {
         /* Ensure visibility against gray inline editor background */
-        background-color: @background-color-1;
+        background-color: @matching-bracket;
+        color: @accent-bracket !important;
     }
 
     .CodeMirror .CodeMirror-cursor {
@@ -207,7 +208,7 @@
         background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
     }
     
-    .CodeMirror-matchingtag { background:  @background-color-2; }
+    .CodeMirror-matchingtag { background: @matching-bracket; color: @accent-bracket !important; }
 }
 
 /*
