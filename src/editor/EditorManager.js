@@ -802,34 +802,34 @@ define(function (require, exports, module) {
 
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
-    $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
+    $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
+    $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
     // For unit tests and internal use only
-    exports._openInlineWidget = _openInlineWidget;
-    exports._createFullEditorForDocument = _createFullEditorForDocument;
-    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
-    exports._getViewState = _getViewState;
-    exports._resetViewStates = _resetViewStates;
-    exports._doShow = _doShow;
-    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
+    exports._openInlineWidget             = _openInlineWidget;
+    exports._createFullEditorForDocument  = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded      = _destroyEditorIfUnneeded;
+    exports._getViewState                 = _getViewState;
+    exports._resetViewStates              = _resetViewStates;
+    exports._doShow                       = _doShow;
+    exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
-    exports.REFRESH_SKIP = REFRESH_SKIP;
+    exports.REFRESH_SKIP  = REFRESH_SKIP;
     
     // Define public API
-    exports.setEditorHolder = setEditorHolder;
-    exports.getCurrentFullEditor = getCurrentFullEditor;
+    exports.setEditorHolder               = setEditorHolder;
+    exports.getCurrentFullEditor          = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
-    exports.focusEditor = focusEditor;
-    exports.getFocusedEditor = getFocusedEditor;
-    exports.getActiveEditor = getActiveEditor;
-    exports.getFocusedInlineWidget = getFocusedInlineWidget;
-    exports.resizeEditor = resizeEditor;
-    exports.registerInlineEditProvider = registerInlineEditProvider;
-    exports.registerInlineDocsProvider = registerInlineDocsProvider;
-    exports.registerJumpToDefProvider = registerJumpToDefProvider;
-    exports.getInlineEditors = getInlineEditors;
-    exports.closeInlineWidget = closeInlineWidget;
+    exports.focusEditor                   = focusEditor;
+    exports.getFocusedEditor              = getFocusedEditor;
+    exports.getActiveEditor               = getActiveEditor;
+    exports.getFocusedInlineWidget        = getFocusedInlineWidget;
+    exports.resizeEditor                  = resizeEditor;
+    exports.registerInlineEditProvider    = registerInlineEditProvider;
+    exports.registerInlineDocsProvider    = registerInlineDocsProvider;
+    exports.registerJumpToDefProvider     = registerJumpToDefProvider;
+    exports.getInlineEditors              = getInlineEditors;
+    exports.closeInlineWidget             = closeInlineWidget;
 });

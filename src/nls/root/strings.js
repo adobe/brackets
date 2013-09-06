@@ -472,6 +472,9 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
+    
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"
 });
