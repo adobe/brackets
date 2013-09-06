@@ -182,8 +182,16 @@ define(function (require, exports, module) {
     }
     
     var queryDialog = Strings.CMD_FIND +
-            ": <input type='text' style='width: 10em'/> <div class='message'><span id='find-counter'></span> " +
-            "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
+            ": <input type='text' style='width: 10em'/>" +
+            "<div class='navigator'>" +
+                "<button id='find-prev' class='btn' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
+                "<button id='find-next' class='btn' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
+            "</div>" +
+            "<div class='message'>" +
+                "<span id='find-counter'></span> " +
+                "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
+            "</div>" +
+            "<div class='error'></div>";        
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -203,6 +211,15 @@ define(function (require, exports, module) {
         // occurrence.
         var searchStartPos = cm.getCursor(true);
         
+        //Helper method to enable next / prev navigation in Find modal bar.
+        function enableFindNavigator(show) {
+            if (show) {
+                $(".modal-bar .navigator").css("display", "inline-block");
+            } else {
+                $(".modal-bar .navigator").css("display", "none");
+            }
+        }
+        
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
         function findFirst(query) {
@@ -215,12 +232,16 @@ define(function (require, exports, module) {
                 if (!state.query) {
                     // Search field is empty - no results
                     $("#find-counter").text("");
+                    enableFindNavigator(false);
                     cm.setCursor(searchStartPos);
                     if (modalBar) {
                         getDialogTextField().removeClass("no-results");
                     }
                     return;
                 }
+                
+                //Flag that controls the navigation controls.
+                var enableNavigator = false;
                 
                 // Highlight all matches
                 // (Except on huge documents, where this is too expensive)
@@ -243,18 +264,23 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-
+                                        
                     if (resultCount === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
                     } else if (resultCount === 1) {
-                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);                        
                     } else {
                         $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                        enableNavigator = true;
                     }
 
                 } else {
                     $("#find-counter").text("");
+                    enableNavigator = true;
                 }
+                
+                //Enable Next/Prev navigator buttons if necessary
+                enableFindNavigator(enableNavigator);
                 
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(editor, rev);
@@ -289,6 +315,14 @@ define(function (require, exports, module) {
             
             // As soon as focus goes back to the editor, restore normal selection color
             $(cm.getWrapperElement()).removeClass("find-highlighting");
+        });
+        
+        modalBar.getRoot().on("click", function (e) {
+            if (e.target.id === "find-next") {
+                _findNext();
+            } else if (e.target.id === "find-prev") {
+                _findPrevious();
+            }
         });
         
         var $input = getDialogTextField();

@@ -29,10 +29,6 @@
 
     <!-- CSS/LESS -->
 
-    <!-- Temporary CSS for unobtrusive scrollbars. This can't live in LESS because it uses
-         nonstandard WebKit-specific syntax. -->
-    <link rel="stylesheet" href="styles/quiet-scrollbars.css">
-
     <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
 
     <!-- Warn about failed cross origin requests in Chrome -->
@@ -50,6 +46,8 @@
     <!-- Pre-load third party scripts that cannot be async loaded. -->
     <script src="thirdparty/jquery-2.0.1.min.js"></script>
     <script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
+    <script src="thirdparty/CodeMirror2/addon/fold/xml-fold.js"></script>
+    <script src="thirdparty/CodeMirror2/addon/edit/matchtags.js"></script>
     <script src="thirdparty/CodeMirror2/addon/edit/matchbrackets.js"></script>
     <script src="thirdparty/CodeMirror2/addon/edit/closebrackets.js"></script>
     <script src="thirdparty/CodeMirror2/addon/edit/closetag.js"></script>

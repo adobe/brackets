@@ -439,12 +439,13 @@ define(function (require, exports, module) {
      *    determine whether it needs to refresh.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
-        
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-                $(curRoot).height(editorAreaHt);
+                // Call setSize() instead of $.height() to allow CodeMirror to
+                // check for options like line wrapping
+                _currentEditor.setSize(null, editorAreaHt);
                 if (refreshFlag === undefined) {
                     refreshFlag = REFRESH_FORCE;
                 }

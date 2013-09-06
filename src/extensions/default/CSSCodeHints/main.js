@@ -373,7 +373,7 @@ define(function (require, exports, module) {
     
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
-        CodeHintManager.registerHintProvider(cssPropHints, ["css"], 0);
+        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss"], 0);
         
         // For unit testing
         exports.cssPropHintProvider = cssPropHints;

@@ -395,7 +395,7 @@ define(function (require, exports, module) {
                     testDocument = mock.doc;
                     testEditor = mock.editor;
                     
-                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
+                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testEditor);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
                     testHTMLDoc.setInstrumentationEnabled(true);
@@ -415,15 +415,15 @@ define(function (require, exports, module) {
             });
             
             it("should highlight the image for cursor positions inside img tag.", function () {
-                verifyTagWithId(58, 4, "img");  // before <img
-                verifyTagWithId(58, 95, "img"); // after />
-                verifyTagWithId(58, 65, "img"); // inside src attribute value
+                verifyTagWithId(37, 4, "img");  // before <img
+                verifyTagWithId(37, 95, "img"); // after />
+                verifyTagWithId(37, 65, "img"); // inside src attribute value
     
             });
     
             it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
-                verifyTagWithId(58, 1, "a");  // before "   <img"
-                verifyTagWithId(59, 0, "a");  // before </a>
+                verifyTagWithId(37, 1, "a");  // before "   <img"
+                verifyTagWithId(38, 0, "a");  // before </a>
             });
     
             it("No highlight when the cursor position is outside of the 'html' tag", function () {
@@ -511,10 +511,7 @@ define(function (require, exports, module) {
             
             afterEach(function () {
                 waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
-                
-                runs(function () {
-                    testWindow.closeAllFiles();
-                });
+                testWindow.closeAllFiles();
             });
             
             it("should establish a browser connection for an opened html file", function () {
@@ -636,15 +633,16 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
                 
                 waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC) &&
-                        (DOMAgent.root);
-                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC ||
+                            LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE) &&
+                            (DOMAgent.root);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC or STATUS_ACTIVE and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(388);
+                    originalNode = DOMAgent.nodeAtLocation(396);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
@@ -674,7 +672,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(388);
+                    updatedNode = DOMAgent.nodeAtLocation(396);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -690,7 +688,7 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
-                    
+                
                 // Save original content back to the file after this test passes/fails
                 runs(function () {
                     htmlDoc.setText(origHtmlText);
