@@ -33,11 +33,12 @@ define(function (require, exports, module) {
     
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
-        NativeApp            = require("utils/NativeApp"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
+        AppInit              = require("utils/AppInit"),
         Global               = require("utils/Global"),
+        NativeApp            = require("utils/NativeApp"),
+        StringUtils          = require("utils/StringUtils"),
+        Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
@@ -208,6 +209,10 @@ define(function (require, exports, module) {
         
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
+        
+        AppInit.appReady(function () {
+            $dlg.find("button").focus();
+        });
     }
     
     /**
