@@ -1549,11 +1549,17 @@ define(function (require, exports, module) {
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
-
+        
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
         
+        $(".main-view").click(function (jqEvent) {
+            if (jqEvent.target.className !== "jstree-rename-input") {
+                forceFinishRename();
+            }
+        });
+            
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
