@@ -256,7 +256,7 @@ define(function (require, exports, module) {
      * setInsertHintOnTab(true) indicates that the currently selected code hint
      * should be inserted on tab key events. setInsertHintOnTab(false) indicates
      * that a tab character should be inserted into the editor on tab key events.
-     * The default behavior can be can be overridden by individual providers.
+     * The default behavior can be overridden by individual providers.
      *
      * @param {boolean} Indicates whether providers should insert the currently
      *      selected hint on tab key events.
