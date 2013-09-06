@@ -523,19 +523,11 @@ define(function (require, exports, module) {
     function domdiff(oldNode, newNode) {
         var queue = [],
             edits = [],
-            matches = {},
-            elementInserts = {},
-            textInserts = {},
-            textChanges = {},
-            elementsWithTextChanges = {},
+            moves = [],
             newElement,
             oldElement,
-            moves = [],
-            elementDeletes = {},
             oldNodeMap = oldNode ? oldNode.nodeMap : {},
-            newNodeMap = newNode.nodeMap,
-            delta;
-        
+            newNodeMap = newNode.nodeMap;
         
         /**
          * Adds elements to the queue for generateChildEdits.
