@@ -210,20 +210,19 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Adds two positions.
+     * Adds two {line, ch}-style positions, returning a new pos.
      */
-    function addPos(pos1, pos2) {
+    function _addPos(pos1, pos2) {
         return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
     }
     
     /**
      * @private
      *
-     * Calculates a simple character offset. Not for general purpose use as it does not account
-     * for line boundaries.
+     * Offsets the character offset of the given {line, ch} pos by the given amount and returns a new
+     * pos. Not for general purpose use as it does not account for line boundaries.
      */
-    function offsetPos(pos, offset) {
-        // Simple character offset. Only safe if the offset doesn't cross a line boundary.
+    function _offsetPos(pos, offset) {
         return {line: pos.line, ch: pos.ch + offset};
     }
     
@@ -275,7 +274,7 @@ define(function (require, exports, module) {
             lastClosedTag.update();
             
             lastClosedTag.end = self.startOffset + endIndex;
-            lastClosedTag.endPos = addPos(self.startOffsetPos, endPos);
+            lastClosedTag.endPos = _addPos(self.startOffsetPos, endPos);
         }
         
         while ((token = this.t.nextToken()) !== null) {
@@ -299,7 +298,7 @@ define(function (require, exports, module) {
                     while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
                         // Close the previous tag at the start of this tag.
                         // Adjust backwards for the < before the tag name.
-                        closeTag(token.start - 1, offsetPos(token.startPos, -1));
+                        closeTag(token.start - 1, _offsetPos(token.startPos, -1));
                     }
                 }
                 
@@ -309,7 +308,7 @@ define(function (require, exports, module) {
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
                     start: this.startOffset + token.start - 1,
-                    startPos: addPos(this.startOffsetPos, offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
+                    startPos: _addPos(this.startOffsetPos, _offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
                 });
                 newTag.tagID = this.getID(newTag, markCache);
                 
@@ -345,7 +344,7 @@ define(function (require, exports, module) {
                     // find a close tag for this tag, we'll update the signature to account for its
                     // children at that point (in the next "else" case).
                     this.currentTag.end = this.startOffset + token.end;
-                    this.currentTag.endPos = addPos(this.startOffsetPos, token.endPos);
+                    this.currentTag.endPos = _addPos(this.startOffsetPos, token.endPos);
                     lastClosedTag = this.currentTag;
                     this.currentTag.updateAttributeSignature();
                     this.currentTag = null;
@@ -376,9 +375,9 @@ define(function (require, exports, module) {
                             // implied end to be the end of the close tag (which is one character, ">", after the end of
                             // the tagname).
                             if (stack.length === i + 1) {
-                                closeTag(token.end + 1, offsetPos(token.endPos, 1));
+                                closeTag(token.end + 1, _offsetPos(token.endPos, 1));
                             } else {
-                                closeTag(token.start - 2, offsetPos(token.startPos, -2));
+                                closeTag(token.start - 2, _offsetPos(token.startPos, -2));
                             }
                         } while (stack.length > i);
                     } else {
@@ -526,7 +525,7 @@ define(function (require, exports, module) {
     
     // Private API
     exports._dumpDOM                    = _dumpDOM;
-    exports._offsetPos                  = offsetPos;
+    exports._offsetPos                  = _offsetPos;
     exports._getTextNodeID              = getTextNodeID;
     exports._seed                       = seed;
 });
