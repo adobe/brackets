@@ -29,6 +29,15 @@
 define(function (require, exports, module) {
     "use strict";
     
+    /**
+     * @private
+     *
+     * Determines the changes made to attributes and generates edits for those changes.
+     *
+     * @param {SimpleNode} oldNode node from old tree
+     * @param {SimpleNode} newNode node from new tree
+     * @return {Array.<Object>} list of edits to mutate attributes from the old node to the new
+     */
     function generateAttributeEdits(oldNode, newNode) {
         // shallow copy the old attributes object so that we can modify it
         var oldAttributes = $.extend({}, oldNode.attributes),
@@ -60,6 +69,8 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     *
      * Retrieve the parent tag ID of a SimpleDOM node.
      *
      * @param {Object} node SimpleDOM node for which to look up parent ID
@@ -70,6 +81,8 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     *
      * When the main loop (see below) determines that something has changed with
      * an element's immediate children, it calls this function to create edit
      * operations for those changes.
@@ -523,19 +536,11 @@ define(function (require, exports, module) {
     function domdiff(oldNode, newNode) {
         var queue = [],
             edits = [],
-            matches = {},
-            elementInserts = {},
-            textInserts = {},
-            textChanges = {},
-            elementsWithTextChanges = {},
+            moves = [],
             newElement,
             oldElement,
-            moves = [],
-            elementDeletes = {},
             oldNodeMap = oldNode ? oldNode.nodeMap : {},
-            newNodeMap = newNode.nodeMap,
-            delta;
-        
+            newNodeMap = newNode.nodeMap;
         
         /**
          * Adds elements to the queue for generateChildEdits.
@@ -621,5 +626,6 @@ define(function (require, exports, module) {
         return edits;
     }
     
+    // Public API
     exports.domdiff = domdiff;
 });

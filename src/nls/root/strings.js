@@ -120,6 +120,11 @@ define({
     "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Replace",
+            
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Next Match",
+    "BUTTON_PREV_HINT"                  : "Previous Match",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
