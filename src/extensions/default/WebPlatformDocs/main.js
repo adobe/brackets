@@ -84,8 +84,9 @@ define(function (require, exports, module) {
      * @return {?$.Promise} resolved with an InlineWidget; null if we're not going to provide anything
      */
     function inlineProvider(hostEditor, pos) {
+        var langId = hostEditor.getLanguageForSelection().getId();
         // Only provide docs when cursor is in CSS content
-        if (hostEditor.getLanguageForSelection().getId() !== "css") {
+        if (langId !== "css" && langId !== "scss") {
             return null;
         }
         

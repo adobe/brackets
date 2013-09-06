@@ -81,10 +81,8 @@ define(function (require, exports, module) {
         });
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
-        this._handleLinkClick       = this._handleLinkClick.bind(this);
         this._handleWheelScroll     = this._handleWheelScroll.bind(this);
         
-        this.$wrapperDiv.on("click", "a", this._handleLinkClick);
         this.$wrapperDiv.find(".scroller").on("mousewheel", this._handleWheelScroll);
     }
     
@@ -93,15 +91,6 @@ define(function (require, exports, module) {
     InlineDocsViewer.prototype.parentClass = InlineWidget.prototype;
     
     InlineDocsViewer.prototype.$wrapperDiv = null;
-    
-    
-    /** Clicking any link should open it in browser, not in Brackets shell */
-    InlineDocsViewer.prototype._handleLinkClick = function (event) {
-        var url = $(event.currentTarget).attr("href");
-        if (url) {
-            NativeApp.openURLInDefaultBrowser(url);
-        }
-    };
     
     
     /** Don't allow scrollwheel/trackpad to bubble up to host editor - makes scrolling docs painful */
