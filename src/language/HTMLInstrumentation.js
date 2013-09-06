@@ -487,6 +487,8 @@ define(function (require, exports, module) {
      * previous DOM, and generates a DOM edit list that can be used to replay the
      * diffs in the browser.
      * @param {Object} previousDOM The HTMLSimpleDOM corresponding to the previous state of the editor.
+     *     Note that in the case of an incremental edit, this will be mutated to create the new DOM
+     *     (by swapping out the subtree corresponding to the changed portion).
      * @param {Editor} editor The editor containing the instrumented HTML.
      * @param {Array=} changeList If specified, a CodeMirror changelist reflecting all the
      *     text changes in the editor since previousDOM was built. If specified, we will
