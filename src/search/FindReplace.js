@@ -354,7 +354,7 @@ define(function (require, exports, module) {
                 index:     results.length, // add indexes to array
                 from:      from,
                 to:        to,
-                line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, from.line + 1),
+                line:      from.line + 1,
                 pre:       line.slice(0, from.ch),
                 highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
                 post:      multiLine ? "\u2026" : line.slice(to.ch)
