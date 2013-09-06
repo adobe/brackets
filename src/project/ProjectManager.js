@@ -96,6 +96,14 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
+
+    /**
+     * @private
+     * The mainView. Used here for aborting rename operations when
+     * clicking anywhere in mainView.
+     * @type {jQueryObject}
+     */
+    var $mainView;
     
     /**
      * @private
@@ -517,6 +525,7 @@ define(function (require, exports, module) {
             ).bind(
                 "select_node.jstree",
                 function (event, data) {
+
                     var entry = data.rslt.obj.data("entry");
                     if (entry) {
                         if (entry.isFile) {
@@ -1549,9 +1558,15 @@ define(function (require, exports, module) {
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
+        $mainView = $(".main-view");
 
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
+        });
+
+        // console.log("Binding to mainView");
+        $mainView.on("click", function () {
+            forceFinishRename();
         });
     });
 
