@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
         SidebarView             = brackets.getModule("project/SidebarView"),
-        PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -236,7 +235,7 @@ define(function (require, exports, module) {
         $dropdown = null;
 
         EditorManager.focusEditor();
-        KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+        $(window).off("keydown", keydownHook);
     }
     
     
@@ -380,7 +379,7 @@ define(function (require, exports, module) {
         $("#titlebar .nav").on("click", closeDropdown);
         
         _handleListEvents();
-        KeyBindingManager.addGlobalKeydownHook(keydownHook);
+        $(window).on("keydown", keydownHook);
     }
     
     /**
@@ -407,7 +406,7 @@ define(function (require, exports, module) {
             
             showDropdown();
             $dropdown.focus();
-			$dropdownItem = $dropdown.find("a").first();
+            $dropdownItem = $dropdown.find("a").first();
             $dropdownItem.addClass("selected");
             
             // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
