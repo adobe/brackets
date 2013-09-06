@@ -52,7 +52,7 @@ define(function (require, exports, module) {
                     brackets = testWindow.brackets;
                     EditorManager = testWindow.brackets.test.EditorManager;
                     CodeInspection = testWindow.brackets.test.CodeInspection;
-                    CodeInspection.setEnabled(true);
+                    CodeInspection.toggleEnabled(true);
                 });
             });
             

@@ -181,6 +181,16 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "SINGLE_ERROR"                          : "1 {0} Error",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
+    "NO_ERRORS"                             : "No {0} errors - good job!",
+    "LINT_DISABLED"                         : "Linting is disabled",
+    "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
+    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    
+    
     /**
      * Command Name Constants
      */
@@ -199,7 +209,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -250,6 +259,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Line Numbers",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Highlight Active Line",
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
@@ -260,6 +271,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -402,6 +414,7 @@ define({
 
     "UNIT_PIXELS"                          : "pixels",
     
+    
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
@@ -420,9 +433,7 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
     "LOCALE_EN"                                 : "English",
@@ -454,17 +465,6 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
-    
-    // CodeInspection: errors/warnings
-    "CMD_TOGGLE_LINTING"                        : "Lint Files on Save",
-    "CMD_GOTO_FIRST_ERROR"                      : "Go to First Error/Warning",
-    "ERRORS_PANEL_TITLE"                        : "{0} Errors",
-    "SINGLE_ERROR"                              : "1 {0} Error",
-    "MULTIPLE_ERRORS"                           : "{1} {0} Errors",
-    "NO_ERRORS"                                 : "No {0} errors - good job!",
-    "LINT_DISABLED"                             : "Linting is disabled",
-    "NO_LINT_AVAILABLE"                         : "No linter available for {0}",
-    "NOTHING_TO_LINT"                           : "Nothing to lint",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

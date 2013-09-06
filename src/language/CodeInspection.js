@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
     function setGotoEnabled(gotoEnabled) {
-        CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_ERROR).setEnabled(gotoEnabled);
+        CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
     }
     
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
                     Resizer.show($problemsPanel);
                 }
                 
-                if (numProblems === 1) {
+                if (numProblems === 1 && !result.aborted) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
                 } else {
                     // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
@@ -274,12 +274,15 @@ define(function (require, exports, module) {
     
     /**
      * Enable or disable all inspection.
-     * @param {boolean} enabled Enabled state.
+     * @param {?boolean} enabled Enabled state. If omitted, the state is toggled.
      */
-    function setEnabled(enabled) {
+    function toggleEnabled(enabled) {
+        if (enabled === undefined) {
+            enabled = !_enabled;
+        }
         _enabled = enabled;
         
-        CommandManager.get(Commands.VIEW_TOGGLE_LINTING).setChecked(_enabled);
+        CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
         _prefs.setValue("enabled", _enabled);
     
@@ -312,13 +315,8 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Command to toggle enablement */
-    function handleToggleEnabled() {
-        setEnabled(!_enabled);
-    }
-    
     /** Command to go to the first Error/Warning */
-    function handleGotoFirstError() {
+    function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
             $problemsPanel.find("tr:first-child").trigger("click");
@@ -327,8 +325,8 @@ define(function (require, exports, module) {
     
     
     // Register command handlers
-    CommandManager.register(Strings.CMD_TOGGLE_LINTING,     Commands.VIEW_TOGGLE_LINTING,       handleToggleEnabled);
-    CommandManager.register(Strings.CMD_GOTO_FIRST_ERROR,   Commands.NAVIGATE_GOTO_FIRST_ERROR, handleGotoFirstError);
+    CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
+    CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
@@ -358,16 +356,13 @@ define(function (require, exports, module) {
         
         
         // Set initial UI state
-        setEnabled(_prefs.getValue("enabled"));
-        
+        toggleEnabled(_prefs.getValue("enabled"));
         toggleCollapsed(_prefs.getValue("collapsed"));
     });
     
     
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    
-    // for unit tests
-    exports.setEnabled = setEnabled;
+    exports.register        = register;
+    exports.Type            = Type;
+    exports.toggleEnabled   = toggleEnabled;
 });

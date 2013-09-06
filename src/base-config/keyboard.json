@@ -225,7 +225,7 @@
     "navigate.jumptoDefinition":  [
         "Ctrl-J"
     ],
-    "navigate.gotoFirstError":  [
+    "navigate.gotoFirstProblem":  [
         {
             "key": "F8"
         },
