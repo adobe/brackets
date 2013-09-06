@@ -140,14 +140,14 @@ define(function (require, exports, module) {
          * * child node text
          */
         update: function () {
-            if (this.children) {
+            if (this.isElement()) {
                 var i,
                     subtreeHashes = "",
                     childHashes = "",
                     child;
                 for (i = 0; i < this.children.length; i++) {
                     child = this.children[i];
-                    if (child.children) {
+                    if (child.isElement()) {
                         childHashes += String(child.tagID);
                         subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
                     } else {
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
             } else {
                 result += indent + "TEXT " + node.tagID + " " + node.content + "\n";
             }
-            if (node.children) {
+            if (node.isElement()) {
                 indent += "  ";
                 node.children.forEach(walk);
                 indent = indent.slice(2);

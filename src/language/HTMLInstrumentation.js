@@ -175,7 +175,7 @@ define(function (require, exports, module) {
      */
     function _markTags(cm, node) {
         node.children.forEach(function (childNode) {
-            if (childNode.children) {
+            if (childNode.isElement()) {
                 _markTags(cm, childNode);
             }
         });
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
             // Any remaining updateIDs are new.
             updateIDs.forEach(function (id) {
                 var node = nodeMap[id], mark;
-                if (node.children) {
+                if (node.isElement()) {
                     mark = cm.markText(node.startPos, node.endPos);
                     mark.tagID = Number(id);
                 }
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
             if (node.tagID) {
                 nodeMap[node.tagID] = node;
             }
-            if (node.children) {
+            if (node.isElement()) {
                 node.children.forEach(walk);
             }
         }
@@ -586,9 +586,9 @@ define(function (require, exports, module) {
                 // set parent
                 child.parent = elem;
                 
-                if (child.children) {
+                if (child.isElement()) {
                     _processElement(child);
-                } else if (child.content) {
+                } else if (child.isText()) {
                     child.update();
                     child.tagID = HTMLSimpleDOM.getTextNodeID(child);
                     
@@ -724,7 +724,7 @@ define(function (require, exports, module) {
                 lastIndex = insertIndex;
             }
             
-            if (node.children) {
+            if (node.isElement()) {
                 node.children.forEach(walk);
             }
         }
