@@ -120,6 +120,11 @@ define({
 	"BUTTON_REPLACE_ALL": "Tout\u2026",
 	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
+            
+	"BUTTON_NEXT": "[7150631] !é=\u25B6=!",
+	"BUTTON_PREV": "[7150633] !é=\u25C0=!",
+	"BUTTON_NEXT_HINT": "Correspondance suivante",
+	"BUTTON_PREV_HINT": "Correspondance précédente",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",

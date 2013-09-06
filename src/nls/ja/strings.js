@@ -120,6 +120,11 @@ define({
 	"BUTTON_REPLACE_ALL": "すべて\u2026",
 	"BUTTON_STOP": "終了",
 	"BUTTON_REPLACE": "置換",
+            
+	"BUTTON_NEXT": "!能=[7150631] \u25B6_=!",
+	"BUTTON_PREV": "!能=[7150633] \u25C0_=!",
+	"BUTTON_NEXT_HINT": "次の候補に移動",
+	"BUTTON_PREV_HINT": "前の候補に移動",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
