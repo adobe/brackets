@@ -68,30 +68,6 @@ define(function (require, exports, module) {
     var fileListPromise;
 
     /**
-     * Remembers the current document that was displayed when showDialog() was called.
-     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
-     * @type {?string} full path
-     */
-    var origDocPath;
-
-    /**
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
-     * item can change the selection; we restore this original selection if the user presses Escape. Null if
-     * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
-     */
-    var origSelection;
-    
-    /**
-     * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
-     * @type {?{x:number, y:number}}
-     */
-    var origScrollPos;
-
-    /** @type {boolean} */
-    var dialogOpen = false;
-    
-    /**
      * The currently open quick open dialog.
      */
     var _curDialog;
@@ -197,6 +173,13 @@ define(function (require, exports, module) {
     }
     
     /**
+     * True if the dialog is currently open.
+     * @type {boolean}
+     */
+    QuickNavigateDialog.prototype.isOpen = false;
+    
+    /**
+     * @private
      * Handles caching of filename search information for the lifetime of a 
      * QuickNavigateDialog (a single search until the dialog is dismissed)
      *
@@ -205,6 +188,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._filenameMatcher = null;
     
     /**
+     * @private
      * StringMatcher caches for each QuickOpen plugin that keep track of search
      * information for the lifetime of a QuickNavigateDialog (a single search
      * until the dialog is dismissed)
@@ -212,6 +196,39 @@ define(function (require, exports, module) {
      * @type {Object.<string, StringMatch.StringMatcher>}
      */
     QuickNavigateDialog.prototype._matchers = null;
+    
+    /**
+     * @private
+     * If the dialog is closing, this will contain a deferred that is resolved
+     * when it's done closing.
+     * @type {$.Deferred}
+     */
+    QuickNavigateDialog.prototype._closeDeferred = null;
+    
+
+    /**
+     * @private
+     * Remembers the current document that was displayed when showDialog() was called.
+     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
+     * @type {?string} full path
+     */
+    QuickNavigateDialog.prototype._origDocPath = null;
+
+    /**
+     * @private
+     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * item can change the selection; we restore this original selection if the user presses Escape. Null if
+     * no document was open when Quick Open was invoked.
+     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     */
+    QuickNavigateDialog.prototype._origSelection = null;
+    
+    /**
+     * @private
+     * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
+     * @type {?{x:number, y:number}}
+     */
+    QuickNavigateDialog.prototype._origScrollPos = null;
 
     function _filenameFromPath(path, includeExtension) {
         var end;
@@ -318,7 +335,7 @@ define(function (require, exports, module) {
         }
 
 
-        this._close();
+        this.close();
         EditorManager.focusEditor();
     };
 
@@ -367,17 +384,22 @@ define(function (require, exports, module) {
             var self = this;
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    self._close()
-                        .done(function () {
-                            // Restore original selection / scroll pos
-                            if (origSelection) {
-                                EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
-                                EditorManager.getCurrentFullEditor().setScrollPos(origScrollPos.x, origScrollPos.y);
-                            }
-                        });
+                    self.close();
                     
+                    // This is tricky. We want to restore the original selection, and we don't actually want to wait
+                    // until the modal bar has fully animated closed. However, we do need to wait until the next
+                    // event loop after ModalBar.close() has (synchronously) finished, because ModalBar.close() itself
+                    // tries to rescroll the editor (in order to restore the *apparent* scroll position that gets
+                    // changed when the ModalBar pushes the editor down). So we do this on yet another timeout.
+                    setTimeout(function () {
+                        // Restore original selection / scroll pos
+                        if (self._origSelection) {
+                            EditorManager.getCurrentFullEditor().setSelection(self._origSelection.start, self._origSelection.end);
+                            EditorManager.getCurrentFullEditor().setScrollPos(self._origScrollPos.x, self._origScrollPos.y);
+                        }
+                    }, 0);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
+                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
             }, 0);
             
@@ -431,11 +453,12 @@ define(function (require, exports, module) {
      * searching is done.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype._close = function () {
-        if (!dialogOpen) {
-            return new $.Deferred().reject();
+    QuickNavigateDialog.prototype.close = function () {
+        if (!this.isOpen) {
+            return this._closeDeferred.promise();
         }
-        dialogOpen = false;
+        this.isOpen = false;
+        this._closeDeferred = new $.Deferred();
 
         var i;
         for (i = 0; i < plugins.length; i++) {
@@ -448,21 +471,21 @@ define(function (require, exports, module) {
         this.$searchField.trigger("lostFocus");
         
         // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
-        // (because it's a later handler of the event that just triggered _close()), and that code expects to
+        // (because it's a later handler of the event that just triggered close()), and that code expects to
         // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
         // So we wait until after this call chain is complete before actually closing the dialog.
-        var result = new $.Deferred();
         var self = this;
         setTimeout(function () {
-            self.modalBar.close();
-            result.resolve();
+            self.modalBar.close().done(function () {
+                self._closeDeferred.resolve();
+            });
         }, 0);
         
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this._handleDocumentMouseDown);
         
-        return result.promise();
+        return this._closeDeferred.promise();
     };
     
     /**
@@ -719,7 +742,7 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            this._close();
+            this.close();
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
             // blocked to prevent focus from leaving the search field.
@@ -734,17 +757,17 @@ define(function (require, exports, module) {
      * Close the dialog when it loses focus.
      */
     QuickNavigateDialog.prototype._handleBlur = function (e) {
-        this._close();
+        this.close();
     };
 
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
-        if (dialogOpen) {
+        if (this.isOpen) {
             return;
         }
-        dialogOpen = true;
+        this.isOpen = true;
 
         // Global listener to hide search bar & popup
         $(window.document).on("mousedown", this._handleDocumentMouseDown);
@@ -752,13 +775,13 @@ define(function (require, exports, module) {
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
-        origDocPath = curDoc ? curDoc.file.fullPath : null;
+        this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            origSelection = EditorManager.getCurrentFullEditor().getSelection();
-            origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
+            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            origSelection = null;
-            origScrollPos = null;
+            this._origSelection = null;
+            this._origScrollPos = null;
         }
 
         // Show the search bar ("dialog")
@@ -818,11 +841,19 @@ define(function (require, exports, module) {
      * @param {?string} initialString
      */
     function beginSearch(prefix, initialString) {
-        if (dialogOpen) {
-            _curDialog.setSearchFieldValue(prefix, initialString);
-        } else {
+        function createDialog() {
             _curDialog = new QuickNavigateDialog();
             _curDialog.showDialog(prefix, initialString);
+        }
+
+        if (_curDialog && _curDialog.isOpen) {
+            _curDialog.setSearchFieldValue(prefix, initialString);
+        } else {
+            if (_curDialog) {
+                _curDialog.close().done(createDialog);
+            } else {
+                createDialog();
+            }
         }
     }
 

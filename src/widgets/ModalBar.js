@@ -118,11 +118,14 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Closes the modal bar and returns focus to the active editor.
+     * Closes the modal bar and returns focus to the active editor. Returns a promise that is
+     * resolved when the bar is fully closed and the container is removed from the DOM.
+     * @return {$.Promise} promise resolved when close is finished
      */
     ModalBar.prototype.close = function () {
         // Store our height before closing, while we can still measure it
-        var barHeight = this.height();
+        var result = new $.Deferred(),
+            barHeight = this.height();
 
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
@@ -131,6 +134,7 @@ define(function (require, exports, module) {
         var self = this;
         this._$root.addClass("modal-bar-hide").one("webkitTransitionEnd", function () {
             self._$root.remove();
+            result.resolve();
         });
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
@@ -145,6 +149,8 @@ define(function (require, exports, module) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
         EditorManager.focusEditor();
+        
+        return result.promise();
     };
     
     /**
