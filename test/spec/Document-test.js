@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, jasmine, describe, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone */
+/*global define, $, jasmine, describe, beforeFirst, afterLast, afterEach, it, runs, waitsFor, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,11 +40,13 @@ define(function (require, exports, module) {
         this.category = "integration";
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/Document-test-files"),
-            testWindow;
+            testWindow,
+            $;
 
-        beforeEach(function () {
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
+                $ = testWindow.$;
 
                 // Load module instances from brackets.test
                 CommandManager      = testWindow.brackets.test.CommandManager;
@@ -56,13 +58,17 @@ define(function (require, exports, module) {
             });
         });
 
-        afterEach(function () {
+        afterLast(function () {
             testWindow      = null;
             CommandManager  = null;
             Commands        = null;
             EditorManager   = null;
             DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
+        });
+
+        afterEach(function () {
+            testWindow.closeAllFiles();
         });
         
         var JS_FILE   = testPath + "/test.js",
@@ -71,11 +77,7 @@ define(function (require, exports, module) {
 
 
         describe("Dirty flag and undo", function () {
-            var $, promise, doc;
-            
-            beforeEach(function () {
-                $ = testWindow.$;
-            });
+            var promise, doc;
             
             it("should not fire dirtyFlagChange when created", function () {
                 var dirtyFlagListener = jasmine.createSpy();
