@@ -345,7 +345,7 @@ define(function (require, exports, module) {
                     // ... color match is past cursor -- stop looping
                     break;
                 }
-            } else if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+            } else if (pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
                 
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                 if (pos.ch < urlMatch.index) {
                     // match is past cursor, so stop looping
                     break;
-                } else if (pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
+                } else if (pos.ch <= urlMatch.index + urlMatch[0].length) {
                     tokenString = urlMatch[1];
                     break;
                 }
@@ -584,8 +584,9 @@ define(function (require, exports, module) {
         
         if (editor && editor._codeMirror) {
             // Find char mouse is over
-            var cm = editor._codeMirror;
-            var pos = cm.coordsChar({left: event.clientX, top: event.clientY});
+            var cm = editor._codeMirror,
+                pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
+                showImmediately = false;
             
             if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
                 return;  // bail if mouse is on same char as last event
@@ -600,18 +601,22 @@ define(function (require, exports, module) {
                     return;
                 } else {
                     // That one doesn't cover this pos - hide it and start anew
+                    showImmediately = popoverState.visible;
                     hidePreview();
                 }
             }
             
             // Initialize popoverState
             popoverState = {};
-            popoverState.hoverTimer = window.setTimeout(function () {
-                // Ready to scan and show now (we'll never get here if mouse movement rendered
-                // this popover inapplicable first - hidePreview() cancels hoverTimer)
+            if (showImmediately) {
                 showPreview(editor, null);
-            }, HOVER_DELAY);
-            
+            } else {
+                popoverState.hoverTimer = window.setTimeout(function () {
+                    // Ready to scan and show now (we'll never get here if mouse movement rendered
+                    // this popover inapplicable first - hidePreview() cancels hoverTimer)
+                    showPreview(editor, null);
+                }, HOVER_DELAY);
+            }
         } else {
             // Mouse not over any Editor - immediately hide popover
             hidePreview();
