@@ -249,7 +249,25 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
+    function _handleCursorActivity(jqEvent, editor, event) {
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
+        if (editor.hasSelection()) {
+            if (editor._codeMirror.getOption("styleActiveLine")) {
+                editor._codeMirror.setOption("styleActiveLine", false);
+            }
+        } else {
+            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
+        }
+    }
+    
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
@@ -362,7 +380,9 @@ define(function (require, exports, module) {
             lineNumbers: _showLineNumbers,
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
+            coverGutterNextToScrollbar: true,
             matchBrackets: true,
+            matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
@@ -381,6 +401,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
+            .on("cursorActivity", _handleCursorActivity)
             .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
@@ -756,6 +777,15 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor();
         }
+    };
+    
+    /**
+     * Set the editor size in pixels or percentage
+     * @param {(number|string)} width
+     * @param {(number|string)} height
+     */
+    Editor.prototype.setSize = function (width, height) {
+        this._codeMirror.setSize(width, height);
     };
     
     var CENTERING_MARGIN = 0.15;
@@ -1458,6 +1488,14 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            
+            // If there is a selection in the editor, temporarily hide Active Line Highlight
+            if ((cmOption === "styleActiveLine") && (value === true)) {
+                if (editor.hasSelection()) {
+                    editor._codeMirror.setOption("styleActiveLine", false);
+                }
+            }
+            
             $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }

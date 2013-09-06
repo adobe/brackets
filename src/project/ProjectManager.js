@@ -32,7 +32,9 @@
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after  _projectRoot changes
+ *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectRefresh     -- when project tree is re-rendered for a reason other than 
+ *                            a project being opened (e.g. from the Refresh command)
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
  *
@@ -186,7 +188,7 @@ define(function (require, exports, module) {
             }
 
             // reposition the selection triangle
-            $projectTreeContainer.triggerHandler("scroll");
+            $projectTreeContainer.triggerHandler("selectionRedraw");
             
             // in-lieu of resize events, manually trigger contentChanged for every
             // FileViewController focus change. This event triggers scroll shadows
@@ -920,11 +922,12 @@ define(function (require, exports, module) {
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                             $.when.apply($, promises).then(result.resolve, result.reject);
                         } else {
+                            $(exports).triggerHandler("projectRefresh", _projectRoot);
                             result.resolve();
                         }
                     });
                     resultRenderTree.fail(function () {
-                        PerfUtils.terminateMeasurement(perfTimerName);
+                        PerfUtils.finalizeMeasurement(perfTimerName);
                         result.reject();
                     });
                     resultRenderTree.always(function () {
@@ -1546,9 +1549,15 @@ define(function (require, exports, module) {
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
-
+        
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
+        });
+        
+        $(".main-view").click(function (jqEvent) {
+            if (jqEvent.target.className !== "jstree-rename-input") {
+                forceFinishRename();
+            }
         });
     });
 
@@ -1568,7 +1577,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
-
+    
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;

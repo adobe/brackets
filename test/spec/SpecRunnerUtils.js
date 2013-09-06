@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
+        EDITOR_USE_TABS         = false,
+        EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
@@ -47,6 +49,78 @@ define(function (require, exports, module) {
         _testWindow,
         _doLoadExtensions,
         nfs;
+    
+    
+    /**
+     * @param {string} fullPath
+     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
+     */
+    function deletePath(fullPath, silent) {
+        var result = new $.Deferred();
+        brackets.fs.unlink(fullPath, function (err) {
+            if (err) {
+                if (!silent) {
+                    console.error("unable to remove " + fullPath + " Error code " + err);
+                }
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+
+        return result.promise();
+    }
+    
+    
+    /**
+     * Set permissions on a path
+     * @param {!string} path Path to change permissions on
+     * @param {!string} mode New mode as an octal string
+     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
+     */
+    function chmod(path, mode) {
+        var deferred = new $.Deferred();
+
+        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    }
+    
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+        
     
     /**
      * Resolves a path string to a FileEntry or DirectoryEntry
@@ -69,6 +143,40 @@ define(function (require, exports, module) {
         
         return deferred.promise();
     }
+    
+    
+    /**
+     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForDone = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "resolved";
+        }, "success " + operationName, timeout);
+    };
+
+    
+
+    /**
+     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForFail = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "rejected";
+        }, "failure " + operationName, timeout);
+    };
+        
     
     /**
      * Get or create a NativeFileSystem rooted at the system root.
@@ -125,6 +233,22 @@ define(function (require, exports, module) {
         waitsForDone(deferred, "Create temp directory", 500);
     }
     
+    function removeTempDirectory() {
+        var baseDir = getTempDirectory();
+        
+        // Restore directory permissions before (otherwise the deletePath may fail)
+        // We need to make sure everything is read/write before we delete it or we won't
+        //  be able to delete the folder.  Ideally we should traverse the directory and 
+        //  change the mode for every file / directory we encounter but, for now,
+        //  since we only have these two folders which we make read / write only
+        //  just chmod these two folder.  This is a MAC only issue.
+        // TODO: Traverse baseDir and chmod everything before we delete.
+        waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
+        waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
+        // Remove the test data and anything else left behind from tests
+        waitsForDone(deletePath(baseDir, true), "delete temp files");
+    }
+    
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
         path = path.split("/");
@@ -132,37 +256,7 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
-    
-    /**
-     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
-     * the runs() that generates the promise.
-     * @param {$.Promise} promise
-     * @param {string} operationName  Name used for timeout error message
-     */
-    window.waitsForDone = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
-        expect(promise).toBeTruthy();
-        waitsFor(function () {
-            return promise.state() === "resolved";
-        }, "success " + operationName, timeout);
-    };
-    
-    /**
-     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
-     * the runs() that generates the promise.
-     * @param {$.Promise} promise
-     * @param {string} operationName  Name used for timeout error message
-     */
-    window.waitsForFail = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
-        expect(promise).toBeTruthy();
-        waitsFor(function () {
-            return promise.state() === "rejected";
-        }, "failure " + operationName, timeout);
-    };
-    
+
     /**
      * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
      * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
@@ -262,6 +356,8 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
         EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
@@ -364,10 +460,10 @@ define(function (require, exports, module) {
                     var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
                     waitsForDone(promise, "Close all open files in working set");
                     
-                    var $dlg = _testWindow.$(".modal.instance");
-                    if ($dlg.length) {
-                        clickDialogButton("dontsave");
-                    }
+                    _testWindow.brackets.test.Dialogs.cancelModalDialogIfOpen(
+                        _testWindow.brackets.test.DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        _testWindow.brackets.test.DefaultDialogs.DIALOG_BTN_DONTSAVE
+                    );
                 });
             };
         });
@@ -787,24 +883,6 @@ define(function (require, exports, module) {
         
         return _testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
-    
-    /**
-     * @param {string} fullPath
-     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
-     */
-    function deletePath(fullPath) {
-        var result = new $.Deferred();
-        brackets.fs.unlink(fullPath, function (err) {
-            if (err) {
-                console.error(err);
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-
-        return result.promise();
-    }
 
     /**
      * Simulate key event. Found this code here:
@@ -886,55 +964,7 @@ define(function (require, exports, module) {
         return message;
     }
 
-    /**
-     * Set permissions on a path
-     * @param {!string} path Path to change permissions on
-     * @param {!string} mode New mode as an octal string
-     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
-     */
-    function chmod(path, mode) {
-        var deferred = new $.Deferred();
-
-        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
-            if (err) {
-                deferred.reject(err);
-            } else {
-                deferred.resolve();
-            }
-        });
-
-        return deferred.promise();
-    }
-    
-    /**
-     * Remove a directory (recursively) or file
-     *
-     * @param {!string} path Path to remove
-     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
-     */
-    function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
-    }
-    
+   
     /**
      * Searches the DOM tree for text containing the given content. Useful for verifying
      * that data you expect to show up in the UI somewhere is actually there.
@@ -1034,6 +1064,22 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Returns an array with the parent suites of the current spec with the top most suite last
+     * @return {Array.<jasmine.Suite>}
+     */
+    function _getParentSuites() {
+        var suite  = jasmine.getEnv().currentSpec.suite,
+            suites = [];
+        
+        while (suite) {
+            suites.push(suite);
+            suite = suite.parentSuite;
+        }
+        return suites;
+    }
+
+    /**
+     * @private
      * Calls each function in the given array of functions
      * @param {Array.<function>} functions
      */
@@ -1045,30 +1091,29 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Calls the before first functions for the parent suites of the current spec when is the first spec of each suite.
+     * Calls the before first functions for the parent suites of the current spec when is the first spec of the suite.
      */
     function runBeforeFirst() {
-        var suite = jasmine.getEnv().currentSpec.suite;
+        var suites = _getParentSuites().reverse();
         
-        // Iterate throught all the parent suites of the current spec
-        while (suite) {
+        // Iterate through all the parent suites of the current spec
+        suites.forEach(function (suite) {
             // If we have functions for this suite and it was never called, initialize the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter === null) {
                 _callFunctions(_testSuites[suite.id].beforeFirst);
                 _testSuites[suite.id].specCounter = countSpecs(suite);
             }
-            suite = suite.parentSuite;
-        }
+        });
     }
     
     /**
-     * Calls the after last functions for the parent suites of the current spec when is the last spec of each suite.
+     * Calls the after last functions for the parent suites of the current spec when is the last spec of the suite.
      */
     function runAfterLast() {
-        var suite = jasmine.getEnv().currentSpec.suite;
+        var suites = _getParentSuites();
         
         // Iterate throught all the parent suites of the current spec
-        while (suite) {
+        suites.forEach(function (suite) {
             // If we have functions for this suite, reduce the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
                 _testSuites[suite.id].specCounter--;
@@ -1079,8 +1124,7 @@ define(function (require, exports, module) {
                     delete _testSuites[suite.id];
                 }
             }
-            suite = suite.parentSuite;
-        }
+        });
     }
     
     
@@ -1120,8 +1164,10 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
-    
+    exports.TEST_PREFERENCES_KEY            = TEST_PREFERENCES_KEY;
+    exports.EDITOR_USE_TABS                 = EDITOR_USE_TABS;
+    exports.EDITOR_SPACE_UNITS              = EDITOR_SPACE_UNITS;
+
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
@@ -1157,4 +1203,5 @@ define(function (require, exports, module) {
     exports.countSpecs                      = countSpecs;
     exports.runBeforeFirst                  = runBeforeFirst;
     exports.runAfterLast                    = runAfterLast;
+    exports.removeTempDirectory             = removeTempDirectory;
 });

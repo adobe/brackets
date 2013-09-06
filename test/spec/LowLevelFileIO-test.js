@@ -102,15 +102,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            runs(function () {
-                // Restore directory permissions
-                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
-                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
-            });
-            runs(function () {
-                // Remove the test data and anything else left behind from tests
-                waitsForDone(SpecRunnerUtils.deletePath(baseDir), "delete temp files");
-            });
+            SpecRunnerUtils.removeTempDirectory();
         });
 
         it("should have a brackets.fs namespace", function () {
@@ -731,6 +723,91 @@ define(function (require, exports, module) {
                 }
             });
             // TODO: More testing of error cases? 
+        });
+        
+        describe("copyFile", function () {
+            var error, complete;
+            
+            it("should copy a file", function () {
+                var fileName     = baseDir + "/file_one.txt",
+                    copyName     = baseDir + "/file_one_copy.txt",
+                    copyCB       = errSpy(),
+                    unlinkCB     = errSpy(),
+                    statCB       = statSpy();
+                
+                complete = false;
+                
+                // Verify new file does not exist
+                runs(function () {
+                    brackets.fs.stat(copyName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+                
+                // make the copy
+                runs(function () {
+                    brackets.fs.copyFile(fileName, copyName, copyCB);
+                });
+                
+                waitsFor(function () { return copyCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(copyCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify new file is found 
+                runs(function () {
+                    statCB = statSpy();
+                    brackets.fs.stat(copyName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+
+                // Verify the origin file still exists
+                runs(function () {
+                    statCB = statSpy();
+                    brackets.fs.stat(fileName, statCB);
+                });
+                
+                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Delete the copy
+                runs(function () {
+                    brackets.fs.unlink(copyName, unlinkCB);
+                });
+                
+                waitsFor(function () { return unlinkCB.wasCalled; }, 1000);
+                
+                runs(function () {
+                    expect(unlinkCB.error).toBe(brackets.fs.NO_ERROR);
+                });
+                    
+            });
+        });
+        
+        describe("specialDirectories", function () {
+            it("should have an application support directory", function () {
+                runs(function () {
+                    expect(brackets.app.getApplicationSupportDirectory().length).toNotBe(0);
+                });
+            });
+            it("should have a user documents directory", function () {
+                runs(function () {
+                    expect(brackets.app.getUserDocumentsDirectory().length).toNotBe(0);
+                });
+            });
         });
         
         describe("moveToTrash", function () {

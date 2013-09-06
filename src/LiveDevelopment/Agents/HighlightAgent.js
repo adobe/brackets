@@ -39,7 +39,7 @@ define(function HighlightAgent(require, exports, module) {
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent");
 
-    var _highlight; // active highlight
+    var _highlight = {}; // active highlight
 
     // Remote Event: Highlight
     function _onRemoteHighlight(event, res) {
@@ -99,7 +99,7 @@ define(function HighlightAgent(require, exports, module) {
      * @param {string} rule selector
      */
     function rule(name) {
-        if (_highlight && (_highlight.ref === name)) {
+        if (_highlight.ref === name) {
             return;
         }
         hide();
@@ -124,7 +124,6 @@ define(function HighlightAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _highlight = {};
         if (LiveDevelopment.config.experimental) {
             $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
         }

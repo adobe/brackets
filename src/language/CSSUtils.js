@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
@@ -48,6 +48,11 @@ define(function (require, exports, module) {
         PROP_VALUE = "prop.value",
         IMPORT_URL = "import.url";
 
+    var RESERVED_FLOW_NAMES = ["content", "element"],
+        INVALID_FLOW_NAMES = ["none", "inherit", "default", "auto", "initial"],
+        IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
+    
+    
     /**
      * @private
      * Checks if the current cursor position is inside the property name context
@@ -68,7 +73,7 @@ define(function (require, exports, module) {
         }
         
         lastToken = state.stack[state.stack.length - 1];
-        return (lastToken === "{" || lastToken === "rule");
+        return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
     /**
@@ -89,7 +94,9 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "propertyValue" && state.stack[state.stack.length - 2] === "rule");
+        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
+                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
+                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
     }
     
     /**
@@ -445,7 +452,7 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
             return createInfo();
         }
 
@@ -501,7 +508,7 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-     * @param text {!String} CSS text to extract from
+     * @param text {!string} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text) {
@@ -851,8 +858,8 @@ define(function (require, exports, module) {
      * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
      * we know the selector applies.
      *
-     * @param text {!String} CSS text to search
-     * @param selector {!String} selector to search for
+     * @param text {!string} CSS text to search
+     * @param selector {!string} selector to search for
      * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
      *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
      *      matched selector.
@@ -984,7 +991,7 @@ define(function (require, exports, module) {
      *  div .foo .bar {}
      *  .foo.bar {}
      *
-     * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @param {!string} selector The selector to match. This can be a tag selector, class selector or id selector
      * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
@@ -1115,10 +1122,71 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    /**
+     * removes CSS comments from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeComments(content) {
+        return content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, "");
+    }
+    
+    /**
+     * removes strings from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeStrings(content) {
+        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+    }
+    
+    /**
+     * Reduces the style sheet by removing comments and strings 
+     * so that the content can be parsed using a regular expression
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function reduceStyleSheetForRegExParsing(content) {
+        return _removeStrings(_removeComments(content));
+    }
+    
+    /**
+     * Extracts all named flow instances
+     * @param {!string} text to extract from
+     * @return {Array.<string>} array of unique flow names found in the content (empty if none)
+     */
+    function extractAllNamedFlows(text) {
+        var namedFlowRegEx = /(?:flow\-(into|from)\:\s*)([\w\-]+)(?:\s*;)/gi,
+            result = [],
+            names = {},
+            thisMatch;
+        
+        // Reduce the content so that matches 
+        // inside strings and comments are ignored 
+        text = reduceStyleSheetForRegExParsing(text);
+
+        // Find the first match
+        thisMatch = namedFlowRegEx.exec(text);
+        
+        // Iterate over the matches and add them to result
+        while (thisMatch) {
+            var thisName = thisMatch[2];
+            
+            if (IGNORED_FLOW_NAMES.indexOf(thisName) === -1 && !names.hasOwnProperty(thisName)) {
+                names[thisName] = result.push(thisName);
+            }
+            thisMatch = namedFlowRegEx.exec(text);
+        }
+        
+        return result;
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+    exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
