@@ -633,9 +633,10 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
                 
                 waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC) &&
-                        (DOMAgent.root);
-                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC ||
+                            LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE) &&
+                            (DOMAgent.root);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC or STATUS_ACTIVE and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
                 // Verify that we get the modified text in memory and not the original text on disk.
