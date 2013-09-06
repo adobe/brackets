@@ -69,6 +69,10 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             testWindow.closeAllFiles();
+
+            runs(function () {
+                expect(DocumentManager.getAllOpenDocuments().length).toBe(0);
+            });
         });
         
         var JS_FILE   = testPath + "/test.js",
