@@ -164,7 +164,7 @@ define(function (require, exports, module) {
         
                         $selectedRow  = $(e.target).closest("tr");
                         $selectedRow.addClass("selected");
-                        var lineTd    = $selectedRow.find("td.line");
+                        var lineTd    = $selectedRow.find(".line-number");
                         var line      = lineTd.text();
                         var character = lineTd.data("character");
         
