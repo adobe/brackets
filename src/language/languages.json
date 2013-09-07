@@ -28,7 +28,7 @@
     "scss": {
         "name": "SCSS",
         "mode": ["css", "text/x-scss"],
-        "fileExtensions": ["scss"],
+        "fileExtensions": ["scss", "scss.erb"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -47,12 +47,26 @@
         "blockComment": ["<!--", "-->"]
     },
 
+    "erb_html": {
+        "name": "Embedded Ruby",
+        "mode": ["htmlembedded", "application/x-erb"],
+        "fileExtensions": ["erb", "html.erb", "htm.erb"],
+        "blockComment": ["<!--", "-->"]
+    },
+
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx"],
+        "fileExtensions": ["js", "jsx", "js.erb"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
+    },
+
+    "vbscript": {
+        "name": "VBScript",
+        "mode": "vbscript",
+        "fileExtensions": ["vbs"],
+        "lineComment": ["'", "REM"]
     },
 
     "json": {

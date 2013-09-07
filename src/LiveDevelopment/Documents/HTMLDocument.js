@@ -129,15 +129,9 @@ define(function HTMLDocumentModule(require, exports, module) {
 
         $(this.editor).off("change", this.onChange);
     };
-
-
-    /** Event Handlers *******************************************************/
-
-    /** Triggered on cursor activity by the editor */
-    HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
-        if (!this.editor) {
-            return;
-        }
+    
+    /** Update the highlight */
+    HTMLDocument.prototype.updateHighlight = function () {
         var codeMirror = this.editor._codeMirror;
         if (Inspector.config.highlight) {
             var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
@@ -151,6 +145,16 @@ define(function HTMLDocumentModule(require, exports, module) {
                 HighlightAgent.domElement(tagID);
             }
         }
+    };
+
+    /** Event Handlers *******************************************************/
+
+    /** Triggered on cursor activity by the editor */
+    HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        if (!this.editor) {
+            return;
+        }
+        this.updateHighlight();
     };
     
     /**
@@ -201,7 +205,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
         // Make sure LiveHTML is turned on
-        if (!brackets.livehtml) {
+        if (!brackets.livehtml || !this._instrumentationEnabled) {
             return;
         }
 
