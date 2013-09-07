@@ -119,6 +119,7 @@ define({
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
     "BUTTON_ALL"                        : "Alle",
+    "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
 
