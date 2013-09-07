@@ -1200,7 +1200,6 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(null,                           Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
@@ -1208,13 +1207,15 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(null,                           Commands.APP_ABORT_QUIT, _handleAbortQuit);
-    CommandManager.register(null,                           Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
-    
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    
+    // Those commands have no UI representation, and are only used internally 
+    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);
+    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,  _handleBeforeMenuPopup);
+    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,     handleFileCloseWindow);
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
