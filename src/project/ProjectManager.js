@@ -1559,6 +1559,10 @@ define(function (require, exports, module) {
                 forceFinishRename();
             }
         });
+        
+        $projectTreeContainer.on("contextmenu", function () {
+            forceFinishRename();
+        });
     });
 
     // Init PreferenceStorage
