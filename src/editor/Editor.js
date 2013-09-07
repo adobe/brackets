@@ -249,7 +249,25 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
+    function _handleCursorActivity(jqEvent, editor, event) {
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
+        if (editor.hasSelection()) {
+            if (editor._codeMirror.getOption("styleActiveLine")) {
+                editor._codeMirror.setOption("styleActiveLine", false);
+            }
+        } else {
+            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
+        }
+    }
+    
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
@@ -362,7 +380,9 @@ define(function (require, exports, module) {
             lineNumbers: _showLineNumbers,
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
+            coverGutterNextToScrollbar: true,
             matchBrackets: true,
+            matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
@@ -381,6 +401,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
+            .on("cursorActivity", _handleCursorActivity)
             .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
@@ -705,7 +726,7 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
-     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
      * @return !{line:number, ch:number}
      */
@@ -713,36 +734,58 @@ define(function (require, exports, module) {
         var cursor = this._codeMirror.getCursor();
         
         if (expandTabs) {
-            var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
-                tabSize = Editor.getTabSize(),
-                column  = 0,
-                i;
-
-            for (i = 0; i < line.length; i++) {
-                if (line[i] === '\t') {
-                    column += (tabSize - (column % tabSize));
-                } else {
-                    column++;
-                }
-            }
-            
-            cursor.ch = column;
+            cursor.ch = this.getColOffset(cursor);
         }
-        
         return cursor;
     };
     
     /**
-     * Sets the cursor position within the editor. Removes any selection.
-     * @param {number} line The 0 based line number.
-     * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
-     * @param {boolean} center  true if the view should be centered on the new cursor position
+     * Returns the display column (zero-based) for a given string-based pos. Differs from pos.ch only
+     * when the line contains preceding \t chars. Result depends on the current tab size setting.
+     * @param {!{line:number, ch:number}} pos
+     * @return {number}
      */
-    Editor.prototype.setCursorPos = function (line, ch, center) {
+    Editor.prototype.getColOffset = function (pos) {
+        var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
+            tabSize = Editor.getTabSize(),
+            column  = 0,
+            i;
+
+        for (i = 0; i < line.length; i++) {
+            if (line[i] === '\t') {
+                column += (tabSize - (column % tabSize));
+            } else {
+                column++;
+            }
+        }
+        return column;
+    };
+    
+    /**
+     * Sets the cursor position within the editor. Removes any selection.
+     * @param {number} line  The 0 based line number.
+     * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {boolean=} center  True if the view should be centered on the new cursor position.
+     * @param {boolean=} expandTabs  If true, use the actual visual column number instead of the character offset as
+     *      the "ch" parameter.
+     */
+    Editor.prototype.setCursorPos = function (line, ch, center, expandTabs) {
+        if (expandTabs) {
+            ch = this.getColOffset({line: line, ch: ch});
+        }
         this._codeMirror.setCursor(line, ch);
         if (center) {
             this.centerOnCursor();
         }
+    };
+    
+    /**
+     * Set the editor size in pixels or percentage
+     * @param {(number|string)} width
+     * @param {(number|string)} height
+     */
+    Editor.prototype.setSize = function (width, height) {
+        this._codeMirror.setSize(width, height);
     };
     
     var CENTERING_MARGIN = 0.15;
@@ -1445,6 +1488,14 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            
+            // If there is a selection in the editor, temporarily hide Active Line Highlight
+            if ((cmOption === "styleActiveLine") && (value === true)) {
+                if (editor.hasSelection()) {
+                    editor._codeMirror.setOption("styleActiveLine", false);
+                }
+            }
+            
             $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }

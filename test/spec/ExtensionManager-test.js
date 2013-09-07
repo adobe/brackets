@@ -811,7 +811,8 @@ define(function (require, exports, module) {
                    
                 });
                 
-                it("should open links in the native browser instead of in Brackets", function () {
+                // FORNOW: Disable - https://github.com/adobe/brackets/issues/5093
+                xit("should open links in the native browser instead of in Brackets", function () {
                     runs(function () {
                         mockRegistry = {
                             "basic-valid-extension": {
@@ -1131,6 +1132,7 @@ define(function (require, exports, module) {
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
+                            expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
                         });
                     });
@@ -1179,6 +1181,7 @@ define(function (require, exports, module) {
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
+                            expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
                             expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
                         });

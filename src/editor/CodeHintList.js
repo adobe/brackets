@@ -43,7 +43,7 @@ define(function (require, exports, module) {
      * @constructor
      * @param {Editor} editor
      */
-    function CodeHintList(editor) {
+    function CodeHintList(editor, insertHintOnTab) {
 
         /**
          * The list of hints to display
@@ -79,6 +79,13 @@ define(function (require, exports, module) {
          * @type {Editor}
          */
         this.editor = editor;
+        
+        /**
+         * Whether the currently selected hint should be inserted on a tab key event
+         *
+         * @type {boolean}
+         */
+        this.insertHintOnTab = insertHintOnTab;
 
         /**
          * The hint selection callback function
@@ -276,8 +283,8 @@ define(function (require, exports, module) {
     CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
-                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB);
-        
+                keyCode === KeyEvent.DOM_VK_RETURN ||
+                (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
 
     /**
@@ -368,7 +375,8 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                 _rotateSelection.call(this, _itemsPerPage());
             } else if (this.selectedIndex !== -1 &&
-                    (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
+                    (keyCode === KeyEvent.DOM_VK_RETURN ||
+                    (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
@@ -434,6 +442,7 @@ define(function (require, exports, module) {
      *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
+        this.$hintMenu.addClass("apply-transition");
         this._buildListView(hintObj);
 
         // Update the CodeHintList location

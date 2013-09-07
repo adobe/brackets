@@ -148,11 +148,6 @@ define(function (require, exports, module) {
         // UI event handlers
         this.$el
             .on("click", "a", function (e) {
-                // Never allow the default behavior for links--we don't want
-                // them to navigate out of Brackets!
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                
                 var $target = $(e.target);
                 if ($target.hasClass("undo-remove")) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), false);
@@ -160,9 +155,6 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
-                } else {
-                    // Open any other link in the external browser.
-                    NativeApp.openURLInDefaultBrowser($target.attr("href"));
                 }
             })
             .on("click", "button.install", function (e) {

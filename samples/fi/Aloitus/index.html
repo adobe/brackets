@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>BRACKETS-ALOITUSOPAS</title>
+        <meta name="description" content="Interaktiivinen aloitusopas Brackets-sovellukselle.">
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+
+        <h1>BRACKETS-ALOITUSOPAS</h1>
+        <h2>Tämä on oppaasi!</h2>
+        
+        <!--
+            TEHTY <3:LLA JA JAVASCRIPTILLA
+        -->
+        
+        <p>
+            Tervetuloa varhaiseen Brackets-sovelluksen esiversioon, uuteen avoimen lähdekoodin editoriin seuraavan
+            web-sukupolven puolesta. Olemme suuria standardien faneja ja haluamme rakentaa paremmat työkalut
+            JavaScriptille, HTML:lle ja CSS:lle sekä niihin liittyville avoimille web-tekniikoille. Tämä on nöyrä
+            alkumme.
+        </p>
+        
+        <!--
+            MIKÄ ON BRACKETS?
+        -->
+        <p>
+            <em>Brackets on erityyppinen editori.</em>
+            Yksi huomattava ero on se, että tämä editori on kirjoitettu JavaScriptilla, HTML:llä ja CSS:llä. Tämä
+            tarkoittaa, että useimmilla Brackets-sovelluksen käyttäjillä on on välttämättömät taidot muokata ja
+            laajentaa editoria. Itse asiassa käytämme Bracketsia joka päivä Brackets’n rakentamiseen. Siinä on myös
+            joitakin ainutlaatuisia ominaisuuksia, kuten pikamuokkaus, reaaliaikainen esikatselu ja muita, joita et
+            voi löytää toisista editoreista. Oppiaksesi lisää, kuinka käyttää näitä ominaisuuksia, jatka lukemista.
+        </p>
+        
+        
+        <h2>Kokeilemme muutamia uusia asioita</h2>
+        
+        <!--
+            HTML:N, CSS:N JA JAVASCRIPTIN VÄLINEN SUHDE
+        -->
+        <h3>Pikamuokkaus CSS:lle ja JavaScriptille</h3>
+        <p>
+            Ei lisää dokumenttien välillä vaihtamista ja tietojen menetyksiä. Kun muokkaat HTML:ää, käytä
+            <kbd>Cmd/Ctrl + E</kbd> -pikanäppäintä avataksesi nopean sisäeditorin, joka näyttää kaiken tiedostoon
+            liittyvän CSS:n. Tee muokkaus CSS:ääsi, paina <kbd>ESC</kbd>-näppäintä ja olet takaisin editoimassa
+            HTML:ää, tai jätä vain CSS-säännöt auki ja ne tulevat osaksi HTML-editoriasi. Jos painat
+            <kbd>ESC</kbd>-näppäintä nopean sisäeditorin ulkopuolella, ne kaikki sulkeutuvat.
+        </p>
+        
+        <samp>
+            Haluatko nähdä sen toiminnassa? Aseta osoittimesi alla olevan <!-- <samp> --> -tagin päälle ja paina
+            <kbd>Cmd/Ctrl + E</kbd>. Sinun pitäisi nähdä CSS-pikaeditorin ilmestyvän alapuolelle. Oikealla näet
+            luettelon CSS-säännöistä, jotka liittyvät tähän tagiin. Yksinkertaisesti vieritä sääntöjä
+            <kbd>Alt + Up/Down</kbd> -pikanäppäimillä löytääksesi sen säännön, jota haluat muokata.
+        </samp>
+        
+        <a href="screenshots/quick-edit.png">
+            <img alt="Kuvankaappaus näyttää CSS:n pikamuokkauksen" src="screenshots/quick-edit.png" />
+        </a>
+        
+        <p>
+            Voit käyttää samaa oikotietä JavaScript-koodille näyttääksesi funktion vartalon asettamalla osoittimen
+            sen funktion nimen päälle, jota kutsut. Toistaiseksi sisäeditorit eivät voi olla sisäkkäin, joten voit
+            käyttää pikamuokkausta vain, kun osoitin on täyskokoisessa editorissa.
+        </p>
+        
+        <!--
+            ESIKATSELU
+        -->
+        <h3>Esikatsele CSS:n muutoksia reaaliaikaisesti selaimessa</h3>
+        <p>
+            Tiedätkö sen ”tallenna/päivitä-tanssin”, jota olemme tehneet vuosia? Se, missä tehdään muutoksia
+            editorissa, napsautetaan tallenna, vaihdetaan selaimeen ja sitten päivitetään nähdäksemme tulos?
+            Brackets-sovelluksessa sinun ei tarvitse harrastaa tätä tanssia.
+        </p>
+        <p>
+            Brackets avaa <em>reaaliaikaisen yhteyden</em> paikalliseen selaimeesi ja vie CSS:n päivitykset samalla
+            kun kirjoitat! Saatat jo olla tehnyt jotain tämän kaltaista selainpohjaisilla työkaluilla, mutta
+            Brackets’lla ei tarvitse kopioida ja liittää lopullista CSS:ää takaisin editoriin. Koodisi suoritetaan 
+            selaimessasi, mutta se sijaitsee editorissasi!
+        </p>
+        
+        <h3>Korosta HTML-elementtejä ja CSS-sääntöjä reaaliaikaisesti</h3>
+        <p>
+            Brackets tekee helpoksi nähdä, kuinka muutoksesi HTML:ssä ja CSS:ssä vaikuttavat sivuun. Kun
+            osoittimesi on CSS-säännön päällä, Brackets korostaa kaikki vaikuttavat elementit selaimessa. Samoin,
+            kun muokatessa HTML-tiedostoa, Brackets korostaa vastaavat HTML-elementit selaimessa.
+        </p>
+        
+        <samp>
+            Jos sinulla on Google Chrome asennettuna, voit kokeilla tätä itse. Napsauta salama-kuvaketta
+            Brackets-ikkunan oikeassa yläkulmassa tai napsauta <kbd>Cmd/Ctrl + Alt + P</kbd>. Kun esikatselu on
+            käytössä HTML-dokumentissa, kaikkia linkitettyjä CSS-dokumentteja voidaan muokata reaaliajassa. Kuvake
+            muuttuu harmaasta kultaiseksi, kun Brackets muodostaa yhteyden selaimeesi.
+            
+            Aseta osoittimesi nyt <!-- <img> --> -tagin yläpuolelle. Huomaa sininen korostus, joka ilmestyy kuvan
+            ympärille Chromessa. Käytä seuraavaksi <kbd>Cmd/Ctrl + E</kbd> -pikanäppäintä avataksesi määritellyt
+            säännöt. Yritä muuttaa kehyksen kokoa 1 pikselistä 10 pikseliin tai vaihda taustaväriä ”dimgray”:sta
+            ”hotpink”:iin. Jos sinulla on Brackets ja selaimesi suoritetaan rintarinnan sen kanssa, näet muutokset
+            välittömästi selaimessasi. Siistiä, eikö?
+        </samp>
+                
+        <p class="note">
+            Nykyisin Brackets tukee esikatselua vain CSS:lle. Kuitenkin nykyisessä versiossa muutokset HTML- ja
+            JavaScript-tiedostoihin päivitetään automaattisesti, kun tallennat tiedoston. Työskentelemme tällä
+            hetkellä tuodaksemme tuen HTML:lle ja JavaScriptille. Esikatselut ovat myös mahdollisia vain Google
+            Chromella, mutta toivomme saavamme tämän toiminnallisuuden kaikille merkittäville selaimille
+            tulevaisuudessa.
+        </p>
+                
+        <h3>Pikanäkymä</h3>
+        <p>
+            Niille meistä, joilla ei ole vielä muistissa värien vastineita HEX- tai RGB-arvoina, Brackets tekee
+            nopeaksi ja helpoksi nähdä täsmälleen, mitä väriä käyttää. Sekä CSS:ssä että HTML:ssä, yksinkertaisesti
+            osoita mitä tahansa väriarvoa tai gradienttia ja Brackets näyttää esikatselun tästä
+            väristä/gradientista automaattisesti. Sama tulee kuviin: yksinkertaisesti osoita kuvalinkkiä
+            Brackets-editorissa ja se näyttää esikatselussa tämän kuvan pikkukuvan.
+        </p>
+        
+        <samp>
+            Kokeillaksesi pikanäkymää itse aseta osoittimesi <!-- <body> --> -tagin päälle tämän dokumentin
+            yläosaan ja paina <kbd>Cmd/Ctrl + E</kbd> avataksesi CSS:n pikaeditorin. Nyt yksinkertaisesti osoita
+            mitä tahansa väriarvoista CSS:n sisällä. Voit myös nähdä sen toiminnassa gradienteissa avaamalla CSS:n
+            pikaeditorin <!-- <html> --> -tagilla ja osoittamalla mitä tahansa taustakuvan arvoista. Kokeillaksesi
+            kuvan esikatselua aseta osoittimesi kuvankaappauskuvan päälle, joka on aimemmin tässä asiakirjassa.
+        </samp>
+        
+        <!--
+            ANNA MEIDÄN TIETÄÄ, MITÄ MIELTÄ OLET
+        -->
+        <h2>Tule mukaan</h2>
+        <p>
+            Brackets on avoimen lähdekoodin projekti. Web-kehittäjät ympäri maailmaa osallistuvat paremman
+            koodieditorin rakentamiseen. Monet muut rakentavat laajennuksia, jotka laajentavat Brackets’n kykyjä.
+            Anna meidän tietää, mitä mieltä olet. Jaa ideasi tai osallistu suoraan projektiin.
+        </p>
+        <ul>
+            <li><a href="http://brackets.io">Brackets.io</a></li>
+            <li><a href="http://blog.brackets.io">Brackets-tiimin blogi</a></li>
+            <li><a href="http://github.com/adobe/brackets">Brackets GitHub’ssa</a></li>
+            <li><a href="https://github.com/adobe/brackets/wiki/Brackets-Extensions">Brackets-laajennukset</a></li>
+            <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
+            <li><a href="http://groups.google.com/group/brackets-dev">Brackets-kehittäjien postituslista</a></li>
+            <li><a href="https://twitter.com/#!/brackets">@Brackets Twitterissä</a></li>
+            <li>Chattaa Brackets-kehittäjien kanssa IRC:ssä #brackets’ssa Freenode-palvelussa</li>
+        </ul>
+
+    </body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[    CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+
+-->

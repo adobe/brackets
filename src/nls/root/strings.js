@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -86,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
@@ -103,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
@@ -110,10 +112,19 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 result",
+    "FIND_NO_RESULTS"                   : "No results",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
+    "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Replace",
+            
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Next Match",
+    "BUTTON_PREV_HINT"                  : "Previous Match",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
@@ -122,17 +133,23 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
-    
-    "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
+
+    "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" found",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
-    "FIND_IN_FILES_MORE_THAN"           : "More than ",
-    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_MORE_THAN"           : "Over ",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_LINE"                : "line: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
@@ -156,15 +173,29 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selected {0} column",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Spaces",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_SPACES"                      : "Spaces:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "SINGLE_ERROR"                          : "1 {0} Error",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
+    "NO_ERRORS"                             : "No {0} errors - good job!",
+    "LINT_DISABLED"                         : "Linting is disabled",
+    "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
+    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    
+    
     /**
      * Command Name Constants
      */
@@ -183,13 +214,12 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
-    "CMD_FILE_REFRESH"                    : "Refresh",
+    "CMD_FILE_REFRESH"                    : "Refresh File Tree",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -234,6 +264,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Line Numbers",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Highlight Active Line",
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
@@ -244,6 +276,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -273,11 +306,11 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
     "SAVE"                                 : "Save",
     "CANCEL"                               : "Cancel",
+    "DELETE"                               : "Delete",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
@@ -285,11 +318,11 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -386,6 +419,7 @@ define({
 
     "UNIT_PIXELS"                          : "pixels",
     
+    
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
@@ -404,13 +438,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
     "LOCALE_EN"                                 : "English",
     "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FI"                                 : "Finnish",
     "LOCALE_FR"                                 : "French",
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
@@ -435,18 +468,17 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
+    "NO_ARGUMENTS"                              : "<no parameters>",
     
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "Enable JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",
-    "JSLINT_ERRORS"                             : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    "JSLINT_NAME"                               : "JSLint",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"

@@ -1,31 +1,31 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
 /* Styles for jsTree control */
 /* (these are based on jsTree's default theme .css file, so they are not very LESS-like) */
 
-.jstree-brackets li, 
+.jstree-brackets li,
 .jstree-brackets ins { background-image:url("images/jsTreeSprites.svg"); background-repeat:no-repeat; background-color:transparent; }
 .jstree-brackets li { background-position:-90px 0; background-repeat:repeat-y; }
 .jstree-brackets li.jstree-last { background:transparent; }
@@ -49,7 +49,7 @@
     display: block;
 }
 
-.jstree li { 
+.jstree li {
     position: relative;
 }
 
@@ -60,9 +60,9 @@
         color: @project-panel-text-1;
         font-size: 13px;
         cursor: default;
-        
+
         &.jstree-clicked, &.jstree-clicked .extension {
-            color: @project-panel-text-1;
+            color: @open-working-file-name-highlight;
         }
     }
     .extension {
@@ -99,7 +99,7 @@ ins.jstree-icon {
 }
 
 // These styles control the expand/collapse arrow icons. Most other styles in this file with background-position are unused.
-.jstree-brackets .jstree-no-dots li, 
+.jstree-brackets .jstree-no-dots li,
 .jstree-brackets .jstree-no-dots .jstree-leaf > ins { background:transparent; }
 .jstree-brackets .jstree-no-dots .jstree-open > ins { background-position:-18px 0; }
 .jstree-brackets .jstree-no-dots .jstree-closed > ins { background-position:0 0; }
@@ -135,13 +135,13 @@ ins.jstree-icon {
     width: 150px;
 }
 
-#vakata-contextmenu.jstree-brackets-context, 
+#vakata-contextmenu.jstree-brackets-context,
 #vakata-contextmenu.jstree-brackets-context li ul { background:#f0f0f0; border:1px solid #979797; -moz-box-shadow: 1px 1px 2px #999; -webkit-box-shadow: 1px 1px 2px #999; box-shadow: 1px 1px 2px #999; }
 #vakata-contextmenu.jstree-brackets-context li { }
 #vakata-contextmenu.jstree-brackets-context a { color:black; }
-#vakata-contextmenu.jstree-brackets-context a:hover, 
+#vakata-contextmenu.jstree-brackets-context a:hover,
 #vakata-contextmenu.jstree-brackets-context .vakata-hover > a { padding:0 5px; background:#e8eff7; border:1px solid #aecff7; color:black; -moz-border-radius:2px; -webkit-border-radius:2px; border-radius:2px; }
-#vakata-contextmenu.jstree-brackets-context li.jstree-contextmenu-disabled a, 
+#vakata-contextmenu.jstree-brackets-context li.jstree-contextmenu-disabled a,
 #vakata-contextmenu.jstree-brackets-context li.jstree-contextmenu-disabled a:hover { color:silver; background:transparent; border:0; padding:1px 4px; }
 #vakata-contextmenu.jstree-brackets-context li.vakata-separator { background:white; border-top:1px solid #e0e0e0; margin:0; }
 #vakata-contextmenu.jstree-brackets-context li ul { margin-left:-4px; }
