@@ -2,9 +2,9 @@
     <tbody>
         {{#reportList}}
         <tr>
-            <td class="line-number" data-character="{{character}}">{{line}}</td>
-            <td>{{reason}}</td>
-            <td>{{evidence}}</td>
+            <td class="line-number" data-character="{{pos.ch}}">{{friendlyLine}}</td>
+            <td>{{message}}</td>
+            <td>{{codeSnippet}}</td>
         </tr>
         {{/reportList}}
     </tbody>

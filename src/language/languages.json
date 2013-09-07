@@ -28,7 +28,7 @@
     "scss": {
         "name": "SCSS",
         "mode": ["css", "text/x-scss"],
-        "fileExtensions": ["scss"],
+        "fileExtensions": ["scss", "scss.erb"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -47,10 +47,17 @@
         "blockComment": ["<!--", "-->"]
     },
 
+    "erb_html": {
+        "name": "Embedded Ruby",
+        "mode": ["htmlembedded", "application/x-erb"],
+        "fileExtensions": ["erb", "html.erb", "htm.erb"],
+        "blockComment": ["<!--", "-->"]
+    },
+
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx"],
+        "fileExtensions": ["js", "jsx", "js.erb"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },

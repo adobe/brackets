@@ -51,6 +51,10 @@
     background-image: url("down-arrow.svg");
 }
 
+#project-dropdown.dropdown-menu:focus {
+    outline: none;
+}
+
 /* TODO: style the dropdown content */
 #project-dropdown.dropdown-menu {
     position: absolute;
@@ -81,6 +85,9 @@
     color: #aaa;
 }
 
-#project-dropdown.dropdown-menu a:hover {
-    background: #E0F0FA;
+#project-dropdown.dropdown-menu a.selected {
+     background: #E0F0FA;
+}
+#project-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
 }
