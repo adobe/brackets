@@ -1095,9 +1095,9 @@ define(function (require, exports, module) {
             // Set up the widget to start closed, then animate open when its initial height is set.
             inlineWidget.$htmlContent
                 .height(0)
-                .addClass("animating")
+                .addClass("animating collapsed")
                 .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
+                    inlineWidget.$htmlContent.removeClass("animating collapsed expanded");
                     deferred.resolve();
                 });
 
@@ -1137,14 +1137,19 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            inlineWidget.$htmlContent.addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
-                    self._codeMirror.removeLineWidget(inlineWidget.info);
-                    self._removeInlineWidgetInternal(inlineWidget);
-                    deferred.resolve();
-                })
-                .height(0);
+            inlineWidget.$htmlContent.addClass("expanded");
+            window.setTimeout(function () {
+                inlineWidget.$htmlContent
+                    .removeClass("expanded")
+                    .addClass("animating collapsed")
+                    .one("webkitTransitionEnd", function () {
+                        inlineWidget.$htmlContent.removeClass("animating collapsed expanded");
+                        self._codeMirror.removeLineWidget(inlineWidget.info);
+                        self._removeInlineWidgetInternal(inlineWidget);
+                        deferred.resolve();
+                    })
+                    .height(0);
+            }, 0);
                 
             inlineWidget.closePromise = deferred.promise();
         }
@@ -1256,6 +1261,9 @@ define(function (require, exports, module) {
         }
         
         function setOuterHeight() {
+            if ($(node).hasClass("animating")) {
+                $(node).removeClass("collapsed").addClass("expanded");
+            }
             $(node).height(height);
             if ($(node).hasClass("animating")) {
                 $(node).one("webkitTransitionEnd", updateHeight);
