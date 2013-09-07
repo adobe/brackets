@@ -619,6 +619,7 @@ define(function (require, exports, module) {
                     model = new ModelClass();
                     modelDisposed = false;
                     waitsForDone(view.initialize(model), "view initializing");
+                    view.$el.appendTo(document.body);
                 });
                 runs(function () {
                     spyOn(view.model, "dispose").andCallThrough();
@@ -650,8 +651,10 @@ define(function (require, exports, module) {
                 
             
             afterEach(function () {
-                view = null;
-                
+                if (view) {
+                    view.$el.remove();
+                    view = null;
+                }
                 if (model) {
                     model.dispose();
                 }
@@ -834,7 +837,10 @@ define(function (require, exports, module) {
                     runs(function () {
                         var origHref = window.location.href;
                         spyOn(NativeApp, "openURLInDefaultBrowser");
-                        $("a", view.$el).first().click();
+                        
+                        var event = new window.Event("click", { bubbles: false, cancelable: true });
+                        document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
+                        
                         expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
                         expect(window.location.href).toBe(origHref);
                     });
