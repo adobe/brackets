@@ -555,9 +555,13 @@ define(function (require, exports, module) {
      */
     function _restoreSearchResults() {
         if (searchResultsPanel.isVisible()) {
-            var scrollTop = $searchContent.scrollTop(),
-                index     = $selectedRow ? $selectedRow.index() : null;
+            var scrollTop  = $searchContent.scrollTop(),
+                index      = $selectedRow ? $selectedRow.index() : null,
+                numMatches = _countFilesMatches().matches;
             
+            if (currentStart > numMatches) {
+                currentStart = _getLastCurrentStart(numMatches);
+            }
             _showSearchResults();
             
             $searchContent.scrollTop(scrollTop);
@@ -821,7 +825,7 @@ define(function (require, exports, module) {
      * @param {string} path
      */
     function _pathDeletedHandler(event, path) {
-        var resultsChanged = false, numMatches;
+        var resultsChanged = false;
         
         if (searchResultsPanel.isVisible()) {
             // Update the search results
@@ -834,10 +838,6 @@ define(function (require, exports, module) {
             
             // Restore the results if needed
             if (resultsChanged) {
-                numMatches = _countFilesMatches().matches;
-                if (currentStart > numMatches) {
-                    currentStart = _getLastCurrentStart(numMatches);
-                }
                 _restoreSearchResults();
             }
         }
