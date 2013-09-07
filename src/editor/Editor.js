@@ -1095,9 +1095,9 @@ define(function (require, exports, module) {
             // Set up the widget to start closed, then animate open when its initial height is set.
             inlineWidget.$htmlContent
                 .height(0)
-                .addClass("animating collapsed")
+                .addClass("animating") // animating collapsed
                 .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating collapsed expanded");
+                    inlineWidget.$htmlContent.removeClass("animating doUnfold"); // animating collapsed expanded
                     deferred.resolve();
                 });
 
@@ -1137,13 +1137,14 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            inlineWidget.$htmlContent.addClass("expanded");
+            //inlineWidget.$htmlContent.addClass("expanded");
             window.setTimeout(function () {
                 inlineWidget.$htmlContent
-                    .removeClass("expanded")
-                    .addClass("animating collapsed")
+//                    .removeClass("expanded")
+//                    .addClass("animating collapsed")
+                    .addClass("animating doFold")
                     .one("webkitTransitionEnd", function () {
-                        inlineWidget.$htmlContent.removeClass("animating collapsed expanded");
+                        inlineWidget.$htmlContent.removeClass("animating doFold"); // animating collapsed expanded
                         self._codeMirror.removeLineWidget(inlineWidget.info);
                         self._removeInlineWidgetInternal(inlineWidget);
                         deferred.resolve();
@@ -1262,7 +1263,8 @@ define(function (require, exports, module) {
         
         function setOuterHeight() {
             if ($(node).hasClass("animating")) {
-                $(node).removeClass("collapsed").addClass("expanded");
+                //$(node).removeClass("collapsed").addClass("expanded");
+                $(node).addClass("doUnfold");
             }
             $(node).height(height);
             if ($(node).hasClass("animating")) {

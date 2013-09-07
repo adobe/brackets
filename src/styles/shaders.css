@@ -1,3 +1,4 @@
+/*
 .inline-widget.collapsed {
     -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 1, mapDepth 5);
 }
@@ -5,6 +6,44 @@
 .inline-widget.expanded {
     -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 0, mapDepth 5);
 }
+*/
+
+.inline-widget.doFold {
+    -webkit-animation-duration: 250ms;
+    -webkit-animation-name: fold;
+    -webkit-animation-fill-mode: forwards;
+/*
+    -webkit-animation-timing-function: ease-in;
+*/
+}
+
+.inline-widget.doUnfold {
+    -webkit-animation-duration: 250ms;
+    -webkit-animation-name: unfold;
+    -webkit-animation-fill-mode: forwards;
+/*
+    -webkit-animation-timing-function: ease-in;
+*/
+}
+
+@-webkit-keyframes fold {
+    from {
+        -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 0, mapDepth 5);
+    }
+    to {
+        -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 1, mapDepth 5);
+    }
+}
+
+@-webkit-keyframes unfold {
+    from {
+        -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 1, mapDepth 5);
+    }
+    to {
+        -webkit-filter: custom(url(shaders/fold.vs) mix(url(shaders/fold.fs) multiply source-atop), 2 2 border-box, transform perspective(1000) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg), t 0, mapDepth 5);
+    }
+}
+
 
 /*
 
