@@ -467,8 +467,7 @@ define(function (require, exports, module) {
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: cursor.ch},
-            invalidPropertyName = false,
-            displayFunctionHint = false;
+            invalidPropertyName = false;
 
         if (session.getType().property) {
             // if we're inserting a property name, we need to make sure the 
@@ -503,39 +502,12 @@ define(function (require, exports, module) {
             }
         }
 
-        // If the completion is for a valid function, then append
-        // "()" to the function name.
-        if (!invalidPropertyName && /^fn\(/.test(hint.type)) {
-            completion = completion.concat("()");
-            displayFunctionHint = true;
-        }
-
         // Replace the current token with the completion
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The
         // reason is due to a flaw in our current document synchronization architecture when
         // inline editors are open.
         session.editor._codeMirror.replaceRange(completion, start, end);
-
-        // If displaying a function hint, move the cursor inside the "()".
-        // Then pop-up a function hint.
-        if (displayFunctionHint) {
-            var pos = {line: start.line, ch: start.ch + completion.length - 1};
-
-            // stop cursor tracking before setting the cursor to avoid bringing
-            // down the current hint.
-            if (ParameterHintManager.isHintDisplayed()) {
-                ParameterHintManager.stopCursorTracking(session);
-            }
-
-            session.editor._codeMirror.setCursor(pos);
-
-            if (ParameterHintManager.isHintDisplayed()) {
-                ParameterHintManager.startCursorTracking(session);
-            }
-
-            ParameterHintManager.popUpHint(ParameterHintManager.PUSH_EXISTING_HINT);
-        }
 
         // Return false to indicate that another hinting session is not needed
         return false;
@@ -576,6 +548,7 @@ define(function (require, exports, module) {
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
                             ScopeManager.handleFileChange(changeList);
+                            ParameterHintManager.popUpHintAtOpenParen();
                         }
                         ignoreChange = false;
                     });

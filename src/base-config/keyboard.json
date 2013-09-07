@@ -225,6 +225,15 @@
     "navigate.jumptoDefinition":  [
         "Ctrl-J"
     ],
+    "navigate.gotoFirstProblem":  [
+        {
+            "key": "F8"
+        },
+        {
+            "key": "Cmd-'",
+            "platform": "mac"
+        }
+    ],
     "navigate.nextDoc":  [
         {
             "key": "Ctrl-Tab"

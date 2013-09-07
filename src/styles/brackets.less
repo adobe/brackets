@@ -65,10 +65,6 @@ html, body {
     backface-visibility: hidden;
 }
 
-body {
-    height: 100%;
-}
-
 .resizing-container {
     position: absolute;
     top: 0;
@@ -744,16 +740,16 @@ a, img {
         text-overflow: ellipsis;
     }
     .fixed-col {
-        .flex-item(0);
+        .flex-item(0, 0);
     }
     .pagination-col {
-        .flex-item(1);
+        .flex-item(1, 0);
         min-width: 100px;
     }
     .replace-col {
-        .flex-item(1);
+        .flex-item(1, 0);
         min-width: 120px;
-        padding-left: 20px;
+        padding: 0 15px;
     }
     .first-page,
     .prev-page,
@@ -910,6 +906,13 @@ a, img {
     }
 }
 
+.modal-bar .navigator {    
+    display: none;        
+    button {    
+        margin: 2px 1px 3px;   
+    }
+}
+
 // Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
 // blended on TOP of the selection color. The "current" search result is indicated by selection,
 // so we want the selection visible underneath the highlight. To do this, the highlight must be
@@ -928,6 +931,7 @@ a, img {
 }
 #find-counter {
     font-weight: @font-weight-semibold;
+    padding: 0 5px;
 }
 
 
@@ -1029,10 +1033,41 @@ a, img {
 }
 
 
-/* Turn on text selection for JSLint error messages */
-#jslint-results {
-    .user-select(text);
+/* Problems panel & CodeInspection status bar indicator */
+
+#status-indicators #status-inspection {
+    border: none;
+    cursor: default;
+    width: 13px;
 }
+
+.inspection-disabled {
+    background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
+}
+
+.inspection-errors {
+    background: url(images/topcoat-warning-15.svg) 9px 5px no-repeat;
+}
+
+.inspection-errors:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.inspection-errors:active {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.inspection-valid {
+    background: url(images/topcoat-okay-15.svg) 9px 5px no-repeat;
+}
+
+#problems-panel {
+    .user-select(text);  // allow selecting error messages for easy web searching
+    .line {
+        text-align: right;  // make line number line up with editor line numbers
+    }
+}
+
 
 /* Line up label text and input text */
 label input {
