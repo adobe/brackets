@@ -97,8 +97,9 @@ define(function (require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
+        CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp");
-            
+        
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -145,6 +146,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
             DefaultDialogs          : DefaultDialogs,
+            CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),

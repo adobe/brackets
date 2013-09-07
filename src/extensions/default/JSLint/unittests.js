@@ -35,13 +35,12 @@ define(function (require, exports, module) {
             testWindow,
             $,
             brackets,
-            extensionRequire,
-            JSLint,
+            CodeInspection,
             EditorManager;
         
         var toggleJSLintResults = function (visible) {
-            $("#jslint-status").triggerHandler("click");
-            expect($("#jslint-results").is(":visible")).toBe(visible);
+            $("#status-inspection").triggerHandler("click");
+            expect($("#problems-panel").is(":visible")).toBe(visible);
         };
 
         beforeEach(function () {
@@ -52,9 +51,8 @@ define(function (require, exports, module) {
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
                     EditorManager = testWindow.brackets.test.EditorManager;
-                    extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("JSLint");
-                    JSLint = extensionRequire("main");
-                    JSLint.setEnabled(true);
+                    CodeInspection = testWindow.brackets.test.CodeInspection;
+                    CodeInspection.toggleEnabled(true);
                 });
             });
             
@@ -68,12 +66,10 @@ define(function (require, exports, module) {
             $             = null;
             brackets      = null;
             EditorManager = null;
-            extensionRequire    = null;
-            JSLint              = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
-        it("should run JSLINT when a JavaScript document opens", function () {
+        it("should run JSLint linter when a JavaScript document opens", function () {
             runs(function () {
                 spyOn(testWindow, "JSLINT").andCallThrough();
             });
@@ -85,7 +81,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should collapse JSLINT toggle panel visibility when errors are present", function () {
+        it("status icon should toggle Errors panel when errors present", function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
             
             runs(function () {
@@ -94,7 +90,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should not collapse JSLINT toggle panel visibility when errors are not present", function () {
+        it("status icon should not toggle Errors panel when no errors present", function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
             
             runs(function () {
