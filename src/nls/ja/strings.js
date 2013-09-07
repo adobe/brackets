@@ -186,6 +186,16 @@ define({
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
+    // CodeInspection: errors/warnings
+	"ERRORS_PANEL_TITLE": "!能=[7150674] {0} Errors_=!",
+	"SINGLE_ERROR": "!能=[7150681] 1 {0} Error_=!",
+	"MULTIPLE_ERRORS": "!能=[7150677] {1} {0} Errors_=!",
+	"NO_ERRORS": "!能=[7150679] No {0} errors - good job!_=!",
+	"LINT_DISABLED": "!能=[7150676] Linting is disabled_=!",
+	"NO_LINT_AVAILABLE": "!能=[7150680] No linter available for {0}_=!",
+	"NOTHING_TO_LINT": "!能=[7150678] Nothing to lint_=!",
+    
+    
     /**
      * Command Name Constants
      */
@@ -204,7 +214,6 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -255,6 +264,8 @@ define({
 	"CMD_TOGGLE_LINE_NUMBERS": "行番号",
 	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
+	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
+	"CMD_VIEW_TOGGLE_INSPECTION": "!能=[7150673] Lint Files on Save_=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -265,6 +276,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
+	"CMD_GOTO_FIRST_PROBLEM": "!能=[7150671] Go to First Error/Warning_=!",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
@@ -407,6 +419,7 @@ define({
 
 	"UNIT_PIXELS": "ピクセル",
     
+    
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
@@ -425,9 +438,7 @@ define({
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "チェコ語",
 	"LOCALE_DE": "ドイツ語",
 	"LOCALE_EN": "英語",
@@ -459,18 +470,15 @@ define({
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
-
+    
     // extensions/default/JSLint
-	"CMD_JSLINT": "JSLint を有効にする",
-	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
+	"JSLINT_NAME": "!能=[7150675] JSLint_=!",
     
     // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
+    
+    // extensions/default/RecentProjects
+	"CMD_TOGGLE_RECENT_PROJECTS": "!能=[7150672] Recent Projects_=!",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "詳細"
