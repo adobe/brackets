@@ -195,7 +195,7 @@ define(function (require, exports, module) {
     /**
      * Registers a global internal only command.
      * @param {string} id - unique identifier for command.
-     *      Core commands in Brackets use a simple command title as an id, for example "open.file".
+     *      Core commands in Brackets use a simple command title as an id, for example "app.abort_quit".
      *      Extensions should use the following format: "author.myextension.mycommandname".
      *      For example, "lschmitt.csswizard.format.css".
      * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
