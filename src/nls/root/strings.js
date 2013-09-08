@@ -334,7 +334,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // Extension Management strings
     "INSTALL"                              : "Install",
