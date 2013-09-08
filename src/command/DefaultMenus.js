@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit         = require("utils/AppInit"),
+        CommandManager  = require("command/CommandManager"),
         Commands        = require("command/Commands"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
@@ -296,5 +297,12 @@ define(function (require, exports, module) {
                 $(this).addClass("open");
             }
         });
+
+        // Close context menus when a command is executed
+        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+            project_cmenu.close();
+            working_set_cmenu.close();
+        });
+
     });
 });
