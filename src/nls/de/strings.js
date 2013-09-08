@@ -63,6 +63,7 @@ define({
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{0}</span> existiert bereits.", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
+    
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
@@ -102,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
+    "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}." +
                                                 "<br /><br />" +
@@ -118,9 +121,14 @@ define({
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
-    "BUTTON_ALL"                        : "Alle",
+    "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
+    
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
+    "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -181,6 +189,15 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
+    
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
+    "SINGLE_ERROR"                          : "1 {0} Fehler",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
+    "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
+    "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
+    "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
+    "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
 
     /**
      * Command Name Constants
@@ -200,7 +217,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -251,6 +267,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktive Zeile hervorheben",
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
@@ -261,6 +279,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Fehler/Warnung gehen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -293,6 +312,7 @@ define({
     "DONT_SAVE"                            : "Nicht speichern",
     "SAVE"                                 : "Speichern",
     "CANCEL"                               : "Abbrechen",
+    "DELETE"                               : "Löschen",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
