@@ -306,7 +306,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adressen kan inte innehålla sökparametrar som \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adressen kan inte innehålla hashar som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Okänt fel!",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Okänt fel!",
     
     // Extension Management strings
     "INSTALL"                              : "Installera",
