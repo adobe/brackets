@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,6 +31,8 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         DocumentManager = brackets.getModule("document/DocumentManager"),
         FileUtils       = brackets.getModule("file/FileUtils"),
+        testContentCSS  = require("text!unittest-files/regions.css"),
+        testContentHTML = require("text!unittest-files/region-template.html"),
         CSSCodeHints    = require("main");
        
     describe("CSS Code Hinting", function () {
@@ -54,43 +56,21 @@ define(function (require, exports, module) {
                              " color\n" +
                              "} \n";
         
-        var testDocument, testEditor, preTestText,
-            extensionPath = FileUtils.getNativeModuleDirectoryPath(module);
-    
-        /**
-         * Returns an Editor suitable for use in isolation, given a Document.
+        var testDocument, testEditor;
+
+        /* 
+         * Create a mockup editor with the given content and language id.
          *
-         * @param {Document} doc - the document to be contained by the new Editor
-         * @return {Editor} - the mock editor object
+         * @param {string} content - content for test window
+         * @param {string} languageId
          */
-        function createMockEditor(doc) {
-            return SpecRunnerUtils.createMockEditorForDocument(doc);
-        }
-        
-        function setupTest(path) {
-            DocumentManager.getDocumentForPath(path).done(function (doc) {
-                testDocument = doc;
-            });
-
-            waitsFor(function () {
-                return testDocument !== null;
-            }, "Unable to open test document", 10000);
-
-            // create Editor instance (containing a CodeMirror instance)
-            runs(function () {
-                testEditor = createMockEditor(testDocument);
-                preTestText = testDocument.getText();
-            });
+        function setupTest(content, languageId) {
+            var mock = SpecRunnerUtils.createMockEditor(content, languageId);
+            testDocument = mock.doc;
+            testEditor = mock.editor;
         }
 
         function tearDownTest() {
-            // Restore the pre-test version of the text here because the hinter
-            // will update the contents of the previous document in tern.
-            testDocument.setText(preTestText);
-
-            // The following call ensures that the document is reloaded
-            // from disk before each test
-            DocumentManager.closeAll();
             SpecRunnerUtils.destroyMockEditor(testDocument);
             testEditor = null;
             testDocument = null;
@@ -575,9 +555,8 @@ define(function (require, exports, module) {
         });
         
         describe("Named flow hints for flow-into and flow-from properties in a CSS file", function () {
-            var testPath = extensionPath + "/unittest-files/regions.css";
             beforeEach(function () {
-                setupTest(testPath);
+                setupTest(testContentCSS, "css");
             });
             
             afterEach(function () {
@@ -614,9 +593,8 @@ define(function (require, exports, module) {
         });
 
         describe("Named flow hints inside a style block of an HTML", function () {
-            var testPath = extensionPath + "/unittest-files/region-template.html";
             beforeEach(function () {
-                setupTest(testPath);
+                setupTest(testContentHTML, "html");
             });
             
             afterEach(function () {
