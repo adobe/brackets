@@ -186,6 +186,16 @@ define({
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
+    // CodeInspection: errors/warnings
+	"ERRORS_PANEL_TITLE": "[7150674] !é={0} Errors=!",
+	"SINGLE_ERROR": "[7150681] !é=1 {0} Error=!",
+	"MULTIPLE_ERRORS": "[7150677] !é={1} {0} Errors=!",
+	"NO_ERRORS": "[7150679] !é=No {0} errors - good job!=!",
+	"LINT_DISABLED": "[7150676] !é=Linting is disabled=!",
+	"NO_LINT_AVAILABLE": "[7150680] !é=No linter available for {0}=!",
+	"NOTHING_TO_LINT": "[7150678] !é=Nothing to lint=!",
+    
+    
     /**
      * Command Name Constants
      */
@@ -204,7 +214,6 @@ define({
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
-	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
@@ -255,6 +264,8 @@ define({
 	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de ligne",
 	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
+	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
+	"CMD_VIEW_TOGGLE_INSPECTION": "[7150673] !é=Lint Files on Save=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -265,6 +276,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
+	"CMD_GOTO_FIRST_PROBLEM": "[7150671] !é=Go to First Error/Warning=!",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
@@ -407,6 +419,7 @@ define({
 
 	"UNIT_PIXELS": "pixels",
     
+    
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
@@ -425,9 +438,7 @@ define({
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "Tchèque",
 	"LOCALE_DE": "Allemand",
 	"LOCALE_EN": "Anglais",
@@ -459,18 +470,15 @@ define({
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
-
+    
     // extensions/default/JSLint
-	"CMD_JSLINT": "Activer JSLint",
-	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
+	"JSLINT_NAME": "[7150675] !é=JSLint=!",
     
     // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+    
+    // extensions/default/RecentProjects
+	"CMD_TOGGLE_RECENT_PROJECTS": "[7150672] !é=Recent Projects=!",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "En savoir plus"
