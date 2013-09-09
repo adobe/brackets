@@ -322,7 +322,7 @@ define({
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
-	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
     // Extension Management strings
 	"INSTALL": "インストール",

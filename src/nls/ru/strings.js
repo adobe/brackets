@@ -257,7 +257,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Основной URL не может содержать такие параметры поиска как \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Основной URL не может содержать такие хеши как \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Специальные символы как '{0}' должны быть %-экранированы.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Неизвестная ошибка при парсинге основного URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Неизвестная ошибка при парсинге основного URL",
     
     
     // extensions/default/DebugCommands
