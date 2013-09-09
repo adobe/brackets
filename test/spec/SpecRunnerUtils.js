@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     }
     
     function removeTempDirectory() {
-        var filePath, error, stat, promiseRead, promiseWrite, promiseDelete,
+        var error, stat, promise,
             baseDir = getTempDirectory(),
             complete = false;
         
@@ -256,11 +256,11 @@ define(function (require, exports, module) {
         
         runs(function () {
             if (error === brackets.fs.NO_ERROR) {
-                promiseRead = chmod(baseDir + "/cant_read_here", "777");
+                promise = chmod(baseDir + "/cant_read_here", "777");
             } else {
-                promiseRead = (new $.Deferred()).resolve().promise();
+                promise = (new $.Deferred()).resolve().promise();
             }
-            waitsForDone(promiseRead, "reset cant_read_here permissions", 2000);
+            waitsForDone(promise, "reset cant_read_here permissions", 2000);
         });
         
         runs(function () {
@@ -276,16 +276,20 @@ define(function (require, exports, module) {
         });
         
         runs(function () {
+            promise = null;
             if (error === brackets.fs.NO_ERROR) {
-                promiseWrite = chmod(baseDir + "/cant_write_here", "777");
+                promise = chmod(baseDir + "/cant_write_here", "777");
             } else {
-                promiseWrite = (new $.Deferred()).resolve().promise();
+                promise = (new $.Deferred()).resolve().promise();
             }
-            waitsForDone(promiseWrite, "reset cant_write_here permissions", 2000);
+            waitsForDone(promise, "reset cant_write_here permissions", 2000);
         });
         
         // Remove the test data and anything else left behind from tests
         runs(function () {
+            error = undefined;
+            stat = null;
+            complete = false;
             brackets.fs.stat(baseDir, function (err, _stat) {
                 error = err;
                 stat = _stat;
@@ -295,12 +299,13 @@ define(function (require, exports, module) {
         });
         
         runs(function () {
+            promise = null;
             if (error === brackets.fs.NO_ERROR) {
-                promiseDelete = deletePath(baseDir, true);
+                promise = deletePath(baseDir, true);
             } else {
-                promiseDelete = (new $.Deferred()).resolve().promise();
+                promise = (new $.Deferred()).resolve().promise();
             }
-            waitsForDone(promiseDelete, "delete temp files", 10000);
+            waitsForDone(promise, "delete temp files", 10000);
         });
     }
     
