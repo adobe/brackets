@@ -276,7 +276,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含搜索参数如 \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "解析地址错误,请确认地址格式",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "解析地址错误,请确认地址格式",
     
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
