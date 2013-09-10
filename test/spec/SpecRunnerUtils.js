@@ -233,20 +233,65 @@ define(function (require, exports, module) {
         waitsForDone(deferred, "Create temp directory", 500);
     }
     
-    function removeTempDirectory() {
-        var baseDir = getTempDirectory();
+    function stat(pathname) {
+        var promise = new $.Deferred();
         
-        // Restore directory permissions before (otherwise the deletePath may fail)
-        // We need to make sure everything is read/write before we delete it or we won't
-        //  be able to delete the folder.  Ideally we should traverse the directory and 
-        //  change the mode for every file / directory we encounter but, for now,
-        //  since we only have these two folders which we make read / write only
-        //  just chmod these two folder.  This is a MAC only issue.
-        // TODO: Traverse baseDir and chmod everything before we delete.
-        waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
-        waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
-        // Remove the test data and anything else left behind from tests
-        waitsForDone(deletePath(baseDir, true), "delete temp files");
+        brackets.fs.stat(pathname, function (err, _stat) {
+            if (err === brackets.fs.NO_ERROR) {
+                promise.resolve(_stat);
+            } else {
+                promise.reject(err);
+            }
+        });
+        
+        return promise;
+    }
+    
+    function resetPermissionsOnSpecialTempFolders() {
+        var i,
+            folderCount,
+            resolvedCount = 0,
+            folders = [],
+            baseDir = getTempDirectory(),
+            promise = new $.Deferred();
+            
+        folders.push(baseDir + "/cant_read_here");
+        folders.push(baseDir + "/cant_write_here");
+        
+        folderCount = folders.length;
+            
+        var alwaysHandler = function () {
+            if (++resolvedCount === folderCount) {
+                promise.resolve();
+            }
+        };
+        
+        var resetPermissions = function (pathname) {
+            stat(folders[i]).then(chmod(pathname).always(alwaysHandler), alwaysHandler);
+        };
+        
+        for (i = 0; i < folderCount; i++) {
+            resetPermissions(folders[i]);
+        }
+        
+        return promise;
+    }
+    
+    
+    function removeTempDirectory() {
+        var promise = new $.Deferred(),
+            baseDir = getTempDirectory();
+        
+        resetPermissionsOnSpecialTempFolders().always(function () {
+            deletePath(baseDir, true)
+                .done(function () {
+                    promise.resolve();
+                })
+                .fail(function () {
+                    promise.reject();
+                });
+        });
+        return promise;
     }
     
     function getBracketsSourceRoot() {
