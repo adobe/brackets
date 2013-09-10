@@ -106,12 +106,12 @@ define(function (require, exports, module) {
             userId = exports.formatUserId.call(this);
         if (this.metadata && this.metadata.author) {
             // author can be either a string or an object with a "name" field
-            result += htmlEscape(this.metadata.author.name || this.metadata.author);
+            if (userId) {
+                result += "<a href='" + htmlEscape(ownerLink) + "' title='" + htmlEscape(ownerLink) + "'>" +  htmlEscape(this.metadata.author.name || this.metadata.author) + "</a>";
+            }
+            return result;
         }
         if (userId) {
-            if (result !== "") {
-                result += " / ";
-            }
             result += "<a href='" + htmlEscape(ownerLink) + "' title='" + htmlEscape(ownerLink) + "'>" + htmlEscape(userId) + "</a>";
         }
         return result;
