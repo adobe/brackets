@@ -558,14 +558,6 @@ function RemoteFunctions(experimental) {
             before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
-            if (edit.beforeText && after.nodeType === Node.TEXT_NODE) {
-                after = after.previousSibling;
-            }
-        }
-        
-        if (edit.beforeText && before &&
-                before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
-            before = before.previousSibling;
         }
         
         if (before) {
