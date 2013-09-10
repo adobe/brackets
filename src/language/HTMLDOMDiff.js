@@ -143,7 +143,9 @@ define(function (require, exports, module) {
             
             // If the item we made this set of edits relative to
             // is being deleted, we can't use it as the afterID for future
-            // edits.
+            // edits. It's okay to just keep the previous afterID, since
+            // this node will no longer be in the tree by the time we get
+            // to any future edit that needs an afterID.
             if (!isBeingDeleted) {
                 textAfterID = beforeID;
             }
