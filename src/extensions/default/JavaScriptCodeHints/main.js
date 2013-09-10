@@ -327,6 +327,11 @@ define(function (require, exports, module) {
      */
     function getSessionHints(query, cursor, type, token, $deferredHints) {
 
+        // We're getting here with a null session object in units tests
+        if (!session) {
+            return null;
+        }
+
         var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
             var guessesResponse = ScopeManager.requestGuesses(session,
