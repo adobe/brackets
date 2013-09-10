@@ -234,7 +234,9 @@ define(function (require, exports, module) {
     }
     
     function removeTempDirectory() {
-        var baseDir = getTempDirectory();
+        var error, stat, promise,
+            baseDir = getTempDirectory(),
+            complete = false;
         
         // Restore directory permissions before (otherwise the deletePath may fail)
         // We need to make sure everything is read/write before we delete it or we won't
@@ -243,10 +245,68 @@ define(function (require, exports, module) {
         //  since we only have these two folders which we make read / write only
         //  just chmod these two folder.  This is a MAC only issue.
         // TODO: Traverse baseDir and chmod everything before we delete.
-        waitsForDone(chmod(baseDir + "/cant_read_here", "777"), "reset permissions");
-        waitsForDone(chmod(baseDir + "/cant_write_here", "777"), "reset permissions");
+        runs(function () {
+            brackets.fs.stat(baseDir + "/cant_read_here", function (err, _stat) {
+                error = err;
+                stat = _stat;
+                complete = true;
+            });
+            waitsFor(function () { return complete; }, "fs.stat /cant_read_here");
+        });
+        
+        runs(function () {
+            if (error === brackets.fs.NO_ERROR) {
+                promise = chmod(baseDir + "/cant_read_here", "777");
+            } else {
+                promise = (new $.Deferred()).resolve().promise();
+            }
+            waitsForDone(promise, "reset cant_read_here permissions", 2000);
+        });
+        
+        runs(function () {
+            error = undefined;
+            stat = null;
+            complete = false;
+            brackets.fs.stat(baseDir + "/cant_write_here", function (err, _stat) {
+                error = err;
+                stat = _stat;
+                complete = true;
+            });
+            waitsFor(function () { return complete; }, "fs.stat /cant_write_here");
+        });
+        
+        runs(function () {
+            promise = null;
+            if (error === brackets.fs.NO_ERROR) {
+                promise = chmod(baseDir + "/cant_write_here", "777");
+            } else {
+                promise = (new $.Deferred()).resolve().promise();
+            }
+            waitsForDone(promise, "reset cant_write_here permissions", 2000);
+        });
+        
         // Remove the test data and anything else left behind from tests
-        waitsForDone(deletePath(baseDir, true), "delete temp files");
+        runs(function () {
+            error = undefined;
+            stat = null;
+            complete = false;
+            brackets.fs.stat(baseDir, function (err, _stat) {
+                error = err;
+                stat = _stat;
+                complete = true;
+            });
+            waitsFor(function () { return complete; }, "fs.stat temp folder");
+        });
+        
+        runs(function () {
+            promise = null;
+            if (error === brackets.fs.NO_ERROR) {
+                promise = deletePath(baseDir, true);
+            } else {
+                promise = (new $.Deferred()).resolve().promise();
+            }
+            waitsForDone(promise, "delete temp files", 10000);
+        });
     }
     
     function getBracketsSourceRoot() {
