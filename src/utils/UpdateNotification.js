@@ -209,10 +209,6 @@ define(function (require, exports, module) {
         
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
-        
-        AppInit.appReady(function () {
-            $dlg.find("button").focus();
-        });
     }
     
     /**
@@ -335,6 +331,11 @@ define(function (require, exports, module) {
     // Append locale to version info URL
     _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
     
+    // Check for updates on App Ready
+    AppInit.appReady(function () {
+        checkForUpdate();
+    });
+
     // Define public API
     exports.checkForUpdate = checkForUpdate;
 });
