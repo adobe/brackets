@@ -86,7 +86,7 @@ define({
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS</strong>. Les modifications apportées aux fichiers HTML et JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "[6499050] !é=For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.=!",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='{0}' title='{0}'>Résolution des erreurs de connexion Live Development</a>.",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
@@ -121,10 +121,10 @@ define({
 	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
             
-	"BUTTON_NEXT": "[7150631] !é=\u25B6=!",
-	"BUTTON_PREV": "[7150633] !é=\u25C0=!",
-	"BUTTON_NEXT_HINT": "Correspondance suivante",
-	"BUTTON_PREV_HINT": "Correspondance précédente",
+	"BUTTON_NEXT": "\u25B6",
+	"BUTTON_PREV": "\u25C0",
+	"BUTTON_NEXT_HINT": "Résultat suivant",
+	"BUTTON_PREV_HINT": "Résultat précédent",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -150,8 +150,6 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-	"FIND_IN_FILES_LINE": "ligne : {0}",
-
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
 
@@ -187,13 +185,13 @@ define({
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "[7150674] !é={0} Errors=!",
-	"SINGLE_ERROR": "[7150681] !é=1 {0} Error=!",
-	"MULTIPLE_ERRORS": "[7150677] !é={1} {0} Errors=!",
-	"NO_ERRORS": "[7150679] !é=No {0} errors - good job!=!",
-	"LINT_DISABLED": "[7150676] !é=Linting is disabled=!",
-	"NO_LINT_AVAILABLE": "[7150680] !é=No linter available for {0}=!",
-	"NOTHING_TO_LINT": "[7150678] !é=Nothing to lint=!",
+	"ERRORS_PANEL_TITLE": "{0} erreurs",
+	"SINGLE_ERROR": "1 erreur {0}",
+	"MULTIPLE_ERRORS": "{1} erreurs {0}",
+	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
+	"LINT_DISABLED": "L’analyse lint est désactivée",
+	"NO_LINT_AVAILABLE": "Aucun programme lint disponible pour {0}",
+	"NOTHING_TO_LINT": "Rien à analyser",
     
     
     /**
@@ -265,7 +263,7 @@ define({
 	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
-	"CMD_VIEW_TOGGLE_INSPECTION": "[7150673] !é=Lint Files on Save=!",
+	"CMD_VIEW_TOGGLE_INSPECTION": "Effectuer une analyse lint des fichiers à l’enregistrement",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -276,7 +274,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
-	"CMD_GOTO_FIRST_PROBLEM": "[7150671] !é=Go to First Error/Warning=!",
+	"CMD_GOTO_FIRST_PROBLEM": "Aller à la première erreur/au premier avertissement",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
@@ -297,12 +295,6 @@ define({
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 
-
-    // Special commands invoked by the native shell
-	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
-	"CMD_ABORT_QUIT": "Annuler la fermeture",
-	"CMD_BEFORE_MENUPOPUP": "Fenêtre avant le menu",
-
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
@@ -318,11 +310,11 @@ define({
 	"ABOUT": "A propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "[6307069] !é=Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.=!",
-	"ABOUT_TEXT_LINE4": "[6307070] !é=Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>=!",
+	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> et sont incluses dans le présent document à titre de référence.",
+	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "[6781670] !é=Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.=!",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo Web Platform font l’objet d’une licence Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
@@ -472,13 +464,13 @@ define({
 	"NO_ARGUMENTS": "<aucun paramètre>",
     
     // extensions/default/JSLint
-	"JSLINT_NAME": "[7150675] !é=JSLint=!",
+	"JSLINT_NAME": "JSLint",
     
     // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
     
     // extensions/default/RecentProjects
-	"CMD_TOGGLE_RECENT_PROJECTS": "[7150672] !é=Recent Projects=!",
+	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "En savoir plus"
