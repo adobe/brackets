@@ -326,6 +326,10 @@ a, img {
     &.out-of-sync {
         .sprite-swap(0, 72px);
     }
+    // 'sync-error'
+    &.sync-error {
+        .sprite-swap(0, 96px);
+    }
 }
 
 #toolbar-extension-manager {
@@ -1042,4 +1046,10 @@ a, img {
 label input {
     position: relative;
     top: -2px;
+}
+
+/* Live Preview */
+.cm-s-default .CodeMirror-linenumber.live-preview-error {
+    background-color: @live-preview-sync-error-background;
+    color: @live-preview-sync-error-color;
 }

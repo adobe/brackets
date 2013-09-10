@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, _, brackets, window */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -72,6 +72,7 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
+    var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
         Dialogs              = require("widgets/Dialogs"),
@@ -96,6 +97,10 @@ define(function LiveDevelopment(require, exports, module) {
     var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
+    
+    // Document errors
+    var GUTTER_ID = "CodeMirror-linenumbers",
+        GUTTER_CLASS = "CodeMirror-linenumber live-preview-error";
 
     // Agents
     var agents = {
@@ -223,6 +228,96 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
     }
+    
+    /**
+     * @private
+     * Reset error flag for a live document
+     * @param {HTMLDocument|CSSDocument} liveDocument
+     * @return {boolean} Returns true if the live document's editor error gutter should be cleared
+     */
+    function _shouldClearErrors(liveDocument) {
+        var doClear = (liveDocument._hasErrors && liveDocument.editor);
+        liveDocument._hasErrors = liveDocument.errors.length > 0;
+        return doClear;
+    }
+
+    /**
+     * @private
+     * Clears errors from line number gutter
+     */
+    function _doClearErrors(editor) {
+        if (editor) {
+            editor._codeMirror.clearGutter(GUTTER_ID);
+        }
+    }
+
+    /**
+     * Update the status. Triggers a statusChange event.
+     * @param {number} status new status
+     * @param {?string} closeReason Optional string key suffix to display to
+     *     user when closing the live development connection (see LIVE_DEV_* keys)
+     */
+    function _setStatus(status, closeReason) {
+        // Don't send a notification when the status didn't actually change
+        if (status === exports.status) {
+            return;
+        }
+        
+        exports.status = status;
+        
+        var reason = status === STATUS_INACTIVE ? closeReason : null;
+        $(exports).triggerHandler("statusChange", [status, reason]);
+    }
+    
+    /**
+     * @private
+     * Event handler for live document errors. Displays error status in the editor gutter.
+     * @param {$.Event} event
+     * @param {HTMLDocument|CSSDocument} liveDocument
+     * @param {Array.<{token: SimpleNode, startPos: Pos, endPos: Pos}>} errors 
+     */
+    function _handleLiveDocumentError(liveDocument) {
+        var startLine,
+            endLine,
+            lineInfo,
+            i,
+            clearErrors = _shouldClearErrors(liveDocument),
+            status      = (liveDocument._hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+
+        if (!liveDocument.editor) {
+            return;
+        }
+
+        // Buffer clearGutter and setGutterMarker changes in a CodeMirror operation
+        liveDocument.editor._codeMirror.operation(function () {
+            if (clearErrors) {
+                _doClearErrors(liveDocument.editor);
+            }
+    
+            if (liveDocument.errors.length > 0) {
+                liveDocument.errors.forEach(function (error) {
+                    startLine = error.startPos.line;
+                    endLine = error.endPos.line;
+                    
+                    for (i = startLine; i < endLine + 1; i++) {
+                        liveDocument.editor._codeMirror.setGutterMarker(i, GUTTER_ID, $("<div/>").addClass(GUTTER_CLASS).text(i + 1)[0]);
+                    }
+                });
+            }
+        });
+
+        _setStatus(status);
+    }
+
+    /**
+     * @private
+     * Close a live document
+     */
+    function _closeDocument(liveDocument) {
+        _doClearErrors(liveDocument.editor);
+        liveDocument.close();
+        $(liveDocument).off(".livedev");
+    }
 
     /**
      * @private
@@ -230,14 +325,13 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _closeDocuments() {
         if (_liveDocument) {
-            _liveDocument.close();
+            _closeDocument(_liveDocument);
             _liveDocument = undefined;
         }
         
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
-                liveDoc.close();
-                $(liveDoc).off(".livedev");
+                _closeDocument(liveDoc);
             });
             
             _relatedDocuments = undefined;
@@ -257,12 +351,18 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
-        var DocClass = _classForDocument(doc);
-        if (DocClass) {
-            return new DocClass(doc, editor);
-        } else {
+        var DocClass        = _classForDocument(doc),
+            liveDocument    = new DocClass(doc, editor);
+
+        if (!DocClass) {
             return null;
         }
+
+        $(liveDocument).on("error.livedev", function () {
+            _handleLiveDocumentError(liveDocument);
+        });
+
+        return liveDocument;
     }
     
     /**
@@ -334,24 +434,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (_enabledAgentNames.hasOwnProperty(name)) {
             delete _enabledAgentNames[name];
         }
-    }
-
-    /**
-     * Update the status. Triggers a statusChange event.
-     * @param {number} status new status
-     * @param {?string} closeReason Optional string key suffix to display to
-     *     user when closing the live development connection (see LIVE_DEV_* keys)
-     */
-    function _setStatus(status, closeReason) {
-        // Don't send a notification when the status didn't actually change
-        if (status === exports.status) {
-            return;
-        }
-        
-        exports.status = status;
-        
-        var reason = status === STATUS_INACTIVE ? closeReason : null;
-        $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
     /** Documents are considered to be out-of-sync if they are dirty and
