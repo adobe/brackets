@@ -317,7 +317,7 @@ define({
 	"RELAUNCH_CHROME": "Chrome を再起動",
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
-	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "!能=[6307069] Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein._=!",
 	"ABOUT_TEXT_LINE4": "!能=[6307070] Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>_=!",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
@@ -428,15 +428,15 @@ define({
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
-	"CMD_ENABLE_NODE_DEBUGGER": "ノードデバッガーを有効にする",
-	"CMD_LOG_NODE_STATE": "ノードの状態をコンソールに記録",
-	"CMD_RESTART_NODE": "ノードを再起動",
+	"CMD_ENABLE_NODE_DEBUGGER": "Node Debugger を有効にする",
+	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
+	"CMD_RESTART_NODE": "Node を再起動",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
-	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
+	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
     
     // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "チェコ語",
