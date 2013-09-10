@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                 // Gradients are matched first, then colors, so...
                 if (gradientMatch.match) {
                     // ... gradient match is past cursor -- stop looking for gradients, start searching for colors
-                    gradientMatch.match = null;
+                    gradientMatch = { match: null, prefix: "", colorValue: null };
                 } else {
                     // ... color match is past cursor -- stop looping
                     break;
@@ -588,8 +588,9 @@ define(function (require, exports, module) {
                 pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
                 showImmediately = false;
             
+            // Bail if mouse is on same char as last event
             if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                return;  // bail if mouse is on same char as last event
+                return;
             }
             lastPos = pos;
             
@@ -604,6 +605,12 @@ define(function (require, exports, module) {
                     showImmediately = popoverState.visible;
                     hidePreview();
                 }
+            }
+            
+            // No preview if mouse is past last char on line
+            if (pos.ch >= editor.document.getLine(pos.line).length) {
+                hidePreview();
+                return;
             }
             
             // Initialize popoverState
