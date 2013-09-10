@@ -506,7 +506,7 @@ define(function (require, exports, module) {
             if (node.tag) {
                 result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
             } else {
-                result += indent + "TEXT " + node.tagID + " " + node.content + "\n";
+                result += indent + "TEXT " + (node.tagID || "- ") + node.content + "\n";
             }
             if (node.isElement()) {
                 indent += "  ";
@@ -522,6 +522,7 @@ define(function (require, exports, module) {
     // Public API
     exports.build                       = build;
     exports.Builder                     = Builder;
+    exports.SimpleNode                  = SimpleNode;
     
     // Private API
     exports._dumpDOM                    = _dumpDOM;
