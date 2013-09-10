@@ -473,27 +473,6 @@ define(function (require, exports, module) {
             expect(marks.length).toBeGreaterThan(0);
         }
         
-        // Useful for debugging to see what the mark ranges. Just call it inside one of the following tests.
-        function _dumpMarks() {
-            var cm = editor._codeMirror,
-                marks = cm.getAllMarks();
-            marks.sort(function (mark1, mark2) {
-                var range1 = mark1.find(), range2 = mark2.find();
-                if (range1.from.line === range2.from.line) {
-                    return range1.from.ch - range2.from.ch;
-                } else {
-                    return range1.from.line - range2.from.line;
-                }
-            });
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    var range = mark.find();
-                    console.log("<" + elementIds[mark.tagID] + "> (" + mark.tagID + ") " +
-                                range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
-                }
-            });
-        }
-        
         describe("interaction with document and editor", function () {
             beforeEach(function () {
                 HTMLInstrumentation._resetCache();
@@ -953,6 +932,20 @@ define(function (require, exports, module) {
                 });
             }
             
+            function checkMarkSanity() {
+                // Ensure that we don't have multiple marks for the same tagID.
+                var marks = editor._codeMirror.getAllMarks(),
+                    foundMarks = {};
+                marks.forEach(function (mark) {
+                    if (mark.hasOwnProperty("tagID")) {
+                        if (foundMarks[mark.tagID]) {
+                            expect("mark with ID " + mark.tagID).toBe("unique");
+                        }
+                        foundMarks[mark.tagID] = true;
+                    }
+                });
+            }
+            
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(editor.document);
                 editor = null;
@@ -982,6 +975,9 @@ define(function (require, exports, module) {
                 // Note that even if we pass a change list, `_updateDOM` will still choose to do a
                 // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                
+                checkMarkSanity();
+
                 var doc = new FakeDocument(clonedDOM);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
@@ -1024,6 +1020,8 @@ define(function (require, exports, module) {
                         var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                         editHandler.apply(result.edits);
                         clonedDOM.compare(result.dom);
+                        
+                        checkMarkSanity();
                         
                         curDOM = result.dom;
                     }

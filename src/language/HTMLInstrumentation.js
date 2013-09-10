@@ -148,6 +148,33 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
+     * @param {Editor} editor The editor to find the mark ranges for.
+     * @param {Object=} nodeMap If specified, a map of tag IDs to DOM nodes, used so we can indicate which tag name
+     *     the DOM thinks corresponds to the given mark.
+     */
+    function _dumpMarks(editor, nodeMap) {
+        var cm = editor._codeMirror,
+            marks = cm.getAllMarks();
+        marks.sort(function (mark1, mark2) {
+            var range1 = mark1.find(), range2 = mark2.find();
+            if (range1.from.line === range2.from.line) {
+                return range1.from.ch - range2.from.ch;
+            } else {
+                return range1.from.line - range2.from.line;
+            }
+        });
+        marks.forEach(function (mark) {
+            if (mark.hasOwnProperty("tagID")) {
+                var range = mark.find();
+                console.log("<" + nodeMap[mark.tagID].tag + "> (" + mark.tagID + ") " +
+                            range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+            }
+        });
+    }
+
+    /**
      * Get the instrumented tagID at the specified position. Returns -1 if
      * there are no instrumented tags at the location.
      * The _markText() function must be called before calling this function.
@@ -336,7 +363,7 @@ define(function (require, exports, module) {
                         mark = cm.markText(node.startPos, node.endPos);
                         mark.tagID = node.tagID;
                     }
-                    updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+                    updateIDs.splice(updateIDs.indexOf(String(node.tagID)), 1);
                 }
             });
             
