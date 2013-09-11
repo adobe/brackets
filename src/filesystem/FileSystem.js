@@ -118,6 +118,11 @@ define(function (require, exports, module) {
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
     FileSystem.prototype.getDirectoryForPath = function (path) {
+        // Make sure path doesn't include trailing slash
+        if (path[path.length - 1] === "/") {
+            path = path.substr(0, path.length - 1);
+        }
+        
         var directory = this._index.getEntry(path);
         
         if (!directory) {
@@ -208,7 +213,9 @@ define(function (require, exports, module) {
             directory._contents = [];
             
             // Instantiate content objects
-            for (i = 0; i < stats.length; i++) {
+            var len = stats ? stats.length : 0;
+            
+            for (i = 0; i < len; i++) {
                 entryPath = directory.fullPath + "/" + contents[i];
                 
                 if (this.shouldShow(entryPath)) {

@@ -55,16 +55,20 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        brackets.fs.unlink(fullPath, function (err) {
-            if (err) {
-                if (!silent) {
-                    console.error("unable to remove " + fullPath + " Error code " + err);
-                }
+        brackets.appFileSystem.resolve(fullPath)
+            .done(function (item) {
+                item.unlink()
+                    .done(function () {
+                        result.resolve();
+                    })
+                    .fail(function (err) {
+                        console.error(err);
+                        result.reject(err);
+                    });
+            })
+            .fail(function (err) {
                 result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
+            });
 
         return result.promise();
     }
@@ -79,6 +83,7 @@ define(function (require, exports, module) {
     function chmod(path, mode) {
         var deferred = new $.Deferred();
 
+        // TODO: FileSystem
         brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
             if (err) {
                 deferred.reject(err);
@@ -858,33 +863,6 @@ define(function (require, exports, module) {
         
         return _testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
-<<<<<<< HEAD
-    
-    /**
-     * @param {string} fullPath
-     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
-     */
-    function deletePath(fullPath) {
-        var result = new $.Deferred();
-        brackets.appFileSystem.resolve(fullPath)
-            .done(function (item) {
-                item.unlink()
-                    .done(function () {
-                        result.resolve();
-                    })
-                    .fail(function (err) {
-                        console.error(err);
-                        result.reject(err);
-                    });
-            })
-            .fail(function (err) {
-                result.reject(err);
-            });
-
-        return result.promise();
-    }
-=======
->>>>>>> master
 
     /**
      * Simulate key event. Found this code here:
@@ -965,61 +943,7 @@ define(function (require, exports, module) {
         }
         return message;
     }
-
-<<<<<<< HEAD
-    /**
-     * Set permissions on a path
-     * @param {!string} path Path to change permissions on
-     * @param {!string} mode New mode as an octal string
-     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
-     */
-    function chmod(path, mode) {
-        var deferred = new $.Deferred();
-
-        // TODO: FileSystem
-        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
-            if (err) {
-                deferred.reject(err);
-            } else {
-                deferred.resolve();
-            }
-        });
-
-        return deferred.promise();
-    }
     
-    /**
-     * Remove a directory (recursively) or file
-     *
-     * @param {!string} path Path to remove
-     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
-     */
-    function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
-    }
-    
-=======
-   
->>>>>>> master
     /**
      * Searches the DOM tree for text containing the given content. Useful for verifying
      * that data you expect to show up in the UI somewhere is actually there.

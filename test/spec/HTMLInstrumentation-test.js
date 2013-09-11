@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
         BigDoc              = require("text!spec/HTMLInstrumentation-test-files/REC-widgets-20121127.html");
     
+    RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
+    
     var editor,
         instrumentedHTML,
         elementCount,

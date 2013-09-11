@@ -118,7 +118,8 @@ define(function (require, exports, module) {
         }
 
         var path = projectRootPath + Preferences.FILE_NAME,
-            file = ProjectManager.getFileSystem().getFileForPath(path);
+            fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
+            file = fileSystem.getFileForPath(path);
 
         FileUtils.readAsText(file).done(function (text) {
             var configObj = null;
@@ -174,7 +175,7 @@ define(function (require, exports, module) {
      * @param {!function(string)=} errorCallback - Callback for errors (optional).
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var fileSystem = ProjectManager.getFileSystem(),
+        var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
             directory = fileSystem.getDirectoryForPath(dir),
             files = [];
 
@@ -834,11 +835,11 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = HintUtils.splitPath(name).file;
-                
-                var files = ProjectManager.getFileSystem().getFileList(function (file) {
-                    return file.name === fileName;
-                });
+                var fileName = HintUtils.splitPath(name).file,
+                    fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
+                    files = fileSystem.getFileList(function (file) {
+                        return file.name === fileName;
+                    });
                 
                 var file;
                 files = files.filter(function (file) {

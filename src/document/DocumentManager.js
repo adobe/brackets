@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
         } else {
             var result = new $.Deferred(),
                 promise = result.promise(),
-                fileSystem = ProjectManager.getFileSystem();
+                fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem;
             
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);

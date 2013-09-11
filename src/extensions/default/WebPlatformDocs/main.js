@@ -52,7 +52,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             var path = ExtensionUtils.getModulePath(module, "css.json"),
-                file = ProjectManager.getFileSystem().getFileForPath(path);
+                file = brackets.appFileSystem.getFileForPath(path);
             
             FileUtils.readAsText(file)
                 .done(function (text) {

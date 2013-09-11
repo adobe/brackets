@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         }
 
         var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-
+        
         // get relative path from query string
         // TODO: handle site-root relative
         var queryDir = "";
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var fileSystem = ProjectManager.getFileSystem(),
+            var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
                 directory = fileSystem.getDirectoryForPath(targetDir),
                 self = this;
 
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
 
                             // code hints show the same strings that are inserted into text,
                             // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
+                            unfiltered.push(encodeURI(entryStr + (entry.isDirectory() ? "/" : "")));
                         }
                     });
 
