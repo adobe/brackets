@@ -254,6 +254,13 @@ define(function (require, exports, module) {
                     return cur.some(function (keyword) {
                         return keyword.toLowerCase().indexOf(query) !== -1;
                     });
+                } else if (fieldSpec[fieldSpec.length - 1] === "owner") {
+                    // Special handling: ignore the authentication source when querying,
+                    // since it's not useful to search on
+                    var components = cur.split(":");
+                    if (components[1].toLowerCase().indexOf(query) !== -1) {
+                        return true;
+                    }
                 } else if (cur.toLowerCase().indexOf(query) !== -1) {
                     return true;
                 }

@@ -125,6 +125,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     launcherUrl = launcherUrl.substr(0, launcherUrl.lastIndexOf("/")) + "/LiveDevelopment/launch.html";
     launcherUrl = window.location.origin + launcherUrl;
+    
+    // TODO: Remove this temporary flag. Once we're certain that Live HTML is ready,
+    // we can remove all traces of this flag.
+    brackets.livehtml = true;
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
@@ -966,7 +970,7 @@ define(function LiveDevelopment(require, exports, module) {
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
         
-        if (doc instanceof CSSDocument) {
+        if (doc.updateHighlight) {
             doc.updateHighlight();
         }
     }

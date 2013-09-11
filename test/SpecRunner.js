@@ -52,7 +52,8 @@ define(function (require, exports, module) {
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
-        ColorUtils              = require("utils/ColorUtils");
+        ColorUtils              = require("utils/ColorUtils"),
+        NativeApp               = require("utils/NativeApp");
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
@@ -357,6 +358,30 @@ define(function (require, exports, module) {
             
             $(window.document).ready(_documentReadyHandler);
         });
+        
+        
+        // Prevent clicks on any link from navigating to a different page (which could lose unsaved
+        // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
+        // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
+        // navigate. Also, a capture handler is more reliable than bubble.
+        window.document.body.addEventListener("click", function (e) {
+            // Check parents too, in case link has inline formatting tags
+            var node = e.target, url;
+            console.log(1);
+            while (node) {
+                console.log(node.tagName);
+                if (node.tagName === "A") {
+                    url = node.getAttribute("href");
+                    console.log(url);
+                    if (url && url.match(/^http/)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                        e.preventDefault();
+                    }
+                    break;
+                }
+                node = node.parentElement;
+            }
+        }, true);
     }
 
     /**

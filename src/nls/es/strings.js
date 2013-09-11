@@ -86,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a href='#' class='clickable-link' data-href='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando\u2026",
@@ -301,11 +301,11 @@ define({
     "ABOUT"                                : "Acerca de\u2026",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a href='#' class='clickable-link' data-href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
-    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> y se incluyen aquí como referencia.",
+    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a href='#' class='clickable-link' data-href='http://creativecommons.org/licenses/by/3.0/'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
@@ -317,7 +317,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     
     // Extension Management strings
     "INSTALL"                              : "Instalar",
