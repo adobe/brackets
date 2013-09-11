@@ -228,27 +228,18 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
     }
-    
-    /**
-     * @private
-     * Reset error flag for a live document
-     * @param {HTMLDocument|CSSDocument} liveDocument
-     * @return {boolean} Returns true if the live document's editor error gutter should be cleared
-     */
-    function _shouldClearErrors(liveDocument) {
-        var doClear = (liveDocument._hasErrors && liveDocument.editor);
-        liveDocument._hasErrors = liveDocument.errors.length > 0;
-        return doClear;
-    }
 
     /**
      * @private
      * Clears errors from line number gutter
+     * @param {HTMLDocument|CSSDocument} liveDocument
      */
-    function _doClearErrors(editor) {
-        if (editor) {
-            editor._codeMirror.clearGutter(GUTTER_ID);
+    function _doClearErrors(liveDocument) {
+        if (!liveDocument.editor) {
+            return;
         }
+        
+        liveDocument.editor._codeMirror.clearGutter(GUTTER_ID);
     }
 
     /**
@@ -281,8 +272,12 @@ define(function LiveDevelopment(require, exports, module) {
             endLine,
             lineInfo,
             i,
-            clearErrors = _shouldClearErrors(liveDocument),
-            status      = (liveDocument._hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+            clearOldErrors  = liveDocument._hasErrors,
+            hasErrors       = liveDocument.errors.length > 0,
+            status          = (hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+        
+        // Update error status
+        liveDocument._hasErrors = hasErrors;
 
         if (!liveDocument.editor) {
             return;
@@ -290,8 +285,9 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Buffer clearGutter and setGutterMarker changes in a CodeMirror operation
         liveDocument.editor._codeMirror.operation(function () {
-            if (clearErrors) {
-                _doClearErrors(liveDocument.editor);
+            // Remove existing errors before marking new ones
+            if (clearOldErrors) {
+                _doClearErrors(liveDocument);
             }
     
             if (liveDocument.errors.length > 0) {
@@ -314,7 +310,7 @@ define(function LiveDevelopment(require, exports, module) {
      * Close a live document
      */
     function _closeDocument(liveDocument) {
-        _doClearErrors(liveDocument.editor);
+        _doClearErrors(liveDocument);
         liveDocument.close();
         $(liveDocument).off(".livedev");
     }
