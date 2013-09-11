@@ -48,23 +48,27 @@ define(function (require, exports, module) {
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
-        nfs;
+        nfs,
+        _rootSuite              = { id: "__brackets__" },
+        _unitTestReporter;
     
     
     /**
+     * Delete a path
      * @param {string} fullPath
+     * @param {boolean=} silent Defaults to false. When true, ignores ERR_NOT_FOUND when deleting path.
      * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
+        
         brackets.fs.unlink(fullPath, function (err) {
-            if (err) {
-                if (!silent) {
-                    console.error("unable to remove " + fullPath + " Error code " + err);
-                }
-                result.reject(err);
-            } else {
+            // ignore ERR_NOT_FOUND errors
+            if (!err || (err === brackets.fs.ERR_NOT_FOUND && silent)) {
                 result.resolve();
+            } else {
+                console.error("unable to remove " + fullPath + " Error code " + err);
+                result.reject(err);
             }
         });
 
@@ -160,8 +164,6 @@ define(function (require, exports, module) {
         }, "success " + operationName, timeout);
     };
 
-    
-
     /**
      * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
      * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
@@ -176,7 +178,6 @@ define(function (require, exports, module) {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
     };
-        
     
     /**
      * Get or create a NativeFileSystem rooted at the system root.
@@ -233,7 +234,10 @@ define(function (require, exports, module) {
         waitsForDone(deferred, "Create temp directory", 500);
     }
     
-    function stat(pathname) {
+    /**
+     * @private
+     */
+    function _stat(pathname) {
         var promise = new $.Deferred();
         
         brackets.fs.stat(pathname, function (err, _stat) {
@@ -247,51 +251,51 @@ define(function (require, exports, module) {
         return promise;
     }
     
-    function resetPermissionsOnSpecialTempFolders() {
+    function _resetPermissionsOnSpecialTempFolders() {
         var i,
-            folderCount,
-            resolvedCount = 0,
             folders = [],
             baseDir = getTempDirectory(),
-            promise = new $.Deferred();
-            
+            promise;
+        
         folders.push(baseDir + "/cant_read_here");
         folders.push(baseDir + "/cant_write_here");
         
-        folderCount = folders.length;
+        promise = Async.doSequentially(folders, function (folder) {
+            var deferred = new $.Deferred();
             
-        var alwaysHandler = function () {
-            if (++resolvedCount === folderCount) {
-                promise.resolve();
-            }
-        };
-        
-        var resetPermissions = function (pathname) {
-            stat(folders[i]).then(chmod(pathname).always(alwaysHandler), alwaysHandler);
-        };
-        
-        for (i = 0; i < folderCount; i++) {
-            resetPermissions(folders[i]);
-        }
+            _stat(folder).done(function () {
+                // Change permissions if the directory exists
+                chmod(folder, 777).then(deferred.resolve, deferred.reject);
+            }).fail(function (err) {
+                if (err === brackets.fs.ERR_NOT_FOUND) {
+                    // Resolve the promise since the folder to reset doesn't exist
+                    deferred.resolve();
+                } else {
+                    deferred.reject();
+                }
+            });
+            
+            return deferred.promise();
+        }, true);
         
         return promise;
     }
     
-    
+    /**
+     * Remove temp folder used for temporary unit tests files
+     * @return {$.Promise}
+     */
     function removeTempDirectory() {
-        var promise = new $.Deferred(),
+        var deferred = new $.Deferred(),
             baseDir = getTempDirectory();
         
-        resetPermissionsOnSpecialTempFolders().always(function () {
-            deletePath(baseDir, true)
-                .done(function () {
-                    promise.resolve();
-                })
-                .fail(function () {
-                    promise.reject();
-                });
+        _resetPermissionsOnSpecialTempFolders().done(function () {
+            deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
+        }).fail(function () {
+            deferred.reject();
         });
-        return promise;
+        
+        return deferred.promise();
     }
     
     function getBracketsSourceRoot() {
@@ -1080,7 +1084,7 @@ define(function (require, exports, module) {
      * @param {function} func  The function to store
      */
     function _addSuiteFunction(type, func) {
-        var suiteId = jasmine.getEnv().currentSuite.id;
+        var suiteId = (jasmine.getEnv().currentSuite || _rootSuite).id;
         if (!_testSuites[suiteId]) {
             _testSuites[suiteId] = {
                 beforeFirst : [],
@@ -1120,6 +1124,7 @@ define(function (require, exports, module) {
             suites.push(suite);
             suite = suite.parentSuite;
         }
+        
         return suites;
     }
 
@@ -1141,6 +1146,12 @@ define(function (require, exports, module) {
     function runBeforeFirst() {
         var suites = _getParentSuites().reverse();
         
+        // SpecRunner-scoped beforeFirst
+        if (_testSuites[_rootSuite.id].beforeFirst) {
+            _callFunctions(_testSuites[_rootSuite.id].beforeFirst);
+            _testSuites[_rootSuite.id].beforeFirst = null;
+        }
+        
         // Iterate through all the parent suites of the current spec
         suites.forEach(function (suite) {
             // If we have functions for this suite and it was never called, initialize the spec counter
@@ -1149,6 +1160,14 @@ define(function (require, exports, module) {
                 _testSuites[suite.id].specCounter = countSpecs(suite);
             }
         });
+    }
+    
+    /**
+     * @private
+     * @return {boolean} True if the current spect is the last spec to be run
+     */
+    function _isLastSpec() {
+        return _unitTestReporter.activeSpecCompleteCount === _unitTestReporter.activeSpecCount - 1;
     }
     
     /**
@@ -1170,9 +1189,15 @@ define(function (require, exports, module) {
                 }
             }
         });
+        
+        // SpecRunner-scoped afterLast
+        if (_testSuites[_rootSuite.id].afterLast && _isLastSpec()) {
+            _callFunctions(_testSuites[_rootSuite.id].afterLast);
+            _testSuites[_rootSuite.id].afterLast = null;
+        }
     }
     
-    
+    // "global" custom matchers
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -1208,6 +1233,10 @@ define(function (require, exports, module) {
             }
         });
     });
+    
+    function setUnitTestReporter(reporter) {
+        _unitTestReporter = reporter;
+    }
     
     exports.TEST_PREFERENCES_KEY            = TEST_PREFERENCES_KEY;
     exports.EDITOR_USE_TABS                 = EDITOR_USE_TABS;
@@ -1249,4 +1278,5 @@ define(function (require, exports, module) {
     exports.runBeforeFirst                  = runBeforeFirst;
     exports.runAfterLast                    = runAfterLast;
     exports.removeTempDirectory             = removeTempDirectory;
+    exports.setUnitTestReporter             = setUnitTestReporter;
 });
