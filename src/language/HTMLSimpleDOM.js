@@ -248,8 +248,8 @@ define(function (require, exports, module) {
 
     Builder.prototype._logError = function (token) {
         var error       = { token: token },
-            startPos    = token ? (token.startPos || token.endPos) : this.startOffset,
-            endPos      = token ? token.endPos : this.startOffset;
+            startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos,
+            endPos      = token ? token.endPos : this.startOffsetPos;
         
         error.startPos = _addPos(this.startOffsetPos, startPos);
         error.endPos = _addPos(this.startOffsetPos, endPos);
