@@ -31,10 +31,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit       = require("utils/AppInit"),
-        EditorManager = require("editor/EditorManager"),
-        KeyEvent      = require("utils/KeyEvent"),
-        Menus         = require("command/Menus");
+    var AppInit         = require("utils/AppInit"),
+        CommandManager  = require("command/CommandManager"),
+        EditorManager   = require("editor/EditorManager"),
+        KeyEvent        = require("utils/KeyEvent"),
+        Menus           = require("command/Menus");
     
     var _popUps = [];
         
@@ -161,6 +162,11 @@ define(function (require, exports, module) {
         // Register for events
         window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
         $(exports).on("beforeMenuPopup", _beforeMenuPopup);
+        
+        // Close all popups when a command is executed
+        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+            removeCurrentPopUp();
+        });
     });
     
     exports.addPopUp            = addPopUp;
