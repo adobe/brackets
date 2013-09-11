@@ -99,8 +99,7 @@ define(function LiveDevelopment(require, exports, module) {
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
     
     // Document errors
-    var GUTTER_ID = "CodeMirror-linenumbers",
-        GUTTER_CLASS = "CodeMirror-linenumber live-preview-error";
+    var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
     var agents = {
@@ -231,15 +230,30 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * Clears errors from line number gutter
+     * Clears errors from line number gutter (line class)
      * @param {HTMLDocument|CSSDocument} liveDocument
      */
     function _doClearErrors(liveDocument) {
-        if (!liveDocument.editor) {
+        var lineHandle;
+        
+        if (!liveDocument.editor ||
+                !liveDocument._errorLineHandles ||
+                !liveDocument._errorLineHandles.length) {
             return;
         }
         
-        liveDocument.editor._codeMirror.clearGutter(GUTTER_ID);
+        liveDocument.editor._codeMirror.operation(function () {
+            while (true) {
+                // Iterate over all lines that were previously marked with an error
+                lineHandle = liveDocument._errorLineHandles.pop();
+                
+                if (!lineHandle) {
+                    break;
+                }
+                
+                liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
+            }
+        });
     }
 
     /**
@@ -272,34 +286,34 @@ define(function LiveDevelopment(require, exports, module) {
             endLine,
             lineInfo,
             i,
-            clearOldErrors  = liveDocument._hasErrors,
+            lineHandle,
             hasErrors       = liveDocument.errors.length > 0,
             status          = (hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
         
-        // Update error status
-        liveDocument._hasErrors = hasErrors;
-
         if (!liveDocument.editor) {
             return;
         }
 
-        // Buffer clearGutter and setGutterMarker changes in a CodeMirror operation
+        // Buffer addLineClass DOM changes in a CodeMirror operation
         liveDocument.editor._codeMirror.operation(function () {
             // Remove existing errors before marking new ones
-            if (clearOldErrors) {
-                _doClearErrors(liveDocument);
+            _doClearErrors(liveDocument);
+            
+            if (!hasErrors) {
+                return;
             }
+        
+            liveDocument._errorLineHandles = liveDocument._errorLineHandles || [];
     
-            if (liveDocument.errors.length > 0) {
-                liveDocument.errors.forEach(function (error) {
-                    startLine = error.startPos.line;
-                    endLine = error.endPos.line;
-                    
-                    for (i = startLine; i < endLine + 1; i++) {
-                        liveDocument.editor._codeMirror.setGutterMarker(i, GUTTER_ID, $("<div/>").addClass(GUTTER_CLASS).text(i + 1)[0]);
-                    }
-                });
-            }
+            liveDocument.errors.forEach(function (error) {
+                startLine = error.startPos.line;
+                endLine = error.endPos.line;
+                
+                for (i = startLine; i < endLine + 1; i++) {
+                    lineHandle = liveDocument.editor._codeMirror.addLineClass(i, "wrap", SYNC_ERROR_CLASS);
+                    liveDocument._errorLineHandles.push(lineHandle);
+                }
+            });
         });
 
         _setStatus(status);
