@@ -137,7 +137,6 @@ define(function (require, exports, module) {
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
-            //FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
@@ -214,16 +213,14 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            var indexFile = brackets.appFileSystem.getFileForPath(initialProjectPath + "/index.html");
-
-                            indexFile.exists().done(function (exists) {
-                                if (exists) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: indexFile.fullPath });
+                            brackets.appFileSystem.resolve(initialProjectPath + "/index.html")
+                                .done(function (file) {
+                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
-                                } else {
+                                })
+                                .fail(function () {
                                     deferred.reject();
-                                }
-                            });
+                                });
                         } else {
                             deferred.resolve();
                         }

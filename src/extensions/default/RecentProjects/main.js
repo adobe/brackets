@@ -185,14 +185,10 @@ define(function (require, exports, module) {
                         var recentProjects = getRecentProjects(),
                             index = recentProjects.indexOf(path);
                         if (index !== -1) {
-                            // TODO: FileSystem - is this right?
-                            var directory = ProjectManager.getFileSystem().getDirectoryForPath(path);
-                            
-                            directory.exists().done(function (exists) {
-                                if (!exists) {
+                            ProjectManager.getFileSystem().resolve(path)
+                                .fail(function () {
                                     recentProjects.splice(index, 1);
-                                }
-                            });
+                                });
                         }
                     });
                 closeDropdown();
