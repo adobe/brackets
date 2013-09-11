@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, brackets, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
     describe("CloseOthers", function () {
 		var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
-			testPath	  = extensionPath + "/unittest-files/",
+			testPath      = extensionPath + "/unittest-files/",
 			testWindow,
 			$,
 			docSelectIndex,
@@ -143,10 +143,10 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_others";
 
             runs(runCloseOthers);
-
-	        runs(function () {
-	            expect(DocumentManager.getWorkingSet().length).toEqual(1);
-	        });
+			
+			runs(function () {
+				expect(DocumentManager.getWorkingSet().length).toEqual(1);
+			});
         });
 
         it("Close others above", function () {
