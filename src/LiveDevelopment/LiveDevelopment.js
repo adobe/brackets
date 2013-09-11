@@ -281,7 +281,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {HTMLDocument|CSSDocument} liveDocument
      * @param {Array.<{token: SimpleNode, startPos: Pos, endPos: Pos}>} errors 
      */
-    function _handleLiveDocumentError(liveDocument) {
+    function _handleLiveDocumentStatusChanged(liveDocument) {
         var startLine,
             endLine,
             lineInfo,
@@ -289,20 +289,15 @@ define(function LiveDevelopment(require, exports, module) {
             lineHandle,
             hasErrors       = liveDocument.errors.length > 0,
             status          = (hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+
+        _setStatus(status);
         
-        if (!liveDocument.editor) {
+        if (!liveDocument.editor || !hasErrors) {
             return;
         }
 
         // Buffer addLineClass DOM changes in a CodeMirror operation
         liveDocument.editor._codeMirror.operation(function () {
-            // Remove existing errors before marking new ones
-            _doClearErrors(liveDocument);
-            
-            if (!hasErrors) {
-                return;
-            }
-        
             liveDocument._errorLineHandles = liveDocument._errorLineHandles || [];
     
             liveDocument.errors.forEach(function (error) {
@@ -315,8 +310,6 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             });
         });
-
-        _setStatus(status);
     }
 
     /**
@@ -326,6 +319,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _closeDocument(liveDocument) {
         _doClearErrors(liveDocument);
         liveDocument.close();
+        
+        if (liveDocument.editor) {
+            $(liveDocument.editor).off(".livedev");
+        }
+        
         $(liveDocument).off(".livedev");
     }
 
@@ -367,9 +365,16 @@ define(function LiveDevelopment(require, exports, module) {
         if (!DocClass) {
             return null;
         }
+        
+        if (editor) {
+            $(editor).on("beforeChange.livedev", function () {
+                // Remove existing errors before marking new ones
+                _doClearErrors(liveDocument);
+            });
+        }
 
         $(liveDocument).on("statusChanged.livedev", function () {
-            _handleLiveDocumentError(liveDocument);
+            _handleLiveDocumentStatusChanged(liveDocument);
         });
 
         return liveDocument;
