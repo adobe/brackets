@@ -243,6 +243,17 @@ define(function (require, exports, module) {
                 }
             });
         },
+        
+        isRelativePath: function (path) {
+            // If the path contains a colons it must be a full path on Windows (colons are
+            // not valid path characters on mac or in URIs)
+            if (path.indexOf(":") !== -1) {
+                return false;
+            }
+            
+            // For everyone else, absolute paths start with a "/"
+            return path[0] !== "/";
+        },
 
         /**
          * Converts a brackets.fs.ERR_* error code to a NativeFileError.* error name
