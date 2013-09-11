@@ -358,7 +358,7 @@ define(function LiveDevelopment(require, exports, module) {
             return null;
         }
 
-        $(liveDocument).on("error.livedev", function () {
+        $(liveDocument).on("statusChanged.livedev", function () {
             _handleLiveDocumentError(liveDocument);
         });
 

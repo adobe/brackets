@@ -239,7 +239,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         this.errors = result.errors || [];
-        $(this).triggerHandler("error", [this]);
+        $(this).triggerHandler("statusChanged", [this]);
         
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:

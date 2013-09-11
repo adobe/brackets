@@ -247,11 +247,12 @@ define(function (require, exports, module) {
     }
 
     Builder.prototype._logError = function (token) {
-        var error = { token: token },
-            startPos = token.startPos || this.startOffsetPos;
+        var error       = { token: token },
+            startPos    = token ? (token.startPos || token.endPos) : this.startOffset,
+            endPos      = token ? token.endPos : this.startOffset;
         
         error.startPos = _addPos(this.startOffsetPos, startPos);
-        error.endPos = _addPos(this.startOffsetPos, token.endPos);
+        error.endPos = _addPos(this.startOffsetPos, endPos);
 
         if (!this.errors) {
             this.errors = [];
