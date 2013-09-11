@@ -49,9 +49,14 @@ define(function (require, exports, module) {
         this._handleInputKeydown = this._handleInputKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
         
-        this._$root = $("<div class='modal-bar'/>")
+        this._$root = $("<div class='modal-bar modal-bar-hide'/>")
             .html(template)
             .insertBefore("#editor-holder");
+
+        // Forcing the renderer to do a layout, which will cause it to apply the transform for the "modal-bar-hide"
+        // class, so it will animate when you remove the class.
+        window.getComputedStyle(this._$root.get(0)).getPropertyValue("top");
+        this._$root.removeClass("modal-bar-hide");
         
         // If something *other* than an editor (like another modal bar) has focus, set the focus 
         // to the editor here, before opening up the new modal bar. This ensures that the old
@@ -123,8 +128,11 @@ define(function (require, exports, module) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
         
-        this._$root.remove();
-
+        var self = this;
+        this._$root.addClass("modal-bar-hide").one("webkitTransitionEnd", function () {
+            self._$root.remove();
+        });
+        
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
         var fullEditor = EditorManager.getCurrentFullEditor(),

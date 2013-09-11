@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -49,11 +49,15 @@ define(function HTMLDocumentModule(require, exports, module) {
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
-        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment");
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        PerfUtils           = require("utils/PerfUtils"),
+        RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
+        StringUtils         = require("utils/StringUtils");
 
-    /** Constructor
-     *
-     * @param Document the source document from Brackets
+    /**
+     * Constructor
+     * @param {!DocumentManager.Document} doc the source document from Brackets
+     * @param {editor=} editor
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
         this.doc = doc;
@@ -74,10 +78,10 @@ define(function HTMLDocumentModule(require, exports, module) {
             // Used by highlight agent to highlight editor text as selected in browser
             this.onHighlight = this.onHighlight.bind(this);
             $(HighlightAgent).on("highlight", this.onHighlight);
-
-            this.onChange = this.onChange.bind(this);
-            $(this.editor).on("change", this.onChange);
         }
+
+        this.onChange = this.onChange.bind(this);
+        $(this.editor).on("change", this.onChange);
     };
     
     /**
@@ -98,11 +102,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @returns {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
-        var body = (this._instrumentationEnabled) ?
-                HTMLInstrumentation.generateInstrumentedHTML(this.doc) : this.doc.getText();
+        var body;
+        if (this._instrumentationEnabled) {
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
+        }
         
         return {
-            body: body
+            body: body || this.doc.getText()
         };
     };
 
@@ -119,19 +125,13 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (LiveDevelopment.config.experimental) {
             $(HighlightAgent).off("highlight", this.onHighlight);
             this.onHighlight();
-
-            $(this.editor).off("change", this.onChange);
         }
+
+        $(this.editor).off("change", this.onChange);
     };
-
-
-    /** Event Handlers *******************************************************/
-
-    /** Triggered on cursor activity by the editor */
-    HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
-        if (!this.editor) {
-            return;
-        }
+    
+    /** Update the highlight */
+    HTMLDocument.prototype.updateHighlight = function () {
         var codeMirror = this.editor._codeMirror;
         if (Inspector.config.highlight) {
             var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
@@ -147,19 +147,128 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
 
-    /** Triggered on change by the editor */
-    HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+    /** Event Handlers *******************************************************/
+
+    /** Triggered on cursor activity by the editor */
+    HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
         if (!this.editor) {
             return;
         }
-        var codeMirror = this.editor._codeMirror;
-        while (change) {
-            var from = codeMirror.indexFromPos(change.from);
-            var to = codeMirror.indexFromPos(change.to);
-            var text = change.text.join("\n");
-            DOMAgent.applyChange(from, to, text);
-            change = change.next;
+        this.updateHighlight();
+    };
+    
+    /**
+     * @private
+     * For the given editor change, compare the resulting browser DOM with the
+     * in-editor DOM. If there are any diffs, a warning is logged to the
+     * console along with each diff.
+     * @param {Object} change CodeMirror editor change data
+     */
+    HTMLDocument.prototype._compareWithBrowser = function (change) {
+        var self = this;
+        
+        RemoteAgent.call("getSimpleDOM").done(function (res) {
+            var browserSimpleDOM = JSON.parse(res.result.value),
+                edits,
+                node,
+                result;
+            
+            try {
+                result = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM);
+            } catch (err) {
+                console.error("Error comparing in-browser DOM to in-editor DOM");
+                console.error(err.stack);
+                return;
+            }
+            
+            edits = result.diff.filter(function (delta) {
+                // ignore textDelete in html root element
+                node = result.browser.nodeMap[delta.parentID];
+                
+                if (node && node.tag === "html" && delta.type === "textDelete") {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            if (edits.length > 0) {
+                console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
+                
+                edits.forEach(function (delta) {
+                    console.log(delta);
+                });
+            }
+        });
+    };
+
+    /** Triggered on change by the editor */
+    HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        // Make sure LiveHTML is turned on
+        if (!brackets.livehtml || !this._instrumentationEnabled) {
+            return;
         }
+
+        // Apply DOM edits is async, so previous PerfUtils timer may still be
+        // running. PerfUtils does not support running multiple timers with same
+        // name, so do not start another timer in this case.
+        var perfTimerName   = "HTMLDocument applyDOMEdits",
+            isNestedTimer   = PerfUtils.isActive(perfTimerName);
+        if (!isNestedTimer) {
+            PerfUtils.markStart(perfTimerName);
+        }
+        
+        // Only handles attribute changes currently.
+        // TODO: text changes should be easy to add
+        // TODO: if new tags are added, need to instrument them
+        var self                = this,
+            edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
+            applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
+
+        applyEditsPromise.always(function () {
+            if (!isNestedTimer) {
+                PerfUtils.addMeasurement(perfTimerName);
+            }
+        });
+        
+        // Debug-only: compare in-memory vs. in-browser DOM
+        // edit this file or set a conditional breakpoint at the top of this function:
+        //     "this._debug = true, false"
+        if (this._debug) {
+            console.log("Edits applied to browser were:");
+            console.log(JSON.stringify(edits, null, 2));
+            applyEditsPromise.done(function () {
+                self._compareWithBrowser(change);
+            });
+        }
+        
+//        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
+//            this.editor,
+//            editor.getCursorPos()
+//        );
+//
+//        if (marker && marker.tagID) {
+//            var range   = marker.find(),
+//                text    = marker.doc.getRange(range.from, range.to);
+//
+//            // HACK maintain ID
+//            text = text.replace(">", " data-brackets-id='" + marker.tagID + "'>");
+//
+//            // FIXME incorrectly replaces body elements with content only, missing body element
+//            RemoteAgent.remoteElement(marker.tagID).replaceWith(text);
+//        }
+
+        // if (!this.editor) {
+        //     return;
+        // }
+        // var codeMirror = this.editor._codeMirror;
+        // while (change) {
+        //     var from = codeMirror.indexFromPos(change.from);
+        //     var to = codeMirror.indexFromPos(change.to);
+        //     var text = change.text.join("\n");
+        //     DOMAgent.applyChange(from, to, text);
+        //     change = change.next;
+        // }
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

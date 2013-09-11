@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
+        FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
         InMemoryFile          = require("filesystem/InMemoryFile"),
         PanelManager          = require("view/PanelManager"),
@@ -301,6 +302,31 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Count the total number of matches and files
+     * @return {{files: number, matches: number}}
+     */
+    function _countFilesMatches() {
+        var numFiles = 0, numMatches = 0;
+        CollectionUtils.forEach(searchResults, function (item) {
+            numFiles++;
+            numMatches += item.matches.length;
+        });
+
+        return {files: numFiles, matches: numMatches};
+    }
+    
+    /**
+     * @private
+     * Returns the last possible current start based on the given number of matches
+     * @param {number} numMatches
+     * @return {number}
+     */
+    function _getLastCurrentStart(numMatches) {
+        return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
+    }
+    
     
     /**
      * @private
@@ -308,42 +334,37 @@ define(function (require, exports, module) {
      */
     function _showSearchResults() {
         if (!$.isEmptyObject(searchResults)) {
-            
-            // Count the total number of matches
-            var numFiles = 0, numMatches = 0;
-            CollectionUtils.forEach(searchResults, function (item) {
-                numFiles++;
-                numMatches += item.matches.length;
-            });
+            var count = _countFilesMatches();
             
             // Show result summary in header
             var numMatchesStr = "";
             if (maxHitsFoundInFile) {
                 numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
             }
-            numMatchesStr += String(numMatches);
+            numMatchesStr += String(count.matches);
 
             // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
-                Strings.FIND_IN_FILES_TITLE,
+                Strings.FIND_IN_FILES_TITLE_PART3,
                 numMatchesStr,
-                (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                numFiles,
-                (numFiles > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                StringUtils.htmlEscape(currentQuery),
-                currentScope ? _labelForScope(currentScope) : ""
+                (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                count.files,
+                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
             );
             
             // The last result index displayed
-            var last = currentStart + RESULTS_PER_PAGE > numMatches ? numMatches : currentStart + RESULTS_PER_PAGE;
+            var last = Math.min(currentStart + RESULTS_PER_PAGE, count.matches);
             
             // Insert the search summary
             $searchSummary.html(Mustache.render(searchSummaryTemplate, {
+                query:    currentQuery,
+                scope:    currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
                 summary:  summary,
-                hasPages: numMatches > RESULTS_PER_PAGE,
+                hasPages: count.matches > RESULTS_PER_PAGE,
                 results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
                 hasPrev:  currentStart > 0,
-                hasNext:  last < numMatches
+                hasNext:  last < count.matches,
+                Strings:  Strings
             }));
             
             // Create the results template search list
@@ -388,7 +409,7 @@ define(function (require, exports, module) {
                         searchItems.push({
                             file:      searchList.length,
                             item:      searchItems.length,
-                            line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1)),
+                            line:      match.start.line + 1,
                             pre:       match.line.substr(0, match.start.ch),
                             highlight: match.line.substring(match.start.ch, match.end.ch),
                             post:      match.line.substr(match.end.ch),
@@ -398,12 +419,16 @@ define(function (require, exports, module) {
                         matchesCounter++;
                         i++;
                     }
-                                        
+                                                            
                     // Add a row for each file
-                    var displayFileName = StringUtils.format(
-                        Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(fullPath)
-                    );
+                    var relativePath = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
+                        directoryPath = FileUtils.getDirectoryPath(relativePath),
+                        displayFileName = StringUtils.format(
+                            Strings.FIND_IN_FILES_FILE_PATH,
+                            StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                            StringUtils.breakableUrl(directoryPath),
+                            directoryPath ? "&mdash;" : ""
+                        );
 
                     searchList.push({
                         file:     searchList.length,
@@ -437,7 +462,7 @@ define(function (require, exports, module) {
                 })
                 // The link to go to the last page
                 .one("click.searchList", ".last-page:not(.disabled)", function () {
-                    currentStart = Math.floor(numMatches / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
+                    currentStart = _getLastCurrentStart(count.matches);
                     _showSearchResults();
                 });
             
@@ -659,6 +684,8 @@ define(function (require, exports, module) {
      */
     function _pathDeletedHandler(event, path) {
         /* TODO: Handle path deleted
+        var resultsChanged = false, numMatches;
+        
         if (searchResultsPanel.isVisible()) {
             // Update the search results
             CollectionUtils.forEach(searchResults, function (item, fullPath) {
@@ -670,6 +697,10 @@ define(function (require, exports, module) {
             
             // Restore the results if needed
             if (resultsChanged) {
+                numMatches = _countFilesMatches().matches;
+                if (currentStart > numMatches) {
+                    currentStart = _getLastCurrentStart(numMatches);
+                }
                 _restoreSearchResults();
             }
         }
@@ -683,7 +714,7 @@ define(function (require, exports, module) {
         searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
         
         $searchResults = $("#search-results");
-        $searchSummary = $("#search-result-summary");
+        $searchSummary = $searchResults.find(".title");
         $searchContent = $("#search-results .table-container");
     });
     

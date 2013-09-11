@@ -86,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistäessä HTTP-palvelinta reaaliaikaisen kehityksen tiedostoja varten. Yritäthän uudelleen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa reaaliaikaiseen esikatseluun!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}-sovelluksen verkkoselaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi tehdässäsi muutoksia koodiin.<br /><br />Tässä aikaisessa {APP_NAME}-sovelluksen versioissa esikatselu toimii vain <strong>Google Chrome -selaimella</strong> ja päivittää reaaliaikaisesti muokatessasi CSS-tiedostoja. Muutokset HTML- tai JavaScript-tiedostolle päivittyvät automaattisesi, kun tallennat sen.<br /><br />(Näet tämän viestin vain kerran.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja, katso <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja, katso <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Esikatselu: Yhdistetään\u2026",
@@ -133,7 +133,9 @@ define({
     "FIND_IN_FILES_MATCH"               : "vastaavuus",
     "FIND_IN_FILES_MATCHES"             : "vastaavuutta",
     "FIND_IN_FILES_MORE_THAN"           : "Enemmän kuin ",
-    "FIND_IN_FILES_MAX"                 : " (näytetään ensimmäiset {0} vastaavuutta)",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Vähemmän</a>",
+    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Enemmän</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Tiedosto: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "Rivi: {0}",
 
@@ -151,13 +153,17 @@ define({
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SHIFT"  : "Vaihto",
     "KEYBOARD_SPACE"  : "Välilyönti",
     
     /**
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rivi {0}, Merkki {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Valittu {0} merkki",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Napsauta muuttaaksesi sisennys välilyönneiksi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Napsauta muuttaaksesi sisennys sarkainmerkeiksi",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Napsauta muuttaaksesi sisennyksenä käytettävien välilyöntien määrää",
@@ -275,7 +281,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
-    "SEARCH_RESULTS"                       : "Hakutulokset",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Älä tallenna",
     "SAVE"                                 : "Tallenna",
@@ -288,11 +293,11 @@ define({
     "ABOUT"                                : "Tietoja",
     "CLOSE"                                : "Sulje",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> ja yhdistetty viitteisiin täällä.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetty viitteisiin täällä.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät \u2764lla ja JavaScriptilla:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatiot ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssin alla, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatiot ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssin alla, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}-sovelluksesta on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei! {APP_NAME}-sovelluksesta on saatavilla uusi versio. Tässä on joitakin uusista ominaisuuksista:",
@@ -304,7 +309,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei saa sisältää hakuparametreja, kuten \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei saa sisältää ristikkomerkkejä, kuten \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten '{0}', täytyy olla %-koodattu.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Tuntematon virhe URL-osoitteen jäsentämisessä",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
     
     // Extension Management strings
     "INSTALL"                              : "Asenna",
@@ -387,7 +392,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",
+    "UNIT_PIXELS"                          : "pikselit",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Kehitys",

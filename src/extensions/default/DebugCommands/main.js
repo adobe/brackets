@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         var getValue = function (entry) {
             // entry is either an Array or a number
             if (Array.isArray(entry)) {
-                // For Array of values, return: minimum/average/maximum/last
+                // For Array of values, return: minimum/average(count)/maximum/last
                 var i, e, avg, sum = 0, min = Number.MAX_VALUE, max = 0;
                 
                 for (i = 0; i < entry.length; i++) {
@@ -108,8 +108,8 @@ define(function (require, exports, module) {
                     sum += e;
                     max = Math.max(max, e);
                 }
-                avg = Math.round(sum / entry.length);
-                return String(min) + "/" + String(avg) + "/" + String(max) + "/" + String(e);
+                avg = Math.round(sum * 10 / entry.length) / 10; // tenth of a millisecond
+                return String(min) + "/" + String(avg) + "(" + entry.length + ")/" + String(max) + "/" + String(e);
             } else {
                 return entry;
             }
@@ -188,10 +188,8 @@ define(function (require, exports, module) {
                 });
                 
                 var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
-                Dialogs.showModalDialogUsingTemplate(template).done(function () {
-                    if (locale === undefined) {
-                        return;
-                    } else if (locale !== curLocale) {
+                Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
                         brackets.setLocale(locale);
                         CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     }

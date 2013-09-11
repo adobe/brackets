@@ -1,0 +1,58 @@
+<element name="x-formatting-example" extends="body">
+  <template>
+    <style>
+      article {
+          flow-into: article;
+      }
+
+      #rA, #rB, #rC {
+          height: auto;
+
+          margin: 1em 1em 0em 1em;
+          padding: 1em;
+          border: 3px solid #46A4E9;
+      }
+
+      #rA {
+          width: auto;
+      }
+
+      #rB {
+          float: left;
+          width: 15em;
+          max-height: 150px;
+      }
+
+      #rC {
+          float: right;
+          width: 12em;
+          flow-from: ;
+      }
+
+      #main-flow {
+          padding: 0em 1em 0em 1em;
+          flow-from: regionC;
+          flow-into: ;
+      }
+    </style>
+
+    <div id="rA"></div>
+    <div id="rB"></div>
+    <div id="rC"></div>
+    <content></content>
+  </template>
+</element>        
+
+<body is="x-formatting-example">
+    <article>
+        <p style="break-after:region;">Example of <code>flow from: some-named-flow;</code></p>
+        <p>...</p>
+    </article>
+
+    <div id="main-flow">
+        <p>Lorem ipsum dolor ...</p>
+    </div>
+    <div id="side-flow">
+        <p>Lorem ipsum dolor ...</p>
+    </div>
+</body>

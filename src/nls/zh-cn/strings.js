@@ -80,7 +80,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}将通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 当你保存了Javascript文件与HTML文件,实时预览将在浏览器中重新加载他们.<br /><br />(此消息仅会出现一次.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a href='{0}' title='{0}'>实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
@@ -261,8 +261,8 @@ define({
     "ABOUT"                                : "关于",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
-    "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> 以此作为参考.",
+    "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "基于\u2764和JavaScript由以下用户参与贡献设计:",
     "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
@@ -276,7 +276,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含搜索参数如 \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "解析地址错误,请确认地址格式",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "解析地址错误,请确认地址格式",
     
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",

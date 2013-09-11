@@ -22,14 +22,15 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, beforeFirst, afterLast, spyOn */
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var PreferencesManager      = require("preferences/PreferencesManager"),
-        PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+    var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        PreferencesManager,
+        testWindow;
 
     var CLIENT_ID = "PreferencesManager-test";
         
@@ -101,6 +102,19 @@ define(function (require, exports, module) {
     });
 
     describe("PreferencesManager", function () {
+        beforeFirst(function () {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                PreferencesManager = testWindow.brackets.test.PreferencesManager;
+            });
+        });
+
+        afterLast(function () {
+            PreferencesManager = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
 
         beforeEach(function () {
             // SpecRunner.js already initializes the unit test instance of
@@ -112,6 +126,36 @@ define(function (require, exports, module) {
         it("should use default preferences", function () {
             var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
             expect(store.getValue("foo")).toEqual("default");
+        });
+
+        describe("Create clientID for preference store", function () {
+            it("should return clientID for module that exists in extension directories", function () {
+                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
+                    return ['/local/Extension/Folder/Extensions/',
+                            '/User/test/Library/Application Support/Brackets/extensions/user/',
+                            'c:/Program Files (x86)/Brackets/wwww/extensions/default/'];
+                });
+
+                var module = {id: 'utils/Resizer', uri: '/local/Extension/Folder/Extensions/utils/Resizer.js'};
+
+                var clientID = PreferencesManager.getClientID(module);
+                expect(clientID).toBe("com.adobe.brackets.utils/Resizer.js");
+
+                clientID = PreferencesManager.getClientID({id: 'main', uri: '/User/test/Library/Application Support/Brackets/extensions/user/HelloWorld/main.js'});
+                expect(clientID).toBe("com.adobe.brackets.HelloWorld/main.js");
+                
+                clientID = PreferencesManager.getClientID({id: 'main', uri: 'c:/Program Files (x86)/Brackets/wwww/extensions/default/JSLint/main.js'});
+                expect(clientID).toBe("com.adobe.brackets.JSLint/main.js");
+            });
+
+            it("should always return a clientID for a module that doesn't exist in extension directories", function () {
+                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
+                    return []; // no extension directories
+                });
+
+                var clientID = PreferencesManager.getClientID({id: 'main', uri: '/path/is/not/an/Extension/directory/someExtension/main.js'});
+                expect(clientID).toBe("com.adobe.brackets.main");
+            });
         });
     });
 });

@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $, window */
 
 define(function (require, exports, module) {
@@ -30,6 +30,8 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
@@ -47,6 +49,56 @@ define(function (require, exports, module) {
         this.exclusion = null;
     }
 
+    /**
+     * Get the CSS style text of the file open in the editor for this hinting session.
+     * For a CSS file, this is just the text of the file. For an HTML file,
+     * this will be only the text in the <style> tags.
+     *
+     * @return {string} the "css" text that can be sent to CSSUtils to extract all named flows.
+     */
+    CssPropHints.prototype.getCssStyleText = function () {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+            // Collect text in all style blocks
+            var text = "",
+                styleBlocks = HTMLUtils.findBlocks(this.editor, "css");
+            
+            styleBlocks.forEach(function (styleBlock) {
+                text += styleBlock.text;
+            });
+            
+            return text;
+        } else {
+            // css file, just return the text
+            return this.editor.document.getText();
+        }
+    };
+    
+    /**
+     * Extract all the named flows from any "flow-from" or "flow-into" properties 
+     * in the current document. If we have the cached list of named flows and the 
+     * cursor is still on the same line as the cached cursor, then the cached list
+     * is returned. Otherwise, we recollect all named flows and update the cache.
+     *
+     * @return {Array.<string>} All named flows available in the current document.
+     */
+    CssPropHints.prototype.getNamedFlows = function () {
+        if (this.namedFlowsCache) {
+            // If the cursor is no longer on the same line, then the cache is stale.
+            // Delete cache so we can extract all named flows again.
+            if (this.namedFlowsCache.cursor.line !== this.cursor.line) {
+                this.namedFlowsCache = null;
+            }
+        }
+        
+        if (!this.namedFlowsCache) {
+            this.namedFlowsCache = {};
+            this.namedFlowsCache.flows = CSSUtils.extractAllNamedFlows(this.getCssStyleText());
+            this.namedFlowsCache.cursor = { line: this.cursor.line, ch: this.cursor.ch };
+        }
+        
+        return this.namedFlowsCache.flows;
+    };
+    
     /**
      * Check whether the exclusion is still the same as text after the cursor. 
      * If not, reset it to null.
@@ -140,11 +192,14 @@ define(function (require, exports, module) {
      *    selected by default in the hint list window.
      */
     CssPropHints.prototype.getHints = function (implicitChar) {
-        this.info = CSSUtils.getInfoAtPos(this.editor, this.editor.getCursorPos());
+        this.cursor = this.editor.getCursorPos();
+        this.info = CSSUtils.getInfoAtPos(this.editor, this.cursor);
 
         var needle = this.info.name,
             valueNeedle = "",
             context = this.info.context,
+            valueArray,
+            namedFlows,
             result,
             selectInitial = false;
             
@@ -175,7 +230,20 @@ define(function (require, exports, module) {
                 valueNeedle = valueNeedle.substr(0, this.info.offset);
             }
             
-            result = $.map(properties[needle].values, function (pvalue, pindex) {
+            valueArray = properties[needle].values;
+            if (properties[needle].type === "named-flow") {
+                namedFlows = this.getNamedFlows();
+                
+                if (valueNeedle.length === this.info.offset && namedFlows.indexOf(valueNeedle) !== -1) {
+                    // Exclude the partially typed named flow at cursor since it
+                    // is not an existing one used in other css rule.
+                    namedFlows.splice(namedFlows.indexOf(valueNeedle), 1);
+                }
+                
+                valueArray = valueArray.concat(namedFlows);
+            }
+            
+            result = $.map(valueArray, function (pvalue, pindex) {
                 if (pvalue.indexOf(valueNeedle) === 0) {
                     return pvalue;
                 }
@@ -279,13 +347,13 @@ define(function (require, exports, module) {
                 end.ch = start.ch;
             }
 
-            var parenMatch = hint.match(/url\([\w\W]*?\)/i);
+            var parenMatch = hint.match(/\(.*?\)/);
             if (parenMatch) {
-                // value has url(...), so place cursor inside opening paren
+                // value has (...), so place cursor inside opening paren
                 // and keep hints open
                 adjustCursor = true;
                 newCursor = { line: cursor.line,
-                              ch: cursor.ch + 4 - this.info.offset };
+                              ch: start.ch + parenMatch.index + 1 };
                 keepHints = true;
             }
         }
@@ -305,7 +373,7 @@ define(function (require, exports, module) {
     
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
-        CodeHintManager.registerHintProvider(cssPropHints, ["css"], 0);
+        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss"], 0);
         
         // For unit testing
         exports.cssPropHintProvider = cssPropHints;

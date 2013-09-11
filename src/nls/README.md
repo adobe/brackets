@@ -59,7 +59,7 @@ The following languages have been contributed by the Brackets community:
 * Russian (ru)
 * Swedish (sv)
 * Turkish (tr)
-* Simlified Chinese (zh-cn)
+* Simplified Chinese (zh-cn)
 
 These translations _can be directly modified_ through our normal pull request
 process.

@@ -83,7 +83,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Hiba a HTTP szerver indításakor az Élő Fejlesztéshez. Kérlek próbáld újra később.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Üdv az Élő Előnézetben!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Az Élő Előnézet összeköti a {APP_NAME}-et a böngésződdel. Megnyitja a HTML fájl előnézetét a Böngészőben, majd rögtön frissül amikor szerkeszted a kódodat.<br /><br />Ebben a kezdetleges {APP_NAME} verzióban, az Élő Előnézet csak a <strong>Google Chrome</strong>-ban működik és élőben változik<strong>CSS fájlok</strong> szerkesztésekor. A HTML vagy JavaScript változások automatikusan frissülnek mentéskor.<br /><br />(Ezt az üzenetet csak egyszer fogod látni.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "További információért lásd: <a class=\"clickable-link\" data-href=\"{0}\">Élő Előnézet csatlakozási hibák kiküszöbölése</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "További információért lásd: <a href='{0}' title='{0}'>Élő Előnézet csatlakozási hibák kiküszöbölése</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Élő Előnézet",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Élő Előnézet: Csatlakozás\u2026",
@@ -281,11 +281,11 @@ define({
     "ABOUT"                                : "Rólunk",
     "CLOSE"                                : "Bezárás",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Harmadik féltől származó szoftverekre vonatkozó közlemények, felhasználási feltételek megtalálhatók a következő linken <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a>.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Harmadik féltől származó szoftverekre vonatkozó közlemények, felhasználási feltételek megtalálhatók a következő linken <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a>.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a 'https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Készítve \u2764 és JavaScript-el a következők által:",
     "ABOUT_TEXT_LINE6"                     : "Sok ember (de ezt az adatot nem tudjuk megjeleníteni jelenleg).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "A Web Platform Dokumentáció és a  Web Platform grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "A Web Platform Dokumentáció és a  Web Platform grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Új {APP_NAME} verzió elérhető! Kattints ide a részletekért.",
     "UPDATE_AVAILABLE_TITLE"               : "Új verzió elérhető",
     "UPDATE_MESSAGE"                       : "Hé, új {APP_NAME} verzió elérhető. Íme néhány kulcsfontosságú frissítés:",
@@ -297,7 +297,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Az alap URL nem tartalmazhat paramétereket mint: \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Az alap URL nem tartalmazhat hash-okat mint: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Speciális karakterek mint: '{0}' muszáj enkódolni %-be.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ismeretlen hiba az alap URL beolvasásakor",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ismeretlen hiba az alap URL beolvasásakor",
     
     // Extension Management strings
     "INSTALL"                              : "Telepítés",
