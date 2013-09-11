@@ -1,28 +1,4 @@
-/*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 //********************* Translated by: Mohammad.Yaghobi
 //********************* info@pgrammer.com --- m.yaghobi.abc@gmail.com
 
@@ -68,8 +44,8 @@ define({
     "ERROR_CREATING_FILE"               : "بروز خطا بهنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "!!! {APP_NAME} در مرورگرها اجرا نمی شود.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} با HTML ساخته شده, ولی هم اکنون بعنوان یک برنامه رومیزی(desktop) اجرا می شود و شما می توانید از آن جهت ویرایش پرونده های خود استفاده نمایید.",
+    "ERROR_IN_BROWSER_TITLE"            : "!!! برکتس در مرورگرها اجرا نمی شود.",
+    "ERROR_IN_BROWSER"                  : "برکتس با HTML ساخته شده, ولی هم اکنون بعنوان یک برنامه رومیزی(desktop) اجرا می شود و شما می توانید از آن جهت ویرایش پرونده های خود استفاده نمایید.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "خطا در فهرست بندی پرونده ها",
@@ -88,7 +64,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "جهت اجرای پیش نمایش زنده بصورت پرونده در سمت سرور(server-side), می بایست یک URL پایه برای پروژه تعریف نمایید.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "خطا در اجرای سرویس دهنده HTTP برای توسعه زنده پرونده ها. لطفا دوباره تلاش کنید.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "به بخش پیش نمایش زنده خوش آمدید!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "پیش نمایش زنده {APP_NAME} به مرورگر متصل شده و یک پیش نمایش از پرونده HTML شما در مرورگرتان نشان خواهد داد, و هرگونه تغییری در کدهایتان را فورا در پیش نمایش اعمال خواهد نمود.<br /><br />در این نسخه موجود {APP_NAME}, پیش نمایش تنها با مرورگر <strong>Google Chrome</strong> برای اعمال فوری مقادیر <strong>CSS files</strong> برای حالت پیش نمایش کار خواهد کرد. هرگونه تغییری در پرونده های HTML یا JavaScript بصورت خودکار بعد از ذخیر بارگذاری خواهد شد.<br /><br />(شما این پیغام را برای بار دیگر مشاهده نخواهید کرد.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "پیش نمایش زنده برکتس به مرورگر متصل شده و یک پیش نمایش از پرونده HTML شما در مرورگرتان نشان خواهد داد, و هرگونه تغییری در کدهایتان را فورا در پیش نمایش اعمال خواهد نمود.<br /><br />در این نسخه موجود برکتس, پیش نمایش تنها با مرورگر <strong>Google Chrome</strong> برای اعمال فوری مقادیر <strong>CSS files</strong> برای حالت پیش نمایش کار خواهد کرد. هرگونه تغییری در پرونده های HTML یا JavaScript بصورت خودکار بعد از ذخیر بارگذاری خواهد شد.<br /><br />(شما این پیغام را برای بار دیگر مشاهده نخواهید کرد.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "برای اطلاع بیشتر, به پیوند روبرو مراجعه کنید <a href='#' class='clickable-link' data-href='{0}'>Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "پیش نمایش زنده",
@@ -109,8 +85,8 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "تائید حذف",
     "CONFIRM_FOLDER_DELETE"             : "آیا مطمئنید می خواهید این پوشه حذف گردد <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "پرونده حذف گردید",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> تغییراتی بر روی دیسک انجام شده, ولی تغییرات بر روی {APP_NAME} ذخیره نگردیده.<br /><br />کدام نسخه را می خواهید نگه دارید?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> برخی مقادیر از دیسک حذف شده, ولی تغییرات بر روی {APP_NAME} اعمال/ذخیره نشده.<br /><br />آیا می خواهید تغییرات را حفظ کنید?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> تغییراتی بر روی دیسک انجام شده, ولی تغییرات بر روی برکتس ذخیره نگردیده.<br /><br />کدام نسخه را می خواهید نگه دارید?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> برخی مقادیر از دیسک حذف شده, ولی تغییرات بر روی برکتس اعمال/ذخیره نشده.<br /><br />آیا می خواهید تغییرات را حفظ کنید?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "برای جستجوی regexp از /re/ استفاده کنید",
@@ -130,7 +106,7 @@ define({
 
     "RELEASE_NOTES"                     : "نکات و یادداشت های انتشار",
     "NO_UPDATE_TITLE"                   : "بروز هستید!",
-    "NO_UPDATE_MESSAGE"                 : "شما درحال استفاده از آخرین نسخه {APP_NAME} هستید.",
+    "NO_UPDATE_MESSAGE"                 : "شما درحال استفاده از آخرین نسخه برکتس هستید.",
 
     "FIND_REPLACE_TITLE_PART1"          : "جایگزینی \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" با \"",
@@ -275,8 +251,8 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "راهنما",
     "CMD_CHECK_FOR_UPDATE"                : "برسی برای بروزرسانی",
-    "CMD_HOW_TO_USE_BRACKETS"             : "چگونه از {APP_NAME} استفاده کنم",
-    "CMD_FORUM"                           : "{APP_NAME} انجمن گفت گو",
+    "CMD_HOW_TO_USE_BRACKETS"             : "چگونه از برکتس استفاده کنم",
+    "CMD_FORUM"                           : "برکتس انجمن گفت گو",
     "CMD_RELEASE_NOTES"                   : "نکات انتشار",
     "CMD_REPORT_AN_ISSUE"                 : "گذارش یک مورد",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "نمایش پوشه افزونه ها",
@@ -309,9 +285,9 @@ define({
     "ABOUT_TEXT_LINE5"                     : "ساخته شده با \u2764 و JavaScript بدست:",
     "ABOUT_TEXT_LINE6"                     : "بسیاری از مردم",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "Build جدیدی از{APP_NAME} هم اکنون در دسترس است! جهت مشاهده جزئیات کلیک کنید.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Build جدیدی ازبرکتس هم اکنون در دسترس است! جهت مشاهده جزئیات کلیک کنید.",
     "UPDATE_AVAILABLE_TITLE"               : "بروزرسانی در دسترس است",
-    "UPDATE_MESSAGE"                       : "نسخه جدیدی از {APP_NAME} هم اکنون در دسترس است. برخی از مشخصه های آن:",
+    "UPDATE_MESSAGE"                       : "نسخه جدیدی از برکتس هم اکنون در دسترس است. برخی از مشخصه های آن:",
     "GET_IT_NOW"                           : "هم اکنون دانلود کنید!",
     "PROJECT_SETTINGS_TITLE"               : "تنظیمات پروژه برای: {0}",
     "PROJECT_SETTING_BASE_URL"             : "پیش نمایش URL اصلی/پایه",
@@ -328,7 +304,7 @@ define({
     "REMOVE"                               : "حذف",
     "OVERWRITE"                            : "دوباره نویسی",
     "CANT_REMOVE_DEV"                      : "افزونه های موجود در پوشه \"dev\" می بایست بصورت دستی حذف گردند.",
-    "CANT_UPDATE"                          : "بروز رسانی سازگار با این نسخه از {APP_NAME} نیست.",
+    "CANT_UPDATE"                          : "بروز رسانی سازگار با این نسخه از برکتس نیست.",
     "INSTALL_EXTENSION_TITLE"              : "نصب افزونه",
     "UPDATE_EXTENSION_TITLE"               : "بروز رسانی افزونه",
     "INSTALL_EXTENSION_LABEL"              : "URL افزونه",
@@ -346,9 +322,9 @@ define({
     "BAD_PACKAGE_NAME"                     : "نام بسته {0} نامعتبر می باشد.",
     "MISSING_PACKAGE_VERSION"              : "پرونده package.json دارای خطا در نسخه می باشد.",
     "INVALID_VERSION_NUMBER"               : "عدد نسخه این بسته ({0}) نا معتبر می باشد.",
-    "INVALID_BRACKETS_VERSION"             : "خطا در سازگاری {APP_NAME} با رشته نامعتبر({0}).",
+    "INVALID_BRACKETS_VERSION"             : "خطا در سازگاری برکتس با رشته نامعتبر({0}).",
     "DISALLOWED_WORDS"                     : "عبارت ({1}) اجازه وارد سازی در این فیلد را ندارد {0}.",
-    "API_NOT_COMPATIBLE"                   : "افزونه با این نسخه از برنامه {APP_NAME} سازگار نیست. در پوشه افزونه های قابل نمایش نصب نشد.",
+    "API_NOT_COMPATIBLE"                   : "افزونه با این نسخه از برنامه برکتس سازگار نیست. در پوشه افزونه های قابل نمایش نصب نشد.",
     "MISSING_MAIN"                         : "بسته حاوی پرونده main.js نیست.",
     "EXTENSION_ALREADY_INSTALLED"          : "نصب این بسته سبب دوباره نویسی پرونده های افزونه قبلی می شود. دوباره نویسی صورت گیرد?",
     "EXTENSION_SAME_VERSION"               : "نسخه این بسته با نسخه بسته ای که هم اکنون نصب می باشد برابر است. آیا افزونه دوباره نویسی گردد?",
@@ -367,27 +343,27 @@ define({
     "INSTALL_FROM_URL"                     : "نصب از URL\u2026",
     "EXTENSION_AUTHOR"                     : "مولف",
     "EXTENSION_DATE"                       : "تاریخ",
-    "EXTENSION_INCOMPATIBLE_NEWER"         : "این افزونه احتیاج به نسخه جدیدی از {APP_NAME} دارد.",
-    "EXTENSION_INCOMPATIBLE_OLDER"         : "نسخه فعلی این افزونه فقط با نسخه های قبلی {APP_NAME} سازگار است.",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "این افزونه احتیاج به نسخه جدیدی از برکتس دارد.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "نسخه فعلی این افزونه فقط با نسخه های قبلی برکتس سازگار است.",
     "EXTENSION_NO_DESCRIPTION"             : "بدون شرح",
     "EXTENSION_MORE_INFO"                  : "اطلاعات بیشتر...",
     "EXTENSION_ERROR"                      : "خطای افزونه",
     "EXTENSION_KEYWORDS"                   : "کلمات کلیدی",
     "EXTENSION_INSTALLED"                  : "نصب شده",
-    "EXTENSION_UPDATE_INSTALLED"           : "این افزونه دریافت شده و بعد از ترک {APP_NAME} نصب خواهد شد.",
+    "EXTENSION_UPDATE_INSTALLED"           : "این افزونه دریافت شده و بعد از ترک برکتس نصب خواهد شد.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "جستجو",
     "EXTENSION_MORE_INFO_LINK"             : "بیشتر",
     "BROWSE_EXTENSIONS"                    : "پیمایش افزونه ها",
     "EXTENSION_MANAGER_REMOVE"             : "حذف افزونه",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "ناتوان در حذف یک یا برخی از افزونه ها: {0}. {APP_NAME} درحال ترک.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "ناتوان در حذف یک یا برخی از افزونه ها: {0}. برکتس درحال ترک.",
     "EXTENSION_MANAGER_UPDATE"             : "بروزرسانی افزونه",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "ناتوان در بروزرسانی یک یا برخی از افزونه ها: {0}. {APP_NAME} درحال ترک.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "ناتوان در بروزرسانی یک یا برخی از افزونه ها: {0}. برکتس درحال ترک.",
     "MARKED_FOR_REMOVAL"                   : "نشانه گذاری جهت حذف",
     "UNDO_REMOVE"                          : "Undo",
     "MARKED_FOR_UPDATE"                    : "انتخاب شده برای بروزرسانی",
     "UNDO_UPDATE"                          : "Undo",
     "CHANGE_AND_QUIT_TITLE"                : "تغییر در افزونه ها",
-    "CHANGE_AND_QUIT_MESSAGE"              : "جهت بروزرسانی یا حذف افزونه ها می بایست {APP_NAME} را ترک و دوباره اجرا کنید. شما می بایست تغییرات ذخیره نشده را ذخیره نمایید.",
+    "CHANGE_AND_QUIT_MESSAGE"              : "جهت بروزرسانی یا حذف افزونه ها می بایست برکتس را ترک و دوباره اجرا کنید. شما می بایست تغییرات ذخیره نشده را ذخیره نمایید.",
     "REMOVE_AND_QUIT"                      : "حذف افزونه ها و ترک(خروج)",
     "CHANGE_AND_QUIT"                      : "تغییر افزونه ها و ترک",
     "UPDATE_AND_QUIT"                      : "بروزرسانی افزونه ها و ترک",
@@ -408,8 +384,8 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "خطا یابی",
     "CMD_SHOW_DEV_TOOLS"                        : "نمایش ابزار های توسعه دهندگان",
-    "CMD_REFRESH_WINDOW"                        : "بارگذاری مجدد {APP_NAME}",
-    "CMD_NEW_BRACKETS_WINDOW"                   : "پنجره {APP_NAME} جدید",
+    "CMD_REFRESH_WINDOW"                        : "بارگذاری مجدد برکتس",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "پنجره برکتس جدید",
     "CMD_SWITCH_LANGUAGE"                       : "انتخاب زبان",
     "CMD_RUN_UNIT_TESTS"                        : "اجرای test",
     "CMD_SHOW_PERF_DATA"                        : "نمایش داده های عملکردی",
@@ -419,7 +395,7 @@ define({
     
     "LANGUAGE_TITLE"                            : "انتخاب زبان",
     "LANGUAGE_MESSAGE"                          : "زبان:",
-    "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد {APP_NAME}",
+    "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد برکتس",
     "LANGUAGE_CANCEL"                           : "لغو",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "زبان پیش فرض",
     
