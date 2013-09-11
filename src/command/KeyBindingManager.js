@@ -448,6 +448,7 @@ define(function (require, exports, module) {
             if (isWindowsCompatible || isReplaceGeneric) {
                 bindingsToDelete.push(binding);
             } else {
+                // existing binding is platform-specific and the requested binding is generic
                 ignoreGeneric = binding.explicitPlatform && !explicitPlatform;
             }
         });
@@ -540,10 +541,12 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Sort objects by platform property. Objects with a platform property come
      * before objects without a platform property.
      */
-    function sortByPlatform(a, b) {
+    function _sortByPlatform(a, b) {
         var a1 = (a.platform) ? 1 : 0,
             b1 = (b.platform) ? 1 : 0;
         return b1 - a1;
@@ -586,7 +589,7 @@ define(function (require, exports, module) {
             results = [];
 
             // process platform-specific bindings first
-            keyBindings.sort(sortByPlatform);
+            keyBindings.sort(_sortByPlatform);
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
