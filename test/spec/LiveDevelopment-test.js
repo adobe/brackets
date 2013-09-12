@@ -475,6 +475,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow           = w;
                     Dialogs              = testWindow.brackets.test.Dialogs;
+                    Inspector            = testWindow.brackets.test.Inspector;
                     LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
                     DOMAgent             = testWindow.brackets.test.DOMAgent;
                     DocumentManager      = testWindow.brackets.test.DocumentManager;
@@ -491,6 +492,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow           = null;
                     Dialogs              = null;
+                    Inspector            = null;
                     LiveDevelopment      = null;
                     DOMAgent             = null;
                     DocumentManager      = null;
@@ -597,7 +599,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should reapply in-memory css changes after saving changes in html document", function () {
+            function inMemoryReloadTest(doReload) {
                 var localCssText,
                     browserCssText,
                     origHtmlText,
@@ -656,21 +658,34 @@ define(function (require, exports, module) {
                     };
                 
                 runs(function () {
-                    testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
-
-                    // Save changes to the test file
-                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
-                    waitsForDone(promise, "Saving modified html document");
+                    if (doReload) {
+                        waitsForDone(Inspector.Page.reload(true), "Reload page in browser");
+                    } else {
+                        // Expect status change
+                        testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
+                        
+                        // Save changes to the test file
+                        var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
+                        waitsForDone(promise, "Saving modified html document");
+                    }
                 });
                 
-                waitsFor(function () {
-                    return loadingStatus && activeStatus;
-                }, "LiveDevelopment re-load and re-activate", 10000);
+                if (doReload) {
+                    // A browser-reload will not cause agents to reload.
+                    // Instead, wait for the browser before continuing
+                    waits(5000);
+                } else {
+                    waitsFor(function () {
+                        return loadingStatus && activeStatus;
+                    }, "LiveDevelopment re-load and re-activate", 10000);
+                }
                 
                 // Grab the node that we've modified in Brackets. 
                 var updatedNode, doneSyncing = false;
                 runs(function () {
-                    testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    if (!doReload) {
+                        testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    }
                     
                     updatedNode = DOMAgent.nodeAtLocation(396);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
@@ -695,6 +710,14 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
+            }
+
+            it("should reapply in-memory css changes after a browser refresh", function () {
+                inMemoryReloadTest(true);
+            });
+
+            it("should reapply in-memory css changes after saving changes in html document", function () {
+                inMemoryReloadTest(false);
             });
         });
         
