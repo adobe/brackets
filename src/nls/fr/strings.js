@@ -185,7 +185,7 @@ define({
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "{0} erreurs",
+	"ERRORS_PANEL_TITLE": "Erreurs {0}",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
