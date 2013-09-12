@@ -52,17 +52,19 @@ define(function (require, exports, module) {
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";      // ExtensionManagerDialog.js    _showDialog()
     exports.FILE_REFRESH                = "file.refresh";               // ProjectManager.js            refreshFileTree()
     
-    // strings must MATCH strings in native code (brackets_extensions)
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.FILE_CLOSE_WINDOW           = "file.close_window";          // DocumentCommandHandlers.js   handleFileCloseWindow()
     exports.FILE_QUIT                   = "file.quit";                  // DocumentCommandHandlers.js   handleFileQuit()
-
+    
     // EDIT
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.EDIT_UNDO                   = "edit.undo";                  // EditorCommandHandlers.js     handleUndo()
     exports.EDIT_REDO                   = "edit.redo";                  // EditorCommandHandlers.js     handleRedo()
     exports.EDIT_CUT                    = "edit.cut";                   // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_COPY                   = "edit.copy";                  // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_PASTE                  = "edit.paste";                 // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_SELECT_ALL             = "edit.selectAll";             // EditorCommandHandlers.js     _handleSelectAll()
+    
     exports.EDIT_SELECT_LINE            = "edit.selectLine";            // EditorCommandHandlers.js     selectLine()
     exports.EDIT_FIND                   = "edit.find";                  // FindReplace.js               _launchFind()
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";           // FindInFiles.js               _doFindInFiles()
@@ -99,7 +101,7 @@ define(function (require, exports, module) {
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
     exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
     
-    // Navigate
+    // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";           // DocumentCommandHandlers.js   handleGoPrevDoc()
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";    // DocumentCommandHandlers.js   handleShowInTree()
@@ -114,7 +116,7 @@ define(function (require, exports, module) {
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";         // MultiRangeInlineEditor.js    _nextRange()
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";     // MultiRangeInlineEditor.js    _previousRange()
 
-    // Help
+    // HELP
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";        // HelpCommandHandlers.js       _handleCheckForUpdates()
     exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";      // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_FORUM                  = "help.forum";                 // HelpCommandHandlers.js       _handleLinkMenuItem()
@@ -122,8 +124,11 @@ define(function (require, exports, module) {
     exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";         // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
     exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()
 
+    // APP
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   _handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   _handleBeforeMenuPopup()
