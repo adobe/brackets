@@ -430,7 +430,7 @@ define(function (require, exports, module) {
 
         describe("CSS hint provider cursor placement inside value functions", function () {
             var defaultContent = ".selector { \n" + // line 0
-                                 "shape-inside: \n" + // line 1
+                                 "shape-inside:\n" + // line 1
                                  "}\n"; // line 2
 
             beforeEach(function () {

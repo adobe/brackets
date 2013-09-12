@@ -91,7 +91,7 @@ define(function (require, exports, module) {
     }
     
     // Export public API
-    exports.registerFileSystemImp   = registerFileSystemImpl;
+    exports.registerFileSystemImpl  = registerFileSystemImpl;
     exports.setDefaultFileSystem    = setDefaultFileSystem;
     exports.createFileSystem        = createFileSystem;
 });
