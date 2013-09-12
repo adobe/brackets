@@ -263,17 +263,19 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            _stat(folder).done(function () {
-                // Change permissions if the directory exists
-                chmod(folder, 777).then(deferred.resolve, deferred.reject);
-            }).fail(function (err) {
-                if (err === brackets.fs.ERR_NOT_FOUND) {
-                    // Resolve the promise since the folder to reset doesn't exist
-                    deferred.resolve();
-                } else {
-                    deferred.reject();
-                }
-            });
+            _stat(folder)
+                .done(function () {
+                    // Change permissions if the directory exists
+                    chmod(folder, 777).then(deferred.resolve, deferred.reject);
+                })
+                .fail(function (err) {
+                    if (err === brackets.fs.ERR_NOT_FOUND) {
+                        // Resolve the promise since the folder to reset doesn't exist
+                        deferred.resolve();
+                    } else {
+                        deferred.reject();
+                    }
+                });
             
             return deferred.promise();
         }, true);
