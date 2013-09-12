@@ -327,12 +327,6 @@ define(function (require, exports, module) {
      */
     function getSessionHints(query, cursor, type, token, $deferredHints) {
 
-        // If editor is closed before deferred hints are resolved, then the session
-        // object may have already been released. No need to do anything.
-        if (!session) {
-            return null;
-        }
-
         var hintResults = session.getHints(query, getStringMatcher());
         if (hintResults.needGuesses) {
             var guessesResponse = ScopeManager.requestGuesses(session,
@@ -435,16 +429,24 @@ define(function (require, exports, module) {
                 }
 
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
-                    $deferredHints = $.Deferred();
+                    $deferredHints  = $.Deferred(),
+                    scopeSession    = session;
 
                 scopeResponse.done(function () {
                     if (hintsArePending($deferredHints)) {
-                        getSessionHints(query, cursor, type, token, $deferredHints);
+                        // Verify we are still in same session
+                        if (scopeSession === session) {
+                            getSessionHints(query, cursor, type, token, $deferredHints);
+                        } else {
+                            $deferredHints.reject();
+                        }
                     }
+                    scopeSession = null;
                 }).fail(function () {
                     if (hintsArePending($deferredHints)) {
                         $deferredHints.reject();
                     }
+                    scopeSession = null;
                 });
 
                 return $deferredHints;
