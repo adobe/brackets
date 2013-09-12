@@ -86,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Chyba při spouštění HTTP serveru pro soubory živého náhledu. Prosím, zkuste to znovu.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='#' class='clickable-link' data-href='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhled",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
@@ -293,11 +293,11 @@ define({
     "ABOUT"                                : "O aplikaci",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a href='#' class='clickable-link' data-href='{ADOBE_THIRD_PARTY}'>http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
+    "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> a začleněny prostřednictvím odkazu zde.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
     "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME} ! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -309,7 +309,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL nemůže obsahovat výrazy pro hledání jako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Neznámá chyba při zpracování URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",

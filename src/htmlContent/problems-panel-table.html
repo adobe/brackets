@@ -1,0 +1,11 @@
+<table class="bottom-panel-table table table-striped table-condensed row-highlight">
+    <tbody>
+        {{#reportList}}
+        <tr>
+            <td class="line-number" data-character="{{pos.ch}}">{{friendlyLine}}</td>
+            <td>{{message}}</td>
+            <td>{{codeSnippet}}</td>
+        </tr>
+        {{/reportList}}
+    </tbody>
+</table>

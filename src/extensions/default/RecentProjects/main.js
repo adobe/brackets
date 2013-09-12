@@ -29,36 +29,47 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
-        PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
+        SidebarView             = brackets.getModule("project/SidebarView"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
+        KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
+        Menus                   = brackets.getModule("command/Menus"),
+        EditorManager           = brackets.getModule("editor/EditorManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
-        Strings                 = brackets.getModule("strings"),
-        SidebarView             = brackets.getModule("project/SidebarView"),
-        Menus                   = brackets.getModule("command/Menus"),
-        PopUpManager            = brackets.getModule("widgets/PopUpManager"),
+        KeyEvent                = brackets.getModule("utils/KeyEvent"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PopUpManager            = brackets.getModule("widgets/PopUpManager"),
+        Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
     
-    
-    var $dropdownToggle,
-        $dropdown;
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
+    /** @const {string} Recent Projects commands ID */
+    var TOGGLE_DROPDOWN = "recentProjects.toggle";
+    
+    /** @const {number} Maximum number of displayed recent projects */
     var MAX_PROJECTS = 20;
-
+    
+    /** @type {$.Element} jQuery elements used for the dropdown menu */
+    var $dropdownItem,
+        $dropdownToggle,
+        $dropdown;
+    
+    
     /**
      * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
      */
     function getRecentProjects() {
         var recentProjects = prefs.getValue("recentProjects") || [],
             i;
+        
         for (i = 0; i < recentProjects.length; i++) {
             recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
         }
@@ -72,6 +83,7 @@ define(function (require, exports, module) {
         var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
+        
         if (index !== -1) {
             recentProjects.splice(index, 1);
         }
@@ -130,6 +142,76 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Hide the delete button.
+     */
+    function removeDeleteButton() {
+        $("#recent-folder-delete").remove();
+    }
+    
+    /**
+     * Show the delete button over a given target.
+     */
+    function addDeleteButton($target) {
+        removeDeleteButton();
+        renderDelete()
+            .css("top", $target.position().top + 6)
+            .appendTo($target);
+    }
+    
+    
+    /**
+     * Selects the next or previous item in the list
+     * @param {number} direction  +1 for next, -1 for prev
+     */
+    function selectNextItem(direction) {
+        var $links   = $dropdown.find("a"),
+            index    = $dropdownItem ? $links.index($dropdownItem) : (direction > 0 ? -1 : 0),
+            $newItem = $links.eq((index + direction) % $links.length);
+        
+        if ($dropdownItem) {
+            $dropdownItem.removeClass("selected");
+        }
+        $newItem.addClass("selected");
+        
+        $dropdownItem = $newItem;
+        removeDeleteButton();
+    }
+    
+    /**
+     * Handles the Key Down events
+     * @param {KeyboardEvent} event
+     * @return {boolean} True if the key was handled
+     */
+    function keydownHook(event) {
+        var keyHandled = false;
+        
+        switch (event.keyCode) {
+        case KeyEvent.DOM_VK_UP:
+            selectNextItem(-1);
+            keyHandled = true;
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            selectNextItem(+1);
+            keyHandled = true;
+            break;
+        case KeyEvent.DOM_VK_ENTER:
+        case KeyEvent.DOM_VK_RETURN:
+            if ($dropdownItem) {
+                $dropdownItem.trigger("click");
+            }
+            keyHandled = true;
+            break;
+        }
+        
+        if (keyHandled) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }
+        return keyHandled;
+    }
+
+    
+    /**
      * Close the dropdown.
      */
     function closeDropdown() {
@@ -151,64 +233,63 @@ define(function (require, exports, module) {
         $(SidebarView).off("hide", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
+
+        EditorManager.focusEditor();
+        $(window).off("keydown", keydownHook);
     }
     
-    /**
-     * Hide the delete button.
-     */
-    function hideDeleteButton() {
-        $("#recent-folder-delete").remove();
-    }
-    
-    /**
-     * Show the delete button over a given target.
-     */
-    function showDeleteButton($target) {
-        hideDeleteButton();
-        renderDelete()
-            .css("top", $target.position().top + 6)
-            .appendTo($target);
-    }
     
     /**
      * Adds the click and mouse enter/leave events to the dropdown
      */
     function _handleListEvents() {
-        $dropdown.click(function (e) {
-            var $link = $(e.target).closest("a"),
-                id    = $link.attr("id"),
-                path  = $link.data("path");
-            
-            if (path) {
-                ProjectManager.openProject(path)
-                    .fail(function () {
-                        // Remove the project from the list only if it does not exist on disk
-                        var recentProjects = getRecentProjects(),
-                            index = recentProjects.indexOf(path);
-                        if (index !== -1) {
-                            NativeFileSystem.requestNativeFileSystem(path,
-                                function () {},
-                                function () {
-                                    recentProjects.splice(index, 1);
-                                });
-                        }
-                    });
-                closeDropdown();
-            
-            } else if (id === "open-folder-link") {
-                CommandManager.execute(Commands.FILE_OPEN_FOLDER);
-            }
-            
-        });
-        
-        $dropdown.find(".recent-folder-link")
-            .mouseenter(function () {
-                // Note: we can't depend on the event here because this can be triggered
-                // manually from checkHovers().
-                showDeleteButton($(this));
+        $dropdown
+            .on("click", "a", function () {
+                var $link = $(this),
+                    id    = $link.attr("id"),
+                    path  = $link.data("path");
+                
+                if (path) {
+                    ProjectManager.openProject(path)
+                        .fail(function () {
+                            // Remove the project from the list only if it does not exist on disk
+                            var recentProjects = getRecentProjects(),
+                                index = recentProjects.indexOf(path);
+                            if (index !== -1) {
+                                NativeFileSystem.requestNativeFileSystem(path,
+                                    function () {},
+                                    function () {
+                                        recentProjects.splice(index, 1);
+                                    });
+                            }
+                        });
+                    closeDropdown();
+                
+                } else if (id === "open-folder-link") {
+                    CommandManager.execute(Commands.FILE_OPEN_FOLDER);
+                }
             })
-            .mouseleave(function () {
-                hideDeleteButton();
+            .on("mouseenter", "a", function () {
+                if ($dropdownItem) {
+                    $dropdownItem.removeClass("selected");
+                }
+                $dropdownItem = $(this).addClass("selected");
+                
+                if ($dropdownItem.hasClass("recent-folder-link")) {
+                    // Note: we can't depend on the event here because this can be triggered
+                    // manually from checkHovers().
+                    addDeleteButton($(this));
+                }
+            })
+            .on("mouseleave", "a", function () {
+                var $link = $(this).removeClass("selected");
+                
+                if ($link.get(0) === $dropdownItem.get(0)) {
+                    $dropdownItem = null;
+                }
+                if ($link.hasClass("recent-folder-link")) {
+                    removeDeleteButton();
+                }
             });
     }
     
@@ -256,9 +337,8 @@ define(function (require, exports, module) {
     
     /**
      * Show or hide the recent projects dropdown.
-     * @param {$.Event} e The event object that triggered the toggling.
      */
-    function toggle(e) {
+    function showDropdown() {
         // If the dropdown is already visible, just return (so the root click handler on html
         // will close it).
         if ($dropdown) {
@@ -266,11 +346,6 @@ define(function (require, exports, module) {
         }
         
         Menus.closeAll();
-        
-        // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to
-        // assume that the dropdown is inside a top-level menubar created using <li>s.
-        // Have to do this stopProp to avoid the html click handler from firing when this returns.
-        e.stopPropagation();
         
         $dropdown = $(renderList());
         
@@ -304,7 +379,47 @@ define(function (require, exports, module) {
         $("#titlebar .nav").on("click", closeDropdown);
         
         _handleListEvents();
+        $(window).on("keydown", keydownHook);
     }
+    
+    /**
+     * Show or hide the recent projects dropdown.
+     * @param {$.Event} e The event object that triggered the toggling.
+     */
+    function handleMouseEvent(e) {
+        // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to
+        // assume that the dropdown is inside a top-level menubar created using <li>s.
+        // Have to do this stopProp to avoid the html click handler from firing when this returns.
+        e.stopPropagation();
+        
+        showDropdown();
+    }
+    
+    /**
+     * Show or hide the recent projects dropdown from the toogle command.
+     */
+    function handleKeyEvent() {
+        if (!$dropdown) {
+            if (!SidebarView.isVisible()) {
+                SidebarView.show();
+            }
+            
+            showDropdown();
+            $dropdown.focus();
+            $dropdownItem = $dropdown.find("a").first();
+            $dropdownItem.addClass("selected");
+            
+            // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
+            window.setTimeout(function () {
+                $dropdown.focus();
+            }, 0);
+        }
+    }
+    
+    
+    // Register command handlers
+    CommandManager.register(Strings.CMD_TOGGLE_RECENT_PROJECTS, TOGGLE_DROPDOWN, handleKeyEvent);
+    KeyBindingManager.addBinding(TOGGLE_DROPDOWN, KeyboardPrefs.recentProjects);
     
     // Initialize extension
     AppInit.appReady(function () {
@@ -319,6 +434,6 @@ define(function (require, exports, module) {
             .wrap("<div id='project-dropdown-toggle'></div>")
             .after("<span class='dropdown-arrow'></span>");
         
-        $dropdownToggle = $("#project-dropdown-toggle").click(toggle);
+        $dropdownToggle = $("#project-dropdown-toggle").click(handleMouseEvent);
     });
 });

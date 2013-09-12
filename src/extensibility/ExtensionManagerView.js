@@ -155,9 +155,6 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
-                } else {
-                    // Open any other link in the external browser.
-                    NativeApp.openURLInDefaultBrowser($target.attr("href"));
                 }
             })
             .on("click", "button.install", function (e) {
