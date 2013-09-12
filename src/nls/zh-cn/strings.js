@@ -373,7 +373,7 @@ define({
     "JSLINT_ERROR_INFORMATION"                  : "1个JSLint错误",
     "JSLINT_ERRORS_INFORMATION"                 : "{0}个JSLint错误",
     "JSLINT_NO_ERRORS"                          : "未发现JSLint错误 - 骚年加油!",
-    "JSLINT_DISABLED"                           : "JSLint已被禁用或者无法工作在此文件."
+    "JSLINT_DISABLED"                           : "JSLint已被禁用或者无法工作在此文件.",
     
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "鼠标悬停时启用快速查看",
