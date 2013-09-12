@@ -327,7 +327,8 @@ define(function (require, exports, module) {
      */
     function getSessionHints(query, cursor, type, token, $deferredHints) {
 
-        // We're getting here with a null session object in units tests
+        // If editor is closed before deferred hints are resolved, then the session
+        // object may have already been released. No need to do anything.
         if (!session) {
             return null;
         }
