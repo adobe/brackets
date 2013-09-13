@@ -120,9 +120,17 @@ define(function (require, exports, module) {
     /**
      * Closes the modal bar and returns focus to the active editor. Returns a promise that is
      * resolved when the bar is fully closed and the container is removed from the DOM.
+     * @param {boolean=} restoreScrollPos If true (the default), adjust the scroll position
+     *     of the editor to account for the ModalBar disappearing. If not set, the caller
+     *     should do it immediately on return of this function (before the animation completes),
+     *     because the editor will already have been resized.
      * @return {$.Promise} promise resolved when close is finished
      */
-    ModalBar.prototype.close = function () {
+    ModalBar.prototype.close = function (restoreScrollPos) {
+        if (restoreScrollPos === undefined) {
+            restoreScrollPos = true;
+        }
+        
         // Store our height before closing, while we can still measure it
         var result = new $.Deferred(),
             barHeight = this.height();
@@ -141,11 +149,11 @@ define(function (require, exports, module) {
         // height of the modal bar so the code doesn't appear to shift if possible.
         var fullEditor = EditorManager.getCurrentFullEditor(),
             scrollPos;
-        if (fullEditor) {
+        if (restoreScrollPos && fullEditor) {
             scrollPos = fullEditor.getScrollPos();
         }
         EditorManager.resizeEditor();
-        if (fullEditor) {
+        if (restoreScrollPos && fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
         EditorManager.focusEditor();

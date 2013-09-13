@@ -385,20 +385,8 @@ define(function (require, exports, module) {
             var self = this;
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    self.close();
-                    
-                    // This is tricky. We want to restore the original selection, and we don't actually want to wait
-                    // until the modal bar has fully animated closed. However, we do need to wait until the next
-                    // event loop after ModalBar.close() has (synchronously) finished, because ModalBar.close() itself
-                    // tries to rescroll the editor (in order to restore the *apparent* scroll position that gets
-                    // changed when the ModalBar pushes the editor down). So we do this on yet another timeout.
-                    setTimeout(function () {
-                        // Restore original selection / scroll pos
-                        if (self._origSelection) {
-                            EditorManager.getCurrentFullEditor().setSelection(self._origSelection.start, self._origSelection.end);
-                            EditorManager.getCurrentFullEditor().setScrollPos(self._origScrollPos.x, self._origScrollPos.y);
-                        }
-                    }, 0);
+                    // Restore original selection / scroll pos
+                    self.close(self._origScrollPos, self._origSelection);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -452,9 +440,13 @@ define(function (require, exports, module) {
     /**
      * Closes the search dialog and notifies all quick open plugins that
      * searching is done.
+     * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
+     *     position when closing the ModalBar.
+     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
+     *     restore the given selection when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function () {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -481,9 +473,20 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close().done(function () {
+            self.modalBar.close(!scrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
+
+            // Note that we deliberately reset the scroll position synchronously on return from
+            // `ModalBar.close()` (before the animation completes).
+            // See description of `restoreScrollPos` in `ModalBar.close()`.
+            var editor = EditorManager.getCurrentFullEditor();
+            if (selection) {
+                editor.setSelection(selection.start, selection.end);
+            }
+            if (scrollPos) {
+                editor.setScrollPos(scrollPos.x, scrollPos.y);
+            }
         }, 0);
         
         $(".smart_autocomplete_container").remove();
