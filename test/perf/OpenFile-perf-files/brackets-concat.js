@@ -1770,9 +1770,20 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path;
+        
+        function isRelativePath(path) {
+            // If the path contains a colons it must be a full path on Windows (colons are
+            // not valid path characters on mac or in URIs)
+            if (path.indexOf(":") !== -1) {
+                return false;
+            }
+            
+            // For everyone else, absolute paths start with a "/"
+            return path[0] !== "/";
+        }
 
         // resolve relative paths relative to the DirectoryEntry
-        if (NativeFileSystem.isRelativePath(path)) {
+        if (isRelativePath(path)) {
             fileFullPath = this.fullPath + path;
         }
 
@@ -40013,9 +40024,20 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path;
+        
+        function isRelativePath(path) {
+            // If the path contains a colons it must be a full path on Windows (colons are
+            // not valid path characters on mac or in URIs)
+            if (path.indexOf(":") !== -1) {
+                return false;
+            }
+            
+            // For everyone else, absolute paths start with a "/"
+            return path[0] !== "/";
+        }
 
         // resolve relative paths relative to the DirectoryEntry
-        if (NativeFileSystem.isRelativePath(path)) {
+        if (isRelativePath(path)) {
             fileFullPath = this.fullPath + path;
         }
 
