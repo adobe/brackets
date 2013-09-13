@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, $, CodeMirror, brackets  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $, beforeFirst, afterLast  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,16 +30,18 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        Editor          = require("editor/Editor").Editor,
         KeyEvent        = require("utils/KeyEvent"),
+        Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
-        CodeHintManager;
+        CommandManager,
+        CodeHintManager,
+        KeyBindingManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
         testWindow,
         initCodeHintTest;
 
-    describe("Code Hint Menus", function () {
+    describe("CodeHintManager", function () {
         this.category = "integration";
 
         /**
@@ -48,32 +50,21 @@ define(function (require, exports, module) {
          * @param {!string} openFile Project relative file path to open in a main editor.
          * @param {!number} openPos The pos within openFile to place the IP.
          */
-        var _initCodeHintTest = function (openFile, openPos) {
-            var hostOpened = false,
-                err = false,
-                workingSet = [];
-    
+        function initCodeHintTest(openFile, openPos) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
-    
+            
             runs(function () {
-                workingSet.push(openFile);
-                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                    hostOpened = true;
-                }).fail(function () {
-                    err = true;
-                });
+                var promise = SpecRunnerUtils.openProjectFiles([openFile]);
+                waitsForDone(promise);
             });
-    
-            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-    
+            
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
                 editor.setCursorPos(openPos.line, openPos.ch);
             });
-        };
-    
-        beforeEach(function () {
-            initCodeHintTest = _initCodeHintTest.bind(this);
+        }
+        
+        beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
     
@@ -83,13 +74,120 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 CodeHintManager     = testWindow.brackets.test.CodeHintManager;
                 EditorManager       = testWindow.brackets.test.EditorManager;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
             });
         });
-    
-        afterEach(function () {
+        
+        afterLast(function () {
+            testWindow          = null;
+            CodeHintManager     = null;
+            EditorManager       = null;
+            CommandManager      = null;
+            KeyBindingManager   = null;
             SpecRunnerUtils.closeTestWindow();
         });
-
+        
+        afterEach(function () {
+            runs(function () {
+                testWindow.closeAllFiles();
+            });
+        });
+        
+        function invokeCodeHints() {
+            CommandManager.execute(Commands.SHOW_CODE_HINTS);
+        }
+        
+        // Note: these don't request hint results - they only examine hints that might already be open
+        function expectNoHints() {
+            var codeHintList = CodeHintManager._getCodeHintList();
+            expect(codeHintList).toBeFalsy();
+        }
+        
+        function expectSomeHints() {
+            var codeHintList = CodeHintManager._getCodeHintList();
+            expect(codeHintList).toBeTruthy();
+            expect(codeHintList.isOpen()).toBe(true);
+            return codeHintList;
+        }
+        
+        describe("Hint Provider Registration", function () {
+            beforeEach(function () {
+                initCodeHintTest("test1.html", {line: 0, ch: 0});
+            });
+            
+            var mockProvider = {
+                hasHints: function (editor, implicitChar) {
+                    return true;
+                },
+                getHints: function (implicitChar) {
+                    return { hints: ["mock hint"], match: null, selectInitial: false };
+                },
+                insertHint: function (hint) { }
+            };
+            
+            function expectMockHints() {
+                var codeHintList = expectSomeHints();
+                expect(codeHintList.hints[0]).toBe("mock hint");
+                expect(codeHintList.hints.length).toBe(1);
+            }
+            
+            it("should register provider for a new language", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
+                    
+                    // Ensure no hints in language we didn't register for
+                    invokeCodeHints();
+                    expectNoHints();
+                    
+                    // Expect hints in language we did register for
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    invokeCodeHints();
+                    expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["clojure"], 0);
+                });
+            });
+            
+            it("should register higher-priority provider for existing language", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["html"], 1);
+                    
+                    // Expect hints to replace default HTML hints
+                    var editor = EditorManager.getCurrentFullEditor();
+                    editor.setCursorPos(3, 1);
+                    invokeCodeHints();
+                    expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["html"], 1);
+                });
+            });
+            
+            it("should register \"all\" languages provider", function () {
+                runs(function () {
+                    CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
+                    
+                    // Expect hints in language that already had hints (when not colliding with original provider)
+                    invokeCodeHints();
+                    expectMockHints();
+                    
+                    // Expect hints in language that had no hints before
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                    waitsForDone(promise);
+                });
+                runs(function () {
+                    invokeCodeHints();
+                    expectMockHints();
+                    
+                    CodeHintManager._removeHintProvider(mockProvider, ["all"], 0);
+                });
+            });
+        });
+        
+        
         describe("HTML Tests", function () {
 
             it("should show code hints menu and insert text at IP", function () {
@@ -102,25 +200,15 @@ define(function (require, exports, module) {
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
-
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
-                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-                    // here, but it does not yet support modifer keys
-                    CodeHintManager.handleKeyEvent(editor, e);
-
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeTruthy();
-                    expect(codeHintList.isOpen()).toBe(true);
+                    invokeCodeHints();
+                    expectSomeHints();
                 });
 
                 // simulate Enter key to insert code hint into doc
@@ -131,40 +219,32 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    CodeHintManager.handleKeyEvent(editor, e);
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
                     lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
+                    
+                    // and popup should auto-close
+                    expectNoHints();
+
+                    editor = null;
                 });
             });
 
             it("should dismiss code hints menu with Esc key", function () {
-                var editor,
-                    pos = {line: 3, ch: 1};
+                var pos = {line: 3, ch: 1};
 
                 // minimal markup with an open '<' before IP
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
                 initCodeHintTest("test1.html", pos);
 
-                // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
-
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-
-                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
-                    // here, but it does not yet support modifer keys
-                    CodeHintManager.handleKeyEvent(editor, e);
+                    invokeCodeHints();
 
                     // verify list is open
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeTruthy();
-                    expect(codeHintList.isOpen()).toBe(true);
+                    expectSomeHints();
                 });
 
                 // simulate Esc key to dismiss code hints menu
@@ -174,8 +254,80 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
                     // verify list is no longer open
-                    var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList).toBeFalsy();
+                    expectNoHints();
+                });
+            });
+
+            it("should dismiss code hints menu when launching a command", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                });
+
+                // Call Undo command to remove "di" and then verify no code hints
+                runs(function () {
+                    CommandManager.execute(Commands.EDIT_UNDO);
+                    
+                    // verify list is no longer open
+                    expectNoHints();
+
+                    editor = null;
+                });
+            });
+            
+            it("should stop handling keydowns if closed by a click outside", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.document.replaceRange("di", pos);
+                    invokeCodeHints();
+                    
+                    // verify list is open
+                    expectSomeHints();
+                    
+                    // get the document text and make sure it doesn't change if we
+                    // click outside and then keydown
+                    var text = editor.document.getText();
+                    
+                    testWindow.$("body").click();
+                    KeyBindingManager._handleKeyEvent({
+                        keyCode: KeyEvent.DOM_VK_ENTER,
+                        stopImmediatePropagation: function () { },
+                        stopPropagation: function () { },
+                        preventDefault: function () { }
+                    });
+                    
+                    // Verify that after the keydown, the session is closed 
+                    // (not just the hint popup). Because of #1381, we don't
+                    // actually have a way to close the session as soon as the
+                    // popup is dismissed by Bootstrap, so we do so on the next
+                    // keydown. Eventually, once that's fixed, we should be able
+                    // to move this expectNoHints() up after the click.
+                    expectNoHints();
+                    expect(editor.document.getText()).toEqual(text);
+
+                    editor = null;
                 });
             });
         });

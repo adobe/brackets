@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
-        Package          = require("extensibility/Package");
+        Package          = require("extensibility/Package"),
+        NodeConnection   = require("utils/NodeConnection");
     
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
     
@@ -52,13 +53,18 @@ define(function (require, exports, module) {
         packageData = undefined;
         
         runs(function () {
+            // Matches NodeConnection CONNECTION_TIMEOUT
+            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", NodeConnection._getConnectionTimeout());
+        });
+        
+        runs(function () {
             promise = packageFunc(packagePath);
             promise.then(function (pd) {
                 // perform checks outside of this function to avoid
                 // getting caught by NodeConnection's error catcher
                 packageData = pd;
             }, function (err) {
-                expect("Error").toEqual("No error");
+                expect(err).toBeNull();
             });
             
             waitsForDone(promise, "package validation", 5000);
@@ -143,9 +149,6 @@ define(function (require, exports, module) {
                 // mocked the loading part
                 expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
-                if (brackets.platform === "win") {
-                    expectedPath = expectedPath.replace(/\//g, "\\");
-                }
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
                 NativeFileSystem.resolveNativeFileSystemPath(extensionsRoot + "/user/basic-valid-extension/main.js",
@@ -182,6 +185,27 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return directoryCheckComplete; }, 1000, "checking for disabled extension directory");
                 
+            });
+        });
+        
+        it("should remove an installed extension", function () {
+            var installPath, checkComplete = false;
+            installPackage(basicValid);
+            runs(function () {
+                installPath = lastExtensionLoad.config.baseUrl;
+                handlePackage(installPath, Package.remove);
+            });
+            runs(function () {
+                NativeFileSystem.resolveNativeFileSystemPath(installPath,
+                    function () {
+                        checkComplete = true;
+                        expect("installation path was removed").toEqual(true);
+                    },
+                    function () {
+                        checkComplete = true;
+                    });
+
+                waitsFor(function () { return checkComplete; }, 1000, "checking for extension folder removal");
             });
         });
     });

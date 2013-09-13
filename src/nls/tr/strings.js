@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi server-side dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir link belirtiniz.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Canlı önizleme için {APP_NAME} programı tarayıcınıza bağlanıyor ve sizin HTML dosyanızın örnek görüntüsünü tarayıcınızda açıyor. Sonrasında ise değişiklik yaptığınız sayfayı anında tarayıcıda yenileyerek gösteriyor.<br /><br />{APP_NAME} programının bu versiyonunda, Canlı önizleme özelliği sadece <strong>CSS dosyaları</strong> değişikliğine izin veriyor ve sadece <strong>Google Chrome</strong> üzerinde çalışıyor. Yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />(Bu mesaj sadece tek sefer gösterilecektir.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Canlı Önizleme: Bağlanılıyor\u2026",
@@ -94,7 +94,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Regex arama yapmak için /re/ sintaksını kullanın",
+    "SEARCH_REGEXP_INFO"                : "Regex arama yapmak için /re/ sentaksını kullanın",
     "WITH"                              : "İle",
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",
@@ -122,12 +122,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Versiyon bilgisi alınırken hata",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Sunucudan yeni versiyon bilgisi alınırken hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Dili değiştir",
-    "LANGUAGE_MESSAGE"                  : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME} Yenile",
-    "LANGUAGE_CANCEL"                   : "İptal",
-
     /**
      * ProjectManager
      */
@@ -146,10 +140,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Satır {0}, Kolon {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Girintiyi boşluk karakterleriyle değiştirmek için tıklayın",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Girintiyi tab karakterleriyle değiştirmek için tıklayın",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Girintide kullanılacak boşluk sayısını değiştirmek için tıklayın",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Tab karakter genişliğini değiştirmek için tıklayın",
     "STATUSBAR_SPACES"                      : "Boşluk",
     "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu",
     "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
@@ -172,6 +166,7 @@ define({
     "CMD_LIVE_FILE_PREVIEW"               : "Canlı Önizleme",
     "CMD_PROJECT_SETTINGS"                : "Proje Ayarları\u2026",
     "CMD_FILE_RENAME"                     : "Yeniden Adlandır",
+    "CMD_FILE_DELETE"                     : "Sil",
     "CMD_QUIT"                            : "Çık",
 
     // Edit menu commands
@@ -216,21 +211,12 @@ define({
     "CMD_NEXT_DOC"                        : "Sonraki Dosya",
     "CMD_PREV_DOC"                        : "Önceki Dosya",
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
+    "CMD_SHOW_IN_OS"                      : "Bulunduğu Konumu Aç",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Ayıkla",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} Ekranını Yenile",
-    "CMD_SHOW_DEV_TOOLS"                  : "Geliştirici Araçlarını Göster",
-    "CMD_RUN_UNIT_TESTS"                  : "Testleri Çalıştır",
-    "CMD_JSLINT"                          : "JSLint Aç",
-    "CMD_SHOW_PERF_DATA"                  : "Performans Bilgisini Göster",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Yeni {APP_NAME} Ekranı",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
-    "CMD_SWITCH_LANGUAGE"                 : "Dili Değiştir",
-    "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
-
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
+    "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
     "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
 
@@ -239,12 +225,7 @@ define({
     "CMD_ABORT_QUIT"                      : "Çıkışı İptal Et",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Experimental Build",
-    "JSLINT_ERRORS"                        : "JSLint Hataları",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
-    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
-    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor",
+    "EXPERIMENTAL_BUILD"                   : "Deneysel Sürüm",
     "SEARCH_RESULTS"                       : "Arama sonuçları",
     "OK"                                   : "Tamam",
     "DONT_SAVE"                            : "Kaydetme",
@@ -255,9 +236,8 @@ define({
     "CLOSE_DONT_SAVE"                      : "Kapat (Kaydetme)",
     "RELAUNCH_CHROME"                      : "Chrome'u Tekrar Aç",
     "ABOUT"                                : "Hakkında",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Kapat",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
+    "ABOUT_TEXT_LINE1"                     : "sprint 14 test sürümü",
     "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
     "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span> adresine bakabilirsiniz.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} programının yeni versiyonu bulunmakta! Detaylar için tıklayın.",
@@ -271,5 +251,28 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ana URL'yi işlerken bilinmeyen hata"
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                           : "Ayıkla",
+    "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
+    "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Ekranını Yenile",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Ekranı",
+    "CMD_SWITCH_LANGUAGE"                  : "Dili Değiştir",
+    "CMD_RUN_UNIT_TESTS"                   : "Testleri Çalıştır",
+    "CMD_SHOW_PERF_DATA"                   : "Performans Bilgisini Göster",
+    
+    "LANGUAGE_TITLE"                       : "Dili değiştir",
+    "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
+    "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
+    "LANGUAGE_CANCEL"                      : "İptal",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "JSLint Aç",
+    "JSLINT_ERRORS"                        : "JSLint Hataları",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
+    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
+    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor"
 });

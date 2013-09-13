@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
@@ -45,8 +45,14 @@ define(function (require, exports, module) {
     // Constants
     var SELECTOR   = "selector",
         PROP_NAME  = "prop.name",
-        PROP_VALUE = "prop.value";
+        PROP_VALUE = "prop.value",
+        IMPORT_URL = "import.url";
 
+    var RESERVED_FLOW_NAMES = ["content", "element"],
+        INVALID_FLOW_NAMES = ["none", "inherit", "default", "auto", "initial"],
+        IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
+    
+    
     /**
      * @private
      * Checks if the current cursor position is inside the property name context
@@ -56,7 +62,7 @@ define(function (require, exports, module) {
     function _isInPropName(ctx) {
         var state,
             lastToken;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
         }
 
@@ -67,7 +73,7 @@ define(function (require, exports, module) {
         }
         
         lastToken = state.stack[state.stack.length - 1];
-        return (lastToken === "{" || lastToken === "rule");
+        return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
     /**
@@ -78,8 +84,8 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
-                ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment" ||
+                ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
             return false;
         }
 
@@ -88,9 +94,31 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "propertyValue" && state.stack[state.stack.length - 2] === "rule");
+        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
+                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
+                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
     }
     
+    /**
+     * @private
+     * Checks if the current cursor position is inside an @import rule
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property value
+     */
+    function _isInImportRule(ctx) {
+        var state;
+        if (!ctx || !ctx.token || !ctx.token.state) {
+            return false;
+        }
+
+        state = ctx.token.state.localState || ctx.token.state;
+        
+        if (!state.stack || state.stack.length < 1) {
+            return false;
+        }
+        return (state.stack[0] === "@import");
+    }
+
     /**
      * @private
      * Creates a context info object
@@ -116,7 +144,7 @@ define(function (require, exports, module) {
                          values: [],
                          isNewItem: (isNewItem) ? true : false };
         
-        if (context === PROP_VALUE || context === SELECTOR) {
+        if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
             ruleInfo.values = values;
         }
@@ -136,14 +164,14 @@ define(function (require, exports, module) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.className === "property" || ctxClone.token.className === "property error" ||
+            if (ctxClone.token.type === "property" || ctxClone.token.type === "property error" ||
                     ctxClone.token.string === "{" || ctxClone.token.string === ";") {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
-                (ctxClone.token.className === "property" || ctxClone.token.className === "property error")) {
+                (ctxClone.token.type === "property" || ctxClone.token.type === "property error")) {
             return ctxClone.token.string;
         }
         
@@ -162,7 +190,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
                     ctx.token.string === ":" || ctx.token.string === "{" ||
                     ctx.token.string === ";") {
                 break;
@@ -215,7 +243,7 @@ define(function (require, exports, module) {
             }
             // If we're already in the next rule, then we don't want to add the last value
             // since it is the property name of the next rule.
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
                     ctx.token.string === ":") {
                 lastValue = "";
                 break;
@@ -248,7 +276,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns a context info object for the current CSS rule
+     * Returns a context info object for the current CSS style rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {!Editor} editor
      * @return {{context: string,
@@ -271,7 +299,7 @@ define(function (require, exports, module) {
             offset = TokenUtils.offsetInToken(ctx),
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos),
+            testToken = editor._codeMirror.getTokenAt(testPos, true),
             propName;
         
         // Get property name first. If we don't have a valid property name, then 
@@ -297,8 +325,10 @@ define(function (require, exports, module) {
                 canAddNewOne = true;
             } else {
                 index = (index < 0) ? 0 : index + 1;
-                lastValue = ctx.token.string.trim();
-                if (lastValue.length === 0) {
+                if (ctx.token.string.match(/\S/)) {
+                    lastValue = ctx.token.string;
+                } else {
+                    // Last token is all whitespace
                     canAddNewOne = true;
                     if (index > 0) {
                         // Append all spaces before the cursor to the previous value in values array
@@ -332,6 +362,76 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Returns a context info object for the current CSS import rule
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {!Editor} editor
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function _getImportUrlInfo(ctx, editor) {
+        var propNamePos = $.extend({}, ctx.pos),
+            backwardPos = $.extend({}, ctx.pos),
+            forwardPos  = $.extend({}, ctx.pos),
+            backwardCtx,
+            forwardCtx,
+            index = 0,
+            propValues = [],
+            offset = TokenUtils.offsetInToken(ctx),
+            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+            testToken = editor._codeMirror.getTokenAt(testPos, true);
+
+        // Currently only support url. May be null if starting to type
+        if (ctx.token.className && ctx.token.className !== "string") {
+            return createInfo();
+        }
+
+        // Move backward to @import and collect data as we go. We return propValues
+        // array, but we can only have 1 value, so put all data in first item
+        backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, backwardPos);
+        propValues[0] = backwardCtx.token.string;
+
+        while (TokenUtils.movePrevToken(backwardCtx)) {
+            if (backwardCtx.token.className === "def" && backwardCtx.token.string === "@import") {
+                break;
+            }
+            
+            if (backwardCtx.token.className && backwardCtx.token.className !== "tag" && backwardCtx.token.string !== "url") {
+                // Previous token may be white-space
+                // Otherwise, previous token may only be "url("
+                break;
+            }
+            
+            propValues[0] = backwardCtx.token.string + propValues[0];
+            offset += backwardCtx.token.string.length;
+        }
+        
+        if (backwardCtx.token.className !== "def" || backwardCtx.token.string !== "@import") {
+            // Not in url
+            return createInfo();
+        }
+
+        // Get value after cursor up until closing paren or newline
+        forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
+        do {
+            if (!TokenUtils.moveNextToken(forwardCtx)) {
+                if (forwardCtx.token.string === "(") {
+                    break;
+                } else {
+                    return createInfo();
+                }
+            }
+            propValues[0] += forwardCtx.token.string;
+        } while (forwardCtx.token.string !== ")" && forwardCtx.token.string !== "");
+        
+        return createInfo(IMPORT_URL, offset, "", index, propValues, false);
+    }
+
+    /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
      * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
@@ -352,18 +452,18 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
             return createInfo();
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
                 propName = ctx.token.string;
             } else {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                    testToken = editor._codeMirror.getTokenAt(testPos);
+                    testToken = editor._codeMirror.getTokenAt(testPos, true);
                 
-                if (testToken.className === "property" || testToken.className === "property error" || testToken.className === "tag") {
+                if (testToken.type === "property" || testToken.type === "property error" || testToken.type === "tag") {
                     propName = testToken.string;
                     offset = 0;
                 }
@@ -381,7 +481,11 @@ define(function (require, exports, module) {
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
-                    
+
+        if (_isInImportRule(ctx)) {
+            return _getImportUrlInfo(ctx, editor);
+        }
+        
         return createInfo();
     }
     
@@ -404,7 +508,7 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-     * @param text {!String} CSS text to extract from
+     * @param text {!string} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text) {
@@ -754,8 +858,8 @@ define(function (require, exports, module) {
      * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
      * we know the selector applies.
      *
-     * @param text {!String} CSS text to search
-     * @param selector {!String} selector to search for
+     * @param text {!string} CSS text to search
+     * @param selector {!string} selector to search for
      * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
      *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
      *      matched selector.
@@ -846,7 +950,7 @@ define(function (require, exports, module) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
                 return _loadFileAndScan(fileInfo.fullPath, selector);
             })
-                .pipe(result.resolve, result.reject);
+                .then(result.resolve, result.reject);
         });
         
         return result.promise();
@@ -887,7 +991,7 @@ define(function (require, exports, module) {
      *  div .foo .bar {}
      *  .foo.bar {}
      *
-     * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @param {!string} selector The selector to match. This can be a tag selector, class selector or id selector
      * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
@@ -947,7 +1051,7 @@ define(function (require, exports, module) {
             TokenUtils.movePrevToken(ctx);
             
             while (true) {
-                if (ctx.token.className !== "comment") {
+                if (ctx.token.type !== "comment") {
                     // Stop once we've reached a {, }, or ;
                     if (/[\{\}\;]/.test(ctx.token.string)) {
                         break;
@@ -964,7 +1068,7 @@ define(function (require, exports, module) {
         
         // scan backwards to see if the cursor is in a rule
         while (true) {
-            if (ctx.token.className !== "comment") {
+            if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     break;
                 } else if (ctx.token.string === "{") {
@@ -990,7 +1094,7 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.className !== "comment" && ctx.token.string.trim() !== "") {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && ctx.token.string.trim() !== "") {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }
@@ -1001,7 +1105,7 @@ define(function (require, exports, module) {
         if (!selector && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
-                if (ctx.token.className !== "comment") {
+                if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
                         break;
@@ -1018,14 +1122,76 @@ define(function (require, exports, module) {
         return _stripAtRules(selector);
     }
     
+    /**
+     * removes CSS comments from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeComments(content) {
+        return content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, "");
+    }
+    
+    /**
+     * removes strings from the content 
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function _removeStrings(content) {
+        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+    }
+    
+    /**
+     * Reduces the style sheet by removing comments and strings 
+     * so that the content can be parsed using a regular expression
+     * @param {!string} content to reduce
+     * @return {string} reduced content 
+     */
+    function reduceStyleSheetForRegExParsing(content) {
+        return _removeStrings(_removeComments(content));
+    }
+    
+    /**
+     * Extracts all named flow instances
+     * @param {!string} text to extract from
+     * @return {Array.<string>} array of unique flow names found in the content (empty if none)
+     */
+    function extractAllNamedFlows(text) {
+        var namedFlowRegEx = /(?:flow\-(into|from)\:\s*)([\w\-]+)(?:\s*;)/gi,
+            result = [],
+            names = {},
+            thisMatch;
+        
+        // Reduce the content so that matches 
+        // inside strings and comments are ignored 
+        text = reduceStyleSheetForRegExParsing(text);
+
+        // Find the first match
+        thisMatch = namedFlowRegEx.exec(text);
+        
+        // Iterate over the matches and add them to result
+        while (thisMatch) {
+            var thisName = thisMatch[2];
+            
+            if (IGNORED_FLOW_NAMES.indexOf(thisName) === -1 && !names.hasOwnProperty(thisName)) {
+                names[thisName] = result.push(thisName);
+            }
+            thisMatch = namedFlowRegEx.exec(text);
+        }
+        
+        return result;
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+    exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
     exports.PROP_VALUE = PROP_VALUE;
+    exports.IMPORT_URL = IMPORT_URL;
     
     exports.getInfoAtPos = getInfoAtPos;
 

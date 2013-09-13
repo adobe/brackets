@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Для запуска Интерактивного Предпросмотра с серверным файлом, вы должны указать основной URL для этого проекта.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Добро пожаловать в Интерактивный Предпросмотр!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Интерактивный Предпросмотр подключает {APP_NAME} к вашему браузеру. Он запускает предпросмотр HTML файла в вашем браузере и к тому же мгновенно обновляет предпросмотр при редактировании кода.<br /><br />В этой ранней версии {APP_NAME}, Интерактивный Предпросмотр работает только с <strong>Google Chrome</strong> и обновляется в реальном времени при редактировании <strong>CSS файлов</strong>. Изменения в HTML или Javascript файлах автоматически перезагружаются при сохранении.<br /><br />(Вы увидите это сообщение только один раз.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Для дополнительной информации, смотрите <a class=\"clickable-link\" data-href=\"{0}\">Поиск и устранение неисправностей ошибок подключения Live Development</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Для дополнительной информации, смотрите <a href='{0}' title='{0}'>Поиск и устранение неисправностей ошибок подключения Live Development</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Интерактивный Предпросмотр: Подключение\u2026",
@@ -122,12 +122,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Была проблема при получении информации о последних обновлениях с сервера. Пожалуйста, убедитесь, что вы подключены к интернету и попробуйте снова. ",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Изменить язык",
-    "LANGUAGE_MESSAGE"                  : "Пожалуйста, выберите желаемый язык из списка ниже:",
-    "LANGUAGE_SUBMIT"                   : "Перезагрузить {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Отмена",
-
     /**
      * ProjectManager
      */
@@ -218,17 +212,6 @@ define({
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве файлов",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Отладка",
-    "CMD_REFRESH_WINDOW"                  : "Перезагрузить {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Показать инструменты разработчика",
-    "CMD_RUN_UNIT_TESTS"                  : "Запустить тесты",
-    "CMD_JSLINT"                          : "Включить JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Показать данные о производительности",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Новое окно {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
-    "CMD_SWITCH_LANGUAGE"                 : "Переключить язык",
-
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
     "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
@@ -236,6 +219,7 @@ define({
     "CMD_FORUM"                           : "Форум {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
     "CMD_REPORT_AN_ISSUE"                 : "Сообщить о проблеме",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
     "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
     "CMD_ABOUT"                           : "О {APP_TITLE}",
 
@@ -247,11 +231,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Экспериментальная сборка",
     "DEVELOPMENT_BUILD"                    : "Сборка для разработчиков",
-    "JSLINT_ERRORS"                        : "Ошибки JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Ошибка JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Ошибок JSLint",
-    "JSLINT_NO_ERRORS"                     : "Нет ошибок JSLint - хорошая работа!",
-    "JSLINT_DISABLED"                      : "JSLint отключен или не работает для текущего файла",
     "SEARCH_RESULTS"                       : "Результаты поиска",
     "OK"                                   : "ОК",
     "DONT_SAVE"                            : "Не сохранять",
@@ -262,11 +241,10 @@ define({
     "CLOSE_DONT_SAVE"                      : "Закрыть (Не сохранять)",
     "RELAUNCH_CHROME"                      : "Перезапустить Chrome",
     "ABOUT"                                : "О программе",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Закрыть",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
-    "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> и включены здесь в качестве ссылки.",
+    "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая сборка {APP_NAME} доступна. Вот некоторые из новых функций:",
@@ -279,7 +257,22 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Основной URL не может содержать такие параметры поиска как \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Основной URL не может содержать такие хеши как \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Специальные символы как '{0}' должны быть %-экранированы.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Неизвестная ошибка при парсинге основного URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Неизвестная ошибка при парсинге основного URL",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Отладка",
+    "CMD_SHOW_DEV_TOOLS"                        : "Показать инструменты разработчика",
+    "CMD_REFRESH_WINDOW"                        : "Перезагрузить {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Новое окно {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Переключить язык",
+    "CMD_RUN_UNIT_TESTS"                        : "Запустить тесты",
+    "CMD_SHOW_PERF_DATA"                        : "Показать данные о производительности",
+    
+    "LANGUAGE_TITLE"                            : "Изменить язык",
+    "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
+    "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Отмена",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_SELECTION_FIELD_TIP"          : "Насыщенность (х) и яркость (y)",
@@ -292,5 +285,13 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex формат",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa формат",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Использовано {1} раз)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Использовано {1} раза)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Использовано {1} раза)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Включить JSLint",
+    "JSLINT_ERRORS"                             : "Ошибки JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Ошибка JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Ошибок JSLint",
+    "JSLINT_NO_ERRORS"                          : "Нет ошибок JSLint - хорошая работа!",
+    "JSLINT_DISABLED"                           : "JSLint отключен или не работает для текущего файла"
 });

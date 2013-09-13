@@ -39,8 +39,13 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
         FileViewController    = require("project/FileViewController"),
+        CollectionUtils       = require("utils/CollectionUtils"),
         ViewUtils             = require("utils/ViewUtils");
     
+    
+    /** @const @type {number} Constants for event.which values */
+    var LEFT_BUTTON = 1,
+        MIDDLE_BUTTON = 2;
     
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
@@ -49,6 +54,14 @@ define(function (require, exports, module) {
         $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
+    
+    /**
+     * @private
+     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * @type {boolean}
+     */
+    var _suppressSortRedraw = false;
+    
     
     /**
      * @private
@@ -78,6 +91,108 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Adds directory names to elements representing passed files in working tree
+     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
+     */
+    function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+        // filesList must have at least two files in it for this to make sense
+        if (filesList.length <= 1) {
+            return;
+        }
+
+        // First collect paths from the list of files and fill map with them
+        var map = {}, filePaths = [], displayPaths = [];
+        filesList.forEach(function (file, index) {
+            var fp = file.fullPath.split("/");
+            fp.pop(); // Remove the filename itself
+            displayPaths[index] = fp.pop();
+            filePaths[index] = fp;
+
+            if (!map[displayPaths[index]]) {
+                map[displayPaths[index]] = [index];
+            } else {
+                map[displayPaths[index]].push(index);
+            }
+        });
+
+        // This function is used to loop through map and resolve duplicate names
+        var processMap = function (map) {
+            var didSomething = false;
+            CollectionUtils.forEach(map, function (arr, key) {
+                // length > 1 means we have duplicates that need to be resolved
+                if (arr.length > 1) {
+                    arr.forEach(function (index) {
+                        if (filePaths[index].length !== 0) {
+                            displayPaths[index] = filePaths[index].pop() + "/" + displayPaths[index];
+                            didSomething = true;
+
+                            if (!map[displayPaths[index]]) {
+                                map[displayPaths[index]] = [index];
+                            } else {
+                                map[displayPaths[index]].push(index);
+                            }
+                        }
+                    });
+                }
+                delete map[key];
+            });
+            return didSomething;
+        };
+
+        var repeat;
+        do {
+            repeat = processMap(map);
+        } while (repeat);
+
+        // Go through open files and add directories to appropriate entries
+        $openFilesContainer.find("ul > li").each(function () {
+            var $li = $(this);
+            var io = filesList.indexOf($li.data(_FILE_KEY));
+            if (io !== -1) {
+                var dirSplit = displayPaths[io].split("/");
+                if (dirSplit.length > 3) {
+                    displayPaths[io] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
+                }
+
+                var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
+                $li.children("a").append($dir);
+            }
+        });
+    }
+
+    /**
+     * @private
+     * Looks for files with the same name in the working set
+     * and adds a parent directory name to them
+     */
+    function _checkForDuplicatesInWorkingTree() {
+        var map = {},
+            fileList = DocumentManager.getWorkingSet();
+
+        // We need to always clear current directories as files could be removed from working tree.
+        $openFilesContainer.find("ul > li > a > span.directory").remove();
+
+        // Go through files and fill map with arrays of files.
+        fileList.forEach(function (file) {
+            // Use the same function that is used to create html for file.
+            var displayHtml = ViewUtils.getFileEntryDisplay(file);
+
+            if (!map[displayHtml]) {
+                map[displayHtml] = [];
+            }
+            map[displayHtml].push(file);
+        });
+
+        // Go through the map and solve the arrays with length over 1. Ignore the rest.
+        CollectionUtils.forEach(map, function (value) {
+            if (value.length > 1) {
+                _addDirectoryNamesToWorkingTreeFiles(value);
+            }
+        });
+    }
+
+    /**
+     * @private
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
@@ -87,6 +202,7 @@ define(function (require, exports, module) {
         } else {
             $openFilesContainer.show();
             $workingSetHeader.show();
+            _checkForDuplicatesInWorkingTree();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -179,6 +295,9 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
+                
+                // Don't redraw the working set for the next events
+                _suppressSortRedraw = true;
             }
         }
         
@@ -228,39 +347,37 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
-            // If file wasnt moved open or close it
+            // If item wasn't dragged, treat as a click
             if (!moved) {
-                if (!fromClose) {
-                /***/
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                /***
-                    // Backing out for Sprint 18 due to issues described in #2394, #2411
-                    if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                    }
-                ***/
-                } else {
+                // Click on close icon, or middle click anywhere - close the item without selecting it first
+                if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                } else {
+                    // Normal right and left click - select the item
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                 }
-            } else if (moved) {
+            
+            } else {
+                // Update the file selection
                 if (selected) {
-                    // Update the file selection
                     _fireSelectionChanged();
                     ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
                 }
+                
+                // Restore the shadow
                 if (addBottomShadow) {
-                    // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+                
+                // The drag is done, so set back to the default
+                _suppressSortRedraw = false;
             }
         }
         
         
         // Only drag with the left mouse button, and control key is not down
         // on Mac, end the drop in other cases
-        if (event.which !== 1 || (event.ctrlKey && brackets.platform === "mac")) {
+        if (event.which !== LEFT_BUTTON || (event.ctrlKey && brackets.platform === "mac")) {
             drop();
             return;
         }
@@ -321,9 +438,8 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
+            ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     }
     
@@ -336,11 +452,11 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
     function isOpenAndDirty(file) {
+        // working set item might never have been opened; if so, then it's definitely not dirty
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
     }
@@ -362,8 +478,6 @@ define(function (require, exports, module) {
 
         $openFilesContainer.find("ul").append($newItem);
         
-        // working set item might never have been opened; if so, then it's definitely not dirty
-
         // Update the listItem's apperance
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
@@ -372,7 +486,7 @@ define(function (require, exports, module) {
             _reorderListItem(e, $(this));
             e.preventDefault();
         });
-
+        
         $newItem.hover(
             function () {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), true);
@@ -387,14 +501,16 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet() {
+    function _rebuildWorkingSet(forceRedraw) {
         $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _redraw();
+        if (forceRedraw) {
+            _redraw();
+        }
     }
 
     /**
@@ -467,9 +583,15 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
+    function _handleFileAdded(file, index) {
+        if (index === DocumentManager.getWorkingSet().length - 1) {
+            // Simple case: append item to list
+            _createNewListItem(file);
+            _redraw();
+        } else {
+            // Insertion mid-list: just rebuild whole list UI
+            _rebuildWorkingSet(true);
+        }
     }
 
     /**
@@ -484,31 +606,26 @@ define(function (require, exports, module) {
 
     /** 
      * @private
+     * @param {FileEntry} file
+     * @param {boolean=} suppressRedraw If true, suppress redraw
      */
-    function _handleDocumentSelectionChange() {
-        _updateListSelection();
-        _fireSelectionChanged();
-    }
-
-    /** 
-     * @private
-     * @param {FileEntry} file 
-     */
-    function _handleFileRemoved(file) {
-        var $listItem = _findListItemFromFile(file);
-        if ($listItem) {
-            // Make the next file in the list show the close icon, 
-            // without having to move the mouse, if there is a next file.
-            var $nextListItem = $listItem.next();
-            if ($nextListItem && $nextListItem.length > 0) {
-                var canClose = ($listItem.find(".can-close").length === 1);
-                var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                _updateFileStatusIcon($nextListItem, isDirty, canClose);
+    function _handleFileRemoved(file, suppressRedraw) {
+        if (!suppressRedraw) {
+            var $listItem = _findListItemFromFile(file);
+            if ($listItem) {
+                // Make the next file in the list show the close icon, 
+                // without having to move the mouse, if there is a next file.
+                var $nextListItem = $listItem.next();
+                if ($nextListItem && $nextListItem.length > 0) {
+                    var canClose = ($listItem.find(".can-close").length === 1);
+                    var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                    _updateFileStatusIcon($nextListItem, isDirty, canClose);
+                }
+                $listItem.remove();
             }
-            $listItem.remove();
+            
+            _redraw();
         }
-        
-        _redraw();
     }
 
     function _handleRemoveList(removedFiles) {
@@ -522,12 +639,13 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    /** 
+    /**
      * @private
      */
     function _handleWorkingSetSort() {
-        _rebuildWorkingSet();
-        _scrollSelectedDocIntoView();
+        if (!_suppressSortRedraw) {
+            _rebuildWorkingSet(true);
+        }
     }
 
     /** 
@@ -552,7 +670,11 @@ define(function (require, exports, module) {
         // Rebuild the working set if any file or folder name changed.
         // We could be smarter about this and only update the
         // nodes that changed, if needed...
-        _rebuildWorkingSet();
+        _rebuildWorkingSet(true);
+    }
+    
+    function refresh() {
+        _redraw();
     }
     
     function create(element) {
@@ -570,8 +692,8 @@ define(function (require, exports, module) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
-            _handleFileRemoved(removedFile);
+        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+            _handleFileRemoved(removedFile, suppressRedraw);
         });
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
@@ -590,7 +712,7 @@ define(function (require, exports, module) {
             _handleFileNameChanged(oldName, newName);
         });
         
-        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _updateListSelection);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
@@ -602,5 +724,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
+    exports.refresh = refresh;
 });

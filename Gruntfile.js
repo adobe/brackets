@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     var common = require("./tasks/lib/common")(grunt);
-
+    
     // Project configuration.
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
@@ -92,7 +92,7 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'src/thirdparty/jquery-1.7.js',
+                    'src/thirdparty/jquery-2.0.1.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
@@ -100,7 +100,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.3.0.min.js'
+                    'src/thirdparty/less-1.3.3.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -113,11 +113,16 @@ module.exports = function (grunt) {
                             'test' : '../test',
                             'perf' : '../test/perf',
                             'spec' : '../test/spec',
-                            'text' : 'thirdparty/text',
-                            'i18n' : 'thirdparty/i18n'
+                            'text' : 'thirdparty/text/text',
+                            'i18n' : 'thirdparty/i18n/i18n'
                         }
                     }
                 }
+            }
+        },
+        'jasmine-node': {
+            run: {
+                spec: 'src/extensibility/node/spec/'
             }
         },
         jshint: {
@@ -146,13 +151,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
-
+    grunt.loadNpmTasks('grunt-contrib-jasmine-node');
+    
     // task: install
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-    //grunt.registerTask('test', ['jshint', 'jasmine']);
-    grunt.registerTask('test', ['jshint']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+    //grunt.registerTask('test', ['jshint:all', 'jasmine', jasmine-node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json

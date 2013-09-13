@@ -45,18 +45,46 @@
 
 .brackets-js-hints.literal-hint {
     color: #444; /* dark grey */
+    font-family: SourceCodePro;
 }
 
 .brackets-js-hints.keyword-hint {
-    font-family: monospace; 
+    font-family: SourceCodePro; 
+}
+
+.brackets-js-hints.keyword-hint .matched-hint {
+    font-family: SourceCodePro-Medium;
+    font-weight: 500; 
 }
 
 .brackets-js-hints .matched-hint {
-    font-weight: bold;
+    font-weight: 500;
 }
 
 .brackets-js-hints.guess-hint {
     font-style: italic;
 }
 
+#function-hint-container {
+    display: none;
 
+    background: #e0e1e3;
+    position: absolute;
+    z-index: 15;
+    left: 200px;
+    top: 40px;
+    pointer-events: none;
+
+    padding: 1px 3px;
+    text-align: center;
+
+    border-radius: 2px;
+    border: 1px solid #a6a8a8;
+}
+
+#function-hint-container .function-hint-content {
+}
+
+.brackets-js-hints .current-parameter {
+    font-weight: 500;
+}

@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var AppInit                 = require("utils/AppInit"),
         Editor                  = require("editor/Editor").Editor,
+        EditorManager           = require("editor/EditorManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Strings                 = require("strings");

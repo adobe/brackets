@@ -102,12 +102,12 @@
  * param {Editor} editor 
  * A non-null editor object for the active window.
  *
- * param {String} implicitChar 
+ * param {string} implicitChar 
  * Either null, if the hinting request was explicit, or a single character
  * that represents the last insertion and that indicates an implicit
  * hinting request.
  *
- * return {Boolean} 
+ * return {boolean} 
  * Determines whether the current provider is able to provide hints for
  * the given editor context and, in case implicitChar is non- null,
  * whether it is appropriate to do so.
@@ -118,10 +118,12 @@
  * The method by which a provider provides hints for the editor context
  * associated with the current session. The getHints method is called only
  * if the provider asserted its willingness to provide hints in an earlier
- * call to hasHints. The provider may return null, which indicates that
- * the manager should end the current hinting session and close the hint
- * list window. Otherwise, the provider should return a response object
- * that contains three properties: 
+ * call to hasHints. The provider may return null or false, which indicates 
+ * that the manager should end the current hinting session and close the hint
+ * list window; or true, which indicates that the manager should end the 
+ * current hinting session but immediately attempt to begin a new hinting
+ * session by querying registered providers. Otherwise, the provider should
+ * return a response object that contains three properties:
  *
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
@@ -164,14 +166,14 @@
  * assume that the document will not be changed outside of the editor
  * during a session.
  *
- * param {String} implicitChar
+ * param {string} implicitChar
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- * return {(Object + jQuery.Deferred)<
- *      hints: Array<(String + jQuery.Obj)>,
- *      match: String,
- *      selectInitial: Boolean>}
+ * return {jQuery.Deferred|{
+ *      hints: Array.<string|jQueryObject>,
+ *      match: string,
+ *      selectInitial: boolean}}
  * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
@@ -182,7 +184,7 @@
  * by default in the hint list window. If match is non-null, then the
  * hints should be strings. 
  * 
- * TODO - NOT YET IMPLEMENTED: If the match is null, the manager will not 
+ * If the match is null, the manager will not 
  * attempt to emphasize any parts of the hints when rendering the hint 
  * list; instead the provider may return strings or jQuery objects for 
  * which emphasis is self-contained. For example, the strings may contain
@@ -204,12 +206,23 @@
  * explicit hinting request, which may result in a new hinting session
  * being opened with some provider, but not necessarily the current one.
  *
- * param {String} hint 
+ * param {string} hint 
  * The hint to be inserted into the editor context for the current session.
  * 
- * return {Boolean} 
+ * return {boolean} 
  * Indicates whether the manager should follow hint insertion with an
  * explicit hint request.
+ *
+ *
+ * # CodeHintProvider.insertHintOnTab
+ * 
+ * type {?boolean} insertHintOnTab
+ * Indicates whether the CodeHintManager should request that the provider of 
+ * the current session insert the currently selected hint on tab key events,
+ * or if instead a tab character should be inserted into the editor. If omitted,
+ * the fallback behavior is determined by the CodeHintManager. The default
+ * behavior is to insert a tab character, but this can be changed with the
+ * CodeHintManager.setInsertHintOnTab() method.
  */
 
 
@@ -220,7 +233,11 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var KeyEvent        = require("utils/KeyEvent"),
+    var Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        EditorManager   = require("editor/EditorManager"),
+        Strings         = require("strings"),
+        KeyEvent        = require("utils/KeyEvent"),
         CodeHintList    = require("editor/CodeHintList").CodeHintList;
 
     var hintProviders   = { "all" : [] },
@@ -231,8 +248,25 @@ define(function (require, exports, module) {
         deferredHints   = null,
         keyDownEditor   = null;
 
+    
+    var _insertHintOnTabDefault = false;
+
     /**
-     * Comparator to sort providers based on their priority
+     * Determines the default behavior of the CodeHintManager on tab key events.
+     * setInsertHintOnTab(true) indicates that the currently selected code hint
+     * should be inserted on tab key events. setInsertHintOnTab(false) indicates
+     * that a tab character should be inserted into the editor on tab key events.
+     * The default behavior can be overridden by individual providers.
+     *
+     * @param {boolean} Indicates whether providers should insert the currently
+     *      selected hint on tab key events.
+     */
+    function setInsertHintOnTab(insertHintOnTab) {
+        _insertHintOnTabDefault = insertHintOnTab;
+    }
+    
+    /**
+     * Comparator to sort providers from high to low priority
      */
     function _providerSort(a, b) {
         return b.priority - a.priority;
@@ -242,80 +276,100 @@ define(function (require, exports, module) {
      * The method by which a CodeHintProvider registers its willingness to
      * providing hints for editors in a given language.
      *
-     * @param {CodeHintProvider} provider
+     * @param {!CodeHintProvider} provider
      * The hint provider to be registered, described below. 
      *
-     * @param {Array[(string|Object<name: string>)]} languageIDs
+     * @param {!Array.<string>} languageIds
      * The set of language ids for which the provider is capable of
      * providing hints. If the special language id name "all" is included then
-     * the provider may be called upon to provide hints for any language.
+     * the provider may be called for any language.
      *
-     * @param {Integer} priority
-     * A non-negative number used to break ties among hint providers for a
-     * particular language. Providers that register with a higher priority
-     * will have the opportunity to provide hints at a given language before
-     * those with a lower priority. Brackets default providers have
-     * priority zero.
+     * @param {?number} priority
+     * Used to break ties among hint providers for a particular language.
+     * Providers with a higher number will be asked for hints before those
+     * with a lower priority value. Defaults to zero.
      */
-    function registerHintProvider(providerInfo, languageIDs, priority) {
+    function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
-                
-        if (languageIDs) {
-            var languageIdNames = [], registerForAllLanguages = false;
-            var i, currentLanguageID;
-            for (i = 0; i < languageIDs.length; i++) {
-                currentLanguageID = languageIDs[i];
-                if (currentLanguageID) {
-                    if (currentLanguageID === "all") {
-                        registerForAllLanguages = true;
-                        break;
-                    } else {
-                        languageIdNames.push(currentLanguageID);
-                    }
+        
+        if (languageIds.indexOf("all") !== -1) {
+            // Ignore anything else in languageIds and just register for every language. This includes
+            // the special "all" language since its key is in the hintProviders map from the beginning.
+            var languageId;
+            for (languageId in hintProviders) {
+                if (hintProviders.hasOwnProperty(languageId)) {
+                    hintProviders[languageId].push(providerObj);
+                    hintProviders[languageId].sort(_providerSort);
                 }
             }
-
-            if (registerForAllLanguages) {
-                // if we're registering in all, then we ignore the languageIdNames array
-                // so that we avoid registering a provider twice
-                var languageId;
-                for (languageId in hintProviders) {
-                    if (hintProviders.hasOwnProperty(languageId)) {
-                        hintProviders[languageId].push(providerObj);
-                        hintProviders[languageId].sort(_providerSort);
-                    }
+        } else {
+            languageIds.forEach(function (languageId) {
+                if (!hintProviders[languageId]) {
+                    // Initialize provider list with any existing all-language providers
+                    hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
                 }
-            } else {
-                languageIdNames.forEach(function (languageId) {
-                    if (languageId) {
-                        if (!hintProviders[languageId]) {
-                            // initialize a new language id with all providers
-                            hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
-                        }
-                        hintProviders[languageId].push(providerObj);
-                        hintProviders[languageId].sort(_providerSort);
-                    }
-                });
-            }
+                hintProviders[languageId].push(providerObj);
+                hintProviders[languageId].sort(_providerSort);
+            });
         }
+    }
+    
+    /**
+     * @private
+     * Remove a code hint provider
+     * @param {!CodeHintProvider} provider Code hint provider to remove
+     * @param {(string|Array.<string>)=} targetLanguageId Optional set of
+     *     language IDs for languages to remove the provider for. Defaults
+     *     to all languages.
+     */
+    function _removeHintProvider(provider, targetLanguageId) {
+        var languageId,
+            languages,
+            index,
+            providers,
+            targetLanguageIdArr;
+        
+        if (Array.isArray(targetLanguageId)) {
+            targetLanguageIdArr = targetLanguageId;
+        } else if (targetLanguageId) {
+            targetLanguageIdArr = [targetLanguageId];
+        } else {
+            targetLanguageIdArr = Object.keys(hintProviders);
+        }
+        
+        targetLanguageIdArr.forEach(function (languageId) {
+            providers = hintProviders[languageId];
+            
+            for (index = 0; index < providers.length; index++) {
+                if (providers[index].provider === provider) {
+                    providers.splice(index, 1);
+                    break;
+                }
+            }
+        });
     }
 
     /** 
      *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
-     * @param {(string|Object<name: string>)} languageID
-     * @return {Array.<{provider: Object, languageIDs: Array.<string>, priority: number}>}
+     * @param {!string} languageId
+     * @return {?Array.<{provider: Object, priority: number}>}
      */
-    function _getProvidersForLanguageID(languageID) {
-        return hintProviders[languageID] || hintProviders.all;
+    function _getProvidersForLanguageId(languageId) {
+        return hintProviders[languageId] || hintProviders.all;
     }
+    
+    var _beginSession;
 
     /**
      * End the current hinting session
      */
     function _endSession() {
+        if (!hintList) {
+            return;
+        }
         hintList.close();
         hintList = null;
         keyDownEditor = null;
@@ -340,7 +394,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed
@@ -368,23 +422,30 @@ define(function (require, exports, module) {
         if (!response) {
             // the provider wishes to close the session
             _endSession();
-        } else if (response.hasOwnProperty("hints")) { // a synchronous response
-            if (hintList.isOpen()) {
-                // the session is open 
-                hintList.update(response);
-            } else {
-                hintList.open(response);
-            }
-        } else { // response is a deferred
-            deferredHints = response;
-            response.done(function (hints) {
+        } else {
+            // if the response is true, end the session and begin another
+            if (response === true) {
+                var previousEditor = sessionEditor;
+                _endSession();
+                _beginSession(previousEditor);
+            } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open 
-                    hintList.update(hints);
+                    hintList.update(response);
                 } else {
-                    hintList.open(hints);
+                    hintList.open(response);
                 }
-            });
+            } else { // response is a deferred
+                deferredHints = response;
+                response.done(function (hints) {
+                    if (hintList.isOpen()) {
+                        // the session is open 
+                        hintList.update(hints);
+                    } else {
+                        hintList.open(hints);
+                    }
+                });
+            }
         }
     }
     
@@ -392,10 +453,10 @@ define(function (require, exports, module) {
      * Try to begin a new hinting session. 
      * @param {Editor} editor
      */
-    function _beginSession(editor) {
+    _beginSession = function (editor) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
-            enabledProviders = _getProvidersForLanguageID(language.getId());
+            enabledProviders = _getProvidersForLanguageId(language.getId());
         
         enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
@@ -406,9 +467,16 @@ define(function (require, exports, module) {
 
         // If a provider is found, initialize the hint list and update it
         if (sessionProvider) {
+            var insertHintOnTab;
+            if (sessionProvider.insertHintOnTab !== undefined) {
+                insertHintOnTab = sessionProvider.insertHintOnTab;
+            } else {
+                insertHintOnTab = _insertHintOnTabDefault;
+            }
+            
             sessionEditor = editor;
-
-            hintList = new CodeHintList(sessionEditor);
+            
+            hintList = new CodeHintList(sessionEditor, insertHintOnTab);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
                     previousEditor = sessionEditor;
@@ -422,6 +490,26 @@ define(function (require, exports, module) {
             _updateHintList();
         } else {
             lastChar = null;
+        }
+    };
+    
+    /**
+     * Explicitly start a new session. If we have an existing session, 
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+            // Begin a new explicit session
+            _beginSession(editor);
         }
     }
     
@@ -440,18 +528,6 @@ define(function (require, exports, module) {
     function handleKeyEvent(editor, event) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
-            if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
-                event.preventDefault();
-                lastChar = null;
-                if (_inSession(editor)) {
-                    _endSession();
-                }
-                // Begin a new explicit session
-                _beginSession(editor);
-            } else if (_inSession(editor) && hintList.isOpen()) {
-                // Pass event to the hint list, if it's open
-                hintList.handleKeyEvent(event);
-            }
             if (!(event.ctrlKey || event.altKey || event.metaKey) &&
                     (event.keyCode === KeyEvent.DOM_VK_ENTER ||
                      event.keyCode === KeyEvent.DOM_VK_RETURN ||
@@ -462,8 +538,7 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
-                // End the session if the user presses any key with a modifier (other than Ctrl+Space).
+            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
@@ -503,15 +578,49 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test whether the provider has an exclusion that is still the same as text after the cursor.
+     *
+     * @param {string} exclusion - Text not to be overwritten when the provider inserts the selected hint.
+     * @param {string} textAfterCursor - Text that is immediately after the cursor position.
+     * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
+     * false otherwise.
+     */
+    function hasValidExclusion(exclusion, textAfterCursor) {
+        return (exclusion && exclusion === textAfterCursor);
+    }
+    
+    /**
+     *  Test if a hint popup is open.
+     *
+     * @returns {boolean} - true if the hints are open, false otherwise.
+     */
+    function isOpen() {
+        return (hintList && hintList.isOpen());
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
         return hintList;
     }
+
+    // Dismiss code hints before executing any command since the command
+    // may make the current hinting session irrevalent after execution. 
+    // For example, when the user hits Ctrl+K to open Quick Doc, it is 
+    // pointless to keep the hint list since the user wants to view the Quick Doc.
+    $(CommandManager).on("beforeExecuteCommand", _endSession);
+
+    CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
+
     exports._getCodeHintList        = _getCodeHintList;
+    exports._removeHintProvider     = _removeHintProvider;
     
     // Define public API
+    exports.isOpen                  = isOpen;
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.hasValidExclusion       = hasValidExclusion;
+    exports.setInsertHintOnTab      = setInsertHintOnTab;
 });

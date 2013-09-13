@@ -80,7 +80,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Błąd przy próbie zainicjowania serwera HTTP dla Podglądu błyskawicznego. Spróbuj ponownie.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Witaj w Podglądzie Błyskawicznym!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Podgląd Błyskawiczny podłączył {APP_NAME} do twojej przeglądarki. Pokazuje on twoją stronę HTML bezpośrednio w przeglądarce, oraz aktualizuje ją natychmiast po wprowadzeniu zmian w kodzie.<br /><br />W aktualnej wersji {APP_NAME}, Podgląd Błyskawiczny działa wyłącznie z <strong>Google Chrome</strong> i aktualizuje w czasie rzeczywistym <strong>pliki CSS</strong>. Zmiany w plikach HTML lub JavaScript są ładowane automatycznie po zapisaniu pliku.<br /><br />(Ta wiadomość wyświetla się tylko raz.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a class=\"clickable-link\" data-href=\"{0}\">Rozwiązywanie problemów z Podglądem Błyskawicznym</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a href='{0}' title='{0}'>Rozwiązywanie problemów z Podglądem Błyskawicznym</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Podgląd Błyskawiczny",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Podgląd Błyskawiczny: Łączenie\u2026",
@@ -107,7 +107,7 @@ define({
     "CHOOSE_FOLDER"                     : "Wybierz Folder",
 
     "RELEASE_NOTES"                     : "Informacje o Wydaniu",
-    "NO_UPDATE_TITLE"                   : "Brackets jest aktualny!",
+    "NO_UPDATE_TITLE"                   : "{APP_NAME} jest aktualny!",
     "NO_UPDATE_MESSAGE"                 : "Aktualnie używasz najnowszej wersji {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "dla \"{4}\" {5} - {0} {1} w {2} {3}",
@@ -125,12 +125,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Błąd pobierania wersji.",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Wystąpił problem podczas pobierania informacji o najnowszej wersji aplikacji. Upewnij się, że jeste podłączony do Internetu i spróbuj ponownie.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Zmień Język",
-    "LANGUAGE_MESSAGE"                  : "Wybierz język z poniższej listy:",
-    "LANGUAGE_SUBMIT"                   : "Zrestartuj {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Anuluj",
-
     /**
      * ProjectManager
      */
@@ -228,7 +222,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Szybkie Otwarcie",
     "CMD_GOTO_LINE"                       : "Skocz do Linii",
     "CMD_GOTO_DEFINITION"                 : "Skocz do Definicji",
-    "CMD_JSLINT_FIRST_ERROR"              : "Skocz do Pierwszego Błędu JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Szybka Edycja",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Poprzedni Wynik",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Następny Wynik",
@@ -236,20 +229,6 @@ define({
     "CMD_PREV_DOC"                        : "Poprzedni Dokument",
     "CMD_SHOW_IN_TREE"                    : "Pokaż w Drzewie Pliku",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debuguj",
-    "CMD_REFRESH_WINDOW"                  : "Przeładuj {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Pokaż Narzędzia Developera",
-    "CMD_RUN_UNIT_TESTS"                  : "Uruchom Test",
-    "CMD_JSLINT"                          : "Włącz JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Pokaż Informacje o Wydajności",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nowe Okno {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Pokaż Folder Rozszerzeń",
-    "CMD_SWITCH_LANGUAGE"                 : "Zmień Język",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Włącz Debugger Node",
-    "CMD_LOG_NODE_STATE"                  : "Loguj Stan Node do Konsoli",
-    "CMD_RESTART_NODE"                    : "Zrestartuj Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Pomoc",
     "CMD_CHECK_FOR_UPDATE"                : "Sprawdź dostępność aktualizacji",
@@ -257,6 +236,7 @@ define({
     "CMD_FORUM"                           : "Forum {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Informacje o wydaniu",
     "CMD_REPORT_AN_ISSUE"                 : "Zgłoś Problem",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Pokaż Folder Rozszerzeń",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitterze",
     "CMD_ABOUT"                           : "O programie {APP_TITLE}",
 
@@ -268,11 +248,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "build eksperymentalny",
     "DEVELOPMENT_BUILD"                    : "build rozwojowy",
-    "JSLINT_ERRORS"                        : "Błędy JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Błąd JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Błędy(ów) JSLint",
-    "JSLINT_NO_ERRORS"                     : "Dobra robota! Brak błędów JSLint",
-    "JSLINT_DISABLED"                      : "JSLint wyłączony lub nie działa dla aktualnego pliku",
     "SEARCH_RESULTS"                       : "Wyniki Wyszukiwania",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nie Zapisuj",
@@ -284,11 +259,10 @@ define({
     "RELAUNCH_CHROME"                      : "Przeładuj Chrome",
     "INSTALL"                              : "Zainstaluj",
     "ABOUT"                                : "O programie",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zamknij",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> i zostały załączone jako odnośnik.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentacja i pliki żródłowe dostępne po adresem: <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> i zostały załączone jako odnośnik.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentacja i pliki żródłowe dostępne po adresem: <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Wykonano przy użyciu \u2764 i JavaScriptu przez:",
     "ABOUT_TEXT_LINE6"                     : "Mnóstwo ludzi (niestety mamy problem z załadowaniem pełnej listy w tym momencie).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostępna jest nowa wersja aplikacji {APP_NAME}! Kliknij by dowiedzieć się więcej.",
@@ -302,7 +276,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adres URL nie może zawierać parametrów wyszukiwania takich jak \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Nieznany błąd podczas parsowania adresu URL.",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL.",
     
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",
@@ -321,10 +295,9 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} jest niepoprawną nazwą pakietu.",
     "MISSING_PACKAGE_VERSION"              : "Plik package.json nie zawiera numeru wersji pakietu.",
     "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
-    "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją Brackets. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
+    "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją {APP_NAME}. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
     "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
     "ALREADY_INSTALLED"                    : "Rozszerzenie z taką samą nazwą jest już zainstalowane. Nowe rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
-    "NO_DISABLED_DIRECTORY"                : "Nie można zapisać rozszerzenia w extensions/disabled ponieważ folder ten nie istnieje.",
     "DOWNLOAD_ID_IN_USE"                   : "Błąd wewnętrzny: nazwa ściąganego pliku już istnieje.",
     "NO_SERVER_RESPONSE"                   : "Nie można połączyć z serwerem.",
     "BAD_HTTP_STATUS"                      : "Nie znaleziono pliku na serwerze (HTTP {0}).",
@@ -335,6 +308,24 @@ define({
     "UNKNOWN_ERROR"                        : "Nieznany błąd wewnętrzny.",
     // For NOT_FOUND_ERR, see generic strings above
     
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debuguj",
+    "CMD_SHOW_DEV_TOOLS"                        : "Pokaż Narzędzia Developera",
+    "CMD_REFRESH_WINDOW"                        : "Przeładuj {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nowe Okno {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Zmień Język",
+    "CMD_RUN_UNIT_TESTS"                        : "Uruchom Test",
+    "CMD_SHOW_PERF_DATA"                        : "Pokaż Informacje o Wydajności",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Włącz Debugger Node",
+    "CMD_LOG_NODE_STATE"                        : "Loguj Stan Node do Konsoli",
+    "CMD_RESTART_NODE"                          : "Zrestartuj Node",
+    
+    "LANGUAGE_TITLE"                            : "Zmień Język",
+    "LANGUAGE_MESSAGE"                          : "Wybierz język z poniższej listy:",
+    "LANGUAGE_SUBMIT"                           : "Zrestartuj {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Anuluj",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktualny Kolor",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Kolor Oryginalny",
@@ -342,5 +333,14 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Format Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Format HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Użyto {1} raz)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Użyto {1} razy)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Użyto {1} razy)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Włącz JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Skocz do Pierwszego Błędu JSLint",
+    "JSLINT_ERRORS"                             : "Błędy JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Błąd JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Błędy(ów) JSLint",
+    "JSLINT_NO_ERRORS"                          : "Dobra robota! Brak błędów JSLint",
+    "JSLINT_DISABLED"                           : "JSLint wyłączony lub nie działa dla aktualnego pliku"
 });

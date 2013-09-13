@@ -21,76 +21,58 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings                = require("strings"),
-        NativeApp              = require("utils/NativeApp"),
-        ExtensionManager       = require("extensibility/ExtensionManager"),
-        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
-        StringUtils            = require("utils/StringUtils"),
-        registry_utils         = require("extensibility/registry_utils"),
-        itemTemplate           = require("text!htmlContent/extension-manager-view-item.html");
+    var Strings                   = require("strings"),
+        NativeApp                 = require("utils/NativeApp"),
+        ExtensionManager          = require("extensibility/ExtensionManager"),
+        registry_utils            = require("extensibility/registry_utils"),
+        InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
+        CommandManager            = require("command/CommandManager"),
+        Commands                  = require("command/Commands"),
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
     
     /**
      * @constructor
-     * Creates a view enabling the user to install and manage extensions.
-     * Events:
-     *     "render": whenever the view fully renders itself.
+     * Creates a view enabling the user to install and manage extensions. Must be initialized
+     * with initialize(). When the view is closed, dispose() must be called.
      */
     function ExtensionManagerView() {
-        var self = this;
-        this._itemTemplate = Mustache.compile(itemTemplate);
-        this.$el = $("<div class='extension-list'/>");
-        
-        // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", function (e, id, status) {
-            // Re-render the registry item.
-            // FUTURE: later on, some of these views might be for installed extensions that aren't 
-            // in the registry, e.g. legacy extensions or local dev extensions.
-            ExtensionManager.getRegistry().done(function (registry) {
-                if (registry[id]) {
-                    var $oldItem = self._itemViews[id],
-                        $newItem = self._renderItem(registry[id]);
-                    if ($oldItem) {
-                        $oldItem.replaceWith($newItem);
-                        self._itemViews[id] = $newItem;
-                    }
-                }
-            });
-        });
-        
-        // UI event handlers
-        $(this.$el)
-            // Intercept clicks on external links to open in the native browser.
-            .on("click", "a", function (e) {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                NativeApp.openURLInDefaultBrowser($(e.currentTarget).attr("href"));
-            })
-            // Handle install button clicks
-            .on("click", "button.install", function (e) {
-                self._installUsingDialog($(this).attr("data-extension-id"));
-            });
-        
-        // Show the busy spinner and access the registry.
-        var $spinner = $("<div class='spinner large spin'/>")
-            .appendTo(this.$el);
-        ExtensionManager.getRegistry(true).done(function (registry) {
-            // Display the registry view.
-            self._render(registry_utils.sortRegistry(registry));
-        }).fail(function () {
-            $("<div class='alert-message error load-error'/>")
-                .text(Strings.EXTENSION_MANAGER_ERROR_LOAD)
-                .appendTo(self.$el);
-        }).always(function () {
-            $spinner.remove();
-        });
     }
+    
+    /**
+     * Initializes the view to show a set of extensions.
+     * @param {ExtensionManagerViewModel} model Model object containing extension data to view
+     * @return {$.Promise} a promise that's resolved once the view has been initialized. Never
+     *     rejected.
+     */
+    ExtensionManagerView.prototype.initialize = function (model) {
+        var self = this,
+            result = new $.Deferred();
+        this.model = model;
+        this._itemTemplate = Mustache.compile(itemTemplate);
+        this._itemViews = {};
+        this.$el = $("<div class='extension-list tab-pane' id='" + this.model.source + "'/>");
+        this._$emptyMessage = $("<div class='empty-message'/>")
+            .appendTo(this.$el);
+        this._$infoMessage = $("<div class='info-message'/>")
+            .appendTo(this.$el).html(this.model.infoMessage);
+        this._$table = $("<table class='table'/>").appendTo(this.$el);
+        
+        this.model.initialize().done(function () {
+            self._setupEventHandlers();
+        }).always(function () {
+            self._render();
+            result.resolve();
+        });
+        
+        return result.promise();
+    };
     
     /**
      * @type {jQueryObject}
@@ -99,8 +81,27 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.$el = null;
     
     /**
+     * @type {Model}
+     * The view's model. Handles sorting and filtering of items in the view.
+     */
+    ExtensionManagerView.prototype.model = null;
+    
+    /**
+     * @type {jQueryObject}
+     * Element showing a message when there are no extensions.
+     */
+    ExtensionManagerView.prototype._$emptyMessage = null;
+    
+    /**
      * @private
-     * @type {function} The compiled template we use for rendering items in the registry list.
+     * @type {jQueryObject}
+     * The root of the table inside the view.
+     */
+    ExtensionManagerView.prototype._$table = null;
+    
+    /**
+     * @private
+     * @type {function} The compiled template we use for rendering items in the extension list.
      */
     ExtensionManagerView.prototype._itemTemplate = null;
     
@@ -109,49 +110,157 @@ define(function (require, exports, module) {
      * @type {Object.<string, jQueryObject>}
      * The individual views for each item, keyed by the extension ID.
      */
-    ExtensionManagerView.prototype._itemViews = {};
+    ExtensionManagerView.prototype._itemViews = null;
     
-    ExtensionManagerView.prototype._renderItem = function (entry) {
+    /**
+     * @private
+     * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
+     */
+    ExtensionManagerView.prototype._setupEventHandlers = function () {
+        var self = this;
+
+        // Listen for model data and filter changes.
+        $(this.model)
+            .on("filter", function () {
+                self._render();
+            })
+            .on("change", function (e, id) {
+                var extensions = self.model.extensions,
+                    $oldItem = self._itemViews[id];
+                self._updateMessage();
+                if (self.model.filterSet.indexOf(id) === -1) {
+                    // This extension is not in the filter set. Remove it from the view if we
+                    // were rendering it previously.
+                    if ($oldItem) {
+                        $oldItem.remove();
+                        delete self._itemViews[id];
+                    }
+                } else {
+                    // Render the item, replacing the old item if we had previously rendered it.
+                    var $newItem = self._renderItem(extensions[id], self.model._getEntry(id));
+                    if ($oldItem) {
+                        $oldItem.replaceWith($newItem);
+                        self._itemViews[id] = $newItem;
+                    }
+                }
+            });
+        
+        // UI event handlers
+        this.$el
+            .on("click", "a", function (e) {
+                var $target = $(e.target);
+                if ($target.hasClass("undo-remove")) {
+                    ExtensionManager.markForRemoval($target.attr("data-extension-id"), false);
+                } else if ($target.hasClass("remove")) {
+                    ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
+                } else if ($target.hasClass("undo-update")) {
+                    ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                }
+            })
+            .on("click", "button.install", function (e) {
+                self._installUsingDialog($(e.target).attr("data-extension-id"));
+            })
+            .on("click", "button.update", function (e) {
+                self._installUsingDialog($(e.target).attr("data-extension-id"), true);
+            })
+            .on("click", "button.remove", function (e) {
+                ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
+            });
+    };
+    
+    /**
+     * @private
+     * Renders the view for a single extension entry.
+     * @param {Object} entry The extension entry to render.
+     * @param {Object} info The extension's metadata.
+     * @return {jQueryObject} The rendered node as a jQuery object.
+     */
+    ExtensionManagerView.prototype._renderItem = function (entry, info) {
         // Create a Mustache context object containing the entry data and our helper functions.
-        var context = $.extend({}, entry),
-            status = ExtensionManager.getStatus(entry.metadata.name);
+        
+        // Start with the basic info from the given entry, either the installation info or the
+        // registry info depending on what we're listing.
+        var context = $.extend({}, info);
         
         // Normally we would merge the strings into the context we're passing into the template,
         // but since we're instantiating the template for every item, it seems wrong to take the hit
         // of copying all the strings into the context, so we just make it a subfield.
         context.Strings = Strings;
         
-        context.isInstalled = (status === ExtensionManager.ENABLED);
-        
-        var compatInfo = ExtensionManager.getCompatibilityInfo(entry, brackets.metadata.apiVersion);
+        // Calculate various bools, since Mustache doesn't let you use expressions and interprets
+        // arrays as iteration contexts.
+        context.isInstalled = !!entry.installInfo;
+        context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
+        context.hasVersionInfo = !!info.versions;
+                
+        var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
         context.isCompatible = compatInfo.isCompatible;
+        context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
+        context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         context.requiresNewer = compatInfo.requiresNewer;
         
+        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY) && !context.updateAvailable;
+        context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+
         context.allowInstall = context.isCompatible && !context.isInstalled;
+        context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        context.allowUpdate = context.isCompatible && context.isInstalled &&
+            !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+
+        context.removalAllowed = this.model.source === "installed" &&
+            !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
         
-        ["lastVersionDate", "ownerLink", "formatUserId"].forEach(function (helper) {
+        // Copy over helper functions that we share with the registry app.
+        ["lastVersionDate", "authorInfo"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
+        
         return $(this._itemTemplate(context));
     };
     
     /**
      * @private
-     * Display the given registry data.
-     * @param {Array} registry The sorted list of registry entries to show.
+     * Display an optional message (hiding the extension list if displayed)
+     * @return {boolean} Returns true if a message is displayed
      */
-    ExtensionManagerView.prototype._render = function (registry) {
-        // TODO: localize strings in template
+    ExtensionManagerView.prototype._updateMessage = function () {
+        if (this.model.message) {
+            this._$emptyMessage.css("display", "block");
+            this._$emptyMessage.html(this.model.message);
+            this._$infoMessage.css("display", "none");
+            this._$table.css("display", "none");
+            
+            return true;
+        } else {
+            this._$emptyMessage.css("display", "none");
+            this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
+            this._$table.css("display", "");
+            
+            return false;
+        }
+    };
+    
+    /**
+     * @private
+     * Renders the extension entry table based on the model's current filter set. Will create
+     * new items for entries that haven't yet been rendered, but will not re-render existing items.
+     */
+    ExtensionManagerView.prototype._render = function () {
         var self = this,
-            $table = $("<table class='table'/>"),
             $item;
-        this._itemViews = {};
-        registry.forEach(function (entry) {
-            var $item = self._renderItem(entry);
-            self._itemViews[entry.metadata.name] = $item;
-            $item.appendTo($table);
+        
+        this._$table.empty();
+        this._updateMessage();
+        
+        this.model.filterSet.forEach(function (id) {
+            var $item = self._itemViews[id];
+            if (!$item) {
+                $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
+                self._itemViews[id] = $item;
+            }
+            $item.appendTo(self._$table);
         });
-        $table.appendTo(this.$el);
+        
         $(this).triggerHandler("render");
     };
     
@@ -160,16 +269,27 @@ define(function (require, exports, module) {
      * Install the extension with the given ID using the install dialog.
      * @param {string} id ID of the extension to install.
      */
-    ExtensionManagerView.prototype._installUsingDialog = function (id) {
-        var self = this;
-        ExtensionManager.getRegistry().done(function (registry) {
-            var entry = registry[id];
-            if (entry) {
-                var url = StringUtils.format(brackets.config.extension_url, id, entry.metadata.version);
+    ExtensionManagerView.prototype._installUsingDialog = function (id, _isUpdate) {
+        var entry = this.model.extensions[id];
+        if (entry && entry.registryInfo) {
+            var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
+            // TODO: this should set .done on the returned promise
+
+            if (_isUpdate) {
+                InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
+            } else {
                 InstallExtensionDialog.installUsingDialog(url);
             }
-        });
+        }
     };
     
+    /**
+     * Filters the contents of the view.
+     * @param {string} query The query to filter by.
+     */
+    ExtensionManagerView.prototype.filter = function (query) {
+        this.model.filter(query);
+    };
+        
     exports.ExtensionManagerView = ExtensionManagerView;
 });
