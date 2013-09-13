@@ -287,17 +287,19 @@ define(function LiveDevelopment(require, exports, module) {
             lineInfo,
             i,
             lineHandle,
-            hasErrors       = liveDocument.errors.length > 0,
-            status          = (hasErrors) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+            status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
 
         _setStatus(status);
         
-        if (!liveDocument.editor || !hasErrors) {
+        if (!liveDocument.editor) {
             return;
         }
 
         // Buffer addLineClass DOM changes in a CodeMirror operation
         liveDocument.editor._codeMirror.operation(function () {
+            // Remove existing errors before marking new ones
+            _doClearErrors(liveDocument);
+            
             liveDocument._errorLineHandles = liveDocument._errorLineHandles || [];
     
             liveDocument.errors.forEach(function (error) {
@@ -364,13 +366,6 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (!DocClass) {
             return null;
-        }
-        
-        if (editor) {
-            $(editor).on("beforeChange.livedev", function () {
-                // Remove existing errors before marking new ones
-                _doClearErrors(liveDocument);
-            });
         }
 
         $(liveDocument).on("statusChanged.livedev", function () {
