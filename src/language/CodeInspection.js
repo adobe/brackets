@@ -148,6 +148,51 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Configure and display the problems panel. The html argument contains the html that makes up this panel.
+     *
+     * @param {string} html
+     */
+    function configureAndDisplayProblemsPanel(html) {
+        var $selectedRow;
+
+        $problemsPanel.find(".table-container")
+            .empty()
+            .append(html)
+            .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
+            .on("click", function (e) {
+                var $row = $(e.target).closest("tr");
+
+                if ($row.length) {
+                    if ($selectedRow) {
+                        $selectedRow.removeClass("selected");
+                    }
+
+                    $row.addClass("selected");
+                    $selectedRow = $row;
+
+                    // This is a inspector title row, expand/collapse on click
+                    if ($row.hasClass("inspector-section")) {
+                        // Clicking the inspector title section header collapses/expands result rows
+                        $row.nextUntil(".inspector-section").toggle();
+
+                        var $triangle = $(".disclosure-triangle", $row);
+                        $triangle.toggleClass("expanded").toggleClass("collapsed");
+                    // This is a problem marker row, show the result on click
+                    } else {
+                        // Grab the required position data
+                        var $lineTd   = $selectedRow.find("td.line-number"),
+                            line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
+                            character = $lineTd.data("character"),
+                            editor    = EditorManager.getCurrentFullEditor();
+
+                        editor.setCursorPos(line, character, true);
+                        EditorManager.focusEditor();
+                    }
+                }
+            });
+    }
+
+    /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
      */
@@ -204,6 +249,7 @@ define(function (require, exports, module) {
                     });
                 }
                 
+                // if the code inspector was unable to process the whole file, we keep track to show a different status
                 if (result && result.aborted) {
                     aborted = true;
                 }
@@ -213,43 +259,7 @@ define(function (require, exports, module) {
 
             // Update results table
             var html = Mustache.render(ResultsTemplate, {reportList: resultList});
-            var $selectedRow;
-
-            $problemsPanel.find(".table-container")
-                .empty()
-                .append(html)
-                .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-                .on("click", function (e) {
-                    var $row = $(e.target).closest("tr");
-
-                    if ($row.length) {
-                        if ($selectedRow) {
-                            $selectedRow.removeClass("selected");
-                        }
-
-                        $row.addClass("selected");
-                        $selectedRow = $row;
-
-                        // This is a inspector title row, expand/collapse on click
-                        if ($row.hasClass("inspector-section")) {
-                            // Clicking the inspector title section header collapses/expands result rows
-                            $row.nextUntil(".inspector-section").toggle();
-
-                            var $triangle = $(".disclosure-triangle", $row);
-                            $triangle.toggleClass("expanded").toggleClass("collapsed");
-                        // This is a problem marker row, show the result on click
-                        } else {
-                            // Grab the required position data
-                            var $lineTd   = $selectedRow.find("td.line-number"),
-                                line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
-                                character = $lineTd.data("character"),
-                                editor    = EditorManager.getCurrentFullEditor();
-
-                            editor.setCursorPos(line, character, true);
-                            EditorManager.focusEditor();
-                        }
-                    }
-                });
+            configureAndDisplayProblemsPanel(html);
             
             $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.PROBLEMS_PANEL_TITLE));
             if (!_collapsed) {
