@@ -147,8 +147,13 @@ define(function LiveDevelopment(require, exports, module) {
 
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
-    var _server;              // current live dev server
     var _openDeferred;        // promise returned for each call to open()
+    
+    /**
+     * Current live preview server
+     * @type {BaseServer}
+     */
+    var _server;
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -1014,10 +1019,21 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Triggered by a document saved from the DocumentManager */
+    /**
+     * Triggered by a documentSaved event from DocumentManager.
+     * @param {$.Event} event
+     * @param {Document} doc
+     */
     function _onDocumentSaved(event, doc) {
-        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
-                agents.network && agents.network.wasURLRequested(doc.url)) {
+        // FUTURE: live document API to flag reload on save
+        if (!Inspector.connected() || (_classForDocument(doc) === CSSDocument)) {
+            return;
+        }
+        
+        var documentUrl     = _server && _server.pathToUrl(doc.file.fullPath),
+            wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
+        
+        if (wasRequested) {
             // Unload and reload agents before reloading the page
             reconnect();
 
