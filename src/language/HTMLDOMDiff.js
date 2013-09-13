@@ -123,12 +123,15 @@ define(function (require, exports, module) {
          * list. This function sets the `beforeID` on any pending edits and adds
          * them to the main list.
          *
-         * The beforeID set here will then be used as the `afterID` for text edits
-         * that follow.
+         * If this item is not being deleted, then it will be used as the `afterID`
+         * for text edits that follow.
          *
          * @param {int} beforeID ID to set on the pending edits
+         * @param {boolean} isBeingDeleted true if the given item is being deleted. If so,
+         *     we can't use it as the `afterID` for future edits--whatever previous item
+         *     was set as the `textAfterID` is still okay.
          */
-        var finalizeNewEdits = function (beforeID) {
+        var finalizeNewEdits = function (beforeID, isBeingDeleted) {
             newEdits.forEach(function (edit) {
                 // elementDeletes don't need any positioning information
                 if (edit.type !== "elementDelete") {
@@ -137,7 +140,15 @@ define(function (require, exports, module) {
             });
             edits.push.apply(edits, newEdits);
             newEdits = [];
-            textAfterID = beforeID;
+            
+            // If the item we made this set of edits relative to
+            // is being deleted, we can't use it as the afterID for future
+            // edits. It's okay to just keep the previous afterID, since
+            // this node will no longer be in the tree by the time we get
+            // to any future edit that needs an afterID.
+            if (!isBeingDeleted) {
+                textAfterID = beforeID;
+            }
         };
         
         /**
@@ -191,6 +202,10 @@ define(function (require, exports, module) {
          */
         var addElementDelete = function () {
             if (!newNodeMap[oldChild.tagID]) {
+                // We can finalize existing edits relative to this node *before* it's
+                // deleted.
+                finalizeNewEdits(oldChild.tagID, true);
+                
                 newEdit = {
                     type: "elementDelete",
                     tagID: oldChild.tagID
@@ -402,7 +417,7 @@ define(function (require, exports, module) {
                     } else {
                         // Since this element hasn't moved, it is a suitable "beforeID"
                         // for the edits we've logged.
-                        finalizeNewEdits(oldChild.tagID);
+                        finalizeNewEdits(oldChild.tagID, false);
                         newIndex++;
                         oldIndex++;
                     }

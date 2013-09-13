@@ -33,97 +33,104 @@ define(function (require, exports, module) {
      */
 
     // FILE
-    exports.FILE_NEW_UNTITLED           = "file.newDoc";
-    exports.FILE_NEW                    = "file.newFile";
-    exports.FILE_NEW_FOLDER             = "file.newFolder";
-    exports.FILE_OPEN                   = "file.open";
-    exports.FILE_OPEN_FOLDER            = "file.openFolder";
-    exports.FILE_SAVE                   = "file.save";
-    exports.FILE_SAVE_ALL               = "file.saveAll";
-    exports.FILE_SAVE_AS                = "file.saveAs";
-    exports.FILE_CLOSE                  = "file.close";
-    exports.FILE_CLOSE_ALL              = "file.close_all";
-    exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
-    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
-    exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
-    exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";
-    exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
-    exports.FILE_RENAME                 = "file.rename";
-    exports.FILE_DELETE                 = "file.delete";
-    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
-    exports.FILE_REFRESH                = "file.refresh";
-    exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
-
+    exports.FILE_NEW_UNTITLED           = "file.newDoc";                // DocumentCommandHandlers.js   handleFileNew()
+    exports.FILE_NEW                    = "file.newFile";               // DocumentCommandHandlers.js   handleFileNewInProject()
+    exports.FILE_NEW_FOLDER             = "file.newFolder";             // DocumentCommandHandlers.js   handleNewFolderInProject()
+    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleFileOpen()
+    exports.FILE_OPEN_FOLDER            = "file.openFolder";            // ProjectManager.js            openProject()
+    exports.FILE_SAVE                   = "file.save";                  // DocumentCommandHandlers.js   handleFileSave()
+    exports.FILE_SAVE_ALL               = "file.saveAll";               // DocumentCommandHandlers.js   handleFileSaveAll()
+    exports.FILE_SAVE_AS                = "file.saveAs";                // DocumentCommandHandlers.js   handleFileSaveAs()
+    exports.FILE_CLOSE                  = "file.close";                 // DocumentCommandHandlers.js   handleFileClose()
+    exports.FILE_CLOSE_ALL              = "file.close_all";             // DocumentCommandHandlers.js   handleFileCloseAll()
+    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
+    exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";       // LiveDevelopment/main.js      _handleGoLiveCommand()
+    exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";      // LiveDevelopment/main.js      _handlePreviewHighlightCommand()
+    exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";       // ProjectManager.js            _projectSettings()
+    exports.FILE_RENAME                 = "file.rename";                // DocumentCommandHandlers.js   handleFileRename()
+    exports.FILE_DELETE                 = "file.delete";                // DocumentCommandHandlers.js   handleFileDelete()
+    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";      // ExtensionManagerDialog.js    _showDialog()
+    exports.FILE_REFRESH                = "file.refresh";               // ProjectManager.js            refreshFileTree()
+    
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.FILE_CLOSE_WINDOW           = "file.close_window";          // DocumentCommandHandlers.js   handleFileCloseWindow()
+    exports.FILE_QUIT                   = "file.quit";                  // DocumentCommandHandlers.js   handleFileQuit()
+    
     // EDIT
-    exports.EDIT_UNDO                   = "edit.undo";
-    exports.EDIT_REDO                   = "edit.redo";
-    exports.EDIT_CUT                    = "edit.cut";
-    exports.EDIT_COPY                   = "edit.copy";
-    exports.EDIT_PASTE                  = "edit.paste";
-    exports.EDIT_SELECT_ALL             = "edit.selectAll";
-    exports.EDIT_SELECT_LINE            = "edit.selectLine";
-    exports.EDIT_FIND                   = "edit.find";
-    exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
-    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";
-    exports.EDIT_FIND_NEXT              = "edit.findNext";
-    exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";
-    exports.EDIT_REPLACE                = "edit.replace";
-    exports.EDIT_INDENT                 = "edit.indent";
-    exports.EDIT_UNINDENT               = "edit.unindent";
-    exports.EDIT_DUPLICATE              = "edit.duplicate";
-    exports.EDIT_DELETE_LINES           = "edit.deletelines";
-    exports.EDIT_LINE_COMMENT           = "edit.lineComment";
-    exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
-    exports.EDIT_LINE_UP                = "edit.lineUp";
-    exports.EDIT_LINE_DOWN              = "edit.lineDown";
-    exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";
-    exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
-    exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
-    exports.SHOW_CODE_HINTS             = "edit.showCodeHints";
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.EDIT_UNDO                   = "edit.undo";                  // EditorCommandHandlers.js     handleUndo()
+    exports.EDIT_REDO                   = "edit.redo";                  // EditorCommandHandlers.js     handleRedo()
+    exports.EDIT_CUT                    = "edit.cut";                   // EditorCommandHandlers.js     ignoreCommand()
+    exports.EDIT_COPY                   = "edit.copy";                  // EditorCommandHandlers.js     ignoreCommand()
+    exports.EDIT_PASTE                  = "edit.paste";                 // EditorCommandHandlers.js     ignoreCommand()
+    exports.EDIT_SELECT_ALL             = "edit.selectAll";             // EditorCommandHandlers.js     _handleSelectAll()
+    
+    exports.EDIT_SELECT_LINE            = "edit.selectLine";            // EditorCommandHandlers.js     selectLine()
+    exports.EDIT_FIND                   = "edit.find";                  // FindReplace.js               _launchFind()
+    exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";           // FindInFiles.js               _doFindInFiles()
+    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";         // FindInFiles.js               _doFindInSubtree()
+    exports.EDIT_FIND_NEXT              = "edit.findNext";              // FindReplace.js               _findNext()
+    exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";          // FindReplace.js               _findPrevious()
+    exports.EDIT_REPLACE                = "edit.replace";               // FindReplace.js               _replace()
+    exports.EDIT_INDENT                 = "edit.indent";                // EditorCommandHandlers.js     indentText()
+    exports.EDIT_UNINDENT               = "edit.unindent";              // EditorCommandHandlers.js     unidentText()
+    exports.EDIT_DUPLICATE              = "edit.duplicate";             // EditorCommandHandlers.js     duplicateText()
+    exports.EDIT_DELETE_LINES           = "edit.deletelines";           // EditorCommandHandlers.js     deleteCurrentLines()
+    exports.EDIT_LINE_COMMENT           = "edit.lineComment";           // EditorCommandHandlers.js     lineComment()
+    exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";          // EditorCommandHandlers.js     blockComment()
+    exports.EDIT_LINE_UP                = "edit.lineUp";                // EditorCommandHandlers.js     moveLineUp()
+    exports.EDIT_LINE_DOWN              = "edit.lineDown";              // EditorCommandHandlers.js     moveLineDown()
+    exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";         // EditorCommandHandlers.js     openLineAbove()
+    exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";         // EditorCommandHandlers.js     openLineBelow()
+    exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _toggleCloseBrackets()
+    exports.SHOW_CODE_HINTS             = "edit.showCodeHints";         // CodeHintManager.js           _startNewSession()
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";
-    exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
-    exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
-    exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
-    exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
-    exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
-    exports.VIEW_TOGGLE_INSPECTION      = "view.toggleCodeInspection";
-    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";
-    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";
-    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";
-    exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
-    exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
-    exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";
-    exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";
+    exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()
+    exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";      // ViewCommandHandlers.js       _handleIncreaseFontSize()
+    exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";      // ViewCommandHandlers.js       _handleDecreaseFontSize()
+    exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";       // ViewCommandHandlers.js       _handleRestoreFontSize()
+    exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";          // ViewCommandHandlers.js       _handleScrollLineUp()
+    exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";        // ViewCommandHandlers.js       _handleScrollLineDown()
+    exports.VIEW_TOGGLE_INSPECTION      = "view.toggleCodeInspection";  // CodeInspection.js            toggleEnabled()
+    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";     // EditorOptionHandlers.js      _toggleLineNumbers()
+    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _toggleActiveLine()
+    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _toggleWordWrap()
+    exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
+    exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
+    exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
+    exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
     
-    // Navigate
-    exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
-    exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
-    exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
-    exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
-    exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
-    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";
-    exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
-    exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
-    exports.NAVIGATE_GOTO_FIRST_PROBLEM = "navigate.gotoFirstProblem";
-    exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
-    exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";
-    exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
-    exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
+    // NAVIGATE
+    exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
+    exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";           // DocumentCommandHandlers.js   handleGoPrevDoc()
+    exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";    // DocumentCommandHandlers.js   handleShowInTree()
+    exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";          // DocumentCommandHandlers.js   handleShowInOS()
+    exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";         // QuickOpen.js                 doFileSearch()
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";  // EditorManager.js             _doJumpToDef()
+    exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";    // QuickOpen.js                 doDefinitionSearch()
+    exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";          // QuickOpen.js                 doGotoLine()
+    exports.NAVIGATE_GOTO_FIRST_PROBLEM = "navigate.gotoFirstProblem";  // CodeInspection.js            handleGotoFirstProblem()
+    exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";   // EditorManager.js             _toggleInlineWidget()
+    exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";   // EditorManager.js             _toggleInlineWidget()
+    exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";         // MultiRangeInlineEditor.js    _nextRange()
+    exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";     // MultiRangeInlineEditor.js    _previousRange()
 
-    // Help
-    exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
-    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";
-    exports.HELP_FORUM                  = "help.forum";
-    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";
-    exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";
-    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
-    exports.HELP_TWITTER                = "help.twitter";
-    exports.HELP_ABOUT                  = "help.about";
-
+    // HELP
+    exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";        // HelpCommandHandlers.js       _handleCheckForUpdates()
+    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";      // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_FORUM                  = "help.forum";                 // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";          // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";         // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
+    exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
-    exports.APP_ABORT_QUIT              = "app.abort_quit";
-    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";
+    exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()
+
+    // APP
+    // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   _handleAbortQuit()
+    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   _handleBeforeMenuPopup()
 });
 

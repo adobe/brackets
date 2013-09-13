@@ -1013,7 +1013,7 @@ define(function (require, exports, module) {
                     operationFn(i, pos);
                     result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
                     if (!edits) {
-                        expect(result).toBeNull();
+                        expect(Array.isArray(result.errors)).toBe(true);
                         wasInvalid = true;
                     } else {
                         var expectedEdit = edits[i];
@@ -2642,6 +2642,56 @@ define(function (require, exports, module) {
                                 type: "textInsert",
                                 parentID: em.tagID,
                                 content: "Foo",
+                                lastChild: true
+                            });
+                        }
+                    );
+                });
+            });
+            
+            it("should handle pasting a tag over multiple tags and text", function () {
+                setupEditor("<h1>before<strong>Strong</strong>Hello<em>Emphasized</em>after</h1>");
+                var h1,
+                    strong,
+                    em;
+                runs(function () {
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            h1 = previousDOM;
+                            strong = previousDOM.children[1];
+                            em = previousDOM.children[3];
+                            editor.document.replaceRange("<i>Italic</i>", {line: 0, ch: 10}, {line: 0, ch: 57});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var i = result.dom.children[1];
+                            
+                            expect(result.edits.length).toBe(5);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: strong.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textReplace",
+                                parentID: h1.tagID,
+                                beforeID: em.tagID,
+                                content: "before"
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "i",
+                                tagID: i.tagID,
+                                parentID: h1.tagID,
+                                attributes: {},
+                                beforeID: em.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementDelete",
+                                tagID: em.tagID
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: i.tagID,
+                                content: "Italic",
                                 lastChild: true
                             });
                         }
