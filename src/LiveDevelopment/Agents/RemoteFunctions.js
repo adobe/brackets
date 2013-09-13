@@ -587,6 +587,15 @@ function RemoteFunctions(experimental) {
     
     /**
      * @private
+     * @param {Node} node
+     * @return {boolean} true if node expects its content to be raw text (not parsed for entities) according to the HTML5 spec.
+     */
+    function _isRawTextNode(node) {
+        return (node.nodeType === Node.ELEMENT_NODE && /script|style|noscript|noframes|noembed|iframe|xmp/i.test(node.tagName));
+    }
+    
+    /**
+     * @private
      * Replace a range of text and comment nodes with an optional new text node
      * @param {Element} targetElement
      * @param {Object} edit
@@ -619,7 +628,7 @@ function RemoteFunctions(experimental) {
             moveNext        = start && nextIgnoringHighlights(start),
             current         = moveNext || (end && prevIgnoringHighlights(end)) || lastChildIgnoringHighlights(targetElement),
             next,
-            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(this._parseEntities(edit.content)) : null,
+            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : this._parseEntities(edit.content)) : null,
             lastRemovedWasText,
             isText;
         
@@ -731,7 +740,7 @@ function RemoteFunctions(experimental) {
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
-                var textElement = self.htmlDocument.createTextNode(self._parseEntities(edit.content));
+                var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
                 self._insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":
