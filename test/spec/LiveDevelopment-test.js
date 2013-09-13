@@ -765,7 +765,7 @@ define(function (require, exports, module) {
                     spyOn(testWindow.brackets.test.RemoteAgent, "call").andCallThrough();
 
                     // Create syntax errors
-                    doc =  DocumentManager.getCurrentDocument();;
+                    doc =  DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 10, ch: 33});
                 });
 
