@@ -476,12 +476,23 @@
 }
 
 .dialog-message li {
-    line-height: 26px;
+    line-height: 20px;
     color: @tc-light-weight-text;
+    padding: 0 0 5px;
 }
 
 .dialog-message select {
     margin-left: 10px;
+}
+
+.dialog-list {
+    list-style: none;
+    margin: 5px 0 20px 10px;
+}
+
+.dialog-list > li:before {
+    content: "↳  ";
+    color: @tc-input-border;
 }
 
 .dialog-filename {
