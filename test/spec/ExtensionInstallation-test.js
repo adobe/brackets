@@ -132,7 +132,7 @@ define(function (require, exports, module) {
         afterEach(function () {
             ExtensionLoader.getUserExtensionPath = realGetUserExtensionPath;
             ExtensionLoader.loadExtension = realLoadExtension;
-            var promise = SpecRunnerUtils.remove(mockGetUserExtensionPath());
+            var promise = SpecRunnerUtils.removeTempDirectory();
             waitsForDone(promise, "Mock Extension Removal", 2000);
         });
         
