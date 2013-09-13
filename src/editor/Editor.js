@@ -1096,13 +1096,18 @@ define(function (require, exports, module) {
             self._inlineWidgets.push(inlineWidget);
 
             // Set up the widget to start closed, then animate open when its initial height is set.
+            function finishAnimating(e) {
+                if (e.target === inlineWidget.$htmlContent.get(0)) {
+                    inlineWidget.$htmlContent
+                        .removeClass("animating")
+                        .off("webkitTransitionEnd", finishAnimating);
+                    deferred.resolve();
+                }
+            }
             inlineWidget.$htmlContent
                 .height(0)
                 .addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
-                    deferred.resolve();
-                });
+                .on("webkitTransitionEnd", finishAnimating);
 
             // Callback to widget once parented to the editor. The widget should call back to
             // setInlineWidgetHeight() in order to set its initial height and animate open.
@@ -1129,10 +1134,22 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
+        var deferred = new $.Deferred(),
+            self = this;
+
+        function finishAnimating(e) {
+            if (e.target === inlineWidget.$htmlContent.get(0)) {
+                inlineWidget.$htmlContent
+                    .removeClass("animating")
+                    .off("webkitTransitionEnd", finishAnimating);
+                self._codeMirror.removeLineWidget(inlineWidget.info);
+                self._removeInlineWidgetInternal(inlineWidget);
+                deferred.resolve();
+            }
+        }
+
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
-                deferred = new $.Deferred(),
-                self = this;
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
             // Remove the inline widget from our internal list immediately, so
             // everyone external to us knows it's essentially already gone. We
@@ -1141,12 +1158,7 @@ define(function (require, exports, module) {
             self._removeInlineWidgetFromList(inlineWidget);
             
             inlineWidget.$htmlContent.addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
-                    self._codeMirror.removeLineWidget(inlineWidget.info);
-                    self._removeInlineWidgetInternal(inlineWidget);
-                    deferred.resolve();
-                })
+                .on("webkitTransitionEnd", finishAnimating)
                 .height(0);
                 
             inlineWidget.closePromise = deferred.promise();
@@ -1259,9 +1271,15 @@ define(function (require, exports, module) {
         }
         
         function setOuterHeight() {
+            function finishAnimating(e) {
+                if (e.target === node) {
+                    updateHeight();
+                    $(node).off("webkitTransitionEnd", finishAnimating);
+                }
+            }
             $(node).height(height);
             if ($(node).hasClass("animating")) {
-                $(node).one("webkitTransitionEnd", updateHeight);
+                $(node).on("webkitTransitionEnd", finishAnimating);
             } else {
                 updateHeight();
             }

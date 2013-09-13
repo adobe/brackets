@@ -140,10 +140,15 @@ define(function (require, exports, module) {
         }
         
         var self = this;
-        this._$root.addClass("modal-bar-hide").one("webkitTransitionEnd", function () {
-            self._$root.remove();
-            result.resolve();
-        });
+        function removeRoot(e) {
+            if (e.target === self._$root.get(0)) {
+                self._$root
+                    .remove()
+                    .off("webkitTransitionEnd", removeRoot);
+                result.resolve();
+            }
+        }
+        this._$root.addClass("modal-bar-hide").on("webkitTransitionEnd", removeRoot);
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
