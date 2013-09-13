@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, setTimeout, clearTimeout */
 
 /**
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
             // if we've exhausted our maxBlockingTime
             if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
                 //yield
-                window.setTimeout(function () {
+                setTimeout(function () {
                     sliceStartTime = (new Date()).getTime();
                     result.resolve();
                 }, idleTime);
@@ -301,11 +301,11 @@ define(function (require, exports, module) {
     function withTimeout(promise, timeout) {
         var wrapper = new $.Deferred();
         
-        var timer = window.setTimeout(function () {
+        var timer = setTimeout(function () {
             wrapper.reject(ERROR_TIMEOUT);
         }, timeout);
         promise.always(function () {
-            window.clearTimeout(timer);
+            clearTimeout(timer);
         });
         
         // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
@@ -419,14 +419,39 @@ define(function (require, exports, module) {
             });
         }
     };
+    
+    
+    /**
+     * Implements "debouncing." Returns a function that can be called frequently, triggering 'callback' only when calls
+     * to this function have paused for >= 'idleDelay' ms. The callback may be called multiple times, if there are
+     * multiple idleDelay-sized gaps in the event sequence. Invoking the callback can be delayed *indefinitely* if the
+     * event sequence continues forever with no idleDelay-sized gaps at all.
+     * 
+     * @param {number} idleDelay  Minimum delay (ms) before invoking callback.
+     * @param {!function()} callback
+     */
+    function whenIdle(idleDelay, callback) {
+        var timer;
+        return function () {
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(function () {
+                timer = null;
+                callback();
+            }, idleDelay);
+        };
+    }
+    
 
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
-    exports.doSequentiallyInBackground = doSequentiallyInBackground;
+    exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
+    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;
     exports.PromiseQueue   = PromiseQueue;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
+    exports.whenIdle       = whenIdle;
 });

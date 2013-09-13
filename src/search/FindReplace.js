@@ -152,7 +152,7 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
-        ScrollTrackMarkers.clear(cm);
+        ScrollTrackMarkers.clear();
     }
 
     function clearSearch(cm) {
@@ -197,12 +197,8 @@ define(function (require, exports, module) {
 
     
     function toggleHighlighting(editor, enabled) {
+        // Temporarily change selection color to improve highlighting - see LESS code for details
         if (enabled) {
-            if ($(editor.getRootElement()).hasClass("find-highlighting")) {
-                return;
-            }
-            
-            // Temporarily change selection color to improve highlighting - see LESS code for details
             $(editor.getRootElement()).addClass("find-highlighting");
         } else {
             $(editor.getRootElement()).removeClass("find-highlighting");

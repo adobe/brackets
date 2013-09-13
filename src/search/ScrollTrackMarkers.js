@@ -22,19 +22,24 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, window */
 
 
 /**
  * Manages tickmarks shown along the scrollbar track.
  * NOT yet intended for use by anyone other than the FindReplace module.
+ * It is assumed that markers are always clear()ed when switching editors.
  */
 define(function (require, exports, module) {
     "use strict";
-
-    var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager");
     
+    var Editor              = require("editor/Editor"),
+        EditorManager       = require("editor/EditorManager"),
+        Async               = require("utils/Async");
+    
+    
+    /** @type {?Editor} Editor the markers are currently shown for, or null if not shown */
+    var editor;
     
     /** @type {number} Top of scrollbar track area, relative to top of scrollbar */
     var trackOffset;
@@ -42,63 +47,105 @@ define(function (require, exports, module) {
     /** @type {number} Height of scrollbar track area */
     var trackHt;
     
+    /** @type {!Array.<{line: number, ch: number}>} Text positions of markers */
+    var marks = [];
     
-    /** Clear any markers in the editor's tickmark track, but leave it visible */
-    function clear(codeMirror) {
-        $(".tickmark-track", codeMirror.getWrapperElement()).empty();
-    }
-
-    /** Add or remove the tickmark track from the editor's UI */
-    function setVisible(editor, visible) {
+    
+    /** Measure scrollbar track */
+    function _calcScaling() {
         var rootElem = editor.getRootElement();
+        var $sb = $(".CodeMirror-vscrollbar", rootElem);
         
-        if (visible) {
-            // Don't support inline editors yet - search inside them is pretty screwy anyway (#2110)
-            if (editor.getFirstVisibleLine() > 0 || editor.getLastVisibleLine() < editor.lineCount() - 1) {
-                return;
-            }
-            
-            // TODO: what if window resized while Find is active?
-            
-            var $sb = $(".CodeMirror-vscrollbar", rootElem);
-            var $overlay = $("<div class='tickmark-track'></div>");
-            $sb.parent().append($overlay);
-            
-            trackHt = $sb[0].offsetHeight;
-            
-            if (trackHt > 0) {
-                // Scrollbar visible: determine offset of track from top of scrollbar
-                if (brackets.platform === "win") {
-                    console.log("WIN");
-                    trackOffset = 17;  // Up arrow pushes down track
-                } else {
-                    console.log("MAC");
-                    trackOffset = 0;   // No arrows
-                }
-                
+        trackHt = $sb[0].offsetHeight;
+        
+        if (trackHt > 0) {
+            // Scrollbar visible: determine offset of track from top of scrollbar
+            if (brackets.platform === "win") {
+                trackOffset = 17;  // Up arrow pushes down track
             } else {
-                // No scrollbar: use the height of the entire code content
-                trackHt = $(".CodeMirror-sizer", rootElem)[0].offsetHeight;
-                trackOffset = 0;
+                trackOffset = 0;   // No arrows
             }
-            
-            trackHt -= trackOffset * 2;
-            
             
         } else {
-            $(".tickmark-track", rootElem).remove();
+            // No scrollbar: use the height of the entire code content
+            trackHt = $(".CodeMirror-sizer", rootElem)[0].offsetHeight;
+            trackOffset = 0;
         }
-    }
-    
-    /** Add a tickmark to the editor's tickmark track, if it's visible */
-    function addTickmark(editor, pos) {
         
+        trackHt -= trackOffset * 2;
+    }
+
+    /** Add one tickmark to the DOM */
+    function _renderMark(pos) {
         var top = Math.round(pos.line / editor.lineCount() * trackHt) + trackOffset;
         top--;  // subtract ~1/2 the ht of a tickmark to center it on ideal pos
         
         var $mark = $("<div class='tickmark' style='top:" + top + "px'></div>");
         
         $(".tickmark-track", editor.getRootElement()).append($mark);
+    }
+    
+    
+    /**
+     * Clear any markers in the editor's tickmark track, but leave it visible. Safe to call when
+     * tickmark track is not visible also.
+     */
+    function clear() {
+        if (editor) {
+            $(".tickmark-track", editor.getRootElement()).empty();
+            marks = [];
+        }
+    }
+    
+    /** Add or remove the tickmark track from the editor's UI */
+    function setVisible(curEditor, visible) {
+        // short-circuit no-ops
+        if ((visible && curEditor === editor) || (!visible && !editor)) {
+            return;
+        }
+        
+        if (visible) {
+            console.assert(!editor);
+            editor = curEditor;
+            
+            // Don't support inline editors yet - search inside them is pretty screwy anyway (#2110)
+            if (editor.getFirstVisibleLine() > 0 || editor.getLastVisibleLine() < editor.lineCount() - 1) {
+                return;
+            }
+            
+            var rootElem = editor.getRootElement();
+            var $sb = $(".CodeMirror-vscrollbar", rootElem);
+            var $overlay = $("<div class='tickmark-track'></div>");
+            $sb.parent().append($overlay);
+            
+            _calcScaling();
+            
+            // Update tickmarks during window resize (whenever resizing has paused/stopped for > 1/3 sec)
+            $(window).on("resize.ScrollTrackMarkers", Async.whenIdle(300, function () {
+                if (marks.length) {
+                    _calcScaling();
+                    $(".tickmark-track", editor.getRootElement()).empty();
+                    marks.forEach(function (pos) {
+                        _renderMark(pos);
+                    });
+                }
+            }));
+            
+        } else {
+            console.assert(editor === curEditor);
+            $(".tickmark-track", curEditor.getRootElement()).remove();
+            editor = null;
+            marks = [];
+            $(window).off("resize.ScrollTrackMarkers");
+        }
+    }
+    
+    /** Add a tickmark to the editor's tickmark track, if it's visible */
+    function addTickmark(curEditor, pos) {
+        console.assert(editor === curEditor);
+        
+        marks.push(pos);
+        _renderMark(pos);
     }
     
     
