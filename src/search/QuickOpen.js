@@ -173,7 +173,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * True if the dialog is currently open.
+     * True if the dialog is currently open. Note that this is set to false immediately
+     * when the dialog starts closing; it doesn't wait for the ModalBar animation to finish.
      * @type {boolean}
      */
     QuickNavigateDialog.prototype.isOpen = false;
@@ -458,6 +459,10 @@ define(function (require, exports, module) {
             return this._closeDeferred.promise();
         }
         this.isOpen = false;
+        
+        // We can't just return the ModalBar's `close()` promise because we need to do it on a
+        // setTimeout, so we create our own Deferred and cache it so we can return it if multiple
+        // callers happen to call `close()`.
         this._closeDeferred = new $.Deferred();
 
         var i;
