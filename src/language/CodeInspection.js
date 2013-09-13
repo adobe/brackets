@@ -140,12 +140,13 @@ define(function (require, exports, module) {
      * If type is unspecified, Type.WARNING is assumed.
      */
     function register(languageId, provider) {
-        if (_providers[languageId]) {
-            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
+        if (!_providers[languageId]) {
+            _providers[languageId] = [];
         }
-        _providers[languageId] = provider;
+
+        _providers[languageId].push(provider);
     }
-    
+
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
@@ -160,85 +161,118 @@ define(function (require, exports, module) {
         
         var currentDoc = DocumentManager.getCurrentDocument();
         
+        var numProblems = 0,
+            aborted = false,
+            resultList = [];
+
         var perfTimerDOM,
             perfTimerInspector;
         
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
         var languageId = language && language.getId();
-        var provider = language && _providers[languageId];
+        var providers = (language && _providers[languageId]) || [];
         
-        if (provider) {
+        if (providers.length > 0) {
             perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
             
-            var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
-            _lastResult = result;
-            
-            PerfUtils.addMeasurement(perfTimerInspector);
-            perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-            
-            if (result && result.errors.length) {
-                // Augment error objects with additional fields needed by Mustache template
-                var numProblems = 0;
-                result.errors.forEach(function (error) {
-                    error.friendlyLine = error.pos.line + 1;
-                    
-                    error.codeSnippet = currentDoc.getLine(error.pos.line);
-                    error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                    
-                    if (error.type !== Type.META) {
-                        numProblems++;
-                    }
-                });
+            providers.forEach(function (provider) {
+                var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
+                _lastResult = result;
                 
-                // Update results table
-                var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
-                var $selectedRow;
+                PerfUtils.addMeasurement(perfTimerInspector);
+                perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+
+                if (result && result.errors.length) {
+                    // Augment error objects with additional fields needed by Mustache template
+                    var _numProblemsReportedByProvider = 0;
+                    result.errors.forEach(function (error) {
+                        error.friendlyLine = error.pos.line + 1;
+                        
+                        error.codeSnippet = currentDoc.getLine(error.pos.line);
+                        error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                        
+                        if (error.type !== Type.META) {
+                            numProblems++;
+                            _numProblemsReportedByProvider++;
+                        }
+                    });
+
+                    resultList.push({
+                        providerName: provider.name,
+                        results:      result.errors,
+                        numProblems:  _numProblemsReportedByProvider
+                    });
+                }
                 
-                $problemsPanel.find(".table-container")
-                    .empty()
-                    .append(html)
-                    .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-                    .on("click", "tr", function (e) {
+                if (result && result.aborted) {
+                    aborted = true;
+                }
+                
+                PerfUtils.addMeasurement(perfTimerDOM);
+            });
+
+            // Update results table
+            var html = Mustache.render(ResultsTemplate, {reportList: resultList});
+            var $selectedRow;
+
+            $problemsPanel.find(".table-container")
+                .empty()
+                .append(html)
+                .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
+                .on("click", function (e) {
+                    var $row = $(e.target).closest("tr");
+
+                    if ($row.length) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
                         }
-                        
-                        $selectedRow  = $(e.currentTarget);
-                        $selectedRow.addClass("selected");
-                        var lineTd    = $selectedRow.find("td.line");
-                        var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
-                        var character = lineTd.data("character");
-                        
-                        var editor = EditorManager.getCurrentFullEditor();
-                        editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
-                    });
-                
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
-                if (!_collapsed) {
-                    Resizer.show($problemsPanel);
-                }
-                
-                if (numProblems === 1 && !result.aborted) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
-                } else {
-                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                    if (result.aborted) {
-                        numProblems += "+";
+
+                        $row.addClass("selected");
+                        $selectedRow = $row;
+
+                        // This is a inspector title row, expand/collapse on click
+                        if ($row.hasClass("inspector-section")) {
+                            // Clicking the inspector title section header collapses/expands result rows
+                            $row.nextUntil(".inspector-section").toggle();
+
+                            var $triangle = $(".disclosure-triangle", $row);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
+                        // This is a problem marker row, show the result on click
+                        } else {
+                            // Grab the required position data
+                            var $lineTd   = $selectedRow.find("td.line-number"),
+                                line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
+                                character = $lineTd.data("character"),
+                                editor    = EditorManager.getCurrentFullEditor();
+
+                            editor.setCursorPos(line, character, true);
+                            EditorManager.focusEditor();
+                        }
                     }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
-                }
-                setGotoEnabled(true);
+                });
             
-            } else {
-                Resizer.hide($problemsPanel);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
-                setGotoEnabled(false);
+            $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.PROBLEMS_PANEL_TITLE));
+            if (!_collapsed) {
+                Resizer.show($problemsPanel);
             }
 
-            PerfUtils.addMeasurement(perfTimerDOM);
+            if (numProblems === 1 && !aborted) {
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.PROBLEMS_PANEL_TITLE));
+            } else {
+                // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
+                if (aborted) {
+                    numProblems += "+";
+                }
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
+                    StringUtils.format(Strings.MULTIPLE_ERRORS, Strings.PROBLEMS_PANEL_TITLE, numProblems));
+            }
+            setGotoEnabled(true);
 
+            if (!numProblems) {
+                Resizer.hide($problemsPanel);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, Strings.PROBLEMS_PANEL_TITLE));
+                setGotoEnabled(false);
+            }
         } else {
             // No provider for current file
             _lastResult = null;
