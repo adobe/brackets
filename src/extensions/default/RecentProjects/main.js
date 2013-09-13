@@ -61,16 +61,33 @@ define(function (require, exports, module) {
         $dropdownToggle,
         $dropdown;
     
+    /**
+     * Return the index of the item that contains path,
+     * or -1 if not found.
+     */
+    function getIndex(projects, path) {
+        var i, len = projects.length;
+        
+        for (i = 0; i < len; i++) {
+            if (projects[i].path === path) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
     
     /**
      * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
      */
-    function getRecentProjects() {
-        var recentProjects = prefs.getValue("recentProjects") || [],
+    // TODO: FileSystem - the preferences key is changed to avoid conflict with old values. We should
+    // probably migrate old values instead (old values are an array of strings).
+    function getRecentProjects(includeFileSystem) {
+        var recentProjects = prefs.getValue("recentProjects2") || [],
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
-            recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
+            recentProjects[i].path = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i].path));
         }
         return recentProjects;
     }
@@ -80,17 +97,18 @@ define(function (require, exports, module) {
      */
     function add() {
         var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+            fileSystem = ProjectManager.getFileSystem().getSystemName(),
             recentProjects = getRecentProjects(),
-            index = recentProjects.indexOf(root);
+            index = getIndex(recentProjects, root);
         
         if (index !== -1) {
             recentProjects.splice(index, 1);
         }
-        recentProjects.unshift(root);
+        recentProjects.unshift({path: root, fileSystem: fileSystem});
         if (recentProjects.length > MAX_PROJECTS) {
             recentProjects = recentProjects.slice(0, MAX_PROJECTS);
         }
-        prefs.setValue("recentProjects", recentProjects);
+        prefs.setValue("recentProjects2", recentProjects);
     }
     
     /**
@@ -122,7 +140,7 @@ define(function (require, exports, module) {
                 
                 // Remove the project from the preferences.
                 var recentProjects = getRecentProjects(),
-                    index = recentProjects.indexOf($(this).parent().data("path")),
+                    index = getIndex(recentProjects, $(this).parent().data("path")),
                     newProjects = [],
                     i;
                 for (i = 0; i < recentProjects.length; i++) {
@@ -130,7 +148,7 @@ define(function (require, exports, module) {
                         newProjects.push(recentProjects[i]);
                     }
                 }
-                prefs.setValue("recentProjects", newProjects);
+                prefs.setValue("recentProjects2", newProjects);
                 $(this).closest("li").remove();
                 checkHovers(e.pageX, e.pageY);
                 
@@ -244,16 +262,17 @@ define(function (require, exports, module) {
     function _handleListEvents() {
         $dropdown
             .on("click", "a", function (e) {
-                var $link = $(e.target).closest("a"),
-                    id    = $link.attr("id"),
-                    path  = $link.data("path");
+                var $link       = $(e.target).closest("a"),
+                    id          = $link.attr("id"),
+                    path        = $link.data("path"),
+                    fileSystem  = $link.data("file-system");
                 
                 if (path) {
-                    ProjectManager.openProject(path)
+                    ProjectManager.openProject(path, fileSystem)
                         .fail(function () {
                             // Remove the project from the list only if it does not exist on disk
                             var recentProjects = getRecentProjects(),
-                                index = recentProjects.indexOf(path);
+                                index = getIndex(recentProjects, path);
                             if (index !== -1) {
                                 ProjectManager.getFileSystem().resolve(path)
                                     .fail(function () {
@@ -326,8 +345,10 @@ define(function (require, exports, module) {
             };
         
         recentProjects.forEach(function (root) {
-            if (root !== currentProject) {
-                templateVars.projectList.push(parsePath(root));
+            if (root.path !== currentProject) {
+                var params = parsePath(root.path);
+                params.fileSystem = root.fileSystem;
+                templateVars.projectList.push(params);
             }
         });
         

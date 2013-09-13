@@ -38,9 +38,10 @@ define(function (require, exports, module) {
      * Use FileSystemManager.createFileSystem() instead.
      * @param {!FileSystemImpl} impl Low-level file system implementation to use.
      */
-    function FileSystem(impl) {
+    function FileSystem(impl, system) {
         this._impl = impl;
         this._impl.init();
+        this._system = system;
         
         // Create a file index
         this._index = new FileIndex();
@@ -53,9 +54,22 @@ define(function (require, exports, module) {
     FileSystem.prototype._impl = null;
     
     /**
+     * The name of the low-level file system implementation used by this object.
+     * This is set in the constructor and cannot be changed.
+     */
+    FileSystem.prototype._system = null;
+    
+    /**
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
+
+    /**
+     * The name of the low-level file system implementation used by this object.
+     */
+    FileSystem.prototype.getSystemName = function () {
+        return this._system;
+    };
     
     /**
      * Close a file system. Clear all caches, indexes, and file watchers.
@@ -427,14 +441,6 @@ define(function (require, exports, module) {
      * @param {string} rootPath The new project root.
      */
     FileSystem.prototype.setProjectRoot = function (rootPath) {
-        // !!HACK FOR DEMO - if rootPath === "/Stuff", switch to the dropbox file system
-        /*
-        if (rootPath === "/Stuff") {
-            setFileSystem("dropbox");
-        } else {
-            setFileSystem("appshell");
-        }
-        */
         
         // Remove trailing "/" from path
         if (rootPath && rootPath.length > 1) {

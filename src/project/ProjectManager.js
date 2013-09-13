@@ -863,11 +863,12 @@ define(function (require, exports, module) {
      *  If rootPath is undefined or null, the last open project will be restored.
      * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
      *  if false, a different project is being loaded.
+     * @param {string=} filesystem  Name of the file system to use for this project. 
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-    function _loadProject(rootPath, isUpdating) {
+    function _loadProject(rootPath, isUpdating, filesystem) {
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
         if (!isUpdating) {
@@ -889,15 +890,7 @@ define(function (require, exports, module) {
                 _fileSystem = null;
             }
             
-            // TODO: Load file system impl. This information should be stored with the project and 
-            // passed to this function.
-            var system = "";
-            
-            // !!HACK FOR DEMO - if the path is "/Stuff", load the Dropbox file system
-            if (rootPath === "/Stuff") {
-                system = "dropbox";
-            }
-            _fileSystem = FileSystemManager.createFileSystem(system);
+            _fileSystem = FileSystemManager.createFileSystem(filesystem);
             _fileSystem.setProjectRoot(rootPath);
             $(_fileSystem).on("change", _fileSystemChange);
         }
@@ -1102,11 +1095,13 @@ define(function (require, exports, module) {
      * @param {string=} path Optional absolute path to the root folder of the project. 
      *  If path is undefined or null, displays a  dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
+     * @param {string=} filesystem Optional name of the file system to use. Defaults to
+     *  the default file system for the application.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-    function openProject(path) {
+    function openProject(path, filesystem) {
 
         var result = new $.Deferred();
 
@@ -1117,7 +1112,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path, false).then(result.resolve, result.reject);
+                    _loadProject(path, false, filesystem).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)

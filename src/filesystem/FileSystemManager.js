@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         
         console.assert(impl, "File System implementation not found: " + (system || _defaultFileSystem));
         
-        return new FileSystem(impl);
+        return new FileSystem(impl, system);
     }
     
     // TODO: Registration and assigning default should be done in brackets.js or globals.js
