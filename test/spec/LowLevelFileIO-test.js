@@ -102,7 +102,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            SpecRunnerUtils.removeTempDirectory();
+            waitsForDone(SpecRunnerUtils.removeTempDirectory(), "Remove temp directory after LowLevelFileIO-tests", 1000);
         });
 
         it("should have a brackets.fs namespace", function () {
