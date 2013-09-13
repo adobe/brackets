@@ -666,6 +666,9 @@ define(function (require, exports, module) {
         this._codeMirror.on("change", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
         });
+        this._codeMirror.on("beforeChange", function (instance, changeObj) {
+            $(self).triggerHandler("beforeChange", [self, changeObj]);
+        });
         this._codeMirror.on("cursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
         });

@@ -137,14 +137,17 @@ define(function (require, exports, module) {
                 // use a fake platform
                 brackets.platform = "test1";
                 
-                var results = KeyBindingManager.addBinding("test.foo", [{key: "Ctrl-A", platform: "test1"}, "Ctrl-1"]);
+                var results = KeyBindingManager.addBinding(
+                    "test.foo",
+                    [ {key: "Ctrl-A", platform: "test1"}, {key: "Ctrl-1", platform: "all"} ]
+                );
                 expect(results).toEqual([
                     key("Ctrl-A", null, "test1"),
-                    key("Ctrl-1")
+                    key("Ctrl-1", null, "all")
                 ]);
                 expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([
                     key("Ctrl-A", null, "test1"),
-                    key("Ctrl-1")
+                    key("Ctrl-1", null, "all")
                 ]);
                 
                 results = KeyBindingManager.addBinding("test.bar", [{key: "Ctrl-B"}, {key: "Ctrl-2", platform: "test2"}]);
@@ -158,7 +161,7 @@ define(function (require, exports, module) {
                 // only "test1" platform and cross-platform bindings
                 var expected = keyMap([
                     keyBinding("Ctrl-A", "test.foo", null, "test1"),
-                    keyBinding("Ctrl-1", "test.foo"),
+                    keyBinding("Ctrl-1", "test.foo", null, "all"),
                     keyBinding("Ctrl-B", "test.bar")
                 ]);
                 

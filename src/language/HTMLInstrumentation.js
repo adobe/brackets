@@ -539,7 +539,7 @@ define(function (require, exports, module) {
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
         if (!result) {
-            return null;
+            return { errors: updater.errors };
         }
         
         var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);
@@ -580,24 +580,27 @@ define(function (require, exports, module) {
      */
     function getUnappliedEditList(editor, changeList) {
         var cachedValue = _cachedValues[editor.document.file.fullPath];
+        
         // We might not have a previous DOM if the document was empty before this edit.
         if (!cachedValue || !cachedValue.dom || _cachedValues[editor.document.file.fullPath].invalid) {
             // We were in an invalid state, so do a full rebuild.
             changeList = null;
         }
+        
         var result = _updateDOM(cachedValue && cachedValue.dom, editor, changeList);
-        if (result) {
+        
+        if (!result.errors) {
             _cachedValues[editor.document.file.fullPath] = {
                 timestamp: editor.document.diskTimestamp,
                 dom: result.dom,
                 dirty: false
             };
-            return result.edits;
+            return { edits: result.edits };
         } else {
             if (cachedValue) {
                 cachedValue.invalid = true;
             }
-            return [];
+            return { errors: result.errors };
         }
     }
     
