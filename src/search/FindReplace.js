@@ -193,7 +193,7 @@ define(function (require, exports, module) {
                 "<span id='find-counter'></span> " +
                 "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
             "</div>" +
-            "<div class='error'></div>";        
+            "<div class='error'></div>";
 
     
     function toggleHighlighting(editor, enabled) {
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
                     if (resultCount === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
                     } else if (resultCount === 1) {
-                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);                        
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                     } else {
                         $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
                         enableNavigator = true;
@@ -343,9 +343,9 @@ define(function (require, exports, module) {
         
         modalBar.getRoot().on("click", function (e) {
             if (e.target.id === "find-next") {
-                _findNext();
+                doSearch(editor);
             } else if (e.target.id === "find-prev") {
-                _findPrevious();
+                doSearch(editor, true);
             }
         });
         
