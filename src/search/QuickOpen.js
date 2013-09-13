@@ -854,14 +854,19 @@ define(function (require, exports, module) {
             _curDialog.showDialog(prefix, initialString);
         }
 
-        if (_curDialog && _curDialog.isOpen) {
-            _curDialog.setSearchFieldValue(prefix, initialString);
-        } else {
-            if (_curDialog) {
-                _curDialog.close().done(createDialog);
+        if (_curDialog) {
+            if (_curDialog.isOpen) {
+                // Just start a search using the existing dialog.
+                _curDialog.setSearchFieldValue(prefix, initialString);
             } else {
-                createDialog();
+                // The dialog is already closing. Wait till it's done closing,
+                // then open a new dialog. (Calling close() again returns the
+                // promise for the deferred that was already kicked off when it
+                // started closing.)
+                _curDialog.close().done(createDialog);
             }
+        } else {
+            createDialog();
         }
     }
 
