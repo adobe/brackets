@@ -246,7 +246,7 @@ define(function (require, exports, module) {
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
-			$(DocumentModule).off(".findInFiles");
+            $(DocumentModule).off(".findInFiles");
         }
     }
     
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
 
 
 
-	/**
+    /**
      * @private
      * Shows the search results and tries to restore the previous scroll and selection
      */
