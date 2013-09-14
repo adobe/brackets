@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
+        DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         PanelManager          = require("view/PanelManager"),
@@ -69,7 +70,8 @@ define(function (require, exports, module) {
     
     /** @cost Constants used to define the maximum results show per page and found in a single file */
     var RESULTS_PER_PAGE = 100,
-        FIND_IN_FILE_MAX = 300;
+        FIND_IN_FILE_MAX = 300,
+        UPDATE_TIMEOUT   = 400;
     
     /**
      * Map of all the last search results
@@ -86,11 +88,17 @@ define(function (require, exports, module) {
     /** @type {string} The current search query */
     var currentQuery = "";
     
+    /** @type {RegExp} The current search query regular expression */
+    var currentQueryExpr = null;
+    
     /** @type {Array.<FileEntry>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
+    
+    /** @type {string} The setTimeout id, used to clear it if required */
+    var timeoutID = null;
     
     /** @type {$.Element} jQuery elements used in the search results */
     var $searchResults,
@@ -102,7 +110,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
-     * @param {!string} query - The query from the modal-bar input
+     * @param {string} query  The query from the modal-bar input
      * @return {RegExp}
      */
     function _getQueryRegExp(query) {
@@ -184,8 +192,8 @@ define(function (require, exports, module) {
     
     /**
      * Shows the search dialog
-     * @param {?string} initialString Default text to prepopulate the search field with
-     * @param {?Entry} scope Search scope, or null to search whole project
+     * @param {string=} initialString  Default text to prepopulate the search field with
+     * @param {Entry=} scope  Search scope, or null to search whole project
      * @returns {$.Promise} that is resolved with the string to search for
      */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
@@ -238,6 +246,7 @@ define(function (require, exports, module) {
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
+            $(DocumentModule).off(".findInFiles");
         }
     }
     
@@ -537,11 +546,126 @@ define(function (require, exports, module) {
             _hideSearchResults();
         }
     }
-    
+
+
+
     /**
      * @private
-     * @param {!FileInfo} fileInfo File in question
-     * @param {?Entry} scope Search scope, or null if whole project
+     * Shows the search results and tries to restore the previous scroll and selection
+     */
+    function _restoreSearchResults() {
+        if (searchResultsPanel.isVisible()) {
+            var scrollTop  = $searchContent.scrollTop(),
+                index      = $selectedRow ? $selectedRow.index() : null,
+                numMatches = _countFilesMatches().matches;
+            
+            if (currentStart > numMatches) {
+                currentStart = _getLastCurrentStart(numMatches);
+            }
+            _showSearchResults();
+            
+            $searchContent.scrollTop(scrollTop);
+            if (index) {
+                $selectedRow = $searchContent.find("tr:eq(" + index + ")");
+                $selectedRow.addClass("selected");
+            }
+        }
+    }
+
+    /**
+     * @private
+     * Update the search results using the given list of changes fr the given document
+     * @param {Document} doc  The Document that changed, should be the current one
+     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
+     *      A linked list as described in the Document constructor
+     * @param {boolean} resultsChanged  True when the search results changed from a file change
+     */
+    function _updateSearchResults(doc, change, resultsChanged) {
+        var i, diff, matches,
+            fullPath = doc.file.fullPath,
+            lines    = [],
+            start    = 0,
+            howMany  = 0;
+            
+        // There is no from or to positions, so the entire file changed, we must search all over again
+        if (!change.from || !change.to) {
+            _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+            resultsChanged = true;
+        
+        } else {
+            // Get only the lines that changed
+            for (i = 0; i < change.text.length; i++) {
+                lines.push(doc.getLine(change.from.line + i));
+            }
+            
+            // We need to know how many lines changed to update the rest of the lines
+            if (change.from.line !== change.to.line) {
+                diff = change.from.line - change.to.line;
+            } else {
+                diff = lines.length - 1;
+            }
+            
+            if (searchResults[fullPath]) {
+                // Search the last match before a replacement, the amount of matches deleted and update
+                // the lines values for all the matches after the change
+                searchResults[fullPath].matches.forEach(function (item) {
+                    if (item.end.line < change.from.line) {
+                        start++;
+                    } else if (item.end.line <= change.to.line) {
+                        howMany++;
+                    } else {
+                        item.start.line += diff;
+                        item.end.line   += diff;
+                    }
+                });
+                
+                // Delete the lines that where deleted or replaced
+                if (howMany > 0) {
+                    searchResults[fullPath].matches.splice(start, howMany);
+                }
+                resultsChanged = true;
+            }
+            
+            // Searches only over the lines that changed
+            matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+            if (matches && matches.length) {
+                // Updates the line numbers, since we only searched part of the file
+                matches.forEach(function (value, key) {
+                    matches[key].start.line += change.from.line;
+                    matches[key].end.line   += change.from.line;
+                });
+                
+                // If the file index exists, add the new matches to the file at the start index found before
+                if (searchResults[fullPath]) {
+                    Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
+                // If not, add the matches to a new file index
+                } else {
+                    searchResults[fullPath] = {
+                        matches:   matches,
+                        collapsed: false
+                    };
+                }
+                resultsChanged = true;
+            }
+            
+            // All the matches where deleted, remove the file from the results
+            if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
+                delete searchResults[fullPath];
+                resultsChanged = true;
+            }
+            
+            // This is link to the next change object, so we need to keep searching
+            if (change.next) {
+                return _updateSearchResults(doc, change.next, resultsChanged);
+            }
+        }
+        return resultsChanged;
+    }
+
+    /**
+     * @private
+     * @param {!FileInfo} fileInfo  File in question
+     * @param {?Entry} scope  Search scope, or null if whole project
      * @return {boolean}
      */
     function _inScope(fileInfo, scope) {
@@ -556,12 +680,39 @@ define(function (require, exports, module) {
         }
         return true;
     }
-    
+
+    /**
+     * @private
+     * Tries to update the search result on document changes
+     * @param {$.Event} event
+     * @param {Document} document
+     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
+     *      A linked list as described in the Document constructor
+     */
+    function _documentChangeHandler(event, document, change) {
+        if (searchResultsPanel.isVisible() && _inScope(document.file, currentScope)) {
+            var updateResults = _updateSearchResults(document, change, false);
+            
+            if (timeoutID) {
+                window.clearTimeout(timeoutID);
+                updateResults = true;
+            }
+            if (updateResults) {
+                timeoutID = window.setTimeout(function () {
+                    _restoreSearchResults();
+                    timeoutID = null;
+                }, UPDATE_TIMEOUT);
+            }
+        }
+    }
+
+
+
     /**
      * @private
      * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
      * a find operation across all files in the project.
-     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
      */
     function _doFindInFiles(scope) {
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
@@ -579,15 +730,17 @@ define(function (require, exports, module) {
         searchResults      = {};
         currentStart       = 0;
         currentQuery       = "";
+        currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString, scope)
             .done(function (query) {
                 if (query) {
-                    currentQuery = query;
-                    var queryExpr = _getQueryRegExp(query);
-                    if (!queryExpr) {
+                    currentQuery     = query;
+                    currentQueryExpr = _getQueryRegExp(query);
+                    
+                    if (!currentQueryExpr) {
                         return;
                     }
                     StatusBar.showBusyIndicator(true);
@@ -602,7 +755,7 @@ define(function (require, exports, module) {
                                     // Search one file
                                     DocumentManager.getDocumentForPath(fileInfo.fullPath)
                                         .done(function (doc) {
-                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), queryExpr);
+                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
                                             result.resolve();
                                         })
                                         .fail(function (error) {
@@ -617,6 +770,7 @@ define(function (require, exports, module) {
                                     // Done searching all files: show results
                                     _showSearchResults();
                                     StatusBar.hideBusyIndicator();
+                                    $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
                                 })
                                 .fail(function () {
                                     console.log("find in files failed.");
@@ -636,23 +790,6 @@ define(function (require, exports, module) {
         _doFindInFiles(selectedEntry);
     }
     
-    
-    /**
-     * @private
-     * Shows the search results and tries to restore the previous scroll and selection
-     */
-    function _restoreSearchResults() {
-        var scrollTop = $searchContent.scrollTop(),
-            index     = $selectedRow ? $selectedRow.index() : null;
-        
-        _showSearchResults();
-        
-        $searchContent.scrollTop(scrollTop);
-        if ($selectedRow) {
-            $selectedRow = $searchContent.find("tr:eq(" + index + ")");
-            $selectedRow.addClass("selected");
-        }
-    }
     
     /**
      * @private
@@ -688,7 +825,7 @@ define(function (require, exports, module) {
      * @param {string} path
      */
     function _pathDeletedHandler(event, path) {
-        var resultsChanged = false, numMatches;
+        var resultsChanged = false;
         
         if (searchResultsPanel.isVisible()) {
             // Update the search results
@@ -701,14 +838,11 @@ define(function (require, exports, module) {
             
             // Restore the results if needed
             if (resultsChanged) {
-                numMatches = _countFilesMatches().matches;
-                if (currentStart > numMatches) {
-                    currentStart = _getLastCurrentStart(numMatches);
-                }
                 _restoreSearchResults();
             }
         }
     }
+    
     
     
     // Initialize items dependent on HTML DOM
@@ -722,8 +856,8 @@ define(function (require, exports, module) {
     });
     
     // Initialize: register listeners
-    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
-    $(DocumentManager).on("pathDeleted", _pathDeletedHandler);
+    $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
+    $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     // Initialize: command handlers
