@@ -861,6 +861,16 @@ define(function (require, exports, module) {
         return menu;
     }
 
+    /**
+     * Removes a top-level menu from the application menu bar which may be native or HTML-based.
+     *
+     * @param {!string} id - unique identifier for a menu.
+     *      Core Menus in Brackets use a simple title as an id, for example "file-menu".
+     *      Extensions should use the following format: "author.myextension.mymenuname".
+     */
+    function removeMenu(id) {
+        console.log("NOT IMPLEMENTED");
+    }
 
     /**
      * @constructor
@@ -1007,13 +1017,6 @@ define(function (require, exports, module) {
         return cmenu;
     }
 
-    /** NOT IMPLEMENTED
-     * Removes Menu
-     */
-    // function removeMenu(id) {
-    //     NOT IMPLEMENTED
-    // }
-
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;
@@ -1029,6 +1032,7 @@ define(function (require, exports, module) {
     exports.getMenuItem = getMenuItem;
     exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
+    exports.removeMenu = removeMenu;
     exports.registerContextMenu = registerContextMenu;
     exports.closeAll = closeAll;
     exports.Menu = Menu;
