@@ -93,6 +93,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live-Vorschau: Klicken, um Verbindung zu trennen (Es wird aufgrund eines Syntax-Fehlers nicht aktualisiert)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Die Live-Vorschau wurde abgebrochen, weil die Entwickler-Tools des Browsers geöffnet wurden",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Die Live-Vorschau wurde abgebrochen, weil die Seite im Browser geschlossen wurde",
@@ -442,11 +443,12 @@ define({
     /**
      * Locales
      */
+    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EN"                                 : "Englisch",
-    "LOCALE_FR"                                 : "Französisch",
-    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_FI"                                 : "Finnisch",
+    "LOCALE_FR"                                 : "Französisch",
     "LOCALE_IT"                                 : "Italienisch",
     "LOCALE_JA"                                 : "Japanisch",
     "LOCALE_NB"                                 : "Norwegisch",
@@ -454,6 +456,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
     "LOCALE_PT_PT"                              : "Portugiesisch",
     "LOCALE_RU"                                 : "Russisch",
+    "LOCALE_SK"                                 : "Slowakisch",
     "LOCALE_SV"                                 : "Schwedisch",
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
