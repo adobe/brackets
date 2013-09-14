@@ -154,6 +154,14 @@ define(function (require, exports, module) {
     function getMenu(id) {
         return menuMap[id];
     }
+    
+    /**
+     * Retrieves the map of all Menu objects.
+     * @return {Object.<string, Menu>}
+     */
+    function getAllMenus() {
+        return menuMap;
+    }
 
     /**
      * Retrieves the ContextMenu object for the corresponding id. 
@@ -869,7 +877,27 @@ define(function (require, exports, module) {
      *      Extensions should use the following format: "author.myextension.mymenuname".
      */
     function removeMenu(id) {
-        console.log("NOT IMPLEMENTED");
+        if (!id) {
+            console.error("removeMenu(): missing required parameter: id");
+            return;
+        }
+        
+        if (!menuMap[id]) {
+            console.error("removeMenu(): menu id not found: %s", id);
+            return;
+        }
+        
+        if (_isHTMLMenu(id)) {
+            console.log("**TO BE IMPLEMENTED**");
+        } else {
+            brackets.app.removeMenu(id, function (err) {
+                if (err) {
+                    console.error("removeMenu() -- id not found: " + id + " (error: " + err + ")");
+                }
+            });
+        }
+        
+        delete menuMap[id];
     }
 
     /**
@@ -1029,6 +1057,7 @@ define(function (require, exports, module) {
     exports.LAST_IN_SECTION = LAST_IN_SECTION;
     exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
+    exports.getAllMenus = getAllMenus;
     exports.getMenuItem = getMenuItem;
     exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
