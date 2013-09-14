@@ -1420,8 +1420,11 @@ define(function (require, exports, module) {
         // TODO: This should call FileEntry.moveTo(), but that isn't implemented
         // yet. For now, call directly to the low-level fs.rename()
         // TODO: FileSystem....
-        brackets.fs.rename(oldName, newName, function (err) {
-            if (!err) {
+        return _fileSystem.resolve(oldName)
+            .then(function (oldFSEntry) {
+                return oldFSEntry.rename(newName);
+            })
+            .then(function (newFSEntry) {
                 // Update all nodes in the project tree.
                 // All other updating is done by DocumentManager.notifyPathNameChanged() below
                 var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
@@ -1448,9 +1451,7 @@ define(function (require, exports, module) {
                 }
                 
                 _redraw(true);
-
-                result.resolve();
-            } else {
+            }, function (err) {
                 // Show an error alert
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
@@ -1464,12 +1465,7 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
-                
-                result.reject(err);
-            }
-        });
-        
-        return result;
+            });
     }
     
     /**
