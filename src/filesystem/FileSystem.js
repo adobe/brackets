@@ -144,6 +144,7 @@ define(function (require, exports, module) {
         
         this._impl.exists(path, function (exists) {
             if (exists) {
+                // TODO FileSystem ---- IAN: is path guaranteed to exist in the index at this point?
                 result.resolve(this._index.getEntry(path));
             } else {
                 result.reject();
