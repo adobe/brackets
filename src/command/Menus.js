@@ -888,7 +888,7 @@ define(function (require, exports, module) {
         }
         
         if (_isHTMLMenu(id)) {
-            console.log("**TO BE IMPLEMENTED**");
+            $(_getHTMLMenu(id)).remove();
         } else {
             brackets.app.removeMenu(id, function (err) {
                 if (err) {
