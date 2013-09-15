@@ -38,6 +38,9 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     
+    /** @const @type {number} Height (and width) or scrollbar up/down arrow button on Win */
+    var WIN_ARROW_HT = 17;
+    
     /** @type {?Editor} Editor the markers are currently shown for, or null if not shown */
     var editor;
     
@@ -61,9 +64,9 @@ define(function (require, exports, module) {
         if (trackHt > 0) {
             // Scrollbar visible: determine offset of track from top of scrollbar
             if (brackets.platform === "win") {
-                trackOffset = 17;  // Up arrow pushes down track
+                trackOffset = WIN_ARROW_HT;  // Up arrow pushes down track
             } else {
-                trackOffset = 0;   // No arrows
+                trackOffset = 0;             // No arrows
             }
             
         } else {
@@ -109,7 +112,7 @@ define(function (require, exports, module) {
             editor = curEditor;
             
             // Don't support inline editors yet - search inside them is pretty screwy anyway (#2110)
-            if (editor.getFirstVisibleLine() > 0 || editor.getLastVisibleLine() < editor.lineCount() - 1) {
+            if (editor.isTextSubset()) {
                 return;
             }
             

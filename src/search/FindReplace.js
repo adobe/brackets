@@ -333,7 +333,7 @@ define(function (require, exports, module) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
-            // As soon as focus goes back to the editor, restore normal selection color
+            // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
             toggleHighlighting(editor, false);
         });
         
