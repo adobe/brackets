@@ -317,7 +317,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     
     // Extension Management strings
     "INSTALL"                              : "Instalar",

@@ -313,7 +313,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL adresa nemôže obsahovať výrazy pre hľadanie ako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL adresa nemôže obsahovať znaky ako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštné znaky ako '{0}' musia byť %-enkódované.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Neznáma chyba pri spracovávaní URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznáma chyba pri spracovávaní URL",
     
     // Extension Management strings
     "INSTALL"                              : "Inštalovať",

@@ -297,7 +297,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Az alap URL nem tartalmazhat paramétereket mint: \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Az alap URL nem tartalmazhat hash-okat mint: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Speciális karakterek mint: '{0}' muszáj enkódolni %-be.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ismeretlen hiba az alap URL beolvasásakor",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ismeretlen hiba az alap URL beolvasásakor",
     
     // Extension Management strings
     "INSTALL"                              : "Telepítés",

@@ -309,7 +309,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei saa sisältää hakuparametreja, kuten \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei saa sisältää ristikkomerkkejä, kuten \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten '{0}', täytyy olla %-koodattu.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Tuntematon virhe URL-osoitteen jäsentämisessä",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
     
     // Extension Management strings
     "INSTALL"                              : "Asenna",

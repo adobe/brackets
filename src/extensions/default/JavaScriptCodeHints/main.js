@@ -429,16 +429,24 @@ define(function (require, exports, module) {
                 }
 
                 var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
-                    $deferredHints = $.Deferred();
+                    $deferredHints  = $.Deferred(),
+                    scopeSession    = session;
 
                 scopeResponse.done(function () {
                     if (hintsArePending($deferredHints)) {
-                        getSessionHints(query, cursor, type, token, $deferredHints);
+                        // Verify we are still in same session
+                        if (scopeSession === session) {
+                            getSessionHints(query, cursor, type, token, $deferredHints);
+                        } else {
+                            $deferredHints.reject();
+                        }
                     }
+                    scopeSession = null;
                 }).fail(function () {
                     if (hintsArePending($deferredHints)) {
                         $deferredHints.reject();
                     }
+                    scopeSession = null;
                 });
 
                 return $deferredHints;

@@ -72,6 +72,7 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
+    var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
         Dialogs              = require("widgets/Dialogs"),
@@ -96,6 +97,9 @@ define(function LiveDevelopment(require, exports, module) {
     var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
+    
+    // Document errors
+    var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
     var agents = {
@@ -226,18 +230,118 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
+     * Clears errors from line number gutter (line class)
+     * @param {HTMLDocument|CSSDocument} liveDocument
+     */
+    function _doClearErrors(liveDocument) {
+        var lineHandle;
+        
+        if (!liveDocument.editor ||
+                !liveDocument._errorLineHandles ||
+                !liveDocument._errorLineHandles.length) {
+            return;
+        }
+        
+        liveDocument.editor._codeMirror.operation(function () {
+            while (true) {
+                // Iterate over all lines that were previously marked with an error
+                lineHandle = liveDocument._errorLineHandles.pop();
+                
+                if (!lineHandle) {
+                    break;
+                }
+                
+                liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
+            }
+        });
+    }
+
+    /**
+     * Update the status. Triggers a statusChange event.
+     * @param {number} status new status
+     * @param {?string} closeReason Optional string key suffix to display to
+     *     user when closing the live development connection (see LIVE_DEV_* keys)
+     */
+    function _setStatus(status, closeReason) {
+        // Don't send a notification when the status didn't actually change
+        if (status === exports.status) {
+            return;
+        }
+        
+        exports.status = status;
+        
+        var reason = status === STATUS_INACTIVE ? closeReason : null;
+        $(exports).triggerHandler("statusChange", [status, reason]);
+    }
+    
+    /**
+     * @private
+     * Event handler for live document errors. Displays error status in the editor gutter.
+     * @param {$.Event} event
+     * @param {HTMLDocument|CSSDocument} liveDocument
+     * @param {Array.<{token: SimpleNode, startPos: Pos, endPos: Pos}>} errors 
+     */
+    function _handleLiveDocumentStatusChanged(liveDocument) {
+        var startLine,
+            endLine,
+            lineInfo,
+            i,
+            lineHandle,
+            status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
+
+        _setStatus(status);
+        
+        if (!liveDocument.editor) {
+            return;
+        }
+
+        // Buffer addLineClass DOM changes in a CodeMirror operation
+        liveDocument.editor._codeMirror.operation(function () {
+            // Remove existing errors before marking new ones
+            _doClearErrors(liveDocument);
+            
+            liveDocument._errorLineHandles = liveDocument._errorLineHandles || [];
+    
+            liveDocument.errors.forEach(function (error) {
+                startLine = error.startPos.line;
+                endLine = error.endPos.line;
+                
+                for (i = startLine; i < endLine + 1; i++) {
+                    lineHandle = liveDocument.editor._codeMirror.addLineClass(i, "wrap", SYNC_ERROR_CLASS);
+                    liveDocument._errorLineHandles.push(lineHandle);
+                }
+            });
+        });
+    }
+
+    /**
+     * @private
+     * Close a live document
+     */
+    function _closeDocument(liveDocument) {
+        _doClearErrors(liveDocument);
+        liveDocument.close();
+        
+        if (liveDocument.editor) {
+            $(liveDocument.editor).off(".livedev");
+        }
+        
+        $(liveDocument).off(".livedev");
+    }
+
+    /**
+     * @private
      * Close all live documents
      */
     function _closeDocuments() {
         if (_liveDocument) {
-            _liveDocument.close();
+            _closeDocument(_liveDocument);
             _liveDocument = undefined;
         }
         
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
-                liveDoc.close();
-                $(liveDoc).off(".livedev");
+                _closeDocument(liveDoc);
             });
             
             _relatedDocuments = undefined;
@@ -257,12 +361,18 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
-        var DocClass = _classForDocument(doc);
-        if (DocClass) {
-            return new DocClass(doc, editor);
-        } else {
+        var DocClass        = _classForDocument(doc),
+            liveDocument    = new DocClass(doc, editor);
+
+        if (!DocClass) {
             return null;
         }
+
+        $(liveDocument).on("statusChanged.livedev", function () {
+            _handleLiveDocumentStatusChanged(liveDocument);
+        });
+
+        return liveDocument;
     }
     
     /**
@@ -334,24 +444,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (_enabledAgentNames.hasOwnProperty(name)) {
             delete _enabledAgentNames[name];
         }
-    }
-
-    /**
-     * Update the status. Triggers a statusChange event.
-     * @param {number} status new status
-     * @param {?string} closeReason Optional string key suffix to display to
-     *     user when closing the live development connection (see LIVE_DEV_* keys)
-     */
-    function _setStatus(status, closeReason) {
-        // Don't send a notification when the status didn't actually change
-        if (status === exports.status) {
-            return;
-        }
-        
-        exports.status = status;
-        
-        var reason = status === STATUS_INACTIVE ? closeReason : null;
-        $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
     /** Documents are considered to be out-of-sync if they are dirty and
