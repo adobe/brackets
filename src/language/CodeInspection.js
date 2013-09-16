@@ -167,67 +167,16 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a menu entry for the given provider/code inspector.
-     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
-     *
-     * @param {name:string, scanFile:function(string, string):Object} provider
-     */
-    function addMenuEntryForProvider(provider) {
-        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
-            commandString = "command.inspector." + provider.name;
-
-        var inspectorCommand = CommandManager.register("  Enable " + provider.name, commandString, function () {
-            this.setChecked(!this.getChecked());
-
-            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
-
-            // update results
-            run();
-        });
-
-        _allInspectorCommands.push(inspectorCommand);
-
-        // add a new MenuItem for each inspector
-        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
-
-        var providerEnabled = isProviderEnabled(provider);
-        inspectorCommand.setChecked(providerEnabled);
-        inspectorCommand.setEnabled(_prefs.getValue("enabled"));
-    }
-
-    /**
      * Enable/disable all menu entries for provider/code inspector.
      *
      * param boolean enabled
      */
     function toggleEnableAllInspectorMenuItems(enabled) {
-        _allInspectorCommands.forEach(function(command) {
+        _allInspectorCommands.forEach(function (command) {
             command.setEnabled(enabled);
         });
     }
     
-    /**
-     * The provider is passed the text of the file and its fullPath. Providers should not assume
-     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
-     * that the file on disk matches the text given (file may have unsaved changes).
-     *
-     * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
-     * If type is unspecified, Type.WARNING is assumed.
-     */
-    function register(languageId, provider) {
-        if (!_providers[languageId]) {
-            _providers[languageId] = [];
-        }
-
-        _providers[languageId].push(provider);
-
-        addMenuEntryForProvider(provider);
-    }
-
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
@@ -373,6 +322,57 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Create a menu entry for the given provider/code inspector.
+     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function addMenuEntryForProvider(provider) {
+        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
+            commandString = "command.inspector." + provider.name;
+
+        var inspectorCommand = CommandManager.register("  Enable " + provider.name, commandString, function () {
+            this.setChecked(!this.getChecked());
+
+            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
+
+            // update results
+            run();
+        });
+
+        _allInspectorCommands.push(inspectorCommand);
+
+        // add a new MenuItem for each inspector
+        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
+
+        var providerEnabled = isProviderEnabled(provider);
+        inspectorCommand.setChecked(providerEnabled);
+        inspectorCommand.setEnabled(_prefs.getValue("enabled"));
+    }
+
+    /**
+     * The provider is passed the text of the file and its fullPath. Providers should not assume
+     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
+     * that the file on disk matches the text given (file may have unsaved changes).
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     *
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
+     */
+    function register(languageId, provider) {
+        if (!_providers[languageId]) {
+            _providers[languageId] = [];
+        }
+
+        _providers[languageId].push(provider);
+
+        addMenuEntryForProvider(provider);
+    }
+
     /**
      * Update DocumentManager listeners.
      */

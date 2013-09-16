@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -112,10 +112,14 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Använd /re/ syntax för regexp-sökning",
     "FIND_RESULT_COUNT"                 : "{0} resultat",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 resultat",
+    "FIND_NO_RESULTS"                   : "Inga resultat",
     "WITH"                              : "med",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nej",
+    "BUTTON_REPLACE_ALL"                : "Alla\u2026",
     "BUTTON_STOP"                       : "Avbryt",
+    "BUTTON_REPLACE"                    : "Ersätt",
 
     "OPEN_FILE"                         : "Öppna fil",
     "SAVE_FILE_AS"                      : "Spara fil som",
@@ -124,8 +128,14 @@ define({
     "RELEASE_NOTES"                     : "Versionsinformation",
     "NO_UPDATE_TITLE"                   : "Du är uppdaterad!",
     "NO_UPDATE_MESSAGE"                 : "Du använder den senaste versionen av {APP_NAME}.",
-    
-    "FIND_IN_FILES_TITLE"               : "för \"{4}\" {5} - {0} {1} i {2} {3}",
+
+    "FIND_REPLACE_TITLE_PART1"          : "Ersätt \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" hittades",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} i {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "i <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "i projekt",
     "FIND_IN_FILES_FILE"                : "fil",
@@ -133,7 +143,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "träff",
     "FIND_IN_FILES_MATCHES"             : "träffar",
     "FIND_IN_FILES_MORE_THAN"           : "Mer än ",
-    "FIND_IN_FILES_MAX"                 : " (visar de första {0} träffarna)",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Fil: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "rad:&nbsp;{0}",
 
@@ -158,10 +168,12 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rad {0}, kolumn {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Markerade {0} kolumn",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Markerade {0} kolumner",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Markerade {0} rader",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicka för att använda tabbar för indrag",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Markerade {0} rad",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Markerade {0} rader",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicka för att använda mellanslag för indrag",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicka för att använda tabbar för indrag",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicka för att ändra antalet mellanslag som används för indrag",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicka för att ändra bredden på tabbtecken",
     "STATUSBAR_SPACES"                      : "Mellanslag",
@@ -225,7 +237,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Öppna rad nedanför",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Stäng paranteser automatiskt",
     "CMD_SHOW_CODE_HINTS"                 : "Visa kodförslag",
-     
+    
     // View menu commands
     "VIEW_MENU"                           : "Visa",
     "CMD_HIDE_SIDEBAR"                    : "Dölj sidomeny",
@@ -277,7 +289,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "DEVELOPMENT_BUILD"                    : "Development Build",
-    "SEARCH_RESULTS"                       : "Sökresultat",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Spara inte",
     "SAVE"                                 : "Spara",
@@ -360,7 +371,7 @@ define({
     "EXTENSION_ERROR"                      : "Fel med tillägg",
     "EXTENSION_KEYWORDS"                   : "Nyckelord",
     "EXTENSION_INSTALLED"                  : "Installerade",
-    "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed when you quit {APP_NAME}.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Uppdateringen av detta tillägg har laddats ner och kommer att installeras när du avslutar {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Sök",
     "EXTENSION_MORE_INFO_LINK"             : "Mer",
     "BROWSE_EXTENSIONS"                    : "Bläddra bland tillägg",
@@ -388,6 +399,7 @@ define({
     /**
      * Unit names
      */
+
     "UNIT_PIXELS"                               : "pixlar",
     
     // extensions/default/DebugCommands
@@ -440,7 +452,9 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Gå till definition",
-    
+    "CMD_SHOW_PARAMETER_HINT"                   : "Visa parameterförslag",
+    "NO_ARGUMENTS"                              : "<inga parametrar>",
+
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Aktivera JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "Gå till första JSLint-felet",

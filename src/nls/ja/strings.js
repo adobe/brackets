@@ -86,13 +86,14 @@ define({
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "!能=[6499050] For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>._=!",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a href='{0}' title='{0}'>Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "ライブプレビュー : 初期化中\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
-	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
+	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "!能=[6488839] Live Preview (save file to refresh)_=!",
+	"LIVE_DEV_STATUS_TIP_SYNC_ERROR": "!能=[7280512] Live Preview (not updating due to syntax error)_=!",
 
 	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
 	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
@@ -121,8 +122,8 @@ define({
 	"BUTTON_STOP": "終了",
 	"BUTTON_REPLACE": "置換",
             
-	"BUTTON_NEXT": "!能=[7150631] \u25B6_=!",
-	"BUTTON_PREV": "!能=[7150633] \u25C0_=!",
+	"BUTTON_NEXT": "\u25B6",
+	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "次の候補に移動",
 	"BUTTON_PREV_HINT": "前の候補に移動",
 
@@ -139,19 +140,17 @@ define({
 	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
 
 	"FIND_IN_FILES_TITLE_PART1": "「",
-	"FIND_IN_FILES_TITLE_PART2": "」が見つかりました",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} ({2} {3})",
+	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {2} {3}で{0} 件 {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
-	"FIND_IN_FILES_MATCH": "一致",
-	"FIND_IN_FILES_MATCHES": "一致",
+	"FIND_IN_FILES_MATCH": "が見つかりました",
+	"FIND_IN_FILES_MATCHES": "が見つかりました",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-	"FIND_IN_FILES_LINE": "行 : {0}",
-
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
 
@@ -187,13 +186,13 @@ define({
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "!能=[7150674] {0} Errors_=!",
-	"SINGLE_ERROR": "!能=[7150681] 1 {0} Error_=!",
-	"MULTIPLE_ERRORS": "!能=[7150677] {1} {0} Errors_=!",
-	"NO_ERRORS": "!能=[7150679] No {0} errors - good job!_=!",
-	"LINT_DISABLED": "!能=[7150676] Linting is disabled_=!",
-	"NO_LINT_AVAILABLE": "!能=[7150680] No linter available for {0}_=!",
-	"NOTHING_TO_LINT": "!能=[7150678] Nothing to lint_=!",
+	"ERRORS_PANEL_TITLE": "{0} 個のエラー",
+	"SINGLE_ERROR": "1 個の {0} エラー",
+	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
+	"NO_ERRORS": "{0} エラーはありません - Good job!",
+	"LINT_DISABLED": "Lint チェックは使用できません",
+	"NO_LINT_AVAILABLE": "{0} に使用できる Lint チェッカーがありません",
+	"NOTHING_TO_LINT": "Lint チェックするファイルがありません",
     
     
     /**
@@ -265,7 +264,7 @@ define({
 	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
-	"CMD_VIEW_TOGGLE_INSPECTION": "!能=[7150673] Lint Files on Save_=!",
+	"CMD_VIEW_TOGGLE_INSPECTION": "保存時にファイルを Lint チェック",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -276,7 +275,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
-	"CMD_GOTO_FIRST_PROBLEM": "!能=[7150671] Go to First Error/Warning_=!",
+	"CMD_GOTO_FIRST_PROBLEM": "最初のエラーまたは警告に移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
@@ -297,12 +296,6 @@ define({
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 
-
-    // Special commands invoked by the native shell
-	"CMD_CLOSE_WINDOW": "ウィンドウを閉じる",
-	"CMD_ABORT_QUIT": "強制終了する",
-	"CMD_BEFORE_MENUPOPUP": "ポップアップメニュー表示前",
-
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
@@ -317,12 +310,12 @@ define({
 	"RELAUNCH_CHROME": "Chrome を再起動",
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
-	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_LINE3": "!能=[6307069] Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein._=!",
-	"ABOUT_TEXT_LINE4": "!能=[6307070] Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>_=!",
+	"ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "!能=[6781670] Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>._=!",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
@@ -428,15 +421,15 @@ define({
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
-	"CMD_ENABLE_NODE_DEBUGGER": "ノードデバッガーを有効にする",
-	"CMD_LOG_NODE_STATE": "ノードの状態をコンソールに記録",
-	"CMD_RESTART_NODE": "ノードを再起動",
+	"CMD_ENABLE_NODE_DEBUGGER": "Node Debugger を有効にする",
+	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
+	"CMD_RESTART_NODE": "Node を再起動",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
-	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
+	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
     
     // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "チェコ語",
@@ -452,6 +445,7 @@ define({
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
 	"LOCALE_RU": "ロシア語",
+	"LOCALE_SK": "!能=[7281186] Slovak_=!",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
@@ -472,13 +466,13 @@ define({
 	"NO_ARGUMENTS": "<パラメーターがありません>",
     
     // extensions/default/JSLint
-	"JSLINT_NAME": "!能=[7150675] JSLint_=!",
+	"JSLINT_NAME": "JSLint",
     
     // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
     
     // extensions/default/RecentProjects
-	"CMD_TOGGLE_RECENT_PROJECTS": "!能=[7150672] Recent Projects_=!",
+	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
     
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "詳細"

@@ -82,7 +82,78 @@ define(function (require, exports, module) {
      * Standard DOM methods below are not documented, but the ones unique to this test harness
      * are.
      */
-    var domFeatures = Object.create({
+    var domFeatures = Object.create(new HTMLSimpleDOM.SimpleNode(), {
+        firstChild: {
+            get: function () {
+                return this.children[0];
+            }
+        },
+        lastChild: {
+            get: function () {
+                return this.children[this.children.length - 1];
+            }
+        },
+        siblings: {
+            get: function () {
+                return this.parent.children;
+            }
+        },
+        nextSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index + 1];
+            }
+        },
+        previousSibling: {
+            get: function () {
+                var siblings = this.siblings;
+                var index = siblings.indexOf(this);
+                return siblings[index - 1];
+            }
+        },
+        nodeType: {
+            get: function () {
+                if (this.children) {
+                    return Node.ELEMENT_NODE;
+                } else if (this.content) {
+                    return Node.TEXT_NODE;
+                }
+            }
+        },
+        childNodes: {
+            get: function () {
+                var children = this.children;
+                if (!children.item) {
+                    children.item = function (index) {
+                        return children[index];
+                    };
+                }
+                return children;
+            }
+        },
+        
+        // At this time, innerHTML and textContent are used for entity parsing
+        // only. If that changes, we'll have bigger issues to deal with.
+        innerHTML: {
+            set: function (text) {
+                entityParsingNode.innerHTML = text;
+            },
+            get: function () {
+                return entityParsingNode.innerHTML;
+            }
+        },
+        textContent: {
+            set: function (text) {
+                entityParsingNode.textContent = text;
+            },
+            get: function () {
+                return entityParsingNode.textContent;
+            }
+        }
+    });
+
+    $.extend(domFeatures, {
         insertBefore: function (newElement, referenceElement) {
             if (newElement.parent && newElement.parent !== this) {
                 newElement.remove();
@@ -172,8 +243,8 @@ define(function (require, exports, module) {
         
         returnFailure: function (other) {
             console.log("TEST FAILURE AT TAG ID ", this.tagID, this, other);
-            console.log("Patched: ", HTMLInstrumentation._dumpDOM(this.parent || this));
-            console.log("DOM generated from revised text: ", HTMLInstrumentation._dumpDOM(other.parent || other));
+            console.log("Patched: ", HTMLSimpleDOM._dumpDOM(this.parent || this));
+            console.log("DOM generated from revised text: ", HTMLSimpleDOM._dumpDOM(other.parent || other));
             return false;
         },
         
@@ -222,75 +293,6 @@ define(function (require, exports, module) {
                 }
             }
             return true;
-        }
-    }, {
-        firstChild: {
-            get: function () {
-                return this.children[0];
-            }
-        },
-        lastChild: {
-            get: function () {
-                return this.children[this.children.length - 1];
-            }
-        },
-        siblings: {
-            get: function () {
-                return this.parent.children;
-            }
-        },
-        nextSibling: {
-            get: function () {
-                var siblings = this.siblings;
-                var index = siblings.indexOf(this);
-                return siblings[index + 1];
-            }
-        },
-        previousSibling: {
-            get: function () {
-                var siblings = this.siblings;
-                var index = siblings.indexOf(this);
-                return siblings[index - 1];
-            }
-        },
-        nodeType: {
-            get: function () {
-                if (this.children) {
-                    return Node.ELEMENT_NODE;
-                } else if (this.content) {
-                    return Node.TEXT_NODE;
-                }
-            }
-        },
-        childNodes: {
-            get: function () {
-                var children = this.children;
-                if (!children.item) {
-                    children.item = function (index) {
-                        return children[index];
-                    };
-                }
-                return children;
-            }
-        },
-        
-        // At this time, innerHTML and textContent are used for entity parsing
-        // only. If that changes, we'll have bigger issues to deal with.
-        innerHTML: {
-            set: function (text) {
-                entityParsingNode.innerHTML = text;
-            },
-            get: function () {
-                return entityParsingNode.innerHTML;
-            }
-        },
-        textContent: {
-            set: function (text) {
-                entityParsingNode.textContent = text;
-            },
-            get: function () {
-                return entityParsingNode.textContent;
-            }
         }
     });
     
@@ -471,27 +473,6 @@ define(function (require, exports, module) {
                 marks = cm.getAllMarks();
                 
             expect(marks.length).toBeGreaterThan(0);
-        }
-        
-        // Useful for debugging to see what the mark ranges. Just call it inside one of the following tests.
-        function _dumpMarks() {
-            var cm = editor._codeMirror,
-                marks = cm.getAllMarks();
-            marks.sort(function (mark1, mark2) {
-                var range1 = mark1.find(), range2 = mark2.find();
-                if (range1.from.line === range2.from.line) {
-                    return range1.from.ch - range2.from.ch;
-                } else {
-                    return range1.from.line - range2.from.line;
-                }
-            });
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    var range = mark.find();
-                    console.log("<" + elementIds[mark.tagID] + "> (" + mark.tagID + ") " +
-                                range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
-                }
-            });
         }
         
         describe("interaction with document and editor", function () {
@@ -931,6 +912,13 @@ define(function (require, exports, module) {
             });
         });
         
+        // Log useful information when debugging a test.
+        function debuggingDump(result, previousDOM) {
+            console.log("Old DOM", HTMLSimpleDOM._dumpDOM(previousDOM));
+            console.log("New DOM", HTMLSimpleDOM._dumpDOM(result.dom));
+            console.log("Edits", JSON.stringify(result.edits, null, 2));
+        }
+        
         describe("HTML Instrumentation in dirty files", function () {
             var changeList, offsets;
 
@@ -950,6 +938,20 @@ define(function (require, exports, module) {
                     
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            }
+            
+            function checkMarkSanity() {
+                // Ensure that we don't have multiple marks for the same tagID.
+                var marks = editor._codeMirror.getAllMarks(),
+                    foundMarks = {};
+                marks.forEach(function (mark) {
+                    if (mark.hasOwnProperty("tagID")) {
+                        if (foundMarks[mark.tagID]) {
+                            expect("mark with ID " + mark.tagID).toBe("unique");
+                        }
+                        foundMarks[mark.tagID] = true;
+                    }
                 });
             }
             
@@ -982,6 +984,9 @@ define(function (require, exports, module) {
                 // Note that even if we pass a change list, `_updateDOM` will still choose to do a
                 // full reparse and diff if the change includes a structural character.
                 result = HTMLInstrumentation._updateDOM(previousDOM, editor, (incremental ? changeList : null));
+                
+                checkMarkSanity();
+
                 var doc = new FakeDocument(clonedDOM);
                 var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                 editHandler.apply(result.edits);
@@ -1008,7 +1013,7 @@ define(function (require, exports, module) {
                     operationFn(i, pos);
                     result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
                     if (!edits) {
-                        expect(result).toBeNull();
+                        expect(Array.isArray(result.errors)).toBe(true);
                         wasInvalid = true;
                     } else {
                         var expectedEdit = edits[i];
@@ -1024,6 +1029,8 @@ define(function (require, exports, module) {
                         var editHandler = new RemoteFunctions.DOMEditHandler(doc);
                         editHandler.apply(result.edits);
                         clonedDOM.compare(result.dom);
+                        
+                        checkMarkSanity();
                         
                         curDOM = result.dom;
                     }
@@ -2211,6 +2218,14 @@ define(function (require, exports, module) {
                             
                             expect(result.edits.length).toEqual(4);
                             expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldImgID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: oldBrID
+                            });
+                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tag: "br",
                                 attributes: {},
@@ -2218,21 +2233,13 @@ define(function (require, exports, module) {
                                 parentID: result.dom.tagID,
                                 lastChild: true
                             });
-                            expect(result.edits[1]).toEqual({
+                            expect(result.edits[3]).toEqual({
                                 type: "elementInsert",
                                 tag: "img",
                                 attributes: {},
                                 tagID: newImgElement.tagID,
                                 parentID: result.dom.tagID,
                                 lastChild: true
-                            });
-                            expect(result.edits[2]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldImgID
-                            });
-                            expect(result.edits[3]).toEqual({
-                                type: "elementDelete",
-                                tagID: oldBrID
                             });
                             
                             if (incremental) {
@@ -2384,12 +2391,14 @@ define(function (require, exports, module) {
             it("should handle tag changes", function () {
                 setupEditor(WellFormedDoc);
                 var heading,
+                    h1,
                     para;
                 runs(function () {
                     doEditTest(
                         WellFormedDoc,
                         function (editor, previousDOM) {
                             heading = previousDOM.children[3].children[3];
+                            h1 = previousDOM.children[3].children[1];
                             para = previousDOM.children[3].children[5];
                             editor.document.replaceRange("h3", { line: 13, ch: 1 }, { line: 13, ch: 3 });
                             editor.document.replaceRange("h3", { line: 13, ch: 25 }, { line: 13, ch: 27 });
@@ -2401,21 +2410,34 @@ define(function (require, exports, module) {
                             var newHeading = result.dom.children[3].children[3];
                             expect(newHeading.tag).toBe("h3");
                             
-                            expect(result.edits.length).toBe(3);
+                            expect(result.edits.length).toBe(5);
                             expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: heading.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textReplace",
+                                parentID: newHeading.parent.tagID,
+                                beforeID: para.tagID,
+                                afterID: h1.tagID,
+                                content: "\n"
+                            });
+                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tagID: newHeading.tagID,
                                 parentID: newHeading.parent.tagID,
                                 attributes: {},
                                 tag: "h3",
+                                beforeID: para.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "\n\n\n\n",
+                                parentID: newHeading.parent.tagID,
                                 beforeID: para.tagID,
-                                beforeText: true
+                                afterID: newHeading.tagID
                             });
-                            expect(result.edits[1]).toEqual({
-                                type: "elementDelete",
-                                tagID: heading.tagID
-                            });
-                            expect(result.edits[2]).toEqual({
+                            expect(result.edits[4]).toEqual({
                                 type: "textInsert",
                                 content: "This is your guide!",
                                 parentID: newHeading.tagID,
@@ -2441,8 +2463,17 @@ define(function (require, exports, module) {
                             expect(br.tag).toBe("br");
                             expect(img.tag).toBe("img");
                             
-                            expect(result.edits.length).toBe(2);
+                            expect(result.edits.length).toBe(4);
                             expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: img.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textReplace",
+                                content: "\n    ",
+                                parentID: br.parent.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
                                 type: "elementInsert",
                                 tagID: br.tagID,
                                 parentID: br.parent.tagID,
@@ -2451,12 +2482,13 @@ define(function (require, exports, module) {
                                     "src": "screenshots/brackets-quick-edit.png"
                                 },
                                 tag: "br",
-                                lastChild: true,
-                                beforeText: true
+                                lastChild: true
                             });
-                            expect(result.edits[1]).toEqual({
-                                type: "elementDelete",
-                                tagID: img.tagID
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                content: "\n",
+                                parentID: br.parent.tagID,
+                                lastChild: true
                             });
                         },
                         false
@@ -2466,12 +2498,14 @@ define(function (require, exports, module) {
             
             it("should handle tag changes with child elements", function () {
                 setupEditor(WellFormedDoc);
-                var para;
+                var para,
+                    earlierPara;
                 runs(function () {
                     doEditTest(
                         WellFormedDoc,
                         function (editor, previousDOM) {
                             para = previousDOM.children[3].children[7];
+                            earlierPara = previousDOM.children[3].children[5];
                             editor.document.replaceRange("div", { line: 28, ch: 1 }, { line: 28, ch: 2 });
                             editor.document.replaceRange("div", { line: 33, ch: 2 }, { line: 33, ch: 3 });
                         },
@@ -2483,42 +2517,57 @@ define(function (require, exports, module) {
                             expect(div.tag).toBe("div");
                             expect(em.tag).toBe("em");
                             
-                            expect(result.edits.length).toBe(6);
+                            expect(result.edits.length).toBe(8);
                             expect(result.edits[0]).toEqual({
                                 type: "rememberNodes",
                                 tagIDs: [em.tagID]
                             });
                             
                             expect(result.edits[1]).toEqual({
+                                type: "elementDelete",
+                                tagID: para.tagID
+                            });
+                            
+                            expect(result.edits[2]).toEqual({
+                                type: "textReplace",
+                                content: "\n\n\n",
+                                parentID: div.parent.tagID,
+                                afterID: earlierPara.tagID,
+                                beforeID: a.tagID
+                            });
+                            
+                            expect(result.edits[3]).toEqual({
                                 type: "elementInsert",
                                 tag: "div",
                                 tagID: div.tagID,
                                 parentID: div.parent.tagID,
                                 attributes: {},
-                                beforeText: true,
                                 beforeID: a.tagID
                             });
                             
-                            expect(result.edits[2]).toEqual({
-                                type: "elementDelete",
-                                tagID: para.tagID
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                content: "\n\n\n",
+                                parentID: div.parent.tagID,
+                                afterID: div.tagID,
+                                beforeID: a.tagID
                             });
                             
-                            expect(result.edits[3]).toEqual({
+                            expect(result.edits[5]).toEqual({
                                 type: "textInsert",
                                 content: "\n    ",
                                 parentID: div.tagID,
                                 lastChild: true
                             });
                             
-                            expect(result.edits[4]).toEqual({
+                            expect(result.edits[6]).toEqual({
                                 type: "elementMove",
                                 tagID: em.tagID,
                                 parentID: div.tagID,
                                 lastChild: true
                             });
                             
-                            expect(result.edits[5]).toEqual({
+                            expect(result.edits[7]).toEqual({
                                 type: "textInsert",
                                 parentID: div.tagID,
                                 content: jasmine.any(String),
@@ -2529,227 +2578,122 @@ define(function (require, exports, module) {
                     );
                 });
             });
-        });
-        
-        var benchmarker = {
-            starts: {},
-            timings: {},
-            start: function (name) {
-                this.starts[name] = window.performance.webkitNow();
-            },
-            end: function (name) {
-                var end = window.performance.webkitNow();
-                var timeList = this.timings[name];
-                if (timeList === undefined) {
-                    timeList = this.timings[name] = [];
-                }
-                timeList.push(end - this.starts[name]);
-                delete this.starts[name];
-            },
-            report: function () {
-                console.log(this.heading);
-                var timingNames = Object.keys(this.timings);
-                timingNames.forEach(function (name) {
-                    var timings = this.timings[name];
-                    timings.sort(function (a, b) {
-                        return a - b;
-                    });
-                    var min = timings[0];
-                    var max = timings[timings.length - 1];
-                    var med = timings[Math.floor(timings.length / 2)];
-                    console.log(name, "Min:", min.toFixed(2), "ms, Max:", max.toFixed(2), "ms, Median:", med.toFixed(2), "ms (" + timings.length + " runs)");
-                }.bind(this));
-            },
-            reset: function () {
-                this.starts = {};
-                this.timings = {};
-                this.heading = "Test Results";
-            }
-        };
-        
-        function doFullAndIncrementalBenchmarkTest(runs, editFn) {
-            var i;
-            var previousText = editor.document.getText();
-            for (i = 0; i < runs; i++) {
-                benchmarker.start("Base edit");
-                editFn(editor);
-                benchmarker.end("Base edit");
-                editor.document.setText(previousText);
-            }
             
-            benchmarker.start("Initial DOM build");
-            var previousDOM = HTMLSimpleDOM.build(previousText),
-                changeList,
-                result;
-            benchmarker.end("Initial DOM build");
-            benchmarker.start("Mark text");
-            HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-            benchmarker.end("Mark text");
-            
-            for (i = 0; i < runs; i++) {
-                benchmarker.start("Edit with marks");
-                editFn(editor);
-                benchmarker.end("Edit with marks");
-                editor.document.setText(previousText);
-                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-            }
-            
-            var changeFunction = function (event, editor, change) {
-                changeList = change;
-                result = HTMLInstrumentation._updateDOM(previousDOM, editor, changeList);
-            };
-            
-            for (i = 0; i < runs; i++) {
-                editor.document.setText(previousText);
-                previousDOM = HTMLSimpleDOM.build(previousText);
-                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                
-                $(editor).on("change.perftest", changeFunction);
-                benchmarker.start("Incremental");
-                editFn(editor);
-                benchmarker.end("Incremental");
-                $(editor).off(".perftest");
-            }
-            
-            var fullChangeFunction = function (event, editor, change) {
-                result = HTMLInstrumentation._updateDOM(previousDOM, editor);
-            };
-            
-            for (i = 0; i < runs; i++) {
-                editor.document.setText(previousText);
-                previousDOM = HTMLSimpleDOM.build(previousText);
-                HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
-                
-                $(editor).on("change.perftest", fullChangeFunction);
-                benchmarker.start("Full");
-                // full test
-                editFn(editor);
-                benchmarker.end("Full");
-                $(editor).off(".perftest");
-            }
-            
-            benchmarker.report();
-        }
-        
-        xdescribe("Performance Tests", function () {
-            beforeEach(function () {
+            it("should handle multiple inserted tags and text", function () {
+                setupEditor("<h1><strong>Emphasized</strong> Hello </h1>");
+                var h1,
+                    strong;
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(WellFormedDoc, "html").editor;
-                    expect(editor).toBeTruthy();
-
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
-                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
-                });
-            });
-    
-            afterEach(function () {
-                SpecRunnerUtils.destroyMockEditor(editor.document);
-                editor = null;
-                instrumentedHTML = "";
-                elementCount = 0;
-                elementIds = {};
-                benchmarker.reset();
-            });
-            
-            it("measure performance of text replacement", function () {
-                benchmarker.heading = "Text Replacement";
-                runs(function () {
-                    doFullAndIncrementalBenchmarkTest(
-                        10,
-                        function (editor) {
-                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            h1 = previousDOM;
+                            strong = previousDOM.children[0];
+                            editor.document.replaceRange("<em>Foo</em> bar <strong>Baz!</strong>", {line: 0, ch: 4}, {line: 0, ch: 31});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var em = result.dom.children[0],
+                                strong2 = result.dom.children[2];
+                            
+                            expect(result.edits.length).toBe(8);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: strong.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textDelete",
+                                parentID: h1.tagID
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "em",
+                                tagID: em.tagID,
+                                parentID: h1.tagID,
+                                attributes: {},
+                                lastChild: true
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "textInsert",
+                                parentID: h1.tagID,
+                                lastChild: true,
+                                content: " bar "
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "elementInsert",
+                                tag: "strong",
+                                tagID: strong2.tagID,
+                                parentID: h1.tagID,
+                                lastChild: true,
+                                attributes: {}
+                            });
+                            expect(result.edits[5]).toEqual({
+                                type: "textInsert",
+                                parentID: h1.tagID,
+                                lastChild: true,
+                                content: " Hello "
+                            });
+                            
+                            expect(result.edits[6]).toEqual({
+                                type: "textInsert",
+                                parentID: strong2.tagID,
+                                content: "Baz!",
+                                lastChild: true
+                            });
+                            expect(result.edits[7]).toEqual({
+                                type: "textInsert",
+                                parentID: em.tagID,
+                                content: "Foo",
+                                lastChild: true
+                            });
                         }
                     );
                 });
             });
             
-            it("measure performance of simulated typing of text", function () {
-                benchmarker.heading = "Simulated Typing of Text";
+            it("should handle pasting a tag over multiple tags and text", function () {
+                setupEditor("<h1>before<strong>Strong</strong>Hello<em>Emphasized</em>after</h1>");
+                var h1,
+                    strong,
+                    em;
                 runs(function () {
-                    doFullAndIncrementalBenchmarkTest(
-                        10,
-                        function (editor) {
-                            editor.document.replaceRange("A", {line: 12, ch: 12});
-                            editor.document.replaceRange("W", {line: 12, ch: 13});
-                            editor.document.replaceRange("E", {line: 12, ch: 14});
-                            editor.document.replaceRange("S", {line: 12, ch: 15});
-                            editor.document.replaceRange("O", {line: 12, ch: 16});
-                            editor.document.replaceRange("M", {line: 12, ch: 17});
-                            editor.document.replaceRange("E", {line: 12, ch: 18});
-                            editor.document.replaceRange("R", {line: 12, ch: 19});
-                        }
-                    );
-                });
-            });
-            
-            it("measure performance of new tag insertion", function () {
-                benchmarker.heading = "New Tag";
-                runs(function () {
-                    doFullAndIncrementalBenchmarkTest(
-                        10,
-                        function (editor) {
-                            editor.document.replaceRange("<div>New Content</div>", {line: 15, ch: 0});
-                        }
-                    );
-                });
-            });
-            
-            it("measure performance of typing a new tag", function () {
-                benchmarker.heading = "Typing New Tag";
-                runs(function () {
-                    doFullAndIncrementalBenchmarkTest(
-                        5,
-                        function (editor) {
-                            editor.document.replaceRange("<", {line: 15, ch: 0});
-                            editor.document.replaceRange("d", {line: 15, ch: 1});
-                            editor.document.replaceRange("i", {line: 15, ch: 2});
-                            editor.document.replaceRange("v", {line: 15, ch: 3});
-                            editor.document.replaceRange(">", {line: 15, ch: 4});
-                            editor.document.replaceRange("</div>", {line: 15, ch: 5});
-                            editor.document.replaceRange("N", {line: 15, ch: 5});
-                            editor.document.replaceRange("e", {line: 15, ch: 6});
-                            editor.document.replaceRange("w", {line: 15, ch: 7});
-                            editor.document.replaceRange(" ", {line: 15, ch: 8});
-                            editor.document.replaceRange("C", {line: 15, ch: 9});
-                            editor.document.replaceRange("o", {line: 15, ch: 10});
-                            editor.document.replaceRange("n", {line: 15, ch: 11});
-                            editor.document.replaceRange("t", {line: 15, ch: 12});
-                            editor.document.replaceRange("e", {line: 15, ch: 13});
-                            editor.document.replaceRange("n", {line: 15, ch: 14});
-                            editor.document.replaceRange("t", {line: 15, ch: 15});
-                        }
-                    );
-                });
-            });
-        });
-        
-        xdescribe("Big File Performance Tests", function () {
-            beforeEach(function () {
-                runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(BigDoc, "html").editor;
-                    expect(editor).toBeTruthy();
-
-                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor);
-                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
-                });
-            });
-    
-            afterEach(function () {
-                SpecRunnerUtils.destroyMockEditor(editor.document);
-                editor = null;
-                instrumentedHTML = "";
-                elementCount = 0;
-                elementIds = {};
-                benchmarker.reset();
-            });
-            
-            it("should handle a big file", function () {
-                benchmarker.heading = "Big Text Replacement";
-                runs(function () {
-                    doFullAndIncrementalBenchmarkTest(
-                        1,
-                        function (editor) {
-                            editor.document.replaceRange("AWESOMER", {line: 12, ch: 12}, {line: 12, ch: 19});
+                    doFullAndIncrementalEditTest(
+                        function (editor, previousDOM) {
+                            h1 = previousDOM;
+                            strong = previousDOM.children[1];
+                            em = previousDOM.children[3];
+                            editor.document.replaceRange("<i>Italic</i>", {line: 0, ch: 10}, {line: 0, ch: 57});
+                        },
+                        function (result, previousDOM, incremental) {
+                            var i = result.dom.children[1];
+                            
+                            expect(result.edits.length).toBe(5);
+                            expect(result.edits[0]).toEqual({
+                                type: "elementDelete",
+                                tagID: strong.tagID
+                            });
+                            expect(result.edits[1]).toEqual({
+                                type: "textReplace",
+                                parentID: h1.tagID,
+                                beforeID: em.tagID,
+                                content: "before"
+                            });
+                            expect(result.edits[2]).toEqual({
+                                type: "elementInsert",
+                                tag: "i",
+                                tagID: i.tagID,
+                                parentID: h1.tagID,
+                                attributes: {},
+                                beforeID: em.tagID
+                            });
+                            expect(result.edits[3]).toEqual({
+                                type: "elementDelete",
+                                tagID: em.tagID
+                            });
+                            expect(result.edits[4]).toEqual({
+                                type: "textInsert",
+                                parentID: i.tagID,
+                                content: "Italic",
+                                lastChild: true
+                            });
                         }
                     );
                 });

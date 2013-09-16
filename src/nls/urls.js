@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         "cs": true,
         "de": true,
         "es": true,
+        "fi": true,
         "fr": true,
         "it": true,
         "ja": true,
