@@ -1025,12 +1025,16 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _onDocumentSaved(event, doc) {
-        // FUTURE: live document API to flag reload on save
-        if (!Inspector.connected() || (_classForDocument(doc) === CSSDocument)) {
+        var absolutePath            = Inspector.connected() && doc.file.fullPath,
+            liveDocument            = _server && absolutePath && _server.get(absolutePath),
+            instrumentationEnabled  = liveDocument && liveDocument.isInstrumentationEnabled && liveDocument.isInstrumentationEnabled();
+        
+        // Skip reload if the saved document is already instrumented
+        if (instrumentationEnabled) {
             return;
         }
         
-        var documentUrl     = _server && _server.pathToUrl(doc.file.fullPath),
+        var documentUrl     = _server.pathToUrl(absolutePath),
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
         
         if (wasRequested) {

@@ -98,8 +98,16 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     /**
+     * Returns true if the document has instrumentation enabled
+     * @return {boolean} 
+     */
+    HTMLDocument.prototype.isInstrumentationEnabled = function () {
+        return this._instrumentationEnabled;
+    };
+    
+    /**
      * Returns a JSON object with HTTP response overrides
-     * @returns {{body: string}}
+     * @return {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;

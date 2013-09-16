@@ -174,6 +174,14 @@ define(function CSSDocumentModule(require, exports, module) {
     };
     
     /**
+     * Returns true if the document has instrumentation enabled
+     * @return {boolean} 
+     */
+    CSSDocument.prototype.isInstrumentationEnabled = function () {
+        return true;
+    };
+    
+    /**
      * Returns a JSON object with HTTP response overrides
      * @returns {{body: string}}
      */
