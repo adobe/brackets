@@ -105,14 +105,22 @@ define(function (require, exports, module) {
      * Returns a list of availble HTML tag hints if possible for the current
      * editor context. 
      *
-     * @return {{hints: Array.<string|jQueryObject>, match: string, 
-     *      selectInitial: boolean}}
+     * @return {jQuery.Deferred|{
+     *              hints: Array.<string|jQueryObject>,
+     *              match: string,
+     *              selectInitial: boolean,
+     *              handleWideReuslts: boolean,
+     *              query: string}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 1. a sorted array hints that consists 
-     * of strings; 2. a string match that is used by the manager to emphasize
-     * matching substrings when rendering the hint list; and 3. a boolean that
-     * indicates whether the first result, if one exists, should be selected
-     * by default in the hint list window.
+     * response object that provides:
+     * 1. a sorted array hints that consists of strings
+     * 2. a string match that is used by the manager to emphasize matching
+     *    substrings when rendering the hint list
+     * 3. a boolean that indicates whether the first result, if one exists,
+     *    should be selected by default in the hint list window.
+     * 4. a boolean (or undefined) that indicates whether to allow result
+     *    string to stretch width of display.
+     * 5. a query string that list is filtered on
      */
     TagHints.prototype.getHints = function (implicitChar) {
         var query,
@@ -132,7 +140,9 @@ define(function (require, exports, module) {
                 return {
                     hints: result,
                     match: query,
-                    selectInitial: true
+                    selectInitial: true,
+                    handleWideResults: false,
+                    query: query
                 };
             }
         }

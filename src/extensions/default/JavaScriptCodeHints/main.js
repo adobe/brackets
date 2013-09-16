@@ -85,8 +85,12 @@ define(function (require, exports, module) {
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @return {Array.<jQuery.Object>} - array of hints formatted as jQuery
-         *      objects
+         * @return {jQuery.Deferred|{
+         *              hints: Array.<string|jQueryObject>,
+         *              match: string,
+         *              selectInitial: boolean,
+         *              handleWideReuslts: boolean,
+         *              query: string}}
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
@@ -166,7 +170,8 @@ define(function (require, exports, module) {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
             selectInitial: true,
-            handleWideResults: hints.handleWideResults
+            handleWideResults: hints.handleWideResults,
+            query: query
         };
     }
 
