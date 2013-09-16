@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         FileIndex       = require("filesystem/FileIndex"),
         InMemoryFile    = require("filesystem/InMemoryFile");
     
+    
     /**
      * Constructor. FileSystem objects should not be constructed directly.
      * Use FileSystemManager.createFileSystem() instead.
@@ -361,7 +362,8 @@ define(function (require, exports, module) {
                     entry._contents = undefined;
                 }
             } else {
-                var oldContents = entry._contents;  // TODO: Handle pending content promise
+                var oldContents = entry._contents,  // TODO: Handle pending content promise
+                    self = this;
                 
                 // Clear out old contents
                 entry._contents = entry._contentsPromise = undefined;
@@ -382,18 +384,18 @@ define(function (require, exports, module) {
                             if (contents.indexOf(item) === -1) {
                                 if (item.isFile()) {
                                     // File removed, just remove from index.
-                                    this._index.removeEntry(item);
+                                    self._index.removeEntry(item);
                                 } else {
                                     // Remove the directory and all entries under it
                                     path = item.fullPath;
-                                    var j, itemsToDelete = this.getFileList(_isInPath);
+                                    var j, itemsToDelete = self.getFileList(_isInPath);
                                     
                                     for (j = 0; j < itemsToDelete.length; j++) {
-                                        this._index.removeEntry(itemsToDelete[j]);
+                                        self._index.removeEntry(itemsToDelete[j]);
                                     }
                                     
-                                    this._index.removeEntry(item);
-                                    this._impl.unwatchPath(item.fullPath);
+                                    self._index.removeEntry(item);
+                                    self._impl.unwatchPath(item.fullPath);
                                     // TODO: Remove and unwatch other directories contained within this directory.
                                     // getFileList() only returns files, and ignores directories.
                                 }
@@ -407,7 +409,7 @@ define(function (require, exports, module) {
                             item = contents[i];
                             if (!oldContents || oldContents.indexOf(item) === -1) {
                                 if (item.isDirectory()) {
-                                    this._scanDirectory(item.fullPath);
+                                    self._scanDirectory(item.fullPath);
                                 }
                             }
                         }
@@ -415,10 +417,10 @@ define(function (require, exports, module) {
             }
             
             // Trigger a change event
-            $(exports).trigger("change", entry);
+            $(this).trigger("change", entry);
         }
         // console.log("File/directory change: " + path + ", stat: " + stat);
-    }.bind(this);
+    };
     
     /**
      * Set the root directory for the project. This clears any existing file cache
@@ -448,7 +450,7 @@ define(function (require, exports, module) {
         
         // Initialize watchers
         this._impl.unwatchAll();
-        this._impl.initWatchers(this._watcherCallback);
+        this._impl.initWatchers(this._watcherCallback.bind(this));
         
         // Start indexing from the new root path
         this._scanDirectory(rootPath);
