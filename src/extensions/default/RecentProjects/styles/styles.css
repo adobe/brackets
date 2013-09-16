@@ -15,7 +15,7 @@
 
 .trash-icon {
     position: absolute;
-    right: 5px;
+    left: 7px;
     width: 16px;
     height: 16px;
     background-image: url("close-btn.svg");
@@ -74,11 +74,12 @@
 #project-dropdown.dropdown-menu .recent-folder-link
 {
 	display: block;
-	padding: 5px 26px 5px 15px;
+	padding: 5px 26px 5px 26px;
 }
 
 .recent-folder, #open-folder-link {
     color: #454545;
+    padding-left: 26px;
 }
 
 .recent-folder-path {
