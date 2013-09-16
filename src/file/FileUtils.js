@@ -315,17 +315,23 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the file extension for a file name
-     * @param {string} fileName file name with extension or just a file extension
-     * @return {string} File extension if found, otherwise return the original file name
+     * Get the filename extension.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
      */
-    function _getFileExtension(fileName) {
-        var i = fileName.lastIndexOf("."),
-            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
+    function getFilenameExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx      = baseName.lastIndexOf(".");
 
-        return ext;
+        if (idx === -1) {
+            return "";
+        }
+
+        return baseName.substr(idx);
     }
-    
+
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
@@ -340,7 +346,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
@@ -353,7 +359,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
     }
     
     /**
@@ -377,32 +383,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the filename extension.
-     *
-     * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the extension of a filename or empty string if
-     * the argument is a directory or a filename with no extension
-     */
-    function getFilenameExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
-            idx      = baseName.lastIndexOf(".");
-
-        if (idx === -1) {
-            return "";
-        }
-
-        return baseName.substr(idx);
-    }
-    
-    /**
      * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
     function _getFilenameWithoutExtension(filename) {
-        var extension = getFilenameExtension(filename);
-        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
+        return filename.slice(0, filename.lastIndexOf('.'));
     }
     
     /**
