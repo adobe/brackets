@@ -39,20 +39,20 @@ define(function (require, exports, module) {
         root: true,
         "cs": true,
         "de": true,
+        "es": true,
         "fi": true,
         "fr": true,
-        "nb": true,
-        "es": true,
+        "hu": true,
         "it": true,
+        "ja": true,
+        "nb": true,
         "pl": true,
         "pt-br": true,
         "pt-pt": true,
-        "ja": true,
-        "tr": true,
         "ru": true,
+        "sk" : true,
         "sv": true,
-        "zh-cn": true,
-        "hu" : true,
-        "sk" : true
+        "tr": true,
+        "zh-cn": true
     };
 });

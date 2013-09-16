@@ -79,6 +79,12 @@ define(function (require, exports, module) {
     var CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_AFTER = '<div data-brackets-id="206">before<div class="__brackets-ld-highlight"></div>after<img data-brackets-id="306"></div>';
     var CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_BEFORE = '<div data-brackets-id="207"><img data-brackets-id="307">before<div class="__brackets-ld-highlight"></div>after</div>';
     
+    // script and style tags
+    var SCRIPT_TAG = '<script data-brackets-id="401"></script>';
+    var STYLE_TAG = '<style data-brackets-id="402"></style>';
+    var SCRIPT_TAG_WITH_TEXT = '<script data-brackets-id="403">old text</script>';
+    var STYLE_TAG_WITH_TEXT = '<style data-brackets-id="404">old text</style>';
+    
     // attr
     var ATTR_SIMPLE = '<div data-brackets-id="100" class="foo"></div>';
     
@@ -428,7 +434,6 @@ define(function (require, exports, module) {
                         _valueExpected: "And: &, em-dash: —, heart: ❤"
                     });
                 });
-
             });
             
             describe("Text edits", function () {
@@ -472,6 +477,35 @@ define(function (require, exports, module) {
                         content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
                         _contentExpected: "And: &, em-dash: —, heart: ❤",
                         parentID: 40
+                    });
+                });
+
+                it("should not parse entities when inserting into <script>", function () {
+                    applyEdit(SCRIPT_TAG, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 401
+                    });
+                });
+                it("should not parse entities when inserting into <style>", function () {
+                    applyEdit(STYLE_TAG, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 402
+                    });
+                });
+                it("should not parse entities when replacing in <script>", function () {
+                    applyEdit(SCRIPT_TAG_WITH_TEXT, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 403
+                    });
+                });
+                it("should not parse entities when replacing in <style>", function () {
+                    applyEdit(STYLE_TAG_WITH_TEXT, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 404
                     });
                 });
             });
