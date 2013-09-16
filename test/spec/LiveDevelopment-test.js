@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         runs(function () {
             var curDoc =  DocumentManager.getCurrentDocument();
             localText = curDoc.getText();
-            localText += "\n .testClass { color:#090; }\n";
+            localText += "\n .testClass { background-color:#090; }\n";
             curDoc.setText(localText);
         });
 
@@ -469,50 +469,50 @@ define(function (require, exports, module) {
         
         this.category = "integration";
 
+        beforeFirst(function () {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow           = w;
+                Dialogs              = testWindow.brackets.test.Dialogs;
+                LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                DOMAgent             = testWindow.brackets.test.DOMAgent;
+                DocumentManager      = testWindow.brackets.test.DocumentManager;
+                CommandManager       = testWindow.brackets.test.CommandManager;
+                Commands             = testWindow.brackets.test.Commands;
+                NativeApp            = testWindow.brackets.test.NativeApp;
+                ProjectManager       = testWindow.brackets.test.ProjectManager;
+            });
+
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+        });
+
+        afterLast(function () {
+            runs(function () {
+                testWindow           = null;
+                Dialogs              = null;
+                LiveDevelopment      = null;
+                DOMAgent             = null;
+                DocumentManager      = null;
+                CommandManager       = null;
+                Commands             = null;
+                NativeApp            = null;
+                ProjectManager       = null;
+                SpecRunnerUtils.closeTestWindow();
+            });
+        });
+        
+        beforeEach(function () {
+            // verify live dev isn't currently active
+            runs(function () {
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
+            });
+        });
+        
+        afterEach(function () {
+            waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
+            testWindow.closeAllFiles();
+        });
+
         describe("CSS Editing", function () {
-
-            beforeFirst(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow           = w;
-                    Dialogs              = testWindow.brackets.test.Dialogs;
-                    LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
-                    DOMAgent             = testWindow.brackets.test.DOMAgent;
-                    DocumentManager      = testWindow.brackets.test.DocumentManager;
-                    CommandManager       = testWindow.brackets.test.CommandManager;
-                    Commands             = testWindow.brackets.test.Commands;
-                    NativeApp            = testWindow.brackets.test.NativeApp;
-                    ProjectManager       = testWindow.brackets.test.ProjectManager;
-                });
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-
-            afterLast(function () {
-                runs(function () {
-                    testWindow           = null;
-                    Dialogs              = null;
-                    LiveDevelopment      = null;
-                    DOMAgent             = null;
-                    DocumentManager      = null;
-                    CommandManager       = null;
-                    Commands             = null;
-                    NativeApp            = null;
-                    ProjectManager       = null;
-                    SpecRunnerUtils.closeTestWindow();
-                });
-            });
-            
-            beforeEach(function () {
-                // verify live dev isn't currently active
-                runs(function () {
-                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
-                });
-            });
-            
-            afterEach(function () {
-                waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
-                testWindow.closeAllFiles();
-            });
             
             it("should establish a browser connection for an opened html file", function () {
                 //open a file
@@ -571,7 +571,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
                     localText = curDoc.getText();
-                    localText += "\n .testClass { color:#090; }\n";
+                    localText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localText);
                 });
                 
@@ -614,7 +614,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
                     localCssText = curDoc.getText();
-                    localCssText += "\n .testClass { color:#090; }\n";
+                    localCssText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localCssText);
                 });
                 
@@ -642,7 +642,7 @@ define(function (require, exports, module) {
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(396);
+                    originalNode = DOMAgent.nodeAtLocation(414);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
@@ -672,7 +672,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(396);
+                    updatedNode = DOMAgent.nodeAtLocation(414);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -698,6 +698,96 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("HTML Editing", function () {
+
+            function _openSimpleHTML() {
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                });
+
+                openLiveDevelopmentAndWait();
+            }
+
+            function _setTextAndCheckStatus(doc, op, expectedStatus, errorLineNum) {
+                var spy = jasmine.createSpy();
+
+                runs(function () {
+                    // Install statusChange callback
+                    testWindow.$(LiveDevelopment).one("statusChange", spy);
+                    op.call();
+                });
+
+                waitsFor(function () { return spy.callCount > 0; }, "statusChange callback", 1000);
+
+                runs(function () {
+                    // Verify expected status
+                    expect(spy.argsForCall[0][1]).toEqual(expectedStatus);
+
+                    // Check for gutter style
+                    var syncErrorDOM    = testWindow.$(".live-preview-sync-error"),
+                        lineNumStr      = $(syncErrorDOM).find(".CodeMirror-linenumber").text(),
+                        lineNum         = (typeof lineNumStr === "string") ? parseInt(lineNumStr, 10) : -1;
+                    
+                    if (expectedStatus === LiveDevelopmentModule.STATUS_SYNC_ERROR) {
+                        expect(syncErrorDOM.length).toEqual(1);
+                        expect(lineNum).toEqual(errorLineNum);
+                    } else {
+                        expect(syncErrorDOM.length).toEqual(0);
+                    }
+                });
+            }
+
+            it("should report STATUS_SYNC_ERROR when HTML syntax is invalid", function () {
+                var doc,
+                    originalText,
+                    text;
+
+                _openSimpleHTML();
+
+                runs(function () {
+                    // Create syntax errors
+                    doc =  DocumentManager.getCurrentDocument();
+                    _setTextAndCheckStatus(doc, function () {
+                        doc.replaceRange("<", { line: 10, ch: 2});
+                    }, LiveDevelopmentModule.STATUS_SYNC_ERROR, 11);
+                });
+
+                runs(function () {
+                    // Undo syntax errors
+                    _setTextAndCheckStatus(doc, function () {
+                        testWindow.executeCommand(Commands.EDIT_UNDO);
+                    }, LiveDevelopmentModule.STATUS_ACTIVE);
+                });
+            });
+
+            it("should send edits to the live browser", function () {
+                var doc;
+
+                _openSimpleHTML();
+
+                runs(function () {
+                    // Spy on RemoteAgent
+                    spyOn(testWindow.brackets.test.RemoteAgent, "call").andCallThrough();
+
+                    // Create syntax errors
+                    doc =  DocumentManager.getCurrentDocument();
+                    doc.replaceRange("Live Preview in ", {line: 10, ch: 33});
+                });
+
+                runs(function () {
+                    var spy = testWindow.brackets.test.RemoteAgent.call,
+                        args = spy.callCount ? spy.argsForCall[0] : [],
+                        edit = args[1] && args[1][0];
+
+                    expect(spy.callCount).toBe(1);
+                    expect(args[0]).toEqual("applyDOMEdits");
+                    expect(edit.type).toEqual("textReplace");
+                    expect(edit.content).toEqual("Live Preview in Brackets is awesome!");
+                });
+            });
+
+        });
+
     });
 
     describe("Servers", function () {
