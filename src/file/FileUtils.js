@@ -237,7 +237,18 @@ define(function (require, exports, module) {
             return path;
         }
     }
-
+    
+    /**
+     * Get the base name of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        fullPath = canonicalizeFolderPath(fullPath);
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+    }
+    
     /**
      * Returns a native absolute path to the 'brackets' source directory.
      * Note that this only works when run in brackets/src/index.html, so it does
@@ -372,24 +383,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the base name of a file or a directory.
-     * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the base name of a file or the name of a
-     * directory
-     */
-    function getBaseName(fullPath) {
-        fullPath = canonicalizeFolderPath(fullPath);
-        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
-    }
-
-    /**
      * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
     function _getFilenameWithoutExtension(filename) {
-        return filename.slice(0, filename.lastIndexOf('.'));
+        var index = filename.lastIndexOf(".");
+        return index === -1 ? filename : filename.slice(0, index);
     }
     
     /**
