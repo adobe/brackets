@@ -107,7 +107,7 @@ define(function (require, exports, module) {
     BootstrapReporterView.prototype._handleRunnerStart = function (event, reporter) {
         var topLevelData,
             self = this;
-
+        
         // create top level suite list navigation
         this._createSuiteList(reporter.suites, reporter.sortedNames, reporter.totalSpecCount);
         

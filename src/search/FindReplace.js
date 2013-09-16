@@ -62,6 +62,9 @@ define(function (require, exports, module) {
 
     /** @type {$.Element} jQuery elements used in the replaceAll panel */
     var $replaceAllContainer,
+        $replaceAllWhat,
+        $replaceAllWith,
+        $replaceAllSummary,
         $replaceAllTable;
 
     var modalBar,
@@ -179,8 +182,16 @@ define(function (require, exports, module) {
     }
     
     var queryDialog = Strings.CMD_FIND +
-            ": <input type='text' style='width: 10em'/> <div class='message'><span id='find-counter'></span> " +
-            "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
+            ": <input type='text' style='width: 10em'/>" +
+            "<div class='navigator'>" +
+                "<button id='find-prev' class='btn' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
+                "<button id='find-next' class='btn' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
+            "</div>" +
+            "<div class='message'>" +
+                "<span id='find-counter'></span> " +
+                "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
+            "</div>" +
+            "<div class='error'></div>";        
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -200,6 +211,15 @@ define(function (require, exports, module) {
         // occurrence.
         var searchStartPos = cm.getCursor(true);
         
+        //Helper method to enable next / prev navigation in Find modal bar.
+        function enableFindNavigator(show) {
+            if (show) {
+                $(".modal-bar .navigator").css("display", "inline-block");
+            } else {
+                $(".modal-bar .navigator").css("display", "none");
+            }
+        }
+        
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
         function findFirst(query) {
@@ -212,12 +232,16 @@ define(function (require, exports, module) {
                 if (!state.query) {
                     // Search field is empty - no results
                     $("#find-counter").text("");
+                    enableFindNavigator(false);
                     cm.setCursor(searchStartPos);
                     if (modalBar) {
                         getDialogTextField().removeClass("no-results");
                     }
                     return;
                 }
+                
+                //Flag that controls the navigation controls.
+                var enableNavigator = false;
                 
                 // Highlight all matches
                 // (Except on huge documents, where this is too expensive)
@@ -240,10 +264,23 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                    $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                                        
+                    if (resultCount === 0) {
+                        $("#find-counter").text(Strings.FIND_NO_RESULTS);
+                    } else if (resultCount === 1) {
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);                        
+                    } else {
+                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                        enableNavigator = true;
+                    }
+
                 } else {
                     $("#find-counter").text("");
+                    enableNavigator = true;
                 }
+                
+                //Enable Next/Prev navigator buttons if necessary
+                enableFindNavigator(enableNavigator);
                 
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(editor, rev);
@@ -278,6 +315,14 @@ define(function (require, exports, module) {
             
             // As soon as focus goes back to the editor, restore normal selection color
             $(cm.getWrapperElement()).removeClass("find-highlighting");
+        });
+        
+        modalBar.getRoot().on("click", function (e) {
+            if (e.target.id === "find-next") {
+                _findNext();
+            } else if (e.target.id === "find-prev") {
+                _findPrevious();
+            }
         });
         
         var $input = getDialogTextField();
@@ -343,7 +388,7 @@ define(function (require, exports, module) {
                 index:     results.length, // add indexes to array
                 from:      from,
                 to:        to,
-                line:      StringUtils.format(Strings.FIND_IN_FILES_LINE, from.line + 1),
+                line:      from.line + 1,
                 pre:       line.slice(0, from.ch),
                 highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
                 post:      multiLine ? "\u2026" : line.slice(to.ch)
@@ -355,16 +400,18 @@ define(function (require, exports, module) {
         }
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
-        var summary = StringUtils.format(
-            Strings.FIND_REPLACE_TITLE,
-            StringUtils.htmlEscape(replaceWhat.toString()),
-            StringUtils.htmlEscape(replaceWith.toString()),
-            results.length,
-            results.length >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
-        );
+        var resultsLength = results.length,
+            summary = StringUtils.format(
+                Strings.FIND_REPLACE_TITLE_PART3,
+                resultsLength,
+                resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                resultsLength >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+            );
 
         // Insert the search summary
-        $replaceAllContainer.find(".title").html(summary);
+        $replaceAllWhat.text(replaceWhat.toString());
+        $replaceAllWith.text(replaceWith.toString());
+        $replaceAllSummary.html(summary);
 
         // All checkboxes are checked by default
         $replaceAllContainer.find(".check-all").prop("checked", true);
@@ -414,7 +461,7 @@ define(function (require, exports, module) {
     var doReplaceConfirm = Strings.CMD_REPLACE +
             '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
             '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
-            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_ALL +
+            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
             '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
 
     function replace(editor, all) {
@@ -530,6 +577,9 @@ define(function (require, exports, module) {
         var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);
         replaceAllPanel      = PanelManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
         $replaceAllContainer = replaceAllPanel.$panel;
+        $replaceAllWhat      = $replaceAllContainer.find(".replace-what");
+        $replaceAllWith      = $replaceAllContainer.find(".replace-with");
+        $replaceAllSummary   = $replaceAllContainer.find(".replace-summary");
         $replaceAllTable     = $replaceAllContainer.children(".table-container");
 
         // Attach events to the panel

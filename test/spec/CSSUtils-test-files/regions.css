@@ -1,0 +1,93 @@
+/* basic tests */
+article.content {
+    flow-into: main;
+}
+
+section.layout > div {
+    flow-from: main;
+}
+
+
+#jeff.content {
+    flow-into: jeff;
+}
+
+#jeff.layout > div {
+    flow-from: jeff;
+}
+
+/* exclude matches inside comments tests */
+
+/*
+p.content {
+    flow-into: carter;
+}
+
+p.layout > div {
+    flow-from: carter;
+}
+*/
+
+/* exclude matches inside strings tests */
+
+div {
+    content: "/* p.content { flow-into: carter; } p.layout > div { flow-from: carter; } */";
+}
+
+
+div {
+    content: "html.content { flow-into: dexter; } html.layout > div { flow-from: dexter; }";
+}
+
+
+/*
+div.content {
+    content: "flow-into: martin;";
+}
+
+div.layout > div {
+    content: "flow-from: martin;";
+}
+*/
+
+/* multi-line property tests */
+
+#randy.content {
+    flow-into:   
+        randy
+        ;
+}
+
+#randy.layout > div {
+    flow-from:  randy;
+}
+
+/* test to exclude duplicates */
+#yin.content { 
+    flow-into: jeff;
+}
+
+#yin.layout > div {
+    flow-from: jeff;
+}
+
+/* flow-from only tests */
+#raymond.layout > div {
+    flow-from: lim;
+}
+
+/* underscores and dashes */
+#ingo.content {
+    flow-from: edge-code_now_shipping; 
+}
+
+/* invalid / ignored flows */
+#test364.content {
+    flow-from: default; 
+    flow-from: none; 
+    flow-from: inherit;
+    flow-from: auto;
+    flow-from: initial;
+    flow-from: content;
+    flow-from: element;
+}

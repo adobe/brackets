@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
+/*global brackets, $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -33,7 +33,9 @@ define(function (require, exports, module) {
         StringUtils             = require("utils/StringUtils"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils               = require("file/FileUtils"),
-        DefaultDialogs          = require("widgets/DefaultDialogs");
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
+        FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
+        UserServer              = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // The following are all loaded from the test window
     var CommandManager,
@@ -393,7 +395,7 @@ define(function (require, exports, module) {
                     testDocument = mock.doc;
                     testEditor = mock.editor;
                     
-                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
+                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testEditor);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
                     testHTMLDoc.setInstrumentationEnabled(true);
@@ -413,15 +415,15 @@ define(function (require, exports, module) {
             });
             
             it("should highlight the image for cursor positions inside img tag.", function () {
-                verifyTagWithId(58, 4, "img");  // before <img
-                verifyTagWithId(58, 95, "img"); // after />
-                verifyTagWithId(58, 65, "img"); // inside src attribute value
+                verifyTagWithId(37, 4, "img");  // before <img
+                verifyTagWithId(37, 95, "img"); // after />
+                verifyTagWithId(37, 65, "img"); // inside src attribute value
     
             });
     
             it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
-                verifyTagWithId(58, 1, "a");  // before "   <img"
-                verifyTagWithId(59, 0, "a");  // before </a>
+                verifyTagWithId(37, 1, "a");  // before "   <img"
+                verifyTagWithId(38, 0, "a");  // before </a>
             });
     
             it("No highlight when the cursor position is outside of the 'html' tag", function () {
@@ -474,7 +476,6 @@ define(function (require, exports, module) {
                     testWindow           = w;
                     Dialogs              = testWindow.brackets.test.Dialogs;
                     LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
-                    LiveDevServerManager = testWindow.brackets.test.LiveDevServerManager;
                     DOMAgent             = testWindow.brackets.test.DOMAgent;
                     DocumentManager      = testWindow.brackets.test.DocumentManager;
                     CommandManager       = testWindow.brackets.test.CommandManager;
@@ -491,7 +492,6 @@ define(function (require, exports, module) {
                     testWindow           = null;
                     Dialogs              = null;
                     LiveDevelopment      = null;
-                    LiveDevServerManager = null;
                     DOMAgent             = null;
                     DocumentManager      = null;
                     CommandManager       = null;
@@ -511,10 +511,7 @@ define(function (require, exports, module) {
             
             afterEach(function () {
                 waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
-                
-                runs(function () {
-                    testWindow.closeAllFiles();
-                });
+                testWindow.closeAllFiles();
             });
             
             it("should establish a browser connection for an opened html file", function () {
@@ -636,15 +633,16 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
                 
                 waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC) &&
-                        (DOMAgent.root);
-                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC ||
+                            LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE) &&
+                            (DOMAgent.root);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC or STATUS_ACTIVE and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(388);
+                    originalNode = DOMAgent.nodeAtLocation(396);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
@@ -674,7 +672,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(388);
+                    updatedNode = DOMAgent.nodeAtLocation(396);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -690,7 +688,7 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
-                    
+                
                 // Save original content back to the file after this test passes/fails
                 runs(function () {
                     htmlDoc.setText(origHtmlText);
@@ -698,60 +696,67 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Restoring the original html content");
                 });
             });
-
-            // This tests url mapping -- files do not need to exist on disk
-            it("should translate urls to/from local paths", function () {
-                // Define testing parameters
-                var projectPath     = testPath + "/",
-                    outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
-                    fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
-                    fileRelPath     = "subdir/index.html",
-                    baseUrl,
-                    provider;
-
-                // File paths used in tests:
-                //  * file1 - file inside  project
-                //  * file2 - file outside project
-                // Encode the URLs
-                var file1Path       = projectPath + fileRelPath,
-                    file2Path       = outsidePath + fileRelPath,
-                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
-                    file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
-                    file1ServerUrl;
-
-                // Should use file url when no server provider
-                runs(function () {
-                    LiveDevelopment._setServerProvider(null);
-                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
-                    expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
-                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
-                });
-
-
-                // Set user defined base url, and then get provider
-                runs(function () {
-                    baseUrl         = "http://localhost/";
-                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
-                    ProjectManager.setBaseUrl(baseUrl);
-                    provider = LiveDevServerManager.getProvider(file1Path);
-                    expect(provider).toBeTruthy();
-                    LiveDevelopment._setServerProvider(provider);
-
-                    // Should use server url with base url
-                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
-                    expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
-
-                    // File outside project should still use file url
-                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
-
-                    // Clear base url
-                    LiveDevelopment._setServerProvider(null);
-                    ProjectManager.setBaseUrl("");
-                });
-            });
         });
         
+    });
+
+    describe("Servers", function () {
+        // Define testing parameters, files do not need to exist on disk
+        // File paths used in tests:
+        //  * file1 - file inside  project
+        //  * file2 - file outside project
+        // Encode the URLs
+        var projectPath     = testPath + "/",
+            outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
+            fileProtocol    = (brackets.platform === "win") ? "file:///" : "file://",
+            fileRelPath     = "/subdir/index.html",
+            file1Path       = projectPath + fileRelPath,
+            file2Path       = outsidePath + fileRelPath,
+            file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
+            file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+            file1ServerUrl;
+
+        function createPathResolver(root) {
+            return function (path) {
+                if (path.indexOf(root) === 0) {
+                    return path.slice(root.length);
+                }
+
+                return path;
+            };
+        }
+
+        describe("UserServer", function () {
+
+            it("should translate local paths to server paths", function () {
+                var config = { baseUrl: "http://localhost/", root: projectPath, pathResolver: createPathResolver(projectPath) },
+                    server = new UserServer(config);
+
+                file1ServerUrl  = config.baseUrl + encodeURI(fileRelPath);
+
+                // Should use server url with base url
+                expect(server.pathToUrl(file1Path)).toBe(file1ServerUrl);
+                expect(server.urlToPath(file1ServerUrl)).toBe(file1Path);
+
+                // File outside project should still use file url
+                expect(server.pathToUrl(file2Path)).toBe(null);
+                expect(server.urlToPath(file2FileUrl)).toBe(null);
+            });
+
+        });
+
+        describe("FileServer", function () {
+
+            it("should translate local paths to file: URLs", function () {
+                var config = { baseUrl: "", root: projectPath, pathResolver: createPathResolver(projectPath) },
+                    server = new FileServer(config);
+
+                expect(server.pathToUrl(file1Path)).toBe(file1FileUrl);
+                expect(server.urlToPath(file1FileUrl)).toBe(file1Path);
+                expect(server.pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(server.urlToPath(file2FileUrl)).toBe(file2Path);
+            });
+
+        });
     });
 });

@@ -80,7 +80,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Błąd przy próbie zainicjowania serwera HTTP dla Podglądu błyskawicznego. Spróbuj ponownie.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Witaj w Podglądzie Błyskawicznym!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Podgląd Błyskawiczny podłączył {APP_NAME} do twojej przeglądarki. Pokazuje on twoją stronę HTML bezpośrednio w przeglądarce, oraz aktualizuje ją natychmiast po wprowadzeniu zmian w kodzie.<br /><br />W aktualnej wersji {APP_NAME}, Podgląd Błyskawiczny działa wyłącznie z <strong>Google Chrome</strong> i aktualizuje w czasie rzeczywistym <strong>pliki CSS</strong>. Zmiany w plikach HTML lub JavaScript są ładowane automatycznie po zapisaniu pliku.<br /><br />(Ta wiadomość wyświetla się tylko raz.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a class=\"clickable-link\" data-href=\"{0}\">Rozwiązywanie problemów z Podglądem Błyskawicznym</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a href='{0}' title='{0}'>Rozwiązywanie problemów z Podglądem Błyskawicznym</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Podgląd Błyskawiczny",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Podgląd Błyskawiczny: Łączenie\u2026",
@@ -261,8 +261,8 @@ define({
     "ABOUT"                                : "O programie",
     "CLOSE"                                : "Zamknij",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> i zostały załączone jako odnośnik.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentacja i pliki żródłowe dostępne po adresem: <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> i zostały załączone jako odnośnik.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentacja i pliki żródłowe dostępne po adresem: <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Wykonano przy użyciu \u2764 i JavaScriptu przez:",
     "ABOUT_TEXT_LINE6"                     : "Mnóstwo ludzi (niestety mamy problem z załadowaniem pełnej listy w tym momencie).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostępna jest nowa wersja aplikacji {APP_NAME}! Kliknij by dowiedzieć się więcej.",
@@ -276,7 +276,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adres URL nie może zawierać parametrów wyszukiwania takich jak \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Nieznany błąd podczas parsowania adresu URL.",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL.",
     
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",

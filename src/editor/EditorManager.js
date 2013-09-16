@@ -439,12 +439,13 @@ define(function (require, exports, module) {
      *    determine whether it needs to refresh.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
-        
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-                $(curRoot).height(editorAreaHt);
+                // Call setSize() instead of $.height() to allow CodeMirror to
+                // check for options like line wrapping
+                _currentEditor.setSize(null, editorAreaHt);
                 if (refreshFlag === undefined) {
                     refreshFlag = REFRESH_FORCE;
                 }
@@ -533,6 +534,13 @@ define(function (require, exports, module) {
         var createdNewEditor = false;
         if (!document._masterEditor) {
             createdNewEditor = true;
+
+            // Performance (see #4757) Chrome wastes time messing with selection
+            // that will just be changed at end, so clear it for now
+            if (window.getSelection && window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            }
+            
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
@@ -794,34 +802,34 @@ define(function (require, exports, module) {
 
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
-    $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
+    $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
+    $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
     // For unit tests and internal use only
-    exports._openInlineWidget = _openInlineWidget;
-    exports._createFullEditorForDocument = _createFullEditorForDocument;
-    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
-    exports._getViewState = _getViewState;
-    exports._resetViewStates = _resetViewStates;
-    exports._doShow = _doShow;
-    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
+    exports._openInlineWidget             = _openInlineWidget;
+    exports._createFullEditorForDocument  = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded      = _destroyEditorIfUnneeded;
+    exports._getViewState                 = _getViewState;
+    exports._resetViewStates              = _resetViewStates;
+    exports._doShow                       = _doShow;
+    exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
-    exports.REFRESH_SKIP = REFRESH_SKIP;
+    exports.REFRESH_SKIP  = REFRESH_SKIP;
     
     // Define public API
-    exports.setEditorHolder = setEditorHolder;
-    exports.getCurrentFullEditor = getCurrentFullEditor;
+    exports.setEditorHolder               = setEditorHolder;
+    exports.getCurrentFullEditor          = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
-    exports.focusEditor = focusEditor;
-    exports.getFocusedEditor = getFocusedEditor;
-    exports.getActiveEditor = getActiveEditor;
-    exports.getFocusedInlineWidget = getFocusedInlineWidget;
-    exports.resizeEditor = resizeEditor;
-    exports.registerInlineEditProvider = registerInlineEditProvider;
-    exports.registerInlineDocsProvider = registerInlineDocsProvider;
-    exports.registerJumpToDefProvider = registerJumpToDefProvider;
-    exports.getInlineEditors = getInlineEditors;
-    exports.closeInlineWidget = closeInlineWidget;
+    exports.focusEditor                   = focusEditor;
+    exports.getFocusedEditor              = getFocusedEditor;
+    exports.getActiveEditor               = getActiveEditor;
+    exports.getFocusedInlineWidget        = getFocusedInlineWidget;
+    exports.resizeEditor                  = resizeEditor;
+    exports.registerInlineEditProvider    = registerInlineEditProvider;
+    exports.registerInlineDocsProvider    = registerInlineDocsProvider;
+    exports.registerJumpToDefProvider     = registerJumpToDefProvider;
+    exports.getInlineEditors              = getInlineEditors;
+    exports.closeInlineWidget             = closeInlineWidget;
 });

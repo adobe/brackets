@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument(),
             windowTitle = brackets.config.app_title;
 
-        if (brackets.inBrowser) {
+        if (!brackets.nativeMenus) {
             if (currentDoc) {
                 _$title.text(_currentTitlePath);
                 _$title.attr("title", currentDoc.file.fullPath);
@@ -119,7 +119,7 @@ define(function (require, exports, module) {
     /**
      * Returns a short title for a given document.
      *
-     * @param {Document} doc 
+     * @param {Document} doc
      * @return {string} - a short title for doc.
      */
     function _shortTitleForDocument(doc) {
@@ -216,11 +216,11 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Creates a document and displays an editor for the specified file path. 
+     * Creates a document and displays an editor for the specified file path.
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a new 
+     * @return {$.Promise} a jQuery promise that will be resolved with a new
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function _doOpenWithOptionalPath(fullPath, silent) {
@@ -269,12 +269,12 @@ define(function (require, exports, module) {
      * @private
      * Splits a decorated file path into its parts.
      * @param {?string} path - a string of the form "fullpath[:lineNumber[:columnNumber]]"
-     * @return {{path: string, line: ?number, column: ?number}} 
+     * @return {{path: string, line: ?number, column: ?number}}
      */
     function _parseDecoratedPath(path) {
         var result = {path: path, line: null, column: null};
         if (path) {
-            // If the path has a trailing :lineNumber and :columnNumber, strip 
+            // If the path has a trailing :lineNumber and :columnNumber, strip
             // these off and assign to result.line and result.column.
             var matchResult = /(.+?):([0-9]+)(:([0-9]+))?$/.exec(path);
             if (matchResult) {
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         // from command line: ...../Brackets.app/Contents path         - where 'path' is undecorated
         // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line"
         // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line:column"
-        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated 
+        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {string} fileExt  The file extension
      * @param {boolean} isFolder True if the suggestion is for a folder name
-     * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with 
+     * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
      */
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
@@ -1228,7 +1228,6 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
@@ -1236,18 +1235,20 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
-    CommandManager.register(Strings.CMD_BEFORE_MENUPOPUP,   Commands.APP_BEFORE_MENUPOPUP, _handleBeforeMenuPopup);
-    
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
     
+    // Those commands have no UI representation, and are only used internally 
+    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);
+    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,  _handleBeforeMenuPopup);
+    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,     handleFileCloseWindow);
+    
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
 
-    // Reset the untitled document counter before changing projects    
+    // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
 });

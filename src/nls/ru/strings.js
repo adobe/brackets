@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Для запуска Интерактивного Предпросмотра с серверным файлом, вы должны указать основной URL для этого проекта.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Добро пожаловать в Интерактивный Предпросмотр!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Интерактивный Предпросмотр подключает {APP_NAME} к вашему браузеру. Он запускает предпросмотр HTML файла в вашем браузере и к тому же мгновенно обновляет предпросмотр при редактировании кода.<br /><br />В этой ранней версии {APP_NAME}, Интерактивный Предпросмотр работает только с <strong>Google Chrome</strong> и обновляется в реальном времени при редактировании <strong>CSS файлов</strong>. Изменения в HTML или Javascript файлах автоматически перезагружаются при сохранении.<br /><br />(Вы увидите это сообщение только один раз.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Для дополнительной информации, смотрите <a class=\"clickable-link\" data-href=\"{0}\">Поиск и устранение неисправностей ошибок подключения Live Development</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Для дополнительной информации, смотрите <a href='{0}' title='{0}'>Поиск и устранение неисправностей ошибок подключения Live Development</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Интерактивный Предпросмотр: Подключение\u2026",
@@ -243,8 +243,8 @@ define({
     "ABOUT"                                : "О программе",
     "CLOSE"                                : "Закрыть",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
-    "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> и включены здесь в качестве ссылки.",
+    "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая сборка {APP_NAME} доступна. Вот некоторые из новых функций:",
@@ -257,7 +257,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Основной URL не может содержать такие параметры поиска как \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Основной URL не может содержать такие хеши как \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Специальные символы как '{0}' должны быть %-экранированы.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Неизвестная ошибка при парсинге основного URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Неизвестная ошибка при парсинге основного URL",
     
     
     // extensions/default/DebugCommands

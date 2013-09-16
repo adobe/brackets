@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -36,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
     "FILE_EXISTS_ERR"                   : "El archivo ya existe.",
+    "FILE"                              : "archivo",
+    "DIRECTORY"                         : "directorio",
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
@@ -46,6 +49,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Error abriendo archivo",
     "ERROR_OPENING_FILE"                : "Ha ocurrido un error al intentar abrir el archivo <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "Ha ocurrido un error al intentar abrir los siguientes archivos:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error recargando cambios desde disco",
     "ERROR_RELOADING_FILE"              : "Ha ocurrido un error al intentar recargar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error guardando archivo",
@@ -54,11 +58,11 @@ define({
     "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Nombre de archivo inválido",
+    "INVALID_FILENAME_TITLE"            : "Nombre de {0} inválido",
     "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\| o usar palabras reservadas del sistema",
-    "FILE_ALREADY_EXISTS"               : "El archivo <span class='dialog-filename'>{0}</span> ya existe.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creando archivo",
-    "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el archivo <span class='dialog-filename'>{0}</span>. {1}",
+    "FILE_ALREADY_EXISTS"               : "El {0} <span class='dialog-filename'>{0}</span> ya existe.",
+    "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
+    "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
@@ -82,7 +86,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a class=\"clickable-link\" data-href=\"{0}\">Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando\u2026",
@@ -99,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
+    "CONFIRM_FOLDER_DELETE"             : "¿Está seguro que desea eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
@@ -106,20 +112,30 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Utiliza /re/ para búsquedas con expresiones regulares",
     "FIND_RESULT_COUNT"                 : "{0} resultados",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
+    "FIND_NO_RESULTS"                   : "No hay resultados",
     "WITH"                              : "Con",
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
+    "BUTTON_ALL"                        : "Todos\u2026",
     "BUTTON_STOP"                       : "Parar",
+    "BUTTON_REPLACE"                    : "Reemplazar",
 
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
     "CHOOSE_FOLDER"                     : "Elige una carpeta",
 
-    "RELEASE_NOTES"                     : "Notas de versión",
+    "RELEASE_NOTES"                     : "Notas sobre la versión",
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_REPLACE_TITLE_PART1"          : "Reemplazar \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} en {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_FILE"                : "archivo",
@@ -127,7 +143,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "coincidencia",
     "FIND_IN_FILES_MATCHES"             : "coincidencias",
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
-    "FIND_IN_FILES_MAX"                 : " (mostrando las primeras {0} coincidencias)",
+    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "línea: {0}",
 
@@ -144,7 +160,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
@@ -153,6 +168,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Línea {0}, Columna {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} columna seleccionada",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} columnas seleccionadas",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} línea seleccionada",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} líneas seleccionadas",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Haz click para usar espacios en la sangría",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Haz click para usar tabulaciones en la sangría",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Haz click para cambiar el número de espacios usados en la sangría",
@@ -168,10 +187,11 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Archivo",
-    "CMD_FILE_NEW"                        : "Nuevo",
+    "CMD_FILE_NEW_UNTITLED"               : "Nuevo",
+    "CMD_FILE_NEW"                        : "Nuevo archivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nueva carpeta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Añadir a espacio de trabajo",
+    "CMD_ADD_TO_WORKING_SET"              : "Añadir al espacio de trabajo",
     "CMD_OPEN_FOLDER"                     : "Abrir carpeta\u2026",
     "CMD_FILE_CLOSE"                      : "Cerrar",
     "CMD_FILE_CLOSE_ALL"                  : "Cerrar todo",
@@ -179,13 +199,13 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
-    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vivo",
+    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Desarrollo en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_FILE_DELETE"                     : "Eliminar",
     "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
     "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
-    "CMD_FILE_REFRESH"                    : "Actualizar",
+    "CMD_FILE_REFRESH"                    : "Actualizar árbol de archivos",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
@@ -219,7 +239,7 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Mostrar sugerencias de código",
     
     // View menu commands
-    "VIEW_MENU"                           : "Visualización",
+    "VIEW_MENU"                           : "Ver",
     "CMD_HIDE_SIDEBAR"                    : "Ocultar menú lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar menú lateral",
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamaño de fuente",
@@ -264,16 +284,16 @@ define({
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
-    "CMD_BEFORE_MENUPOPUP"                : "Antes del Menu Emergente",
+    "CMD_BEFORE_MENUPOPUP"                : "Antes del Menú Emergente",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
-    "SEARCH_RESULTS"                       : "Resultados de búsqueda",
     "OK"                                   : "Aceptar",
     "DONT_SAVE"                            : "No guardar",
     "SAVE"                                 : "Guardar",
     "CANCEL"                               : "Cancelar",
+    "DELETE"                               : "Eliminar",
     "RELOAD_FROM_DISK"                     : "Volver a cargar desde disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
@@ -281,11 +301,11 @@ define({
     "ABOUT"                                : "Acerca de\u2026",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
-    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> y se incluyen aquí como referencia.",
+    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
@@ -297,14 +317,17 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     
     // Extension Management strings
     "INSTALL"                              : "Instalar",
+    "UPDATE"                               : "Actualizar",
     "REMOVE"                               : "Eliminar",
-    "OVERWRITE"                            : "Sobreescribir",
+    "OVERWRITE"                            : "Sobrescribir",
     "CANT_REMOVE_DEV"                      : "Las extensiones en la carpeta \"dev\" se deben eliminar manualmente.",
+    "CANT_UPDATE"                          : "La actualización no es compatible con esta versión de {APP_NAME}.",
     "INSTALL_EXTENSION_TITLE"              : "Instalar extensión",
+    "UPDATE_EXTENSION_TITLE"               : "Actualizar extensión",
     "INSTALL_EXTENSION_LABEL"              : "URL de la extensión",
     "INSTALL_EXTENSION_HINT"               : "URL del archivo zip de la extensión o del repositorio de Github",
     "INSTALLING_FROM"                      : "Instalando extensión desde {0}\u2026",
@@ -324,9 +347,9 @@ define({
     "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
-    "EXTENSION_ALREADY_INSTALLED"          : "Instalar este paquete sobreescribirá una extensión instalada previamente. ¿Deseas sobreescribir la antigua extensión?",
-    "EXTENSION_SAME_VERSION"               : "La versión de este paquete es la misma que el que está instalado actualmente. ¿Deseas sobreescribir la instalación actual?",
-    "EXTENSION_OLDER_VERSION"              : "La versión {0} de este paquete es más antigua que la instalada actualmente ({1}). ¿Deseas sobreescribir la instalación actual?",
+    "EXTENSION_ALREADY_INSTALLED"          : "Instalar este paquete sobrescribirá una extensión instalada previamente. ¿Deseas sobrescribir la antigua extensión?",
+    "EXTENSION_SAME_VERSION"               : "La versión de este paquete es la misma que la instalada actualmente. ¿Deseas sobreescribir la instalación actual?",
+    "EXTENSION_OLDER_VERSION"              : "La versión {0} de este paquete es más antigua que la instalada actualmente ({1}). ¿Deseas sobrescribir la instalación actual?",
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
@@ -366,8 +389,12 @@ define({
     "CHANGE_AND_QUIT"                      : "Cambiar extensiones y salir",
     "UPDATE_AND_QUIT"                      : "Actualizar extensiones y salir",
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
-    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en el botón Instalar desde URL para empezar.",
+    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en la pestaña Disponibles para empezar.",
     "NO_EXTENSION_MATCHES"                 : "No hay extensiones que coincidan con tu búsqueda.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Ten cuidado al instalar extensiones desde una fuente desconocida.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
+    "EXTENSIONS_UPDATES_TITLE"             : "Actualizaciones",
 
     /**
      * Unit names
@@ -400,6 +427,7 @@ define({
     "LOCALE_DE"                                 : "Alemán",
     "LOCALE_EN"                                 : "Inglés",
     "LOCALE_ES"                                 : "Español",
+    "LOCALE_FI"                                 : "Finlandés",
     "LOCALE_FR"                                 : "Francés",
     "LOCALE_IT"                                 : "Italiano",
     "LOCALE_JA"                                 : "Japonés",
@@ -424,6 +452,8 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar sugerencias de parámetros",
+    "NO_ARGUMENTS"                              : "<no hay parámetros>",
     
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Habilitar JSLint",
@@ -434,7 +464,7 @@ define({
     "JSLINT_NO_ERRORS"                          : "No hay errores de JSLint. ¡Buen trabajo!",
     "JSLINT_DISABLED"                           : "JSLint está deshabilitado o no soporta el archivo actual",
     
-    // extensions/default/QuickView 
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
     
     // extensions/default/WebPlatformDocs

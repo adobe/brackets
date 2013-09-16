@@ -55,7 +55,7 @@ define(function (require, exports, module) {
 
         var obj = PathUtils.parseUrl(url);
         if (!obj) {
-            result = Strings.BASEURL_ERROR_UNKOWN_ERROR;
+            result = Strings.BASEURL_ERROR_UNKNOWN_ERROR;
         } else if (obj.href.search(/^(http|https):\/\//i) !== 0) {
             result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, obj.href.substring(0, obj.href.indexOf("//")));
         } else if (obj.search !== "") {

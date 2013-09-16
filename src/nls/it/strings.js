@@ -79,7 +79,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Errore durante l'avvio del server HTTP server per i file di sviluppo in tempo reale. Riprova ancora.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell'Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l'anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per magiorni informazioni leggi <a class=\"clickable-link\" data-href=\"{0}\">Risoluzione dei problemi di connessione a Anteprima Live</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per magiorni informazioni leggi <a href='{0}' title='{0}'>Risoluzione dei problemi di connessione a Anteprima Live</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Anteprima Live",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Anteprima Live: Connessione\u2026",
@@ -249,8 +249,8 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Chiudi",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} build sperimentale {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> e incorporati per riferimento in questo documento.",
-    "ABOUT_TEXT_LINE4"                     : "Documentazione e codice sorgente sono disponibili all'indirizzo <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> e incorporati per riferimento in questo documento.",
+    "ABOUT_TEXT_LINE4"                     : "Documentazione e codice sorgente sono disponibili all'indirizzo <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "E' disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
     "UPDATE_AVAILABLE_TITLE"               : "Aggiornamento disponibile",
     "UPDATE_MESSAGE"                       : "Hey, è disponibile una nuova versione di {APP_NAME}. Nuove caratteristiche:",
@@ -262,7 +262,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "L'URL di base non può contenere parametri di ricerca come \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "L'URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "I caratteri speciali come '{0}' devono essere %-encodate.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Trovato un carattere sconosciuto durante il parsing della URL di base",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Trovato un carattere sconosciuto durante il parsing della URL di base",
     
     
     // extensions/default/DebugCommands

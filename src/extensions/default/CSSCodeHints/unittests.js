@@ -22,13 +22,17 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
 
 define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        DocumentManager = brackets.getModule("document/DocumentManager"),
+        FileUtils       = brackets.getModule("file/FileUtils"),
+        testContentCSS  = require("text!unittest-files/regions.css"),
+        testContentHTML = require("text!unittest-files/region-template.html"),
         CSSCodeHints    = require("main");
        
     describe("CSS Code Hinting", function () {
@@ -53,7 +57,25 @@ define(function (require, exports, module) {
                              "} \n";
         
         var testDocument, testEditor;
-    
+
+        /* 
+         * Create a mockup editor with the given content and language id.
+         *
+         * @param {string} content - content for test window
+         * @param {string} languageId
+         */
+        function setupTest(content, languageId) {
+            var mock = SpecRunnerUtils.createMockEditor(content, languageId);
+            testDocument = mock.doc;
+            testEditor = mock.editor;
+        }
+
+        function tearDownTest() {
+            SpecRunnerUtils.destroyMockEditor(testDocument);
+            testEditor = null;
+            testDocument = null;
+        }
+
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider, implicitChar) {
             expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
@@ -114,7 +136,7 @@ define(function (require, exports, module) {
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
             
-            it("should list all prop-namehints in new line", function () {
+            it("should list all prop-name hints in new line", function () {
                 testEditor.setCursorPos({ line: 5, ch: 1 });
                 
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
@@ -529,6 +551,87 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "none");  // first hint should be none
                 verifyAllValues(hintList, ["none"]);
+            });
+        });
+        
+        describe("Named flow hints for flow-into and flow-from properties in a CSS file", function () {
+            beforeEach(function () {
+                setupTest(testContentCSS, "css");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should list more than 2 value hints for flow-from", function () {
+                testEditor.setCursorPos({ line: 66, ch: 15 });    // after flow-from
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "edge-code_now_shipping");  // first hint should be edge-code_now_shipping
+                verifyAllValues(hintList, ["edge-code_now_shipping", "inherit", "jeff", "lim", "main", "none", "randy"]);
+            });
+
+            it("should list more than 1 value hint for flow-into", function () {
+                testEditor.setCursorPos({ line: 77, ch: 4 });
+                selectHint(CSSCodeHints.cssPropHintProvider, "flow-into");
+                expect(testDocument.getLine(77)).toBe("    flow-into:");
+                expectCursorAt({ line: 77, ch: 14 });
+
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "edge-code_now_shipping");  // first hint should be edge-code_now_shipping
+                verifyAllValues(hintList, ["edge-code_now_shipping", "jeff", "lim", "main", "none", "randy"]);
+            });
+            
+            it("should NOT include partially entered named flow value in hint list", function () {
+                // Insert a letter for a new named flow after flow-from: on line 66
+                testDocument.replaceRange("m", { line: 66, ch: 15 });
+                
+                testEditor.setCursorPos({ line: 66, ch: 16 });    // after flow-from: m
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAllValues(hintList, ["main"]);
+            });
+
+        });
+
+        describe("Named flow hints inside a style block of an HTML", function () {
+            beforeEach(function () {
+                setupTest(testContentHTML, "html");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should include only 2 named flows available in the style block for flow-from", function () {
+                testEditor.setCursorPos({ line: 28, ch: 21 });    // after flow-from
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "article");  // first hint should be article
+                verifyAllValues(hintList, ["article", "inherit", "none", "regionC"]);
+            });
+
+            it("should include only 2 named flows available in the style block for flow-into", function () {
+                testEditor.setCursorPos({ line: 34, ch: 21 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "article");  // first hint should be article
+                verifyAllValues(hintList, ["article", "none", "regionC"]);
+            });
+            
+            it("should NOT include partially entered named flow value in hint list", function () {
+                // Insert a letter for a new named flow after flow-from: on line 28
+                testDocument.replaceRange("m", { line: 28, ch: 21 });
+                
+                testEditor.setCursorPos({ line: 28, ch: 22 });    // after flow-from: m
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAllValues(hintList, []);
+            });
+
+            it("should NOT show named flow available inisde HTML text", function () {
+                // Insert a letter for a new named flow after flow-from: on line 28
+                testDocument.replaceRange("some", { line: 28, ch: 21 });
+                
+                testEditor.setCursorPos({ line: 28, ch: 25 });    // after flow-from: some
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                // some-named-flow should not be in the hint list since it is inside HTML text
+                verifyAllValues(hintList, []);
             });
         });
     });
