@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
+        Menus                   = require("command/Menus"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
@@ -119,6 +120,12 @@ define(function (require, exports, module) {
     var _lastResult;
     
     /**
+     * @private
+     * @type {?Array.<Commands>}
+     */
+    var _allInspectorCommands = [];
+
+    /**
      * Enable or disable the "Go to First Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
@@ -126,7 +133,79 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
     }
+
+    /**
+     * Construct a preference key for the code inspector/provider.
+     * limitation: this function doesn't account for provider with the same name, which could
+     * result in preferences from one provider overwritten with the ones from another.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function getProviderPrefKey(provider) {
+        return "inspector." + provider.name + ".enabled";
+    }
     
+    /**
+     * Check if a given provider/code inspector is enabled.
+     * Return true if enabled, false otherwise.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function isProviderEnabled(provider) {
+        return _prefs.getValue(getProviderPrefKey(provider));
+    }
+
+    /**
+     * Store the state (enabled/disabled) for a given provider/code inspector.
+     * Return true if enabled, false otherwise.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     * @param boolean enabled
+     */
+    function setProviderEnabled(provider, enabled) {
+        _prefs.setValue(getProviderPrefKey(provider), enabled);
+    }
+
+    /**
+     * Create a menu entry for the given provider/code inspector.
+     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function addMenuEntryForProvider(provider) {
+        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
+            commandString = "command.inspector." + provider.name;
+
+        var inspectorCommand = CommandManager.register("  Enable " + provider.name, commandString, function () {
+            this.setChecked(!this.getChecked());
+
+            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
+
+            // update results
+            run();
+        });
+
+        _allInspectorCommands.push(inspectorCommand);
+
+        // add a new MenuItem for each inspector
+        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
+
+        var providerEnabled = isProviderEnabled(provider);
+        inspectorCommand.setChecked(providerEnabled);
+        inspectorCommand.setEnabled(_prefs.getValue("enabled"));
+    }
+
+    /**
+     * Enable/disable all menu entries for provider/code inspector.
+     *
+     * param boolean enabled
+     */
+    function toggleEnableAllInspectorMenuItems(enabled) {
+        _allInspectorCommands.forEach(function(command) {
+            command.setEnabled(enabled);
+        });
+    }
     
     /**
      * The provider is passed the text of the file and its fullPath. Providers should not assume
@@ -145,51 +224,8 @@ define(function (require, exports, module) {
         }
 
         _providers[languageId].push(provider);
-    }
 
-    /**
-     * Configure and display the problems panel. The html argument contains the html that makes up this panel.
-     *
-     * @param {string} html
-     */
-    function configureAndDisplayProblemsPanel(html) {
-        var $selectedRow;
-
-        $problemsPanel.find(".table-container")
-            .empty()
-            .append(html)
-            .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-            .on("click", function (e) {
-                var $row = $(e.target).closest("tr");
-
-                if ($row.length) {
-                    if ($selectedRow) {
-                        $selectedRow.removeClass("selected");
-                    }
-
-                    $row.addClass("selected");
-                    $selectedRow = $row;
-
-                    // This is a inspector title row, expand/collapse on click
-                    if ($row.hasClass("inspector-section")) {
-                        // Clicking the inspector title section header collapses/expands result rows
-                        $row.nextUntil(".inspector-section").toggle();
-
-                        var $triangle = $(".disclosure-triangle", $row);
-                        $triangle.toggleClass("expanded").toggleClass("collapsed");
-                    // This is a problem marker row, show the result on click
-                    } else {
-                        // Grab the required position data
-                        var $lineTd   = $selectedRow.find("td.line-number"),
-                            line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
-                            character = $lineTd.data("character"),
-                            editor    = EditorManager.getCurrentFullEditor();
-
-                        editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
-                    }
-                }
-            });
+        addMenuEntryForProvider(provider);
     }
 
     /**
@@ -221,45 +257,86 @@ define(function (require, exports, module) {
             perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
             
             providers.forEach(function (provider) {
-                var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
-                _lastResult = result;
-                
-                PerfUtils.addMeasurement(perfTimerInspector);
-                perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+                if (isProviderEnabled(provider)) {
+                    var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
+                    _lastResult = result;
 
-                if (result && result.errors.length) {
-                    // Augment error objects with additional fields needed by Mustache template
-                    var _numProblemsReportedByProvider = 0;
-                    result.errors.forEach(function (error) {
-                        error.friendlyLine = error.pos.line + 1;
-                        
-                        error.codeSnippet = currentDoc.getLine(error.pos.line);
-                        error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                        
-                        if (error.type !== Type.META) {
-                            numProblems++;
-                            _numProblemsReportedByProvider++;
-                        }
-                    });
+                    PerfUtils.addMeasurement(perfTimerInspector);
+                    perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
 
-                    resultList.push({
-                        providerName: provider.name,
-                        results:      result.errors,
-                        numProblems:  _numProblemsReportedByProvider
-                    });
+                    if (result && result.errors.length) {
+                        // Augment error objects with additional fields needed by Mustache template
+                        var _numProblemsReportedByProvider = 0;
+                        result.errors.forEach(function (error) {
+                            error.friendlyLine = error.pos.line + 1;
+
+                            error.codeSnippet = currentDoc.getLine(error.pos.line);
+                            error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+
+                            if (error.type !== Type.META) {
+                                numProblems++;
+                                _numProblemsReportedByProvider++;
+                            }
+                        });
+
+                        resultList.push({
+                            providerName: provider.name,
+                            results:      result.errors,
+                            numProblems:  _numProblemsReportedByProvider
+                        });
+                    }
+
+                    // if the code inspector was unable to process the whole file, we keep track to show a different status
+                    if (result && result.aborted) {
+                        aborted = true;
+                    }
+
+                    PerfUtils.addMeasurement(perfTimerDOM);
                 }
-                
-                // if the code inspector was unable to process the whole file, we keep track to show a different status
-                if (result && result.aborted) {
-                    aborted = true;
-                }
-                
-                PerfUtils.addMeasurement(perfTimerDOM);
             });
 
             // Update results table
             var html = Mustache.render(ResultsTemplate, {reportList: resultList});
-            configureAndDisplayProblemsPanel(html);
+            var $selectedRow;
+
+            $problemsPanel.find(".table-container")
+                .empty()
+                .append(html)
+                .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
+                .off(".table-container")  // Remove the old events
+                .on("click", function (e) {
+                    var $row = $(e.target).closest("tr");
+
+                    console.log("Target: " + e.target.toString());
+                    console.log("Header clicked" + $row.toString());
+                    if ($row.length) {
+                        if ($selectedRow) {
+                            $selectedRow.removeClass("selected");
+                        }
+
+                        $row.addClass("selected");
+                        $selectedRow = $row;
+
+                        // This is a inspector title row, expand/collapse on click
+                        if ($row.hasClass("inspector-section")) {
+                            // Clicking the inspector title section header collapses/expands result rows
+                            $row.nextUntil(".inspector-section").toggle();
+
+                            var $triangle = $(".disclosure-triangle", $row);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
+                        // This is a problem marker row, show the result on click
+                        } else {
+                            // Grab the required position data
+                            var $lineTd   = $selectedRow.find("td.line-number"),
+                                line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
+                                character = $lineTd.data("character"),
+                                editor    = EditorManager.getCurrentFullEditor();
+
+                            editor.setCursorPos(line, character, true);
+                            EditorManager.focusEditor();
+                        }
+                    }
+                });
             
             $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.PROBLEMS_PANEL_TITLE));
             if (!_collapsed) {
@@ -330,6 +407,8 @@ define(function (require, exports, module) {
         updateListeners();
         _prefs.setValue("enabled", _enabled);
     
+        toggleEnableAllInspectorMenuItems(_enabled);
+
         // run immediately
         run();
     }
@@ -363,7 +442,7 @@ define(function (require, exports, module) {
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
-            $problemsPanel.find("tr:first-child").trigger("click");
+            $problemsPanel.find("tr:nth-child(2)").trigger("click");
         }
     }
     
