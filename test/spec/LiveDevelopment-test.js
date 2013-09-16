@@ -708,13 +708,13 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
             }
 
-            function _setTextAndCheckStatus(doc, text, expectedStatus) {
+            function _setTextAndCheckStatus(doc, op, expectedStatus, errorLineNum) {
                 var spy = jasmine.createSpy();
 
                 runs(function () {
                     // Install statusChange callback
-                    testWindow.$(testWindow.brackets.test.LiveDevelopment).one("statusChange", spy);
-                    doc.setText(text);
+                    testWindow.$(LiveDevelopment).one("statusChange", spy);
+                    op.call();
                 });
 
                 waitsFor(function () { return spy.callCount > 0; }, "statusChange callback", 1000);
@@ -724,9 +724,13 @@ define(function (require, exports, module) {
                     expect(spy.argsForCall[0][1]).toEqual(expectedStatus);
 
                     // Check for gutter style
-                    var syncErrorDOM = testWindow.$(".live-preview-sync-error");
+                    var syncErrorDOM    = testWindow.$(".live-preview-sync-error"),
+                        lineNumStr      = $(syncErrorDOM).find(".CodeMirror-linenumber").text(),
+                        lineNum         = (typeof lineNumStr === "string") ? parseInt(lineNumStr, 10) : -1;
+                    
                     if (expectedStatus === LiveDevelopmentModule.STATUS_SYNC_ERROR) {
                         expect(syncErrorDOM.length).toEqual(1);
+                        expect(lineNum).toEqual(errorLineNum);
                     } else {
                         expect(syncErrorDOM.length).toEqual(0);
                     }
@@ -743,15 +747,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     // Create syntax errors
                     doc =  DocumentManager.getCurrentDocument();
-                    originalText = doc.getText();
-                    text = originalText.replace("<p", "<p<");
-
-                    _setTextAndCheckStatus(doc, text, LiveDevelopmentModule.STATUS_SYNC_ERROR);
+                    _setTextAndCheckStatus(doc, function () {
+                        doc.replaceRange("<", { line: 10, ch: 2});
+                    }, LiveDevelopmentModule.STATUS_SYNC_ERROR, 11);
                 });
 
                 runs(function () {
                     // Undo syntax errors
-                    _setTextAndCheckStatus(doc, originalText, LiveDevelopmentModule.STATUS_ACTIVE);
+                    _setTextAndCheckStatus(doc, function () {
+                        testWindow.executeCommand(Commands.EDIT_UNDO);
+                    }, LiveDevelopmentModule.STATUS_ACTIVE);
                 });
             });
 
