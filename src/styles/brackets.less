@@ -271,8 +271,8 @@ a, img {
         background-color: @tc-gray-panel-top-bar;
         border-bottom: @tc-gray-panel-top-bar-shadow;
         height: auto;
-        padding-top: @base-padding / 2;
-        padding-bottom: @base-padding / 2;
+        padding-top: (@base-padding / 2);
+        padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
         box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
         .title {
@@ -500,7 +500,7 @@ a, img {
     .box-flex(1);
 
     .jstree-brackets li > a {
-        padding-right: @sidebar-triangle-size * 2;
+        padding-right: (@sidebar-triangle-size * 2);
     }
 
     ul {
@@ -924,6 +924,28 @@ a, img {
 #find-counter {
     font-weight: @font-weight-semibold;
     padding: 0 5px;
+}
+
+.tickmark-track {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    right: 0;
+    width: 16px;
+    z-index: @z-index-cm-max;
+    pointer-events: none;
+    
+    .tickmark {
+        position: absolute;
+        width: 16px;
+        body.platform-mac & { width: 15px; }
+        
+        height: 1px;
+        background-color: #eddd23;
+        border-top: 1px solid #e0d123;
+        border-bottom: 1px solid #d4c620;
+        opacity: 0.85;  // allow thumb to show through
+    }
 }
 
 

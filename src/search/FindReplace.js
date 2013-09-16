@@ -26,7 +26,7 @@
 /*unittests: FindReplace*/
 
 
-/*
+/**
  * Adds Find and Replace commands
  *
  * Originally based on the code in CodeMirror2/lib/util/search.js.
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
+        ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
@@ -151,6 +152,7 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
+        ScrollTrackMarkers.clear();
     }
 
     function clearSearch(cm) {
@@ -191,7 +193,26 @@ define(function (require, exports, module) {
                 "<span id='find-counter'></span> " +
                 "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
             "</div>" +
-            "<div class='error'></div>";        
+            "<div class='error'></div>";
+
+    
+    function toggleHighlighting(editor, enabled) {
+        // Temporarily change selection color to improve highlighting - see LESS code for details
+        if (enabled) {
+            $(editor.getRootElement()).addClass("find-highlighting");
+        } else {
+            $(editor.getRootElement()).removeClass("find-highlighting");
+        }
+        
+        ScrollTrackMarkers.setVisible(editor, enabled);
+    }
+    
+    function addHighlight(editor, state, cursor) {
+        var cm = editor._codeMirror;
+        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
+        
+        ScrollTrackMarkers.addTickmark(editor, cursor.from());
+    }
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -246,14 +267,13 @@ define(function (require, exports, module) {
                 // Highlight all matches
                 // (Except on huge documents, where this is too expensive)
                 if (cm.getValue().length < 500000) {
-                    // Temporarily change selection color to improve highlighting - see LESS code for details
-                    $(cm.getWrapperElement()).addClass("find-highlighting");
+                    toggleHighlighting(editor, true);
                     
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                     var resultCount = 0;
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
+                        addHighlight(editor, state, cursor);
                         resultCount++;
 
                         //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
@@ -268,7 +288,7 @@ define(function (require, exports, module) {
                     if (resultCount === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
                     } else if (resultCount === 1) {
-                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);                        
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                     } else {
                         $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
                         enableNavigator = true;
@@ -313,15 +333,15 @@ define(function (require, exports, module) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
-            // As soon as focus goes back to the editor, restore normal selection color
-            $(cm.getWrapperElement()).removeClass("find-highlighting");
+            // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
+            toggleHighlighting(editor, false);
         });
         
         modalBar.getRoot().on("click", function (e) {
             if (e.target.id === "find-next") {
-                _findNext();
+                doSearch(editor);
             } else if (e.target.id === "find-prev") {
-                _findPrevious();
+                doSearch(editor, true);
             }
         });
         
