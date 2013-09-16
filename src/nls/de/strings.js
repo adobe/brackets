@@ -92,8 +92,8 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live-Vorschau: Klicken, um Verbindung zu trennen (Es wird aufgrund eines Syntax-Fehlers nicht aktualisiert)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau (Speichern zum Aktualisieren)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live-Vorschau (Es wird aufgrund eines Syntax-Fehlers nicht aktualisiert)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Die Live-Vorschau wurde abgebrochen, weil die Entwickler-Tools des Browsers geöffnet wurden",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Die Live-Vorschau wurde abgebrochen, weil die Seite im Browser geschlossen wurde",
