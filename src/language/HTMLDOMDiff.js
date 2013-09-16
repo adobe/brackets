@@ -123,12 +123,15 @@ define(function (require, exports, module) {
          * list. This function sets the `beforeID` on any pending edits and adds
          * them to the main list.
          *
-         * The beforeID set here will then be used as the `afterID` for text edits
-         * that follow.
+         * If this item is not being deleted, then it will be used as the `afterID`
+         * for text edits that follow.
          *
          * @param {int} beforeID ID to set on the pending edits
+         * @param {boolean} isBeingDeleted true if the given item is being deleted. If so,
+         *     we can't use it as the `afterID` for future edits--whatever previous item
+         *     was set as the `textAfterID` is still okay.
          */
-        var finalizeNewEdits = function (beforeID) {
+        var finalizeNewEdits = function (beforeID, isBeingDeleted) {
             newEdits.forEach(function (edit) {
                 // elementDeletes don't need any positioning information
                 if (edit.type !== "elementDelete") {
@@ -137,7 +140,15 @@ define(function (require, exports, module) {
             });
             edits.push.apply(edits, newEdits);
             newEdits = [];
-            textAfterID = beforeID;
+            
+            // If the item we made this set of edits relative to
+            // is being deleted, we can't use it as the afterID for future
+            // edits. It's okay to just keep the previous afterID, since
+            // this node will no longer be in the tree by the time we get
+            // to any future edit that needs an afterID.
+            if (!isBeingDeleted) {
+                textAfterID = beforeID;
+            }
         };
         
         /**
@@ -191,6 +202,10 @@ define(function (require, exports, module) {
          */
         var addElementDelete = function () {
             if (!newNodeMap[oldChild.tagID]) {
+                // We can finalize existing edits relative to this node *before* it's
+                // deleted.
+                finalizeNewEdits(oldChild.tagID, true);
+                
                 newEdit = {
                     type: "elementDelete",
                     tagID: oldChild.tagID
@@ -331,19 +346,6 @@ define(function (require, exports, module) {
         };
         
         /**
-         * If there have been elementInserts before an unchanged text, we need to
-         * let the browser side code know that these inserts should happen *before*
-         * that unchanged text.
-         */
-        var fixupElementInsert = function () {
-            newEdits.forEach(function (edit) {
-                if (edit.type === "elementInsert") {
-                    edit.beforeText = true;
-                }
-            });
-        };
-        
-        /**
          * Looks to see if the element in the old tree has moved by checking its
          * current and former parents.
          *
@@ -396,19 +398,26 @@ define(function (require, exports, module) {
                 } else {
                     if (newChild.tagID !== oldChild.tagID) {
                         
-                        // These are different elements, so we will add an insert and/or delete
-                        // as appropriate
-                        if (!addElementInsert() && !addElementDelete()) {
-                            console.error("HTML Instrumentation: This should not happen. Two elements have different tag IDs and there was no insert/delete. This generally means there was a reordering of elements.");
-                            newIndex++;
-                            oldIndex++;
+                        // First, check to see if we're deleting an element.
+                        // If we are, get rid of that element and restart our comparison
+                        // logic with the same element from the new tree and the next one
+                        // from the old tree.
+                        if (!addElementDelete()) {
+                            // Since we're not deleting and these elements don't match up, we
+                            // must have a new element. Add an elementInsert (and log a problem
+                            // if no insert works.)
+                            if (!addElementInsert()) {
+                                console.error("HTML Instrumentation: This should not happen. Two elements have different tag IDs and there was no insert/delete. This generally means there was a reordering of elements.");
+                                newIndex++;
+                                oldIndex++;
+                            }
                         }
                     
                     // There has been no change in the tag we're looking at.
                     } else {
                         // Since this element hasn't moved, it is a suitable "beforeID"
                         // for the edits we've logged.
-                        finalizeNewEdits(oldChild.tagID);
+                        finalizeNewEdits(oldChild.tagID, false);
                         newIndex++;
                         oldIndex++;
                     }
@@ -426,13 +435,6 @@ define(function (require, exports, module) {
                         newEdit.afterID = textAfterID;
                     }
                     newEdits.push(newEdit);
-                } else {
-                    // This is a special case: if an element is being inserted but
-                    // there is an unchanged text that follows it, the element being
-                    // inserted may end up in the wrong place because it will get a
-                    // beforeID of the next element when it really needs to come
-                    // before this unchanged text.
-                    fixupElementInsert();
                 }
                 
                 // Either we've done a text replace or both sides matched. In either
