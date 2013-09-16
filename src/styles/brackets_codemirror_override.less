@@ -201,7 +201,7 @@
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+        background: darken(@activeline-bgcolor, (@bc-color-step-size / 2)); 
     }
     .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
