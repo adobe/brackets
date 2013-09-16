@@ -336,6 +336,8 @@ define(function (require, exports, module) {
             }
         }.bind(this));
         this._impl.watchPath(directoryPath);
+        
+        // TODO FileSystem ---- IAN: this should return a promise
     };
     
     /**
