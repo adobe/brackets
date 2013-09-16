@@ -121,7 +121,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {?Array.<Commands>}
+     * @type {?Array.<Command>}
      */
     var _allInspectorCommands = [];
 
@@ -135,34 +135,34 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Construct a preference key for the code inspector/provider.
+     * Construct a preference key for the provider.
      * limitation: this function doesn't account for provider with the same name, which could
      * result in preferences from one provider overwritten with the ones from another.
      *
      * @param {name:string, scanFile:function(string, string):Object} provider
      */
     function getProviderPrefKey(provider) {
-        return "inspector." + provider.name + ".enabled";
+        return "provider." + provider.name + ".enabled";
     }
     
     /**
-     * Check if a given provider/code inspector is enabled.
+     * Check if a given provider is enabled.
      * Return true if enabled, false otherwise.
      *
      * @param {name:string, scanFile:function(string, string):Object} provider
      */
-    function isProviderEnabled(provider) {
+    function getProviderState(provider) {
         return _prefs.getValue(getProviderPrefKey(provider));
     }
 
     /**
-     * Store the state (enabled/disabled) for a given provider/code inspector.
+     * Store the state (enabled/disabled) for a given provider.
      * Return true if enabled, false otherwise.
      *
      * @param {name:string, scanFile:function(string, string):Object} provider
      * @param boolean enabled
      */
-    function setProviderEnabled(provider, enabled) {
+    function setProviderState(provider, enabled) {
         _prefs.setValue(getProviderPrefKey(provider), enabled);
     }
 
@@ -203,10 +203,10 @@ define(function (require, exports, module) {
         var providers = (language && _providers[languageId]) || [];
         
         if (providers.length > 0) {
-            perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
-            
             providers.forEach(function (provider) {
-                if (isProviderEnabled(provider)) {
+                perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + currentDoc.file.fullPath);
+            
+                if (getProviderState(provider) === true) {
                     var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
                     _lastResult = result;
 
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
         var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
             commandString = "command.inspector." + provider.name;
 
-        var inspectorCommand = CommandManager.register("  Enable " + provider.name, commandString, function () {
+        var inspectorCommand = CommandManager.register(menuString, commandString, function () {
             this.setChecked(!this.getChecked());
 
             _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
@@ -347,9 +347,9 @@ define(function (require, exports, module) {
         var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
         viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
 
-        var providerEnabled = isProviderEnabled(provider);
-        inspectorCommand.setChecked(providerEnabled);
-        inspectorCommand.setEnabled(_prefs.getValue("enabled"));
+        var providerState = getProviderState(provider);
+        inspectorCommand.setChecked(providerState);
+        inspectorCommand.setEnabled(_enabled);
     }
 
     /**
@@ -412,8 +412,7 @@ define(function (require, exports, module) {
         // run immediately
         run();
     }
-    
-    
+
     /** 
      * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
      * the auto collapse due to files with no errors & filetypes with no provider). When explicitly
@@ -485,7 +484,11 @@ define(function (require, exports, module) {
     
     
     // Public API
-    exports.register        = register;
-    exports.Type            = Type;
-    exports.toggleEnabled   = toggleEnabled;
+    exports.register          = register;
+    exports.Type              = Type;
+    exports.toggleEnabled     = toggleEnabled;
+    
+    // Testing API
+    exports._setProviderState = setProviderState;
+    exports._getProviderState = getProviderState;
 });

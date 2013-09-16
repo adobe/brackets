@@ -36,7 +36,8 @@ define(function (require, exports, module) {
             $,
             brackets,
             CodeInspection,
-            EditorManager;
+            EditorManager,
+            previousState;
         
         var toggleJSLintResults = function (visible) {
             $("#status-inspection").triggerHandler("click");
@@ -50,9 +51,13 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
-                    EditorManager = testWindow.brackets.test.EditorManager;
-                    CodeInspection = testWindow.brackets.test.CodeInspection;
+                    EditorManager = brackets.test.EditorManager;
+                    CodeInspection = brackets.test.CodeInspection;
                     CodeInspection.toggleEnabled(true);
+                    
+                    // enable JSLint and preserve the previous state before we enable it for testing
+                    previousState = CodeInspection._getProviderState({name: "JSLint"});
+                    CodeInspection._setProviderState({name: "JSLint"}, true);
                 });
             });
             
@@ -67,17 +72,16 @@ define(function (require, exports, module) {
             brackets      = null;
             EditorManager = null;
             SpecRunnerUtils.closeTestWindow();
+            
+            // revert to previous state
+            CodeInspection._setProviderState({name: 'JSLint'}, previousState);
         });
         
         it("should run JSLint linter when a JavaScript document opens", function () {
-            runs(function () {
-                spyOn(testWindow, "JSLINT").andCallThrough();
-            });
-            
             waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
             
             runs(function () {
-                expect(testWindow.JSLINT).toHaveBeenCalled();
+                expect($("#problems-panel").is(":visible")).toBe(true);
             });
         });
         
@@ -98,6 +102,5 @@ define(function (require, exports, module) {
                 toggleJSLintResults(false);
             });
         });
-        
     });
 });
