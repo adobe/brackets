@@ -101,10 +101,10 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     /**
-     * Returns true if the document has instrumentation enabled
+     * Returns true if document edits appear live in the connected browser
      * @return {boolean} 
      */
-    HTMLDocument.prototype.isInstrumentationEnabled = function () {
+    HTMLDocument.prototype.isLiveEditingEnabled = function () {
         return this._instrumentationEnabled;
     };
     

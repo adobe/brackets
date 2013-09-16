@@ -474,6 +474,7 @@ define(function (require, exports, module) {
                 testWindow           = w;
                 Dialogs              = testWindow.brackets.test.Dialogs;
                 LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                Inspector            = testWindow.brackets.test.Inspector;
                 DOMAgent             = testWindow.brackets.test.DOMAgent;
                 DocumentManager      = testWindow.brackets.test.DocumentManager;
                 CommandManager       = testWindow.brackets.test.CommandManager;
@@ -490,6 +491,7 @@ define(function (require, exports, module) {
                 testWindow           = null;
                 Dialogs              = null;
                 LiveDevelopment      = null;
+                Inspector            = null;
                 DOMAgent             = null;
                 DocumentManager      = null;
                 CommandManager       = null;
@@ -603,9 +605,11 @@ define(function (require, exports, module) {
                     origHtmlText,
                     updatedHtmlText,
                     browserHtmlText,
-                    htmlDoc;
+                    htmlDoc,
+                    reloadSpy;
                 
                 runs(function () {
+                    reloadSpy = spyOn(Inspector.Page, "reload").andCallThrough();
                     enableAgent(LiveDevelopment, "dom");
 
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
@@ -646,31 +650,17 @@ define(function (require, exports, module) {
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
-                // wait for LiveDevelopment to unload and reload agents after saving
-                var loadingStatus = false,
-                    activeStatus = false,
-                    statusChangeHandler = function (event, status) {
-                        // waits for loading agents status followed by active status
-                        loadingStatus = loadingStatus || status === LiveDevelopment.STATUS_LOADING_AGENTS;
-                        activeStatus = activeStatus || (loadingStatus && status === LiveDevelopment.STATUS_ACTIVE);
-                    };
-                
                 runs(function () {
-                    testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
-
                     // Save changes to the test file
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Saving modified html document");
                 });
                 
-                waitsFor(function () {
-                    return loadingStatus && activeStatus;
-                }, "LiveDevelopment re-load and re-activate", 10000);
-                
                 // Grab the node that we've modified in Brackets. 
                 var updatedNode, doneSyncing = false;
                 runs(function () {
-                    testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    // Inpsector.Page.reload should not be called when saving an HTML file
+                    expect(reloadSpy.callCount).toEqual(0);
                     
                     updatedNode = DOMAgent.nodeAtLocation(414);
                     var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");

@@ -190,23 +190,11 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     function getLiveDocForPath(path) {
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        if (!_server) {
+            return undefined;
         }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.fullPath === path) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
+        
+        return _server.get(path);
     }
     
     function getLiveDocForEditor(editor) {
@@ -1119,10 +1107,10 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved(event, doc) {
         var absolutePath            = Inspector.connected() && doc.file.fullPath,
             liveDocument            = _server && absolutePath && _server.get(absolutePath),
-            instrumentationEnabled  = liveDocument && liveDocument.isInstrumentationEnabled && liveDocument.isInstrumentationEnabled();
+            liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
         
-        // Skip reload if the saved document is already instrumented
-        if (instrumentationEnabled) {
+        // Skip reload if the saved document has live editing enabled
+        if (liveEditingEnabled) {
             return;
         }
         

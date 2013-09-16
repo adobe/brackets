@@ -174,10 +174,10 @@ define(function CSSDocumentModule(require, exports, module) {
     };
     
     /**
-     * Returns true if the document has instrumentation enabled
+     * Returns true if document edits appear live in the connected browser
      * @return {boolean} 
      */
-    CSSDocument.prototype.isInstrumentationEnabled = function () {
+    CSSDocument.prototype.isLiveEditingEnabled = function () {
         return true;
     };
     
