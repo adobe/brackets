@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     'use strict';
 
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        Async                   = require("utils/Async"),
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
@@ -62,7 +63,8 @@ define(function (require, exports, module) {
         HTMLInstrumentationModule = require("language/HTMLInstrumentation"),
         NativeAppModule           = require("utils/NativeApp");
     
-    var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
+    var testPath    = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
+        tempDir     = SpecRunnerUtils.getTempDirectory(),
         testWindow,
         allSpacesRE = /\s+/gi;
     
@@ -81,24 +83,31 @@ define(function (require, exports, module) {
         });
     }
             
-    function createDocumentSavedSpy() {
-        var spy = jasmine.createSpy();
+    function saveAndWaitForLoadEvent(doc) {
+        var deferred = new $.Deferred();
             
-        // documentSaved is fired async after the FILE_SAVE command completes
-        // Need to wait for this event before checking Inspector.Page.reload
-        testWindow.$(DocumentManager).one("documentSaved", spy);
+        // documentSaved is fired async after the FILE_SAVE command completes.
+        // Instead of waiting for the FILE_SAVE promise, we listen to the
+        // inspector connection to confirm that the page reload occurred
+        testWindow.$(Inspector.Page).on("loadEventFired", deferred.resolve);
         
-        return spy;
-    }
-    
-    function waitForDocumentSaved(spy) {
-        waitsFor(function () { return spy.callCount === 1; }, "documentSaved", 1000);
+        // remove event listener after timeout fires
+        deferred.always(function () {
+            testWindow.$(Inspector.Page).off("loadEventFired", deferred.resolve);
+        });
+        
+        // save the file
+        var fileSavePromise = CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
+        waitsForDone(fileSavePromise, "FILE_SAVE", 1000);
+        
+        // wrap with a timeout to indicate loadEventFired was not fired
+        return Async.withTimeout(deferred.promise(), 2000);
     }
     
     function doOneTest(htmlFile, cssFile) {
         var localText,
             browserText,
-            documentSavedSpy,
+            loadEventPromise,
             curDoc;
         
         runs(function () {
@@ -121,7 +130,7 @@ define(function (require, exports, module) {
 
         var liveDoc;
         waitsFor(function () {
-            liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/" + cssFile);
+            liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/" + cssFile);
             return !!liveDoc;
         }, "Waiting for LiveDevelopment document", 10000);
         
@@ -138,13 +147,15 @@ define(function (require, exports, module) {
         runs(function () {
             expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
             
-            var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/" + htmlFile);
+            var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/" + htmlFile);
             expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
             
             // Save the CSS file
-            documentSavedSpy = createDocumentSavedSpy();
-            CommandManager.execute(Commands.FILE_SAVE, {doc: curDoc});
-            waitForDocumentSaved(documentSavedSpy);
+            loadEventPromise = saveAndWaitForLoadEvent(doc);
+        });
+        
+        runs(function () {
+            waitsForFail(loadEventPromise, "loadEventFired", 3000);
         });
         
         runs(function () {
@@ -532,12 +543,12 @@ define(function (require, exports, module) {
         
             // copy files to temp directory
             runs(function () {
-                waitsForDone(SpecRunnerUtils.copyPath(testPath, SpecRunnerUtils.getTempDirectory()), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copyPath(testPath, tempDir), "copy temp files");
             });
             
             // open project
             runs(function () {
-                SpecRunnerUtils.loadProjectInTestWindow(SpecRunnerUtils.getTempDirectory());
+                SpecRunnerUtils.loadProjectInTestWindow(tempDir);
             });
         });
         
@@ -566,7 +577,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
-                    var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.html");
+                    var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.html");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
@@ -588,7 +599,7 @@ define(function (require, exports, module) {
                     
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
 
-                    var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
+                    var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.css");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
                 });
             });
@@ -624,7 +635,7 @@ define(function (require, exports, module) {
                 
                 var liveDoc, doneSyncing = false;
                 runs(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
+                    liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -644,7 +655,8 @@ define(function (require, exports, module) {
                     origHtmlText,
                     updatedHtmlText,
                     browserHtmlText,
-                    htmlDoc;
+                    htmlDoc,
+                    loadEventPromise;
                 
                 runs(function () {
                     spyOn(Inspector.Page, "reload").andCallThrough();
@@ -686,13 +698,13 @@ define(function (require, exports, module) {
                 runs(function () {
                     originalNode = DOMAgent.nodeAtLocation(501);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
+                    
+                    loadEventPromise = saveAndWaitForLoadEvent(htmlDoc);
                 });
                 
                 runs(function () {
-                    // Save changes to the test file
-                    var documentSavedSpy = createDocumentSavedSpy();
-                    CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
-                    waitForDocumentSaved(documentSavedSpy);
+                    // Browser should not reload for live HTML docs
+                    waitsForFail(loadEventPromise, "loadEventFired", 3000);
                 });
                 
                 // Grab the node that we've modified in Brackets. 
@@ -702,7 +714,7 @@ define(function (require, exports, module) {
                     expect(Inspector.Page.reload).not.toHaveBeenCalled();
                     
                     updatedNode = DOMAgent.nodeAtLocation(501);
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
+                    var liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
@@ -716,13 +728,6 @@ define(function (require, exports, module) {
                     
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
-                });
-                
-                // Save original content back to the file after this test passes/fails
-                runs(function () {
-                    htmlDoc.setText(origHtmlText);
-                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
-                    waitsForDone(promise, "Restoring the original html content");
                 });
             });
         });
@@ -823,7 +828,7 @@ define(function (require, exports, module) {
             it("should reload the page when editing a non-live document", function () {
                 var promise,
                     jsdoc,
-                    documentSavedSpy;
+                    loadEventPromise;
                 
                 runs(function () {
                     // Setup reload spy
@@ -845,31 +850,36 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    documentSavedSpy = createDocumentSavedSpy();
-                    
                     // Edit a JavaScript doc
                     jsdoc.setText("window.onload = function () {document.getElementById('testId').style.backgroundColor = '#090'}");
                     
                     // Save changes to the test file
-                    CommandManager.execute(Commands.FILE_SAVE, {doc: jsdoc});
-                    waitForDocumentSaved(documentSavedSpy);
+                    loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });
                 
-                waitsFor(function () { return Inspector.Page.reload.callCount === 1; }, "reload callCount 1", 5000);
+                runs(function () {
+                    // Browser should reload when saving non-live files like JavaScript
+                    waitsForDone(loadEventPromise);
+                });
                 
                 runs(function () {
-                    // create a new spy for the next documentSaved event
-                    documentSavedSpy = createDocumentSavedSpy();
+                    expect(Inspector.Page.reload.callCount).toEqual(1);
                     
                     // Edit the file again
                     jsdoc.setText("window.onload = function () {document.body.style.backgroundColor = '#090'}");
                     
                     // Save changes to the test file...again
-                    CommandManager.execute(Commands.FILE_SAVE, {doc: jsdoc});
-                    waitForDocumentSaved(documentSavedSpy);
+                    loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });
                 
-                waitsFor(function () { return Inspector.Page.reload.callCount === 2; }, "reload callCount 2", 5000);
+                runs(function () {
+                    // Browser should reload again
+                    waitsForDone(loadEventPromise);
+                });
+                
+                runs(function () {
+                    expect(Inspector.Page.reload.callCount).toEqual(2);
+                });
             });
 
         });
