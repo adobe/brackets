@@ -341,8 +341,8 @@ define(function (require, exports, module) {
                     // if the load succeeded, we wait for the API refresh to
                     // resolve the deferred.
                 },
-                function () { // command call failed
-                    deferred.reject("Unable to load one of the modules: " + pathArray);
+                function (reason) { // command call failed
+                    deferred.reject("Unable to load one of the modules: " + pathArray + (reason ? ", reason: " + reason : ""));
                 }
             );
 
