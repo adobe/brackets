@@ -548,7 +548,8 @@ define(function (require, exports, module) {
                         editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
                         createModalBar(doReplaceConfirm, true, false);
                         modalBar.getRoot().on("click", function (e) {
-                            modalBar.close(true, false);
+                            var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
+                            modalBar.close(true, animate);
                             if (e.target.id === "replace-yes") {
                                 doReplace(match);
                             } else if (e.target.id === "replace-no") {
