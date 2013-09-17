@@ -136,10 +136,6 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             barHeight = this.height();
 
-        if (this._autoClose) {
-            window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
-        }
-        
         var self = this;
         AnimationUtils.animateUsingClass(this._$root.get(0), "modal-bar-hide")
             .done(function () {
@@ -159,6 +155,11 @@ define(function (require, exports, module) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
         EditorManager.focusEditor();
+        
+        // Don't remove listener until after closeBlur event is triggered
+        if (this._autoClose) {
+            window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
+        }
         
         return result.promise();
     };
