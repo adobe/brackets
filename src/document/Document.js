@@ -388,6 +388,7 @@ define(function (require, exports, module) {
         // future, we should fix things so that we either don't need mock documents or that this
         // is factored so it will just run in both.
         $(this).triggerHandler("change", [this, changeList]);
+        $(exports).triggerHandler("documentChange", [this, changeList]);
     };
     
     /**

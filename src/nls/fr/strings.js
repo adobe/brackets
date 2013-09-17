@@ -92,7 +92,8 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
-	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
+	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "[6488839] !é=Live Preview (save file to refresh)=!",
+	"LIVE_DEV_STATUS_TIP_SYNC_ERROR": "[7280512] !é=Live Preview (not updating due to syntax error)=!",
 
 	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "Aperçu en direct a été annulé car les outils de développeur du navigateur étaient ouverts",
 	"LIVE_DEV_DETACHED_TARGET_CLOSED": "Aperçu en direct a été annulé car la page était fermée dans le navigateur",
@@ -185,7 +186,7 @@ define({
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "{0} erreurs",
+	"ERRORS_PANEL_TITLE": "Erreurs {0}",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
@@ -444,6 +445,7 @@ define({
 	"LOCALE_PT_BR": "Portugais (Brésil)",
 	"LOCALE_PT_PT": "Portugais",
 	"LOCALE_RU": "Russe",
+	"LOCALE_SK": "[7281186] !é=Slovak=!",
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",

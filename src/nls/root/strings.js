@@ -92,7 +92,8 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (save file to refresh)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (not updating due to syntax error)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
@@ -444,6 +445,7 @@ define({
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
     "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SK"                                 : "Slovak",
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",

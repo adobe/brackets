@@ -500,8 +500,8 @@ define(function (require, exports, module) {
                     var a1 = $(a).text(),
                         b1 = $(b).text();
                     
-                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                    if (brackets.platform === "win") {
+                    // Non-mac: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                    if (brackets.platform !== "mac") {
                         a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
                         b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
@@ -1415,8 +1415,11 @@ define(function (require, exports, module) {
         // TODO: This should call FileEntry.moveTo(), but that isn't implemented
         // yet. For now, call directly to the low-level fs.rename()
         // TODO: FileSystem....
-        brackets.fs.rename(oldName, newName, function (err) {
-            if (!err) {
+        return _fileSystem.resolve(oldName)
+            .then(function (oldFSEntry) {
+                return oldFSEntry.rename(newName);
+            })
+            .then(function (newFSEntry) {
                 // Update all nodes in the project tree.
                 // All other updating is done by DocumentManager.notifyPathNameChanged() below
                 var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
@@ -1443,9 +1446,7 @@ define(function (require, exports, module) {
                 }
                 
                 _redraw(true);
-
-                result.resolve();
-            } else {
+            }, function (err) {
                 // Show an error alert
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
@@ -1459,12 +1460,7 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
-                
-                result.reject(err);
-            }
-        });
-        
-        return result;
+            });
     }
     
     /**
@@ -1620,6 +1616,10 @@ define(function (require, exports, module) {
             if (jqEvent.target.className !== "jstree-rename-input") {
                 forceFinishRename();
             }
+        });
+        
+        $projectTreeContainer.on("contextmenu", function () {
+            forceFinishRename();
         });
     });
 

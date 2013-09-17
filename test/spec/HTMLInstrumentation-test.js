@@ -1012,7 +1012,7 @@ define(function (require, exports, module) {
                     operationFn(i, pos);
                     result = HTMLInstrumentation._updateDOM(curDOM, editor, wasInvalid ? null : changeList);
                     if (!edits) {
-                        expect(result).toBeNull();
+                        expect(Array.isArray(result.errors)).toBe(true);
                         wasInvalid = true;
                     } else {
                         var expectedEdit = edits[i];

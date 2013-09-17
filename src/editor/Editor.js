@@ -506,6 +506,11 @@ define(function (require, exports, module) {
         });
     };
     
+    /** @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor) */
+    Editor.prototype.isTextSubset = function () {
+        return Boolean(this._visibleRange);
+    };
+    
     /**
      * Ensures that the lines that are actually hidden in the inline editor correspond to
      * the desired visible range.
@@ -665,6 +670,9 @@ define(function (require, exports, module) {
         // Document
         this._codeMirror.on("change", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
+        });
+        this._codeMirror.on("beforeChange", function (instance, changeObj) {
+            $(self).triggerHandler("beforeChange", [self, changeObj]);
         });
         this._codeMirror.on("cursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);

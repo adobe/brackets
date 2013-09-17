@@ -92,7 +92,8 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "ライブプレビュー : 初期化中\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
-	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
+	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "!能=[6488839] Live Preview (save file to refresh)_=!",
+	"LIVE_DEV_STATUS_TIP_SYNC_ERROR": "!能=[7280512] Live Preview (not updating due to syntax error)_=!",
 
 	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
 	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
@@ -140,7 +141,7 @@ define({
 
 	"FIND_IN_FILES_TITLE_PART1": "「",
 	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} 件 {1} ({2} {3})",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {2} {3}で{0} 件 {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
@@ -444,6 +445,7 @@ define({
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
 	"LOCALE_RU": "ロシア語",
+	"LOCALE_SK": "!能=[7281186] Slovak_=!",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",

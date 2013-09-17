@@ -100,34 +100,39 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // Check file timestamp / existence
-            doc.file.stat()
-                .done(function (stat) {
-                    // Does file's timestamp differ from last sync time on the Document?
-                    if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
-                        if (doc.isDirty) {
-                            editConflicts.push(doc);
-                        } else {
-                            toReload.push(doc);
-                        }
-                    }
-                    result.resolve();
-                })
-                .fail(function (err) {
-                    // File has been deleted externally
-                    // TODO: FileSystem error...
-                    if (err.name === NativeFileError.NOT_FOUND_ERR) {
-                        if (doc.isDirty) {
-                            deleteConflicts.push(doc);
-                        } else {
-                            toClose.push(doc);
+            
+            if (doc.isUntitled()) {
+                result.resolve();
+            } else {
+                doc.file.stat()
+                    .done(function (stat) {
+                        // Does file's timestamp differ from last sync time on the Document?
+                        if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
+                            if (doc.isDirty) {
+                                editConflicts.push(doc);
+                            } else {
+                                toReload.push(doc);
+                            }
                         }
                         result.resolve();
-                    } else {
-                        // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.fullPath, err);
-                        result.reject();
-                    }
-                });
+                    })
+                    .fail(function (err) {
+                        // File has been deleted externally
+                        // TODO: FileSystem error...
+                        if (err.name === NativeFileError.NOT_FOUND_ERR) {
+                            if (doc.isDirty) {
+                                deleteConflicts.push(doc);
+                            } else {
+                                toClose.push(doc);
+                            }
+                            result.resolve();
+                        } else {
+                            // Some other error fetching metadata: treat as a real error
+                            console.log("Error checking modification status of " + doc.file.fullPath, err);
+                            result.reject();
+                        }
+                    });
+            }
 
             return result.promise();
         }
