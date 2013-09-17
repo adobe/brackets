@@ -93,7 +93,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo (guarda el archivo para actualizar)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Desarrollo en Vivo (no se esta actualizando debido a un error de sintaxis)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Desarrollo en Vivo (no se está actualizando debido a un error de sintaxis)",
     
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Desarrollo en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Desarrollo en Vivo se ha detenido porque se ha cerrado la página en el navegador",
