@@ -406,7 +406,7 @@ define(function (require, exports, module) {
             
             showDropdown();
             $dropdown.focus();
-            $dropdownItem = $dropdown.find("a").first();
+            $dropdownItem = $dropdown.find("a").eq(1);
             $dropdownItem.addClass("selected");
             
             // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
