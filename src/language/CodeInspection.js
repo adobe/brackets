@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
+        Menus                   = require("command/Menus"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
@@ -119,6 +120,12 @@ define(function (require, exports, module) {
     var _lastResult;
     
     /**
+     * @private
+     * @type {?Array.<Command>}
+     */
+    var _allInspectorCommands = [];
+
+    /**
      * Enable or disable the "Go to First Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
@@ -126,24 +133,48 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
     }
-    
+
+    /**
+     * Construct a preference key for the provider.
+     * limitation: this function doesn't account for provider with the same name, which could
+     * result in preferences from one provider overwritten with the ones from another.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function getProviderPrefKey(provider) {
+        return "provider." + provider.name + ".enabled";
+    }
     
     /**
-     * The provider is passed the text of the file and its fullPath. Providers should not assume
-     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
-     * that the file on disk matches the text given (file may have unsaved changes).
+     * Check if a given provider is enabled.
+     * Return true if enabled, false otherwise.
      *
-     * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
-     * If type is unspecified, Type.WARNING is assumed.
+     * @param {name:string, scanFile:function(string, string):Object} provider
      */
-    function register(languageId, provider) {
-        if (_providers[languageId]) {
-            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
-        }
-        _providers[languageId] = provider;
+    function getProviderState(provider) {
+        return _prefs.getValue(getProviderPrefKey(provider));
+    }
+
+    /**
+     * Store the state (enabled/disabled) for a given provider.
+     * Return true if enabled, false otherwise.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     * @param boolean enabled
+     */
+    function setProviderState(provider, enabled) {
+        _prefs.setValue(getProviderPrefKey(provider), enabled);
+    }
+
+    /**
+     * Enable/disable all menu entries for provider/code inspector.
+     *
+     * param boolean enabled
+     */
+    function toggleEnableAllInspectorMenuItems(enabled) {
+        _allInspectorCommands.forEach(function (command) {
+            command.setEnabled(enabled);
+        });
     }
     
     /**
@@ -160,85 +191,124 @@ define(function (require, exports, module) {
         
         var currentDoc = DocumentManager.getCurrentDocument();
         
+        var numProblems = 0,
+            aborted = false,
+            resultList = [];
+
         var perfTimerDOM,
             perfTimerInspector;
         
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
         var languageId = language && language.getId();
-        var provider = language && _providers[languageId];
+        var providers = (language && _providers[languageId]) || [];
         
-        if (provider) {
-            perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
+        if (providers.length > 0) {
+            providers.forEach(function (provider) {
+                perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + currentDoc.file.fullPath);
             
-            var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
-            _lastResult = result;
-            
-            PerfUtils.addMeasurement(perfTimerInspector);
-            perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-            
-            if (result && result.errors.length) {
-                // Augment error objects with additional fields needed by Mustache template
-                var numProblems = 0;
-                result.errors.forEach(function (error) {
-                    error.friendlyLine = error.pos.line + 1;
-                    
-                    error.codeSnippet = currentDoc.getLine(error.pos.line);
-                    error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                    
-                    if (error.type !== Type.META) {
-                        numProblems++;
+                if (getProviderState(provider) === true) {
+                    var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
+                    _lastResult = result;
+
+                    PerfUtils.addMeasurement(perfTimerInspector);
+                    perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+
+                    if (result && result.errors.length) {
+                        // Augment error objects with additional fields needed by Mustache template
+                        var _numProblemsReportedByProvider = 0;
+                        result.errors.forEach(function (error) {
+                            error.friendlyLine = error.pos.line + 1;
+
+                            error.codeSnippet = currentDoc.getLine(error.pos.line);
+                            error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+
+                            if (error.type !== Type.META) {
+                                numProblems++;
+                                _numProblemsReportedByProvider++;
+                            }
+                        });
+
+                        resultList.push({
+                            providerName: provider.name,
+                            results:      result.errors,
+                            numProblems:  _numProblemsReportedByProvider
+                        });
                     }
-                });
-                
-                // Update results table
-                var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
-                var $selectedRow;
-                
-                $problemsPanel.find(".table-container")
-                    .empty()
-                    .append(html)
-                    .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-                    .on("click", "tr", function (e) {
+
+                    // if the code inspector was unable to process the whole file, we keep track to show a different status
+                    if (result && result.aborted) {
+                        aborted = true;
+                    }
+
+                    PerfUtils.addMeasurement(perfTimerDOM);
+                }
+            });
+
+            // Update results table
+            var html = Mustache.render(ResultsTemplate, {reportList: resultList});
+            var $selectedRow;
+
+            $problemsPanel.find(".table-container")
+                .empty()
+                .append(html)
+                .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
+                .off(".table-container")  // Remove the old events
+                .on("click", function (e) {
+                    var $row = $(e.target).closest("tr");
+
+                    console.log("Target: " + e.target.toString());
+                    console.log("Header clicked" + $row.toString());
+                    if ($row.length) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
                         }
-                        
-                        $selectedRow  = $(e.currentTarget);
-                        $selectedRow.addClass("selected");
-                        var lineTd    = $selectedRow.find(".line-number");
-                        var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
-                        var character = lineTd.data("character");
-                        
-                        var editor = EditorManager.getCurrentFullEditor();
-                        editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
-                    });
-                
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
-                if (!_collapsed) {
-                    Resizer.show($problemsPanel);
-                }
-                
-                if (numProblems === 1 && !result.aborted) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
-                } else {
-                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                    if (result.aborted) {
-                        numProblems += "+";
+
+                        $row.addClass("selected");
+                        $selectedRow = $row;
+
+                        // This is a inspector title row, expand/collapse on click
+                        if ($row.hasClass("inspector-section")) {
+                            // Clicking the inspector title section header collapses/expands result rows
+                            $row.nextUntil(".inspector-section").toggle();
+
+                            var $triangle = $(".disclosure-triangle", $row);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
+                        // This is a problem marker row, show the result on click
+                        } else {
+                            // Grab the required position data
+                            var $lineTd   = $selectedRow.find("td.line-number"),
+                                line      = parseInt($lineTd.text(), 10) - 1,  // convert friendlyLine back to pos.line
+                                character = $lineTd.data("character"),
+                                editor    = EditorManager.getCurrentFullEditor();
+
+                            editor.setCursorPos(line, character, true);
+                            EditorManager.focusEditor();
+                        }
                     }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
-                }
-                setGotoEnabled(true);
+                });
             
-            } else {
-                Resizer.hide($problemsPanel);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
-                setGotoEnabled(false);
+            $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.PROBLEMS_PANEL_TITLE));
+            if (!_collapsed) {
+                Resizer.show($problemsPanel);
             }
 
-            PerfUtils.addMeasurement(perfTimerDOM);
+            if (numProblems === 1 && !aborted) {
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.PROBLEMS_PANEL_TITLE));
+            } else {
+                // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
+                if (aborted) {
+                    numProblems += "+";
+                }
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
+                    StringUtils.format(Strings.MULTIPLE_ERRORS, Strings.PROBLEMS_PANEL_TITLE, numProblems));
+            }
+            setGotoEnabled(true);
 
+            if (!numProblems) {
+                Resizer.hide($problemsPanel);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, Strings.PROBLEMS_PANEL_TITLE));
+                setGotoEnabled(false);
+            }
         } else {
             // No provider for current file
             _lastResult = null;
@@ -252,6 +322,57 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Create a menu entry for the given provider/code inspector.
+     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function addMenuEntryForProvider(provider) {
+        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
+            commandString = "command.inspector." + provider.name;
+
+        var inspectorCommand = CommandManager.register(menuString, commandString, function () {
+            this.setChecked(!this.getChecked());
+
+            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
+
+            // update results
+            run();
+        });
+
+        _allInspectorCommands.push(inspectorCommand);
+
+        // add a new MenuItem for each inspector
+        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
+
+        var providerState = getProviderState(provider);
+        inspectorCommand.setChecked(providerState);
+        inspectorCommand.setEnabled(_enabled);
+    }
+
+    /**
+     * The provider is passed the text of the file and its fullPath. Providers should not assume
+     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
+     * that the file on disk matches the text given (file may have unsaved changes).
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     *
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
+     */
+    function register(languageId, provider) {
+        if (!_providers[languageId]) {
+            _providers[languageId] = [];
+        }
+
+        _providers[languageId].push(provider);
+
+        addMenuEntryForProvider(provider);
+    }
+
     /**
      * Update DocumentManager listeners.
      */
@@ -286,11 +407,12 @@ define(function (require, exports, module) {
         updateListeners();
         _prefs.setValue("enabled", _enabled);
     
+        toggleEnableAllInspectorMenuItems(_enabled);
+
         // run immediately
         run();
     }
-    
-    
+
     /** 
      * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
      * the auto collapse due to files with no errors & filetypes with no provider). When explicitly
@@ -319,7 +441,7 @@ define(function (require, exports, module) {
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
-            $problemsPanel.find("tr:first-child").trigger("click");
+            $problemsPanel.find("tr:nth-child(2)").trigger("click");
         }
     }
     
@@ -362,7 +484,11 @@ define(function (require, exports, module) {
     
     
     // Public API
-    exports.register        = register;
-    exports.Type            = Type;
-    exports.toggleEnabled   = toggleEnabled;
+    exports.register          = register;
+    exports.Type              = Type;
+    exports.toggleEnabled     = toggleEnabled;
+
+    // Testing API
+    exports._setProviderState = setProviderState;
+    exports._getProviderState = getProviderState;
 });

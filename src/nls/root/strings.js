@@ -186,6 +186,7 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
     // CodeInspection: errors/warnings
+    "PROBLEMS_PANEL_TITLE"                  : "Code Inspection",
     "ERRORS_PANEL_TITLE"                    : "{0} Errors",
     "SINGLE_ERROR"                          : "1 {0} Error",
     "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
@@ -265,6 +266,7 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
+    "CMD_VIEW_ENABLE_INSPECTOR"           : "  Enable {0}",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
