@@ -1105,8 +1105,12 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _onDocumentSaved(event, doc) {
-        var absolutePath            = Inspector.connected() && doc.file.fullPath,
-            liveDocument            = _server && absolutePath && _server.get(absolutePath),
+        if (!Inspector.connected() || !_server) {
+            return;
+        }
+        
+        var absolutePath            = doc.file.fullPath,
+            liveDocument            = absolutePath && _server.get(absolutePath),
             liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
         
         // Skip reload if the saved document has live editing enabled

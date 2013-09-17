@@ -80,12 +80,29 @@ define(function (require, exports, module) {
             waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 15000);
         });
     }
+            
+    function createDocumentSavedSpy() {
+        var spy = jasmine.createSpy();
+            
+        // documentSaved is fired async after the FILE_SAVE command completes
+        // Need to wait for this event before checking Inspector.Page.reload
+        testWindow.$(DocumentManager).one("documentSaved", spy);
+        
+        return spy;
+    }
+    
+    function waitForDocumentSaved(spy) {
+        waitsFor(function () { return spy.callCount === 1; }, "documentSaved", 1000);
+    }
     
     function doOneTest(htmlFile, cssFile) {
         var localText,
-            browserText;
+            browserText,
+            documentSavedSpy,
+            curDoc;
         
         runs(function () {
+            spyOn(Inspector.Page, "reload");
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles " + htmlFile, 1000);
         });
 
@@ -96,7 +113,7 @@ define(function (require, exports, module) {
         });
         
         runs(function () {
-            var curDoc =  DocumentManager.getCurrentDocument();
+            curDoc =  DocumentManager.getCurrentDocument();
             localText = curDoc.getText();
             localText += "\n .testClass { background-color:#090; }\n";
             curDoc.setText(localText);
@@ -104,7 +121,7 @@ define(function (require, exports, module) {
 
         var liveDoc;
         waitsFor(function () {
-            liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/" + cssFile);
+            liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/" + cssFile);
             return !!liveDoc;
         }, "Waiting for LiveDevelopment document", 10000);
         
@@ -121,8 +138,17 @@ define(function (require, exports, module) {
         runs(function () {
             expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
             
-            var doc = DocumentManager.getOpenDocumentForPath(testPath + "/" + htmlFile);
+            var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/" + htmlFile);
             expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+            
+            // Save the CSS file
+            documentSavedSpy = createDocumentSavedSpy();
+            CommandManager.execute(Commands.FILE_SAVE, {doc: curDoc});
+            waitForDocumentSaved(documentSavedSpy);
+        });
+        
+        runs(function () {
+            expect(Inspector.Page.reload).not.toHaveBeenCalled();
         });
     }
 
@@ -482,8 +508,6 @@ define(function (require, exports, module) {
                 NativeApp            = testWindow.brackets.test.NativeApp;
                 ProjectManager       = testWindow.brackets.test.ProjectManager;
             });
-
-            SpecRunnerUtils.loadProjectInTestWindow(testPath);
         });
 
         afterLast(function () {
@@ -504,14 +528,29 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // verify live dev isn't currently active
+            expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
+        
+            // copy files to temp directory
             runs(function () {
-                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
+                waitsForDone(SpecRunnerUtils.copyPath(testPath, SpecRunnerUtils.getTempDirectory()), "copy temp files");
+            });
+            
+            // open project
+            runs(function () {
+                SpecRunnerUtils.loadProjectInTestWindow(SpecRunnerUtils.getTempDirectory());
             });
         });
         
         afterEach(function () {
-            waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
+            runs(function () {
+                waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
+            });
+            
             testWindow.closeAllFiles();
+            
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.removeTempDirectory());
+            });
         });
 
         describe("CSS Editing", function () {
@@ -527,7 +566,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
-                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
+                    var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.html");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
@@ -549,7 +588,7 @@ define(function (require, exports, module) {
                     
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
 
-                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.css");
+                    var doc = DocumentManager.getOpenDocumentForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
                 });
             });
@@ -585,7 +624,7 @@ define(function (require, exports, module) {
                 
                 var liveDoc, doneSyncing = false;
                 runs(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -605,11 +644,10 @@ define(function (require, exports, module) {
                     origHtmlText,
                     updatedHtmlText,
                     browserHtmlText,
-                    htmlDoc,
-                    reloadSpy;
+                    htmlDoc;
                 
                 runs(function () {
-                    reloadSpy = spyOn(Inspector.Page, "reload").andCallThrough();
+                    spyOn(Inspector.Page, "reload").andCallThrough();
                     enableAgent(LiveDevelopment, "dom");
 
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
@@ -646,24 +684,25 @@ define(function (require, exports, module) {
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(414);
+                    originalNode = DOMAgent.nodeAtLocation(501);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
                 runs(function () {
                     // Save changes to the test file
-                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
-                    waitsForDone(promise, "Saving modified html document");
+                    var documentSavedSpy = createDocumentSavedSpy();
+                    CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
+                    waitForDocumentSaved(documentSavedSpy);
                 });
                 
                 // Grab the node that we've modified in Brackets. 
                 var updatedNode, doneSyncing = false;
                 runs(function () {
                     // Inpsector.Page.reload should not be called when saving an HTML file
-                    expect(reloadSpy.callCount).toEqual(0);
+                    expect(Inspector.Page.reload).not.toHaveBeenCalled();
                     
-                    updatedNode = DOMAgent.nodeAtLocation(414);
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    updatedNode = DOMAgent.nodeAtLocation(501);
+                    var liveDoc = LiveDevelopment.getLiveDocForPath(SpecRunnerUtils.getTempDirectory() + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
@@ -761,7 +800,7 @@ define(function (require, exports, module) {
 
                     // Create syntax errors
                     doc =  DocumentManager.getCurrentDocument();
-                    doc.replaceRange("Live Preview in ", {line: 10, ch: 33});
+                    doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
                 });
 
                 runs(function () {
@@ -778,6 +817,62 @@ define(function (require, exports, module) {
 
         });
 
+        
+        describe("JS Editing", function () {
+            
+            it("should reload the page when editing a non-live document", function () {
+                var promise,
+                    jsdoc,
+                    documentSavedSpy;
+                
+                runs(function () {
+                    // Setup reload spy
+                    spyOn(Inspector.Page, "reload").andCallThrough();
+                    
+                    promise = SpecRunnerUtils.openProjectFiles(["simple1.html"]);
+                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                });
+
+                openLiveDevelopmentAndWait();
+                
+                runs(function () {
+                    promise = SpecRunnerUtils.openProjectFiles(["simple1.js"]);
+                    promise.done(function (openDocs) {
+                        jsdoc = openDocs["simple1.js"];
+                    });
+                    
+                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.js", 1000);
+                });
+
+                runs(function () {
+                    documentSavedSpy = createDocumentSavedSpy();
+                    
+                    // Edit a JavaScript doc
+                    jsdoc.setText("window.onload = function () {document.getElementById('testId').style.backgroundColor = '#090'}");
+                    
+                    // Save changes to the test file
+                    CommandManager.execute(Commands.FILE_SAVE, {doc: jsdoc});
+                    waitForDocumentSaved(documentSavedSpy);
+                });
+                
+                waitsFor(function () { return Inspector.Page.reload.callCount === 1; }, "reload callCount 1", 5000);
+                
+                runs(function () {
+                    // create a new spy for the next documentSaved event
+                    documentSavedSpy = createDocumentSavedSpy();
+                    
+                    // Edit the file again
+                    jsdoc.setText("window.onload = function () {document.body.style.backgroundColor = '#090'}");
+                    
+                    // Save changes to the test file...again
+                    CommandManager.execute(Commands.FILE_SAVE, {doc: jsdoc});
+                    waitForDocumentSaved(documentSavedSpy);
+                });
+                
+                waitsFor(function () { return Inspector.Page.reload.callCount === 2; }, "reload callCount 2", 5000);
+            });
+
+        });
     });
 
     describe("Servers", function () {
