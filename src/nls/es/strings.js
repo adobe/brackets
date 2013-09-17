@@ -86,13 +86,14 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo: Haz click para desconectar (Guarda el archivo para actualizar)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo (guarda el archivo para actualizar)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Desarrollo en Vivo (no se está actualizando debido a un error de sintaxis)",
     
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Desarrollo en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Desarrollo en Vivo se ha detenido porque se ha cerrado la página en el navegador",
@@ -120,7 +121,12 @@ define({
     "BUTTON_ALL"                        : "Todos\u2026",
     "BUTTON_STOP"                       : "Parar",
     "BUTTON_REPLACE"                    : "Reemplazar",
-
+    
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Siguiente coincidencia",
+    "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
+    
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
     "CHOOSE_FOLDER"                     : "Elige una carpeta",
@@ -144,9 +150,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "coincidencias",
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
-    "FIND_IN_FILES_LINE"                : "línea: {0}",
-
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
 
@@ -176,10 +180,20 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Haz click para usar tabulaciones en la sangría",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Haz click para cambiar el número de espacios usados en la sangría",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Haz click para cambiar el ancho de las tabulaciones",
-    "STATUSBAR_SPACES"                      : "Espacios",
-    "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador",
+    "STATUSBAR_SPACES"                      : "Espacios:",
+    "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Línea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Líneas",
+    
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "Errores de {0}",
+    "SINGLE_ERROR"                          : "1 Error de {0}",
+    "MULTIPLE_ERRORS"                       : "{1} Errores de {0}",
+    "NO_ERRORS"                             : "No hay errores de {0}. ¡Buen trabajo!",
+    "LINT_DISABLED"                         : "La inspección de código esta deshabilitado",
+    "NO_LINT_AVAILABLE"                     : "No hay inspección de código disponible para {0}",
+    "NOTHING_TO_LINT"                       : "No hay nada para inspeccionar",
+    
     
     /**
      * Command Name Constants
@@ -199,7 +213,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
-    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Desarrollo en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_FILE_DELETE"                     : "Eliminar",
@@ -250,6 +263,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Mostrar números de línea",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Resaltar línea actual",
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
+    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Desarrollo en Vivo",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar el código al guardar",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
@@ -260,6 +275,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
     "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Ir al primer Error/Advertencia",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
@@ -280,12 +296,6 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     
-    
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
-    "CMD_ABORT_QUIT"                      : "Cancelar salida",
-    "CMD_BEFORE_MENUPOPUP"                : "Antes del Menú Emergente",
-
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
@@ -402,6 +412,7 @@ define({
 
     "UNIT_PIXELS"                          : "píxeles",
 
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
@@ -420,9 +431,7 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Checo",
     "LOCALE_DE"                                 : "Alemán",
     "LOCALE_EN"                                 : "Inglés",
@@ -436,6 +445,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugués, Brasil",
     "LOCALE_PT_PT"                              : "Portugués",
     "LOCALE_RU"                                 : "Ruso",
+    "LOCALE_SK"                                 : "Eslovaco",
     "LOCALE_SV"                                 : "Sueco",
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",
@@ -456,16 +466,13 @@ define({
     "NO_ARGUMENTS"                              : "<no hay parámetros>",
     
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "Habilitar JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Ir al primer error de JSLint",
-    "JSLINT_ERRORS"                             : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"                  : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                          : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                           : "JSLint está deshabilitado o no soporta el archivo actual",
+    "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyectos recientes",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Más"
