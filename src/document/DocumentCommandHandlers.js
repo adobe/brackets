@@ -804,10 +804,12 @@ define(function (require, exports, module) {
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        // If not specified, file defaults to null; promptOnly defaults to falsy
-        var file        = commandData && commandData.file,
-            promptOnly  = commandData && commandData.promptOnly,
-            _forceClose = commandData && commandData._forceClose;
+        var file, promptOnly, _forceClose;
+        if (commandData) {
+            file        = commandData.file;
+            promptOnly  = commandData.promptOnly;
+            _forceClose = commandData._forceClose;
+        }
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(fileEntry) {

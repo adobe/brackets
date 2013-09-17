@@ -74,7 +74,8 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async");
+        Async              = require("utils/Async"),
+        AnimationUtils     = require("utils/AnimationUtils");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: false, wordWrap: true };
@@ -1101,18 +1102,11 @@ define(function (require, exports, module) {
             self._inlineWidgets.push(inlineWidget);
 
             // Set up the widget to start closed, then animate open when its initial height is set.
-            function finishAnimating(e) {
-                if (e.target === inlineWidget.$htmlContent.get(0)) {
-                    inlineWidget.$htmlContent
-                        .removeClass("animating")
-                        .off("webkitTransitionEnd", finishAnimating);
+            inlineWidget.$htmlContent.height(0);
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
                     deferred.resolve();
-                }
-            }
-            inlineWidget.$htmlContent
-                .height(0)
-                .addClass("animating")
-                .on("webkitTransitionEnd", finishAnimating);
+                });
 
             // Callback to widget once parented to the editor. The widget should call back to
             // setInlineWidgetHeight() in order to set its initial height and animate open.
@@ -1142,17 +1136,6 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             self = this;
 
-        function finishAnimating(e) {
-            if (e.target === inlineWidget.$htmlContent.get(0)) {
-                inlineWidget.$htmlContent
-                    .removeClass("animating")
-                    .off("webkitTransitionEnd", finishAnimating);
-                self._codeMirror.removeLineWidget(inlineWidget.info);
-                self._removeInlineWidgetInternal(inlineWidget);
-                deferred.resolve();
-            }
-        }
-
         if (!inlineWidget.closePromise) {
             var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
@@ -1162,10 +1145,13 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            inlineWidget.$htmlContent.addClass("animating")
-                .on("webkitTransitionEnd", finishAnimating)
-                .height(0);
-                
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
+                    self._codeMirror.removeLineWidget(inlineWidget.info);
+                    self._removeInlineWidgetInternal(inlineWidget);
+                    deferred.resolve();
+                });
+            inlineWidget.$htmlContent.height(0);
             inlineWidget.closePromise = deferred.promise();
         }
         return inlineWidget.closePromise;

@@ -165,7 +165,7 @@ define(function (require, exports, module) {
             twEditorManager  = null;
             tw$              = null;
             SpecRunnerUtils.closeTestWindow();
-            SpecRunnerUtils.deletePath(SpecRunnerUtils.getTempDirectory());
+            SpecRunnerUtils.removeTempDirectory();
         });
 
         beforeEach(function () {
