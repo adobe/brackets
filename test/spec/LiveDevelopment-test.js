@@ -751,7 +751,7 @@ define(function (require, exports, module) {
                     op.call();
                 });
 
-                waitsFor(function () { return spy.callCount > 0; }, "statusChange callback", 1000);
+                waitsFor(function () { return spy.callCount > 0; }, "statusChange callback", 2000);
 
                 runs(function () {
                     // Verify expected status
@@ -859,7 +859,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Browser should reload when saving non-live files like JavaScript
-                    waitsForDone(loadEventPromise);
+                    waitsForDone(loadEventPromise, "loadEventFired", 3000);
                 });
                 
                 runs(function () {
@@ -874,7 +874,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Browser should reload again
-                    waitsForDone(loadEventPromise);
+                    waitsForDone(loadEventPromise, "loadEventFired", 3000);
                 });
                 
                 runs(function () {
