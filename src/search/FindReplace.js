@@ -378,6 +378,19 @@ define(function (require, exports, module) {
         }
         $(currentDocument).off("change.replaceAll");
     }
+    
+    /**
+     * @private
+     * When the user switches documents (or closes the last document), ensure that the find bar
+     * closes, and also close the Replace All panel.
+     */
+    function _handleDocumentChange() {
+        if (modalBar) {
+            modalBar.close();
+            modalBar = null;
+        }
+        _closeReplaceAllPanel();
+    }
 
     /**
      * @private
@@ -613,7 +626,7 @@ define(function (require, exports, module) {
             });
     });
 
-    $(DocumentManager).on("currentDocumentChange", _closeReplaceAllPanel);
+    $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
     CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,          _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);
