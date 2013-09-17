@@ -185,7 +185,7 @@ define(function (require, exports, module) {
      *              hints: Array.<string|jQueryObject>,
      *              match: string,
      *              selectInitial: boolean,
-     *              handleWideReuslts: boolean,
+     *              handleWideResults: boolean,
      *              query: string}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides:
@@ -259,7 +259,9 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: valueNeedle,
-                selectInitial: selectInitial
+                selectInitial: selectInitial,
+                handleWideResults: false,
+                query: valueNeedle
             };
         } else if (context === CSSUtils.PROP_NAME) {
             lastContext = CSSUtils.PROP_NAME;
@@ -275,7 +277,7 @@ define(function (require, exports, module) {
                 match: needle,
                 selectInitial: selectInitial,
                 handleWideResults: false,
-                query: valueNeedle
+                query: needle
             };
         }
         return null;

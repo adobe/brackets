@@ -106,7 +106,7 @@ define(function (require, exports, module) {
      *              hints: Array.<string|jQueryObject>,
      *              match: string,
      *              selectInitial: boolean,
-     *              handleWideReuslts: boolean,
+     *              handleWideResults: boolean,
      *              query: string}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides:

@@ -89,7 +89,7 @@ define(function (require, exports, module) {
          *              hints: Array.<string|jQueryObject>,
          *              match: string,
          *              selectInitial: boolean,
-         *              handleWideReuslts: boolean,
+         *              handleWideResults: boolean,
          *              query: string}}
          */
         function formatHints(hints, query) {

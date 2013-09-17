@@ -160,16 +160,18 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Rebuilds the list items for the hint list.
+     * Appends text to end of pending text.
      *
+     * @param {string} text
      */
     CodeHintList.prototype.addPendingText = function (text) {
         this.pendingText += text;
     };
 
     /**
-     * Rebuilds the list items for the hint list.
+     * Removes text from beginning of pending text.
      *
+     * @param {string} text
      */
     CodeHintList.prototype.removePendingText = function (text) {
         if (this.pendingText.indexOf(text) === 0) {
