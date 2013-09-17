@@ -151,8 +151,13 @@ define(function LiveDevelopment(require, exports, module) {
 
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
-    var _server;              // current live dev server
     var _openDeferred;        // promise returned for each call to open()
+    
+    /**
+     * Current live preview server
+     * @type {BaseServer}
+     */
+    var _server;
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -185,23 +190,11 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     function getLiveDocForPath(path) {
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        if (!_server) {
+            return undefined;
         }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.fullPath === path) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
+        
+        return _server.get(path);
     }
     
     function getLiveDocForEditor(editor) {
@@ -1106,10 +1099,29 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Triggered by a document saved from the DocumentManager */
+    /**
+     * Triggered by a documentSaved event from DocumentManager.
+     * @param {$.Event} event
+     * @param {Document} doc
+     */
     function _onDocumentSaved(event, doc) {
-        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
-                agents.network && agents.network.wasURLRequested(doc.url)) {
+        if (!Inspector.connected() || !_server) {
+            return;
+        }
+        
+        var absolutePath            = doc.file.fullPath,
+            liveDocument            = absolutePath && _server.get(absolutePath),
+            liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
+        
+        // Skip reload if the saved document has live editing enabled
+        if (liveEditingEnabled) {
+            return;
+        }
+        
+        var documentUrl     = _server.pathToUrl(absolutePath),
+            wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
+        
+        if (wasRequested) {
             // Unload and reload agents before reloading the page
             reconnect();
 

@@ -101,8 +101,16 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     /**
+     * Returns true if document edits appear live in the connected browser
+     * @return {boolean} 
+     */
+    HTMLDocument.prototype.isLiveEditingEnabled = function () {
+        return this._instrumentationEnabled;
+    };
+    
+    /**
      * Returns a JSON object with HTTP response overrides
-     * @returns {{body: string}}
+     * @return {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
