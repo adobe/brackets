@@ -1367,7 +1367,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             tempRenameAttemptCounter = 0,
 
-            tempRenameCaseSensitive = function(oldName, newName, isFolder, tempRenameAttemptCounter) {
+            tempRenameCaseSensitive = function(oldName, newName, isFolder) {
 
                 // Because brackets.fs.rename is case insensitive, to perform
                 // a case-sensitive rename we must first give the file some
@@ -1382,7 +1382,7 @@ define(function (require, exports, module) {
                         // This process will repeat until a unique temporary
                         // file name is achieved
                         tempRenameAttemptCounter++;
-                        tempRenameCaseSensitive(oldName, newName, isFolder, tempRenameAttemptCounter);
+                        tempRenameCaseSensitive(oldName, newName, isFolder);
                     } else {
 
                         // The file has been successfully given its temporary name.
@@ -1466,7 +1466,7 @@ define(function (require, exports, module) {
             // Same file name with a different case
             // Must create a temporary name for the file before renaming
             // because brackets.fs.rename is case insensitive
-            tempRenameCaseSensitive(oldName, newName, isFolder, tempRenameAttemptCounter);
+            tempRenameCaseSensitive(oldName, newName, isFolder);
 
         } else {
 
