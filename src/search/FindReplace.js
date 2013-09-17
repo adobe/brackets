@@ -167,7 +167,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function createModalBar(template, autoClose) {
+    function createModalBar(template, autoClose, animate) {
         // Normally, creating a new modal bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. The old CodeMirror version
@@ -175,9 +175,9 @@ define(function (require, exports, module) {
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
         // close the old modal bar before creating a new one.
         if (modalBar) {
-            modalBar.close();
+            modalBar.close(true, animate);
         }
-        modalBar = new ModalBar(template, autoClose);
+        modalBar = new ModalBar(template, autoClose, animate);
         $(modalBar).on("closeOk closeBlur closeCancel", function () {
             modalBar = null;
         });
@@ -506,7 +506,11 @@ define(function (require, exports, module) {
             }
 
             query = parseQuery(query);
-            createModalBar(replacementQueryDialog, true);
+            
+            // Don't animate since it should feel like we're just switching the content of the ModalBar.
+            // Eventually we should rip out all this code (which comes from the old CodeMirror dialog
+            // logic) and just change the content itself.
+            createModalBar(replacementQueryDialog, true, false);
             $(modalBar).on("closeOk", function (e, text) {
                 text = text || "";
                 var match,
@@ -542,7 +546,7 @@ define(function (require, exports, module) {
                             }
                         }
                         editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                        createModalBar(doReplaceConfirm, true);
+                        createModalBar(doReplaceConfirm, true, false);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
                             if (e.target.id === "replace-yes") {
