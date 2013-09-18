@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        AppInit              = require("utils/AppInit"),
         Global               = require("utils/Global"),
         NativeApp            = require("utils/NativeApp"),
         StringUtils          = require("utils/StringUtils"),
