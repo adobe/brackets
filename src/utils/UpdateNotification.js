@@ -33,11 +33,11 @@ define(function (require, exports, module) {
     
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
-        NativeApp            = require("utils/NativeApp"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
         Global               = require("utils/Global"),
+        NativeApp            = require("utils/NativeApp"),
+        StringUtils          = require("utils/StringUtils"),
+        Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
@@ -208,17 +208,6 @@ define(function (require, exports, module) {
         
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
-        
-        $dlg.on("click", "a", function (e) {
-            var url = $(e.currentTarget).attr("data-url");
-            
-            if (url) {
-                // Make sure the URL has a domain that we know about
-                if (/(brackets\.io|github\.com|adobe\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
-                    NativeApp.openURLInDefaultBrowser(url);
-                }
-            }
-        });
     }
     
     /**
@@ -340,7 +329,7 @@ define(function (require, exports, module) {
     
     // Append locale to version info URL
     _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
-    
+
     // Define public API
     exports.checkForUpdate = checkForUpdate;
 });

@@ -212,6 +212,17 @@
  * return {boolean} 
  * Indicates whether the manager should follow hint insertion with an
  * explicit hint request.
+ *
+ *
+ * # CodeHintProvider.insertHintOnTab
+ * 
+ * type {?boolean} insertHintOnTab
+ * Indicates whether the CodeHintManager should request that the provider of 
+ * the current session insert the currently selected hint on tab key events,
+ * or if instead a tab character should be inserted into the editor. If omitted,
+ * the fallback behavior is determined by the CodeHintManager. The default
+ * behavior is to insert a tab character, but this can be changed with the
+ * CodeHintManager.setInsertHintOnTab() method.
  */
 
 
@@ -237,6 +248,23 @@ define(function (require, exports, module) {
         deferredHints   = null,
         keyDownEditor   = null;
 
+    
+    var _insertHintOnTabDefault = false;
+
+    /**
+     * Determines the default behavior of the CodeHintManager on tab key events.
+     * setInsertHintOnTab(true) indicates that the currently selected code hint
+     * should be inserted on tab key events. setInsertHintOnTab(false) indicates
+     * that a tab character should be inserted into the editor on tab key events.
+     * The default behavior can be overridden by individual providers.
+     *
+     * @param {boolean} Indicates whether providers should insert the currently
+     *      selected hint on tab key events.
+     */
+    function setInsertHintOnTab(insertHintOnTab) {
+        _insertHintOnTabDefault = insertHintOnTab;
+    }
+    
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -439,9 +467,16 @@ define(function (require, exports, module) {
 
         // If a provider is found, initialize the hint list and update it
         if (sessionProvider) {
+            var insertHintOnTab;
+            if (sessionProvider.insertHintOnTab !== undefined) {
+                insertHintOnTab = sessionProvider.insertHintOnTab;
+            } else {
+                insertHintOnTab = _insertHintOnTabDefault;
+            }
+            
             sessionEditor = editor;
-
-            hintList = new CodeHintList(sessionEditor);
+            
+            hintList = new CodeHintList(sessionEditor, insertHintOnTab);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
                     previousEditor = sessionEditor;
@@ -503,9 +538,7 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey ||
-                    event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
-                // End the session if the user presses any key with a modifier (other than Ctrl+Space).
+            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
@@ -589,4 +622,5 @@ define(function (require, exports, module) {
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
     exports.hasValidExclusion       = hasValidExclusion;
+    exports.setInsertHintOnTab      = setInsertHintOnTab;
 });

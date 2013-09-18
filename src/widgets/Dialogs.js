@@ -60,7 +60,6 @@ define(function (require, exports, module) {
     /** @type {number} The z-index used for the dialogs. Each new dialog increase this number by 2 */
     var zIndex = 1050;
 
-
     /**
      * @private
      * Dismises a modal dialog
@@ -69,7 +68,6 @@ define(function (require, exports, module) {
      */
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
-        $(".clickable-link", $dlg).off("click");
         $dlg.modal("hide");
     }
 
@@ -234,13 +232,6 @@ define(function (require, exports, module) {
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
 
-        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
-            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
-            if (e.currentTarget.dataset && e.currentTarget.dataset.href) {
-                NativeApp.openURLInDefaultBrowser(e.currentTarget.dataset.href);
-            }
-        });
-
         var keydownHook = function (e) {
             return _keydownHook.call($dlg, e, autoDismiss);
         };
@@ -261,6 +252,7 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             $dlg.remove();
+            $(".modal-backdrop:last").addClass("last-backdrop");
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
@@ -282,7 +274,9 @@ define(function (require, exports, module) {
                 _dismissDialog($dlg, $(this).attr("data-button-id"));
             });
         }
-
+        
+        $(".last-backdrop").removeClass("last-backdrop");
+        
         // Run the dialog
         $dlg
             .modal({
@@ -292,7 +286,9 @@ define(function (require, exports, module) {
             })
             // Updates the z-index of the modal dialog and the backdrop
             .css("z-index", zIndex + 1)
-            .next().css("z-index", zIndex);
+            .next()
+            .css("z-index", zIndex)
+            .addClass("last-backdrop");
         
         zIndex += 2;
         
@@ -328,11 +324,12 @@ define(function (require, exports, module) {
      * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      * @param {string} dlgClass The class name identifier for the dialog.
+     * @param {string=} buttonId The button id to use when closing the dialog. Defaults to DIALOG_CANCELED
      */
-    function cancelModalDialogIfOpen(dlgClass) {
+    function cancelModalDialogIfOpen(dlgClass, buttonId) {
         $("." + dlgClass + ".instance").each(function () {
             if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog($(this), DIALOG_CANCELED);
+                _dismissDialog($(this), buttonId || DIALOG_CANCELED);
             }
         });
     }

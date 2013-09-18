@@ -31,6 +31,11 @@
  *
  */
 
+/* Variable OVerride */
+
+@tooltipBackground:       #fff;
+@tooltipArrowColor:       @tooltipBackground;
+
 .panel {
     .vbox;
     .box-flex(1);
@@ -129,7 +134,7 @@
 
         > a {
             border-radius: 3px;
-            background-repeat: none;
+            background-repeat: no-repeat;
             display: block;
             height: 24px;
             margin: 7px 0px 0px 3px;
@@ -143,8 +148,8 @@
         > a:active {
             background-color: rgba(0, 0, 0, 0.66) !important;
         }
-    }     
-    
+    }
+
     .bottom-buttons {
         position: absolute;
         bottom: 5px;
@@ -446,7 +451,7 @@
 .modal-backdrop {
     opacity: 0;
 }
-.modal-backdrop:last-child {
+.last-backdrop {
     /* Only show the last modal backdrop */
     opacity: 0.5;
 }
@@ -481,15 +486,15 @@
 
 .dialog-filename {
     word-wrap: break-word;
-    
+
     font-weight: normal;
     body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
         font-weight: @font-weight-semibold;
     }
 }
 
-/* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use data-href for the link's target. */
-.clickable-link {
+/* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use href for the link's target. */
+a[href^="http"] {
     cursor: pointer;
 }
 
@@ -744,7 +749,7 @@
         }
         .about-contributors {
             min-height: 100px;
-            
+
             a {
                 text-decoration: none;
             }
@@ -795,7 +800,7 @@ input[type="color"],
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
     color: @tc-text;
-    font-size: @baseFontSize + 1px;
+    font-size: (@baseFontSize + 1px);
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
@@ -822,10 +827,31 @@ input[type="color"],
 }
 
 /* Twipsy tooltips */
+
+.tooltip {
+    &.in { opacity: 1; }
+}
+
 .tooltip-inner {
-    .box-shadow(0 3px 6px 0 rgba(0, 0, 0, .36));
-    max-width: none;
-    white-space: nowrap;
+    box-shadow: @tc-dropdown-shadow;
+    color: @tc-text;
+    max-width: 220px;
+    text-align: left;
+}
+
+.tooltip {
+    &.top .tooltip-arrow {
+        left: 50%;
+    }
+    &.right .tooltip-arrow {
+        top: 15px;
+    }
+    &.left .tooltip-arrow {
+        top: 15px;
+    }
+    &.bottom .tooltip-arrow {
+        left: 50%;
+    }
 }
 
 /* Buttons */
@@ -853,8 +879,8 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;
-    font-size: @baseFontSize + 1;
+    cursor: default;    
+    font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
@@ -912,11 +938,11 @@ input[type="color"],
 
     // Button Sizes
     &.large {
-        font-size: @baseFontSize + 1px;
+        font-size: (@baseFontSize + 1px);
         .border-radius(@tc-control-border-radius);
     }
     &.small {
-        font-size: @baseFontSize - 1px;
+        font-size: (@baseFontSize - 1px);
     }
 }
 

@@ -116,6 +116,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.VIEW_TOGGLE_INSPECTION);
         
         /*
          * Navigate menu
@@ -125,6 +127,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
         menu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
+        menu.addMenuItem(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);

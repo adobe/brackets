@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, expect, $  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, expect, $, jasmine  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -304,7 +304,8 @@ define(function (require, exports, module) {
             });
                         
         });
-    
+        
+        
         describe("Async PromiseQueue", function () {
             var queue, calledFns;
             
@@ -440,5 +441,60 @@ define(function (require, exports, module) {
                 expect(queue._curPromise).toBe(null);
             });
         });
+        
+        
+        describe("whenIdle()", function () {
+            var spy, handler;
+            beforeEach(function () {
+                spy = jasmine.createSpy();
+                handler = Async.whenIdle(100, spy);
+            });
+            
+            function ping(expectedCallCount) {
+                runs(function () {
+                    expect(spy.callCount).toBe(expectedCallCount);
+                    handler();
+                    expect(spy.callCount).toBe(expectedCallCount);
+                });
+            }
+            
+            it("should execute at end of tight sequence", function () {
+                ping(0);
+                waits(10);
+                ping(0);
+                waits(10);
+                ping(0);
+                waits(10);
+                
+                waits(100);
+                runs(function () {
+                    expect(spy.callCount).toBe(1);
+                });
+            });
+            
+            it("should execute during gap and at end of sequence", function () {
+                ping(0);
+                waits(10);
+                ping(0);
+                waits(10);
+                
+                waits(100);
+                runs(function () {
+                    expect(spy.callCount).toBe(1);
+                });
+                
+                ping(1);
+                waits(10);
+                runs(function () {
+                    expect(spy.callCount).toBe(1);
+                });
+                
+                waits(100);
+                runs(function () {
+                    expect(spy.callCount).toBe(2);
+                });
+            });
+        });
+        
     });
 });

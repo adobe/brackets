@@ -297,6 +297,29 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Pop up a function hint on the line above the caret position if the character before
+     *      the current cursor is an open parenthesis
+     *
+     * @return {jQuery.Promise} - The promise will not complete until the
+     *      hint has completed. Returns null, if the function hint is already
+     *      displayed or there is no function hint at the cursor.
+     */
+    function popUpHintAtOpenParen() {
+        var functionInfo = session.getFunctionInfo();
+        if (functionInfo.inFunctionCall) {
+            var token = session.getToken();
+            
+            if (token && token.string === "(") {
+                return popUpHint();
+            }
+        } else {
+            dismissHint();
+        }
+        
+        return null;
+    }
+    
+    /**
      *  Show the parameter the cursor is on in bold when the cursor moves.
      *  Dismiss the pop up when the cursor moves off the function.
      */
@@ -411,6 +434,7 @@ define(function (require, exports, module) {
     exports.installListeners        = installListeners;
     exports.isHintDisplayed         = isHintDisplayed;
     exports.popUpHint               = popUpHint;
+    exports.popUpHintAtOpenParen    = popUpHintAtOpenParen;
     exports.setSession              = setSession;
     exports.startCursorTracking     = startCursorTracking;
     exports.stopCursorTracking      = stopCursorTracking;

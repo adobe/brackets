@@ -69,6 +69,22 @@ define(function (require, exports, module) {
     // table with explicit tbody
     var TABLE_EXPLICIT_TBODY = '<table data-brackets-id="90"><tbody data-brackets-id="91"><tr data-brackets-id="92"><td data-brackets-id="93">foo</td></tr></tbody></table>';
     
+    // tag with extra Brackets highlighting nodes injected (this isn't realistic since they
+    // will usually be directly inside <body>)
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE = '<div data-brackets-id="201">text<div class="__brackets-ld-highlight"></div></div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER = '<div data-brackets-id="202"><div class="__brackets-ld-highlight"></div>text</div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH = '<div data-brackets-id="203">before<div class="__brackets-ld-highlight"></div>after</div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE_TAG = '<div data-brackets-id="204">text<div class="__brackets-ld-highlight"></div><img data-brackets-id="304"></div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER_TAG = '<div data-brackets-id="205"><img data-brackets-id="305"><div class="__brackets-ld-highlight"></div>text</div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_AFTER = '<div data-brackets-id="206">before<div class="__brackets-ld-highlight"></div>after<img data-brackets-id="306"></div>';
+    var CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_BEFORE = '<div data-brackets-id="207"><img data-brackets-id="307">before<div class="__brackets-ld-highlight"></div>after</div>';
+    
+    // script and style tags
+    var SCRIPT_TAG = '<script data-brackets-id="401"></script>';
+    var STYLE_TAG = '<style data-brackets-id="402"></style>';
+    var SCRIPT_TAG_WITH_TEXT = '<script data-brackets-id="403">old text</script>';
+    var STYLE_TAG_WITH_TEXT = '<style data-brackets-id="404">old text</style>';
+    
     // attr
     var ATTR_SIMPLE = '<div data-brackets-id="100" class="foo"></div>';
     
@@ -110,6 +126,15 @@ define(function (require, exports, module) {
                             return msgArray.toString();
                         };
                         
+                        
+                        function checkAttributes(target, attrs) {
+                            Object.keys(attrs).forEach(function (attr) {
+                                if (target.getAttribute(attr) !== attrs[attr]) {
+                                    msgArray.push("Expected attribute \"" + attr + "\" to have value: \"" + attrs[attr] + "\"");
+                                }
+                            });
+                        }
+
                         if (edit.type === "elementInsert") {
                             // elementInsert tagID assignment
                             child = queryBracketsID(edit.tagID);
@@ -121,6 +146,8 @@ define(function (require, exports, module) {
                                         (edit._isImplicit && child.parentNode.parentNode !== target))) {
                                 msgArray.push("New child element \"" + edit.tag + "\" was not under parentID " + edit.parentID);
                             }
+                            
+                            checkAttributes(child, edit._attributesExpected || edit.attributes);
                         } else if (edit.type.match(/textReplace|textInsert/)) {
                             // text node content
                             child = (edit.firstChild && target.firstChild) ||
@@ -129,11 +156,17 @@ define(function (require, exports, module) {
                                 (after && after.nextSibling) ||
                                 (!edit.lastChild && target.lastChild);
                             
-                            if (child.nodeValue !== edit.content) {
-                                msgArray.push("Expected text node \"" + child.nodeValue + "\" to have content: \"" + edit.content + "\"");
+                            if ((edit._contentExpected && child.nodeValue !== edit._contentExpected) ||
+                                    (!edit._contentExpected && child.nodeValue !== edit.content)) {
+                                msgArray.push("Expected text node \"" + child.nodeValue + "\" to have content: \"" + (edit._contentExpected || edit.content) + "\"");
                             }
+                        } else if (edit.type.match(/attrAdd|attrChange/)) {
+                            child = queryBracketsID(edit.tagID);
+                            var attrs = {};
+                            attrs[edit.attribute] = edit._valueExpected || edit.value;
+                            checkAttributes(child, attrs);
                         }
-                        
+
                         // FIXME implicit open tag
 //                        if (edit.type.match(/textDelete|elementDelete/)) {
 //                            // childNodes count delete
@@ -266,6 +299,17 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="60"><em data-brackets-id="61">code</em><span data-brackets-id="1000"></span> the web</div>');
                 });
                 
+                it("should parse entities in attribute values when inserting an element", function () {
+                    /* empty parent */
+                    applyEdit(EMPTY_ELEMENT, {
+                        parentID: 10,
+                        type: "elementInsert",
+                        tag:  "span",
+                        attributes: { "class": "And: &amp;, em-dash: &mdash;, heart: &#10084;" },
+                        _attributesExpected: { "class": "And: &, em-dash: —, heart: ❤" }
+                    });
+                });
+                
                 it("should handle an elementInsert for an <html> tag when one already exists by just setting its id", function () {
                     applyEdit(null, {
                         type: "elementInsert",
@@ -371,6 +415,25 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="100"></div>');
                 });
                 
+                it("should parse entities in the value when adding an attribute", function () {
+                    applyEdit(EMPTY_ELEMENT, {
+                        type: "attrAdd",
+                        tagID: 10,
+                        attribute: "class",
+                        value: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _valueExpected: "And: &, em-dash: —, heart: ❤"
+                    });
+                });
+                
+                it("should parse entities in the value when changing an attribute", function () {
+                    applyEdit(ATTR_SIMPLE, {
+                        type: "attrChange",
+                        tagID: 100,
+                        attribute: "class",
+                        value: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _valueExpected: "And: &, em-dash: —, heart: ❤"
+                    });
+                });
             });
             
             describe("Text edits", function () {
@@ -399,6 +462,52 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="40"></div>');
                 });
                 
+                it("should parse entities when inserting text content", function () {
+                    applyEdit(EMPTY_ELEMENT, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _contentExpected: "And: &, em-dash: —, heart: ❤",
+                        parentID: 10
+                    });
+                });
+
+                it("should parse entities when replacing text content", function () {
+                    applyEdit(ONE_TEXT_NODE, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        _contentExpected: "And: &, em-dash: —, heart: ❤",
+                        parentID: 40
+                    });
+                });
+
+                it("should not parse entities when inserting into <script>", function () {
+                    applyEdit(SCRIPT_TAG, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 401
+                    });
+                });
+                it("should not parse entities when inserting into <style>", function () {
+                    applyEdit(STYLE_TAG, {
+                        type: "textInsert",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 402
+                    });
+                });
+                it("should not parse entities when replacing in <script>", function () {
+                    applyEdit(SCRIPT_TAG_WITH_TEXT, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 403
+                    });
+                });
+                it("should not parse entities when replacing in <style>", function () {
+                    applyEdit(STYLE_TAG_WITH_TEXT, {
+                        type: "textReplace",
+                        content: "And: &amp;, em-dash: &mdash;, heart: &#10084;",
+                        parentID: 404
+                    });
+                });
             });
             
             describe("Working with text and elements", function () {
@@ -554,6 +663,109 @@ define(function (require, exports, module) {
                     }, '<div data-brackets-id="52"></div>');
                 });
                 
+            });
+            
+            describe("Ignoring injected highlight nodes in text operations", function () {
+                it("should handle deleting text content before highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE, {
+                        type: "textDelete",
+                        parentID: 201
+                    }, '<div data-brackets-id="201"><div class="__brackets-ld-highlight"></div></div>');
+                });
+                it("should handle deleting text content after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER, {
+                        type: "textDelete",
+                        parentID: 202
+                    }, '<div data-brackets-id="202"><div class="__brackets-ld-highlight"></div></div>');
+                });
+                it("should handle deleting text content before and after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH, {
+                        type: "textDelete",
+                        parentID: 203
+                    }, '<div data-brackets-id="203"><div class="__brackets-ld-highlight"></div></div>');
+                });
+                it("should handle deleting text content before highlight node relative to tag after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE_TAG, {
+                        type: "textDelete",
+                        parentID: 204,
+                        beforeID: 304
+                    }, '<div data-brackets-id="204"><div class="__brackets-ld-highlight"></div><img data-brackets-id="304"></div>');
+                });
+                it("should handle deleting text content after highlight node relative to tag before highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER_TAG, {
+                        type: "textDelete",
+                        parentID: 205,
+                        afterID: 305
+                    }, '<div data-brackets-id="205"><img data-brackets-id="305"><div class="__brackets-ld-highlight"></div></div>');
+                });
+                it("should handle deleting text content before and after highlight node relative to tag after", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_AFTER, {
+                        type: "textDelete",
+                        parentID: 206,
+                        beforeID: 306
+                    }, '<div data-brackets-id="206"><div class="__brackets-ld-highlight"></div><img data-brackets-id="306"></div>');
+                });
+                it("should handle deleting text content before and after highlight node relative to tag before", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_BEFORE, {
+                        type: "textDelete",
+                        parentID: 207,
+                        afterID: 307
+                    }, '<div data-brackets-id="207"><img data-brackets-id="307"><div class="__brackets-ld-highlight"></div></div>');
+                });
+
+                it("should handle replacing text content before highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE, {
+                        type: "textReplace",
+                        parentID: 201,
+                        content: "newText"
+                    }, '<div data-brackets-id="201"><div class="__brackets-ld-highlight"></div>newText</div>');
+                });
+                it("should handle replacing text content after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER, {
+                        type: "textReplace",
+                        parentID: 202,
+                        content: "newText"
+                    }, '<div data-brackets-id="202"><div class="__brackets-ld-highlight"></div>newText</div>');
+                });
+                it("should handle replacing text content before and after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH, {
+                        type: "textReplace",
+                        parentID: 203,
+                        content: "newText"
+                    }, '<div data-brackets-id="203"><div class="__brackets-ld-highlight"></div>newText</div>');
+                });
+                it("should handle replacing text content before highlight node relative to tag after highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BEFORE_TAG, {
+                        type: "textReplace",
+                        parentID: 204,
+                        beforeID: 304,
+                        content: "newText"
+                    }, '<div data-brackets-id="204"><div class="__brackets-ld-highlight"></div>newText<img data-brackets-id="304"></div>');
+                });
+                it("should handle replacing text content after highlight node relative to tag before highlight node", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_AFTER_TAG, {
+                        type: "textReplace",
+                        parentID: 205,
+                        afterID: 305,
+                        content: "newText"
+                    }, '<div data-brackets-id="205"><img data-brackets-id="305">newText<div class="__brackets-ld-highlight"></div></div>');
+                });
+                it("should handle replacing text content before and after highlight node relative to tag after", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_AFTER, {
+                        type: "textReplace",
+                        parentID: 206,
+                        beforeID: 306,
+                        content: "newText"
+                    }, '<div data-brackets-id="206"><div class="__brackets-ld-highlight"></div>newText<img data-brackets-id="306"></div>');
+                });
+                it("should handle replacing text content before and after highlight node relative to tag before", function () {
+                    applyEdit(CHILD_WITH_HIGHLIGHT_AND_TEXT_BOTH_TAG_BEFORE, {
+                        type: "textReplace",
+                        parentID: 207,
+                        afterID: 307,
+                        content: "newText"
+                    }, '<div data-brackets-id="207"><img data-brackets-id="307">newText<div class="__brackets-ld-highlight"></div></div>');
+                });
             });
             
         });
