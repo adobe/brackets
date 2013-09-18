@@ -425,7 +425,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * Get the next or previous file in the working set (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
      * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
@@ -437,22 +437,22 @@ define(function (require, exports, module) {
         }
         
         if (_currentDocument) {
-            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSet);
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
-                if (_workingSetMRUOrder.length > 0) {
-                    return _workingSetMRUOrder[0];
+                if (_workingSet.length > 0) {
+                    return _workingSet[0];
                 }
             } else {
                 // If doc is in working set, return next/prev item with wrap-around
                 var newI = mruI + inc;
-                if (newI >= _workingSetMRUOrder.length) {
+                if (newI >= _workingSet.length) {
                     newI = 0;
                 } else if (newI < 0) {
-                    newI = _workingSetMRUOrder.length - 1;
+                    newI = _workingSet.length - 1;
                 }
                 
-                return _workingSetMRUOrder[newI];
+                return _workingSet[newI];
             }
         }
         
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            // Get next most recent doc in the MRU order
+            // Get next doc from the working set.
             var nextFile = getNextPrevFile(1);
             if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
                 // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
