@@ -174,6 +174,14 @@ define(function CSSDocumentModule(require, exports, module) {
     };
     
     /**
+     * Returns true if document edits appear live in the connected browser
+     * @return {boolean} 
+     */
+    CSSDocument.prototype.isLiveEditingEnabled = function () {
+        return true;
+    };
+    
+    /**
      * Returns a JSON object with HTTP response overrides
      * @returns {{body: string}}
      */

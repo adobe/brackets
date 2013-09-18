@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         var friendlyName;
         if (this.owner) {
             var nameComponents = this.owner.split(":");
-            friendlyName = nameComponents[1] + " (" + nameComponents[0] + ")";
+            friendlyName = nameComponents[1];
         }
         return friendlyName;
     };

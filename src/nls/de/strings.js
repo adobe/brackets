@@ -63,6 +63,7 @@ define({
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{0}</span> existiert bereits.", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
@@ -86,7 +87,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a href='{0}' title='{0}'>Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
@@ -102,6 +103,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
+    "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}." +
                                                 "<br /><br />" +
@@ -118,9 +121,14 @@ define({
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
-    "BUTTON_ALL"                        : "Alle",
+    "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
+
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
+    "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -145,8 +153,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "Datei: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "Zeile: {0}",
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
@@ -177,10 +184,19 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicken, um die Schrittweite von Tabs zu ändern",
-    "STATUSBAR_SPACES"                      : "Leerzeichen",
-    "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite",
+    "STATUSBAR_SPACES"                      : "Leerzeichen:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
+
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
+    "SINGLE_ERROR"                          : "1 {0} Fehler",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
+    "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
+    "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
+    "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
+    "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
 
     /**
      * Command Name Constants
@@ -200,7 +216,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -251,6 +266,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktive Zeile hervorheben",
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
@@ -261,6 +278,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Fehler/zur ersten Warnung gehen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -281,11 +299,6 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
-    "CMD_ABORT_QUIT"                      : "Beenden abbrechen",
-    "CMD_BEFORE_MENUPOPUP"                : "Vor Menü-Popup",
-
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
@@ -293,6 +306,7 @@ define({
     "DONT_SAVE"                            : "Nicht speichern",
     "SAVE"                                 : "Speichern",
     "CANCEL"                               : "Abbrechen",
+    "DELETE"                               : "Löschen",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
@@ -316,7 +330,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
@@ -419,9 +433,7 @@ define({
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_FR"                                 : "Französisch",
@@ -454,16 +466,13 @@ define({
     "NO_ARGUMENTS"                              : "<keine Parameter>",
 
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "JSLint aktivieren",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Gehe zu erstem JSLint-Fehler",
-    "JSLINT_ERRORS"                             : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                          : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                           : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
+    "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"

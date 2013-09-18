@@ -86,7 +86,7 @@
     span.cm-minus {color: @accent-minus;}
     span.cm-plus {color: @accent-plus;}
     
-    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @background-color-2;}
+    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
     span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 
     .CodeMirror-cursor {
@@ -160,7 +160,8 @@
     
     .CodeMirror span.CodeMirror-matchingbracket {
         /* Ensure visibility against gray inline editor background */
-        background-color: @background-color-1;
+        background-color: @matching-bracket;
+        color: @accent-bracket !important;
     }
 
     .CodeMirror .CodeMirror-cursor {
@@ -201,13 +202,13 @@
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+        background: darken(@activeline-bgcolor, (@bc-color-step-size / 2)); 
     }
     .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
     }
     
-    .CodeMirror-matchingtag { background:  @background-color-2; }
+    .CodeMirror-matchingtag { background: @matching-bracket; color: @accent-bracket !important; }
 }
 
 /*

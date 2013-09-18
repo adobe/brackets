@@ -205,7 +205,7 @@ define(function (require, exports, module) {
                         
                         $selectedRow  = $(e.currentTarget);
                         $selectedRow.addClass("selected");
-                        var lineTd    = $selectedRow.find("td.line");
+                        var lineTd    = $selectedRow.find(".line-number");
                         var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
                         var character = lineTd.data("character");
                         

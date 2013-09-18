@@ -276,7 +276,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adres URL nie może zawierać parametrów wyszukiwania takich jak \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Nieznany błąd podczas parsowania adresu URL.",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL.",
     
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",

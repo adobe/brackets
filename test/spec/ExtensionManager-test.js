@@ -619,6 +619,7 @@ define(function (require, exports, module) {
                     model = new ModelClass();
                     modelDisposed = false;
                     waitsForDone(view.initialize(model), "view initializing");
+                    view.$el.appendTo(document.body);
                 });
                 runs(function () {
                     spyOn(view.model, "dispose").andCallThrough();
@@ -650,8 +651,10 @@ define(function (require, exports, module) {
                 
             
             afterEach(function () {
-                view = null;
-                
+                if (view) {
+                    view.$el.remove();
+                    view = null;
+                }
                 if (model) {
                     model.dispose();
                 }
@@ -691,10 +694,8 @@ define(function (require, exports, module) {
                                 }
                             });
                             
-                            // Owner--should show the parts, but might format them separately
-                            item.owner.split(":").forEach(function (part) {
-                                expect(view).toHaveText(part);
-                            });
+                            // Owner--should show only the owner name, not the authenticator
+                            expect(view).toHaveText(item.owner.split(":")[1]);
                         });
                     });
                 });
@@ -706,10 +707,8 @@ define(function (require, exports, module) {
                         console.log(view);
                         CollectionUtils.forEach(JSON.parse(mockExtensionList), function (item) {
                             if (item.installInfo && item.registryInfo) {
-                                // Owner--should show the parts, but might format them separately
-                                item.registryInfo.owner.split(":").forEach(function (part) {
-                                    expect(view).toHaveText(part);
-                                });
+                                // Owner--should show only the owner name, not the authenticator
+                                expect(view).toHaveText(item.registryInfo.owner.split(":")[1]);
                             }
                         });
                     });
@@ -835,7 +834,10 @@ define(function (require, exports, module) {
                     runs(function () {
                         var origHref = window.location.href;
                         spyOn(NativeApp, "openURLInDefaultBrowser");
-                        $("a", view.$el).first().click();
+                        
+                        var event = new window.Event("click", { bubbles: false, cancelable: true });
+                        document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
+                        
                         expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
                         expect(window.location.href).toBe(origHref);
                     });

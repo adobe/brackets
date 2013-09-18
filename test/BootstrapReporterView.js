@@ -107,9 +107,6 @@ define(function (require, exports, module) {
     BootstrapReporterView.prototype._handleRunnerStart = function (event, reporter) {
         var topLevelData,
             self = this;
-
-        // Make sure we don't have a temp folder when we start....
-        SpecRunnerUtils.removeTempDirectory();
         
         // create top level suite list navigation
         this._createSuiteList(reporter.suites, reporter.sortedNames, reporter.totalSpecCount);
@@ -132,9 +129,6 @@ define(function (require, exports, module) {
     };
     
     BootstrapReporterView.prototype._handleRunnerEnd = function (event, reporter) {
-        // Make sure we don't have a temp folder when we're finished....
-        SpecRunnerUtils.removeTempDirectory();
-
         if (this.$info) {
             this.$info.toggleClass("alert-info", false);
             
