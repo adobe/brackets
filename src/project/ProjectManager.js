@@ -1405,11 +1405,8 @@ define(function (require, exports, module) {
      *   the rename is finished.
      */
     function renameItem(oldName, newName, isFolder) {
-        var result = new $.Deferred();
-        
         if (oldName === newName) {
-            result.resolve();
-            return result;
+            return $.Deferred().resolve().promise();
         }
         
         // TODO: This should call FileEntry.moveTo(), but that isn't implemented
