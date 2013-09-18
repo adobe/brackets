@@ -330,11 +330,6 @@ define(function (require, exports, module) {
     
     // Append locale to version info URL
     _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
-    
-    // Check for updates on App Ready
-    AppInit.appReady(function () {
-        checkForUpdate();
-    });
 
     // Define public API
     exports.checkForUpdate = checkForUpdate;
