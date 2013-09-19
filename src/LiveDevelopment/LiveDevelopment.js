@@ -1042,8 +1042,8 @@ define(function LiveDevelopment(require, exports, module) {
             prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
         
         // wait for server (StaticServer, Base URL or file:)
-        prepareServerPromise.done(function(result){
-          _doLaunchAfterServerReady(doc);
+        prepareServerPromise.done(function (result) {
+            _doLaunchAfterServerReady(doc);
         });
       
         prepareServerPromise.fail(function () {
