@@ -507,6 +507,8 @@ define(function (require, exports, module) {
         this.category = "integration";
 
         beforeFirst(function () {
+            SpecRunnerUtils.createTempDirectory();
+
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow           = w;
                 Dialogs              = testWindow.brackets.test.Dialogs;
@@ -535,6 +537,8 @@ define(function (require, exports, module) {
                 ProjectManager       = null;
                 SpecRunnerUtils.closeTestWindow();
             });
+
+            SpecRunnerUtils.removeTempDirectory();
         });
         
         beforeEach(function () {
@@ -558,10 +562,6 @@ define(function (require, exports, module) {
             });
             
             testWindow.closeAllFiles();
-            
-            runs(function () {
-                waitsForDone(SpecRunnerUtils.removeTempDirectory());
-            });
         });
 
         describe("CSS Editing", function () {
