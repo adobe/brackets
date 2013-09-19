@@ -74,7 +74,8 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async");
+        Async              = require("utils/Async"),
+        AnimationUtils     = require("utils/AnimationUtils");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: false, wordWrap: true };
@@ -504,6 +505,11 @@ define(function (require, exports, module) {
             cm.scrollTo(info.left, info.top);
             cm.execCommand("selectAll");
         });
+    };
+    
+    /** @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor) */
+    Editor.prototype.isTextSubset = function () {
+        return Boolean(this._visibleRange);
     };
     
     /**
@@ -1096,11 +1102,9 @@ define(function (require, exports, module) {
             self._inlineWidgets.push(inlineWidget);
 
             // Set up the widget to start closed, then animate open when its initial height is set.
-            inlineWidget.$htmlContent
-                .height(0)
-                .addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
+            inlineWidget.$htmlContent.height(0);
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
                     deferred.resolve();
                 });
 
@@ -1129,10 +1133,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
+        var deferred = new $.Deferred(),
+            self = this;
+
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
-                deferred = new $.Deferred(),
-                self = this;
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
             // Remove the inline widget from our internal list immediately, so
             // everyone external to us knows it's essentially already gone. We
@@ -1140,15 +1145,13 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            inlineWidget.$htmlContent.addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
                     self._codeMirror.removeLineWidget(inlineWidget.info);
                     self._removeInlineWidgetInternal(inlineWidget);
                     deferred.resolve();
-                })
-                .height(0);
-                
+                });
+            inlineWidget.$htmlContent.height(0);
             inlineWidget.closePromise = deferred.promise();
         }
         return inlineWidget.closePromise;
@@ -1259,9 +1262,15 @@ define(function (require, exports, module) {
         }
         
         function setOuterHeight() {
+            function finishAnimating(e) {
+                if (e.target === node) {
+                    updateHeight();
+                    $(node).off("webkitTransitionEnd", finishAnimating);
+                }
+            }
             $(node).height(height);
             if ($(node).hasClass("animating")) {
-                $(node).one("webkitTransitionEnd", updateHeight);
+                $(node).on("webkitTransitionEnd", finishAnimating);
             } else {
                 updateHeight();
             }

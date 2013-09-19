@@ -382,12 +382,10 @@ define(function (require, exports, module) {
         window.document.body.addEventListener("click", function (e) {
             // Check parents too, in case link has inline formatting tags
             var node = e.target, url;
-            console.log(1);
+            
             while (node) {
-                console.log(node.tagName);
                 if (node.tagName === "A") {
                     url = node.getAttribute("href");
-                    console.log(url);
                     if (url && url.match(/^http/)) {
                         NativeApp.openURLInDefaultBrowser(url);
                         e.preventDefault();

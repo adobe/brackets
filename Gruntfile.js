@@ -100,7 +100,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.3.3.min.js'
+                    'src/thirdparty/less-1.4.2.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'

@@ -798,13 +798,18 @@ define(function (require, exports, module) {
      *      promptOnly - If true, only displays the relevant confirmation UI and does NOT actually
      *          close the document. This is useful when chaining file-close together with other user
      *          prompts that may be cancelable.
+     *      _forceClose - If true, closes the document without prompting even if there are unsaved 
+     *          changes. Only for use in unit tests.
      * @return {$.Promise} a promise that is resolved when the file is closed, or if no file is open.
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        // If not specified, file defaults to null; promptOnly defaults to falsy
-        var file       = commandData && commandData.file,
-            promptOnly = commandData && commandData.promptOnly;
+        var file, promptOnly, _forceClose;
+        if (commandData) {
+            file        = commandData.file;
+            promptOnly  = commandData.promptOnly;
+            _forceClose = commandData._forceClose;
+        }
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(fileEntry) {
@@ -834,7 +839,7 @@ define(function (require, exports, module) {
         
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
         
-        if (doc && doc.isDirty) {
+        if (doc && doc.isDirty && !_forceClose) {
             // Document is dirty: prompt to save changes before closing
             var filename = FileUtils.getBaseName(doc.file.fullPath);
             
