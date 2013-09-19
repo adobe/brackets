@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                     NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
                 });
 
-                waitsFor(function () { return readComplete; }, NativeFileSystem.ASYNC_TIMEOUT * 2);
+                waitsFor(function () { return readComplete; }, "DirectoryReader.readEntries timeout", NativeFileSystem.ASYNC_TIMEOUT * 2);
                     
                 runs(function () {
                     expect(readComplete).toBe(true);

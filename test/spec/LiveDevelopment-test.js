@@ -771,7 +771,7 @@ define(function (require, exports, module) {
                 });
             }
 
-            it("should report STATUS_SYNC_ERROR when HTML syntax is invalid", function () {
+            xit("should report STATUS_SYNC_ERROR when HTML syntax is invalid", function () {
                 var doc,
                     originalText,
                     text;
@@ -785,6 +785,8 @@ define(function (require, exports, module) {
                         doc.replaceRange("<", { line: 10, ch: 2});
                     }, LiveDevelopmentModule.STATUS_SYNC_ERROR, 11);
                 });
+
+                waits(1000);
 
                 runs(function () {
                     // Undo syntax errors
