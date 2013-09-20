@@ -285,19 +285,24 @@ define(function (require, exports, module) {
     
     /**
      * Remove temp folder used for temporary unit tests files
-     * @return {$.Promise}
      */
     function removeTempDirectory() {
-        var deferred = new $.Deferred(),
-            baseDir = getTempDirectory();
+        var deferred    = new $.Deferred(),
+            baseDir     = getTempDirectory();
         
-        _resetPermissionsOnSpecialTempFolders().done(function () {
-            deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
-        }).fail(function () {
-            deferred.reject();
+        runs(function () {
+            _resetPermissionsOnSpecialTempFolders().done(function () {
+                deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
+            }).fail(function () {
+                deferred.reject();
+            });
+
+            deferred.fail(function (err) {
+                console.log("boo");
+            });
+        
+            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
         });
-        
-        return deferred.promise();
     }
     
     function getBracketsSourceRoot() {
@@ -509,12 +514,13 @@ define(function (require, exports, module) {
             _testWindow.closeAllFiles = function closeAllFiles() {
                 runs(function () {
                     var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "Close all open files in working set");
                     
                     _testWindow.brackets.test.Dialogs.cancelModalDialogIfOpen(
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_BTN_DONTSAVE
                     );
+
+                    waitsForDone(promise, "Close all open files in working set");
                 });
             };
         });
@@ -789,12 +795,12 @@ define(function (require, exports, module) {
                 // create the new FileEntry
                 createTextFile(destination, text).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
-                }).fail(function () {
-                    deferred.reject();
+                }).fail(function (err) {
+                    deferred.reject(err);
                 });
             });
-        }).fail(function () {
-            deferred.reject();
+        }).fail(function (err) {
+            deferred.reject(err);
         });
         
         return deferred.promise();
@@ -914,7 +920,10 @@ define(function (require, exports, module) {
                 promise = copyFileEntry(entry, destination, options);
             }
             
-            promise.then(deferred.resolve, deferred.reject);
+            promise.then(deferred.resolve, function (err) {
+                console.error(destination);
+                deferred.reject();
+            });
         }).fail(function () {
             deferred.reject();
         });
