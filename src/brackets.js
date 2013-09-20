@@ -158,6 +158,7 @@ define(function (require, exports, module) {
             UpdateNotification      : require("utils/UpdateNotification"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             doneLoading             : false
         };
 
