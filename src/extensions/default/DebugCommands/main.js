@@ -150,9 +150,9 @@ define(function (require, exports, module) {
                     languages = [];
                 
                 function setLanguage(event) {
-                    locale = $select.val();
-                    $submit.prop("disabled", false);
-                }
+                     locale = $select.val();
+                     $submit.prop("disabled", locale === (curLocale === null ? "" : curLocale));
+                 }
                 
                 // returns the localized label for the given locale
                 // or the locale, if nothing found
