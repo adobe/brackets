@@ -76,6 +76,8 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
+        Trie                    = require("utils/Trie"),
+        VolumeManager           = require("filesystem/VolumeManager"),
         FileSystemManager       = require("filesystem/FileSystemManager"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
