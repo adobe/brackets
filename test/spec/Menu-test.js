@@ -36,17 +36,15 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
 
-    describe("Menus", function () {
+    describe("Menus (Native Shell)", function () {
         
         this.category = "integration";
 
         var testWindow;
 
         beforeFirst(function () {
-            // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
-            // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
-            // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+            // Create a new native menu window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createNativeTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -210,11 +208,37 @@ define(function (require, exports, module) {
                 expect($menus.length).toBe(0);
             });
         });
+    });
 
-        if (!brackets.inBrowser) {
-            return;
-        }
+    
+    describe("Menus (HTML)", function () {
+        
+        this.category = "integration";
 
+        var testWindow;
+
+        beforeFirst(function () {
+            // Create a new HTML menu window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createHTMLTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            });
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
         describe("Add Menus", function () {
             
             function getTopMenus() {

@@ -476,8 +476,7 @@ define(function (require, exports, module) {
         waitsForDone(promise, "dismiss dialog");
     }
     
-    
-    function createTestWindowAndRun(spec, callback) {
+    function _createTestWindowAndRun(spec, hasNativeMenus, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
             var testWindowWid = 1000,
@@ -503,6 +502,9 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // determines if test window should have native or html menus
+            params.put("hasNativeMenus", hasNativeMenus);
+            
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
             _testWindow.isBracketsTestWindow = true;
@@ -524,7 +526,7 @@ define(function (require, exports, module) {
                 });
             };
         });
-
+        
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function isBracketsDoneLoading() {
@@ -540,6 +542,18 @@ define(function (require, exports, module) {
         });
     }
 
+    function createTestWindowAndRun(spec, callback) {
+        _createTestWindowAndRun(spec, brackets.nativeMenus, callback);
+    }
+
+    function createHTMLTestWindowAndRun(spec, callback) {
+        _createTestWindowAndRun(spec, false, callback);
+    }
+    
+    function createNativeTestWindowAndRun(spec, callback) {
+        _createTestWindowAndRun(spec, true, callback);
+    }
+    
     function closeTestWindow() {
         // debug-only to see testWindow state before closing
         // waits(500);
@@ -1268,6 +1282,8 @@ define(function (require, exports, module) {
     exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
+    exports.createHTMLTestWindowAndRun      = createHTMLTestWindowAndRun;
+    exports.createNativeTestWindowAndRun    = createNativeTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;
     exports.destroyMockEditor               = destroyMockEditor;
