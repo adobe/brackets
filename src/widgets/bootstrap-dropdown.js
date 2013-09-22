@@ -1,7 +1,7 @@
-/* ============================================================
- * bootstrap-dropdown.js v2.3.1
- * http://twitter.github.com/bootstrap/javascript.html#dropdowns
- * ============================================================
+/* ========================================================================
+ * Bootstrap: dropdown.js v3.0.0
+ * http://twbs.github.com/bootstrap/javascript.html#dropdowns
+ * ========================================================================
  * Copyright 2012 Twitter, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,126 +15,116 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * ============================================================ */
+ * ======================================================================== */
 
 
-!function ($) {
++function ($) { "use strict";
 
-  "use strict"; // jshint ;_;
+  // DROPDOWN CLASS DEFINITION
+  // =========================
 
+  var backdrop = '.dropdown-backdrop'
+  var toggle   = '[data-toggle=dropdown]'
+  var Dropdown = function (element) {
+    var $el = $(element).on('click.bs.dropdown', this.toggle)
+  }
 
- /* DROPDOWN CLASS DEFINITION
-  * ========================= */
+  Dropdown.prototype.toggle = function (e) {
+    var $this = $(this)
 
-  var toggle = '[data-toggle=dropdown]'
-    , Dropdown = function (element) {
-        var $el = $(element).on('click.dropdown.data-api', this.toggle)
-        $('html').on('click.dropdown.data-api', function () {
-          $el.parent().removeClass('open')
-        })
+    if ($this.is('.disabled, :disabled')) return
+
+    var $parent  = getParent($this)
+    var isActive = $parent.hasClass('open')
+
+    clearMenus()
+
+    if (!isActive) {
+      if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
+        // if mobile we we use a backdrop because click events don't delegate
+        $('<div class="dropdown-backdrop"/>').insertAfter($(this)).on('click', clearMenus)
       }
 
-  Dropdown.prototype = {
+      $parent.trigger(e = $.Event('show.bs.dropdown'))
 
-    constructor: Dropdown
+      if (e.isDefaultPrevented()) return
 
-  , toggle: function (e) {
-      var $this = $(this)
-        , $parent
-        , isActive
-
-      if ($this.is('.disabled, :disabled')) return
-
-      $parent = getParent($this)
-
-      isActive = $parent.hasClass('open')
-
-      clearMenus()
-
-      if (!isActive) {
-        $parent.toggleClass('open')
-      }
+      $parent
+        .toggleClass('open')
+        .trigger('shown.bs.dropdown')
 
       $this.focus()
-
-      return false
     }
 
-  , keydown: function (e) {
-      var $this
-        , $items
-        , $active
-        , $parent
-        , isActive
-        , index
+    return false
+  }
 
-      if (!/(38|40|27)/.test(e.keyCode)) return
+  Dropdown.prototype.keydown = function (e) {
+    if (!/(38|40|27)/.test(e.keyCode)) return
 
-      $this = $(this)
+    var $this = $(this)
 
-      e.preventDefault()
-      e.stopPropagation()
+    e.preventDefault()
+    e.stopPropagation()
 
-      if ($this.is('.disabled, :disabled')) return
+    if ($this.is('.disabled, :disabled')) return
 
-      $parent = getParent($this)
+    var $parent  = getParent($this)
+    var isActive = $parent.hasClass('open')
 
-      isActive = $parent.hasClass('open')
-
-      if (!isActive || (isActive && e.keyCode == 27)) {
-        if (e.which == 27) $parent.find(toggle).focus()
-        return $this.click()
-      }
-
-      $items = $('[role=menu] li:not(.divider):visible a', $parent)
-
-      if (!$items.length) return
-
-      index = $items.index($items.filter(':focus'))
-
-      if (e.keyCode == 38 && index > 0) index--                                        // up
-      if (e.keyCode == 40 && index < $items.length - 1) index++                        // down
-      if (!~index) index = 0
-
-      $items
-        .eq(index)
-        .focus()
+    if (!isActive || (isActive && e.keyCode == 27)) {
+      if (e.which == 27) $parent.find(toggle).focus()
+      return $this.click()
     }
 
+    var $items = $('[role=menu] li:not(.divider):visible a', $parent)
+
+    if (!$items.length) return
+
+    var index = $items.index($items.filter(':focus'))
+
+    if (e.keyCode == 38 && index > 0)                 index--                        // up
+    if (e.keyCode == 40 && index < $items.length - 1) index++                        // down
+    if (!~index)                                      index=0
+
+    $items.eq(index).focus()
   }
 
   function clearMenus() {
-    $(toggle).each(function () {
-      getParent($(this)).removeClass('open')
+    $(backdrop).remove()
+    $(toggle).each(function (e) {
+      var $parent = getParent($(this))
+      if (!$parent.hasClass('open')) return
+      $parent.trigger(e = $.Event('hide.bs.dropdown'))
+      if (e.isDefaultPrevented()) return
+      $parent.removeClass('open').trigger('hidden.bs.dropdown')
     })
   }
 
   function getParent($this) {
     var selector = $this.attr('data-target')
-      , $parent
 
     if (!selector) {
       selector = $this.attr('href')
       selector = selector && /#/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, '') //strip for ie7
     }
 
-    $parent = selector && $(selector)
+    var $parent = selector && $(selector)
 
-    if (!$parent || !$parent.length) $parent = $this.parent()
-
-    return $parent
+    return $parent && $parent.length ? $parent : $this.parent()
   }
 
 
-  /* DROPDOWN PLUGIN DEFINITION
-   * ========================== */
+  // DROPDOWN PLUGIN DEFINITION
+  // ==========================
 
   var old = $.fn.dropdown
 
   $.fn.dropdown = function (option) {
     return this.each(function () {
       var $this = $(this)
-        , data = $this.data('dropdown')
+      var data  = $this.data('dropdown')
+
       if (!data) $this.data('dropdown', (data = new Dropdown(this)))
       if (typeof option == 'string') data[option].call($this)
     })
@@ -143,8 +133,8 @@
   $.fn.dropdown.Constructor = Dropdown
 
 
- /* DROPDOWN NO CONFLICT
-  * ==================== */
+  // DROPDOWN NO CONFLICT
+  // ====================
 
   $.fn.dropdown.noConflict = function () {
     $.fn.dropdown = old
@@ -152,14 +142,13 @@
   }
 
 
-  /* APPLY TO STANDARD DROPDOWN ELEMENTS
-   * =================================== */
+  // APPLY TO STANDARD DROPDOWN ELEMENTS
+  // ===================================
 
   $(document)
-    .on('click.dropdown.data-api', clearMenus)
-    .on('click.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
-    .on('click.dropdown-menu', function (e) { e.stopPropagation() })
-    .on('click.dropdown.data-api'  , toggle, Dropdown.prototype.toggle)
-    .on('keydown.dropdown.data-api', toggle + ', [role=menu]' , Dropdown.prototype.keydown)
+    .on('click.bs.dropdown.data-api', clearMenus)
+    .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
+    .on('click.bs.dropdown.data-api'  , toggle, Dropdown.prototype.toggle)
+    .on('keydown.bs.dropdown.data-api', toggle + ', [role=menu]' , Dropdown.prototype.keydown)
 
 }(window.jQuery);
