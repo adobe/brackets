@@ -250,7 +250,7 @@
 
         margin-top: 0;
         background-color: @bc-white;
-        .border-radius(0 0 3px 3px);
+        border-radius: 0 0 3px 3px;
         box-shadow: @tc-dropdown-shadow;
         border: none;
 
@@ -322,7 +322,7 @@
     list-style-type: none;
 
     .dropdown-menu {
-        .border-radius(3px);
+        border-radius: 3px;
         box-shadow: @tc-dropdown-shadow;
     }
 
@@ -818,8 +818,8 @@ input[type="color"],
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
     color: @tc-text;
-    font-size: (@baseFontSize + 1px);
-    .border-radius(@tc-control-border-radius);
+    font-size: (@font-size-base + 1px);
+    border-radius: @tc-control-border-radius;
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
 
@@ -898,11 +898,11 @@ input[type="color"],
     text-shadow: @tc-text-shadow;
     color: @tc-text;
     cursor: default;    
-    font-size: (@baseFontSize + 1);
+    font-size: (@font-size-base + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
-    .border-radius(@tc-control-border-radius);
+    border-radius: @tc-control-border-radius;
     box-shadow: @tc-button-highlight;
     -webkit-font-smoothing: antialiased;
 
@@ -956,11 +956,11 @@ input[type="color"],
 
     // Button Sizes
     &.large {
-        font-size: (@baseFontSize + 1px);
-        .border-radius(@tc-control-border-radius);
+        font-size: (@font-size-base + 1px);
+        border-radius: @tc-control-border-radius;
     }
     &.small {
-        font-size: (@baseFontSize - 1px);
+        font-size: (@font-size-base - 1px);
     }
 }
 
