@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
                 bezierBezierCurve: "#1461FC",
-                bezierThickness: 0.02
+                bezierThickness: 0.03
             };
 
             settings = settings || {};
