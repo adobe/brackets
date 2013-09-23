@@ -85,15 +85,15 @@ define({
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
-	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS または HTML ファイル</strong>の編集時にのみライブ更新が行われます。 JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a href='{0}' title='{0}'>Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "ライブプレビュー : 初期化中\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
-	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "!能=[6488839] Live Preview (save file to refresh)_=!",
-	"LIVE_DEV_STATUS_TIP_SYNC_ERROR": "!能=[7280512] Live Preview (not updating due to syntax error)_=!",
+	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー (ファイルを保存して更新)",
+	"LIVE_DEV_STATUS_TIP_SYNC_ERROR": "ライブプレビュー (シンタックスエラーのため更新されません)",
 
 	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
 	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
@@ -141,7 +141,7 @@ define({
 
 	"FIND_IN_FILES_TITLE_PART1": "「",
 	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {2} {3}で{0} 件 {1}",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {2} {3}で {0} 件{1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
@@ -186,7 +186,7 @@ define({
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "{0} 個のエラー",
+	"ERRORS_PANEL_TITLE": "{0} のエラー",
 	"SINGLE_ERROR": "1 個の {0} エラー",
 	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
 	"NO_ERRORS": "{0} エラーはありません - Good job!",
@@ -445,7 +445,7 @@ define({
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
 	"LOCALE_RU": "ロシア語",
-	"LOCALE_SK": "!能=[7281186] Slovak_=!",
+	"LOCALE_SK": "スロバキア語",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
