@@ -233,7 +233,9 @@ define(function (require, exports, module) {
             for (i = 0; i < len; i++) {
                 entryPath = directory.fullPath + "/" + contents[i];
                 
-                if (this.shouldShow(entryPath)) {
+                // Note: not all entries necessarily have associated stats.
+                // For now, silently ignore such entries.
+                if (stats[i] && this.shouldShow(entryPath)) {
                     if (stats[i].isFile()) {
                         entry = this.getFileForPath(entryPath);
                     } else {
