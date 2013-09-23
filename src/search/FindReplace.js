@@ -343,6 +343,7 @@ define(function (require, exports, module) {
             } else if (e.target.id === "find-prev") {
                 doSearch(editor, true);
             }
+            $(getDialogTextField()).focus();
         });
         
         var $input = getDialogTextField();
