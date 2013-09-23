@@ -152,6 +152,7 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
+        
         ScrollTrackMarkers.clear();
     }
 
@@ -206,13 +207,6 @@ define(function (require, exports, module) {
         
         ScrollTrackMarkers.setVisible(editor, enabled);
     }
-    
-    function addHighlight(editor, state, cursor) {
-        var cm = editor._codeMirror;
-        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
-        
-        ScrollTrackMarkers.addTickmark(editor, cursor.from());
-    }
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -264,19 +258,16 @@ define(function (require, exports, module) {
                 //Flag that controls the navigation controls.
                 var enableNavigator = false;
                 
-                // Highlight all matches
+                // Find all matches
                 // (Except on huge documents, where this is too expensive)
+                var resultSet = [];
                 if (cm.getValue().length < 500000) {
-                    toggleHighlighting(editor, true);
-                    
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                    var resultCount = 0;
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
-                        addHighlight(editor, state, cursor);
-                        resultCount++;
-
-                        //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
+                        resultSet.push(cursor.pos);  // pos is unique obj per search result
+                        
+                        // TODO: remove this section when https://github.com/marijnh/CodeMirror/issues/1155 is fixed
                         if (cursor.pos.match && cursor.pos.match[0] === "") {
                             if (cursor.to().line + 1 === cm.lineCount()) {
                                 break;
@@ -284,13 +275,27 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                                        
-                    if (resultCount === 0) {
+                    
+                    // Highlight all matches if there aren't too many
+                    if (resultSet.length <= 2000) {
+                        toggleHighlighting(editor, true);
+                        
+                        resultSet.forEach(function (result) {
+                            state.marked.push(cm.markText(result.from, result.to, { className: "CodeMirror-searching" }));
+                        });
+                        var scrollTrackPositions = resultSet.map(function (result) {
+                            return result.from;
+                        });
+                        
+                        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    }
+                    
+                    if (resultSet.length === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
-                    } else if (resultCount === 1) {
+                    } else if (resultSet.length === 1) {
                         $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                     } else {
-                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
                         enableNavigator = true;
                     }
 
