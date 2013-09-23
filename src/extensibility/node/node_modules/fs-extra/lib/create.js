@@ -1,3 +1,5 @@
+"use strict"
+
 var mkdir = require('./mkdir')
   , path = require('path')
   , fs = require('fs')
@@ -5,20 +7,20 @@ var mkdir = require('./mkdir')
   , existsSync = fs.existsSync || path.existsSync
 
 function createFile (file, callback) {
+  function makeFile() {
+    fs.writeFile(file, '', function(err) {
+      if (err)
+        callback(err)
+      else
+        callback(null);
+    })
+  }
+
   exists(file, function(fileExists) {
     if (fileExists)
       return callback(null);
     else {
       var dir = path.dirname(file);
-
-      function makeFile() {
-        fs.writeFile(file, '', function(err) {
-          if (err)
-            callback(err)
-          else
-            callback(null);
-        })
-      }
 
       exists(dir, function(dirExists) {
         if (!dirExists) {
