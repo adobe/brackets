@@ -183,6 +183,7 @@ define(function (require, exports, module) {
      */
     function run() {
         if (!_enabled) {
+            _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
@@ -206,7 +207,7 @@ define(function (require, exports, module) {
             providers.forEach(function (provider) {
                 perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + currentDoc.file.fullPath);
             
-                if (getProviderState(provider) === true) {
+                if (getProviderState(provider)) {
                     var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
                     _lastResult = result;
 
@@ -245,7 +246,9 @@ define(function (require, exports, module) {
             });
 
             // Update results table
-            var html = Mustache.render(ResultsTemplate, {reportList: resultList});
+            // compile creates a cached function to render the template
+            var resultsTemplate = Mustache.compile(ResultsTemplate);
+            var html = resultsTemplate({reportList: resultList});
             var $selectedRow;
 
             $problemsPanel.find(".table-container")
@@ -256,8 +259,6 @@ define(function (require, exports, module) {
                 .on("click", function (e) {
                     var $row = $(e.target).closest("tr");
 
-                    console.log("Target: " + e.target.toString());
-                    console.log("Header clicked" + $row.toString());
                     if ($row.length) {
                         if ($selectedRow) {
                             $selectedRow.removeClass("selected");
