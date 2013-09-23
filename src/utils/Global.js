@@ -34,7 +34,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var configJSON = require("text!config.json");
+    var configJSON  = require("text!config.json"),
+        UrlParams   = require("utils/UrlParams").UrlParams;
+    
+    var params = new UrlParams();
+    
+    // read URL params
+    params.parse();
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -77,7 +83,11 @@ define(function (require, exports, module) {
     
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
     
-    global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
+    if (params.get("hasNativeMenus") !== undefined) {
+        global.brackets.nativeMenus = (params.get("hasNativeMenus") === "true");
+    } else {
+        global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
+    }
     
     global.brackets.isLocaleDefault = function () {
         return !global.localStorage.getItem("locale");
