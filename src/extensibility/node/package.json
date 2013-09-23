@@ -4,6 +4,7 @@
     "version": "0.27.0",
     "dependencies": {
         "decompress-zip": "0.0.1",
+        "tmp": "0.0.21",
         "semver": ">1.1.0 <2.0.0",
         "fs-extra": "0.5.x",
         "async": "0.2.x",

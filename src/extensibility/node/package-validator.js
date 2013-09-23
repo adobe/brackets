@@ -27,13 +27,13 @@ indent: 4, maxerr: 50, regexp: true */
 
 "use strict";
 
-var unzip   = require("unzip"),
-    semver  = require("semver"),
-    path    = require("path"),
-    http    = require("http"),
-    request = require("request"),
-    os      = require("os"),
-    fs      = require("fs-extra");
+var DecompressZip = require("decompress-zip"),
+    semver        = require("semver"),
+    path          = require("path"),
+    http          = require("http"),
+    request       = require("request"),
+    os            = require("os"),
+    fs            = require("fs-extra");
 
 
 var Errors = {
