@@ -948,7 +948,7 @@ define(function (require, exports, module) {
             // Multiple unsaved files: show a single bulk prompt listing all files
             var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
             
-            message += "<ul>";
+            message += "<ul class='dialog-list'>";
             unsavedDocs.forEach(function (doc) {
                 var fullPath = doc.file.fullPath;
                 
