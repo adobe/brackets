@@ -100,7 +100,7 @@ define(function (require, exports, module) {
      * @return {Array.<File>} Array of files.
      */
     FileIndex.prototype.getAllFiles = function () {
-        return this._allFiles;   // TODO: Return a copy?
+        return this._allFiles.slice(0);
     };
     
     // Export public API
