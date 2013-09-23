@@ -564,7 +564,7 @@ define(function (require, exports, module) {
                     };
                     var doReplace = function (match) {
                         cursor.replace(typeof query === "string" ? text :
-                                            text.replace(/\$(\d)/, fnMatch));
+                                            text.replace(/\$(\d)/, function (w, i) { return match[i]; }));
                         advance();
                     };
                     advance();
