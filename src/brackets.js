@@ -299,7 +299,9 @@ define(function (require, exports, module) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                    if ($(".modal.instance").length === 0 &&
+                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
                         dropEffect = "copy";
                     }
                     event.originalEvent.dataTransfer.dropEffect = dropEffect;
