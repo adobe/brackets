@@ -406,7 +406,7 @@ define(function (require, exports, module) {
     function createMockEditorForDocument(doc, visibleRange) {
         // Initialize EditorManager/PanelManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
         PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
         
