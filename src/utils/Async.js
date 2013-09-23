@@ -88,20 +88,17 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function doInParallel(items, beginProcessItem, failFast) {
-        var promises = [];
         var masterDeferred = new $.Deferred();
         
         if (items.length === 0) {
             masterDeferred.resolve();
             
         } else {
-            var numCompleted = 0;
+            var numRemaining = items.length;
             var hasFailed = false;
             
             items.forEach(function (item, i) {
                 var itemPromise = beginProcessItem(item, i);
-                promises.push(itemPromise);
-                
                 itemPromise.fail(function () {
                     if (failFast) {
                         masterDeferred.reject();
@@ -110,8 +107,8 @@ define(function (require, exports, module) {
                     }
                 });
                 itemPromise.always(function () {
-                    numCompleted++;
-                    if (numCompleted === items.length) {
+                    numRemaining--;
+                    if (numRemaining === 0) {
                         if (hasFailed) {
                             masterDeferred.reject();
                         } else {
