@@ -189,14 +189,6 @@ define(function (require, exports, module) {
     Trie.prototype.longestCommonPrefix = function () {
         return this.root.longestCommonPrefix();
     };
-    
-    var t = new Trie("/");
-    t.addWord("/");
-    t.addWord("/abc");
-    t.addWord("/abc/def");
-    t.addWord("/xyz");
-    t.addWord("/xyz/123/456/789");
-    t.removeNode("/xyz/123/456/789");
             
     module.exports = Trie;
 });
