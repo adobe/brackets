@@ -32,8 +32,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager"),
-        KeyEvent      = require("utils/KeyEvent");
+    var EditorManager  = require("editor/EditorManager"),
+        KeyEvent       = require("utils/KeyEvent"),
+        AnimationUtils = require("utils/AnimationUtils");
 
     /**
      * @constructor
@@ -44,19 +45,28 @@ define(function (require, exports, module) {
      *      in the first input field, or if the modal bar loses focus to an outside item. Dispatches 
      *      jQuery events for these cases: "closeOk" on RETURN, "closeCancel" on ESC, and "closeBlur" 
      *      on focus loss.
+     * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
+     *      close it immediately.
      */
-    function ModalBar(template, autoClose) {
+    function ModalBar(template, autoClose, animate) {
+        if (animate === undefined) {
+            animate = true;
+        }
+        
         this._handleInputKeydown = this._handleInputKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
         
-        this._$root = $("<div class='modal-bar modal-bar-hide'/>")
+        this._$root = $("<div class='modal-bar'/>")
             .html(template)
             .insertBefore("#editor-holder");
 
-        // Forcing the renderer to do a layout, which will cause it to apply the transform for the "modal-bar-hide"
-        // class, so it will animate when you remove the class.
-        window.getComputedStyle(this._$root.get(0)).getPropertyValue("top");
-        this._$root.removeClass("modal-bar-hide");
+        if (animate) {
+            this._$root.addClass("modal-bar-hide");
+            // Forcing the renderer to do a layout, which will cause it to apply the transform for the "modal-bar-hide"
+            // class, so it will animate when you remove the class.
+            window.getComputedStyle(this._$root.get(0)).getPropertyValue("top");
+            this._$root.removeClass("modal-bar-hide");
+        }
         
         // If something *other* than an editor (like another modal bar) has focus, set the focus 
         // to the editor here, before opening up the new modal bar. This ensures that the old
@@ -118,33 +128,59 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Closes the modal bar and returns focus to the active editor.
+     * Closes the modal bar and returns focus to the active editor. Returns a promise that is
+     * resolved when the bar is fully closed and the container is removed from the DOM.
+     * @param {boolean=} restoreScrollPos If true (the default), adjust the scroll position
+     *     of the editor to account for the ModalBar disappearing. If not set, the caller
+     *     should do it immediately on return of this function (before the animation completes),
+     *     because the editor will already have been resized.
+     * @param {boolean=} animate If true (the default), animate the closing of the ModalBar,
+     *     otherwise close it immediately.
+     * @return {$.Promise} promise resolved when close is finished
      */
-    ModalBar.prototype.close = function () {
+    ModalBar.prototype.close = function (restoreScrollPos, animate) {
+        if (restoreScrollPos === undefined) {
+            restoreScrollPos = true;
+        }
+        if (animate === undefined) {
+            animate = true;
+        }
+        
         // Store our height before closing, while we can still measure it
-        var barHeight = this.height();
+        var result = new $.Deferred(),
+            barHeight = this.height(),
+            self = this;
+
+        function doRemove() {
+            self._$root.remove();
+            result.resolve();
+        }
 
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
         
-        var self = this;
-        this._$root.addClass("modal-bar-hide").one("webkitTransitionEnd", function () {
-            self._$root.remove();
-        });
+        if (animate) {
+            AnimationUtils.animateUsingClass(this._$root.get(0), "modal-bar-hide")
+                .done(doRemove);
+        } else {
+            doRemove();
+        }
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
         var fullEditor = EditorManager.getCurrentFullEditor(),
             scrollPos;
-        if (fullEditor) {
+        if (restoreScrollPos && fullEditor) {
             scrollPos = fullEditor.getScrollPos();
         }
         EditorManager.resizeEditor();
-        if (fullEditor) {
+        if (restoreScrollPos && fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
         EditorManager.focusEditor();
+        
+        return result.promise();
     };
     
     /**

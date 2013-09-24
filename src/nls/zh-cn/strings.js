@@ -72,11 +72,11 @@ define({
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (错误 {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启并启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在连接浏览器",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览，需要重启 Chrome 并打开远程调试功能。<br /><br />你确定重新启动 Chrome 浏览器,并且打开远程调试功能吗?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "无法加载实时开发页面.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "需要打开一个HTML文件才能实时预览.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端,您需要为这个项目指定一个基本URL地址.(如htt://127.0.0.1/)",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端,您需要为这个项目指定一个基本URL地址.(如http://127.0.0.1/)",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}将通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 当你保存了Javascript文件与HTML文件,实时预览将在浏览器中重新加载他们.<br /><br />(此消息仅会出现一次.)",
@@ -157,6 +157,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "文件",
+    "CMD_FILE_NEW_UNTITLED"               : "新建",
     "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
@@ -166,11 +167,13 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "全部关闭",
     "CMD_FILE_SAVE"                       : "保存",
     "CMD_FILE_SAVE_ALL"                   : "全部保存",
+    "CMD_FILE_SAVE_AS"                    : "另存为\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "在线预览",
     "CMD_LIVE_HIGHLIGHT"                  : "在线高亮代码",
     "CMD_PROJECT_SETTINGS"                : "项目设置\u2026",
     "CMD_FILE_RENAME"                     : "重命名",
     "CMD_INSTALL_EXTENSION"               : "安装扩展",
+    "CMD_EXTENSION_MANAGER"               : "扩展管理器\u2026",
     "CMD_QUIT"                            : "退出",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "退出",
@@ -199,6 +202,8 @@ define({
     "CMD_LINE_UP"                         : "移到下一行",
     "CMD_LINE_DOWN"                       : "移到上一行",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动完成括号",
+    "CMD_SHOW_CODE_HINTS"                 : "显示代码提示",
+    
     
     // View menu commands
     "VIEW_MENU"                           : "视图",
@@ -227,7 +232,8 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "下一个匹配项",
     "CMD_NEXT_DOC"                        : "下一个文件",
     "CMD_PREV_DOC"                        : "上一个文件",
-    "CMD_SHOW_IN_TREE"                    : "转到工作目录",
+    "CMD_SHOW_IN_TREE"                    : "在侧边栏显示",
+    "CMD_SHOW_IN_OS"                      : "打开文件所在目录",
     
     // Help menu commands
     "HELP_MENU"                           : "帮助",
@@ -260,7 +266,7 @@ define({
     "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
     "CLOSE"                                : "关闭",
-    "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> 以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "基于\u2764和JavaScript由以下用户参与贡献设计:",
@@ -268,15 +274,15 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
     "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
     "UPDATE_MESSAGE"                       : "有一个新的 {APP_NAME} .增加了一些功能:",
-    "GET_IT_NOW"                           : "现在获取!",
+    "GET_IT_NOW"                           : "马上获取!",
     "PROJECT_SETTINGS_TITLE"               : "项目设置: {0}",
-    "PROJECT_SETTING_BASE_URL"             : "在线预览基本地址",
+    "PROJECT_SETTING_BASE_URL"             : "在线预览的基地址",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(使用本地服务器,并且指定一个URL)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "实时预览不支持此协议 {0} &mdash;请使用 http: 或 https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含搜索参数如 \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "解析地址错误,请确认地址格式",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "地址解析错误,请确认地址格式",
     
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
@@ -327,6 +333,25 @@ define({
     "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "取消",
     
+    // Locales (used by Debug > Switch Language)
+    "LOCALE_CS"                                 : "捷克语",
+    "LOCALE_DE"                                 : "德语",
+    "LOCALE_EN"                                 : "英语",
+    "LOCALE_ES"                                 : "西班牙语",
+    "LOCALE_FI"                                 : "芬兰语",
+    "LOCALE_FR"                                 : "法语",
+    "LOCALE_IT"                                 : "意大利语",
+    "LOCALE_JA"                                 : "日本语",
+    "LOCALE_NB"                                 : "挪威语",
+    "LOCALE_PL"                                 : "波兰语",
+    "LOCALE_PT_BR"                              : "葡萄牙语(巴西)",
+    "LOCALE_PT_PT"                              : "葡萄牙语",
+    "LOCALE_RU"                                 : "俄语",
+    "LOCALE_SV"                                 : "瑞典语",
+    "LOCALE_TR"                                 : "土耳其语",
+    "LOCALE_ZH_CN"                              : "简体中文",
+    "LOCALE_HU"                                 : "匈牙利语",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
@@ -336,6 +361,11 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)",
     
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "跳转到源代码定义处",
+    "CMD_SHOW_PARAMETER_HINT"                   : "显示参数提示",
+    "NO_ARGUMENTS"                              : "<无相应参数>",
+    
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "启用JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "转到第一个JSLint错误",
@@ -343,5 +373,14 @@ define({
     "JSLINT_ERROR_INFORMATION"                  : "1个JSLint错误",
     "JSLINT_ERRORS_INFORMATION"                 : "{0}个JSLint错误",
     "JSLINT_NO_ERRORS"                          : "未发现JSLint错误 - 骚年加油!",
-    "JSLINT_DISABLED"                           : "JSLint已被禁用或者无法工作在此文件."
+    "JSLINT_DISABLED"                           : "JSLint已被禁用或者无法工作在此文件.",
+    
+    // extensions/default/QuickView
+    "CMD_ENABLE_QUICK_VIEW"                     : "鼠标悬停时启用快速查看",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "最近的项目",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "更多信息"
 });

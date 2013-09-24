@@ -59,6 +59,7 @@ describe("Package Validation", function () {
     it("should handle a good package", function (done) {
         packageValidator.validate(basicValidExtension, {}, function (err, result) {
             expect(err).toBeNull();
+            expect(result.extractDir).toBeDefined();
             expect(result.errors.length).toEqual(0);
             var metadata = result.metadata;
             expect(metadata.name).toEqual("basic-valid-extension");

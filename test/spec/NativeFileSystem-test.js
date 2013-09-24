@@ -44,16 +44,23 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             var self = this;
+            
+            SpecRunnerUtils.createTempDirectory();
 
             runs(function () {
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
                 self.path = SpecRunnerUtils.getTempDirectory();
+
                 waitsForDone(SpecRunnerUtils.copyPath(testFiles, self.path));
             });
 
             runs(function () {
                 self.file1content = "Here is file1";
             });
+        });
+
+        afterEach(function () {
+            SpecRunnerUtils.removeTempDirectory();
         });
 
         describe("Reading a directory", function () {
@@ -264,7 +271,6 @@ define(function (require, exports, module) {
             it("should timeout with error when reading dir if low-level stat call takes too long", function () {
                 var statCalled = false, readComplete = false, gotError = false, theError = null;
                 var oldStat = brackets.fs.stat;
-                this.after(function () { brackets.fs.stat = oldStat; });
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
                     var reader = nfs.root.createReader();
@@ -275,6 +281,12 @@ define(function (require, exports, module) {
                     // mock up new low-level stat that never calls the callback
                     brackets.fs.stat = function (path, callback) {
                         statCalled = true;
+
+                        // Can't do this as a spy or as a spec.after() because
+                        // after each callbacks (like SpecRunnerUtils.removeTempDirecotry)
+                        // will see the mock function still.
+                        // https://github.com/pivotal/jasmine/issues/236
+                        brackets.fs.stat = oldStat;
                     };
                     
                     reader.readEntries(successCallback, errorCallback);
@@ -284,7 +296,7 @@ define(function (require, exports, module) {
                     NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
                 });
 
-                waitsFor(function () { return readComplete; }, NativeFileSystem.ASYNC_TIMEOUT * 2);
+                waitsFor(function () { return readComplete; }, "DirectoryReader.readEntries timeout", NativeFileSystem.ASYNC_TIMEOUT * 2);
                     
                 runs(function () {
                     expect(readComplete).toBe(true);

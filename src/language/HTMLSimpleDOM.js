@@ -245,6 +245,21 @@ define(function (require, exports, module) {
         this.startOffset = startOffset || 0;
         this.startOffsetPos = startOffsetPos || {line: 0, ch: 0};
     }
+
+    Builder.prototype._logError = function (token) {
+        var error       = { token: token },
+            startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos,
+            endPos      = token ? token.endPos : this.startOffsetPos;
+        
+        error.startPos = _addPos(this.startOffsetPos, startPos);
+        error.endPos = _addPos(this.startOffsetPos, endPos);
+
+        if (!this.errors) {
+            this.errors = [];
+        }
+
+        this.errors.push(error);
+    };
     
     /**
      * Builds the SimpleDOM.
@@ -288,6 +303,7 @@ define(function (require, exports, module) {
             if (token.type === "error") {
                 PerfUtils.finalizeMeasurement(timerBuildFull);  // discard
                 PerfUtils.addMeasurement(timerBuildPart);       // use
+                this._logError(token);
                 return null;
             } else if (token.type === "opentagname") {
                 var newTagName = token.contents.toLowerCase(),
@@ -365,6 +381,7 @@ define(function (require, exports, module) {
                         // If we're in strict mode, treat unbalanced tags as invalid.
                         PerfUtils.finalizeMeasurement(timerBuildFull);
                         PerfUtils.addMeasurement(timerBuildPart);
+                        this._logError(token);
                         return null;
                     }
                     if (i >= 0) {
@@ -386,6 +403,7 @@ define(function (require, exports, module) {
                         if (strict) {
                             PerfUtils.finalizeMeasurement(timerBuildFull);
                             PerfUtils.addMeasurement(timerBuildPart);
+                            this._logError(token);
                             return null;
                         }
                     }
@@ -430,6 +448,7 @@ define(function (require, exports, module) {
             if (strict) {
                 PerfUtils.finalizeMeasurement(timerBuildFull);
                 PerfUtils.addMeasurement(timerBuildPart);
+                this._logError(token);
                 return null;
             } else {
                 // Manually compute the position of the end of the text (we can't rely on the
@@ -448,6 +467,7 @@ define(function (require, exports, module) {
             // This can happen if the document has no nontrivial content, or if the user tries to
             // have something at the root other than the HTML tag. In all such cases, we treat the
             // document as invalid.
+            this._logError(token);
             return null;
         }
         
@@ -506,7 +526,7 @@ define(function (require, exports, module) {
             if (node.tag) {
                 result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
             } else {
-                result += indent + "TEXT " + node.tagID + " " + node.content + "\n";
+                result += indent + "TEXT " + (node.tagID || "- ") + node.content + "\n";
             }
             if (node.isElement()) {
                 indent += "  ";
@@ -522,6 +542,7 @@ define(function (require, exports, module) {
     // Public API
     exports.build                       = build;
     exports.Builder                     = Builder;
+    exports.SimpleNode                  = SimpleNode;
     
     // Private API
     exports._dumpDOM                    = _dumpDOM;

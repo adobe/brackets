@@ -89,6 +89,8 @@ define(function (require, exports, module) {
         }
     
         beforeEach(function () {
+            SpecRunnerUtils.createTempDirectory();
+
             runs(function () {
                 // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");

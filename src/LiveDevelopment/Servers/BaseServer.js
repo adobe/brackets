@@ -160,8 +160,8 @@ define(function (require, exports, module) {
         return true;
     };
 
-    BaseServer.prototype._documentKey = function (liveDocument) {
-        return "/" + encodeURI(this._pathResolver(liveDocument.doc.file.fullPath));
+    BaseServer.prototype._documentKey = function (absolutePath) {
+        return "/" + encodeURI(this._pathResolver(absolutePath));
     };
 
     /**
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
      */
     BaseServer.prototype.add = function (liveDocument) {
         // use the project relative path as a key to lookup requests
-        var key = this._documentKey(liveDocument);
+        var key = this._documentKey(liveDocument.doc.file.fullPath);
         
         this._setDocInfo(liveDocument);
         this._liveDocuments[key] = liveDocument;
@@ -181,11 +181,21 @@ define(function (require, exports, module) {
      * @param {Object} liveDocument
      */
     BaseServer.prototype.remove = function (liveDocument) {
-        var key = this._liveDocuments[this._documentKey(liveDocument)];
+        var key = this._liveDocuments[this._documentKey(liveDocument.doc.file.fullPath)];
         
         if (key) {
             delete this._liveDocuments[key];
         }
+    };
+
+    /**
+     * Lookup a live document using it's full path key
+     * @param {string} path Absolute path to covert to a URL
+     * @param {?Object} liveDocument Returns a live document or undefined if a
+     *     document does not exist for the path.
+     */
+    BaseServer.prototype.get = function (path) {
+        return this._liveDocuments[this._documentKey(path)];
     };
 
     /**
