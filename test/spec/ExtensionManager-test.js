@@ -693,9 +693,6 @@ define(function (require, exports, module) {
                                     });
                                 }
                             });
-                            
-                            // Owner--should show only the owner name, not the authenticator
-                            expect(view).toHaveText(item.owner.split(":")[1]);
                         });
                     });
                 });
@@ -810,8 +807,7 @@ define(function (require, exports, module) {
                    
                 });
                 
-                // FORNOW: Disable - https://github.com/adobe/brackets/issues/5093
-                xit("should open links in the native browser instead of in Brackets", function () {
+                it("should open links in the native browser instead of in Brackets", function () {
                     runs(function () {
                         mockRegistry = {
                             "basic-valid-extension": {

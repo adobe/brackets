@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
+/*global define, describe, it, xit, expect, beforeFirst, afterLast, beforeEach, afterEach, waits,
 waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
@@ -119,6 +119,14 @@ define(function (require, exports, module) {
             d.resolve();
             return d.promise();
         }
+
+        beforeFirst(function () {
+            SpecRunnerUtils.createTempDirectory();
+        });
+
+        afterLast(function () {
+            SpecRunnerUtils.removeTempDirectory();
+        });
         
         beforeEach(function () {
             realGetUserExtensionPath = ExtensionLoader.getUserExtensionPath;

@@ -157,6 +157,8 @@ define(function (require, exports, module) {
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
+            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             doneLoading             : false
         };
 
@@ -256,7 +258,11 @@ define(function (require, exports, module) {
             // check once a day, plus 2 minutes, 
             // as the check will skip if the last check was not -24h ago
             window.setInterval(UpdateNotification.checkForUpdate, 86520000);
-            UpdateNotification.checkForUpdate();
+            
+            // Check for updates on App Ready
+            AppInit.appReady(function () {
+                UpdateNotification.checkForUpdate();
+            });
         }
     }
     
@@ -277,6 +283,16 @@ define(function (require, exports, module) {
         // Enable/Disable HTML Menus
         if (brackets.nativeMenus) {
             $("body").addClass("has-appshell-menus");
+        } else {
+            // Prevent the menu item to grab the focus -- override focus implementation
+            (function () {
+                var defaultFocus = $.fn.focus;
+                $.fn.focus = function () {
+                    if (!this.hasClass("dropdown-toggle")) {
+                        defaultFocus.apply(this, arguments);
+                    }
+                };
+            }());
         }
         
         // Localize MainViewHTML and inject into <BODY> tag

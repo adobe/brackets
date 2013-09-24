@@ -732,16 +732,20 @@ a, img {
         }
 
         li {
-            color: @inline-color-2;
+            color: @tc-emphasized-text;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
+            
+            .related-file {
+                color: @tc-input-placeholder-text;
+            }
         }
 
         .selected {
-            color: @inline-color-3;
+            color: @tc-light-weight-text;
             transition: color 0.1s ease-out .15s;
         }
     }
@@ -911,7 +915,10 @@ a, img {
 // transparent; it has to look good atop both the selection color AND the regular text bg color.
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
-    background-color: rgba(244, 237, 98, 0.7);
+    background-color: @cm-match-highlight;
+    border-radius: @tc-inline-border-radius;
+    box-shadow: @tc-small-shadow-bottom;
+    color: @match-text !important;
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
 .CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
@@ -919,7 +926,8 @@ a, img {
     // blended atop it.
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
-    background: rgb(255, 108, 0);
+    background: @cm-current-match-highlight;
+    border-radius: @tc-inline-border-radius;
 }
 #find-counter {
     font-weight: @font-weight-semibold;

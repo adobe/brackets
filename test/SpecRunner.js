@@ -252,12 +252,12 @@ define(function (require, exports, module) {
         
         // Delete temp folder before running the first test
         beforeFirst(function () {
-            waitsForDone(SpecRunnerUtils.removeTempDirectory(), "Remove test/temp folder before running tests", 1000);
+            SpecRunnerUtils.removeTempDirectory();
         });
         
         // Delete temp folder after running the last test
         afterLast(function () {
-            waitsForDone(SpecRunnerUtils.removeTempDirectory(), "Remove test/temp folder after running tests", 1000);
+            SpecRunnerUtils.removeTempDirectory();
         });
     }
     
@@ -382,12 +382,10 @@ define(function (require, exports, module) {
         window.document.body.addEventListener("click", function (e) {
             // Check parents too, in case link has inline formatting tags
             var node = e.target, url;
-            console.log(1);
+            
             while (node) {
-                console.log(node.tagName);
                 if (node.tagName === "A") {
                     url = node.getAttribute("href");
-                    console.log(url);
                     if (url && url.match(/^http/)) {
                         NativeApp.openURLInDefaultBrowser(url);
                         e.preventDefault();
