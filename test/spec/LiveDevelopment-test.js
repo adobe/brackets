@@ -804,7 +804,7 @@ define(function (require, exports, module) {
                     // Spy on RemoteAgent
                     spyOn(testWindow.brackets.test.RemoteAgent, "call").andCallThrough();
 
-                    // Create syntax errors
+                    // Edit text
                     doc =  DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
                 });
@@ -818,6 +818,31 @@ define(function (require, exports, module) {
                     expect(args[0]).toEqual("applyDOMEdits");
                     expect(edit.type).toEqual("textReplace");
                     expect(edit.content).toEqual("Live Preview in Brackets is awesome!");
+                });
+            });
+            
+            it("should not reparse page on save (#5279)", function () {
+                var doc, saveDeferred = new $.Deferred();
+                
+                _openSimpleHTML();
+                
+                runs(function () {
+                    // Make an edit.
+                    doc = DocumentManager.getCurrentDocument();
+                    doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
+                    
+                    // Save the document and see if "scanDocument" (which reparses the page) is called.
+                    spyOn(testWindow.brackets.test.HTMLInstrumentation, "scanDocument").andCallThrough();
+                    testWindow.$(DocumentManager).one("documentSaved", function (e, savedDoc) {
+                        expect(savedDoc === doc);
+                        saveDeferred.resolve();
+                    });
+                    CommandManager.execute(Commands.FILE_SAVE, { doc: doc });
+                    waitsForDone(saveDeferred.promise(), "file finished saving");
+                });
+                
+                runs(function () {
+                    expect(testWindow.brackets.test.HTMLInstrumentation.scanDocument.callCount).toBe(0);
                 });
             });
 

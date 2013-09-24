@@ -43,4 +43,10 @@ You can also call ncp like `ncp(source, destination, options, callback)`.
   parameter: copied file name, returning `true` or `false`, determining
   whether to copy file or not.
 
+  * `options.transform` - a function: `function (read, write) { read.pipe(write) }`
+  used to apply streaming transforms while copying.
+
+  * `options.clobber` - boolean=true. if set to false, `ncp` will not overwrite 
+  destination files that already exist.
+
 Please open an issue if any bugs arise.  As always, I accept (working) pull requests, and refunds are available at `/dev/null`.

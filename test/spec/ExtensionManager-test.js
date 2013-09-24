@@ -692,9 +692,6 @@ define(function (require, exports, module) {
                                     });
                                 }
                             });
-                            
-                            // Owner--should show only the owner name, not the authenticator
-                            expect(view).toHaveText(item.owner.split(":")[1]);
                         });
                     });
                 });

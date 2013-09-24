@@ -156,6 +156,7 @@ define(function (require, exports, module) {
             UpdateNotification      : require("utils/UpdateNotification"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             doneLoading             : false
         };
 
@@ -282,6 +283,16 @@ define(function (require, exports, module) {
         // Enable/Disable HTML Menus
         if (brackets.nativeMenus) {
             $("body").addClass("has-appshell-menus");
+        } else {
+            // Prevent the menu item to grab the focus -- override focus implementation
+            (function () {
+                var defaultFocus = $.fn.focus;
+                $.fn.focus = function () {
+                    if (!this.hasClass("dropdown-toggle")) {
+                        defaultFocus.apply(this, arguments);
+                    }
+                };
+            }());
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
