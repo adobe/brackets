@@ -974,12 +974,12 @@ define(function LiveDevelopment(require, exports, module) {
     
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
-    function _doLaunchAfterServerReady() {
+    function _doLaunchAfterServerReady(doc) {
         // update status
         _setStatus(STATUS_CONNECTING);
         
         // create live document
-        _liveDocument = _createDocument(_getCurrentDocument(), EditorManager.getCurrentFullEditor());
+        _liveDocument = _createDocument(doc, EditorManager.getCurrentFullEditor());
 
         // start listening for requests
         _server.add(_liveDocument);
@@ -1042,7 +1042,10 @@ define(function LiveDevelopment(require, exports, module) {
             prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
         
         // wait for server (StaticServer, Base URL or file:)
-        prepareServerPromise.done(_doLaunchAfterServerReady);
+        prepareServerPromise.done(function (result) {
+            _doLaunchAfterServerReady(doc);
+        });
+      
         prepareServerPromise.fail(function () {
             _showWrongDocError();
             _openDeferred.reject();
