@@ -419,14 +419,40 @@ define(function (require, exports, module) {
             });
         }
     };
+    
+    
+    /**
+     * Implements "debouncing." Returns a function that can be called frequently, triggering 'callback' only when calls
+     * to this function have paused for >= 'idleDelay' ms. The callback may be called multiple times, if there are
+     * multiple idleDelay-sized gaps in the event sequence. Invoking the callback can be delayed *indefinitely* if the
+     * event sequence continues forever with no idleDelay-sized gaps at all.
+     * 
+     * @param {number} idleDelay  Minimum delay (ms) before invoking callback.
+     * @param {!function()} callback
+     * @return {!function()}
+     */
+    function whenIdle(idleDelay, callback) {
+        var timer;
+        return function () {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+            timer = window.setTimeout(function () {
+                timer = null;
+                callback();
+            }, idleDelay);
+        };
+    }
+    
 
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
-    exports.doSequentiallyInBackground = doSequentiallyInBackground;
+    exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
+    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;
     exports.PromiseQueue   = PromiseQueue;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
+    exports.whenIdle       = whenIdle;
 });

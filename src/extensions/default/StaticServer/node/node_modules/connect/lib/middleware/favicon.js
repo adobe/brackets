@@ -1,4 +1,3 @@
-
 /*!
  * Connect - favicon
  * Copyright(c) 2010 Sencha Inc.
@@ -39,7 +38,7 @@ var fs = require('fs')
  *   Serve custom favicon:
  *
  *     connect()
- *       .use(connect.favicon('public/favicon.ico))
+ *       .use(connect.favicon('public/favicon.ico'))
  *
  * @param {String} path
  * @param {Object} options
