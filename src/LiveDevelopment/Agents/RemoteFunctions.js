@@ -558,14 +558,6 @@ function RemoteFunctions(experimental) {
             before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
-            if (edit.beforeText && after.nodeType === Node.TEXT_NODE) {
-                after = after.previousSibling;
-            }
-        }
-        
-        if (edit.beforeText && before &&
-                before.previousSibling && before.previousSibling.nodeType === Node.TEXT_NODE) {
-            before = before.previousSibling;
         }
         
         if (before) {
@@ -595,19 +587,48 @@ function RemoteFunctions(experimental) {
     
     /**
      * @private
+     * @param {Node} node
+     * @return {boolean} true if node expects its content to be raw text (not parsed for entities) according to the HTML5 spec.
+     */
+    function _isRawTextNode(node) {
+        return (node.nodeType === Node.ELEMENT_NODE && /script|style|noscript|noframes|noembed|iframe|xmp/i.test(node.tagName));
+    }
+    
+    /**
+     * @private
      * Replace a range of text and comment nodes with an optional new text node
      * @param {Element} targetElement
      * @param {Object} edit
      */
     DOMEditHandler.prototype._textReplace = function (targetElement, edit) {
+        function prevIgnoringHighlights(node) {
+            do {
+                node = node.previousSibling;
+            } while (node && node.className === HIGHLIGHT_CLASSNAME);
+            return node;
+        }
+        function nextIgnoringHighlights(node) {
+            do {
+                node = node.nextSibling;
+            } while (node && node.className === HIGHLIGHT_CLASSNAME);
+            return node;
+        }
+        function lastChildIgnoringHighlights(node) {
+            node = (node.childNodes.length ? node.childNodes.item(node.childNodes.length - 1) : null);
+            if (node && node.className === HIGHLIGHT_CLASSNAME) {
+                node = prevIgnoringHighlights(node);
+            }
+            return node;
+        }
+        
         var start           = (edit.afterID)  ? this._queryBracketsID(edit.afterID)  : null,
             startMissing    = edit.afterID && !start,
             end             = (edit.beforeID) ? this._queryBracketsID(edit.beforeID) : null,
             endMissing      = edit.beforeID && !end,
-            moveNext        = start && start.nextSibling,
-            current         = moveNext || (end && end.previousSibling) || targetElement.childNodes.item(targetElement.childNodes.length - 1),
+            moveNext        = start && nextIgnoringHighlights(start),
+            current         = moveNext || (end && prevIgnoringHighlights(end)) || lastChildIgnoringHighlights(targetElement),
             next,
-            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(this._parseEntities(edit.content)) : null,
+            textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : this._parseEntities(edit.content)) : null,
             lastRemovedWasText,
             isText;
         
@@ -617,7 +638,7 @@ function RemoteFunctions(experimental) {
 
             // if start is defined, delete following text nodes
             // if start is not defined, delete preceding text nodes
-            next = (moveNext) ? current.nextSibling : current.previousSibling;
+            next = (moveNext) ? nextIgnoringHighlights(current) : prevIgnoringHighlights(current);
 
             // only delete up to the nearest element.
             // if the start/end tag was deleted in a prior edit, stop removing
@@ -634,6 +655,8 @@ function RemoteFunctions(experimental) {
         }
         
         if (textNode) {
+            // OK to use nextSibling here (not nextIgnoringHighlights) because we do literally
+            // want to insert immediately after the start tag.
             if (start && start.nextSibling) {
                 targetElement.insertBefore(textNode, start.nextSibling);
             } else if (end) {
@@ -717,7 +740,7 @@ function RemoteFunctions(experimental) {
                 self._insertChildNode(targetElement, childElement, edit);
                 break;
             case "textInsert":
-                var textElement = self.htmlDocument.createTextNode(self._parseEntities(edit.content));
+                var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
                 self._insertChildNode(targetElement, textElement, edit);
                 break;
             case "textReplace":

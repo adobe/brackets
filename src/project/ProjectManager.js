@@ -497,8 +497,8 @@ define(function (require, exports, module) {
                     var a1 = $(a).text(),
                         b1 = $(b).text();
                     
-                    // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                    if (brackets.platform === "win") {
+                    // Non-mac: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                    if (brackets.platform !== "mac") {
                         a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
                         b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
                     }
@@ -1558,6 +1558,10 @@ define(function (require, exports, module) {
             if (jqEvent.target.className !== "jstree-rename-input") {
                 forceFinishRename();
             }
+        });
+        
+        $projectTreeContainer.on("contextmenu", function () {
+            forceFinishRename();
         });
     });
 

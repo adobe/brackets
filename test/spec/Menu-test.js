@@ -619,6 +619,45 @@ define(function (require, exports, module) {
         });
 
 
+        describe("Remove Menu", function () {
+
+            function menuDOM(menuId) {
+                return testWindow.$("#" + menuId);
+            }
+
+            it("should add then remove new menu to menu bar with a menu id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+                    Menus.addMenu("Custom", menuId);
+                    var $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(1);
+
+                    Menus.removeMenu(menuId);
+                    $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu that doesn't exist", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu(menuId);
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu without supply the id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu();
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+        });
+
+
         describe("Menu Item synchronizing", function () {
 
             it("should have same state as command", function () {

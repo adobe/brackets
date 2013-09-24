@@ -61,7 +61,7 @@ define(function (require, exports, module) {
                     infos           : infos,
                     removePrefix    : true
                 };
-            
+
             SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {
                 result.resolve();
             }).fail(function () {
@@ -86,9 +86,7 @@ define(function (require, exports, module) {
             var allFiles,
                 editor,
                 hostOpened = false,
-                err = false,
-                rewriteDone = false,
-                rewriteErr = false;
+                err = false;
             
             workingSet = workingSet || [];
             
@@ -156,12 +154,12 @@ define(function (require, exports, module) {
         describe("htmlToCSSProvider", function () {
             
             beforeFirst(function () {
+                SpecRunnerUtils.createTempDirectory();
+
                 // rewrite the project for each spec
                 runs(function () {
                     waitsForDone(rewriteProject(), "rewriteProject timeout", 1000);
                 });
-                
-                SpecRunnerUtils.createTempDirectory();
                 
                 // Create a new window that will be shared by ALL tests in this spec.
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -185,7 +183,8 @@ define(function (require, exports, module) {
                 DocumentManager     = null;
                 FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
-                SpecRunnerUtils.deletePath(SpecRunnerUtils.getTempDirectory());
+
+                SpecRunnerUtils.removeTempDirectory();
             });
             
             beforeEach(function () {

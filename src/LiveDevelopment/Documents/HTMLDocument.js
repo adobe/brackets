@@ -60,6 +60,8 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param {editor=} editor
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
+        var self = this;
+
         this.doc = doc;
         if (!editor) {
             return;
@@ -68,10 +70,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._instrumentationEnabled = false;
 
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        this.onDocumentSaved = this.onDocumentSaved.bind(this);
         
         $(this.editor).on("cursorActivity", this.onCursorActivity);
-        $(DocumentManager).on("documentSaved", this.onDocumentSaved);
         
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -80,8 +80,9 @@ define(function HTMLDocumentModule(require, exports, module) {
             $(HighlightAgent).on("highlight", this.onHighlight);
         }
 
-        this.onChange = this.onChange.bind(this);
-        $(this.editor).on("change", this.onChange);
+        $(this.editor).on("change", function (event, editor, change) {
+            self.onChange(event, editor, change);
+        });
     };
     
     /**
@@ -98,8 +99,16 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     /**
+     * Returns true if document edits appear live in the connected browser
+     * @return {boolean} 
+     */
+    HTMLDocument.prototype.isLiveEditingEnabled = function () {
+        return this._instrumentationEnabled;
+    };
+    
+    /**
      * Returns a JSON object with HTTP response overrides
-     * @returns {{body: string}}
+     * @return {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
@@ -119,7 +128,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         $(this.editor).off("cursorActivity", this.onCursorActivity);
-        $(DocumentManager).off("documentSaved", this.onDocumentSaved);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -222,21 +230,28 @@ define(function HTMLDocumentModule(require, exports, module) {
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
         var self                = this,
-            edits               = HTMLInstrumentation.getUnappliedEditList(editor, change),
-            applyEditsPromise   = RemoteAgent.call("applyDOMEdits", edits);
+            result              = HTMLInstrumentation.getUnappliedEditList(editor, change),
+            applyEditsPromise;
+        
+        if (result.edits) {
+            applyEditsPromise = RemoteAgent.call("applyDOMEdits", result.edits);
+    
+            applyEditsPromise.always(function () {
+                if (!isNestedTimer) {
+                    PerfUtils.addMeasurement(perfTimerName);
+                }
+            });
+        }
 
-        applyEditsPromise.always(function () {
-            if (!isNestedTimer) {
-                PerfUtils.addMeasurement(perfTimerName);
-            }
-        });
+        this.errors = result.errors || [];
+        $(this).triggerHandler("statusChanged", [this]);
         
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:
         //     "this._debug = true, false"
         if (this._debug) {
             console.log("Edits applied to browser were:");
-            console.log(JSON.stringify(edits, null, 2));
+            console.log(JSON.stringify(result.edits, null, 2));
             applyEditsPromise.done(function () {
                 self._compareWithBrowser(change);
             });
@@ -294,14 +309,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
-    /** Triggered when a document is saved */
-    HTMLDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
-        if (doc === this.doc) {
-            HTMLInstrumentation.scanDocument(this.doc);
-            HTMLInstrumentation._markText(this.editor);
-        }
-    };
-    
     // Export the class
     module.exports = HTMLDocument;
 });
