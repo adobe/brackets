@@ -58,10 +58,10 @@ define(function (require, exports, module) {
     var MAX_PROJECTS = 20;
     
     /** @type {$.Element} jQuery elements used for the dropdown menu */
-    var $dropdownFirstItem,
-        $dropdownItem,
+    var $dropdownItem,
         $dropdownToggle,
-        $dropdown;
+        $dropdown,
+        $links;
     
     
     /**
@@ -407,13 +407,11 @@ define(function (require, exports, module) {
             
             showDropdown();
             $dropdown.focus();
-            $dropdownFirstItem = $dropdown.find("a").eq(0);
-            $dropdownItem = $dropdown.find("a").eq(1);
-            if ($dropdownItem.length !== 0) {
-                $dropdownItem.addClass("selected");
-            } else {
-                $dropdownFirstItem.addClass("selected");
-            }
+            $links = $dropdown.find("a");
+            // By default, select the most recent project (which is at the top of the list underneath Open Folder),
+            // but if there are none, select Open Folder instead.
+            $dropdownItem = $links.eq($links.length > 1 ? 1 : 0);
+            $dropdownItem.addClass("selected");
             
             // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
             window.setTimeout(function () {
