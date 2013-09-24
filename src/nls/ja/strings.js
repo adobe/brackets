@@ -141,7 +141,7 @@ define({
 
 	"FIND_IN_FILES_TITLE_PART1": "「",
 	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
-	"FIND_IN_FILES_TITLE_PART3": "!能=[7126726] &mdash; {0} {1} {2} in {3} {4}_=!",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} ({3} {4})",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_FILE": "ファイル",
