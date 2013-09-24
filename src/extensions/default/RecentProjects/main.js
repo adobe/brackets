@@ -60,7 +60,8 @@ define(function (require, exports, module) {
     /** @type {$.Element} jQuery elements used for the dropdown menu */
     var $dropdownItem,
         $dropdownToggle,
-        $dropdown;
+        $dropdown,
+        $links;
     
     
     /**
@@ -406,7 +407,10 @@ define(function (require, exports, module) {
             
             showDropdown();
             $dropdown.focus();
-            $dropdownItem = $dropdown.find("a").first();
+            $links = $dropdown.find("a");
+            // By default, select the most recent project (which is at the top of the list underneath Open Folder),
+            // but if there are none, select Open Folder instead.
+            $dropdownItem = $links.eq($links.length > 1 ? 1 : 0);
             $dropdownItem.addClass("selected");
             
             // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
