@@ -152,6 +152,7 @@ define(function (require, exports, module) {
      */
     function run() {
         if (!_enabled) {
+            _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
