@@ -58,7 +58,7 @@ define(function (require, exports, module) {
     var MAX_PROJECTS = 20;
     
     /** @type {$.Element} jQuery elements used for the dropdown menu */
-    var $dropdownOpenItem,
+    var $dropdownFirstItem,
         $dropdownItem,
         $dropdownToggle,
         $dropdown;
@@ -407,12 +407,12 @@ define(function (require, exports, module) {
             
             showDropdown();
             $dropdown.focus();
-            $dropdownOpenItem = $dropdown.find("a").eq(0);
+            $dropdownFirstItem = $dropdown.find("a").eq(0);
             $dropdownItem = $dropdown.find("a").eq(1);
             if ($dropdownItem.length !== 0) {
                 $dropdownItem.addClass("selected");
             } else {
-                $dropdownOpenItem.addClass("selected");
+                $dropdownFirstItem.addClass("selected");
             }
             
             // If focusing the dropdown caused a modal bar to close, we need to refocus the dropdown
