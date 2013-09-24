@@ -251,9 +251,9 @@ define(function (require, exports, module) {
         */
         
         isRelativePath: function (path) {
-            // If the path contains a colons it must be a full path on Windows (colons are
+            // If the path contains a colon on Windows it must be a full path (colons are
             // not valid path characters on mac or in URIs)
-            if (path.indexOf(":") !== -1) {
+            if (brackets.platform === "win" && path.indexOf(":") !== -1) {
                 return false;
             }
             
