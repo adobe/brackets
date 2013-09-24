@@ -248,8 +248,7 @@ define(function (require, exports, module) {
          * Public static method to check if a file path is relative one
          * @param {string} path A file path to check
          * @return {boolean} True if the path is relative
-        */
-        
+         */
         isRelativePath: function (path) {
             // If the path contains a colon on Windows it must be a full path (colons are
             // not valid path characters on mac or in URIs)
