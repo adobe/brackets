@@ -159,6 +159,8 @@ define(function (require, exports, module) {
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
+
+        $(this).triggerHandler("close");
         
         if (animate) {
             AnimationUtils.animateUsingClass(this._$root.get(0), "modal-bar-hide")
