@@ -732,16 +732,20 @@ a, img {
         }
 
         li {
-            color: @inline-color-2;
+            color: @tc-emphasized-text;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
+            
+            .related-file {
+                color: @tc-input-placeholder-text;
+            }
         }
 
         .selected {
-            color: @inline-color-3;
+            color: @tc-light-weight-text;
             transition: color 0.1s ease-out .15s;
         }
     }
