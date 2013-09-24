@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.$listItem = null;
     
     function _updateRangeLabel(listItem, range) {
-        var text = range.name + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+        var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }
