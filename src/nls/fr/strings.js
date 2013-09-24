@@ -141,7 +141,7 @@ define({
 
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} dans {2} {3}",
+	"FIND_IN_FILES_TITLE_PART3": "[7126726] !é=&mdash; {0} {1} {2} in {3} {4}=!",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
