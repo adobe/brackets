@@ -9,7 +9,8 @@
  * Module dependencies.
  */
 
-var utils = require('../utils');
+var utils = require('../utils'),
+  brokenPause = utils.brokenPause;
 
 /**
  * Limit:
@@ -45,11 +46,33 @@ module.exports = function limit(bytes){
     if (len && len > bytes) return next(utils.error(413));
 
     // limit
-    req.on('data', function(chunk){
-      received += chunk.length;
-      if (received > bytes) req.destroy();
-    });
+    if (brokenPause) {
+      listen();
+    } else {
+      req.on('newListener', function handler(event) {
+        if (event !== 'data') return;
+
+        req.removeListener('newListener', handler);
+        // Start listening at the end of the current loop
+        // otherwise the request will be consumed too early.
+        // Sideaffect is `limit` will miss the first chunk,
+        // but that's not a big deal.
+        // Unfortunately, the tests don't have large enough
+        // request bodies to test this.
+        process.nextTick(listen);
+      });
+    };
 
     next();
+
+    function listen() {
+      req.on('data', function(chunk) {
+        received += Buffer.isBuffer(chunk)
+          ? chunk.length :
+          Buffer.byteLength(chunk);
+
+        if (received > bytes) req.destroy();
+      });
+    };
   };
 };

@@ -15,11 +15,11 @@
         "extension_wiki_url": "https://github.com/adobe/brackets/wiki/Brackets-Extensions",
         "extension_registry": "https://s3.amazonaws.com/extend.brackets/registry.json",
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
-        "linting.enabled_by_default" : true
+        "linting.enabled_by_default": true
     },
     "name": "Brackets",
-    "version": "0.31.0-0",
-    "apiVersion": "0.31.0",
+    "version": "0.32.0-0",
+    "apiVersion": "0.32.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"

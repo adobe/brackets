@@ -60,6 +60,7 @@ The following languages have been contributed by the Brackets community:
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
+* Hungarian (hu)
 
 These translations _can be directly modified_ through our normal pull request
 process.

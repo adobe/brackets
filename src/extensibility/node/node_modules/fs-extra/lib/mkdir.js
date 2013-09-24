@@ -1,3 +1,5 @@
+"use strict"
+
 var mkdirp = require('mkdirp');
 
 module.exports.mkdirs = mkdirp;
