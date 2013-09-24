@@ -27,8 +27,7 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var unzip    = require("unzip"),
-    semver   = require("semver"),
+var semver   = require("semver"),
     path     = require("path"),
     http     = require("http"),
     request  = require("request"),
@@ -98,59 +97,22 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             callback(err);
             return;
         }
-        var readStream = fs.createReadStream(packagePath);
-        var extractStream = unzip.Parse();
-        var prefixlength = validationResult.commonPrefix ? validationResult.commonPrefix.length : 0;
+        var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
         
-        readStream.pipe(extractStream)
-            .on("error", function (exc) {
-                if (!callbackCalled) {
-                    callback(exc);
-                    callbackCalled = true;
-                    readStream.destroy();
-                    _removeFailedInstallation(installDirectory);
+        fs.copy(sourceDir, installDirectory, function (err) {
+            if (err) {
+                _removeFailedInstallation(installDirectory);
+                fs.remove(validationResult.extractDir);
+                callback(err, null);
+            } else {
+                // The status may have already been set previously (as in the
+                // DISABLED case.
+                if (!validationResult.installationStatus) {
+                    validationResult.installationStatus = Statuses.INSTALLED;
                 }
-            })
-            .on("entry", function (entry) {
-                var installpath = entry.path;
-                if (prefixlength) {
-                    installpath = installpath.substring(prefixlength + 1);
-                }
-                if (entry.type === "Directory") {
-                    if (installpath === "") {
-                        return;
-                    }
-                    try {
-                        fs.mkdirsSync(installDirectory + "/" + installpath);
-                    } catch (e) {
-                        callback(e);
-                        callbackCalled = true;
-                        _removeFailedInstallation(installDirectory);
-                    }
-                } else {
-                    entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
-                        .on("error", function (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                                readStream.destroy();
-                                _removeFailedInstallation(installDirectory);
-                            }
-                        });
-                }
-                
-            })
-            .on("end", function () {
-                if (!callbackCalled) {
-                    // The status may have already been set previously (as in the
-                    // DISABLED case.
-                    if (!validationResult.installationStatus) {
-                        validationResult.installationStatus = Statuses.INSTALLED;
-                    }
-                    callback(null, validationResult);
-                    callbackCalled = true;
-                }
-            });
+                callback(null, validationResult);
+            }
+        });
     });
 }
 
