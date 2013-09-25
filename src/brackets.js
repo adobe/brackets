@@ -289,7 +289,7 @@ define(function (require, exports, module) {
                 var defaultFocus = $.fn.focus;
                 $.fn.focus = function () {
                     if (!this.hasClass("dropdown-toggle")) {
-                        defaultFocus.apply(this, arguments);
+                        return defaultFocus.apply(this, arguments);
                     }
                 };
             }());
