@@ -329,7 +329,7 @@ define(function (require, exports, module) {
                 findFirst(query);
             }
         });
-        $(modalBar).on("closeOk closeCancel closeBlur close", function (e, query) {
+        $(modalBar).on("closeOk close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
