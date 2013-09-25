@@ -103,8 +103,6 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
         var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
         
         fs.copy(sourceDir, installDirectory, function (err) {
-            // We're done with the temporary directory used for extraction
-            fs.remove(validationResult.extractDir);
             if (err) {
                 _removeFailedInstallation(installDirectory);
                 callback(err, null);
@@ -221,10 +219,21 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
     
     var validateCallback = function (err, validationResult) {
         validationResult.localPath = packagePath;
+        
+        // This is a wrapper for the callback that will delete the temporary
+        // directory to which the package was unzipped.
+        function deleteTempAndCallback(err) {
+            if (validationResult.extractDir) {
+                fs.remove(validationResult.extractDir);
+                delete validationResult.extractDir;
+            }
+            callback(err, validationResult);
+        }
+        
         // If there was trouble at the validation stage, we stop right away.
         if (err || validationResult.errors.length > 0) {
             validationResult.installationStatus = Statuses.FAILED;
-            callback(err, validationResult);
+            deleteTempAndCallback(err, validationResult);
             return;
         }
         
@@ -255,7 +264,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
                 installDirectory = path.join(options.disabledDirectory, extensionName);
                 validationResult.installationStatus = Statuses.DISABLED;
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
-                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                 return;
             }
         }
@@ -275,25 +284,25 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
                     // both legacy and new extensions installed.
                     fs.remove(legacyDirectory, function (err) {
                         if (err) {
-                            callback(err);
+                            deleteTempAndCallback(err, validationResult);
                             return;
                         }
-                        _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                        _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                     });
                 } else {
-                    _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                    _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                 }
             } else if (hasLegacyPackage) {
                 validationResult.installationStatus = Statuses.NEEDS_UPDATE;
                 validationResult.name = guessedName;
-                callback(null, validationResult);
+                deleteTempAndCallback(null, validationResult);
             } else {
-                _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, callback);
+                _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, deleteTempAndCallback);
             }
         } else {
             // Regular installation with no conflicts.
             validationResult.disabledReason = null;
-            _performInstall(packagePath, installDirectory, validationResult, callback);
+            _performInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
         }
     };
     
