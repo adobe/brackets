@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor;
     
-    describe("HTMLUtils", function () {
+    describe("HTMLUtils CodeHints", function () {
     
         //Use a clean version of the editor each time
         var myDocument,

@@ -24,13 +24,14 @@
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global expect, describe, it */
+/*global expect, describe, it, afterEach */
 
 "use strict";
 
 var rewire           = require("rewire"),
     packageValidator = rewire("../package-validator"),
-    path             = require("path");
+    path             = require("path"),
+    temp             = require("temp");
 
 var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "..",   // node
@@ -56,9 +57,15 @@ var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extensio
     invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip");
 
 describe("Package Validation", function () {
+    
+    afterEach(function () {
+        temp.cleanup();
+    });
+    
     it("should handle a good package", function (done) {
         packageValidator.validate(basicValidExtension, {}, function (err, result) {
             expect(err).toBeNull();
+            expect(result.extractDir).toBeDefined();
             expect(result.errors.length).toEqual(0);
             var metadata = result.metadata;
             expect(metadata.name).toEqual("basic-valid-extension");

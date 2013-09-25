@@ -1,4 +1,3 @@
-
 /*!
  * Connect - basicAuth
  * Copyright(c) 2010 Sencha Inc.
@@ -30,7 +29,7 @@ var utils = require('../utils')
  *
  *     connect()
  *       .use(connect.basicAuth(function(user, pass){
- *         return 'tj' == user & 'wahoo' == pass;
+ *         return 'tj' == user && 'wahoo' == pass;
  *       }))
  *
  *  Async callback verification, accepting `fn(err, user)`.

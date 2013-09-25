@@ -43,7 +43,7 @@ Cookie.prototype = {
    * @param {Date} date
    * @api public
    */
-  
+
   set expires(date) {
     this._expires = date;
     this.originalMaxAge = this.maxAge;
@@ -59,14 +59,14 @@ Cookie.prototype = {
   get expires() {
     return this._expires;
   },
-  
+
   /**
    * Set expires via max-age in `ms`.
    *
    * @param {Number} ms
    * @api public
    */
-  
+
   set maxAge(ms) {
     this.expires = 'number' == typeof ms
       ? new Date(Date.now() + ms)
@@ -105,6 +105,18 @@ Cookie.prototype = {
   },
 
   /**
+   * Check if the cookie has a reasonably large max-age.
+   *
+   * @return {Boolean}
+   * @api private
+   */
+
+  get hasLongExpires() {
+    var week = 604800000;
+    return this.maxAge > (4 * week);
+  },
+
+  /**
    * Return a serialized cookie string.
    *
    * @return {String}
@@ -121,7 +133,7 @@ Cookie.prototype = {
    * @return {Object}
    * @api private
    */
-  
+
   toJSON: function(){
     return this.data;
   }

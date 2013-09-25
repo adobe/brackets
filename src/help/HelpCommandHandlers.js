@@ -66,11 +66,12 @@ define(function (require, exports, module) {
     }
 
     function _handleAboutDialog() {
-        var templateVars = $.extend({
+        var templateVars = {
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-            BUILD_INFO          : buildInfo || ""
-        }, Strings);
+            BUILD_INFO          : buildInfo || "",
+            Strings             : Strings
+        };
         
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
         
@@ -102,17 +103,6 @@ define(function (require, exports, module) {
             }).each(function () {
                 if (this.complete) {
                     $(this).trigger("load");
-                }
-            });
-            
-            // Create a link for each contributor image to their github account
-            $contributors.on("click", "img", function (e) {
-                var url = $(e.target).data("url");
-                if (url) {
-                    // Make sure the URL has a domain that we know about
-                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
-                        NativeApp.openURLInDefaultBrowser(url);
-                    }
                 }
             });
         }).fail(function () {

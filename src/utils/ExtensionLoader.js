@@ -42,8 +42,13 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async");
+
+    // default async initExtension timeout
+    var INIT_EXTENSION_TIMEOUT = 10000;
     
     var _init       = false,
+        _extensions = {},
+        _initExtensionTimeout = INIT_EXTENSION_TIMEOUT,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
@@ -53,8 +58,8 @@ define(function (require, exports, module) {
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
     var globalConfig = {
-            "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n"
+            "text" : srcPath + "/thirdparty/text/text",
+            "i18n" : srcPath + "/thirdparty/i18n/i18n"
         };
     
     /**
@@ -78,6 +83,24 @@ define(function (require, exports, module) {
         return contexts[name];
     }
 
+    /**
+     * @private
+     * Get timeout value for rejecting an extension's async initExtension promise.
+     * @return {number} Timeout in milliseconds
+     */
+    function _getInitExtensionTimeout() {
+        return _initExtensionTimeout;
+    }
+
+    /**
+     * @private
+     * Set timeout for rejecting an extension's async initExtension promise.
+     * @param {number} value Timeout in milliseconds
+     */
+    function _setInitExtensionTimeout(value) {
+        _initExtensionTimeout = value;
+    }
+
     
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
@@ -91,6 +114,7 @@ define(function (require, exports, module) {
      */
     function loadExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
+            promise = result.promise(),
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
@@ -103,10 +127,41 @@ define(function (require, exports, module) {
         // console.log("[Extension] starting to load " + config.baseUrl);
         
         extensionRequire([entryPoint],
-            function () {
+            function (module) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
-                result.resolve();
-                $(exports).triggerHandler("load", config.baseUrl);
+                var initPromise;
+
+                _extensions[name] = module;
+
+                if (module && module.initExtension && (typeof module.initExtension === "function")) {
+                    // optional async extension init 
+                    try {
+                        initPromise = Async.withTimeout(module.initExtension(), _getInitExtensionTimeout());
+                    } catch (err) {
+                        console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
+                        result.reject(err);
+                    }
+
+                    if (initPromise) {
+                        // WARNING: These calls to initPromise.fail() and initPromise.then(),
+                        // could also result in a runtime error if initPromise is not a valid
+                        // promise. Currently, the promise is wrapped via Async.withTimeout(),
+                        // so the call is safe as-is.
+                        initPromise.fail(function (err) {
+                            if (err === Async.ERROR_TIMEOUT) {
+                                console.error("[Extension] Error -- timeout during initExtension for " + name);
+                            } else {
+                                console.error("[Extension] Error -- failed initExtension for " + name + (err ? ": " + err : ""));
+                            }
+                        });
+
+                        initPromise.then(result.resolve, result.reject);
+                    } else {
+                        result.resolve();
+                    }
+                } else {
+                    result.resolve();
+                }
             },
             function errback(err) {
                 console.error("[Extension] failed to load " + config.baseUrl, err);
@@ -115,10 +170,15 @@ define(function (require, exports, module) {
                     console.log(err.stack);
                 }
                 result.reject();
-                $(exports).triggerHandler("loadFailed", config.baseUrl);
             });
+
+        result.done(function () {
+            $(exports).triggerHandler("load", config.baseUrl);
+        }).fail(function () {
+            $(exports).triggerHandler("loadFailed", config.baseUrl);
+        });
         
-        return result.promise();
+        return promise;
     }
 
     /**
@@ -303,7 +363,12 @@ define(function (require, exports, module) {
         
         return promise;
     }
+
+    // unit tests
+    exports._setInitExtensionTimeout = _setInitExtensionTimeout;
+    exports._getInitExtensionTimeout = _getInitExtensionTimeout;
     
+    // public API
     exports.init = init;
     exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;

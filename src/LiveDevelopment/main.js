@@ -46,6 +46,7 @@ define(function main(require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
@@ -68,10 +69,17 @@ define(function main(require, exports, module) {
     };
     var _checkMark = "✓"; // Check mark character
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusTooltip = [Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-                          Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, Strings.LIVE_DEV_STATUS_TIP_PROGRESS2,
-                          Strings.LIVE_DEV_STATUS_TIP_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC];  // Status indicator tooltip
-    var _statusStyle = ["warning", "", "info", "info", "success", "out-of-sync"];  // Status indicator's CSS class
+    var _statusTooltip = [
+        Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
+        Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
+        Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
+        Strings.LIVE_DEV_STATUS_TIP_PROGRESS2,
+        Strings.LIVE_DEV_STATUS_TIP_CONNECTED,
+        Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC,
+        Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR
+    ];
+
+    var _statusStyle = ["warning", "", "info", "info", "success", "out-of-sync", "sync-error"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
@@ -120,7 +128,7 @@ define(function main(require, exports, module) {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_INFO,
+                    DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
                 ).done(function (id) {

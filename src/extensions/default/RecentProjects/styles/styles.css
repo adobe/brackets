@@ -6,7 +6,7 @@
 .dropdown-arrow {
     display: inline-block;
     width: 5px;
-    height: 9px;
+    height: 10px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
     position: relative;
@@ -15,7 +15,7 @@
 
 .trash-icon {
     position: absolute;
-    right: 5px;
+    left: 7px;
     width: 16px;
     height: 16px;
     background-image: url("close-btn.svg");
@@ -45,11 +45,14 @@
     border-radius: 3px;
     border: 1px solid #2d2f31;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
-    color: #a0a0a0;
     text-decoration: none;
 }
 #project-dropdown-toggle:hover .dropdown-arrow {
-    background-image: url("down-arrow-hover.svg");
+    background-image: url("down-arrow.svg");
+}
+
+#project-dropdown.dropdown-menu:focus {
+    outline: none;
 }
 
 /* TODO: style the dropdown content */
@@ -60,14 +63,21 @@
     z-index: 100;
 }
 
+#project-dropdown.dropdown-menu .divider {
+    margin: 5px 1px;
+}
+
 .recent-folder-link, .recent-folder, .recent-folder-path {
     white-space: nowrap;
 }
 
-#project-dropdown.dropdown-menu .recent-folder-link
-{
+#project-dropdown.dropdown-menu li a {
+    padding: 5px 15px;
+}
+
+#project-dropdown.dropdown-menu .recent-folder-link, #project-dropdown.dropdown-menu #open-folder-link {
 	display: block;
-	padding: 5px 26px 5px 15px;
+	padding: 5px 26px 5px 26px;
 }
 
 .recent-folder, #open-folder-link {
@@ -78,6 +88,9 @@
     color: #aaa;
 }
 
-.dropdown-menu a:hover {
-    background: #E0F0FA;
+#project-dropdown.dropdown-menu a.selected {
+     background: #E0F0FA;
+}
+#project-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
 }

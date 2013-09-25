@@ -28,11 +28,12 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
+    var ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
@@ -49,19 +50,16 @@ define(function (require, exports, module) {
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
-        POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
-        POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
-        POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
+        POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
-    
+
     /**
      * There are three states for this var:
      * 1. If null, there is no provider result for the given mouse position.
      * 2. If non-null, and visible==true, there is a popover currently showing.
-     * 3. If non-null, but visible==false, there is a provider result but it has not been shown yet because
-     * we're waiting for HOVER_DELAY, which is tracked by hoverTimer. The state changes to visible==true as
-     * soon as hoverTimer fires. If the mouse moves before then, the popover will never become visible.
+     * 3. If non-null, but visible==false, we're waiting for HOVER_DELAY, which
+     *    is tracked by hoverTimer. The state changes to visible==true as soon as
+     *    there is a provider. If the mouse moves before then, timer is restarted.
      * 
      * @type {{
      *      visible: boolean,
@@ -70,7 +68,8 @@ define(function (require, exports, module) {
      *      start: !{line, ch},             - start of matched text range
      *      end: !{line, ch},               - end of matched text range
      *      content: !string,               - HTML content to display in popover
-     *      onShow: ?function():void,       - called once popover content added to the DOM (may never be called)
+     *      onShow: ?function():void,       - called once popover content added to the DOM (may never be called) 
+     *        - if specified, must call positionPreview()
      *      xpos: number,                   - x of center of popover
      *      ytop: number,                   - y of top of matched text (when popover placed above text, normally)
      *      ybot: number,                   - y of bottom of matched text (when popover moved below text, avoiding window top)
@@ -97,18 +96,17 @@ define(function (require, exports, module) {
             
             $previewContent.empty();
             $previewContainer.hide();
-            
+            $previewContainer.removeClass("active");
         } else {
             window.clearTimeout(popoverState.hoverTimer);
         }
-        
         popoverState = null;
     }
     
     function positionPreview(xpos, ypos, ybot) {
-        var previewWidth  = $previewContainer.width(),
-            top           = ypos - $previewContainer.height() - POSITION_OFFSET,
-            left          = xpos - previewWidth / 2 - POINTER_LEFT_OFFSET,
+        var previewWidth  = $previewContainer.outerWidth(),
+            top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
+            left          = xpos - previewWidth / 2,
             $editorHolder = $("#editor-holder"),
             editorLeft    = $editorHolder.offset().left;
 
@@ -116,46 +114,21 @@ define(function (require, exports, module) {
         left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
-            $previewContainer.removeClass("preview-bubble-above");
-            $previewContainer.addClass("preview-bubble-below");
-            top = ybot + POSITION_BELOW_OFFSET;
-            $previewContainer.offset({
+            top = ybot + POINTER_HEIGHT;
+            $previewContainer
+                .removeClass("preview-bubble-above")
+                .addClass("preview-bubble-below");
+        } else {
+            $previewContainer
+                .removeClass("preview-bubble-below")
+                .addClass("preview-bubble-above");
+        }
+        $previewContainer
+            .css({
                 left: left,
                 top: top
-            });
-        } else {
-            $previewContainer.removeClass("preview-bubble-below");
-            $previewContainer.addClass("preview-bubble-above");
-            $previewContainer.offset({
-                left: left,
-                top: top - POINTER_TOP_OFFSET
-            });
-        }
-    }
-    
-    /**
-     * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
-     * its matching text in the editor.
-     */
-    function showPreview() {
-        
-        var cm = popoverState.editor._codeMirror;
-        popoverState.marker = cm.markText(
-            popoverState.start,
-            popoverState.end,
-            {className: "quick-view-highlight"}
-        );
-        
-        $previewContent.append(popoverState.content);
-        $previewContainer.show();
-        
-        popoverState.visible = true;
-        
-        if (popoverState.onShow) {
-            popoverState.onShow();
-        }
-        
-        positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+            })
+            .addClass("active");
     }
     
     function divContainsMouse($div, event) {
@@ -174,11 +147,40 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
-            colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*\)|\brgba\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi;
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+            colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
+        function areParensBalanced(str) {
+            var i,
+                nestLevel = 0,
+                content,
+                len;
+
+            // Remove comments & strings
+            content = CSSUtils.reduceStyleSheetForRegExParsing(str);
+            len = content.length;
+            
+            for (i = 0; i < len; i++) {
+                switch (content[i]) {
+                case "(":
+                    nestLevel++;
+                    break;
+                case ")":
+                    nestLevel--;
+                    break;
+                case "\\":
+                    i++;    // next char is escaped, so skip it
+                    break;
+                }
+            }
+
+            // if parens are balanced, nest level will be 0
+            return (nestLevel === 0);
+        }
+        
         function execGradientMatch(line) {
-            var gradientMatch = gradientRegEx.exec(line),
+            // Unbalanced parens cause infinite loop (see issue #4650)
+            var gradientMatch = (areParensBalanced(line) ? gradientRegEx.exec(line) : null),
                 prefix = "",
                 colorValue;
             
@@ -188,24 +190,22 @@ define(function (require, exports, module) {
                     // sass variable. Ignore it since it won't be displayed correctly.
                     gradientMatch = null;
     
-                } else if (gradientMatch[0].indexOf("to ") !== -1) {
-                    // If the gradient match has "to " in it, it's most likely the new gradient
-                    // syntax which is not supported until Chrome 26, so we can't yet preview it
-                    gradientMatch = null;
-
                 } else {
-                    // If it was a linear-gradient or radial-gradient variant, prefix with
-                    // "-webkit-" so it shows up correctly in Brackets.
-                    if (gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
+                    // If it was a linear-gradient or radial-gradient variant with a vendor prefix 
+                    // add "-webkit-" so it shows up correctly in Brackets.
+                    if (gradientMatch[0].match(/-o-|-moz-|-ms-|-webkit-/i)) {
                         prefix = "-webkit-";
                     }
                     
                     // For prefixed gradients, use the non-prefixed value as the color value.
-                    // "-webkit-" will be added before this value
+                    // "-webkit-" will be added before this value later
                     if (gradientMatch[1]) {
-                        colorValue = gradientMatch[1] + gradientMatch[3];    // linear gradiant
-                    } else if (gradientMatch[2]) {
-                        colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
+                        colorValue = gradientMatch[1] + gradientMatch[5];    // linear gradiant
+                    } else if (gradientMatch[3]) {
+                        colorValue = gradientMatch[3] + gradientMatch[5];    // radial gradiant
+                    } else if (gradientMatch[0]) {
+                        colorValue = gradientMatch[0];                       // -webkit-gradient
+                        prefix = "";                                         // do not prefix
                     }
                 }
             }
@@ -244,14 +244,116 @@ define(function (require, exports, module) {
 
             return colorMatch;
         }
+        
+        // simple css property splitter (used to find color stop arguments in gradients)
+        function splitStyleProperty(property) {
+            var token = /((?:[^"']|".*?"|'.*?')*?)([(,)]|$)/g;
+            var recurse = function () {
+                var array = [];
+                for (;;) {
+                    var result = token.exec(property);
+                    if (result[2] === "(") {
+                        var str = result[1].trim() + "(" + recurse().join(",") + ")";
+                        result = token.exec(property);
+                        str += result[1];
+                        array.push(str);
+                    } else {
+                        array.push(result[1].trim());
+                    }
+                    if (result[2] !== ",") {
+                        return array;
+                    }
+                }
+            };
+            return (recurse());
+        }
+        
+        // color stop helpers
+        function isGradientColorStop(args) {
+            return (args.length > 0 && args[0].match(colorRegEx) !== null);
+        }
+        
+        function hasLengthInPixels(args) {
+            return (args.length > 1 && args[1].indexOf("px") > 0);
+        }
+        
+        // Normalizes px color stops to % 
+        function normalizeGradientExpressionForQuickview(expression) {
+            if (expression.indexOf("px") > 0) {
+                var paramStart = expression.indexOf("(") + 1,
+                    paramEnd = expression.lastIndexOf(")"),
+                    parameters = expression.substring(paramStart, paramEnd),
+                    params = splitStyleProperty(parameters),
+                    lowerBound = 0,
+                    upperBound = $previewContainer.width(),
+                    args,
+                    thisSize,
+                    i;
+
+
+                // find lower bound                
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    
+                    if (hasLengthInPixels(args)) {
+                        thisSize = parseFloat(args[1]);
+
+                        upperBound = Math.max(upperBound, thisSize);
+                        // we really only care about converting negative
+                        //  pixel values -- so take the smallest negative pixel 
+                        //  value and use that as baseline for display purposes
+                        if (thisSize < 0) {
+                            lowerBound = Math.min(lowerBound, thisSize);
+                        }
+                    }
+                }
+                
+                // convert negative lower bound to positive and adjust all pixel values
+                //  so that -20px is now 0px and 100px is now 120px 
+                lowerBound = Math.abs(lowerBound);
+                
+                // Offset the upperbound by the lowerBound to give us a corrected context
+                upperBound += lowerBound;
+                
+                // convert to %
+                for (i = 0; i < params.length; i++) {
+                    args = params[i].split(" ");
+                    if (isGradientColorStop(args) && hasLengthInPixels(args)) {
+                        thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        args[1] = thisSize + "%";
+                    }
+                    params[i] = args.join(" ");
+                }
+
+                // put it back together.                
+                expression = expression.substring(0, paramStart) + params.join(", ") + expression.substring(paramEnd);
+            }
+            return expression;
+        }
 
         var gradientMatch = execGradientMatch(line),
             match = gradientMatch.match || execColorMatch(line),
             cm = editor._codeMirror;
 
         while (match) {
-            if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+            if (pos.ch < match.index) {
+                // Gradients are matched first, then colors, so...
+                if (gradientMatch.match) {
+                    // ... gradient match is past cursor -- stop looking for gradients, start searching for colors
+                    gradientMatch = { match: null, prefix: "", colorValue: null };
+                } else {
+                    // ... color match is past cursor -- stop looping
+                    break;
+                }
+            } else if (pos.ch <= match.index + match[0].length) {
+                // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                
+                // normalize the arguments to something that we can display to the user
+                // NOTE: we need both the div and the popover's _previewCSS member 
+                //          (used by unit tests) to match so normalize the css for both
+                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
+                    
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
@@ -298,7 +400,10 @@ define(function (require, exports, module) {
         } else {
             urlMatch = urlRegEx.exec(line);
             while (urlMatch) {
-                if (pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
+                if (pos.ch < urlMatch.index) {
+                    // match is past cursor, so stop looping
+                    break;
+                } else if (pos.ch <= urlMatch.index + urlMatch[0].length) {
                     tokenString = urlMatch[1];
                     break;
                 }
@@ -311,7 +416,7 @@ define(function (require, exports, module) {
             var quotesRegEx = /(\'|\")?([^(\'|\")]*)(\'|\")?/;
             tokenString = tokenString.replace(quotesRegEx, "$2");
             
-            if (/(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
+            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
                 var docPath = editor.document.file.fullPath;
                 var imgPath;
@@ -319,7 +424,7 @@ define(function (require, exports, module) {
                 if (PathUtils.isAbsoluteUrl(tokenString)) {
                     imgPath = tokenString;
                 } else {
-                    imgPath = "file:///" + docPath.substr(0, docPath.lastIndexOf("/") + 1) + tokenString;
+                    imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
                 }
                 
                 if (urlMatch) {
@@ -340,11 +445,12 @@ define(function (require, exports, module) {
                     var showHandler = function () {
                         // Hide the preview container until the image is loaded.
                         $previewContainer.hide();
+                                                    
                         
                         $previewContainer.find(".image-preview > img").on("load", function () {
                             $previewContent
-                                .append("<div class='img-size'>"                                            +
-                                            this.naturalWidth + " x " + this.naturalHeight + " pixels"  +
+                                .append("<div class='img-size'>" +
+                                            this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
                                         "</div>"
                                     );
                             $previewContainer.show();
@@ -387,13 +493,49 @@ define(function (require, exports, module) {
         
         if (popover) {
             // Providers return just { start, end, content, ?onShow, xpos, ytop, ybot }
-            $.extend(popover, { visible: false, editor: editor });
-            
+            popover.visible = false;
+            popover.editor  = editor;
             return popover;
         }
+
         return null;
     }
     
+    /**
+     * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
+     * its matching text in the editor.
+     */
+    function showPreview(editor, popover) {
+        var token,
+            cm = editor._codeMirror;
+
+        if (popover) {
+            popoverState = popover;
+        } else {
+            // Query providers and append to popoverState
+            token = cm.getTokenAt(lastPos, true);
+            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
+        }
+        
+        if (popoverState && popoverState.start && popoverState.end) {
+            popoverState.marker = cm.markText(
+                popoverState.start,
+                popoverState.end,
+                {className: "quick-view-highlight"}
+            );
+            
+            $previewContent.append(popoverState.content);
+            $previewContainer.show();
+            
+            popoverState.visible = true;
+            
+            if (popoverState.onShow) {
+                popoverState.onShow();
+            } else {
+                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+            }
+        }
+    }
     
     function handleMouseMove(event) {
         if (!enabled) {
@@ -442,45 +584,46 @@ define(function (require, exports, module) {
         
         if (editor && editor._codeMirror) {
             // Find char mouse is over
-            var cm = editor._codeMirror;
-            var pos = cm.coordsChar({left: event.clientX, top: event.clientY});
+            var cm = editor._codeMirror,
+                pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
+                showImmediately = false;
             
+            // Bail if mouse is on same char as last event
             if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                return;  // bail if mouse is on same char as last event
+                return;
             }
             lastPos = pos;
             
-            var showImmediately = false;
-            
-            // Is there a popover already visible or pending?
+            // Is there already a popover provider and range?
             if (popoverState) {
-                if (editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
+                if (popoverState.start && popoverState.end &&
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
-                    // That one doesn't cover this pos - hide it and query providers anew
+                    // That one doesn't cover this pos - hide it and start anew
                     showImmediately = popoverState.visible;
                     hidePreview();
                 }
             }
             
-            // Query providers for a new popoverState
-            var token = cm.getTokenAt(pos);
-            popoverState = queryPreviewProviders(editor, pos, token);
-            
-            if (popoverState) {
-                // We have a popover available - wait until we're ready to show it
-                if (showImmediately) {
-                    showPreview();
-                } else {
-                    popoverState.hoverTimer = window.setTimeout(function () {
-                        // Ready to show now (we'll never get here if mouse movement rendered this popover
-                        // inapplicable first - hidePopover() cancels hoverTimer)
-                        showPreview();
-                    }, HOVER_DELAY);
-                }
+            // No preview if mouse is past last char on line
+            if (pos.ch >= editor.document.getLine(pos.line).length) {
+                hidePreview();
+                return;
             }
             
+            // Initialize popoverState
+            popoverState = {};
+            
+            // Set timer to scan and show. This will get cancelled (in hidePreview())
+            // if mouse movement rendered this popover inapplicable before timer fires.
+            // When showing "immediately", still use setTimeout() to make this async
+            // so we return from this mousemove event handler ASAP.
+            popoverState.hoverTimer = window.setTimeout(function () {
+                showPreview(editor, null);
+            }, showImmediately ? 0 : HOVER_DELAY);
+                
         } else {
             // Mouse not over any Editor - immediately hide popover
             hidePreview();
@@ -557,18 +700,11 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
-
-    AppInit.appReady(function () {
-        if (brackets.test) {
-            brackets.test.extensions.QuickView = module.exports;
-        }
-    });
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;
     exports._forceShow              = function (popover) {
         hidePreview();
-        popoverState = popover;
-        showPreview();
+        showPreview(popover.editor, popover);
     };
 });

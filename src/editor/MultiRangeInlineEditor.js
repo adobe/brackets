@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils");
+        PerfUtils           = require("utils/PerfUtils"),
+        StringUtils         = require("utils/StringUtils");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -74,9 +75,9 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.$listItem = null;
     
     function _updateRangeLabel(listItem, range) {
-        var text = range.name + " " + range.textRange.document.file.name + " : " + (range.textRange.startLine + 1);
-        listItem.text(text);
-        listItem.attr("title", text);
+        var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+        listItem.html(text);
+        listItem.attr("title", listItem.text());
     }
     
     /**
@@ -126,13 +127,13 @@ define(function (require, exports, module) {
         this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
-        
+
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
         
         // List "selection" highlight
         this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
-        
+
         // Inner container
         this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
@@ -165,8 +166,10 @@ define(function (require, exports, module) {
         // select the first range
         self.setSelectedIndex(0);
         
-        // attach to main container
-        this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
+        if (this._ranges.length > 1) {      // attach to main container
+            this.$htmlContent.append(this.$relatedContainer);
+        }
+        this.$htmlContent.append(this.$editorsDiv);
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);
@@ -179,10 +182,18 @@ define(function (require, exports, module) {
      * @override
      */
     MultiRangeInlineEditor.prototype.onAdded = function () {
+        var self = this;
+        
         // Before setting the inline widget height, force a height on the
         // floating related-container in order for CodeMirror to layout and
         // compute scrollbars
         this.$relatedContainer.height(this.$related.height());
+
+        // Update the position of the selected marker now that we're laid out, and then
+        // set it to animate for future updates.
+        this._updateSelectedMarker().done(function () {
+            self.$selectedMarker.addClass("animate");
+        });
 
         // Call super
         MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
@@ -208,14 +219,14 @@ define(function (require, exports, module) {
         var $previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
         
         if ($previousItem) {
-            $previousItem.toggleClass("selected", false);
+            $previousItem.removeClass("selected");
         }
         
         this._selectedRangeIndex = newIndex;
         
         var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
-        this._ranges[this._selectedRangeIndex].$listItem.toggleClass("selected", true);
+        this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
 
         // Remove previous editors
         this.editors.forEach(function (editor) {
@@ -300,7 +311,8 @@ define(function (require, exports, module) {
     };
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
-        var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
+        var result = new $.Deferred(),
+            $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
         // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
         var self = this;
@@ -327,7 +339,11 @@ define(function (require, exports, module) {
                     self.$relatedContainer.scrollTop(itemBottom - containerHeight);
                 }
             }
+            
+            result.resolve();
         }, 0);
+        
+        return result.promise();
     };
 
     /**

@@ -1,0 +1,15 @@
+<table class="bottom-panel-table table table-striped table-condensed row-highlight">
+    <tbody>
+        {{#searchList}}
+        <tr class="file-section" data-file="{{file}}">
+            <td colspan="2"><span class="disclosure-triangle expanded"></span>{{{filename}}}</td>
+        </tr>
+        {{#items}}
+        <tr data-file="{{file}}" data-item="{{item}}">
+            <td class="line-number">{{line}}</td>
+            <td class="line-text">{{pre}}<span class="highlight">{{highlight}}</span>{{post}}</td>
+        </tr>
+        {{/items}}
+        {{/searchList}}
+    </tbody>
+</table>

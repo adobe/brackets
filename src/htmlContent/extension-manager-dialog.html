@@ -1,10 +1,22 @@
 <div class="extension-manager-dialog modal">
     <div class="modal-header">
-        <h1 class="dialog-title">{{EXTENSION_MANAGER_TITLE}}</h1>
+        <ul class="nav nav-tabs">
+            <li><a href="#installed" class="installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a></li>
+            {{#showRegistry}}
+                <li><a href="#registry" class="registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{Strings.EXTENSIONS_AVAILABLE_TITLE}}</a></li>
+                <!--<li><a href="#updates" class="updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{Strings.EXTENSIONS_UPDATES_TITLE}}</a></li>-->
+            {{/showRegistry}}
+        </ul>
+        <div>
+            <button class="search-clear"></button>
+            <input class="search" type="text" placeholder="{{EXTENSION_SEARCH_PLACEHOLDER}}">
+        </div>
     </div>
-    <div class="modal-body"></div>
+    <div class="modal-body no-padding table-striped tab-content">
+        <div class='spinner large spin'/>
+    </div>
     <div class="modal-footer">
-        <button class="btn left install-from-url">{{INSTALL_FROM_URL}}</button>
-        <button class="dialog-button btn primary" data-button-id="close">{{CLOSE}}</button>
+        <button class="btn left install-from-url">{{Strings.INSTALL_FROM_URL}}</button>
+        <button class="dialog-button btn primary" data-button-id="close">{{Strings.CLOSE}}</button>
     </div>
 </div>

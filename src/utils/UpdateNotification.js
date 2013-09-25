@@ -32,11 +32,12 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs              = require("widgets/Dialogs"),
-        NativeApp            = require("utils/NativeApp"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
         Global               = require("utils/Global"),
+        NativeApp            = require("utils/NativeApp"),
+        StringUtils          = require("utils/StringUtils"),
+        Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
@@ -202,22 +203,11 @@ define(function (require, exports, module) {
             });
         
         // Populate the update data
-        var $dlg = $(".update-dialog.instance");
-        var $updateList = $dlg.find(".update-info");
-        var templateVars = $.extend(updates, Strings);
+        var $dlg        = $(".update-dialog.instance"),
+            $updateList = $dlg.find(".update-info");
         
-        $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
-        
-        $dlg.on("click", "a", function (e) {
-            var url = $(e.currentTarget).attr("data-url");
-            
-            if (url) {
-                // Make sure the URL has a domain that we know about
-                if (/(brackets\.io|github\.com|adobe\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
-                    NativeApp.openURLInDefaultBrowser(url);
-                }
-            }
-        });
+        updates.Strings = Strings;
+        $updateList.html(Mustache.render(UpdateListTemplate, updates));
     }
     
     /**
@@ -280,7 +270,7 @@ define(function (require, exports, module) {
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
                     
-                    $updateNotification.css("display", "inline-block");
+                    $updateNotification.css("display", "block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
                         $updateNotification.on("click", function () {
@@ -303,7 +293,7 @@ define(function (require, exports, module) {
                 } else if (force) {
                     // No updates are available. If force == true, let the user know.
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.NO_UPDATE_TITLE,
                         Strings.NO_UPDATE_MESSAGE
                     );
@@ -326,7 +316,7 @@ define(function (require, exports, module) {
                 // Error fetching the update data. If this is a forced check, alert the user
                 if (force) {
                     Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
+                        DefaultDialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
                         Strings.ERROR_FETCHING_UPDATE_INFO_MSG
                     );
@@ -339,7 +329,7 @@ define(function (require, exports, module) {
     
     // Append locale to version info URL
     _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
-    
+
     // Define public API
     exports.checkForUpdate = checkForUpdate;
 });

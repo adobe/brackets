@@ -1,0 +1,23 @@
+<div class="modal">
+    <div class="modal-header">
+        <a href="#" class="close" data-dismiss="modal">&times;</a>
+        <h1 class="dialog-title">Performance Data</h1>
+        <div style="text-align: right">
+            Raw data (copy paste out):
+            <textarea rows="1" style="width:30px; height:16px; overflow: hidden; resize: none" id="brackets-perf-raw-data">{{delimitedPerfData}}</textarea>
+        </div>
+    </div>
+    <div class="modal-body" style="padding: 0; max-height: 500px; overflow: auto; width: 592px">
+        <table class="zebra-striped condensed-table">
+            <thead><th>Operation</th><th>Time (ms)</th></thead>
+            <tbody>
+                {{#perfData}}
+                <tr>
+                    <td>{{{testName}}}</td>
+                    <td>{{value}}</td>
+                </tr>
+                {{/perfData}}
+            </tbody>
+        </table>
+    </div>
+</div>

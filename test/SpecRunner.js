@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, beforeEach, afterEach, jasmine, brackets, PathUtils */
+/*global require, define, $, waitsForDone, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -31,8 +31,8 @@ require.config({
         "test"      : "../test",
         "perf"      : "../test/perf",
         "spec"      : "../test/spec",
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n"
     }
 });
 
@@ -51,7 +51,9 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
+        ColorUtils              = require("utils/ColorUtils"),
+        NativeApp               = require("utils/NativeApp");
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
@@ -182,6 +184,25 @@ define(function (require, exports, module) {
      * into a single file.
      */
     function _patchJUnitReporter() {
+        jasmine.JUnitXmlReporter.prototype.reportSpecResultsOriginal = jasmine.JUnitXmlReporter.prototype.reportSpecResults;
+        jasmine.JUnitXmlReporter.prototype.getNestedOutputOriginal = jasmine.JUnitXmlReporter.prototype.getNestedOutput;
+
+        jasmine.JUnitXmlReporter.prototype.reportSpecResults = function (spec) {
+            if (spec.results().skipped) {
+                return;
+            }
+
+            this.reportSpecResultsOriginal(spec);
+        };
+
+        jasmine.JUnitXmlReporter.prototype.getNestedOutput = function (suite) {
+            if (suite.results().totalCount === 0) {
+                return "";
+            }
+
+            return this.getNestedOutputOriginal(suite);
+        };
+
         jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
                 output = '<?xml version="1.0" encoding="UTF-8" ?>',
@@ -206,6 +227,38 @@ define(function (require, exports, module) {
         jasmine.JUnitXmlReporter.prototype.writeFile = function (path, filename, text) {
             // do nothing
         };
+    }
+    
+    function _registerBeforeAfterHandlers() {
+        // Initiailize unit test preferences for each spec
+        beforeEach(function () {
+            // Unique key for unit testing
+            localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+
+            // Reset preferences from previous test runs
+            localStorage.removeItem("doLoadPreferences");
+            localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
+            
+            SpecRunnerUtils.runBeforeFirst();
+        });
+        
+        // Revert unit test preferences after each spec
+        afterEach(function () {
+            // Clean up preferencesKey
+            localStorage.removeItem("preferencesKey");
+            
+            SpecRunnerUtils.runAfterLast();
+        });
+        
+        // Delete temp folder before running the first test
+        beforeFirst(function () {
+            SpecRunnerUtils.removeTempDirectory();
+        });
+        
+        // Delete temp folder after running the last test
+        afterLast(function () {
+            SpecRunnerUtils.removeTempDirectory();
+        });
     }
     
     function init() {
@@ -285,23 +338,14 @@ define(function (require, exports, module) {
         
         _loadExtensionTests(selectedSuites).done(function () {
             var jasmineEnv = jasmine.getEnv();
-            
-            // Initiailize unit test preferences for each spec
-            beforeEach(function () {
-                // Unique key for unit testing
-                localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
-            });
-            
-            afterEach(function () {
-                // Clean up preferencesKey
-                localStorage.removeItem("preferencesKey");
-            });
-            
             jasmineEnv.updateInterval = 1000;
+            
+            _registerBeforeAfterHandlers();
             
             // Create the reporter, which is really a model class that just gathers
             // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
+            SpecRunnerUtils.setUnitTestReporter(reporter);
             
             // Optionally emit JUnit XML file for automated runs
             if (resultsPath) {
@@ -329,6 +373,28 @@ define(function (require, exports, module) {
             
             $(window.document).ready(_documentReadyHandler);
         });
+        
+        
+        // Prevent clicks on any link from navigating to a different page (which could lose unsaved
+        // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
+        // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
+        // navigate. Also, a capture handler is more reliable than bubble.
+        window.document.body.addEventListener("click", function (e) {
+            // Check parents too, in case link has inline formatting tags
+            var node = e.target, url;
+            
+            while (node) {
+                if (node.tagName === "A") {
+                    url = node.getAttribute("href");
+                    if (url && url.match(/^http/)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                        e.preventDefault();
+                    }
+                    break;
+                }
+                node = node.parentElement;
+            }
+        }, true);
     }
 
     /**

@@ -70,5 +70,17 @@ vows.describe('ncp').addBatch({
       }
     }
   }
+}).addBatch({
+   'When copying files using transform': {
+      'it should pass file descriptors along to transform functions': function() {
+         ncp(src, out, {
+            transform: function(read,write,file) {
+               assert.notEqual(file.name, undefined);
+               assert.strictEqual(typeof file.mode,'number');
+               read.pipe(write);
+            }
+         }, function(){});
+      }
+  }
 }).export(module);
 
