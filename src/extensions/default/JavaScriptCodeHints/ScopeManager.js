@@ -180,7 +180,7 @@ define(function (require, exports, module) {
             files = [];
 
         fileSystem.getDirectoryContents(directory)
-            .done(function (contents) {
+            .then(function (contents) {
                 contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
@@ -202,13 +202,13 @@ define(function (require, exports, module) {
                     }
                 });
                 doneCallback();
-            })
-            .fail(function (err) {
+            }, function (err) {
                 if (errorCallback) {
                     errorCallback(err);
                 }
                 console.log("Unable to refresh directory: ", err);
-            });
+            })
+            .done();
     }
 
     /**

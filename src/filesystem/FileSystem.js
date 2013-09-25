@@ -27,12 +27,14 @@
 
 define(function (require, exports, module) {
     "use strict";
+
+    var Q               = require("Q");
+    var Async           = require("utils/Async");
     
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
         InMemoryFile    = require("filesystem/InMemoryFile");
-    
     
     /**
      * Constructor. FileSystem objects should not be constructed directly.
@@ -152,10 +154,10 @@ define(function (require, exports, module) {
      * Check if the specified path exists.
      *
      * @param {string} path The path to test
-     * @return {$.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
+     * @return {Q.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
      */
     FileSystem.prototype.pathExists = function (path) {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._impl.exists(path, function (exists) {
             if (exists) {
@@ -165,21 +167,21 @@ define(function (require, exports, module) {
             }
         }.bind(this));
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
      * Resolve a path.
      *
      * @param {string} path The path to resolve
-     * @return {$.Promise} Promise that is resolved with a File or Directory object, if it exists,
+     * @return {Q.Promise} Promise that is resolved with a File or Directory object, if it exists,
      *     or rejected if there is an error.
      */
     FileSystem.prototype.resolve = function (path) {
-        var result = new $.Deferred();
-        
-        this.pathExists(path)
-            .done(function () {
+        return this.pathExists(path)
+            .then(function () {
+                var result = Q.defer();
+                
                 this._impl.stat(path, function (err, stat) {
                     var item;
                     
@@ -194,12 +196,9 @@ define(function (require, exports, module) {
                     }
                     result.resolve(item);
                 }.bind(this));
-            }.bind(this))
-            .fail(function () {
-                result.reject();
-            });
-        
-        return result.promise();
+                
+                return result.promise;
+            }.bind(this));
     };
     
     /**
@@ -207,21 +206,22 @@ define(function (require, exports, module) {
      *
      * @param {Directory} directory Directory whose contents you want to get
      *
-     * @return {$.Promise} Promise that is resolved with the contents of the directory.
+     * @return {Q.Promise} Promise that is resolved with the contents of the directory.
      *         Contents is an Array of File and Directory objects.
      */
     FileSystem.prototype.getDirectoryContents = function (directory) {
-        var i, entryPath, entry, result = new $.Deferred();
+        var i, entryPath, entry, result;
         
         if (directory._contentsPromise) {
             // Existing promise for this directory's contents. Return it.
             return directory._contentsPromise;
         }
         
+        result = Q.defer();
         if (directory._contents) {
             // Return cached directory contents
             result.resolve(directory._contents);
-            return result.promise();
+            return result.promise;
         }
         
         this._impl.readdir(directory.fullPath, function (err, contents, stats) {
@@ -250,9 +250,9 @@ define(function (require, exports, module) {
             result.resolve(directory._contents);
         }.bind(this));
         
-        directory._contentsPromise = result.promise();
+        directory._contentsPromise = result.promise;
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
      * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
      *                          allows any extension to be selected.
      *
-     * @return {$.Promise} Promise that will be resolved with the selected file(s)/directories, 
+     * @return {Q.Promise} Promise that will be resolved with the selected file(s)/directories, 
      *                     or rejected if an error occurred.
      */
     FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                             initialPath,
                             fileTypes) {
         
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
             if (err) {
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
             }
         });
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
@@ -318,11 +318,11 @@ define(function (require, exports, module) {
      * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
      *                          on the current file name plus an additional suffix
      *
-     * @return {$.Promise} Promise that will be resolved with the name of the file to save,
+     * @return {Q.Promise} Promise that will be resolved with the name of the file to save,
      *                     or rejected if an error occurred.
      */
     FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename) {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
             if (err) {
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
             }
         });
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
@@ -340,18 +340,24 @@ define(function (require, exports, module) {
      * Recursively scan and index all entries in a directory
      */
     FileSystem.prototype._scanDirectory = function (directoryPath) {
-        var directory = this.getDirectoryForPath(directoryPath);
-        
-        this.getDirectoryContents(directory).done(function (entries) {
-            var i;
+        var directory   = this.getDirectoryForPath(directoryPath);
             
-            for (i = 0; i < entries.length; i++) {
-                if (entries[i].isDirectory()) {
-                    this._scanDirectory(entries[i].fullPath);
-                }
-            }
-        }.bind(this));
-        this._impl.watchPath(directoryPath);
+        return this.getDirectoryContents(directory)
+            .then(function (entries) {
+                var subdirs = entries.filter(function (entry) {
+                    return entry.isDirectory();
+                });
+                
+                var promises = subdirs.map(function (entry) {
+                    return this._scanDirectory(entry.fullPath);
+                }, this);
+                
+                var master = Q.all(promises);
+                
+                this._impl.watchPath(directoryPath);
+                
+                return master;
+            }.bind(this));
     };
     
     /**
@@ -442,6 +448,7 @@ define(function (require, exports, module) {
      * and starts indexing on a new worker.
      *
      * @param {string} rootPath The new project root.
+     * @return {Q.promise} Promise that resovles when the directory scan is complete
      */
     FileSystem.prototype.setProjectRoot = function (rootPath) {
         
@@ -460,7 +467,7 @@ define(function (require, exports, module) {
         this._impl.initWatchers(this._watcherCallback.bind(this));
         
         // Start indexing from the new root path
-        this._scanDirectory(rootPath);
+        return this._scanDirectory(rootPath);
     };
     
     // Export the FileSystem class

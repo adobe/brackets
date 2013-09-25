@@ -61,12 +61,9 @@ define(function (require, exports, module) {
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
         brackets.appFileSystem.resolve(fullPath)
-            .done(function (item) {
+            .then(function (item) {
                 item.unlink()
-                    .done(function () {
-                        result.resolve();
-                    })
-                    .fail(function (err) {
+                    .then(result.resolve, function (err) {
                         // TODO: fix error code
                         if (err === brackets.fs.ERR_NOT_FOUND && silent) {
                             result.resolve();
@@ -74,11 +71,11 @@ define(function (require, exports, module) {
                             console.error("Unable to remove " + fullPath, err);
                             result.reject(err);
                         }
-                    });
-            })
-            .fail(function (err) {
-                result.reject(err);
-            });
+                    })
+                    .done();
+            }, result.reject)
+            .done();
+        
         return result.promise();
     }
     
@@ -141,7 +138,13 @@ define(function (require, exports, module) {
      *     rejected when any error occurs.
      */
     function resolveNativeFileSystemPath(path) {
-        return brackets.appFileSystem.resolve(path);
+        var deferred = $.Deferred();
+        
+        brackets.appFileSystem.resolve(path)
+            .then(deferred.resolve, deferred.reject)
+            .done();
+        
+        return deferred.promise();
     }
     
     
@@ -742,7 +745,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             file = brackets.appFileSystem.getFileForPath(path);
         
-        file.write(text)
+        FileUtils.writeText(file, text)
             .done(function () {
                 deferred.resolve(file);
             })
@@ -823,9 +826,9 @@ define(function (require, exports, module) {
         
         // create the destination folder
         destDir.create()
-            .done(function () {
+            .then(function () {
                 brackets.appFileSystem.getDirectoryContents(source)
-                    .done(function (contents) {
+                    .then(function (contents) {
                         // copy all children of this directory
                         var copyChildrenPromise = Async.doInParallel(
                             contents,
@@ -855,14 +858,10 @@ define(function (require, exports, module) {
                         );
                         
                         copyChildrenPromise.then(deferred.resolve, deferred.reject);
-                    })
-                    .fail(function (err) {
-                        deferred.reject(err);
-                    });
-            })
-            .fail(function () {
-                deferred.reject();
-            });
+                    }, deferred.reject)
+                    .done();
+            }, deferred.reject)
+            .done();
 
         deferred.always(function () {
             // remove destination path prefix

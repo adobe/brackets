@@ -23,10 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var Q                   = require("Q");
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
@@ -54,10 +56,10 @@ define(function (require, exports, module) {
      *
      * @param {int=} mode The mode for the directory.
      *
-     * @return {$.Promise} Promise that is resolved with the stat from the new directory.
+     * @return {Q.Promise} Promise that is resolved with the stat from the new directory.
      */
     Directory.prototype.create = function (mode) {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         // TODO: support mode
         
@@ -70,7 +72,7 @@ define(function (require, exports, module) {
             }
         }.bind(this));
         
-        return result.promise();
+        return result.promise;
     };
     
     // Export this class

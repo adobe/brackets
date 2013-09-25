@@ -754,10 +754,9 @@ define(function (require, exports, module) {
         
         // Fetch dirEntry's contents
         _fileSystem.getDirectoryContents(dirEntry)
-            .done(function (contents) {
+            .then(function (contents) {
                 processEntries(contents);
-            })
-            .fail(function (err) {
+            }, function (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
@@ -769,7 +768,8 @@ define(function (require, exports, module) {
                 );
                 // Reject the render promise so we can move on.
                 deferred.reject();
-            });
+            })
+            .done();
         
         /* TODO: FileSystem - handle partial errors. See below.
         dirEntry.createReader().readEntries(
@@ -913,7 +913,7 @@ define(function (require, exports, module) {
             // Point at a real folder structure on local disk
             var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
             rootEntry.exists()
-                .done(function (exists) {
+                .then(function (exists) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
@@ -981,7 +981,8 @@ define(function (require, exports, module) {
                             });
                         });
                     }
-                });
+                })
+                .done();
         }
 
         return result.promise();
@@ -1116,7 +1117,7 @@ define(function (require, exports, module) {
                 } else {
                     // Pop up a folder browse dialog
                     _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
-                        .done(function (files) {
+                        .then(function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
@@ -1124,15 +1125,15 @@ define(function (require, exports, module) {
                             } else {
                                 result.reject();
                             }
-                        })
-                        .fail(function (error) {
+                        }, function (error) {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
                                 StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
-                        });
+                        })
+                        .done();
                 }
             })
             .fail(function () {
@@ -1321,26 +1322,23 @@ define(function (require, exports, module) {
                 var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
                 
                 _fileSystem.resolve(newItemPath)
-                    .done(function (item) {
+                    .then(function (item) {
                         // Item already exists, fail with error
                         errorCallback(2);   // TODO: FileSystem error code
-                    })
-                    .fail(function () {
+                    }, function () {
                         if (isFolder) {
                             var directory = _fileSystem.getDirectoryForPath(newItemPath);
                             
                             directory.create()
-                                .done(function () {
+                                .then(function () {
                                     successCallback(directory);
-                                })
-                                .fail(function (err) {
-                                    errorCallback(err);
-                                });
+                                }, errorCallback)
+                                .done();
                         } else {
                             // Create an empty file
                             var file = _fileSystem.getFileForPath(newItemPath);
                             
-                            file.write("")
+                            FileUtils.writeText(file, "")
                                 .done(function () {
                                     successCallback(file);
                                 })
@@ -1348,7 +1346,8 @@ define(function (require, exports, module) {
                                     errorCallback(err);
                                 });
                         }
-                    });
+                    })
+                    .done();
                 
             } else { //escapeKeyPressed
                 errorCleanup();
@@ -1457,7 +1456,8 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
-            });
+            })
+            .done();
     }
     
     /**

@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
         brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(stringsPath))
-            .done(function (contents) {
+            .then(function (contents) {
                 var $dialog,
                     $submit,
                     $select,
@@ -200,7 +200,8 @@ define(function (require, exports, module) {
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);
-            });
+            })
+            .done();
     }
     
     function _enableRunTestsMenuItem() {
@@ -213,11 +214,13 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        file.exists().done(function (exists) {
-            if (exists) {
-                CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
-            }
-        });
+        file.exists()
+            .then(function (exists) {
+                if (exists) {
+                    CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+                }
+            })
+            .done();
     }
 	
 	

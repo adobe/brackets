@@ -159,13 +159,13 @@ define(function (require, exports, module) {
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
                 brackets.appFileSystem.pathExists(extensionsRoot + "/user/basic-valid-extension/main.js")
-                    .done(function () {
+                    .then(function () {
                         mainCheckComplete = true;
-                    })
-                    .fail(function () {
+                    }, function () {
                         mainCheckComplete = true;
                         expect("basic-valid-extension directory and main.js to exist").toEqual(true);
-                    });
+                    })
+                    .done();
             });
             
             waitsFor(function () { return mainCheckComplete; }, 1000, "checking for main.js file");
@@ -182,13 +182,13 @@ define(function (require, exports, module) {
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
                 brackets.appFileSystem.pathExists(extensionsRoot + "/disabled/incompatible-version")
-                    .done(function () {
+                    .then(function () {
                         directoryCheckComplete = true;
-                    })
-                    .fail(function () {
+                    }, function () {
                         directoryCheckComplete = true;
                         expect("incompatible-version path to exist in the disabled directory").toEqual(true);
-                    });
+                    })
+                    .done();
 
                 waitsFor(function () { return directoryCheckComplete; }, 1000, "checking for disabled extension directory");
                 
@@ -204,13 +204,13 @@ define(function (require, exports, module) {
             });
             runs(function () {
                 brackets.appFileSystem.pathExists(installPath)
-                    .done(function () {
+                    .then(function () {
                         checkComplete = true;
                         expect("installation path was removed").toEqual(true);
-                    })
-                    .fail(function () {
+                    }, function () {
                         checkComplete = true;
-                    });
+                    })
+                    .done();
 
                 waitsFor(function () { return checkComplete; }, 1000, "checking for extension folder removal");
             });

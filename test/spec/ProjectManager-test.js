@@ -85,15 +85,15 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     file.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
 
                 waitsFor(function () { return complete; }, 1000);
@@ -106,11 +106,10 @@ define(function (require, exports, module) {
                     // delete the new file
                     complete = false;
                     file.unlink()
-                        .done(function () {
+                        .then(function () {
                             unlinkError = 0;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             unlinkError = err;
                             complete = true;
                         });
@@ -248,7 +247,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     newFile.unlink()
-                        .always(function () { complete = true; });
+                        .fin(function () { complete = true; });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
 
@@ -264,14 +263,14 @@ define(function (require, exports, module) {
                     complete = false;
                     error = 0;
                     newFile.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -298,14 +297,14 @@ define(function (require, exports, module) {
                     complete = false;
                     error = 0;
                     newFile.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
                 
@@ -352,15 +351,15 @@ define(function (require, exports, module) {
                     var newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -387,15 +386,15 @@ define(function (require, exports, module) {
                     newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -416,15 +415,15 @@ define(function (require, exports, module) {
                     var file = fileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
                     file.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -447,15 +446,15 @@ define(function (require, exports, module) {
                     var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
                     rootFolder.stat()
-                        .done(function (_stat) {
+                        .then(function (_stat) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        }, function (err) {
                             error = err;
                             complete = true;
-                        });
+                        })
+                        .done();
                 });
                 waitsFor(function () { return complete; }, 1000);
                 

@@ -232,12 +232,10 @@ define(function (require, exports, module) {
                 var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.fullPath);
                 
                 file.stat()
-                    .done(function (stat) {
+                    .then(function (stat) {
                         result.resolve(fileInfo.JSUtils.timestamp === stat.mtime);
-                    })
-                    .fail(function (err) {
-                        result.reject(err);
-                    });
+                    }, result.reject)
+                    .done();
             }
         } else {
             // Use the cache if the file did not change and the cache exists

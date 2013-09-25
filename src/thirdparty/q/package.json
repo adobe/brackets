@@ -1,0 +1,74 @@
+{
+  "name": "q",
+  "version": "0.9.7",
+  "description": "A library for promises (CommonJS/Promises/A,B,D)",
+  "homepage": "https://github.com/kriskowal/q",
+  "author": "Kris Kowal <kris@cixar.com> (https://github.com/kriskowal)",
+  "keywords": [
+    "q",
+    "promise",
+    "promises",
+    "promises-a",
+    "promises-aplus",
+    "deferred",
+    "future",
+    "async",
+    "flow control",
+    "fluent",
+    "browser",
+    "node"
+  ],
+  "contributors": [
+    "Kris Kowal <kris@cixar.com> (https://github.com/kriskowal)",
+    "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+    "Domenic Denicola <domenic@domenicdenicola.com> (http://domenicdenicola.com)"
+  ],
+  "bugs": {
+    "mail": "kris@cixar.com",
+    "url": "http://github.com/kriskowal/q/issues"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "http://github.com/kriskowal/q/raw/master/LICENSE"
+  },
+  "main": "q.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kriskowal/q.git"
+  },
+  "engines": {
+    "node": ">=0.6.0",
+    "teleport": ">=0.2.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jshint": "~2.1.9",
+    "cover": "*",
+    "jasmine-node": "1.11.0",
+    "opener": "*",
+    "promises-aplus-tests": "1.x",
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.9",
+    "grunt-contrib-uglify": "~0.2.2",
+    "matcha": "~0.2.0"
+  },
+  "scripts": {
+    "test": "jasmine-node spec && promises-aplus-tests spec/aplus-adapter",
+    "test-browser": "opener spec/q-spec.html",
+    "benchmark": "matcha",
+    "lint": "jshint q.js",
+    "cover": "cover run node_modules/jasmine-node/bin/jasmine-node spec && cover report html && opener cover_html/index.html",
+    "minify": "grunt",
+    "prepublish": "grunt"
+  },
+  "overlay": {
+    "teleport": {
+      "dependencies": {
+        "system": ">=0.0.4"
+      }
+    }
+  },
+  "directories": {
+    "test": "./spec"
+  }
+}

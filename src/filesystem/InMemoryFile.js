@@ -22,11 +22,13 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, newcap: true */
+/*global define*/
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var Q                   = require("Q");
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
@@ -52,10 +54,10 @@ define(function (require, exports, module) {
      *
      * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
      *
-     * @return {$.Promise} Promise that is always rejected.
+     * @return {Q.Promise} Promise that is always rejected.
      */
     InMemoryFile.prototype.readAsText = function (encoding) {
-        return new $.Deferred().reject().promise(); // TODO: Error code?
+        return Q.reject(); // TODO: Error code?
     };
     
     /**
@@ -64,31 +66,31 @@ define(function (require, exports, module) {
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
      *
-     * @return {$.Promise} Promise that is always rejected.
+     * @return {Q.Promise} Promise that is always rejected.
      */
     InMemoryFile.prototype.write = function (data, encoding) {
-        return new $.Deferred().reject().promise();  // TODO: Error code?
+        return Q.reject();  // TODO: Error code?
     };
     
     // Stub out invalid calls inherited from FileSystemEntry
     InMemoryFile.prototype.exists = function () {
-        return new $.Deferred().resolve(false).promise();
+        return Q(false);
     };
     
     InMemoryFile.prototype.stat = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+        return Q.reject(); // TODO: Error
     };
     
     InMemoryFile.prototype.unlink = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+        return Q.reject(); // TODO: Error
     };
     
     InMemoryFile.prototype.rename = function (newName) {
-        return new $.Deferred().reject().promise(); // TODO: Error
+        return Q.reject(); // TODO: Error
     };
     
     InMemoryFile.prototype.moveToTrash = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+        return Q.reject(); // TODO: Error
     };
     
     // Export this class

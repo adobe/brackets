@@ -59,12 +59,12 @@ define(function (require, exports, module) {
 
         // Read file
         file.readAsText()
-            .done(function (data, stat) {
+            .spread(function (data, stat) {
                 result.resolve(data, stat.mtime);
-            })
-            .fail(function (err) {
+            }, function (err) {
                 result.reject(err);
-            });
+            })
+            .done();
 
         return result.promise();
     }
@@ -80,12 +80,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         file.write(text)
-            .done(function () {
-                result.resolve();
-            })
-            .fail(function (err) {
-                result.reject(err);
-            });
+            .then(result.resolve, result.reject)
+            .done();
         
         return result.promise();
     }

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Q.async animation example</title>
+    <!--
+        Works in browsers that support ES6 geneartors, like Chromium 29 with
+        the --harmony flag.
+
+        Peter Hallam, Tom van Cutsem, Mark S. Miller, Dave Herman, Andy Wingo.
+        The animation example was taken from
+        <http://wiki.ecmascript.org/doku.php?id=strawman:deferred_functions>
+    -->
+</head>
+<body>
+    <div id="box" style="width: 20px; height: 20px; background-color: red;"></div>
+
+    <script src="../../q.js"></script>
+    <script>
+    (function () {
+        "use strict";
+
+        var deferredAnimate = Q.async(function* (element) {
+            for (var i = 0; i < 100; ++i) {
+                element.style.marginLeft = i + "px";
+                yield Q.delay(20);
+            }
+        });
+
+        Q.spawn(function* () {
+            yield deferredAnimate(document.getElementById("box"));
+            alert("Done!");
+        });
+    }());
+    </script>
+</body>
+</html>

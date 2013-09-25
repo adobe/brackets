@@ -28,7 +28,8 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "i18n"      : "thirdparty/i18n/i18n",
+        "Q"         : "thirdparty/q/q"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -97,7 +98,8 @@ define(function (require, exports, module) {
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        Q                       = require("Q");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -220,13 +222,11 @@ define(function (require, exports, module) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             brackets.appFileSystem.resolve(initialProjectPath + "/index.html")
-                                .done(function (file) {
+                                .then(function (file) {
                                     var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
-                                })
-                                .fail(function () {
-                                    deferred.reject();
-                                });
+                                }, deferred.reject)
+                                .done();
                         } else {
                             deferred.resolve();
                         }

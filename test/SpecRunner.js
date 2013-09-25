@@ -148,11 +148,10 @@ define(function (require, exports, module) {
     function writeResults(path, text) {
         // check if the file already exists
         brackets.appFileSystem.pathExists(path)
-            .done(function () {
+            .then(function () {
                 // file exists, do not overwrite
                 _writeResults.reject();
-            })
-            .fail(function () {
+            }, function () {
                 // file not found, write the new file with xml content
                 var file = brackets.appFileSystem.getFileForPath(path);
                 FileUtils.writeText(file, text)
@@ -162,7 +161,8 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         _writeResults.reject(err);
                     });
-            });
+            })
+            .done();
     }
     
     /**

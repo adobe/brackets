@@ -616,7 +616,7 @@ define(function (require, exports, module) {
             }
             
             fileSystem.pathExists(fullPath)
-                .done(function () {
+                .then(function () {
                     // log this document's Promise as pending
                     getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
         
@@ -646,10 +646,8 @@ define(function (require, exports, module) {
                         .fail(function (fileError) {
                             result.reject(fileError);
                         });
-                })
-                .fail(function () {
-                    result.reject(); // TODO: FileSystem error not found
-                });
+                }, result.reject) // TODO: FileSystem error not found
+                .done();
             
             return promise;
         }

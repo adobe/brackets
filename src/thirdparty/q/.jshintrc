@@ -1,0 +1,26 @@
+{
+    "browser": true,
+    "node": true,
+
+    "curly": true,
+    "eqeqeq": true,
+    "es3": true,
+    "newcap": false,
+    "noarg": true,
+    "nonew": true,
+    "quotmark": "double",
+    "strict": true,
+    "trailing": true,
+    "undef": true,
+    "unused": true,
+
+    "globals": {
+        "bootstrap": false,
+        "cajaVM": false,
+        "define": false,
+        "ReturnValue": false,
+        "ses": false,
+        "setImmediate": false,
+        "Q": true
+    }
+}

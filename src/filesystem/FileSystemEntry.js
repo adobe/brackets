@@ -23,12 +23,14 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /* TODO: Document this class/module. */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var Q = require("Q");
     
     /**
      * Constructor
@@ -86,11 +88,11 @@ define(function (require, exports, module) {
     /**
      * Returns true if the entry exists on disk.
      *
-     * @return {$.Promise} Promise that is resolved with true if the entry exists, 
+     * @return {Q.Promise} Promise that is resolved with true if the entry exists, 
      *        or false if it doesn't.
      */
     FileSystemEntry.prototype.exists = function () {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         // If we have _stat, the entry must exist
         if (this._stat) {
@@ -102,17 +104,17 @@ define(function (require, exports, module) {
             });
         }
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
      * Returns the stats for the entry.
      *
-     * @return {$.Promise} Promise that is resolved with the entries stats, or rejected
+     * @return {Q.Promise} Promise that is resolved with the entries stats, or rejected
      *        if an error occurred.
      */
     FileSystemEntry.prototype.stat = function () {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         if (this._stat) {
             result.resolve(this._stat);
@@ -127,7 +129,7 @@ define(function (require, exports, module) {
             }.bind(this));
         }
         
-        return result.promise();
+        return result.promise;
     };
     
     /**
@@ -135,11 +137,11 @@ define(function (require, exports, module) {
      *
      * @param {String} newName New name for this entry.
      *
-     * @return {$.Promise} Promise that is resolved with the entries stats, or rejected
+     * @return {Q.Promise} Promise that is resolved with the entries stats, or rejected
      *        if an error occurred.
      */
     FileSystemEntry.prototype.rename = function (newName) {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._impl.rename(this._path, newName, function (err) {
             if (err) {
@@ -149,17 +151,17 @@ define(function (require, exports, module) {
             }
         });
         
-        return result.promise();
+        return result.promise;
     };
         
     /**
      * Unlink (delete) this entry.
      *
-     * @return {$.Promise} Promise that is resolved if the unlink succeeded, or rejected
+     * @return {Q.Promise} Promise that is resolved if the unlink succeeded, or rejected
      *        if an error occurred.
      */
     FileSystemEntry.prototype.unlink = function () {
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._stat = null;
         this._impl.unlink(this._path, function (err) {
@@ -170,14 +172,14 @@ define(function (require, exports, module) {
             }
         });
         
-        return result.promise();
+        return result.promise;
     };
         
     /**
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
      *
-     * @return {$.Promise} Promise that is resolved if the moveToTrash succeeded, or rejected
+     * @return {Q.Promise} Promise that is resolved if the moveToTrash succeeded, or rejected
      *        if an error occurred.
      */
     FileSystemEntry.prototype.moveToTrash = function () {
@@ -185,7 +187,7 @@ define(function (require, exports, module) {
             return this.unlink();
         }
         
-        var result = new $.Deferred();
+        var result = Q.defer();
         
         this._stat = null;
         this._impl.moveToTrash(this._path, function (err) {
@@ -196,7 +198,7 @@ define(function (require, exports, module) {
             }
         });
         
-        return result.promise();
+        return result.promise;
     };
         
     // Export this class

@@ -751,7 +751,7 @@ define(function (require, exports, module) {
                             result.resolve();
                         } else {
                             // Search one file
-                            file.readAsText()
+                            FileUtils.readAsText(file)
                                 .done(function (contents) {
                                     _addSearchMatches(file.fullPath, contents, currentQueryExpr);
                                     result.resolve();

@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             }
             // Prompt the user with a dialog
             fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
-                .done(function (paths) {
+                .then(function (paths) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
@@ -259,7 +259,8 @@ define(function (require, exports, module) {
                         // Reject if the user canceled the dialog
                         result.reject();
                     }
-                });
+                })
+                .done();
         } else {
             result = doOpen(fullPath, silent);
         }
@@ -365,14 +366,14 @@ define(function (require, exports, module) {
             var path = dir + "/" + suggestedName;
             var entry = isFolder ? fileSystem.getDirectoryForPath(path) : fileSystem.getFileForPath(path);
             
-            entry.exists().done(function (exists) {
+            entry.exists().then(function (exists) {
                 if (exists) {
                     //file exists, notify to the next progress
                     result.notify(baseFileName + "-" + _nextUntitledIndexToUse + fileExt, _nextUntitledIndexToUse + 1);
                 } else {
                     result.resolve(suggestedName);
                 }
-            });
+            }).done();
         });
 
         //kick it off
@@ -497,12 +498,11 @@ define(function (require, exports, module) {
             var file = docToSave.file;
             var writeError = false;
             
-            file.write(docToSave.getText(true))
+            FileUtils.writeText(file, docToSave.getText(true))
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve();
-                })
-                .fail(function (err) {
+                }).fail(function (err) {
                     handleError(err, file);
                 });
         } else {
@@ -649,12 +649,8 @@ define(function (require, exports, module) {
             }
             defaultName = FileUtils.getBaseName(origPath);
             fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
-                .done(function (selection) {
-                    _doSaveAfterSaveDialog(selection);
-                })
-                .fail(function (err) {
-                    result.reject(err);
-                });
+                .then(_doSaveAfterSaveDialog, result.reject)
+                .done();
         } else {
             result.reject();
         }

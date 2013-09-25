@@ -1,0 +1,8 @@
+{
+  "name": "brackets",
+  "homepage": "http://brackets.io",
+  "private": true,
+  "dependencies": {
+    "q": "https://github.com/kriskowal/q.git#~0.9.7"
+  }
+}
