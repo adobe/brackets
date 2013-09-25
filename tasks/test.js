@@ -43,10 +43,10 @@ module.exports = function (grunt) {
             specRunnerPath  = common.resolve("test/SpecRunner.html"),
             args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
 
-        if (platform === "win") {
-            cmd += args;
-        } else if (platform === "mac") {
+        if (platform === "mac") {
             cmd = "open \"" + cmd + "\" -W --args " + args;
+        } else {
+            cmd += args;
         }
         
         grunt.log.writeln(cmd);
