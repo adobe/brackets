@@ -43,8 +43,10 @@ define(function (require, exports, module) {
         var testWindow;
 
         beforeFirst(function () {
+            var testWindowOptions = {"hasNativeMenus" : true};
+            
             // Create a new native menu window that will be shared by ALL tests in this spec.
-            SpecRunnerUtils.createNativeTestWindowAndRun(this, function (w) {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -52,7 +54,7 @@ define(function (require, exports, module) {
                 Commands          = testWindow.brackets.test.Commands;
                 KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
                 Menus             = testWindow.brackets.test.Menus;
-            });
+            }, testWindowOptions);
         });
         
         afterLast(function () {
@@ -218,8 +220,10 @@ define(function (require, exports, module) {
         var testWindow;
 
         beforeFirst(function () {
+            var testWindowOptions = {"hasNativeMenus" : false};
+            
             // Create a new HTML menu window that will be shared by ALL tests in this spec.
-            SpecRunnerUtils.createHTMLTestWindowAndRun(this, function (w) {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -227,7 +231,7 @@ define(function (require, exports, module) {
                 Commands          = testWindow.brackets.test.Commands;
                 KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
                 Menus             = testWindow.brackets.test.Menus;
-            });
+            }, testWindowOptions);
         });
         
         afterLast(function () {
