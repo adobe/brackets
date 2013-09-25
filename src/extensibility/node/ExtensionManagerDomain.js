@@ -33,8 +33,11 @@ var semver   = require("semver"),
     request  = require("request"),
     os       = require("os"),
     fs       = require("fs-extra"),
+    temp     = require("temp"),
     validate = require("./package-validator").validate;
 
+// Automatically clean up temp files on exit
+temp.track();
 
 var Errors = {
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
@@ -100,9 +103,10 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
         var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
         
         fs.copy(sourceDir, installDirectory, function (err) {
+            // We're done with the temporary directory used for extraction
+            fs.remove(validationResult.extractDir);
             if (err) {
                 _removeFailedInstallation(installDirectory);
-                fs.remove(validationResult.extractDir);
                 callback(err, null);
             } else {
                 // The status may have already been set previously (as in the
@@ -330,26 +334,6 @@ function _cmdUpdate(packagePath, destinationDirectory, options, callback) {
 }
 
 /**
- * Creates a uniquely-named file in the OS temp directory and opens it for writing.
- * @return {{localPath: string, outStream: WriteStream}}
- */
-function _createTempFile() {
-    var root = os.tmpDir();
-    var pathPrefix = root + "/brackets.download";
-    var suffix = 1;
-    while (fs.existsSync(pathPrefix + suffix) && suffix < 100) {
-        suffix++;
-    }
-    if (suffix === 100) {
-        return null;
-    }
-    
-    var localPath = pathPrefix + suffix;
-    var outStream = fs.createWriteStream(localPath);
-    return { outStream: outStream, localPath: localPath };
-}
-
-/**
  * Wrap up after the given download has terminated (successfully or not). Closes connections, calls back the
  * client's callback, and IF there was an error, delete any partially-downloaded file.
  * 
@@ -409,15 +393,15 @@ function _cmdDownloadFile(downloadId, url, callback) {
                 return;
             }
             
-            var tempFileInfo = _createTempFile();
-            if (!tempFileInfo) {
+            var stream = temp.createWriteStream("brackets");
+            if (!stream) {
                 _endDownload(downloadId, Errors.CANNOT_WRITE_TEMP);
                 return;
             }
-            pendingDownloads[downloadId].localPath = tempFileInfo.localPath;
-            pendingDownloads[downloadId].outStream = tempFileInfo.outStream;
+            pendingDownloads[downloadId].localPath = stream.path;
+            pendingDownloads[downloadId].outStream = stream;
             
-            tempFileInfo.outStream.write(body);
+            stream.write(body);
             _endDownload(downloadId);
         });
     

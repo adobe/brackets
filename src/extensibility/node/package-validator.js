@@ -33,9 +33,11 @@ var DecompressZip = require("decompress-zip"),
     http          = require("http"),
     request       = require("request"),
     os            = require("os"),
-    tmp           = require("tmp"),
+    temp          = require("temp"),
     fs            = require("fs-extra");
 
+// Track and cleanup files at exit
+temp.track();
 
 var Errors = {
     NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where ZIP file was expected
@@ -335,10 +337,7 @@ function validate(path, options, callback) {
             });
             return;
         }
-        tmp.dir({
-            prefix: "bracketsPackage_",
-            unsafeCleanup: true
-        }, function _tempDirCreated(err, extractDir) {
+        temp.mkdir("bracketsPackage_", function _tempDirCreated(err, extractDir) {
             if (err) {
                 callback(err, null);
                 return;
