@@ -338,6 +338,8 @@ define(function (require, exports, module) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(gotoLine, 0, true);
                         }
+                    })
+                    .always(function () {
                         self.close();
                     });
             } else if (!isNaN(gotoLine)) {
