@@ -143,7 +143,7 @@ define(function (require, exports, module) {
         var directory = this._index.getEntry(path);
         
         if (!directory) {
-            directory = new Directory(path, this._impl);
+            directory = new Directory(path, this);
             this._index.addEntry(directory);
         }
         
@@ -199,60 +199,6 @@ define(function (require, exports, module) {
                 
                 return result.promise;
             }.bind(this));
-    };
-    
-    /**
-     * Read the contents of a Directory. 
-     *
-     * @param {Directory} directory Directory whose contents you want to get
-     *
-     * @return {Q.Promise} Promise that is resolved with the contents of the directory.
-     *         Contents is an Array of File and Directory objects.
-     */
-    FileSystem.prototype.getDirectoryContents = function (directory) {
-        var i, entryPath, entry, result;
-        
-        if (directory._contentsPromise) {
-            // Existing promise for this directory's contents. Return it.
-            return directory._contentsPromise;
-        }
-        
-        result = Q.defer();
-        if (directory._contents) {
-            // Return cached directory contents
-            result.resolve(directory._contents);
-            return result.promise;
-        }
-        
-        this._impl.readdir(directory.fullPath, function (err, contents, stats) {
-            directory._contents = [];
-            
-            // Instantiate content objects
-            var len = stats ? stats.length : 0;
-            
-            for (i = 0; i < len; i++) {
-                entryPath = directory.fullPath + "/" + contents[i];
-                
-                // Note: not all entries necessarily have associated stats.
-                // For now, silently ignore such entries.
-                if (stats[i] && this.shouldShow(entryPath)) {
-                    if (stats[i].isFile()) {
-                        entry = this.getFileForPath(entryPath);
-                    } else {
-                        entry = this.getDirectoryForPath(entryPath);
-                    }
-                    
-                    directory._contents.push(entry);
-                }
-            }
-            
-            directory._contentsPromise = null;
-            result.resolve(directory._contents);
-        }.bind(this));
-        
-        directory._contentsPromise = result.promise;
-        
-        return result.promise;
     };
     
     /**
@@ -342,7 +288,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._scanDirectory = function (directoryPath) {
         var directory   = this.getDirectoryForPath(directoryPath);
             
-        return this.getDirectoryContents(directory)
+        return directory.getContents()
             .then(function (entries) {
                 var subdirs = entries.filter(function (entry) {
                     return entry.isDirectory();
@@ -357,7 +303,8 @@ define(function (require, exports, module) {
                 this._impl.watchPath(directoryPath);
                 
                 return master;
-            }.bind(this));
+            }.bind(this))
+            .done();
     };
     
     /**
@@ -390,8 +337,8 @@ define(function (require, exports, module) {
                 entry._contents = entry._contentsPromise = undefined;
                 
                 // Read new contents
-                this.getDirectoryContents(entry)
-                    .done(function (contents) {
+                entry.getContents()
+                    .then(function (contents) {
                         var i, len, item, path;
                         
                         function _isInPath(item) {
@@ -434,7 +381,8 @@ define(function (require, exports, module) {
                                 }
                             }
                         }
-                    }.bind(this));
+                    }.bind(this))
+                    .done();
             }
             
             // Trigger a change event

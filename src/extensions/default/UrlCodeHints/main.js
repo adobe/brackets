@@ -132,7 +132,7 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            fileSystem.getDirectoryContents(directory)
+            directory.getContents()
                 .then(function (contents) {
                     contents.forEach(function (entry) {
                         if (fileSystem.shouldShow(entry.fullPath)) {

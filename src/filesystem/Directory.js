@@ -32,9 +32,9 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
-    function Directory(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath, impl);
-        this._impl = impl;
+    function Directory(fullPath, fileSystem) {
+        FileSystemEntry.call(this, fullPath, fileSystem._impl);
+        this._fileSystem = fileSystem;
     }
     
     Directory.prototype = Object.create(FileSystemEntry.prototype);
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         
         // TODO: support mode
         
-        this._impl.mkdir(this._path, function (err, stat) {
+        this._fileSystem._impl.mkdir(this._path, function (err, stat) {
             if (err) {
                 result.reject(err);
             } else {
@@ -71,6 +71,60 @@ define(function (require, exports, module) {
                 result.resolve(stat);
             }
         }.bind(this));
+        
+        return result.promise;
+    };
+    
+    /**
+     * Read the contents of a Directory. 
+     *
+     * @param {Directory} directory Directory whose contents you want to get
+     *
+     * @return {Q.Promise} Promise that is resolved with the contents of the directory.
+     *         Contents is an Array of File and Directory objects.
+     */
+    Directory.prototype.getContents = function () {
+        var i, entryPath, entry, result;
+        
+        if (this._contentsPromise) {
+            // Existing promise for this directory's contents. Return it.
+            return this._contentsPromise;
+        }
+        
+        result = Q.defer();
+        if (this._contents) {
+            // Return cached directory contents
+            result.resolve(this._contents);
+            return result.promise;
+        }
+        
+        this._fileSystem._impl.readdir(this.fullPath, function (err, contents, stats) {
+            this._contents = [];
+            
+            // Instantiate content objects
+            var len = stats ? stats.length : 0;
+            
+            for (i = 0; i < len; i++) {
+                entryPath = this.fullPath + "/" + contents[i];
+                
+                // Note: not all entries necessarily have associated stats.
+                // For now, silently ignore such entries.
+                if (stats[i] && this._fileSystem.shouldShow(entryPath)) {
+                    if (stats[i].isFile()) {
+                        entry = this._fileSystem.getFileForPath(entryPath);
+                    } else {
+                        entry = this._fileSystem.getDirectoryForPath(entryPath);
+                    }
+                    
+                    this._contents.push(entry);
+                }
+            }
+            
+            this._contentsPromise = null;
+            result.resolve(this._contents);
+        }.bind(this));
+        
+        this._contentsPromise = result.promise;
         
         return result.promise;
     };

@@ -827,7 +827,7 @@ define(function (require, exports, module) {
         // create the destination folder
         destDir.create()
             .then(function () {
-                brackets.appFileSystem.getDirectoryContents(source)
+                source.getContents()
                     .then(function (contents) {
                         // copy all children of this directory
                         var copyChildrenPromise = Async.doInParallel(

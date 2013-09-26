@@ -753,7 +753,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        _fileSystem.getDirectoryContents(dirEntry)
+        dirEntry.getContents()
             .then(function (contents) {
                 processEntries(contents);
             }, function (err) {
