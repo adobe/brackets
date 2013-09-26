@@ -368,9 +368,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Deferred|{
      *              hints: Array.<string|jQueryObject>,
      *              match: string,
-     *              selectInitial: boolean,
-     *              handleWideResults: boolean,
-     *              query: string}}
+     *              selectInitial: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides 
      * 1. a sorted array hints that consists of strings
@@ -378,9 +376,6 @@ define(function (require, exports, module) {
      *    substrings when rendering the hint list 
      * 3. a boolean that indicates whether the first result, if one exists, should be 
      *    selected by default in the hint list window.
-     * 4. handleWideResults, a boolean (or undefined) that indicates whether
-     *    to allow result string to stretch width of display.
-     * 5. query, the string that list is filtered on
      */
     UrlCodeHints.prototype.getHints = function (key) {
         var mode = this.editor.getModeForSelection(),
@@ -483,9 +478,7 @@ define(function (require, exports, module) {
                 deferred.resolveWith(this, [{
                     hints: asyncHints,
                     match: query.queryStr,
-                    selectInitial: true,
-                    handleWideResults: false,
-                    query: query.queryStr
+                    selectInitial: true
                 }]);
             });
 

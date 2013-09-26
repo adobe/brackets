@@ -88,13 +88,6 @@ define(function (require, exports, module) {
         this.insertHintOnTab = insertHintOnTab;
 
         /**
-         * Current query filtering hints
-         *
-         * @type {string}
-         */
-        this.query = "";
-
-        /**
          * Pending text insertion
          *
          * @type {string}
@@ -193,7 +186,6 @@ define(function (require, exports, module) {
 
         this.hints = hintObj.hints;
         this.hints.handleWideResults = hintObj.handleWideResults;
-        this.query = hintObj.query || "";
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
@@ -382,28 +374,6 @@ define(function (require, exports, module) {
             return itemsPerPage;
         }
 
-        /**
-         * Determine whether item is in list.
-         *
-         * Performance: list is sorted alphabetically, so we could do binary search.
-         *
-         * @private
-         * @param {Array.<string|jQueryObject>} hintList - list to search
-         * @param {string} itemText - text of item to search for
-         * @return {boolean}
-         */
-        function _listContainsItem(hintList, itemText) {
-            var found = false;
-            hintList.some(function (listItem, index) {
-                if (listItem[0].innerText.indexOf(itemText) === 0) {
-                    found = true;
-                    return true;
-                }
-            });
-
-            return found;
-        }
-        
         // If we're no longer visible, skip handling the key and end the session.
         if (!this.isOpen()) {
             this.handleClose();
@@ -436,20 +406,23 @@ define(function (require, exports, module) {
                     (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
 
                 if (this.pendingText) {
-                    // There is pending text to be inserted in page, and...
-                    if (_listContainsItem(this.hints, this.query + this.pendingText)) {
-                        // ...resulting text matches something in list. We can't accept it
-                        // because the Editor will subsequently be inserting pending text
-                        // in page, (which leads to double-insertion) so we have to eat the
-                        // Enter (or Tab) char.
-                        event.stopImmediatePropagation();
-                        event.preventDefault();
-                        return true;
-                    } else {
-                        // ...resulting text doesn't match anything in list, so
-                        // let the event bubble.
-                        return false;
-                    }
+                    // Issues #5003: We received a "selection" key while there is "pending
+                    // text". This is rare but can happen because CM uses polling, so we
+                    // can receive key events while CM is waiting for timeout to expire.
+                    // Pending text may dismiss the list, or it may cause a valid selection
+                    // which keeps open hint list. We can compare pending text against
+                    // list to determine whether list is dismissed or not, but to handle
+                    // inserting selection in the page we'd need to either:
+                    // 1. Synchronously force CodeMirror to poll (but there is not
+                    //    yet a public API for that).
+                    // 2. Pass pending text back to where text gets inserted, which
+                    //    means it would need to be implemented for every HintProvider!
+                    // You have to be typing so fast to hit this case, that's it's
+                    // highly unlikely that inserting something from list was the intent,
+                    // which makes this pretty rare, so case #2 is not worth implementing.
+                    // If case #1 gets implemented, then we may want to use it here.
+                    // So, assume that pending text dismisses hints and let event bubble.
+                    return false;
                 }
                 
                 // Trigger a click handler to commmit the selected item

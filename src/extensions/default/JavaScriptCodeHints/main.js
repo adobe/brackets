@@ -88,9 +88,7 @@ define(function (require, exports, module) {
          * @return {jQuery.Deferred|{
          *              hints: Array.<string|jQueryObject>,
          *              match: string,
-         *              selectInitial: boolean,
-         *              handleWideResults: boolean,
-         *              query: string}}
+         *              selectInitial: boolean}}
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
@@ -169,9 +167,7 @@ define(function (require, exports, module) {
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
-            selectInitial: true,
-            handleWideResults: hints.handleWideResults,
-            query: query
+            selectInitial: true
         };
     }
 
