@@ -580,9 +580,12 @@ define(function (require, exports, module) {
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
+            $('#image-holder').remove();
             _showEditor(doc);
         } else {
-            _showNoEditor();
+            //if(!$('#image-holder')) {
+                _showNoEditor();
+            //}
         }
 
         PerfUtils.addMeasurement(perfTimerName);

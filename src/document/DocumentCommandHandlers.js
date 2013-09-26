@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -182,27 +183,40 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            var mode = LanguageManager.getLanguageForPath(fullPath);
+            if (mode.getId() === "image") {
+                DocumentManager.clearCurrentDocument();
+                var imageContainer = $('#image-holder');
+                 // TODO: call EditorManager API to display image-holder
+                if($('#image-holder')){
+                    $('#image-holder').remove();
+                }
+                imageContainer = $("<div id='image-holder' style='z-index:11;position:absolute;top:0;background-color:rgb(248,248,248);width:100%;height:100%'><img src='file:///" + fullPath + "'></div>");
+                
+                $('#editor-holder').append(imageContainer);
+            } else {
             // Load the file if it was never open before, and then switch to it in the UI
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    DocumentManager.setCurrentDocument(doc);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    function _cleanup() {
-                        // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                        EditorManager.focusEditor();
-                        result.reject();
-                    }
-                    
-                    if (silent) {
-                        _cleanup();
-                    } else {
-                        FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
-                    }
-                });
+                DocumentManager.getDocumentForPath(fullPath)
+                    .done(function (doc) {
+                        DocumentManager.setCurrentDocument(doc);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        function _cleanup() {
+                            // For performance, we do lazy checking of file existence, so it may be in working set
+                            DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                            EditorManager.focusEditor();
+                            result.reject();
+                        }
+                        
+                        if (silent) {
+                            _cleanup();
+                        } else {
+                            FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
+                        }
+                    });
+            }
         }
 
         return result.promise();
