@@ -285,6 +285,7 @@ define(function (require, exports, module) {
             $("body").addClass("has-appshell-menus");
         } else {
             // Prevent the menu item to grab the focus -- override focus implementation
+            // BOOTSTRAP: workaround for https://github.com/adobe/brackets/issues/5310
             (function () {
                 var defaultFocus = $.fn.focus;
                 $.fn.focus = function () {
