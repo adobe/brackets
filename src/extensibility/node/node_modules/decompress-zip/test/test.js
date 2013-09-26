@@ -75,7 +75,7 @@ describe('Extract', function () {
             });
 
             it('should extract without any errors', function (done) {
-                this.timeout(10000);
+                this.timeout(60000);
                 var zip = new DecompressZip(path.join(assetsPath, sample));
 
                 zip.on('extract', function () {
