@@ -179,6 +179,35 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Deletes the selected item and
+     * move the focus to next item in list.
+     * 
+     * @return {boolean} TRUE if project is removed
+     */
+    function removeSelectedItem(e) {
+        var recentProjects = getRecentProjects(),
+            $cacheItem = $dropdownItem,
+            index = recentProjects.indexOf($cacheItem.data("path"));
+
+        // When focus is not on project item
+        if (index === -1) {
+            return false;
+        }
+
+        // remove project
+        recentProjects.splice(index, 1);
+        prefs.setValue("recentProjects", recentProjects);
+        checkHovers(e.pageX, e.pageY);
+
+        if (recentProjects.length === 1) {
+            $dropdown.find(".divider").remove();
+        }
+        selectNextItem(+1);
+        $cacheItem.closest("li").remove();
+        return true;
+    }
+
+    /**
      * Handles the Key Down events
      * @param {KeyboardEvent} event
      * @return {boolean} True if the key was handled
@@ -201,6 +230,13 @@ define(function (require, exports, module) {
                 $dropdownItem.trigger("click");
             }
             keyHandled = true;
+            break;
+        case KeyEvent.DOM_VK_BACK_SPACE:
+        case KeyEvent.DOM_VK_DELETE:
+            keyHandled = true;
+            if ($dropdownItem) {
+                removeSelectedItem(event);
+            }
             break;
         }
         
