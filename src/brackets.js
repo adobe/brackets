@@ -284,7 +284,8 @@ define(function (require, exports, module) {
         if (brackets.nativeMenus) {
             $("body").addClass("has-appshell-menus");
         } else {
-            // Prevent the menu item to grab the focus -- override focus implementation
+            // (issue #5310) workaround for bootstrap dropdown: prevent the menu item to grab
+            // the focus -- override jquery focus implementation for top-level menu items
             (function () {
                 var defaultFocus = $.fn.focus;
                 $.fn.focus = function () {
