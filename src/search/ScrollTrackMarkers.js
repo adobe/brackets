@@ -144,18 +144,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Add a tickmark to the editor's tickmark track, if it's visible
-     * @param curEditor {!Editor}
-     * @param pos {!{line:Number, ch:Number}}
-     */
-    function addTickmark(curEditor, pos) {
-        console.assert(editor === curEditor);
-        
-        marks.push(pos);
-        _renderMarks([pos]);
-    }
-    
-    /**
      * Add tickmarks to the editor's tickmark track, if it's visible
      * @param curEditor {!Editor}
      * @param posArray {!Array.<{line:Number, ch:Number}>}
@@ -170,6 +158,5 @@ define(function (require, exports, module) {
     
     exports.clear = clear;
     exports.setVisible = setVisible;
-    exports.addTickmark = addTickmark;
     exports.addTickmarks = addTickmarks;
 });

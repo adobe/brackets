@@ -52,8 +52,14 @@ define(function (require, exports, module) {
     var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
         searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
 
-    /** @cost Constant used to define the maximum results to show */
-    var FIND_REPLACE_MAX    = 300;
+    /** @const Maximum file size to search within (in chars) */
+    var FIND_MAX_FILE_SIZE  = 500000;
+
+    /** @const If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled */
+    var FIND_HIGHLIGHT_MAX  = 2000;
+
+    /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
+    var REPLACE_ALL_MAX     = 300;
 
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
@@ -261,7 +267,7 @@ define(function (require, exports, module) {
                 // Find all matches
                 // (Except on huge documents, where this is too expensive)
                 var resultSet = [];
-                if (cm.getValue().length < 500000) {
+                if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
@@ -277,7 +283,7 @@ define(function (require, exports, module) {
                     }
                     
                     // Highlight all matches if there aren't too many
-                    if (resultSet.length <= 2000) {
+                    if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
                         toggleHighlighting(editor, true);
                         
                         resultSet.forEach(function (result) {
@@ -432,7 +438,7 @@ define(function (require, exports, module) {
                 post:      multiLine ? "\u2026" : line.slice(to.ch)
             });
 
-            if (results.length >= FIND_REPLACE_MAX) {
+            if (results.length >= REPLACE_ALL_MAX) {
                 break;
             }
         }
@@ -443,7 +449,7 @@ define(function (require, exports, module) {
                 Strings.FIND_REPLACE_TITLE_PART3,
                 resultsLength,
                 resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                resultsLength >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+                resultsLength >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
             );
 
         // Insert the search summary
