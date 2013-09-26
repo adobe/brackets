@@ -8,4 +8,8 @@ zip.on('file', function (file) {
     console.log(file.name);
 });
 
+zip.on('error', function (error) {
+    console.error(error.message, error.stack);
+});
+
 zip.extract();
