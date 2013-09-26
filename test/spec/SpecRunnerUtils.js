@@ -504,7 +504,7 @@ define(function (require, exports, module) {
             
             // option to launch test window with either native or HTML menus
             if (options && options.hasOwnProperty("hasNativeMenus")) {
-                params.put("hasNativeMenus", options.hasNativeMenus);
+                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);

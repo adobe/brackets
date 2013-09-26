@@ -37,7 +37,8 @@ define(function (require, exports, module) {
     var configJSON  = require("text!config.json"),
         UrlParams   = require("utils/UrlParams").UrlParams;
     
-    var params = new UrlParams();
+    var params          = new UrlParams(),
+        hasNativeMenus  = "";
     
     // read URL params
     params.parse();
@@ -83,8 +84,10 @@ define(function (require, exports, module) {
     
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
     
-    if (params.get("hasNativeMenus") !== undefined) {
-        global.brackets.nativeMenus = (params.get("hasNativeMenus") === "true");
+    hasNativeMenus = params.get("hasNativeMenus");
+    
+    if (hasNativeMenus) {
+        global.brackets.nativeMenus = (hasNativeMenus === "true");
     } else {
         global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
     }
