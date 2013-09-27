@@ -104,7 +104,7 @@ define(function (require, exports, module) {
             if (doc.isUntitled()) {
                 result.resolve();
             } else {
-                doc.file.stat()
+                FileUtils.stat(doc.file)
                     .then(function (stat) {
                         // Does file's timestamp differ from last sync time on the Document?
                         if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
@@ -130,8 +130,7 @@ define(function (require, exports, module) {
                             console.log("Error checking modification status of " + doc.file.fullPath, err);
                             result.reject();
                         }
-                    })
-                    .done();
+                    });
             }
 
             return result.promise();

@@ -753,7 +753,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        dirEntry.getContents()
+        FileUtils.getContents(dirEntry)
             .then(function (contents) {
                 processEntries(contents);
             }, function (err) {
@@ -768,8 +768,7 @@ define(function (require, exports, module) {
                 );
                 // Reject the render promise so we can move on.
                 deferred.reject();
-            })
-            .done();
+            });
         
         /* TODO: FileSystem - handle partial errors. See below.
         dirEntry.createReader().readEntries(
@@ -912,7 +911,7 @@ define(function (require, exports, module) {
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
-            rootEntry.exists()
+            FileUtils.exists(rootEntry)
                 .then(function (exists) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
@@ -981,8 +980,7 @@ define(function (require, exports, module) {
                             });
                         });
                     }
-                })
-                .done();
+                });
         }
 
         return result.promise();
@@ -1116,7 +1114,7 @@ define(function (require, exports, module) {
                     _loadProject(path, false, filesystem).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
+                    FileUtils.showOpenDialog(_fileSystem, false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
                         .then(function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -1132,8 +1130,7 @@ define(function (require, exports, module) {
                                 StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
-                        })
-                        .done();
+                        });
                 }
             })
             .fail(function () {
@@ -1321,7 +1318,7 @@ define(function (require, exports, module) {
                 
                 var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
                 
-                _fileSystem.resolve(newItemPath)
+                FileUtils.resolve(_fileSystem, newItemPath)
                     .then(function (item) {
                         // Item already exists, fail with error
                         errorCallback(2);   // TODO: FileSystem error code
@@ -1329,11 +1326,10 @@ define(function (require, exports, module) {
                         if (isFolder) {
                             var directory = _fileSystem.getDirectoryForPath(newItemPath);
                             
-                            directory.create()
+                            FileUtils.create(directory)
                                 .then(function () {
                                     successCallback(directory);
-                                }, errorCallback)
-                                .done();
+                                }, errorCallback);
                         } else {
                             // Create an empty file
                             var file = _fileSystem.getFileForPath(newItemPath);
@@ -1346,8 +1342,7 @@ define(function (require, exports, module) {
                                     errorCallback(err);
                                 });
                         }
-                    })
-                    .done();
+                    });
                 
             } else { //escapeKeyPressed
                 errorCleanup();
@@ -1411,11 +1406,11 @@ define(function (require, exports, module) {
         // TODO: This should call FileEntry.moveTo(), but that isn't implemented
         // yet. For now, call directly to the low-level fs.rename()
         // TODO: FileSystem....
-        return _fileSystem.resolve(oldName)
+        return FileUtils.resolve(_fileSystem, oldName)
             .then(function (oldFSEntry) {
-                return oldFSEntry.rename(newName);
+                return FileUtils.rename(oldFSEntry, newName);
             })
-            .then(function (newFSEntry) {
+            .then(function () {
                 // Update all nodes in the project tree.
                 // All other updating is done by DocumentManager.notifyPathNameChanged() below
                 var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
@@ -1456,8 +1451,7 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
-            })
-            .done();
+            });
     }
     
     /**
@@ -1532,8 +1526,8 @@ define(function (require, exports, module) {
     function deleteItem(entry) {
         var result = new $.Deferred();
 
-        entry.moveToTrash()
-            .done(function () {
+        FileUtils.moveToTrash(entry)
+            .then(function () {
                 _findTreeNode(entry).done(function ($node) {
                     _projectTree.one("delete_node.jstree", function () {
                         // When a node is deleted, the previous node is automatically selected.
@@ -1564,8 +1558,7 @@ define(function (require, exports, module) {
     
                 _redraw(true);
                 result.resolve();
-            })
-            .fail(function (err) {
+            }, function (err) {
                 // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,

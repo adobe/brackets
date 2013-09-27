@@ -179,7 +179,7 @@ define(function (require, exports, module) {
             directory = fileSystem.getDirectoryForPath(dir),
             files = [];
 
-        directory.getContents()
+        FileUtils.getContents(directory)
             .then(function (contents) {
                 contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.fullPath,
@@ -207,8 +207,7 @@ define(function (require, exports, module) {
                     errorCallback(err);
                 }
                 console.log("Unable to refresh directory: ", err);
-            })
-            .done();
+            });
     }
 
     /**

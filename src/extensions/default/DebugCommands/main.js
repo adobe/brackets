@@ -140,7 +140,7 @@ define(function (require, exports, module) {
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
-        brackets.appFileSystem.getDirectoryForPath(stringsPath).getContents()
+        FileUtils.getContents(brackets.appFileSystem.getDirectoryForPath(stringsPath))
             .then(function (contents) {
                 var $dialog,
                     $submit,
@@ -200,8 +200,7 @@ define(function (require, exports, module) {
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);
-            })
-            .done();
+            });
     }
     
     function _enableRunTestsMenuItem() {
@@ -214,13 +213,12 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        file.exists()
+        FileUtils.exists(file)
             .then(function (exists) {
                 if (exists) {
                     CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
                 }
-            })
-            .done();
+            });
     }
 	
 	

@@ -415,15 +415,14 @@ define(function (require, exports, module) {
         
         // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
-        this.file.stat()
+        FileUtils.stat(this.file)
             .then(function (stat) {
                 thisDoc.diskTimestamp = stat.mtime;
                 $(exports).triggerHandler("_documentSaved", thisDoc);
             }, function (err) {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
                 $(exports).triggerHandler("_documentSaved", thisDoc);
-            })
-            .done();
+            });
     };
     
     /* (pretty toString(), to aid debugging) */

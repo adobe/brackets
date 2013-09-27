@@ -195,7 +195,7 @@ define(function (require, exports, module) {
         var fileExists = false, statComplete = false;
         var file = brackets.appFileSystem.getFileForPath(extensionPath);
         
-        file.stat()
+        FileUtils.stat(file)
             .then(function (stat) {
                 statComplete = true;
                 if (stat.isFile()) {
@@ -214,8 +214,7 @@ define(function (require, exports, module) {
                 } else {
                     result.reject();
                 }
-            }, result.reject)
-            .done();
+            }, result.reject);
         
         return result.promise();
     }
@@ -234,7 +233,7 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        brackets.appFileSystem.getDirectoryForPath(directory).getContents()
+        FileUtils.getContents(brackets.appFileSystem.getDirectoryForPath(directory))
             .then(function (contents) {
                 var i,
                     extensions = [];
@@ -265,8 +264,7 @@ define(function (require, exports, module) {
             }, function (err) {
                 console.error("[Extension] Error -- could not read native directory: " + directory);
                 result.reject();
-            })
-            .done();
+            });
                
         return result.promise();
     }
@@ -332,11 +330,11 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-        brackets.appFileSystem.getDirectoryForPath(extensionPath).create().done();
+        FileUtils.create(brackets.appFileSystem.getDirectoryForPath(extensionPath));
         
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-        brackets.appFileSystem.getDirectoryForPath(disabledExtensionPath).create().done();
+        FileUtils.create(brackets.appFileSystem.getDirectoryForPath(disabledExtensionPath));
         
         var promise = Async.doInParallel(paths.split(","), function (item) {
             var extensionPath = item;

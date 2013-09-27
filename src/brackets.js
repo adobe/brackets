@@ -221,12 +221,12 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            brackets.appFileSystem.resolve(initialProjectPath + "/index.html")
+                            FileUtils.resolve(brackets.appFileSystem, initialProjectPath + "/index.html")
                                 .then(function (file) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
-                                    promise.then(deferred.resolve, deferred.reject);
-                                }, deferred.reject)
-                                .done();
+                                    CommandManager
+                                        .execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath })
+                                        .then(deferred.resolve, deferred.reject);
+                                }, deferred.reject);
                         } else {
                             deferred.resolve();
                         }

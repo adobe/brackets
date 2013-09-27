@@ -311,7 +311,7 @@ define(function (require, exports, module) {
                             result.localPath = downloadResult.localPath;
                             d.resolve(result);
                         } else {
-                            brackets.appFileSystem.getFileForPath(downloadResult.localPath).unlink();
+                            FileUtils.unlink(brackets.appFileSystem.getFileForPath(downloadResult.localPath));
                             if (result.errors && result.errors.length > 0) {
                                 // Validation errors - for now, only return the first one
                                 state = STATE_FAILED;
@@ -330,7 +330,7 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        brackets.appFileSystem.getFileForPath(downloadResult.localPath).unlink();
+                        FileUtils.unlink(brackets.appFileSystem.getFileForPath(downloadResult.localPath));
                         d.reject(err);  // TODO: needs to be err.message ?
                     });
             })
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
                 d.reject(error);
             })
             .always(function () {
-                brackets.appFileSystem.getFileForPath(path).unlink();
+                FileUtils.unlink(brackets.appFileSystem.getFileForPath(path));
             });
         return d.promise();
     }

@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
+        FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
 
@@ -84,7 +85,7 @@ define(function (require, exports, module) {
                 var file = fileSystem.getFileForPath(filePath);
                 
                 runs(function () {
-                    file.stat()
+                    FileUtils.stat(file)
                         .then(function (_stat) {
                             error = 0;
                             stat = _stat;
@@ -92,8 +93,7 @@ define(function (require, exports, module) {
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
 
                 waitsFor(function () { return complete; }, 1000);
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
 
                     // delete the new file
                     complete = false;
-                    file.unlink()
+                    FileUtils.unlink(file)
                         .then(function () {
                             unlinkError = 0;
                             complete = true;
@@ -246,8 +246,8 @@ define(function (require, exports, module) {
                 // by explicitly deleting the test file if it exists.
                 runs(function () {
                     complete = false;
-                    newFile.unlink()
-                        .fin(function () { complete = true; });
+                    FileUtils.unlink(newFile)
+                        .always(function () { complete = true; });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
 
@@ -262,15 +262,14 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    newFile.stat()
+                    FileUtils.stat(newFile)
                         .then(function (_stat) {
                             stat = _stat;
                             complete = true;
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -296,15 +295,14 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    newFile.stat()
+                    FileUtils.stat(newFile)
                         .then(function (_stat) {
                             stat = _stat;
                             complete = true;
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
                 
@@ -332,7 +330,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    rootFolder.moveToTrash()
+                    FileUtils.moveToTrash(rootFolder)
                         .always(function () {
                             complete = true;
                         });
@@ -350,7 +348,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    newFolder.stat()
+                    FileUtils.stat(newFolder)
                         .then(function (_stat) {
                             error = 0;
                             stat = _stat;
@@ -358,8 +356,7 @@ define(function (require, exports, module) {
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -385,7 +382,7 @@ define(function (require, exports, module) {
                     newFolderName += "/toDelete1";
                     newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    newFolder.stat()
+                    FileUtils.stat(newFolder)
                         .then(function (_stat) {
                             error = 0;
                             stat = _stat;
@@ -393,8 +390,7 @@ define(function (require, exports, module) {
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -414,7 +410,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var file = fileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
-                    file.stat()
+                    FileUtils.stat(file)
                         .then(function (_stat) {
                             error = 0;
                             stat = _stat;
@@ -422,8 +418,7 @@ define(function (require, exports, module) {
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -445,7 +440,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    rootFolder.stat()
+                    FileUtils.stat(rootFolder)
                         .then(function (_stat) {
                             error = 0;
                             stat = _stat;
@@ -453,8 +448,7 @@ define(function (require, exports, module) {
                         }, function (err) {
                             error = err;
                             complete = true;
-                        })
-                        .done();
+                        });
                 });
                 waitsFor(function () { return complete; }, 1000);
                 

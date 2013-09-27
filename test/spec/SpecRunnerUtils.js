@@ -60,9 +60,9 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        brackets.appFileSystem.resolve(fullPath)
+        FileUtils.resolve(brackets.appFileSystem, fullPath)
             .then(function (item) {
-                item.unlink()
+                FileUtils.unlink(item)
                     .then(result.resolve, function (err) {
                         // TODO: fix error code
                         if (err === brackets.fs.ERR_NOT_FOUND && silent) {
@@ -71,10 +71,8 @@ define(function (require, exports, module) {
                             console.error("Unable to remove " + fullPath, err);
                             result.reject(err);
                         }
-                    })
-                    .done();
-            }, result.reject)
-            .done();
+                    });
+            }, result.reject);
         
         return result.promise();
     }
@@ -138,13 +136,7 @@ define(function (require, exports, module) {
      *     rejected when any error occurs.
      */
     function resolveNativeFileSystemPath(path) {
-        var deferred = $.Deferred();
-        
-        brackets.appFileSystem.resolve(path)
-            .then(deferred.resolve, deferred.reject)
-            .done();
-        
-        return deferred.promise();
+        return FileUtils.resolve(brackets.appFileSystem, path);
     }
     
     
@@ -217,13 +209,9 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = brackets.appFileSystem.getDirectoryForPath(getTempDirectory()).create()
-                .done(function () {
-                    deferred.resolve();
-                })
-                .fail(function () {
-                    deferred.reject();
-                });
+            var dir = brackets.appFileSystem.getDirectoryForPath(getTempDirectory());
+            FileUtils.create(dir)
+                .then(deferred.resolve, deferred.reject);
         });
 
         waitsForDone(deferred, "Create temp directory", 500);
@@ -825,9 +813,9 @@ define(function (require, exports, module) {
             destDir         = brackets.appFileSystem.getDirectoryForPath(destination);
         
         // create the destination folder
-        destDir.create()
+        FileUtils.create(destDir)
             .then(function () {
-                source.getContents()
+                FileUtils.getContents(source)
                     .then(function (contents) {
                         // copy all children of this directory
                         var copyChildrenPromise = Async.doInParallel(
@@ -858,10 +846,8 @@ define(function (require, exports, module) {
                         );
                         
                         copyChildrenPromise.then(deferred.resolve, deferred.reject);
-                    }, deferred.reject)
-                    .done();
-            }, deferred.reject)
-            .done();
+                    }, deferred.reject);
+            }, deferred.reject);
 
         deferred.always(function () {
             // remove destination path prefix

@@ -231,11 +231,10 @@ define(function (require, exports, module) {
                 // If a cache exists, check the timestamp on disk
                 var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.fullPath);
                 
-                file.stat()
-                    .then(function (stat) {
+                FileUtils.stat(file)
+                    .done(function (stat) {
                         result.resolve(fileInfo.JSUtils.timestamp === stat.mtime);
-                    }, result.reject)
-                    .done();
+                    }, result.reject);
             }
         } else {
             // Use the cache if the file did not change and the cache exists

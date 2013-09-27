@@ -236,7 +236,7 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
+            FileUtils.showOpenDialog(fileSystem, true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
                 .then(function (paths) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
@@ -259,8 +259,7 @@ define(function (require, exports, module) {
                         // Reject if the user canceled the dialog
                         result.reject();
                     }
-                })
-                .done();
+                });
         } else {
             result = doOpen(fullPath, silent);
         }
@@ -366,14 +365,14 @@ define(function (require, exports, module) {
             var path = dir + "/" + suggestedName;
             var entry = isFolder ? fileSystem.getDirectoryForPath(path) : fileSystem.getFileForPath(path);
             
-            entry.exists().then(function (exists) {
+            FileUtils.exists(entry).then(function (exists) {
                 if (exists) {
                     //file exists, notify to the next progress
                     result.notify(baseFileName + "-" + _nextUntitledIndexToUse + fileExt, _nextUntitledIndexToUse + 1);
                 } else {
                     result.resolve(suggestedName);
                 }
-            }).done();
+            });
         });
 
         //kick it off
@@ -648,9 +647,8 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
-            fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
-                .then(_doSaveAfterSaveDialog, result.reject)
-                .done();
+            FileUtils.showSaveDialog(fileSystem, Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
+                .then(_doSaveAfterSaveDialog, result.reject);
         } else {
             result.reject();
         }

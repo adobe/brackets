@@ -41,6 +41,23 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils");
 
     
+    /*
+     * Convert a Q promise directly to a jQuery promise
+     *
+     * @param {Q.Promise<T>} qPromise Q promise to convert
+     * @return {$.Promise<T>} jQuery promise that resolves or rejects with the
+     *  same value as qPromise
+     */
+    function _convertQtojQuery(qPromise) {
+        var $deferred   = $.Deferred(),
+            $promise    = $deferred.promise();
+        
+        qPromise.then($deferred.resolve, $deferred.reject)
+            .done();
+        
+        return $promise;
+    }
+    
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
@@ -61,9 +78,7 @@ define(function (require, exports, module) {
         file.readAsText()
             .spread(function (data, stat) {
                 result.resolve(data, stat.mtime);
-            }, function (err) {
-                result.reject(err);
-            })
+            }, result.reject)
             .done();
 
         return result.promise();
@@ -77,15 +92,126 @@ define(function (require, exports, module) {
      * file writing completes, or rejected with a NativeFileError.
      */
     function writeText(file, text) {
-        var result = new $.Deferred();
-        
-        file.write(text)
-            .then(result.resolve, result.reject)
-            .done();
-        
-        return result.promise();
+        return _convertQtojQuery(file.write(text));
     }
 
+    /**
+     * Asynchronously stat a file
+     * @param {!FileSystemEntry} file FileSystemEntry to stat
+     * @return {$.Promise} a jQuery promise that resolves with the file's stats
+     */
+    function stat(file) {
+        return _convertQtojQuery(file.stat());
+    }
+
+    /**
+     * Asynchronously determine whether a file exists
+     * @param {!FileSystemEntry} file FileSystemEntry that may or may not exist
+     * @return {$.Promise} a jQuery promise that resolves with a boolean that
+     *  indicates whether the file exists
+     */
+    function exists(file) {
+        return _convertQtojQuery(file.exists());
+    }
+    
+    /**
+     * Asynchronously rename a file
+     * @param {!FileSystemEntry} file FileSystemEntry to be renamed
+     * @param {!string} name New file name
+     * @return {$.Promise} a jQuery promise that resolves when the file has been renamed
+     */
+    function rename(file, name) {
+        return _convertQtojQuery(file.rename(name));
+    }
+
+    /**
+     * Asynchronously unlink a file
+     * @param {!FileSystemEntry} file FileSystemEntry to be unlinked
+     * @return {$.Promise} a jQuery promise that resolves when the file has been unlinked
+     */
+    function unlink(file) {
+        return _convertQtojQuery(file.unlink());
+    }
+
+    /**
+     * Asynchronously move a file to the trash
+     * @param {!FileSystemEntry} file FileSystemEntry to be moved to the trash
+     * @param {!string} name New file name
+     * @return {$.Promise} a jQuery promise that resolves when the file has been moved to the trash
+     */
+    function moveToTrash(file) {
+        return _convertQtojQuery(file.moveToTrash());
+    }
+
+    /**
+     * Asynchronously create a directory with a given mode
+     * @param {!Directory} directory Directory to create
+     * @param {int=} mode The mode for the directory.
+     * @return {$.Promise} a jQuery promise that resolves when the directory has been created with its stats
+     */
+    function create(directory, mode) {
+        return _convertQtojQuery(directory.create(mode));
+    }
+
+    /**
+     * Asynchronously get the contents of a directory
+     * @param {!Directory} directory Directory for which to get contents
+     * @return {$.Promise} a jQuery promise that resolves with the contents of the directory
+     */
+    function getContents(directory) {
+        return _convertQtojQuery(directory.getContents());
+    }
+    
+    /**
+     * Asynchronously resolve a file name into a FileSystemEntry
+     * @param {!FileSystem} fileSystem FileSystem used to resolve the name
+     * @param {!string} name Name of the file to be resolved
+     * @return {$.Promise} a jQuery promise that resolves with the FileSystemEntry
+     */
+    function resolve(fileSystem, name) {
+        return _convertQtojQuery(fileSystem.resolve(name));
+    }
+
+    /**
+     * Show an "Open" dialog and return the file(s)/directories selected by the user.
+     *
+     * @param {!FileSystem} fileSystem FileSystem for which to show the dialog
+     * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
+     * @param {boolean} chooseDirectories Allows directories to be opened
+     * @param {string} title The title of the dialog
+     * @param {string} initialPath The folder opened inside the window initially. If initialPath
+     *                          is not set, or it doesn't exist, the window would show the last
+     *                          browsed folder depending on the OS preferences
+     * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
+     *                          allows any extension to be selected.
+     *
+     * @return {$.Promise} Promise that will be resolved with the selected file(s)/directories, 
+     *                     or rejected if an error occurred.
+     */
+    function showOpenDialog(fileSystem, allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes) {
+        return _convertQtojQuery(fileSystem.showOpenDialog(allowMultipleSelection,
+                                                           chooseDirectories, title,
+                                                           initialPath, fileTypes));
+    }
+    
+    /**
+     * Show a "Save" dialog and return the path of the file to save.
+     *
+     * @param {!FileSystem} fileSystem FileSystem for which to show the dialog
+     * @param {string} title The title of the dialog.
+     * @param {string} initialPath The folder opened inside the window initially. If initialPath
+     *                          is not set, or it doesn't exist, the window would show the last
+     *                          browsed folder depending on the OS preferences.
+     * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
+     *                          on the current file name plus an additional suffix
+     *
+     * @return {$.Promise} Promise that will be resolved with the name of the file to save,
+     *                     or rejected if an error occurred.
+     */
+    function showSaveDialog(fileSystem, title, initialPath, proposedNewFilename) {
+        return _convertQtojQuery(fileSystem.showSaveDialog(title, initialPath, proposedNewFilename));
+    }
+    
     /** @const */
     var LINE_ENDINGS_CRLF = "CRLF";
     /** @const */
@@ -413,6 +539,16 @@ define(function (require, exports, module) {
     exports.getFileErrorString             = getFileErrorString;
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
+    exports.stat                           = stat;
+    exports.exists                         = exists;
+    exports.rename                         = rename;
+    exports.unlink                         = unlink;
+    exports.moveToTrash                    = moveToTrash;
+    exports.create                         = create;
+    exports.getContents                    = getContents;
+    exports.resolve                        = resolve;
+    exports.showOpenDialog                 = showOpenDialog;
+    exports.showSaveDialog                 = showSaveDialog;
     exports.convertToNativePath            = convertToNativePath;
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
