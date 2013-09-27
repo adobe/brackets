@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                 tryConnect();
             });
             
-            waitsFor(function () { return connected || failed; }, 10000);
+            waitsFor(function () { return connected || failed; }, "LiveDevelopmentModule.launcherUrl", 10000);
             
             runs(function () {
                 expect(failed).toBe(false);
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                 waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
             });
             
-            waitsFor(function () { return !InspectorModule.connected(); }, 10000);
+            waitsFor(function () { return !InspectorModule.connected(); }, "!InspectorModule.connected()", 10000);
         });
     });
 
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
                             });
                     });
                     
-                    waitsFor(function () { return (fileContent !== null); }, 1000);
+                    waitsFor(function () { return (fileContent !== null); }, "Load fileContent", 1000);
                 }
             }
         
