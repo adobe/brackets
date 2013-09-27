@@ -151,26 +151,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Check if the specified path exists.
-     *
-     * @param {string} path The path to test
-     * @return {Q.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
-     */
-    FileSystem.prototype.pathExists = function (path) {
-        var result = Q.defer();
-        
-        this._impl.exists(path, function (exists) {
-            if (exists) {
-                result.resolve(this._index.getEntry(path));
-            } else {
-                result.reject();
-            }
-        }.bind(this));
-        
-        return result.promise;
-    };
-    
-    /**
      * Resolve a path.
      *
      * @param {string} path The path to resolve
@@ -178,10 +158,10 @@ define(function (require, exports, module) {
      *     or rejected if there is an error.
      */
     FileSystem.prototype.resolve = function (path) {
-        return this.pathExists(path)
-            .then(function () {
-                var result = Q.defer();
-                
+        var result = Q.defer();
+        
+        this._impl.exists(path, function (exists) {
+            if (exists) {
                 this._impl.stat(path, function (err, stat) {
                     var item;
                     
@@ -189,16 +169,21 @@ define(function (require, exports, module) {
                         result.reject(err);
                         return;
                     }
+                    
                     if (stat.isFile()) {
                         item = this.getFileForPath(path);
                     } else {
                         item = this.getDirectoryForPath(path);
                     }
+                    
                     result.resolve(item);
                 }.bind(this));
-                
-                return result.promise;
-            }.bind(this));
+            } else {
+                result.reject();
+            }
+        }.bind(this));
+        
+        return result.promise;
     };
     
     /**

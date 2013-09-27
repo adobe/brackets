@@ -147,7 +147,7 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.appFileSystem.pathExists(path)
+        FileUtils.resolve(brackets.appFileSystem, path)
             .then(function () {
                 // file exists, do not overwrite
                 _writeResults.reject();
@@ -161,8 +161,7 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         _writeResults.reject(err);
                     });
-            })
-            .done();
+            });
     }
     
     /**
