@@ -237,7 +237,18 @@ define(function (require, exports, module) {
             return path;
         }
     }
-
+    
+    /**
+     * Get the base name of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        fullPath = canonicalizeFolderPath(fullPath);
+        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+    }
+    
     /**
      * Returns a native absolute path to the 'brackets' source directory.
      * Note that this only works when run in brackets/src/index.html, so it does
@@ -315,68 +326,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the file extension for a file name
-     * @param {string} fileName file name with extension or just a file extension
-     * @return {string} File extension if found, otherwise return the original file name
-     */
-    function _getFileExtension(fileName) {
-        var i = fileName.lastIndexOf("."),
-            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
-
-        return ext;
-    }
-    
-    /** @const - hard-coded for now, but may want to make these preferences */
-    var _staticHtmlFileExts = ["htm", "html"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
-
-    /**
-     * Determine if file extension is a static html file extension.
-     * @param {string} fileExt file name with extension or just a file extension
-     * @return {boolean} Returns true if fileExt is in the list
-     */
-    function isStaticHtmlFileExt(fileExt) {
-        if (!fileExt) {
-            return false;
-        }
-
-        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
-    }
-
-    /**
-     * Determine if file extension is a server html file extension.
-     * @param {string} fileExt file name with extension or just a file extension
-     * @return {boolean} Returns true if fileExt is in the list
-     */
-    function isServerHtmlFileExt(fileExt) {
-        if (!fileExt) {
-            return false;
-        }
-
-        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
-    }
-    
-    /**
-     * Get the parent directory of a file. If a directory is passed in the directory is returned.
-     * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the path to the parent directory of a file or the path of a directory
-     */
-    function getDirectoryPath(fullPath) {
-        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
-    }
-
-    /**
-     * Get the base name of a file or a directory.
-     * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the base name of a file or the name of a
-     * directory
-     */
-    function getBaseName(fullPath) {
-        fullPath = canonicalizeFolderPath(fullPath);
-        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
-    }
-
-    /**
      * Get the filename extension.
      *
      * @param {string} fullPath full path to a file or directory
@@ -393,7 +342,46 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx);
     }
+
+    /** @const - hard-coded for now, but may want to make these preferences */
+    var _staticHtmlFileExts = ["htm", "html"],
+        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
+
+    /**
+     * Determine if file extension is a static html file extension.
+     * @param {string} fileExt file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
+     */
+    function isStaticHtmlFileExt(fileExt) {
+        if (!fileExt) {
+            return false;
+        }
+
+        return (_staticHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
+    }
+
+    /**
+     * Determine if file extension is a server html file extension.
+     * @param {string} fileExt file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
+     */
+    function isServerHtmlFileExt(fileExt) {
+        if (!fileExt) {
+            return false;
+        }
+
+        return (_serverHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
+    }
     
+    /**
+     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory
+     */
+    function getDirectoryPath(fullPath) {
+        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
+    }
+
     /**
      * @private
      * Get the file name without the extension.
@@ -401,8 +389,8 @@ define(function (require, exports, module) {
      * @return {string} Returns the file name without the extension
      */
     function _getFilenameWithoutExtension(filename) {
-        var extension = getFilenameExtension(filename);
-        return extension ? filename.replace(new RegExp(extension + "$"), "") : filename;
+        var index = filename.lastIndexOf(".");
+        return index === -1 ? filename : filename.slice(0, index);
     }
     
     /**
