@@ -309,7 +309,9 @@ define(function (require, exports, module) {
             selectedDOMItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
         
-        var selectedItem = domItemToSearchResult(selectedDOMItem);
+        var selectedItem = domItemToSearchResult(selectedDOMItem),
+            doClose = true,
+            self = this;
 
         // Delegate to current plugin
         if (currentPlugin) {
@@ -323,21 +325,32 @@ define(function (require, exports, module) {
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
+                // This case is tricky. We want to switch editors, so we need to deal with
+                // resizing/rescrolling the current editor first. But we don't actually want
+                // to start the animation of the ModalBar until afterward (otherwise it glitches
+                // because it gets starved of cycles during the creation of the new editor). 
+                // So we call `prepareClose()` first, and finish the close later.
+                doClose = false;
+                this.modalBar.prepareClose();
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
                         if (!isNaN(gotoLine)) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(gotoLine, 0, true);
                         }
+                    })
+                    .always(function () {
+                        self.close();
                     });
             } else if (!isNaN(gotoLine)) {
                 EditorManager.getCurrentFullEditor().setCursorPos(gotoLine, 0, true);
             }
         }
 
-
-        this.close();
-        EditorManager.focusEditor();
+        if (doClose) {
+            this.close();
+            EditorManager.focusEditor();
+        }
     };
 
     /**
