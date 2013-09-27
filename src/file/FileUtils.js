@@ -239,7 +239,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the base name of a file or a directory.
+     * Get the name of a file or a directory, removing any preceding path.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
      * directory
@@ -326,13 +326,15 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the filename extension.
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension. If the name starts with ".", the
+     * full remaining text is considered the extension.
      *
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the extension of a filename or empty string if
      * the argument is a directory or a filename with no extension
      */
-    function getFilenameExtension(fullPath) {
+    function getFileExtension(fullPath) {
         var baseName = getBaseName(fullPath),
             idx      = baseName.lastIndexOf(".");
 
@@ -340,7 +342,21 @@ define(function (require, exports, module) {
             return "";
         }
 
-        return baseName.substr(idx);
+        return baseName.substr(idx + 1);
+    }
+
+    /**
+     * Similar to getFileExtension(), but includes the leading "." in the returned value.
+     * @deprecated Use getFileExtension() instead. This API will be removed soon.
+     */
+    function getFilenameExtension(fullPath) {
+        console.error("Warning: FileUtils.getFilenameExtension() is deprecated. Use FileUtils.getFileExtension() (which omits the '.') instead.");
+        
+        var ext = getFileExtension(fullPath);
+        if (ext !== "") {
+            ext = "." + ext;
+        }
+        return ext;
     }
 
     /** @const - hard-coded for now, but may want to make these preferences */
@@ -357,7 +373,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_staticHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
@@ -370,13 +386,14 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_serverHtmlFileExts.indexOf(getFilenameExtension(fileExt).toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
     }
     
     /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
-     * @return {string} Returns the path to the parent directory of a file or the path of a directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory,
+     *                  including trailing "/"
      */
     function getDirectoryPath(fullPath) {
         return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
@@ -402,8 +419,8 @@ define(function (require, exports, module) {
      * @return {number} The result of the local compare function
      */
     function compareFilenames(filename1, filename2, extFirst) {
-        var ext1   = getFilenameExtension(filename1),
-            ext2   = getFilenameExtension(filename2),
+        var ext1   = getFileExtension(filename1),
+            ext2   = getFileExtension(filename2),
             cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
             cmpNames;
         
@@ -438,6 +455,7 @@ define(function (require, exports, module) {
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
+    exports.getFileExtension               = getFileExtension;
     exports.getFilenameExtension           = getFilenameExtension;
     exports.compareFilenames               = compareFilenames;
 });
