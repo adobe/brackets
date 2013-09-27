@@ -142,7 +142,8 @@ module.exports = function (grunt) {
         shell: {
             repo: grunt.option("shell-repo") || "../brackets-shell",
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
-            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
+            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
+            linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
 

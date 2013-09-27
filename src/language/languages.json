@@ -57,7 +57,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },

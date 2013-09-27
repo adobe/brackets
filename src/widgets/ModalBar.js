@@ -41,10 +41,9 @@ define(function (require, exports, module) {
      *
      * Creates a modal bar whose contents are the given template.
      * @param {string} template The HTML contents of the modal bar.
-     * @param {boolean} autoClose If true, then close the dialog if the user hits RETURN or ESC 
-     *      in the first input field, or if the modal bar loses focus to an outside item. Dispatches 
-     *      jQuery events for these cases: "closeOk" on RETURN, "closeCancel" on ESC, and "closeBlur" 
-     *      on focus loss.
+     * @param {boolean} autoClose If true, then close the dialog if the user hits RETURN
+     *      in the first input field. Dispatches jQuery events for these cases:
+     *      "commit" on RETURN and "close" always. 
      * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
      *      close it immediately.
      */
@@ -194,6 +193,8 @@ define(function (require, exports, module) {
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
+
+        $(this).triggerHandler("close");
         
         function doRemove() {
             self._$root.remove();
@@ -222,7 +223,9 @@ define(function (require, exports, module) {
             
             var value = this._getFirstInput().val();
             this.close();
-            $(this).triggerHandler(e.keyCode === KeyEvent.DOM_VK_RETURN ? "closeOk" : "closeCancel", [value]);
+            if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                $(this).triggerHandler("commit", [value]);
+            }
         }
     };
     
@@ -234,7 +237,6 @@ define(function (require, exports, module) {
         if (!$.contains(this._$root.get(0), e.target)) {
             var value = this._getFirstInput().val();
             this.close();
-            $(this).triggerHandler("closeBlur", [value]);
         }
     };
     
