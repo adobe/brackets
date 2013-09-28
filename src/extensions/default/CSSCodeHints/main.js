@@ -173,7 +173,7 @@ define(function (require, exports, module) {
     };
        
     /**
-     * Returns a list of availble CSS protertyname or -value hints if possible for the current
+     * Returns a list of availble CSS propertyname or -value hints if possible for the current
      * editor context. 
      * 
      * @param {Editor} implicitChar 
@@ -181,15 +181,20 @@ define(function (require, exports, module) {
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {{hints: Array.<string|jQueryObject>, match: string, 
-     *      selectInitial: boolean}}
+     * @return {jQuery.Deferred|{
+     *              hints: Array.<string|jQueryObject>,
+     *              match: string,
+     *              selectInitial: boolean,
+     *              handleWideResults: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 
+     * response object that provides:
      * 1. a sorted array hints that consists of strings
-     * 2. a string match that is used by the manager to emphasize matching 
-     *    substrings when rendering the hint list 
-     * 3. a boolean that indicates whether the first result, if one exists, should be 
-     *    selected by default in the hint list window.
+     * 2. a string match that is used by the manager to emphasize matching
+     *    substrings when rendering the hint list
+     * 3. a boolean that indicates whether the first result, if one exists,
+     *    should be selected by default in the hint list window.
+     * 4. handleWideResults, a boolean (or undefined) that indicates whether
+     *    to allow result string to stretch width of display.
      */
     CssPropHints.prototype.getHints = function (implicitChar) {
         this.cursor = this.editor.getCursorPos();
@@ -266,7 +271,8 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: needle,
-                selectInitial: selectInitial
+                selectInitial: selectInitial,
+                handleWideResults: false
             };
         }
         return null;
