@@ -31,7 +31,7 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(error {0})",
+    "GENERIC_ERROR"                     : "(fout {0})",
     "NOT_FOUND_ERR"                     : "Het bestand kon niet worden gevonden.",
     "NOT_READABLE_ERR"                  : "Het bestand kon niet worden ingelezen.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "De doelmap kan niet gewijzigd worden.",
@@ -464,7 +464,7 @@ define({
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Ga naar Definitie",
     "CMD_SHOW_PARAMETER_HINT"                   : "Toon Parameter Hint",
-    "NO_ARGUMENTS"                              : "<no parameters>",
+    "NO_ARGUMENTS"                              : "<geen parameters>",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
