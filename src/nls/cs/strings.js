@@ -135,7 +135,7 @@ define({
 
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} v {2} {3}",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
     "FIND_IN_FILES_FILE"                : "souboru",
