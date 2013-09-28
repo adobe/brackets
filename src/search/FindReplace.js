@@ -185,7 +185,7 @@ define(function (require, exports, module) {
             modalBar.close(true, animate);
         }
         modalBar = new ModalBar(template, autoClose, animate);
-        $(modalBar).on("closeOk closeBlur closeCancel", function () {
+        $(modalBar).on("commit close", function () {
             modalBar = null;
         });
     }
@@ -330,7 +330,7 @@ define(function (require, exports, module) {
         }
         
         createModalBar(queryDialog, true);
-        $(modalBar).on("closeOk", function (e, query) {
+        $(modalBar).on("commit", function (e, query) {
             if (!state.findNextCalled) {
                 // If findNextCalled is false, this means the user has *not*
                 // entered any search text *or* pressed Cmd-G/F3 to find the
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                 findFirst(query);
             }
         });
-        $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
+        $(modalBar).on("commit close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
@@ -511,7 +511,7 @@ define(function (require, exports, module) {
     function replace(editor, all) {
         var cm = editor._codeMirror;
         createModalBar(replaceQueryDialog, true);
-        $(modalBar).on("closeOk", function (e, query) {
+        $(modalBar).on("commit", function (e, query) {
             if (!query) {
                 return;
             }
@@ -522,7 +522,7 @@ define(function (require, exports, module) {
             // Eventually we should rip out all this code (which comes from the old CodeMirror dialog
             // logic) and just change the content itself.
             createModalBar(replacementQueryDialog, true, false);
-            $(modalBar).on("closeOk", function (e, text) {
+            $(modalBar).on("commit", function (e, text) {
                 text = text || "";
                 var match,
                     fnMatch = function (w, i) { return match[i]; };

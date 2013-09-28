@@ -365,14 +365,20 @@ define(function (require, exports, module) {
      * Returns a list of availble font hints, if possible, for the current
      * editor context.
      *
-     * @return {{hints: Array.<jQuery.Object>, match: string, selectInitial: boolean}}
-     *
+     * @return {jQuery.Deferred|{
+     *              hints: Array.<string|jQueryObject>,
+     *              match: string,
+     *              selectInitial: boolean,
+     *              handleWideResults: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides:
-     * 1. a sorted array formatted hints;
-     * 2. a null string match to indicate that the hints are already formatted;
-     * 3. a boolean that indicates whether the first result, if one exists,
-     *    should be selected by default in the hint list window.
+     * response object that provides 
+     * 1. a sorted array hints that consists of strings
+     * 2. a string match that is used by the manager to emphasize matching 
+     *    substrings when rendering the hint list 
+     * 3. a boolean that indicates whether the first result, if one exists, should be 
+     *    selected by default in the hint list window.
+     * 4. handleWideResults, a boolean (or undefined) that indicates whether
+     *    to allow result string to stretch width of display.
      */
     UrlCodeHints.prototype.getHints = function (key) {
         var mode = this.editor.getModeForSelection(),
@@ -465,7 +471,8 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: query.queryStr,
-                selectInitial: true
+                selectInitial: true,
+                handleWideResults: false
             };
 
         } else if (hints instanceof Object && hints.hasOwnProperty("done")) {
@@ -475,7 +482,8 @@ define(function (require, exports, module) {
                 deferred.resolveWith(this, [{
                     hints: asyncHints,
                     match: query.queryStr,
-                    selectInitial: true
+                    selectInitial: true,
+                    handleWideResults: false
                 }]);
             });
 

@@ -47,9 +47,9 @@
 @z-index-brackets-selection-triangle: (@z-index-brackets-ui + 1);
 @z-index-brackets-scroller-shadow: (@z-index-brackets-selection-triangle + 1);
 @z-index-brackets-inline-editor-shadow: @z-index-brackets-ui;
-@z-index-brackets-toolbar: @z-index-brackets-ui;
+@z-index-brackets-toolbar: (@z-index-brackets-ui + 1);
 @z-index-brackets-max: @z-index-brackets-toolbar;
-@z-index-brackets-modalbar: @z-index-brackets-toolbar - 1;
+@z-index-brackets-modalbar: (@z-index-brackets-toolbar - 1);
 
 @z-index-brackets-sidebar-resizer: (@z-index-brackets-ui + 2);
 @z-index-brackets-resizer-div: (@z-index-brackets-sidebar-resizer + 1);
