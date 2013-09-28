@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, beforeEach, afterEach, jasmine, brackets */
+/*global require, define, $, waitsForDone, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -229,6 +229,38 @@ define(function (require, exports, module) {
         };
     }
     
+    function _registerBeforeAfterHandlers() {
+        // Initiailize unit test preferences for each spec
+        beforeEach(function () {
+            // Unique key for unit testing
+            localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+
+            // Reset preferences from previous test runs
+            localStorage.removeItem("doLoadPreferences");
+            localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
+            
+            SpecRunnerUtils.runBeforeFirst();
+        });
+        
+        // Revert unit test preferences after each spec
+        afterEach(function () {
+            // Clean up preferencesKey
+            localStorage.removeItem("preferencesKey");
+            
+            SpecRunnerUtils.runAfterLast();
+        });
+        
+        // Delete temp folder before running the first test
+        beforeFirst(function () {
+            SpecRunnerUtils.removeTempDirectory();
+        });
+        
+        // Delete temp folder after running the last test
+        afterLast(function () {
+            SpecRunnerUtils.removeTempDirectory();
+        });
+    }
+    
     function init() {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
@@ -306,31 +338,14 @@ define(function (require, exports, module) {
         
         _loadExtensionTests(selectedSuites).done(function () {
             var jasmineEnv = jasmine.getEnv();
-            
-            // Initiailize unit test preferences for each spec
-            beforeEach(function () {
-                // Unique key for unit testing
-                localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
-
-                // Reset preferences from previous test runs
-                localStorage.removeItem("doLoadPreferences");
-                localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
-                
-                SpecRunnerUtils.runBeforeFirst();
-            });
-            
-            afterEach(function () {
-                // Clean up preferencesKey
-                localStorage.removeItem("preferencesKey");
-                
-                SpecRunnerUtils.runAfterLast();
-            });
-            
             jasmineEnv.updateInterval = 1000;
+            
+            _registerBeforeAfterHandlers();
             
             // Create the reporter, which is really a model class that just gathers
             // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
+            SpecRunnerUtils.setUnitTestReporter(reporter);
             
             // Optionally emit JUnit XML file for automated runs
             if (resultsPath) {
@@ -367,12 +382,10 @@ define(function (require, exports, module) {
         window.document.body.addEventListener("click", function (e) {
             // Check parents too, in case link has inline formatting tags
             var node = e.target, url;
-            console.log(1);
+            
             while (node) {
-                console.log(node.tagName);
                 if (node.tagName === "A") {
                     url = node.getAttribute("href");
-                    console.log(url);
                     if (url && url.match(/^http/)) {
                         NativeApp.openURLInDefaultBrowser(url);
                         e.preventDefault();

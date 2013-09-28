@@ -154,6 +154,14 @@ define(function (require, exports, module) {
     function getMenu(id) {
         return menuMap[id];
     }
+    
+    /**
+     * Retrieves the map of all Menu objects.
+     * @return {Object.<string, Menu>}
+     */
+    function getAllMenus() {
+        return menuMap;
+    }
 
     /**
      * Retrieves the ContextMenu object for the corresponding id. 
@@ -861,6 +869,36 @@ define(function (require, exports, module) {
         return menu;
     }
 
+    /**
+     * Removes a top-level menu from the application menu bar which may be native or HTML-based.
+     *
+     * @param {!string} id - unique identifier for a menu.
+     *      Core Menus in Brackets use a simple title as an id, for example "file-menu".
+     *      Extensions should use the following format: "author.myextension.mymenuname".
+     */
+    function removeMenu(id) {
+        if (!id) {
+            console.error("removeMenu(): missing required parameter: id");
+            return;
+        }
+        
+        if (!menuMap[id]) {
+            console.error("removeMenu(): menu id not found: %s", id);
+            return;
+        }
+        
+        if (_isHTMLMenu(id)) {
+            $(_getHTMLMenu(id)).remove();
+        } else {
+            brackets.app.removeMenu(id, function (err) {
+                if (err) {
+                    console.error("removeMenu() -- id not found: " + id + " (error: " + err + ")");
+                }
+            });
+        }
+        
+        delete menuMap[id];
+    }
 
     /**
      * @constructor
@@ -1007,13 +1045,6 @@ define(function (require, exports, module) {
         return cmenu;
     }
 
-    /** NOT IMPLEMENTED
-     * Removes Menu
-     */
-    // function removeMenu(id) {
-    //     NOT IMPLEMENTED
-    // }
-
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;
@@ -1026,9 +1057,11 @@ define(function (require, exports, module) {
     exports.LAST_IN_SECTION = LAST_IN_SECTION;
     exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
+    exports.getAllMenus = getAllMenus;
     exports.getMenuItem = getMenuItem;
     exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
+    exports.removeMenu = removeMenu;
     exports.registerContextMenu = registerContextMenu;
     exports.closeAll = closeAll;
     exports.Menu = Menu;

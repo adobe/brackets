@@ -301,6 +301,7 @@
         .divider {
             background-color: #eaeaea;
             border: 0;
+            margin: 5px 1px;
         }
     }
 
@@ -451,7 +452,7 @@
 .modal-backdrop {
     opacity: 0;
 }
-.modal-backdrop:last-child {
+.last-backdrop {
     /* Only show the last modal backdrop */
     opacity: 0.5;
 }
@@ -476,12 +477,26 @@
 }
 
 .dialog-message li {
-    line-height: 26px;
+    line-height: 20px;
     color: @tc-light-weight-text;
+    padding: 0 0 5px;
 }
 
 .dialog-message select {
     margin-left: 10px;
+}
+
+.dialog-list {
+    list-style: none;
+    margin: 5px 0 20px 10px;
+}
+
+.dialog-list > li:before {
+    content: "•  ";
+    color: @tc-input-border;
+    font-size: 1.5em;
+    position: relative;
+    top: 1px;
 }
 
 .dialog-filename {
@@ -712,6 +727,9 @@ a[href^="http"] {
             .ext-author {
                 font-size: 11px;
             }
+            .ext-author {
+                display: block;
+            }
             .ext-action {
                 font-size: 12px;
                 padding-right: 15px;
@@ -800,7 +818,7 @@ input[type="color"],
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
     color: @tc-text;
-    font-size: @baseFontSize + 1px;
+    font-size: (@baseFontSize + 1px);
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
@@ -879,8 +897,8 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;
-    font-size: @baseFontSize + 1;
+    cursor: default;    
+    font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
@@ -938,11 +956,11 @@ input[type="color"],
 
     // Button Sizes
     &.large {
-        font-size: @baseFontSize + 1px;
+        font-size: (@baseFontSize + 1px);
         .border-radius(@tc-control-border-radius);
     }
     &.small {
-        font-size: @baseFontSize - 1px;
+        font-size: (@baseFontSize - 1px);
     }
 }
 

@@ -26,7 +26,7 @@
 /*unittests: FindReplace*/
 
 
-/*
+/**
  * Adds Find and Replace commands
  *
  * Originally based on the code in CodeMirror2/lib/util/search.js.
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
+        ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
@@ -51,8 +52,14 @@ define(function (require, exports, module) {
     var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
         searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
 
-    /** @cost Constant used to define the maximum results to show */
-    var FIND_REPLACE_MAX    = 300;
+    /** @const Maximum file size to search within (in chars) */
+    var FIND_MAX_FILE_SIZE  = 500000;
+
+    /** @const If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled */
+    var FIND_HIGHLIGHT_MAX  = 2000;
+
+    /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
+    var REPLACE_ALL_MAX     = 300;
 
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
@@ -151,6 +158,8 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
+        
+        ScrollTrackMarkers.clear();
     }
 
     function clearSearch(cm) {
@@ -165,7 +174,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function createModalBar(template, autoClose) {
+    function createModalBar(template, autoClose, animate) {
         // Normally, creating a new modal bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. The old CodeMirror version
@@ -173,10 +182,10 @@ define(function (require, exports, module) {
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
         // close the old modal bar before creating a new one.
         if (modalBar) {
-            modalBar.close();
+            modalBar.close(true, animate);
         }
-        modalBar = new ModalBar(template, autoClose);
-        $(modalBar).on("closeOk closeBlur closeCancel", function () {
+        modalBar = new ModalBar(template, autoClose, animate);
+        $(modalBar).on("commit close", function () {
             modalBar = null;
         });
     }
@@ -191,7 +200,19 @@ define(function (require, exports, module) {
                 "<span id='find-counter'></span> " +
                 "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
             "</div>" +
-            "<div class='error'></div>";        
+            "<div class='error'></div>";
+
+    
+    function toggleHighlighting(editor, enabled) {
+        // Temporarily change selection color to improve highlighting - see LESS code for details
+        if (enabled) {
+            $(editor.getRootElement()).addClass("find-highlighting");
+        } else {
+            $(editor.getRootElement()).removeClass("find-highlighting");
+        }
+        
+        ScrollTrackMarkers.setVisible(editor, enabled);
+    }
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -243,20 +264,16 @@ define(function (require, exports, module) {
                 //Flag that controls the navigation controls.
                 var enableNavigator = false;
                 
-                // Highlight all matches
+                // Find all matches
                 // (Except on huge documents, where this is too expensive)
-                if (cm.getValue().length < 500000) {
-                    // Temporarily change selection color to improve highlighting - see LESS code for details
-                    $(cm.getWrapperElement()).addClass("find-highlighting");
-                    
+                var resultSet = [];
+                if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                    var resultCount = 0;
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
-                        resultCount++;
-
-                        //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
+                        resultSet.push(cursor.pos);  // pos is unique obj per search result
+                        
+                        // TODO: remove this section when https://github.com/marijnh/CodeMirror/issues/1155 is fixed
                         if (cursor.pos.match && cursor.pos.match[0] === "") {
                             if (cursor.to().line + 1 === cm.lineCount()) {
                                 break;
@@ -264,13 +281,27 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
-                                        
-                    if (resultCount === 0) {
+                    
+                    // Highlight all matches if there aren't too many
+                    if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
+                        toggleHighlighting(editor, true);
+                        
+                        resultSet.forEach(function (result) {
+                            state.marked.push(cm.markText(result.from, result.to, { className: "CodeMirror-searching" }));
+                        });
+                        var scrollTrackPositions = resultSet.map(function (result) {
+                            return result.from;
+                        });
+                        
+                        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    }
+                    
+                    if (resultSet.length === 0) {
                         $("#find-counter").text(Strings.FIND_NO_RESULTS);
-                    } else if (resultCount === 1) {
-                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);                        
+                    } else if (resultSet.length === 1) {
+                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                     } else {
-                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
                         enableNavigator = true;
                     }
 
@@ -299,7 +330,7 @@ define(function (require, exports, module) {
         }
         
         createModalBar(queryDialog, true);
-        $(modalBar).on("closeOk", function (e, query) {
+        $(modalBar).on("commit", function (e, query) {
             if (!state.findNextCalled) {
                 // If findNextCalled is false, this means the user has *not*
                 // entered any search text *or* pressed Cmd-G/F3 to find the
@@ -309,19 +340,19 @@ define(function (require, exports, module) {
                 findFirst(query);
             }
         });
-        $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
+        $(modalBar).on("commit close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
-            // As soon as focus goes back to the editor, restore normal selection color
-            $(cm.getWrapperElement()).removeClass("find-highlighting");
+            // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
+            toggleHighlighting(editor, false);
         });
         
         modalBar.getRoot().on("click", function (e) {
             if (e.target.id === "find-next") {
-                _findNext();
+                doSearch(editor);
             } else if (e.target.id === "find-prev") {
-                _findPrevious();
+                doSearch(editor, true);
             }
         });
         
@@ -357,6 +388,19 @@ define(function (require, exports, module) {
             replaceAllPanel.hide();
         }
         $(currentDocument).off("change.replaceAll");
+    }
+    
+    /**
+     * @private
+     * When the user switches documents (or closes the last document), ensure that the find bar
+     * closes, and also close the Replace All panel.
+     */
+    function _handleDocumentChange() {
+        if (modalBar) {
+            modalBar.close();
+            modalBar = null;
+        }
+        _closeReplaceAllPanel();
     }
 
     /**
@@ -394,7 +438,7 @@ define(function (require, exports, module) {
                 post:      multiLine ? "\u2026" : line.slice(to.ch)
             });
 
-            if (results.length >= FIND_REPLACE_MAX) {
+            if (results.length >= REPLACE_ALL_MAX) {
                 break;
             }
         }
@@ -405,7 +449,7 @@ define(function (require, exports, module) {
                 Strings.FIND_REPLACE_TITLE_PART3,
                 resultsLength,
                 resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                resultsLength >= FIND_REPLACE_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+                resultsLength >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
             );
 
         // Insert the search summary
@@ -467,14 +511,18 @@ define(function (require, exports, module) {
     function replace(editor, all) {
         var cm = editor._codeMirror;
         createModalBar(replaceQueryDialog, true);
-        $(modalBar).on("closeOk", function (e, query) {
+        $(modalBar).on("commit", function (e, query) {
             if (!query) {
                 return;
             }
 
             query = parseQuery(query);
-            createModalBar(replacementQueryDialog, true);
-            $(modalBar).on("closeOk", function (e, text) {
+            
+            // Don't animate since it should feel like we're just switching the content of the ModalBar.
+            // Eventually we should rip out all this code (which comes from the old CodeMirror dialog
+            // logic) and just change the content itself.
+            createModalBar(replacementQueryDialog, true, false);
+            $(modalBar).on("commit", function (e, text) {
                 text = text || "";
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
@@ -509,9 +557,10 @@ define(function (require, exports, module) {
                             }
                         }
                         editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                        createModalBar(doReplaceConfirm, true);
+                        createModalBar(doReplaceConfirm, true, false);
                         modalBar.getRoot().on("click", function (e) {
-                            modalBar.close();
+                            var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
+                            modalBar.close(true, animate);
                             if (e.target.id === "replace-yes") {
                                 doReplace(match);
                             } else if (e.target.id === "replace-no") {
@@ -593,7 +642,7 @@ define(function (require, exports, module) {
             });
     });
 
-    $(DocumentManager).on("currentDocumentChange", _closeReplaceAllPanel);
+    $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
     CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,          _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);

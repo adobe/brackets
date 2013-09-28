@@ -100,7 +100,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.3.3.min.js'
+                    'src/thirdparty/less-1.4.2.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -142,7 +142,8 @@ module.exports = function (grunt) {
         shell: {
             repo: grunt.option("shell-repo") || "../brackets-shell",
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
-            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
+            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
+            linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
 
@@ -157,8 +158,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-    //grunt.registerTask('test', ['jshint:all', 'jasmine', jasmine-node']);
+//    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine-node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json

@@ -1,12 +1,10 @@
 <tr>
     <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
-        <span class="muted ext-version">{{metadata.version}}</span>
         {{#authorInfo}}
-            <span class="muted ext-author">
-                &mdash; {{{authorInfo}}}
-            </span>
+            <span class="muted ext-author">{{{authorInfo}}}</span>
         {{/authorInfo}}
+        <span class="muted ext-version">{{metadata.version}}</span>
         {{#hasVersionInfo}}
             <span class="muted ext-date"> &mdash; {{lastVersionDate}}</span>
         {{/hasVersionInfo}}
