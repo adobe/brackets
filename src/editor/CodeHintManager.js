@@ -123,7 +123,7 @@
  * list window; or true, which indicates that the manager should end the 
  * current hinting session but immediately attempt to begin a new hinting
  * session by querying registered providers. Otherwise, the provider should
- * return a response object that contains three properties:
+ * return a response object that contains the following properties:
  *
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
@@ -131,6 +131,8 @@
  *     hints in the hint list; and
  *  3. selectInitial, a boolean that indicates whether or not the the
  *     first hint in the list should be selected by default.
+ *  4. handleWideResults, a boolean (or undefined) that indicates whether
+ *     to allow result string to stretch width of display.
  *
  * If the array of
  * hints is empty, then the manager will render an empty list, but the
@@ -173,7 +175,8 @@
  * return {jQuery.Deferred|{
  *      hints: Array.<string|jQueryObject>,
  *      match: string,
- *      selectInitial: boolean}}
+ *      selectInitial: boolean,
+ *      handleWideResults: boolean}}
  * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array

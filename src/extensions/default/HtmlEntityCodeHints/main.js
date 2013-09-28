@@ -105,7 +105,8 @@ define(function (require, exports, module) {
      * @return {jQuery.Deferred|{
      *              hints: Array.<string|jQueryObject>,
      *              match: string,
-     *              selectInitial: boolean}}
+     *              selectInitial: boolean,
+     *              handleWideResults: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
      * response object that provides:
      * 1. a sorted array hints that consists of strings
@@ -113,6 +114,8 @@ define(function (require, exports, module) {
      *    substrings when rendering the hint list
      * 3. a boolean that indicates whether the first result, if one exists,
      *    should be selected by default in the hint list window.
+     * 4. handleWideResults, a boolean (or undefined) that indicates whether
+     *    to allow result string to stretch width of display.
      */
     SpecialCharHints.prototype.getHints = function (implicitChar) {
         var query,
@@ -134,7 +137,8 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: query,
-                selectInitial: true
+                selectInitial: true,
+                handleWideResults: false
             };
         }
         
