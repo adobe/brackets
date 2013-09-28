@@ -104,8 +104,8 @@ define(function (require, exports, module) {
             inlineEditor.load(hostEditor);
             
             var $ruleListItems = $(inlineEditor.htmlContent).find("li");
-            expect($($ruleListItems.get(0)).text()).toBe("div " + inlineDocName + " : 1");
-            expect($($ruleListItems.get(1)).text()).toBe(".foo " + inlineDocName + " : 2");
+            expect($($ruleListItems.get(0)).text()).toBe("div — " + inlineDocName + " : 1");
+            expect($($ruleListItems.get(1)).text()).toBe(".foo — " + inlineDocName + " : 2");
         });
 
         it("should change selection to the next rule", function () {

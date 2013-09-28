@@ -93,6 +93,38 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Filters the given marks to find the ones that correspond to instrumented tags,
+     * sorts them by their starting position, and looks up and/or stores their ranges 
+     * in the given markCache.
+     * @param {Array} marks An array of mark objects returned by CodeMirror.
+     * @param {Object} markCache An object that maps tag IDs to {mark, range} objects.
+     *     If a mark in the marks array is already in the cache, we use the cached range info,
+     *     otherwise we look up its range in CodeMirror and store it in the cache.
+     * @return {Array.<{mark: Object, range: {line: number, ch: number}}>} The filtered and
+     *     sorted array of mark info objects (each of which contains the mark and its range,
+     *     so the range doesn't need to be looked up again).
+     */
+    function _getSortedTagMarks(marks, markCache) {
+        marks = marks.filter(function (mark) {
+            return !!mark.tagID;
+        }).map(function (mark) {
+            // All marks should exist since we just got them from CodeMirror.
+            if (!markCache[mark.tagID]) {
+                markCache[mark.tagID] = {mark: mark, range: mark.find()};
+            }
+            return markCache[mark.tagID];
+        });
+        marks.sort(function (mark1, mark2) {
+            return (mark1.range.from.line === mark2.range.from.line ?
+                    mark1.range.from.ch - mark2.range.from.ch :
+                    mark1.range.from.line - mark2.range.from.line);
+        });
+        
+        return marks;
+    }
+    
+    /**
+     * @private
      * Finds the mark for the DOM node at the given position in the editor.
      * @param {Editor} editor The editor containing the instrumented document.
      * @param {{line: number, ch: number}} pos The position to find the DOM marker for.
@@ -105,29 +137,13 @@ define(function (require, exports, module) {
      *     given position.
      */
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
-        var i,
-            cm = editor._codeMirror,
-            marks = cm.findMarksAt(pos),
-            match,
-            range;
+        var i, marks, match;
         
+        markCache = markCache || {};
+        marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
         if (!marks.length) {
             return null;
         }
-        
-        markCache = markCache || {};
-        marks = marks.filter(function (mark) {
-            return !!mark.tagID;
-        }).map(function (mark) {
-            // All marks should exist since we just got them from CodeMirror.
-            if (!markCache[mark.tagID]) {
-                markCache[mark.tagID] = {mark: mark, range: mark.find()};
-            }
-            return markCache[mark.tagID];
-        });
-        marks.sort(function (mark1, mark2) {
-            return (mark1.range.from.line === mark2.range.from.line ? mark1.range.from.ch - mark2.range.from.ch : mark1.range.from.line - mark2.range.from.line);
-        });
         
         // The mark with the latest start is the innermost one.
         match = marks[marks.length - 1];
@@ -147,6 +163,24 @@ define(function (require, exports, module) {
         return match.mark;
     }
     
+    /**
+     * @private
+     * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
+     * @param {Editor} editor The editor to find the mark ranges for.
+     * @param {Object=} nodeMap If specified, a map of tag IDs to DOM nodes, used so we can indicate which tag name
+     *     the DOM thinks corresponds to the given mark.
+     */
+    function _dumpMarks(editor, nodeMap) {
+        var markCache = {},
+            marks = _getSortedTagMarks(editor._codeMirror.getAllMarks(), markCache);
+        marks.forEach(function (markInfo) {
+            var mark = markInfo.mark,
+                range = markInfo.range;
+            console.log("<" + nodeMap[mark.tagID].tag + "> (" + mark.tagID + ") " +
+                        range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+        });
+    }
+
     /**
      * Get the instrumented tagID at the specified position. Returns -1 if
      * there are no instrumented tags at the location.
@@ -336,7 +370,7 @@ define(function (require, exports, module) {
                         mark = cm.markText(node.startPos, node.endPos);
                         mark.tagID = node.tagID;
                     }
-                    updateIDs.splice(updateIDs.indexOf(node.tagID), 1);
+                    updateIDs.splice(updateIDs.indexOf(String(node.tagID)), 1);
                 }
             });
             
@@ -505,7 +539,7 @@ define(function (require, exports, module) {
         var updater = new DOMUpdater(previousDOM, editor, changeList);
         var result = updater.update();
         if (!result) {
-            return null;
+            return { errors: updater.errors };
         }
         
         var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);
@@ -546,24 +580,27 @@ define(function (require, exports, module) {
      */
     function getUnappliedEditList(editor, changeList) {
         var cachedValue = _cachedValues[editor.document.file.fullPath];
+        
         // We might not have a previous DOM if the document was empty before this edit.
         if (!cachedValue || !cachedValue.dom || _cachedValues[editor.document.file.fullPath].invalid) {
             // We were in an invalid state, so do a full rebuild.
             changeList = null;
         }
+        
         var result = _updateDOM(cachedValue && cachedValue.dom, editor, changeList);
-        if (result) {
+        
+        if (!result.errors) {
             _cachedValues[editor.document.file.fullPath] = {
                 timestamp: editor.document.diskTimestamp,
                 dom: result.dom,
                 dirty: false
             };
-            return result.edits;
+            return { edits: result.edits };
         } else {
             if (cachedValue) {
                 cachedValue.invalid = true;
             }
-            return [];
+            return { errors: result.errors };
         }
     }
     

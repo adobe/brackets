@@ -36,16 +36,16 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
 
-    describe("Menus", function () {
+    describe("Menus (Native Shell)", function () {
         
         this.category = "integration";
 
         var testWindow;
 
         beforeFirst(function () {
-            // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
-            // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
-            // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
+            var testWindowOptions = {"hasNativeMenus" : true};
+            
+            // Create a new native menu window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
                 Commands          = testWindow.brackets.test.Commands;
                 KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
                 Menus             = testWindow.brackets.test.Menus;
-            });
+            }, testWindowOptions);
         });
         
         afterLast(function () {
@@ -210,11 +210,39 @@ define(function (require, exports, module) {
                 expect($menus.length).toBe(0);
             });
         });
+    });
 
-        if (!brackets.inBrowser) {
-            return;
-        }
+    
+    describe("Menus (HTML)", function () {
+        
+        this.category = "integration";
 
+        var testWindow;
+
+        beforeFirst(function () {
+            var testWindowOptions = {"hasNativeMenus" : false};
+            
+            // Create a new HTML menu window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            }, testWindowOptions);
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
         describe("Add Menus", function () {
             
             function getTopMenus() {
@@ -614,6 +642,45 @@ define(function (require, exports, module) {
 
                     menu.removeMenuItem();
                     expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+        });
+
+
+        describe("Remove Menu", function () {
+
+            function menuDOM(menuId) {
+                return testWindow.$("#" + menuId);
+            }
+
+            it("should add then remove new menu to menu bar with a menu id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+                    Menus.addMenu("Custom", menuId);
+                    var $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(1);
+
+                    Menus.removeMenu(menuId);
+                    $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu that doesn't exist", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu(menuId);
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu without supply the id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu();
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
                 });
             });
         });

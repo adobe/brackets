@@ -15,7 +15,7 @@
 
 .trash-icon {
     position: absolute;
-    right: 5px;
+    left: 7px;
     width: 16px;
     height: 16px;
     background-image: url("close-btn.svg");
@@ -51,12 +51,20 @@
     background-image: url("down-arrow.svg");
 }
 
+#project-dropdown.dropdown-menu:focus {
+    outline: none;
+}
+
 /* TODO: style the dropdown content */
 #project-dropdown.dropdown-menu {
     position: absolute;
     display: block;
     max-width: none;
     z-index: 100;
+}
+
+#project-dropdown.dropdown-menu .divider {
+    margin: 5px 1px;
 }
 
 .recent-folder-link, .recent-folder, .recent-folder-path {
@@ -67,10 +75,9 @@
     padding: 5px 15px;
 }
 
-#project-dropdown.dropdown-menu .recent-folder-link
-{
+#project-dropdown.dropdown-menu .recent-folder-link, #project-dropdown.dropdown-menu #open-folder-link {
 	display: block;
-	padding: 5px 26px 5px 15px;
+	padding: 5px 26px 5px 26px;
 }
 
 .recent-folder, #open-folder-link {
@@ -81,6 +88,9 @@
     color: #aaa;
 }
 
-#project-dropdown.dropdown-menu a:hover {
-    background: #E0F0FA;
+#project-dropdown.dropdown-menu a.selected {
+     background: #E0F0FA;
+}
+#project-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
 }

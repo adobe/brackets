@@ -1,3 +1,5 @@
+"use strict"
+
 var mkdir = require('./mkdir')
   , path = require('path')
   , fs = require('fs')

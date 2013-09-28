@@ -1,0 +1,22 @@
+POST /upload HTTP/1.1
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, */*
+Referer: http://192.168.56.1:8080/
+Accept-Language: de
+User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)
+Content-Type: multipart/form-data; boundary=---------------------------7db1fe232017c
+Accept-Encoding: gzip, deflate
+Host: 192.168.56.1:8080
+Content-Length: 368
+Connection: Keep-Alive
+Cache-Control: no-cache
+
+-----------------------------7db1fe232017c
+Content-Disposition: form-data; name="title"
+
+Weird filename
+-----------------------------7db1fe232017c
+Content-Disposition: form-data; name="upload"; filename=" ? % * | " < > . &#9731; ; ' @ # $ ^ & ( ) - _ = + { } [ ] ` ~.txt"
+Content-Type: application/octet-stream
+
+
+-----------------------------7db1fe232017c--

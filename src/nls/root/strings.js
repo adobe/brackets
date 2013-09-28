@@ -85,14 +85,15 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (save file to refresh)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (not updating due to syntax error)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
@@ -140,7 +141,7 @@ define({
 
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" found",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
@@ -150,8 +151,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
-    "FIND_IN_FILES_LINE"                : "line: {0}",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
 
@@ -186,6 +185,16 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
+    // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "SINGLE_ERROR"                          : "1 {0} Error",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
+    "NO_ERRORS"                             : "No {0} errors - good job!",
+    "LINT_DISABLED"                         : "Linting is disabled",
+    "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
+    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    
+    
     /**
      * Command Name Constants
      */
@@ -204,7 +213,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -255,6 +263,8 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Line Numbers",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Highlight Active Line",
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
@@ -265,6 +275,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -284,12 +295,6 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
-
-
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Close Window",
-    "CMD_ABORT_QUIT"                      : "Abort Quit",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -322,7 +327,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
     // Extension Management strings
     "INSTALL"                              : "Install",
@@ -407,6 +412,7 @@ define({
 
     "UNIT_PIXELS"                          : "pixels",
     
+    
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
@@ -425,9 +431,7 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    /**
-     * Locales
-     */
+    // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
     "LOCALE_EN"                                 : "English",
@@ -441,6 +445,7 @@ define({
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
     "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SK"                                 : "Slovak",
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
@@ -459,18 +464,15 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
-
+    
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "Enable JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",
-    "JSLINT_ERRORS"                             : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"
