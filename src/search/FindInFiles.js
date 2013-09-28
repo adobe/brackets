@@ -106,7 +106,9 @@ define(function (require, exports, module) {
         $searchContent,
         $selectedRow;
     
-    
+    /** @type {FindInFilesDialog} dialog having the modalbar for search */
+    var dialog = null;
+
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
@@ -173,8 +175,13 @@ define(function (require, exports, module) {
      */
     function FindInFilesDialog() {
         this.closed = false;
-        this.result = null; // $.Deferred
     }
+
+    
+    FindInFilesDialog.prototype.getDialogTextField = function() {
+        return $("input[type='text']", this.modalBar.getRoot());
+    };
+
 
     /**
      * Closes the search dialog and resolves the promise that showDialog returned
@@ -187,7 +194,6 @@ define(function (require, exports, module) {
         this.closed = true;
         this.modalBar.close();
         EditorManager.focusEditor();
-        this.result.resolve(value);
     };
     
     /**
@@ -205,7 +211,7 @@ define(function (require, exports, module) {
             dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
             that       = this;
         
-        this.result      = new $.Deferred();
+        //this.result      = new $.Deferred();
         this.modalBar    = new ModalBar(dialogHTML, false);
         var $searchField = $("input#searchInput");
         
@@ -219,10 +225,10 @@ define(function (require, exports, module) {
                     var query = $searchField.val();
                     
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                        query = null;
+                        that._close(null);
+                    }else if(event.keyCode === KeyEvent.DOM_VK_RETURN){
+                        doSearch(query);
                     }
-                    
-                    that._close(query);
                 }
             })
             .bind("input", function (event) {
@@ -235,7 +241,7 @@ define(function (require, exports, module) {
             })
             .focus();
         
-        return this.result.promise();
+        //return this.result.promise();
     };
     
     
@@ -541,9 +547,17 @@ define(function (require, exports, module) {
                 $selectedRow = null;
             }
             searchResultsPanel.show();
-        
+
+            if(dialog instanceof FindInFilesDialog){
+                dialog._close();
+            }
         } else {
+
             _hideSearchResults();
+
+            if(dialog instanceof FindInFilesDialog){
+                dialog.getDialogTextField().addClass('no-results');
+            }
         }
     }
 
@@ -706,7 +720,50 @@ define(function (require, exports, module) {
         }
     }
 
-
+    function doSearch(query){
+        if (query) {
+            currentQuery     = query;
+            currentQueryExpr = _getQueryRegExp(query);
+            
+            if (!currentQueryExpr) {
+                return;
+            }
+            StatusBar.showBusyIndicator(true);
+            FileIndexManager.getFileInfoList("all")
+                .done(function (fileListResult) {
+                    Async.doInParallel(fileListResult, function (fileInfo) {
+                        var result = new $.Deferred();
+                        
+                        if (!_inScope(fileInfo, currentScope)) {
+                            result.resolve();
+                        } else {
+                            // Search one file
+                            DocumentManager.getDocumentForPath(fileInfo.fullPath)
+                                .done(function (doc) {
+                                    _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
+                                    result.resolve();
+                                })
+                                .fail(function (error) {
+                                    // Error reading this file. This is most likely because the file isn't a text file.
+                                    // Resolve here so we move on to the next file.
+                                    result.resolve();
+                                });
+                        }
+                        return result.promise();
+                    })
+                        .done(function () {
+                            // Done searching all files: show results
+                            _showSearchResults();
+                            StatusBar.hideBusyIndicator();
+                            $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                        })
+                        .fail(function () {
+                            console.log("find in files failed.");
+                            StatusBar.hideBusyIndicator();
+                        });
+                });
+        }
+    }
 
     /**
      * @private
@@ -724,9 +781,13 @@ define(function (require, exports, module) {
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor(),
-            initialString = currentEditor && currentEditor.getSelectedText(),
-            dialog        = new FindInFilesDialog();
+            initialString = currentEditor && currentEditor.getSelectedText();
 
+        if(dialog){
+            dialog = null;
+        }
+
+        dialog = new FindInFilesDialog();
         searchResults      = {};
         currentStart       = 0;
         currentQuery       = "";
@@ -734,51 +795,7 @@ define(function (require, exports, module) {
         currentScope       = scope;
         maxHitsFoundInFile = false;
                             
-        dialog.showDialog(initialString, scope)
-            .done(function (query) {
-                if (query) {
-                    currentQuery     = query;
-                    currentQueryExpr = _getQueryRegExp(query);
-                    
-                    if (!currentQueryExpr) {
-                        return;
-                    }
-                    StatusBar.showBusyIndicator(true);
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (fileListResult) {
-                            Async.doInParallel(fileListResult, function (fileInfo) {
-                                var result = new $.Deferred();
-                                
-                                if (!_inScope(fileInfo, scope)) {
-                                    result.resolve();
-                                } else {
-                                    // Search one file
-                                    DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                                        .done(function (doc) {
-                                            _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
-                                            result.resolve();
-                                        })
-                                        .fail(function (error) {
-                                            // Error reading this file. This is most likely because the file isn't a text file.
-                                            // Resolve here so we move on to the next file.
-                                            result.resolve();
-                                        });
-                                }
-                                return result.promise();
-                            })
-                                .done(function () {
-                                    // Done searching all files: show results
-                                    _showSearchResults();
-                                    StatusBar.hideBusyIndicator();
-                                    $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
-                                })
-                                .fail(function () {
-                                    console.log("find in files failed.");
-                                    StatusBar.hideBusyIndicator();
-                                });
-                        });
-                }
-            });
+        dialog.showDialog(initialString, scope);
     }
     
     /**
