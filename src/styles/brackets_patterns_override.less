@@ -31,7 +31,7 @@
  *
  */
 
-/* Variable OVerride */
+/* Variable Override */
 
 @tooltipBackground:       #fff;
 @tooltipArrowColor:       @tooltipBackground;
@@ -47,6 +47,7 @@
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px rgba(0,0,0,.5);
+    border-radius: 0;
 }
 
 
@@ -378,6 +379,7 @@
 
 .modal {
     width: auto;
+    overflow-y: auto;
 }
 
 .modal .close {
@@ -391,19 +393,13 @@
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
-.modal-body, .modal-header {
-    /* See styles/bootstrap/patterns.less .modal class.
-       Pushing this value down to .modal-header and .modal-body
-       to allow the overall modal to take the width of the footer */
-    width: 580px;
-}
-
 .modal-footer {
     text-align: right;
     background-color: @tc-gray-panel;
     border-top: 1px solid @tc-gray-panel-separator;
     box-shadow: none;
     white-space: nowrap;
+    margin-top: 0;
 }
 
 .modal-footer .btn {
@@ -567,16 +563,12 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    top: 50%;
-    left: 50%;
-    margin-top: -275px;
-    margin-left: -350px;
     background-color: #d4d7d7;
-
+    width: 730px;
+    
     .modal-header {
         border-bottom: none;
         padding: 0;
-        width: auto;
 
         .nav-tabs {
             margin: 0;
@@ -662,7 +654,6 @@ a[href^="http"] {
         }
     }
     .modal-body {
-        width: 730px;
         height: 400px;
         overflow-y: scroll;
         padding: 0;
@@ -896,7 +887,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
+    cursor: default;
     font-size: (@font-size-base + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
