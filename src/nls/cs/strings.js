@@ -112,10 +112,14 @@ define({
     // Najít, Nahradit, Nahradit v souborech
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
+    "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "WITH"                              : "S",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
+    "BUTTON_REPLACE_ALL"                : "Vše\u2026",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Nahradit",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -125,17 +129,21 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    "FIND_IN_FILES_TITLE"               : "pro \"{4}\" {5} - {0} {1} v {2} {3}",
+    "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
-    "FIND_IN_FILES_FILE"                : "soubor",
+    "FIND_IN_FILES_FILE"                : "souboru",
     "FIND_IN_FILES_FILES"               : "souborech",
     "FIND_IN_FILES_MATCH"               : "výsledek",
     "FIND_IN_FILES_MATCHES"             : "výsledků",
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Méně</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Více</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "řádek: {0}",
 
@@ -444,6 +452,8 @@ define({
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
+    "NO_ARGUMENTS"                              : "<žádné parametry>",
 
     // extensions/default/JSLint
     "CMD_JSLINT"                           : "Povolit JSLint",

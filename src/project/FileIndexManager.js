@@ -439,7 +439,7 @@ define(function (require, exports, module) {
     _addIndex(
         "css",
         function (entry) {
-            return FileUtils.getFilenameExtension(entry.name) === ".css";
+            return FileUtils.getFileExtension(entry.name) === "css";
         }
     );
 
