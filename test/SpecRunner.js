@@ -54,7 +54,7 @@ define(function (require, exports, module) {
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
         NativeApp               = require("utils/NativeApp"),
-        CodeHintManager = require("editor/CodeHintManager");
+        CodeHintManager         = require("editor/CodeHintManager");
     
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
