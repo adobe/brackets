@@ -651,8 +651,6 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.isOpen                  = isOpen;
-    exports.handleKeyEvent          = handleKeyEvent;
-    exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
     exports.hasValidExclusion       = hasValidExclusion;
     exports.setInsertHintOnTab      = setInsertHintOnTab;
