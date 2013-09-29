@@ -403,7 +403,7 @@ a:focus {
 
 .modal .close {
     cursor: default;
-    margin: 10px 5px 0 0;
+    margin: 7px 5px 0 0;
 }
 
 .modal-header {
@@ -523,7 +523,7 @@ a:focus {
 .dialog-filename {
     word-wrap: break-word;
 
-    font-weight: normal;
+    font-weight: @font-weight-semibold;
     body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
         font-weight: @font-weight-semibold;
     }
@@ -838,9 +838,9 @@ input[type="color"],
 .uneditable-input {
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
-    color: @tc-text;
+    color: @tc-light-weight-text;
     font-size: (@baseFontSize + 1px);
-    font-weight: @font-weight-semibold;
+    font-weight: normal;
     -webkit-font-smoothing: antialiased;
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
@@ -855,7 +855,6 @@ input[type="color"],
     &:focus {
         outline: 0;
         background-color: @tc-input-background;
-        color: @tc-text;
         text-shadow: none;
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: @tc-input-inner-shadow, @tc-input-glow;
