@@ -459,6 +459,57 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Removes the specified menu divider from this Menu.
+     *
+     * @param {!string} menuItemID - the menu item id of the divider to remove.
+     */
+    Menu.prototype.removeMenuDivider = function (menuItemID) {
+        var menuItem,
+            $HTMLMenuItem;
+        
+        if (!menuItemID) {
+            console.error("removeMenuDivider(): missing required parameters: menuItemID");
+            return;
+        }
+        
+        menuItem = getMenuItem(menuItemID);
+        
+        if (!menuItem) {
+            console.error("removeMenuDivider(): parameter menuItemID: %s is not a valid menu item id", menuItemID);
+            return;
+        }
+        
+        if (!menuItem.isDivider) {
+            console.error("removeMenuDivider(): parameter menuItemID: %s is not a menu divider", menuItemID);
+            return;
+        }
+        
+        if (_isHTMLMenu(this.id)) {
+            // Targeting parent to get the menu item <a> and the <li> that contains it
+            $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
+            if ($HTMLMenuItem) {
+                $HTMLMenuItem.remove();
+            } else {
+                console.error("removeMenuDivider(): HTML menu divider not found: %s", menuItemID);
+                return;
+            }
+        } else {
+            brackets.app.removeMenuItem(menuItemID, function (err) {
+                if (err) {
+                    console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
+                }
+            });
+        }
+        
+        if (!menuItemMap[menuItemID]) {
+            console.error("removeMenuDivider(): menu divider not found in menuItemMap: %s", menuItemID);
+            return;
+        }
+        
+        delete menuItemMap[menuItemID];
+    };
+    
+    /**
      * Adds a new menu item with the specified id and display text. The insertion position is
      * specified via the relativeID and position arguments which describe a position 
      * relative to another MenuItem or MenuGroup. It is preferred that plug-ins 
