@@ -930,9 +930,8 @@ define(function (require, exports, module) {
      */
     function removeMenu(id) {
         var menu,
-            commandID       = "",
-            menuDividerID   = "";
-            
+            commandID       = "";
+        
         if (!id) {
             console.error("removeMenu(): missing required parameter: id");
             return;
@@ -949,8 +948,7 @@ define(function (require, exports, module) {
         CollectionUtils.forEach(menuItemMap, function (value, key) {
             if (key.substring(0, id.length) === id) {
                 if (value.isDivider) {
-                    menuDividerID = key.substring((id.length + 1), key.length);
-                    menu.removeMenuDivider(menuDividerID);
+                    menu.removeMenuDivider(key);
                 } else {
                     commandID = value.getCommand();
                     menu.removeMenuItem(commandID);
