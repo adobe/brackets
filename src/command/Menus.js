@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        CollectionUtils     = require("utils/CollectionUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -928,6 +929,10 @@ define(function (require, exports, module) {
      *      Extensions should use the following format: "author.myextension.mymenuname".
      */
     function removeMenu(id) {
+        var menu,
+            commandID       = "",
+            menuDividerID   = "";
+            
         if (!id) {
             console.error("removeMenu(): missing required parameter: id");
             return;
@@ -937,6 +942,21 @@ define(function (require, exports, module) {
             console.error("removeMenu(): menu id not found: %s", id);
             return;
         }
+        
+        // Remove all of the menu items in the menu
+        menu = getMenu(id);
+        
+        CollectionUtils.forEach(menuItemMap, function (value, key) {
+            if (key.substring(0, id.length) === id) {
+                if (value.isDivider) {
+                    menuDividerID = key.substring((id.length + 1), key.length);
+                    menu.removeMenuDivider(menuDividerID);
+                } else {
+                    commandID = value.getCommand();
+                    menu.removeMenuItem(commandID);
+                }
+            }
+        });
         
         if (_isHTMLMenu(id)) {
             $(_getHTMLMenu(id)).remove();
