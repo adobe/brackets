@@ -31,7 +31,7 @@
  *
  */
 
-/* Variable OVerride */
+/* Variable Override */
 
 @tooltipBackground:       #fff;
 @tooltipArrowColor:       @tooltipBackground;
@@ -47,6 +47,7 @@
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px rgba(0,0,0,.5);
+    border-radius: 0;
 }
 
 
@@ -250,7 +251,7 @@
 
         margin-top: 0;
         background-color: @bc-white;
-        .border-radius(0 0 3px 3px);
+        border-radius: 0 0 3px 3px;
         box-shadow: @tc-dropdown-shadow;
         border: none;
 
@@ -322,7 +323,7 @@
     list-style-type: none;
 
     .dropdown-menu {
-        .border-radius(3px);
+        border-radius: 3px;
         box-shadow: @tc-dropdown-shadow;
     }
 
@@ -377,8 +378,8 @@
 /* Dialog-related styles */
 
 .modal {
-    background-color: @tc-gray-panel;
     width: auto;
+    overflow-y: auto;
 }
 
 .modal .close {
@@ -392,19 +393,13 @@
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
-.modal-body, .modal-header {
-    /* See styles/bootstrap/patterns.less .modal class.
-       Pushing this value down to .modal-header and .modal-body
-       to allow the overall modal to take the width of the footer */
-    width: 580px;
-}
-
 .modal-footer {
     text-align: right;
     background-color: @tc-gray-panel;
     border-top: 1px solid @tc-gray-panel-separator;
     box-shadow: none;
     white-space: nowrap;
+    margin-top: 0;
 }
 
 .modal-footer .btn {
@@ -568,16 +563,12 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    top: 50%;
-    left: 50%;
-    margin-top: -275px;
-    margin-left: -350px;
     background-color: #d4d7d7;
-
+    width: 730px;
+    
     .modal-header {
         border-bottom: none;
         padding: 0;
-        width: auto;
 
         .nav-tabs {
             margin: 0;
@@ -663,7 +654,6 @@ a[href^="http"] {
         }
     }
     .modal-body {
-        width: 730px;
         height: 400px;
         overflow-y: scroll;
         padding: 0;
@@ -818,8 +808,8 @@ input[type="color"],
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
     color: @tc-text;
-    font-size: (@baseFontSize + 1px);
-    .border-radius(@tc-control-border-radius);
+    font-size: (@font-size-base + 1px);
+    border-radius: @tc-control-border-radius;
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
 
@@ -897,12 +887,12 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
-    font-size: (@baseFontSize + 1);
+    cursor: default;
+    font-size: (@font-size-base + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @tc-gray-component-border;
-    .border-radius(@tc-control-border-radius);
+    border-radius: @tc-control-border-radius;
     box-shadow: @tc-button-highlight;
     -webkit-font-smoothing: antialiased;
 
@@ -956,11 +946,11 @@ input[type="color"],
 
     // Button Sizes
     &.large {
-        font-size: (@baseFontSize + 1px);
-        .border-radius(@tc-control-border-radius);
+        font-size: (@font-size-base + 1px);
+        border-radius: @tc-control-border-radius;
     }
     &.small {
-        font-size: (@baseFontSize - 1px);
+        font-size: (@font-size-base - 1px);
     }
 }
 

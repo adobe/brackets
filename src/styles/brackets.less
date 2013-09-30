@@ -127,7 +127,7 @@ a, img {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     color: @tc-text;
-    font-family: @sansFontFamily;
+    font-family: @font-family-sans-serif;
     font-size: 11px;
     line-height: 25px;
     height: 26px;
@@ -378,7 +378,6 @@ a, img {
 /* Project panel */
 
 #working-set-header {
-    height: 19px;
     padding: 10px 0 9px 12px;
     background: #3C3F41;
     color: @project-panel-text-2;
@@ -417,12 +416,12 @@ a, img {
         list-style-type: none;
         margin: 0;
         padding-bottom: 23px;
+        padding-left: 12px;
     }
 
     li {
         position: relative; // so that children can be positioned absolute
         line-height: 18px;
-        padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
 
@@ -573,7 +572,7 @@ a, img {
 
 
 .file-status-icon {
-    margin: 2px 0 0 8px;
+    margin: 2px 0 0 -2px;
     .bracket-sprite;
     display: inline-block;
     position: absolute;
@@ -624,7 +623,7 @@ a, img {
         padding: 10px 10px 0px 10px;
 
         .filename {
-            font-family: @sansFontFamily;
+            font-family: @font-family-sans-serif;
             font-size: 1.1em;
             color: @inline-color-1;
 
@@ -681,7 +680,7 @@ a, img {
     float: right;
     position: relative;
     min-height: 100%;
-    font-family: @sansFontFamily;
+    font-family: @font-family-sans-serif;
     width: 250px;
     max-width: 50%;
     overflow: hidden;
@@ -844,7 +843,7 @@ a, img {
     display: block;
     text-align: left;
 
-    font-family: @sansFontFamily;
+    font-family: @font-family-sans-serif;
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
@@ -880,7 +879,7 @@ a, img {
     }
 
     input {
-        font-family: @sansFontFamily;
+        font-family: @font-family-sans-serif;
         outline: none;
         width: 20em;
         margin: 5px 5px 0;

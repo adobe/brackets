@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         };
 
         // Pipe dialog-closing notification back to client code
-        $dlg.one("hidden", function () {
+        $dlg.one("hidden.bs.modal", function () {
             var buttonId = $dlg.data("buttonId");
             if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
                 buttonId = DIALOG_BTN_CANCEL;
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
-        }).one("shown", function () {
+        }).one("shown.bs.modal", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
 
