@@ -647,6 +647,64 @@ define(function (require, exports, module) {
         });
 
 
+        describe("Remove Menu Divider", function () {
+
+            function menuDividerDOM(menuItemId) {
+                return testWindow.$("#" + menuItemId);
+            }
+
+            it("should add then remove new menu divider to empty menu", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-1";
+                    var menu = Menus.addMenu("Custom", menuId);
+
+                    var menuDivider = menu.addMenuDivider();
+                    expect(menuDivider).not.toBeNull();
+                    expect(menuDivider).toBeDefined();
+                    
+                    var $listItems = menuDividerDOM(menuDivider.id);
+                    expect($listItems.length).toBe(1);
+                    
+                    menu.removeMenuDivider(menuDivider.id);
+                    $listItems = menuDividerDOM(menuDivider.id);
+                    expect($listItems.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu divider without supplying the id", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-2";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    
+                    menu.removeMenuDivider();
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu divider with an invalid id", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-3";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    
+                    menu.removeMenuDivider("foo");
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu item that is not a divider", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-4";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    var menuItemId = "menu-test-removeMenuDivider1";
+                    var menuItem = menu.addMenuItem(menuItemId);
+                    
+                    menu.removeMenuDivider(menuItemId);
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+        });
+
+
         describe("Remove Menu", function () {
 
             function menuDOM(menuId) {
@@ -675,10 +733,8 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should gracefully handle someone trying to remove a menu without supply the id", function () {
+            it("should gracefully handle someone trying to remove a menu without supplying the id", function () {
                 runs(function () {
-                    var menuId = "Menu-test";
-
                     Menus.removeMenu();
                     expect(Menus).toBeTruthy();   // Verify that we got this far...
                 });

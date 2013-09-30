@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         }
         
         if (_isHTMLMenu(this.id)) {
-            // Targeting parent to get the menu item <a> and the <li> that contains it
+            // Targeting parent to get the menu divider <hr> and the <li> that contains it
             $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
             if ($HTMLMenuItem) {
                 $HTMLMenuItem.remove();
@@ -583,7 +583,7 @@ define(function (require, exports, module) {
         // create MenuItem DOM
         if (_isHTMLMenu(this.id)) {
             if (name === DIVIDER) {
-                $menuItem = $("<li><hr class='divider' /></li>");
+                $menuItem = $("<li><hr class='divider' id='" + id + "' /></li>");
             } else {
                 // Create the HTML Menu
                 $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
