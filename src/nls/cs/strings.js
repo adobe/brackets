@@ -176,8 +176,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Změnit šířku tabulátoru",
-    "STATUSBAR_SPACES"                      : "mezery",
-    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru",
+    "STATUSBAR_SPACES"                      : "Mezery:",
+    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
 
