@@ -100,7 +100,6 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
-        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
@@ -132,7 +131,7 @@ define(function (require, exports, module) {
      * @private
      * Random path prefix for untitled documents
      */
-    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
+    var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
     /**
      * @private
