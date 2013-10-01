@@ -1182,6 +1182,10 @@ define(function (require, exports, module) {
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
             brackets.app.showOSFolder(entry.fullPath, function (err) {

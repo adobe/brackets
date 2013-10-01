@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, window */
 
 /**
  * Initializes the global "brackets" variable and it's properties.
@@ -99,9 +99,13 @@ define(function (require, exports, module) {
         }
     };
     
-    // Create empty app namespace if running in-browser
+    // Stub brackets.app namespace if running in-browser
     if (!global.brackets.app) {
         global.brackets.app = {};
+        
+        global.brackets.app.openURLInDefaultBrowser = function (url) {
+            window.open(url);
+        };
     }
     
     // Loading extensions requires creating new require.js contexts, which
