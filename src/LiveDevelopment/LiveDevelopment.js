@@ -659,6 +659,17 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
+    function _closeLiveBrowser() {
+        NativeApp.closeLiveBrowser()
+            .done(function () { return; })
+            .fail(function (err) {
+                // Report error?
+                _setStatus(STATUS_ERROR);
+                _openDeferred.reject("CLOSE_LIVE_BROWSER");
+            });
+    }
+    
+
     /**
      * @private
      * Close the connection and the associated window asynchronously
@@ -690,6 +701,8 @@ define(function LiveDevelopment(require, exports, module) {
             // ProjectManager beforeProjectClose and beforeAppClose events
             cleanup();
         }
+        
+        _closeLiveBrowser();
         
         return deferred.promise();
     }
