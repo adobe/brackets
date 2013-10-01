@@ -28,7 +28,8 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "i18n"      : "thirdparty/i18n/i18n",
+        "lodash"    : "thirdparty/lodash.custom.min"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -98,7 +99,8 @@ define(function (require, exports, module) {
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        _                       = require("lodash");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
