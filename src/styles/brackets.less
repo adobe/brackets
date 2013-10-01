@@ -732,16 +732,20 @@ a, img {
         }
 
         li {
-            color: @inline-color-2;
+            color: @tc-emphasized-text;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
+            
+            .related-file {
+                color: @tc-input-placeholder-text;
+            }
         }
 
         .selected {
-            color: @inline-color-3;
+            color: @tc-light-weight-text;
             transition: color 0.1s ease-out .15s;
         }
     }
@@ -836,21 +840,6 @@ a, img {
 
 /* Modal bar for Find/Quick Open */
 
-.modal-bar.modal-bar-hide {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    -webkit-transform: translate(0, -44px);
-    transform: translate(0, -44px);
-    transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
-    transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-
-    body:not(.has-appshell-menus) & {
-        top: 37px;
-    }
-}
-
 .modal-bar {
     display: block;
     text-align: left;
@@ -871,37 +860,56 @@ a, img {
         // Separator line between us and the HTML menu/titlebar above
         border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
     }
-}
-
-.modal-bar input {
-    font-family: @sansFontFamily;
-    outline: none;
-    width: 20em;
-    margin: 5px 5px 0;
-    position: relative;
-    top: -3px;
-    &.no-results {
-        border: 1px solid #bc0023;
-        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
+    
+    &.popout {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
     }
-}
-
-.modal-bar .message {
-    display: inline-block;
-}
-.modal-bar .error {
-    display: none;
-
-    .alert {
-        padding-top: 4px;
-        padding-bottom: 4px;
+    
+    &.offscreen {
+        -webkit-transform: translate(0, -44px);
+        transform: translate(0, -44px);
+        transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
+        transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
+    
+        body:not(.has-appshell-menus) & {
+            top: 37px;
+        }
     }
-}
 
-.modal-bar .navigator {    
-    display: none;        
-    button {    
-        margin: 2px 1px 3px;   
+    input {
+        font-family: @sansFontFamily;
+        outline: none;
+        width: 20em;
+        margin: 5px 5px 0;
+        position: relative;
+        top: -3px;
+        &.no-results {
+            border: 1px solid #bc0023;
+            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
+        }
+    }
+
+    .message {
+        display: inline-block;
+    }
+
+    .error {
+        display: none;
+    
+        .alert {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+    }
+
+    .navigator {    
+        display: none;        
+        button {    
+            margin: 2px 1px 3px;   
+        }
     }
 }
 
@@ -911,7 +919,10 @@ a, img {
 // transparent; it has to look good atop both the selection color AND the regular text bg color.
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
-    background-color: rgba(244, 237, 98, 0.7);
+    background-color: @cm-match-highlight;
+    border-radius: @tc-inline-border-radius;
+    box-shadow: @tc-small-shadow-bottom;
+    color: @match-text !important;
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
 .CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
@@ -919,7 +930,8 @@ a, img {
     // blended atop it.
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
-    background: rgb(255, 108, 0);
+    background: @cm-current-match-highlight;
+    border-radius: @tc-inline-border-radius;
 }
 #find-counter {
     font-weight: @font-weight-semibold;

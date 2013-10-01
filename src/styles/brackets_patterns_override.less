@@ -301,6 +301,7 @@
         .divider {
             background-color: #eaeaea;
             border: 0;
+            margin: 5px 1px;
         }
     }
 
@@ -476,12 +477,26 @@
 }
 
 .dialog-message li {
-    line-height: 26px;
+    line-height: 20px;
     color: @tc-light-weight-text;
+    padding: 0 0 5px;
 }
 
 .dialog-message select {
     margin-left: 10px;
+}
+
+.dialog-list {
+    list-style: none;
+    margin: 5px 0 20px 10px;
+}
+
+.dialog-list > li:before {
+    content: "•  ";
+    color: @tc-input-border;
+    font-size: 1.5em;
+    position: relative;
+    top: 1px;
 }
 
 .dialog-filename {
@@ -711,6 +726,9 @@ a[href^="http"] {
             .ext-date,
             .ext-author {
                 font-size: 11px;
+            }
+            .ext-author {
+                display: block;
             }
             .ext-action {
                 font-size: 12px;

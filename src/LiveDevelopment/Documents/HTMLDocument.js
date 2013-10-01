@@ -70,10 +70,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._instrumentationEnabled = false;
 
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        this.onDocumentSaved = this.onDocumentSaved.bind(this);
         
         $(this.editor).on("cursorActivity", this.onCursorActivity);
-        $(DocumentManager).on("documentSaved", this.onDocumentSaved);
         
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -130,7 +128,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         $(this.editor).off("cursorActivity", this.onCursorActivity);
-        $(DocumentManager).off("documentSaved", this.onDocumentSaved);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -312,14 +309,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
-    /** Triggered when a document is saved */
-    HTMLDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
-        if (doc === this.doc) {
-            HTMLInstrumentation.scanDocument(this.doc);
-            HTMLInstrumentation._markText(this.editor);
-        }
-    };
-    
     // Export the class
     module.exports = HTMLDocument;
 });

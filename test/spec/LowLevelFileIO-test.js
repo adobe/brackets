@@ -89,6 +89,8 @@ define(function (require, exports, module) {
         }
     
         beforeEach(function () {
+            SpecRunnerUtils.createTempDirectory();
+
             runs(function () {
                 // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
@@ -102,7 +104,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            waitsForDone(SpecRunnerUtils.removeTempDirectory(), "Remove temp directory after LowLevelFileIO-tests", 1000);
+            SpecRunnerUtils.removeTempDirectory();
         });
 
         it("should have a brackets.fs namespace", function () {

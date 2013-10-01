@@ -1,0 +1,12 @@
+POST /upload HTTP/1.1
+Host: localhost:8080
+Content-Type: multipart/form-data; boundary=\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+Content-Length: 323
+
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+Content-Disposition: form-data; name="file"; filename="blank.gif"
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+
+R0lGODlhAQABAJH/AP///wAAAMDAwAAAACH5BAEAAAIALAAAAAABAAEAAAICVAEAOw==
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/--

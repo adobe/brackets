@@ -92,7 +92,8 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhled: Spouštění\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Zrušit živý náhled",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled: Klikněte pro odpojení (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Živý náhled (neaktualizováno kvůli chybě v syntaxi)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Živý náhled byl zrušen, protože byly otevřeny vývojářské nástroje prohlížeče",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhled byl zrušen, protože dokument byl zavřen v prohlížeči",
@@ -112,10 +113,14 @@ define({
     // Najít, Nahradit, Nahradit v souborech
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
+    "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "WITH"                              : "S",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
+    "BUTTON_REPLACE_ALL"                : "Vše\u2026",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Nahradit",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -125,20 +130,22 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    "FIND_IN_FILES_TITLE"               : "pro \"{4}\" {5} - {0} {1} v {2} {3}",
+    "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
-    "FIND_IN_FILES_FILE"                : "soubor",
+    "FIND_IN_FILES_FILE"                : "souboru",
     "FIND_IN_FILES_FILES"               : "souborech",
     "FIND_IN_FILES_MATCH"               : "výsledek",
     "FIND_IN_FILES_MATCHES"             : "výsledků",
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Méně</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Více</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "řádek: {0}",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
 
@@ -168,8 +175,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Změnit šířku tabulátoru",
-    "STATUSBAR_SPACES"                      : "mezery",
-    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru",
+    "STATUSBAR_SPACES"                      : "Mezery:",
+    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
 
@@ -427,6 +434,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
     "LOCALE_PT_PT"                              : "Portugalsky",
     "LOCALE_RU"                                 : "Rusky",
+    "LOCALE_SK"                                 : "Slovensky",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_FI"                                 : "Finsky",
@@ -444,6 +452,8 @@ define({
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
+    "NO_ARGUMENTS"                              : "<žádné parametry>",
 
     // extensions/default/JSLint
     "CMD_JSLINT"                           : "Povolit JSLint",

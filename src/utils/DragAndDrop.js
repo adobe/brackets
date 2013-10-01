@@ -121,7 +121,7 @@ define(function (require, exports, module) {
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     
-                    message += "<ul>";
+                    message += "<ul class='dialog-list'>";
                     errorFiles.forEach(function (file) {
                         message += "<li><span class='dialog-filename'>" +
                             StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +

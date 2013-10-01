@@ -1,0 +1,35 @@
+{
+  "name": "stream-counter",
+  "version": "0.1.0",
+  "description": "keeps track of how many bytes have been written to a stream",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/superjoe30/node-stream-counter.git"
+  },
+  "author": {
+    "name": "Andrew Kelley",
+    "email": "superjoe30@gmail.com"
+  },
+  "license": "BSD",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {
+    "readable-stream": "~1.0.2"
+  },
+  "readme": "# stream-counter\n\nKeep track of how many bytes have been written to a stream.\n\n## Usage\n\n```js\nvar StreamCounter = require('stream-counter');\nvar counter = new StreamCounter();\ncounter.on('progress', function() {\n  console.log(\"progress\", counter.bytes);\n});\nfs.createReadStream('foo.txt').pipe(counter);\n```\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/superjoe30/node-stream-counter/issues"
+  },
+  "_id": "stream-counter@0.1.0",
+  "dist": {
+    "shasum": "07934d4cd814e5930853f5934b0559861fa5732f"
+  },
+  "_from": "stream-counter@~0.1.0",
+  "_resolved": "https://registry.npmjs.org/stream-counter/-/stream-counter-0.1.0.tgz"
+}

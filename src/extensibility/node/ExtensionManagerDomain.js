@@ -27,15 +27,17 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var unzip    = require("unzip"),
-    semver   = require("semver"),
+var semver   = require("semver"),
     path     = require("path"),
     http     = require("http"),
     request  = require("request"),
     os       = require("os"),
     fs       = require("fs-extra"),
+    temp     = require("temp"),
     validate = require("./package-validator").validate;
 
+// Automatically clean up temp files on exit
+temp.track();
 
 var Errors = {
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
@@ -98,59 +100,21 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             callback(err);
             return;
         }
-        var readStream = fs.createReadStream(packagePath);
-        var extractStream = unzip.Parse();
-        var prefixlength = validationResult.commonPrefix ? validationResult.commonPrefix.length : 0;
+        var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
         
-        readStream.pipe(extractStream)
-            .on("error", function (exc) {
-                if (!callbackCalled) {
-                    callback(exc);
-                    callbackCalled = true;
-                    readStream.destroy();
-                    _removeFailedInstallation(installDirectory);
+        fs.copy(sourceDir, installDirectory, function (err) {
+            if (err) {
+                _removeFailedInstallation(installDirectory);
+                callback(err, null);
+            } else {
+                // The status may have already been set previously (as in the
+                // DISABLED case.
+                if (!validationResult.installationStatus) {
+                    validationResult.installationStatus = Statuses.INSTALLED;
                 }
-            })
-            .on("entry", function (entry) {
-                var installpath = entry.path;
-                if (prefixlength) {
-                    installpath = installpath.substring(prefixlength + 1);
-                }
-                if (entry.type === "Directory") {
-                    if (installpath === "") {
-                        return;
-                    }
-                    try {
-                        fs.mkdirsSync(installDirectory + "/" + installpath);
-                    } catch (e) {
-                        callback(e);
-                        callbackCalled = true;
-                        _removeFailedInstallation(installDirectory);
-                    }
-                } else {
-                    entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
-                        .on("error", function (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                                readStream.destroy();
-                                _removeFailedInstallation(installDirectory);
-                            }
-                        });
-                }
-                
-            })
-            .on("end", function () {
-                if (!callbackCalled) {
-                    // The status may have already been set previously (as in the
-                    // DISABLED case.
-                    if (!validationResult.installationStatus) {
-                        validationResult.installationStatus = Statuses.INSTALLED;
-                    }
-                    callback(null, validationResult);
-                    callbackCalled = true;
-                }
-            });
+                callback(null, validationResult);
+            }
+        });
     });
 }
 
@@ -255,10 +219,21 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
     
     var validateCallback = function (err, validationResult) {
         validationResult.localPath = packagePath;
+        
+        // This is a wrapper for the callback that will delete the temporary
+        // directory to which the package was unzipped.
+        function deleteTempAndCallback(err) {
+            if (validationResult.extractDir) {
+                fs.remove(validationResult.extractDir);
+                delete validationResult.extractDir;
+            }
+            callback(err, validationResult);
+        }
+        
         // If there was trouble at the validation stage, we stop right away.
         if (err || validationResult.errors.length > 0) {
             validationResult.installationStatus = Statuses.FAILED;
-            callback(err, validationResult);
+            deleteTempAndCallback(err, validationResult);
             return;
         }
         
@@ -289,7 +264,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
                 installDirectory = path.join(options.disabledDirectory, extensionName);
                 validationResult.installationStatus = Statuses.DISABLED;
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
-                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                 return;
             }
         }
@@ -309,25 +284,25 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
                     // both legacy and new extensions installed.
                     fs.remove(legacyDirectory, function (err) {
                         if (err) {
-                            callback(err);
+                            deleteTempAndCallback(err, validationResult);
                             return;
                         }
-                        _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                        _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                     });
                 } else {
-                    _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                    _removeAndInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
                 }
             } else if (hasLegacyPackage) {
                 validationResult.installationStatus = Statuses.NEEDS_UPDATE;
                 validationResult.name = guessedName;
-                callback(null, validationResult);
+                deleteTempAndCallback(null, validationResult);
             } else {
-                _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, callback);
+                _checkExistingInstallation(validationResult, installDirectory, systemInstallDirectory, deleteTempAndCallback);
             }
         } else {
             // Regular installation with no conflicts.
             validationResult.disabledReason = null;
-            _performInstall(packagePath, installDirectory, validationResult, callback);
+            _performInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
         }
     };
     
@@ -365,26 +340,6 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
  */
 function _cmdUpdate(packagePath, destinationDirectory, options, callback) {
     _cmdInstall(packagePath, destinationDirectory, options, callback, true);
-}
-
-/**
- * Creates a uniquely-named file in the OS temp directory and opens it for writing.
- * @return {{localPath: string, outStream: WriteStream}}
- */
-function _createTempFile() {
-    var root = os.tmpDir();
-    var pathPrefix = root + "/brackets.download";
-    var suffix = 1;
-    while (fs.existsSync(pathPrefix + suffix) && suffix < 100) {
-        suffix++;
-    }
-    if (suffix === 100) {
-        return null;
-    }
-    
-    var localPath = pathPrefix + suffix;
-    var outStream = fs.createWriteStream(localPath);
-    return { outStream: outStream, localPath: localPath };
 }
 
 /**
@@ -447,15 +402,15 @@ function _cmdDownloadFile(downloadId, url, callback) {
                 return;
             }
             
-            var tempFileInfo = _createTempFile();
-            if (!tempFileInfo) {
+            var stream = temp.createWriteStream("brackets");
+            if (!stream) {
                 _endDownload(downloadId, Errors.CANNOT_WRITE_TEMP);
                 return;
             }
-            pendingDownloads[downloadId].localPath = tempFileInfo.localPath;
-            pendingDownloads[downloadId].outStream = tempFileInfo.outStream;
+            pendingDownloads[downloadId].localPath = stream.path;
+            pendingDownloads[downloadId].outStream = stream;
             
-            tempFileInfo.outStream.write(body);
+            stream.write(body);
             _endDownload(downloadId);
         });
     

@@ -64,8 +64,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeHintManager    = require("editor/CodeHintManager"),
-        Commands           = require("command/Commands"),
+    var Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
@@ -271,9 +270,6 @@ define(function (require, exports, module) {
     
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
-
-        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
-        CodeHintManager.handleKeyEvent(editor, event);
     }
 
     /**
@@ -597,9 +593,14 @@ define(function (require, exports, module) {
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
         // note: this change might have been a real edit made by the user, OR this might have
-        // been a change synced from another editor
+        // been a change synced from another editor.
         
-        CodeHintManager.handleChange(this);
+        // The "editorChange" event is mostly for the use of the CodeHintManager.
+        // It differs from the normal "change" event, that it's actually publicly usable,
+        // whereas the "change" event should be listend to on the document. Also the 
+        // Editor dispatches a change event before this event is dispatched, because 
+        // CodeHintManager needs to hook in here when other things are already done.
+        $(this).triggerHandler("editorChange", [this, changeList]);
     };
     
     /**

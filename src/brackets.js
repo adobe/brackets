@@ -158,6 +158,7 @@ define(function (require, exports, module) {
             UpdateNotification      : require("utils/UpdateNotification"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             doneLoading             : false
         };
 
@@ -282,6 +283,17 @@ define(function (require, exports, module) {
         // Enable/Disable HTML Menus
         if (brackets.nativeMenus) {
             $("body").addClass("has-appshell-menus");
+        } else {
+            // (issue #5310) workaround for bootstrap dropdown: prevent the menu item to grab
+            // the focus -- override jquery focus implementation for top-level menu items
+            (function () {
+                var defaultFocus = $.fn.focus;
+                $.fn.focus = function () {
+                    if (!this.hasClass("dropdown-toggle")) {
+                        return defaultFocus.apply(this, arguments);
+                    }
+                };
+            }());
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
