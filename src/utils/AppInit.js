@@ -90,7 +90,7 @@ define(function (require, exports, module) {
      * Adds a callback for the ready hook. Handlers are called after
      * htmlReady is done, the initial project is loaded, and all extensions are
      * loaded.
-     * @param {function} handler
+     * @param {function} callback
      */
     function appReady(callback) {
         _addListener(APP_READY, callback);
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
     /**
      * Adds a callback for the htmlReady hook. Handlers are called after the
      * main application html template is rendered.
-     * @param {function} handler
+     * @param {function} callback
      */
     function htmlReady(callback) {
         _addListener(HTML_READY, callback);
