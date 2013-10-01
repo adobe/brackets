@@ -88,6 +88,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var DocumentModule      = require("document/Document"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
@@ -179,7 +181,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet.slice(0);
+        return _.clone(_workingSet);
     }
 
     /**
