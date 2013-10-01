@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        ImageHolderTemplate = require("text!htmlContent/image-holder.html");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -186,15 +187,14 @@ define(function (require, exports, module) {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {
-                DocumentManager.clearCurrentDocument();
-                var imageContainer = $('#image-holder');
+                var imageHolder = $('#image-holder');
                  // TODO: call EditorManager API to display image-holder
-                if($('#image-holder')){
+                if ($('#image-holder')) {
                     $('#image-holder').remove();
                 }
-                imageContainer = $("<div id='image-holder' style='z-index:11;position:absolute;top:0;background-color:rgb(248,248,248);width:100%;height:100%'><img src='file:///" + fullPath + "'></div>");
-                
-                $('#editor-holder').append(imageContainer);
+                imageHolder = Mustache.render(ImageHolderTemplate, {fullPath: fullPath});
+                $('#editor-holder').append(imageHolder);
+                DocumentManager.clearCurrentDocument();
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)

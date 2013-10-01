@@ -583,9 +583,11 @@ define(function (require, exports, module) {
             $('#image-holder').remove();
             _showEditor(doc);
         } else {
-            //if(!$('#image-holder')) {
+            if($('#image-holder').length === 0) {
                 _showNoEditor();
-            //}
+            }else{
+                $("#not-editor").css("display", "none");
+            }
         }
 
         PerfUtils.addMeasurement(perfTimerName);
