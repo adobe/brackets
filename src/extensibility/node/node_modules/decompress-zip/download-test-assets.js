@@ -11,7 +11,7 @@ var errorHandler = function (error) {
 };
 
 var extract = function (filename) {
-    exec('tar -xvzf ' + filename, {cwd: path.join(__dirname, 'test')}, function (err, stdout, stderr) {
+    exec('tar -xvzf ' + filename, {cwd: path.join(__dirname, 'test'), maxBuffer: 1024*1024}, function (err, stdout, stderr) {
         if (err) {
             throw err;
         }
