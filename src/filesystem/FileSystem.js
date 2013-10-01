@@ -28,9 +28,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Q               = require("Q");
-    var Async           = require("utils/Async");
-    
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
@@ -127,6 +124,17 @@ define(function (require, exports, module) {
         return file;
     };
     
+    FileSystem.prototype.getCanonicalPath = function (path) {
+        // Remove trailing "/" from path
+        if (path && path.length > 1) {
+            if (path[path.length - 1] === "/") {
+                path = path.substr(0, path.length - 1);
+            }
+        }
+        
+        return path;
+    };
+    
     /**
      * Return a Directory object for the specified path.
      *
@@ -135,15 +143,12 @@ define(function (require, exports, module) {
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
     FileSystem.prototype.getDirectoryForPath = function (path) {
-        // Make sure path doesn't include trailing slash
-        if (path[path.length - 1] === "/") {
-            path = path.substr(0, path.length - 1);
-        }
+        var canonicalPath = this.getCanonicalPath(path);
         
-        var directory = this._index.getEntry(path);
+        var directory = this._index.getEntry(canonicalPath);
         
         if (!directory) {
-            directory = new Directory(path, this);
+            directory = new Directory(canonicalPath, this);
             this._index.addEntry(directory);
         }
         
@@ -157,8 +162,15 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with a File or Directory object, if it exists,
      *     or rejected if there is an error.
      */
-    FileSystem.prototype.resolve = function (path) {
-        var result = Q.defer();
+    FileSystem.prototype.resolve = function (path, callback, getFile, getDirectory) {
+        
+        if (getFile === undefined) {
+            getFile = this.getFileForPath;
+        }
+        
+        if (getDirectory === undefined) {
+            getDirectory = this.getDirectoryForPath;
+        }
         
         this._impl.exists(path, function (exists) {
             if (exists) {
@@ -166,24 +178,20 @@ define(function (require, exports, module) {
                     var item;
                     
                     if (err) {
-                        result.reject(err);
+                        callback(err);
                         return;
                     }
                     
                     if (stat.isFile()) {
-                        item = this.getFileForPath(path);
+                        callback(null, getFile(path));
                     } else {
-                        item = this.getDirectoryForPath(path);
+                        callback(null, getDirectory(path));
                     }
-                    
-                    result.resolve(item);
                 }.bind(this));
             } else {
-                result.reject();
+                callback("File does not exist"); // TODO Error
             }
         }.bind(this));
-        
-        return result.promise;
     };
     
     /**
@@ -224,19 +232,10 @@ define(function (require, exports, module) {
                             chooseDirectories,
                             title,
                             initialPath,
-                            fileTypes) {
+                            fileTypes,
+                            callback) {
         
-        var result = Q.defer();
-        
-        this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(data);
-            }
-        });
-        
-        return result.promise;
+        this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
     };
     
     /**
@@ -252,56 +251,48 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that will be resolved with the name of the file to save,
      *                     or rejected if an error occurred.
      */
-    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename) {
-        var result = Q.defer();
-        
-        this._impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(selection);
-            }
-        });
-        
-        return result.promise;
+    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
+        this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
     
     /**
      * @private
      * Recursively scan and index all entries in a directory
      */
-    FileSystem.prototype._scanDirectory = function (directoryPath) {
-        var directory   = this.getDirectoryForPath(directoryPath);
+    FileSystem.prototype._scanDirectory = function (directoryPath, callback) {
+        var directory = this.getDirectoryForPath(directoryPath);
             
-        return directory.getContents()
-            .then(function (entries) {
-                var subdirs = entries.filter(function (entry) {
-                    return entry.isDirectory();
+        directory.getContents(function (err, entries) {
+            var subdirs = entries.filter(function (entry) {
+                return entry.isDirectory();
+            });
+            
+            var counter = subdirs.length;
+            
+            subdirs.forEach(function (entry) {
+                this._scanDirectory(entry.fullPath, function (err) {
+                    // ignore errors for now
+                    if (--counter === 0) {
+                        callback();
+                    }
                 });
-                
-                var promises = subdirs.map(function (entry) {
-                    return this._scanDirectory(entry.fullPath);
-                }, this);
-                
-                var master = Q.all(promises);
-                
-                this._impl.watchPath(directoryPath);
-                
-                return master;
-            }.bind(this))
-            .done();
+            }, this);
+            
+            this._impl.watchPath(directoryPath);
+            
+        }.bind(this));
     };
     
     /**
      * @private
-     * Callback for file/directory watchers. This is called by the low-level implementation
+     *  for file/directory watchers. This is called by the low-level implementation
      * whenever a directory or file is changed. 
      *
      * @param {string} path The path that changed. This could be a file or a directory.
      * @param {stat=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
-    FileSystem.prototype._watcherCallback = function (path, stat) {
+    FileSystem.prototype._watcher = function (path, stat, callback) {
         if (!this._index) {
             return;
         }
@@ -319,55 +310,53 @@ define(function (require, exports, module) {
                 var oldContents = entry._contents;  // TODO: Handle pending content promise
                 
                 // Clear out old contents
-                entry._contents = entry._contentsPromise = undefined;
+                entry._contents = undefined;
                 
                 // Read new contents
-                entry.getContents()
-                    .then(function (contents) {
-                        var i, len, item, path;
-                        
-                        function _isInPath(item) {
-                            return item.fullPath.indexOf(path) === 0;
-                        }
-                        
-                        // Check for deleted entries 
-                        len = oldContents ? oldContents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = oldContents[i];
-                            if (contents.indexOf(item) === -1) {
-                                if (item.isFile()) {
-                                    // File removed, just remove from index.
-                                    this._index.removeEntry(item);
-                                } else {
-                                    // Remove the directory and all entries under it
-                                    path = item.fullPath;
-                                    var j, itemsToDelete = this.getFileList(_isInPath);
-                                    
-                                    for (j = 0; j < itemsToDelete.length; j++) {
-                                        this._index.removeEntry(itemsToDelete[j]);
-                                    }
-                                    
-                                    this._index.removeEntry(item);
-                                    this._impl.unwatchPath(item.fullPath);
-                                    // TODO: Remove and unwatch other directories contained within this directory.
-                                    // getFileList() only returns files, and ignores directories.
+                entry.getContents(function (err, contents) {
+                    var i, len, item, path;
+                    
+                    function _isInPath(item) {
+                        return item.fullPath.indexOf(path) === 0;
+                    }
+                    
+                    // Check for deleted entries 
+                    len = oldContents ? oldContents.length : 0;
+                    for (i = 0; i < len; i++) {
+                        item = oldContents[i];
+                        if (contents.indexOf(item) === -1) {
+                            if (item.isFile()) {
+                                // File removed, just remove from index.
+                                this._index.removeEntry(item);
+                            } else {
+                                // Remove the directory and all entries under it
+                                path = item.fullPath;
+                                var j, itemsToDelete = this.getFileList(_isInPath);
+                                
+                                for (j = 0; j < itemsToDelete.length; j++) {
+                                    this._index.removeEntry(itemsToDelete[j]);
                                 }
+                                
+                                this._index.removeEntry(item);
+                                this._impl.unwatchPath(item.fullPath);
+                                // TODO: Remove and unwatch other directories contained within this directory.
+                                // getFileList() only returns files, and ignores directories.
                             }
                         }
-                        
-                        // Check for added directories and scan to add to index
-                        // Re-scan this directory to add any new contents
-                        len = contents ? contents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = contents[i];
-                            if (!oldContents || oldContents.indexOf(item) === -1) {
-                                if (item.isDirectory()) {
-                                    this._scanDirectory(item.fullPath);
-                                }
+                    }
+                    
+                    // Check for added directories and scan to add to index
+                    // Re-scan this directory to add any new contents
+                    len = contents ? contents.length : 0;
+                    for (i = 0; i < len; i++) {
+                        item = contents[i];
+                        if (!oldContents || oldContents.indexOf(item) === -1) {
+                            if (item.isDirectory()) {
+                                this._scanDirectory(item.fullPath);
                             }
                         }
-                    }.bind(this))
-                    .done();
+                    }
+                }.bind(this));
             }
             
             // Trigger a change event
@@ -385,22 +374,17 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype.setProjectRoot = function (rootPath) {
         
-        // Remove trailing "/" from path
-        if (rootPath && rootPath.length > 1) {
-            if (rootPath[rootPath.length - 1] === "/") {
-                rootPath = rootPath.substr(0, rootPath.length - 1);
-            }
-        }
+        var canonicalPath = this.getCanonicalPath(rootPath);
         
         // Clear file index
         this._index.clear();
         
         // Initialize watchers
         this._impl.unwatchAll();
-        this._impl.initWatchers(this._watcherCallback.bind(this));
+        this._impl.initWatchers(this._watcher.bind(this));
         
         // Start indexing from the new root path
-        return this._scanDirectory(rootPath);
+        return this._scanDirectory(canonicalPath);
     };
     
     // Export the FileSystem class

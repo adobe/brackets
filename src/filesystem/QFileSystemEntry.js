@@ -32,8 +32,6 @@ define(function (require, exports, module) {
     
     var Q = require("Q");
     
-    var CallbackFileSystemEntry = require("filesystem/CallbackFileSystemEnmtry");
-    
     /**
      * Constructor
      * @param {string} path The path for this entry

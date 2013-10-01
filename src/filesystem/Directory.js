@@ -28,9 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Q                   = require("Q");
-    
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     function Directory(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem._impl);
@@ -58,21 +56,17 @@ define(function (require, exports, module) {
      *
      * @return {Q.Promise} Promise that is resolved with the stat from the new directory.
      */
-    Directory.prototype.create = function (mode) {
-        var result = Q.defer();
-        
+    Directory.prototype.create = function (mode, callback) {
         // TODO: support mode
         
         this._fileSystem._impl.mkdir(this._path, function (err, stat) {
             if (err) {
-                result.reject(err);
+                callback(err);
             } else {
                 this._stat = stat;
-                result.resolve(stat);
+                callback(null, stat);
             }
         }.bind(this));
-        
-        return result.promise;
     };
     
     /**
@@ -83,19 +77,13 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with the contents of the directory.
      *         Contents is an Array of File and Directory objects.
      */
-    Directory.prototype.getContents = function () {
-        var i, entryPath, entry, result;
+    Directory.prototype.getContents = function (callback) {
+        var i, entryPath, entry;
         
-        if (this._contentsPromise) {
-            // Existing promise for this directory's contents. Return it.
-            return this._contentsPromise;
-        }
-        
-        result = Q.defer();
         if (this._contents) {
             // Return cached directory contents
-            result.resolve(this._contents);
-            return result.promise;
+            callback(null, this._contents);
+            return;
         }
         
         this._fileSystem._impl.readdir(this.fullPath, function (err, contents, stats) {
@@ -120,13 +108,8 @@ define(function (require, exports, module) {
                 }
             }
             
-            this._contentsPromise = null;
-            result.resolve(this._contents);
+            callback(null, this._contents);
         }.bind(this));
-        
-        this._contentsPromise = result.promise;
-        
-        return result.promise;
     };
     
     // Export this class

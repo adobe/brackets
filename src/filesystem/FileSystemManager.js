@@ -44,7 +44,7 @@ define(function (require, exports, module) {
      *          described in FileSystemImpl. 
      */
     function registerFileSystemImpl(name, impl) {
-        _impls[name] = impl;
+        _impls[name] = new FileSystem(impl, name);
     }
     
     /**
@@ -57,20 +57,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Create a new FileSystem object. This should only be done by the application (to create
-     * the global brackets.fileSystem) or the ProjectManager (to create the file system for a
-     * project).
+     * Get a named filesystem or, if the name is omitted, the default filesystem.
      *
-     * @param {string=} system The name of the low-level file system implementation. If omitted,
-     *                      the default system is used.
-     * @return {FileSystem} A FileSystem object.
+     * @param {=string} name The name of the filesystem
+     * @return {?FileSystem} The named filesystem, if it exists
      */
-    function createFileSystem(system) {
-        var impl = _impls[system || _defaultFileSystem];
+    function getFileSystem(system) {
+        if (system === undefined) {
+            system = _defaultFileSystem;
+        }
         
-        console.assert(impl, "File System implementation not found: " + (system || _defaultFileSystem));
-        
-        return new FileSystem(impl, system);
+        return _impls[system];
     }
     
     // TODO: Registration and assigning default should be done in brackets.js or globals.js
@@ -87,11 +84,11 @@ define(function (require, exports, module) {
     // This file system is created with the "default" file system implementation,
     // which is different when running in the shell and in browsers.
     if (!appshell.appFileSystem) {
-        appshell.appFileSystem = createFileSystem();
+        appshell.appFileSystem = getFileSystem("appshell");
     }
     
     // Export public API
     exports.registerFileSystemImpl  = registerFileSystemImpl;
     exports.setDefaultFileSystem    = setDefaultFileSystem;
-    exports.createFileSystem        = createFileSystem;
+    exports.getFileSystem           = getFileSystem;
 });

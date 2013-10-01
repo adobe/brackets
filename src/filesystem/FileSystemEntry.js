@@ -30,8 +30,6 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Q = require("Q");
-    
     /**
      * Constructor
      * @param {string} path The path for this entry
@@ -91,20 +89,14 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with true if the entry exists, 
      *        or false if it doesn't.
      */
-    FileSystemEntry.prototype.exists = function () {
-        var result = Q.defer();
-        
+    FileSystemEntry.prototype.exists = function (callback) {
         // If we have _stat, the entry must exist
         if (this._stat) {
-            result.resolve(true);
+            callback(true);
         } else {
             // No _stat object yet, query the system
-            this._impl.exists(this._path, function (val) {
-                result.resolve(val);
-            });
+            this._impl.exists(this._path, callback);
         }
-        
-        return result.promise;
     };
     
     /**
@@ -113,23 +105,19 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with the entries stats, or rejected
      *        if an error occurred.
      */
-    FileSystemEntry.prototype.stat = function () {
-        var result = Q.defer();
-        
+    FileSystemEntry.prototype.stat = function (callback) {
         if (this._stat) {
-            result.resolve(this._stat);
+            callback(null, this._stat);
         } else {
             this._impl.stat(this._path, function (err, stat) {
                 if (err) {
-                    result.reject(err);
+                    callback(err);
                 } else {
                     this._stat = stat;
-                    result.resolve(this._stat);
+                    callback(null, stat);
                 }
             }.bind(this));
         }
-        
-        return result.promise;
     };
     
     /**
@@ -140,18 +128,8 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with the entries stats, or rejected
      *        if an error occurred.
      */
-    FileSystemEntry.prototype.rename = function (newName) {
-        var result = Q.defer();
-        
-        this._impl.rename(this._path, newName, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise;
+    FileSystemEntry.prototype.rename = function (newName, callback) {
+        this._impl.rename(this._path, newName, callback);
     };
         
     /**
@@ -160,19 +138,9 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved if the unlink succeeded, or rejected
      *        if an error occurred.
      */
-    FileSystemEntry.prototype.unlink = function () {
-        var result = Q.defer();
-        
+    FileSystemEntry.prototype.unlink = function (callback) {
         this._stat = null;
-        this._impl.unlink(this._path, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise;
+        this._impl.unlink(this._path, callback);
     };
         
     /**
@@ -182,23 +150,14 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved if the moveToTrash succeeded, or rejected
      *        if an error occurred.
      */
-    FileSystemEntry.prototype.moveToTrash = function () {
+    FileSystemEntry.prototype.moveToTrash = function (callback) {
         if (!this._impl.moveToTrash) {
-            return this.unlink();
+            this.unlink(callback);
+            return;
         }
         
-        var result = Q.defer();
-        
         this._stat = null;
-        this._impl.moveToTrash(this._path, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise;
+        this._impl.moveToTrash(this._path, callback);
     };
         
     // Export this class

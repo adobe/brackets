@@ -28,9 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Q                   = require("Q");
-    
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     function File(fullPath, impl) {
         FileSystemEntry.call(this, fullPath, impl);
@@ -62,24 +60,27 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with the text and stats from the file,
      *        or rejected if an error occurred.
      */
-    File.prototype.readAsText = function (encoding) {
-        var result = Q.defer();
-        
+    File.prototype.readAsText = function (encoding, callback) {
         if (this._contents && this._stat) {
-            result.resolve([this._contents, this._stat]);
+            callback(this._contents, this._stat);
         } else {
-            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+            if (encoding === undefined || typeof encoding === "function") {
+                callback = encoding;
+                encoding = {};
+            } else {
+                encoding = {encoding: encoding};
+            }
+            
+            this._impl.readFile(this._path, encoding, function (err, data, stat) {
                 if (err) {
-                    result.reject(err);
+                    callback(err);
                 } else {
                     this._stat = stat;
                     this._contents = data;
-                    result.resolve([data, stat]);
+                    callback(null, data, stat);
                 }
             }.bind(this));
         }
-        
-        return result.promise;
     };
     
     /**
@@ -91,20 +92,23 @@ define(function (require, exports, module) {
      * @return {Q.Promise} Promise that is resolved with the file's new stats when the 
      *        writing is complete, or rejected if an error occurred.
      */
-    File.prototype.write = function (data, encoding) {
-        var result = Q.defer();
+    File.prototype.write = function (data, encoding, callback) {
+        if (encoding === undefined || typeof encoding === "function") {
+            callback = encoding;
+            encoding = {};
+        } else {
+            encoding = {encoding: encoding};
+        }
         
-        this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
+        this._impl.writeFile(this._path, data, encoding, function (err, stat) {
             if (err) {
-                result.reject(err);
+                callback(err);
             } else {
                 this._stat = stat;
                 this._contents = data;
-                result.resolve(stat);
+                callback(null, stat);
             }
         }.bind(this));
-        
-        return result.promise;
     };
     
     // Export this class
