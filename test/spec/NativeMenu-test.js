@@ -28,8 +28,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    // Don't run tests when running in browser
-    if (brackets.inBrowser) {
+    require("utils/Global");
+    
+    // Don't run tests when running in browser or linux
+    if (brackets.inBrowser || brackets.platform === "linux") {
         return;
     }
     
