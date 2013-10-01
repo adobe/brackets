@@ -39,24 +39,6 @@ define(function (require, exports, module) {
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils");
-
-    
-    /*
-     * Convert a Q promise directly to a jQuery promise
-     *
-     * @param {Q.Promise<T>} qPromise Q promise to convert
-     * @return {$.Promise<T>} jQuery promise that resolves or rejects with the
-     *  same value as qPromise
-     */
-    function _convertQtojQuery(qPromise) {
-        var $deferred   = $.Deferred(),
-            $promise    = $deferred.promise();
-        
-        qPromise.then($deferred.resolve, $deferred.reject)
-            .done();
-        
-        return $promise;
-    }
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
@@ -75,11 +57,13 @@ define(function (require, exports, module) {
         });
 
         // Read file
-        file.readAsText()
-            .spread(function (data, stat) {
+        file.readAsText(function (err, data, stat) {
+            if (err) {
+                result.reject(err);
+            } else {
                 result.resolve(data, stat.mtime);
-            }, result.reject)
-            .done();
+            }
+        });
 
         return result.promise();
     }
@@ -92,7 +76,17 @@ define(function (require, exports, module) {
      * file writing completes, or rejected with a NativeFileError.
      */
     function writeText(file, text) {
-        return _convertQtojQuery(file.write(text));
+        var result = $.Deferred();
+        
+        file.write(text, function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -101,7 +95,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves with the file's stats
      */
     function stat(file) {
-        return _convertQtojQuery(file.stat());
+        var result = $.Deferred();
+        
+        file.stat(function (err, stats) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(stats);
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -111,7 +115,17 @@ define(function (require, exports, module) {
      *  indicates whether the file exists
      */
     function exists(file) {
-        return _convertQtojQuery(file.exists());
+        var result = $.Deferred();
+        
+        file.exists(function (err, exists) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(exists);
+            }
+        });
+        
+        return result.promise();
     }
     
     /**
@@ -121,7 +135,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves when the file has been renamed
      */
     function rename(file, name) {
-        return _convertQtojQuery(file.rename(name));
+        var result = $.Deferred();
+        
+        file.rename(name, function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -130,7 +154,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves when the file has been unlinked
      */
     function unlink(file) {
-        return _convertQtojQuery(file.unlink());
+        var result = $.Deferred();
+        
+        file.unlink(function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -140,7 +174,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves when the file has been moved to the trash
      */
     function moveToTrash(file) {
-        return _convertQtojQuery(file.moveToTrash());
+        var result = $.Deferred();
+        
+        file.moveToTrash(function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -150,7 +194,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves when the directory has been created with its stats
      */
     function create(directory, mode) {
-        return _convertQtojQuery(directory.create(mode));
+        var result = $.Deferred();
+        
+        directory.create(mode, function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -159,7 +213,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves with the contents of the directory
      */
     function getContents(directory) {
-        return _convertQtojQuery(directory.getContents());
+        var result = $.Deferred();
+        
+        directory.getContents(function (err, contents) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(contents);
+            }
+        });
+        
+        return result.promise();
     }
     
     /**
@@ -169,7 +233,17 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that resolves with the FileSystemEntry
      */
     function resolve(fileSystem, name) {
-        return _convertQtojQuery(fileSystem.resolve(name));
+        var result = $.Deferred();
+        
+        fileSystem.resolve(name, function (err, entry) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(entry);
+            }
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -189,9 +263,20 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function showOpenDialog(fileSystem, allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes) {
-        return _convertQtojQuery(fileSystem.showOpenDialog(allowMultipleSelection,
-                                                           chooseDirectories, title,
-                                                           initialPath, fileTypes));
+        var result = $.Deferred();
+        
+        fileSystem.showOpenDialog(allowMultipleSelection,
+                                  chooseDirectories, title,
+                                  initialPath, fileTypes,
+            function (err, entry) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    result.resolve(entry);
+                }
+            });
+        
+        return result.promise();
     }
     
     /**
@@ -209,7 +294,17 @@ define(function (require, exports, module) {
      *                     or rejected if an error occurred.
      */
     function showSaveDialog(fileSystem, title, initialPath, proposedNewFilename) {
-        return _convertQtojQuery(fileSystem.showSaveDialog(title, initialPath, proposedNewFilename));
+        var result = $.Deferred();
+        
+        fileSystem.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(selection);
+            }
+        });
+        
+        return result.promise();
     }
     
     /** @const */
