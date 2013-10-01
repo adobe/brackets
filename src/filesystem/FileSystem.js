@@ -86,10 +86,15 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
-    FileSystem.prototype.shouldShow = function (path) {
+    
+    FileSystem.prototype.shouldShow = function (path, exclusions) {
+        if (exclusions === undefined) {
+            exclusions = _exclusionListRegEx;
+        }
+        
         var name = path.substr(path.lastIndexOf("/") + 1);
         
-        return !name.match(_exclusionListRegEx);
+        return !name.match(exclusions);
     };
     
     /**
@@ -385,6 +390,19 @@ define(function (require, exports, module) {
         
         // Start indexing from the new root path
         return this._scanDirectory(canonicalPath);
+    };
+    
+    FileSystem.prototype.watchPath = function (path, exclusions, handleChange, callback) {
+        if (typeof exclusions === "function") {
+            handleChange = exclusions;
+            exclusions = _exclusionListRegEx;
+        }
+        
+        var canonicalPath = this.getCanonicalPath(path);
+    };
+    
+    FileSystem.prototype.unwatchPath = function (path) {
+        
     };
     
     // Export the FileSystem class
