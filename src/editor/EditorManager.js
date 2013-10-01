@@ -572,7 +572,7 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor) {
+        if (_currentEditor && $('#image-holder').length === 0) {
             $("#not-editor").css("display", "");
             nullifyEditor();
         }
@@ -593,8 +593,6 @@ define(function (require, exports, module) {
         } else {
             if ($('#image-holder').length === 0) {
                 _showNoEditor();
-            } else {
-                $("#not-editor").css("display", "none");
             }
         }
 

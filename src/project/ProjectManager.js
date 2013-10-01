@@ -1083,6 +1083,10 @@ define(function (require, exports, module) {
         //the folder-browse dialog.
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
+                // close any open images
+                if ($('#image-holder')) {
+                    $('#image-holder').remove();
+                }
                 if (path) {
                     // use specified path
                     _loadProject(path, false).then(result.resolve, result.reject);

@@ -187,15 +187,32 @@ define(function (require, exports, module) {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {
-                var imageHolder = $('#image-holder');
+                var $imageHolder = $('#image-holder');
                  // TODO: call EditorManager API to display image-holder
                 if ($('#image-holder')) {
                     $('#image-holder').remove();
                 }
-                imageHolder = Mustache.render(ImageHolderTemplate, {fullPath: fullPath});
-                $('#editor-holder').append(imageHolder);
+                $imageHolder = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
+                $imageHolder.css("display", "none");
+                $('#editor-holder').append($imageHolder);
+
+                // Hide the not-editor
+                $("#not-editor").css("display", "none");
                 DocumentManager.clearCurrentDocument();
                 EditorManager.nullifyEditor();
+                
+                $('#img-data').text($('#image-holder').width() + " x " + $('#image-holder').height());
+                $('#img-path').text(fullPath);                   
+                // display image in center
+//                var marginLeft = Math.floor($('#editor-holder').width() / 2 - $('#image-holder').width() / 2);
+//                var marginTop = Math.floor($('#editor-holder').height() / 2 - $('#image-holder').height() / 2);
+//                
+             
+//                
+//                $('#image-holder').css("margin-left", (marginLeft > 0 ? marginLeft : 0));
+//                $('#image-holder').css("margin-top", (marginTop > 0 ? marginTop : 0));
+                
+                $('#image-holder').css("display", "inline");
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
