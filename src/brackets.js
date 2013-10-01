@@ -159,6 +159,7 @@ define(function (require, exports, module) {
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
+            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             doneLoading             : false
         };
 
