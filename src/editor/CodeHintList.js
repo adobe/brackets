@@ -88,6 +88,13 @@ define(function (require, exports, module) {
         this.insertHintOnTab = insertHintOnTab;
 
         /**
+         * Pending text insertion
+         *
+         * @type {string}
+         */
+        this.pendingText = "";
+
+        /**
          * The hint selection callback function
          *
          * @type {Function}
@@ -142,6 +149,26 @@ define(function (require, exports, module) {
 
             ViewUtils.scrollElementIntoView($view, $item, false);
             $item.find("a").addClass("highlight");
+        }
+    };
+
+    /**
+     * Appends text to end of pending text.
+     *
+     * @param {string} text
+     */
+    CodeHintList.prototype.addPendingText = function (text) {
+        this.pendingText += text;
+    };
+
+    /**
+     * Removes text from beginning of pending text.
+     *
+     * @param {string} text
+     */
+    CodeHintList.prototype.removePendingText = function (text) {
+        if (this.pendingText.indexOf(text) === 0) {
+            this.pendingText = this.pendingText.slice(text.length);
         }
     };
 
@@ -346,7 +373,7 @@ define(function (require, exports, module) {
 
             return itemsPerPage;
         }
-        
+
         // If we're no longer visible, skip handling the key and end the session.
         if (!this.isOpen()) {
             this.handleClose();
@@ -377,6 +404,27 @@ define(function (require, exports, module) {
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN ||
                     (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
+
+                if (this.pendingText) {
+                    // Issues #5003: We received a "selection" key while there is "pending
+                    // text". This is rare but can happen because CM uses polling, so we
+                    // can receive key events while CM is waiting for timeout to expire.
+                    // Pending text may dismiss the list, or it may cause a valid selection
+                    // which keeps open hint list. We can compare pending text against
+                    // list to determine whether list is dismissed or not, but to handle
+                    // inserting selection in the page we'd need to either:
+                    // 1. Synchronously force CodeMirror to poll (but there is not
+                    //    yet a public API for that).
+                    // 2. Pass pending text back to where text gets inserted, which
+                    //    means it would need to be implemented for every HintProvider!
+                    // You have to be typing so fast to hit this case, that's it's
+                    // highly unlikely that inserting something from list was the intent,
+                    // which makes this pretty rare, so case #2 is not worth implementing.
+                    // If case #1 gets implemented, then we may want to use it here.
+                    // So, assume that pending text dismisses hints and let event bubble.
+                    return false;
+                }
+                
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {

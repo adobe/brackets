@@ -1,3 +1,5 @@
+"use strict"
+
 var fs = require('fs')
   , ncp = require('ncp').ncp;
 

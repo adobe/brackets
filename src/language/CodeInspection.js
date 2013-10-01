@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
+        FileUtils               = require("file/FileUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -71,7 +72,6 @@ define(function (require, exports, module) {
         /** Inspector unable to continue, code too complex for static analysis, etc. Not counted in error/warning tally. */
         META: "problem_type_meta"
     };
-    
     
     /**
      * @private
@@ -100,6 +100,12 @@ define(function (require, exports, module) {
      */
     var $problemsPanel;
     
+    /**
+     * @private
+     * @type {$.Element}
+     */
+    var $problemsPanelTable;
+
     /**
      * @private
      * @type {boolean}
@@ -145,43 +151,107 @@ define(function (require, exports, module) {
         }
         _providers[languageId] = provider;
     }
-    
+
+    /**
+     * Returns a provider for given file path, if one is available.
+     * Decision is made depending on the file extension.
+     *
+     * @param {!string} filePath
+     * @return ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     */
+    function getProviderForPath(filePath) {
+        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+    }
+
+    /**
+     * Runs a file inspection over passed file, specifying a provider is optional.
+     * This method doesn't update the Brackets UI, just provides inspection results.
+     * These results will reflect any unsaved changes present in the file that is currently opened.
+     *
+     * @param {!FileEntry} fileEntry File that will be inspected for errors.
+     * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array, aborted:boolean}
+     */
+    function inspectFile(fileEntry, provider) {
+        var response = new $.Deferred();
+        provider = provider || getProviderForPath(fileEntry.fullPath);
+
+        if (!provider) {
+            response.resolve(null);
+            return response.promise();
+        }
+
+        var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath),
+            fileTextPromise;
+
+        if (doc) {
+            fileTextPromise = new $.Deferred().resolve(doc.getText());
+        } else {
+            fileTextPromise = FileUtils.readAsText(fileEntry);
+        }
+
+        fileTextPromise
+            .done(function (fileText) {
+                var result,
+                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+
+                try {
+                    result = provider.scanFile(fileText, fileEntry.fullPath);
+                } catch (err) {
+                    console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
+                    response.reject(err);
+                    return;
+                }
+
+                PerfUtils.addMeasurement(perfTimerInspector);
+                response.resolve(result);
+            })
+            .fail(function (err) {
+                console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
+                response.reject(err);
+            });
+
+        return response.promise();
+    }
+
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
      */
     function run() {
         if (!_enabled) {
+            _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
             return;
         }
         
-        var currentDoc = DocumentManager.getCurrentDocument();
-        
-        var perfTimerDOM,
-            perfTimerInspector;
-        
-        var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
-        var languageId = language && language.getId();
-        var provider = language && _providers[languageId];
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
         
         if (provider) {
-            perfTimerInspector = PerfUtils.markStart("CodeInspection '" + languageId + "':\t" + currentDoc.file.fullPath);
-            
-            var result = provider.scanFile(currentDoc.getText(), currentDoc.file.fullPath);
-            _lastResult = result;
-            
-            PerfUtils.addMeasurement(perfTimerInspector);
-            perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-            
-            if (result && result.errors.length) {
+            inspectFile(currentDoc.file, provider).then(function (result) {
+                // check if current document wasn't changed while inspectFile was running
+                if (currentDoc !== DocumentManager.getCurrentDocument()) {
+                    return;
+                }
+
+                _lastResult = result;
+
+                if (!result || !result.errors.length) {
+                    Resizer.hide($problemsPanel);
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
+                    setGotoEnabled(false);
+                    return;
+                }
+
+                var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+
                 // Augment error objects with additional fields needed by Mustache template
                 var numProblems = 0;
                 result.errors.forEach(function (error) {
                     error.friendlyLine = error.pos.line + 1;
-                    
                     error.codeSnippet = currentDoc.getLine(error.pos.line);
                     error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
                     
@@ -192,27 +262,11 @@ define(function (require, exports, module) {
                 
                 // Update results table
                 var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
-                var $selectedRow;
                 
-                $problemsPanel.find(".table-container")
+                $problemsPanelTable
                     .empty()
                     .append(html)
-                    .scrollTop(0)  // otherwise scroll pos from previous contents is remembered
-                    .on("click", "tr", function (e) {
-                        if ($selectedRow) {
-                            $selectedRow.removeClass("selected");
-                        }
-                        
-                        $selectedRow  = $(e.currentTarget);
-                        $selectedRow.addClass("selected");
-                        var lineTd    = $selectedRow.find(".line-number");
-                        var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
-                        var character = lineTd.data("character");
-                        
-                        var editor = EditorManager.getCurrentFullEditor();
-                        editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
-                    });
+                    .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
                 
                 $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
                 if (!_collapsed) {
@@ -230,19 +284,14 @@ define(function (require, exports, module) {
                         StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
                 }
                 setGotoEnabled(true);
-            
-            } else {
-                Resizer.hide($problemsPanel);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
-                setGotoEnabled(false);
-            }
 
-            PerfUtils.addMeasurement(perfTimerDOM);
-
+                PerfUtils.addMeasurement(perfTimerDOM);
+            });
         } else {
             // No provider for current file
             _lastResult = null;
             Resizer.hide($problemsPanel);
+            var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
             if (language) {
                 StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
             } else {
@@ -338,6 +387,24 @@ define(function (require, exports, module) {
         var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
         
+        var $selectedRow;
+        $problemsPanelTable = $problemsPanel.find(".table-container")
+            .on("click", "tr", function (e) {
+                if ($selectedRow) {
+                    $selectedRow.removeClass("selected");
+                }
+
+                $selectedRow  = $(e.currentTarget);
+                $selectedRow.addClass("selected");
+                var lineTd    = $selectedRow.find(".line-number");
+                var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
+                var character = lineTd.data("character");
+
+                var editor = EditorManager.getCurrentFullEditor();
+                editor.setCursorPos(line, character, true);
+                EditorManager.focusEditor();
+            });
+
         $("#problems-panel .close").click(function () {
             toggleCollapsed(true);
         });
@@ -362,7 +429,8 @@ define(function (require, exports, module) {
     
     
     // Public API
-    exports.register        = register;
-    exports.Type            = Type;
-    exports.toggleEnabled   = toggleEnabled;
+    exports.register      = register;
+    exports.Type          = Type;
+    exports.toggleEnabled = toggleEnabled;
+    exports.inspectFile   = inspectFile;
 });
