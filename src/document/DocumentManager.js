@@ -935,7 +935,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
-    exports.clearCurrentDocument        = clearCurrentDocument
+    exports.clearCurrentDocument        = clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.createUntitledDocument      = createUntitledDocument;
