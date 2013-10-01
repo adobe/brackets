@@ -889,7 +889,7 @@ define(function (require, exports, module) {
                 _fileSystem = null;
             }
             
-            _fileSystem = FileSystemManager.createFileSystem(filesystem);
+            _fileSystem = FileSystemManager.getFileSystem(filesystem);
             _fileSystem.setProjectRoot(rootPath);
             $(_fileSystem).on("change", _fileSystemChange);
         }
