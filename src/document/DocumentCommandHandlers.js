@@ -1045,6 +1045,7 @@ define(function (require, exports, module) {
     }
     
     /** Confirms any unsaved changes, then closes the window */
+    // TODO: do something similar onbeforeunload
     function handleFileCloseWindow(commandData) {
         return _handleWindowGoingAway(
             commandData,
@@ -1077,6 +1078,10 @@ define(function (require, exports, module) {
 
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         return _handleWindowGoingAway(
             commandData,
             function () {
@@ -1139,6 +1144,10 @@ define(function (require, exports, module) {
     }
     
     function handleFileDelete() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory()) {
             Dialogs.showModalDialog(

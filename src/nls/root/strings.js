@@ -65,8 +65,8 @@ define({
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't fully run in browsers yet.",
+    "ERROR_IN_BROWSER"                  : "This feature is not yet supported when running {APP_NAME} in a web browser.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",

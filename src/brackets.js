@@ -164,13 +164,8 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
-    function _onReady() {
-        PerfUtils.addMeasurement("window.document Ready");
-
-        EditorManager.setEditorHolder($("#editor-holder"));
-
-        // Let the user know Brackets doesn't run in a web browser yet
+    
+    brackets.unsupportedInBrowser = function () {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
@@ -178,6 +173,13 @@ define(function (require, exports, module) {
                 Strings.ERROR_IN_BROWSER
             );
         }
+        return brackets.inBrowser;
+    };
+    
+    function _onReady() {
+        PerfUtils.addMeasurement("window.document Ready");
+
+        EditorManager.setEditorHolder($("#editor-holder"));
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -291,6 +293,7 @@ define(function (require, exports, module) {
                     if (!this.hasClass("dropdown-toggle")) {
                         defaultFocus.apply(this, arguments);
                     }
+                    return this; // FIXME: merge up w/ master!
                 };
             }());
         }

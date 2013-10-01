@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, brackets, window */
+/*global define, $, CodeMirror, brackets, window, PathUtils */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
@@ -68,6 +68,10 @@ define(function (require, exports, module) {
      * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
      */
     function getUserExtensionPath() {
+        if (brackets.inBrowser) {
+            return "";
+        }
+        
         return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
     }
     
@@ -318,6 +322,40 @@ define(function (require, exports, module) {
             // Only init once. Return a resolved promise.
             return new $.Deferred().resolve().promise();
         }
+        
+        // Load *subset* of the usual builtin extensions list, and don't try to find any user/dev extensions
+        if (brackets.inBrowser) {
+            var basePath = PathUtils.directory(window.location.href) + "extensions/default/",
+                defaultExtensions = [
+                    "CSSCodeHints",
+                    //"DebugCommands",
+                    "HTMLCodeHints",
+                    "HtmlEntityCodeHints",
+                    "InlineColorEditor",
+                    //"JavaScriptCodeHints",
+                    "JavaScriptQuickEdit",
+                    "JSLint",
+                    "LESSSupport",
+                    "QuickOpenCSS",
+                    "QuickOpenHTML",
+                    "QuickOpenJavaScript",
+                    "QuickView",
+                    "RecentProjects",
+                    //"StaticServer",
+                    "UrlCodeHints",
+                    "WebPlatformDocs",
+                    
+                    "test-server-file-system"
+                ];
+            
+            return Async.doInParallel(defaultExtensions, function (item) {
+                var extConfig = {
+                    baseUrl: basePath + item
+                };
+                return loadExtension(item, extConfig, "main");
+            });
+        }
+        
         
         if (!paths) {
             paths = "default,dev," + getUserExtensionPath();

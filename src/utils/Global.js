@@ -49,6 +49,9 @@ define(function (require, exports, module) {
     if (!global.brackets) {
         global.brackets = {};
     }
+    if (!global.appshell) {
+        global.appshell = global.brackets;
+    }
     
     // Parse src/config.json
     try {

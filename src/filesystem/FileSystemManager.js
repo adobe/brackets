@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     // File system impls. These should be mixed in instead of being hard-coded here.
     var appshellFileSystem  = require("filesystem/impls/appshell/AppshellFileSystem"),
+        demoFileSystem      = require("filesystem/impls/demo/DemoFileSystem"),
         dropboxFileSystem   = require("filesystem/impls/dropbox/DropboxFileSystem");
     
     var _defaultFileSystem,
@@ -77,13 +78,84 @@ define(function (require, exports, module) {
     
     // Register built-in file systems
     registerFileSystemImpl("appshell", appshellFileSystem);
+    registerFileSystemImpl("hardcoded_demo", demoFileSystem);
     registerFileSystemImpl("dropbox", dropboxFileSystem);
     
     // Set default file system
-    setDefaultFileSystem("appshell");
+    if (appshell.inBrowser) {
+        setDefaultFileSystem("hardcoded_demo"); // this is ONLY used for the 'demo' project; extension loading etc. just use require() - so default can be the real server fs once it's working w/ a clean login workflow
+        
+        if (!appshell.fs) {
+            appshell.fs = {};
+        }
+        // Copied from appshell_extensions.js -------------------------------------------------------------------------
+        /**
+         * @constant No error.
+         */
+        appshell.fs.NO_ERROR                    = 0;
+        
+        /**
+         * @constant Unknown error occurred.
+         */
+        appshell.fs.ERR_UNKNOWN                 = 1;
+        
+        /**
+         * @constant Invalid parameters passed to function.
+         */
+        appshell.fs.ERR_INVALID_PARAMS          = 2;
+        
+        /**
+         * @constant File or directory was not found.
+         */
+        appshell.fs.ERR_NOT_FOUND               = 3;
+        
+        /**
+         * @constant File or directory could not be read.
+         */
+        appshell.fs.ERR_CANT_READ               = 4;
+        
+        /**
+         * @constant An unsupported encoding value was specified.
+         */
+        appshell.fs.ERR_UNSUPPORTED_ENCODING    = 5;
+        
+        /**
+         * @constant File could not be written.
+         */
+        appshell.fs.ERR_CANT_WRITE              = 6;
+        
+        /**
+         * @constant Target directory is out of space. File could not be written.
+         */
+        appshell.fs.ERR_OUT_OF_SPACE            = 7;
+        
+        /**
+         * @constant Specified path does not point to a file.
+         */
+        appshell.fs.ERR_NOT_FILE                = 8;
+        
+        /**
+         * @constant Specified path does not point to a directory.
+         */
+        appshell.fs.ERR_NOT_DIRECTORY           = 9;
+     
+        /**
+         * @constant Specified file already exists.
+         */
+        appshell.fs.ERR_FILE_EXISTS             = 10;
+    
+        /**
+         * @constant The required browser is not installed
+         */
+        appshell.fs.ERR_BROWSER_NOT_INSTALLED   = 11;
+        // End --------------------------------------------------------------------------------------------------------
+        
+    } else {
+        setDefaultFileSystem("appshell");
+    }
     
     // Initialze the app file system. This is used to load application files like
-    // extensions and config.json.
+    // extensions and config.json. (TODO: not really, require() owns that)
     // This file system is created with the "default" file system implementation,
     // which is different when running in the shell and in browsers.
     if (!appshell.appFileSystem) {
