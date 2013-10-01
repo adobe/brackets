@@ -195,6 +195,7 @@ define(function (require, exports, module) {
                 imageHolder = Mustache.render(ImageHolderTemplate, {fullPath: fullPath});
                 $('#editor-holder').append(imageHolder);
                 DocumentManager.clearCurrentDocument();
+                EditorManager.nullifyEditor();
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)

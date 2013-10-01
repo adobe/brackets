@@ -552,9 +552,12 @@ define(function (require, exports, module) {
         }
     }
     
-
-    /** Hide the currently visible editor and show a placeholder UI in its place */
-    function _showNoEditor() {
+    /**
+     * Make sure getFocusedEditor(), getActiveEditor() and getCurrentFullEditor()
+     * all return null. For instance when an image is displayed or the NoEditor 
+     * placeholder is displayed.
+     */
+    function nullifyEditor() {
         if (_currentEditor) {
             _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
@@ -562,11 +565,16 @@ define(function (require, exports, module) {
             
             _currentEditorsDocument = null;
             _currentEditor = null;
-            
-            $("#not-editor").css("display", "");
-            
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
+        }
+    }
+    
+    /** Hide the currently visible editor and show a placeholder UI in its place */
+    function _showNoEditor() {
+        if (_currentEditor) {
+            $("#not-editor").css("display", "");
+            nullifyEditor();
         }
     }
 
@@ -583,9 +591,9 @@ define(function (require, exports, module) {
             $('#image-holder').remove();
             _showEditor(doc);
         } else {
-            if($('#image-holder').length === 0) {
+            if ($('#image-holder').length === 0) {
                 _showNoEditor();
-            }else{
+            } else {
                 $("#not-editor").css("display", "none");
             }
         }
@@ -837,4 +845,5 @@ define(function (require, exports, module) {
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
+    exports.nullifyEditor                 = nullifyEditor;
 });
