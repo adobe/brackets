@@ -187,6 +187,11 @@ define(function (require, exports, module) {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {
+                // TODO: 
+                // file selection triangle in tree
+                // zoom factor for big images
+                // what to do about long paths
+                // file size?
                 var $imageHolder = $('#image-holder');
                  // TODO: call EditorManager API to display image-holder
                 if ($('#image-holder')) {
