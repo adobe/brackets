@@ -718,48 +718,50 @@ define(function (require, exports, module) {
     }
 
     function doSearch(query){
-        if (query) {
-            currentQuery     = query;
-            currentQueryExpr = _getQueryRegExp(query);
-            
-            if (!currentQueryExpr) {
-                return;
-            }
-            StatusBar.showBusyIndicator(true);
-            FileIndexManager.getFileInfoList("all")
-                .done(function (fileListResult) {
-                    Async.doInParallel(fileListResult, function (fileInfo) {
-                        var result = new $.Deferred();
-                        
-                        if (!_inScope(fileInfo, currentScope)) {
-                            result.resolve();
-                        } else {
-                            // Search one file
-                            DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                                .done(function (doc) {
-                                    _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
-                                    result.resolve();
-                                })
-                                .fail(function (error) {
-                                    // Error reading this file. This is most likely because the file isn't a text file.
-                                    // Resolve here so we move on to the next file.
-                                    result.resolve();
-                                });
-                        }
-                        return result.promise();
-                    })
-                        .done(function () {
-                            // Done searching all files: show results
-                            _showSearchResults();
-                            StatusBar.hideBusyIndicator();
-                            $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
-                        })
-                        .fail(function () {
-                            console.log("find in files failed.");
-                            StatusBar.hideBusyIndicator();
-                        });
-                });
+        if (!query) {
+            return;
         }
+        
+        currentQuery     = query;
+        currentQueryExpr = _getQueryRegExp(query);
+        
+        if (!currentQueryExpr) {
+            return;
+        }
+        StatusBar.showBusyIndicator(true);
+        FileIndexManager.getFileInfoList("all")
+            .done(function (fileListResult) {
+                Async.doInParallel(fileListResult, function (fileInfo) {
+                    var result = new $.Deferred();
+                    
+                    if (!_inScope(fileInfo, currentScope)) {
+                        result.resolve();
+                    } else {
+                        // Search one file
+                        DocumentManager.getDocumentForPath(fileInfo.fullPath)
+                            .done(function (doc) {
+                                _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
+                                result.resolve();
+                            })
+                            .fail(function (error) {
+                                // Error reading this file. This is most likely because the file isn't a text file.
+                                // Resolve here so we move on to the next file.
+                                result.resolve();
+                            });
+                    }
+                    return result.promise();
+                })
+                    .done(function () {
+                        // Done searching all files: show results
+                        _showSearchResults();
+                        StatusBar.hideBusyIndicator();
+                        $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                    })
+                    .fail(function () {
+                        console.log("find in files failed.");
+                        StatusBar.hideBusyIndicator();
+                    });
+            });
     }
 
     /**
