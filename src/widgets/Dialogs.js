@@ -220,7 +220,6 @@ define(function (require, exports, module) {
      * @return {Dialog}
      */
     function showModalDialogUsingTemplate(template, autoDismiss) {
-        console.log("Appended");
         if (autoDismiss === undefined) {
             autoDismiss = true;
         }
