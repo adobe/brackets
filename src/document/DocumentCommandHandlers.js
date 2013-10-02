@@ -192,6 +192,7 @@ define(function (require, exports, module) {
                 // zoom factor for big images
                 // what to do about long paths
                 // file size?
+                // put raster backgroung behing image- for transparent images
                 var $imageHolder = $('#image-holder');
                  // TODO: call EditorManager API to display image-holder
                 if ($('#image-holder')) {
