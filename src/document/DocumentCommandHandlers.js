@@ -201,18 +201,22 @@ define(function (require, exports, module) {
                 DocumentManager.clearCurrentDocument();
                 EditorManager.nullifyEditor();
                 
-                $('#img-data').text($('#image-holder').width() + " x " + $('#image-holder').height());
-                $('#img-path').text(fullPath);                   
+                var projectRoot = ProjectManager.getProjectRoot(). fullPath;
+                $('#img-path').text(fullPath.replace(projectRoot,""));                   
                 // display image in center
-//                var marginLeft = Math.floor($('#editor-holder').width() / 2 - $('#image-holder').width() / 2);
-//                var marginTop = Math.floor($('#editor-holder').height() / 2 - $('#image-holder').height() / 2);
-//                
-             
-//                
-//                $('#image-holder').css("margin-left", (marginLeft > 0 ? marginLeft : 0));
-//                $('#image-holder').css("margin-top", (marginTop > 0 ? marginTop : 0));
+                $imageHolder.find("#img-preview").on("load", function () {
+                    // add size
+                    $('#img-data').text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
+                    // position in center
+                    var marginLeft = Math.floor($('#editor-holder').width() / 2 - this.naturalWidth / 2);
+                    var marginTop = Math.floor($('#editor-holder').height() / 2 - this.naturalHeight / 2);
+                    $('#image-holder').css("margin-left", (marginLeft > 0 ? marginLeft : 0));
+                    $('#image-holder').css("margin-top", (marginTop > 0 ? marginTop : 0));                    
+                    $('#image-holder').show();
+                });                
                 
-                $('#image-holder').css("display", "inline");
+
+                
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
