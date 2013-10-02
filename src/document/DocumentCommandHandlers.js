@@ -888,6 +888,18 @@ define(function (require, exports, module) {
         return promise;
     }
     
+    /** @return {!Array.<Document>} All Documents with unsaved changes. Empty array if no unsaved changes anywhere */
+    function _getUnsavedDocs() {
+        var unsavedDocs = [];
+        DocumentManager.getWorkingSet().forEach(function (file) {
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            if (doc && doc.isDirty) {
+                unsavedDocs.push(doc);
+            }
+        });
+        return unsavedDocs;
+    }
+    
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
@@ -900,13 +912,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             promptOnly = commandData && commandData.promptOnly;
         
-        var unsavedDocs = [];
-        DocumentManager.getWorkingSet().forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
-            }
-        });
+        var unsavedDocs = _getUnsavedDocs();
         
         if (unsavedDocs.length === 0) {
             // No unsaved changes, so we can proceed without a prompt
@@ -1045,7 +1051,6 @@ define(function (require, exports, module) {
     }
     
     /** Confirms any unsaved changes, then closes the window */
-    // TODO: do something similar onbeforeunload
     function handleFileCloseWindow(commandData) {
         return _handleWindowGoingAway(
             commandData,
@@ -1060,6 +1065,23 @@ define(function (require, exports, module) {
                 }
             }
         );
+    }
+    
+    /** In-browser equivalent to handleFileCloseWindow(), much more constrained */
+    function handleBeforeUnload() {
+        var unsavedDocs = _getUnsavedDocs();
+        if (unsavedDocs.length) {
+            var message = Strings.UNLOAD_WITH_UNSAVED + "\n";
+            unsavedDocs.forEach(function (doc) {
+                message += "\n    " + _shortTitleForDocument(doc);
+            });
+            return message;
+        }
+        
+        // TODO: Do we want a message even when not unsaved? Easy to hit Ctrl+W via muscle memory right now...
+//        } else {
+//            return Strings.UNLOAD_NO_UNSAVED;
+//        }
     }
     
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
@@ -1230,6 +1252,11 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
     } else {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
+    }
+    
+    // In-browser, we can't veto closing the way we do in-shell. Best we can do is ugly confirmation dialog via beforeunload
+    if (brackets.inBrowser) {
+        $(window).on("beforeunload", handleBeforeUnload);
     }
 
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
