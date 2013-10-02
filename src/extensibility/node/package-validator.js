@@ -54,12 +54,10 @@ var Errors = {
 };
 
 /*
- * Directories to ignore when computing the common prefix among the entries of
- * a zip file.
+ * Directories to ignore when determining whether the contents of an extension are
+ * in a subfolder.
  */
-var ignoredPrefixes = {
-    "__MACOSX": true
-};
+var ignoredFolders = [ "__MACOSX" ];
 
 /**
  * Returns true if the name presented is acceptable as a package name. This enforces the
@@ -156,6 +154,12 @@ function containsWords(wordlist, str) {
  */
 function findCommonPrefix(extractDir, callback) {
     fs.readdir(extractDir, function (err, files) {
+        ignoredFolders.forEach(function (folder) {
+            var index = files.indexOf(folder);
+            if (index !== -1) {
+                files.splice(index, 1);
+            }
+        });
         if (err) {
             callback(err);
         } else if (files.length === 1) {
