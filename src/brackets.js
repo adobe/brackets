@@ -204,9 +204,15 @@ define(function (require, exports, module) {
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
-                // Finish UI initialization
-                var initialProjectPath = ProjectManager.getInitialProjectPath();
-                ProjectManager.openProject(initialProjectPath).always(function () {
+                var initialProjectPath, initialProjectFs;
+                if (brackets.inBrowser) {
+                    // FIXME: just for FS demo
+                    initialProjectPath = "test";
+                    initialProjectFs = "test-server-fs";
+                } else {
+                    initialProjectPath = ProjectManager.getInitialProjectPath();
+                }
+                ProjectManager.openProject(initialProjectPath, initialProjectFs).always(function () {
                     _initTest();
                     
                     // If this is the first launch, and we have an index.html file in the project folder (which should be

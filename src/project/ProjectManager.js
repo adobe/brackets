@@ -812,6 +812,10 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath() {
+        if (brackets.inBrowser) {
+            return "/Getting Started";
+        }
+        
         var initialPath = FileUtils.getNativeBracketsDirectoryPath(),
             sampleUrl = Urls.GETTING_STARTED;
         if (sampleUrl) {
@@ -852,9 +856,6 @@ define(function (require, exports, module) {
      * first launch. 
      */
     function getInitialProjectPath() {
-        if (brackets.inBrowser) {
-            return "/Getting Started";
-        }
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
@@ -911,9 +912,8 @@ define(function (require, exports, module) {
         // restore project tree state from last time this project was open
         _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
-        // Populate file tree as long as we aren't running in the browser
+        // Populate file tree
         if (true) {
-            // Point at a real folder structure on local disk
             var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
             rootEntry.exists()
                 .done(function (exists) {
