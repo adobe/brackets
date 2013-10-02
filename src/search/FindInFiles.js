@@ -545,14 +545,15 @@ define(function (require, exports, module) {
             }
             searchResultsPanel.show();
 
-            if(dialog instanceof FindInFilesDialog){
+            if(dialog){
                 dialog._close();
+                dialog = null;
             }
         } else {
 
             _hideSearchResults();
 
-            if(dialog instanceof FindInFilesDialog){
+            if(dialog){
                 dialog.getDialogTextField().addClass('no-results');
             }
         }
@@ -721,7 +722,7 @@ define(function (require, exports, module) {
         if (!query) {
             return;
         }
-        
+
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
