@@ -730,11 +730,16 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     var savePromise = handleFileSave({doc: doc});
-                    savePromise.fail(function (error) {
-                        if (error === USER_CANCELED) {
-                            userCanceled = true;
-                        }
-                    });
+                    savePromise
+                        .done(function (newFile) {
+                            file.fullPath = newFile.fullPath;
+                            file.name = newFile.name;
+                        })
+                        .fail(function (error) {
+                            if (error === USER_CANCELED) {
+                                userCanceled = true;
+                            }
+                        });
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
@@ -913,7 +918,7 @@ define(function (require, exports, module) {
         return promise;
     }
         
-    function _doCloseDocumentList(list, promptOnly) {
+    function _doCloseDocumentList(list, promptOnly, clearCurrentDoc) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -997,7 +1002,7 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.removeFromWorkingSet(list);
+                DocumentManager.removeListFromWorkingSet(list, (clearCurrentDoc || true));
             }
         });
         
@@ -1016,8 +1021,8 @@ define(function (require, exports, module) {
         return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
     }
     
-    function handleFileCloseList(documentList) {
-        return _doCloseDocumentList(documentList);
+    function handleFileCloseList(commandData) {
+        return _doCloseDocumentList((commandData && commandData.documentList), false);
     }
     
     /**
@@ -1226,8 +1231,6 @@ define(function (require, exports, module) {
 
     // Exported for unit testing only
     exports._parseDecoratedPath = _parseDecoratedPath;
-    
-    exports.handleFileCloseList = handleFileCloseList;
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
@@ -1246,6 +1249,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);

@@ -316,12 +316,19 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
     }
-    
-    function _internalRemoveFromWorkingSet(file) {
+
+    /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
+     * Removes the given file from the working set list, if it was in the list. Does not change
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!FileEntry} file
+     * @param {boolean=} true to suppress redraw after removal
+     */
+    function removeFromWorkingSet(file, suppressRedraw) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
-            return false;
+            return;
         }
         
         // Remove
@@ -329,22 +336,8 @@ define(function (require, exports, module) {
         _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
         _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
-        return true;
-    }
-        
-    function removeFromWorkingSet(content, suppressRedraw) {
-        if (content) {
-            if ($.isArray(content)) {
-                content.forEach(function (file) {
-                    _internalRemoveFromWorkingSet(file);
-                });
-                
-                $(exports).triggerHandler("workingSetRemoveList", [content]);
-                
-            } else if (_internalRemoveFromWorkingSet(content)) {
-                $(exports).triggerHandler("workingSetRemove", [content, suppressRedraw]);
-            }
-        }
+        // Dispatch event
+        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
     }
 
     /**
@@ -575,6 +568,33 @@ define(function (require, exports, module) {
         _clearCurrentDocument();
         _removeAllFromWorkingSet();
     }
+        
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
+        var fileList = [], index;
+        
+        if (!list) {
+            return;
+        }
+        
+        if (clearCurrentDocument) {
+            _clearCurrentDocument();
+        }
+        
+        list.forEach(function (file) {
+            index = findInWorkingSet(file.fullPath);
+            
+            if (index !== -1) {
+                fileList.push(_workingSet[index]);
+                
+                _workingSet.splice(index, 1);
+                _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+                _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+            }
+        });
+        
+        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
+    }
+    
     
     /**
      * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
@@ -946,6 +966,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;

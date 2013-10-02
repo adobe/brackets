@@ -56,8 +56,8 @@ define(function (require, exports, module) {
         for (i = start; i < end; i++) {
             docList.push(workingSet[i]);
         }
-
-        docCH.handleFileCloseList(docList);
+        
+        CommandManager.execute(Commands.FILE_CLOSE_LIST, {documentList: docList});
     }
 
     if (settings.close_below) {
