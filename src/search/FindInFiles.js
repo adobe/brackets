@@ -211,7 +211,6 @@ define(function (require, exports, module) {
             dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
             that       = this;
         
-        //this.result      = new $.Deferred();
         this.modalBar    = new ModalBar(dialogHTML, false);
         var $searchField = $("input#searchInput");
         
@@ -226,7 +225,7 @@ define(function (require, exports, module) {
                     
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                         that._close(null);
-                    }else if(event.keyCode === KeyEvent.DOM_VK_RETURN){
+                    } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         doSearch(query);
                     }
                 }
@@ -240,8 +239,6 @@ define(function (require, exports, module) {
                 that._close(null);
             })
             .focus();
-        
-        //return this.result.promise();
     };
     
     
