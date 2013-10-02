@@ -205,10 +205,9 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 var initialProjectPath, initialProjectFs;
-                if (brackets.inBrowser) {
-                    // FIXME: just for FS demo
-                    initialProjectPath = "test";
-                    initialProjectFs = "test-server-fs";
+                if (brackets.inBrowser && params.get("project")) {
+                    initialProjectPath = params.get("project");
+                    initialProjectFs = "test-server-fs";  // TODO: should this be passed in too?
                 } else {
                     initialProjectPath = ProjectManager.getInitialProjectPath();
                 }
@@ -250,7 +249,12 @@ define(function (require, exports, module) {
                     });
                     
                     // See if any startup files were passed to the application
-                    if (brackets.app.getPendingFilesToOpen) {
+                    if (brackets.inBrowser) {
+                        // Note: if "file" specified, "project" must have been specified too
+                        if (params.get("file")) {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: ProjectManager.getProjectRoot().fullPath + "/" + params.get("file") });
+                        }
+                    } else if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
                             files.forEach(function (filename) {
                                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
