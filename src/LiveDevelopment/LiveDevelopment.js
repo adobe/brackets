@@ -659,13 +659,16 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
-    function _closeLiveBrowser() {
+    function _closeLiveBrowser(deferred) {
         NativeApp.closeLiveBrowser()
-            .done(function () { return; })
+            .done(function () { 
+                _setStatus(STATUS_INACTIVE);
+                deferred.resolve();
+            })
             .fail(function (err) {
                 // Report error?
                 _setStatus(STATUS_ERROR);
-                _openDeferred.reject("CLOSE_LIVE_BROWSER");
+                deferred.reject("CLOSE_LIVE_BROWSER");
             });
     }
     
@@ -685,8 +688,7 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
+            _closeLiveBrowser(deferred);
         }
 
         if (_openDeferred) {
@@ -701,9 +703,7 @@ define(function LiveDevelopment(require, exports, module) {
             // ProjectManager beforeProjectClose and beforeAppClose events
             cleanup();
         }
-        
-        _closeLiveBrowser();
-        
+                
         return deferred.promise();
     }
 
