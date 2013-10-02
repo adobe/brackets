@@ -54,7 +54,8 @@ var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extensio
     badname                = path.join(testFilesDirectory, "badname.zip"),
     mainInDirectory        = path.join(testFilesDirectory, "main-in-directory.zip"),
     invalidVersion         = path.join(testFilesDirectory, "invalid-version.zip"),
-    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip");
+    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip"),
+    ignoredFolder          = path.join(testFilesDirectory, "has-macosx.zip");
 
 describe("Package Validation", function () {
     
@@ -290,5 +291,13 @@ describe("Package Validation", function () {
         expect(validateName("foo/bar")).toEqual(false);
         expect(validateName("..")).toEqual(false);
         expect(validateName(".")).toEqual(false);
+    });
+    
+    it("should ignore the __MACOSX folder when looking for a single subfolder", function (done) {
+        packageValidator.validate(ignoredFolder, {}, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            done();
+        });
     });
 });
