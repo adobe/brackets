@@ -58,7 +58,8 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        ProjectManager      = require("project/ProjectManager");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -70,6 +71,10 @@ define(function (require, exports, module) {
     var _currentEditor = null;
     /** @type {?Document} */
     var _currentEditorsDocument = null;
+    /** @type {?string} full path to file */
+    var _currentlyViewedFile = null;
+    /** @type {?JQuery} full path to file */
+    var _currentCustomView = null;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -557,7 +562,7 @@ define(function (require, exports, module) {
      * all return null. For instance when an image is displayed or the NoEditor 
      * placeholder is displayed.
      */
-    function nullifyEditor() {
+    function _nullifyEditor() {
         if (_currentEditor) {
             _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
@@ -570,11 +575,45 @@ define(function (require, exports, module) {
         }
     }
     
+    //
+    // TODO: 
+    // file selection triangle in tree
+    // zoom factor for big images
+    // what to do about long paths
+    // file size?
+    // put raster backgroung behing image- for transparent images - see quick view
+    // Dropshadow 1px / 3px black
+    //     
+    function showCustomViewer($customView, fullPath) {
+        // remove current image, this will onyl happen if the view switches from one 
+        // image to another
+
+        $("#editor-holder").append($customView);
+
+        // Hide the not-editor
+        $("#not-editor").css("display", "none");
+        DocumentManager.clearCurrentDocument();
+        
+        _currentlyViewedFile = fullPath;
+        _currentCustomView = $customView;
+        $(DocumentManager).triggerHandler("currentDocumentChange");
+    }
+    
+    function _getCurrentlyViewedFile() {
+        return _currentlyViewedFile;
+    }
+    
+    function _clearCurrentlyViewedFile() {
+        _currentlyViewedFile = null;
+    }
+
+    
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor && $('#image-holder').length === 0) {
+        _currentCustomView = null;
+        if (_currentEditor) {
             $("#not-editor").css("display", "");
-            nullifyEditor();
+            _nullifyEditor();
         }
     }
 
@@ -584,15 +623,38 @@ define(function (require, exports, module) {
             container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
-        
+        if (_currentCustomView && $("#" + _currentCustomView.attr("id")).size() > 0) {
+            $("#" + _currentCustomView.attr("id")).remove();
+        }
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
-            $('#image-holder').remove();
+            _currentlyViewedFile = doc.file.fullPath;
+            _currentCustomView = null;
             _showEditor(doc);
         } else {
-            if ($('#image-holder').length === 0) {
+            if (!_currentlyViewedFile) {
                 _showNoEditor();
+            } else {
+                $("#editor-holder").append(_currentCustomView);
+                // TODO push this inot _onCurrentDocumentChange
+                _nullifyEditor();
+                var relPath = ProjectManager.makeProjectRelativeIfPossible(_currentlyViewedFile);
+                $("#img-path").text(relPath);
+                // display image in center
+                // TODO determine file type here to show image viewer or else
+                // to make this code independent of image viewer
+                $("#img-preview").on("load", function () {
+                    // add size
+                    $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
+                    // position in center
+                    var marginLeft = Math.floor($("#editor-holder").width() / 2 - this.naturalWidth / 2);
+                    var marginTop = Math.floor($("#editor-holder").height() / 2 - this.naturalHeight / 2);
+                    $("#image-holder").css("margin-left", (marginLeft > 0 ? marginLeft : 0));
+                    $("#image-holder").css("margin-top", (marginTop > 0 ? marginTop : 0));
+                    
+                    $("#image-holder").show();
+                });
             }
         }
 
@@ -816,6 +878,8 @@ define(function (require, exports, module) {
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
+    $(ProjectManager).on("beforeProjectClose",     _clearCurrentlyViewedFile);
+
 
     // For unit tests and internal use only
     exports._openInlineWidget             = _openInlineWidget;
@@ -843,5 +907,5 @@ define(function (require, exports, module) {
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
-    exports.nullifyEditor                 = nullifyEditor;
+    exports.showCustomViewer              = showCustomViewer;
 });

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        ImageViewer         = require("editor/ImageViewer"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
@@ -47,8 +48,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager"),
-        ImageHolderTemplate = require("text!htmlContent/image-holder.html");
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -187,42 +187,8 @@ define(function (require, exports, module) {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {
-                // TODO: 
-                // file selection triangle in tree
-                // zoom factor for big images
-                // what to do about long paths
-                // file size?
-                // put raster backgroung behing image- for transparent images
-                var $imageHolder = $('#image-holder');
-                 // TODO: call EditorManager API to display image-holder
-                if ($('#image-holder')) {
-                    $('#image-holder').remove();
-                }
-                $imageHolder = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-                $imageHolder.css("display", "none");
-                $('#editor-holder').append($imageHolder);
-
-                // Hide the not-editor
-                $("#not-editor").css("display", "none");
-                DocumentManager.clearCurrentDocument();
-                EditorManager.nullifyEditor();
-                
-                var projectRoot = ProjectManager.getProjectRoot(). fullPath;
-                $('#img-path').text(fullPath.replace(projectRoot,""));                   
-                // display image in center
-                $imageHolder.find("#img-preview").on("load", function () {
-                    // add size
-                    $('#img-data').text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
-                    // position in center
-                    var marginLeft = Math.floor($('#editor-holder').width() / 2 - this.naturalWidth / 2);
-                    var marginTop = Math.floor($('#editor-holder').height() / 2 - this.naturalHeight / 2);
-                    $('#image-holder').css("margin-left", (marginLeft > 0 ? marginLeft : 0));
-                    $('#image-holder').css("margin-top", (marginTop > 0 ? marginTop : 0));                    
-                    $('#image-holder').show();
-                });                
-                
-
-                
+                var $imageHolder = ImageViewer.getImageHolder(fullPath);
+                EditorManager.showCustomViewer($imageHolder, fullPath);
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
