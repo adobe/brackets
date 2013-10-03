@@ -661,7 +661,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     function _closeLiveBrowser(deferred) {
         NativeApp.closeLiveBrowser()
-            .done(function () { 
+            .done(function () {
                 _setStatus(STATUS_INACTIVE);
                 deferred.resolve();
             })
