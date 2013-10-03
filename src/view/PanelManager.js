@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
      * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet.
-     * @param {number=} minSize  Minimum height of panel in px; default is DEFAULT_MIN_SIZE
+     * @param {number=} minSize  Minimum height of panel in px.
      * @return {!Panel}
      */
     function createBottomPanel(id, $panel, minSize) {
