@@ -150,7 +150,7 @@ define(function (require, exports, module) {
      * Represents a panel below the editor area (a child of ".content").
      * 
      * @param {!jQueryObject} $panel  The entire panel, including any chrome, already in the DOM.
-     * @param {number=} minSize  Minimum height of panel in px; default is DEFAULT_MIN_SIZE
+     * @param {number=} minSize  Minimum height of panel in px.
      */
     function Panel($panel, minSize) {
         this.$panel = $panel;
