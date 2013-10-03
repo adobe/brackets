@@ -229,6 +229,8 @@ define(function (require, exports, module) {
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                         that._close(null);
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
+                        StatusBar.showBusyIndicator(true);
+                        that.getDialogTextField().attr('disabled','disabled');
                         _doSearch(query);
                     }
                 }
@@ -240,6 +242,9 @@ define(function (require, exports, module) {
                 that.getDialogTextField().removeClass('no-results');
             })
             .blur(function () {
+                if (that.getDialogTextField().attr('disabled')) {
+                    return;
+                }
                 that._close(null);
             })
             .focus();
@@ -558,7 +563,10 @@ define(function (require, exports, module) {
             _hideSearchResults();
 
             if (dialog) {
-                dialog.getDialogTextField().addClass('no-results');
+                dialog.getDialogTextField().addClass('no-results')
+                                            .removeAttr('disabled')
+                                            .get(0).select();
+                                            
                 $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error").css("display", "inline-block").html(Strings.FIND_NO_RESULTS);
             }
@@ -740,7 +748,6 @@ define(function (require, exports, module) {
         if (!currentQueryExpr) {
             return;
         }
-        StatusBar.showBusyIndicator(true);
         FileIndexManager.getFileInfoList("all")
             .done(function (fileListResult) {
                 Async.doInParallel(fileListResult, function (fileInfo) {
