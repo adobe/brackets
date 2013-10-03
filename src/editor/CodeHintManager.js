@@ -626,11 +626,11 @@ define(function (require, exports, module) {
                 handleKeyEvent(editor, event);
             };
         
-        $(current).on("change", changeHandler);
+        $(current).on("editorChange", changeHandler);
         $(current).on("keyEvent", keyEventHandler);
             
         //Removing all old Handlers
-        $(previous).off("change", changeHandler);
+        $(previous).off("editorChange", changeHandler);
         $(previous).off("keyEvent", keyEventHandler);
     }
     
