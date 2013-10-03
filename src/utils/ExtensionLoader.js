@@ -68,8 +68,8 @@ define(function (require, exports, module) {
      * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
      */
     function getUserExtensionPath() {
-        if (brackets.inBrowser) {
-            return "";
+        if (brackets.inBrowser) {  // TODO: how will user-installed extensions work in-browser?
+            return "&&&does_not_exist&&&";
         }
         
         return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
