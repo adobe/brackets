@@ -234,6 +234,7 @@ define(function (require, exports, module) {
                 // Check the query expression on every input event. This way the user is alerted
                 // to any RegEx syntax errors immediately.
                 _getQueryRegExp($searchField.val());
+                that.getDialogTextField().removeClass('no-results');
             })
             .blur(function () {
                 that._close(null);
@@ -555,6 +556,8 @@ define(function (require, exports, module) {
 
             if(dialog){
                 dialog.getDialogTextField().addClass('no-results');
+                $(".modal-bar .message").css("display", "none");
+                $(".modal-bar .error").css("display", "inline-block").html(Strings.FIND_NO_RESULTS);
             }
         }
     }
