@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     
     var client;
     
-    function init() {
+    function init(callback) {
         if (!client) {
             client = new Dropbox.Client({
                 key: "sWR9wXcpXIA=|c5GZu+WL9XhxhReZMsg7QvspGpVZ80iF+Cin/xbKrQ==",
@@ -40,7 +40,8 @@ define(function (require, exports, module) {
             });
             client.authDriver(new Dropbox.Drivers.Redirect({rememberUser: true}));
             client.authenticate(function (err, client) {
-                // TODO: Handle errors
+                // TODO: Handle errors?
+                callback(err);
             });
         }
     }

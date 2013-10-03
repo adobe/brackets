@@ -37,11 +37,11 @@ define(function (require, exports, module) {
     /**
      * Constructor. FileSystem objects should not be constructed directly.
      * Use FileSystemManager.createFileSystem() instead.
+     * The FileSystem is not usable until init() signals its callback.
      * @param {!FileSystemImpl} impl Low-level file system implementation to use.
      */
     function FileSystem(impl, system) {
         this._impl = impl;
-        this._impl.init();
         this._system = system;
         
         // Create a file index
@@ -64,6 +64,13 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
+    
+    /**
+     * @param {function(?err)} callback
+     */
+    FileSystem.prototype.init = function (callback) {
+        this._impl.init(callback);
+    };
 
     /**
      * The name of the low-level file system implementation used by this object.
