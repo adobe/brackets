@@ -177,7 +177,10 @@ define(function (require, exports, module) {
         this.closed = false;
     }
 
-    
+    /**
+     * Returns the input text field of the modalbar in the dialog
+     * @return jQuery Object pointing to input text field
+     */
     FindInFilesDialog.prototype.getDialogTextField = function() {
         return $("input[type='text']", this.modalBar.getRoot());
     };
@@ -226,7 +229,7 @@ define(function (require, exports, module) {
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                         that._close(null);
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                        doSearch(query);
+                        _doSearch(query);
                     }
                 }
             })
@@ -546,7 +549,7 @@ define(function (require, exports, module) {
             }
             searchResultsPanel.show();
 
-            if(dialog){
+            if (dialog) {
                 dialog._close();
                 dialog = null;
             }
@@ -554,7 +557,7 @@ define(function (require, exports, module) {
 
             _hideSearchResults();
 
-            if(dialog){
+            if (dialog) {
                 dialog.getDialogTextField().addClass('no-results');
                 $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error").css("display", "inline-block").html(Strings.FIND_NO_RESULTS);
@@ -721,7 +724,12 @@ define(function (require, exports, module) {
         }
     }
 
-    function doSearch(query){
+    /**
+     * @private
+     * Executes the Find in Files search inside the 'currentScope'
+     * @param {String} query String to be searched
+     */
+    function _doSearch(query) {
         if (!query) {
             return;
         }
