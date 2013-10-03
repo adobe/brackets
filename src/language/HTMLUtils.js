@@ -482,7 +482,7 @@ define(function (require, exports, module) {
             outerMode = editor._codeMirror.getMode(),
             tokenModeName;
         
-        while (TokenUtils.moveNextToken(ctx)) {
+        while (TokenUtils.moveNextToken(ctx, false)) {
             tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
             if (inBlock) {
                 if (!currentBlock.end) {
