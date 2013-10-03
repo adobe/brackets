@@ -9,7 +9,7 @@
 // }
 //
 //
-// init()
+// init(callback)
 // showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data))
 // showSaveDialog((title, initialPath, proposedNewFilename, callback))
 // [isNetworkDrive(path, callback)]

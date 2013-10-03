@@ -470,8 +470,7 @@ define(function (require, exports, module) {
         waitsForDone(promise, "dismiss dialog");
     }
     
-    
-    function createTestWindowAndRun(spec, callback) {
+    function createTestWindowAndRun(spec, callback, options) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
             var testWindowWid = 1000,
@@ -497,6 +496,11 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // option to launch test window with either native or HTML menus
+            if (options && options.hasOwnProperty("hasNativeMenus")) {
+                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+            }
+            
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
             _testWindow.isBracketsTestWindow = true;
@@ -518,7 +522,7 @@ define(function (require, exports, module) {
                 });
             };
         });
-
+        
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function isBracketsDoneLoading() {

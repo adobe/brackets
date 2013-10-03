@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
     
     
-    function init() {
+    function init(callback) {
+        callback();
     }
     
     

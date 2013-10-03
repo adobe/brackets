@@ -64,14 +64,18 @@ define(function (require, exports, module) {
      *
      * @param {string=} system The name of the low-level file system implementation. If omitted,
      *                      the default system is used.
-     * @return {FileSystem} A FileSystem object.
+     * @param {callback(?err, ?FileSystem)} Passed either an error or a fully-initialized FileSystem
+     *                      once it's ready
      */
-    function createFileSystem(system) {
+    function createFileSystem(system, callback) {
         var impl = _impls[system || _defaultFileSystem];
         
         console.assert(impl, "File System implementation not found: " + (system || _defaultFileSystem));
         
-        return new FileSystem(impl, system);
+        var fs = new FileSystem(impl, system);
+        fs.init(function (err) {
+            callback(err, err ? null : fs);
+        });
     }
     
     // TODO: Registration and assigning default should be done in brackets.js or globals.js
@@ -159,7 +163,10 @@ define(function (require, exports, module) {
     // This file system is created with the "default" file system implementation,
     // which is different when running in the shell and in browsers.
     if (!appshell.appFileSystem) {
-        appshell.appFileSystem = createFileSystem();
+        createFileSystem(null, function (err, fs) {
+            appshell.appFileSystem = fs;
+        });
+        console.assert(appshell.appFileSystem, "Root 'appFileSystem' must be created synchronously!");
     }
     
     // Export public API
