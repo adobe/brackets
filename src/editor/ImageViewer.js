@@ -29,7 +29,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var LanguageManager     = require("language/LanguageManager"),
-        ImageHolderTemplate = require("text!htmlContent/image-holder.html");
+        ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings");
     
     
     function getImageHolder(fullPath) {
@@ -43,6 +45,26 @@ define(function (require, exports, module) {
         return $imageHolder;
     }
     
-    exports.getImageHolder = getImageHolder;
+    function renderImageViewer(currentlyViewedFile) {
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile);
+        $("#img-path").text(relPath);
+        // display image in center
+        // TODO determine file type here to show image viewer or else
+        // to make this code independent of image viewer
+        $("#img-preview").on("load", function () {
+            // add size
+            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
+            // position in center
+            var marginLeft = Math.floor($("#editor-holder").width() / 2 - this.naturalWidth / 2);
+            var marginTop = Math.floor($("#editor-holder").height() / 2 - this.naturalHeight / 2);
+            $("#image-holder").css("margin-left", (marginLeft > 0 ? marginLeft : 0));
+            $("#image-holder").css("margin-top", (marginTop > 0 ? marginTop : 0));
+            
+            $("#image-holder").show();
+        });
+    }
+    
+    exports.getImageHolder      = getImageHolder;
+    exports.renderImageViewer   = renderImageViewer;
 });
     

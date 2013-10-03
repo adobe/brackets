@@ -184,7 +184,6 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {
                 var $imageHolder = ImageViewer.getImageHolder(fullPath);

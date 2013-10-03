@@ -58,8 +58,10 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
-        ProjectManager      = require("project/ProjectManager");
+        ProjectManager      = require("project/ProjectManager"),
+        LanguageManager     = require("language/LanguageManager");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -577,7 +579,7 @@ define(function (require, exports, module) {
     
     //
     // TODO: 
-    // file selection triangle in tree
+    // file selection triangle in tree - done
     // zoom factor for big images
     // what to do about long paths
     // file size?
@@ -592,14 +594,14 @@ define(function (require, exports, module) {
 
         // Hide the not-editor
         $("#not-editor").css("display", "none");
-        DocumentManager.clearCurrentDocument();
         
         _currentlyViewedFile = fullPath;
         _currentCustomView = $customView;
+        DocumentManager.clearCurrentDocument();
         $(DocumentManager).triggerHandler("currentDocumentChange");
     }
     
-    function _getCurrentlyViewedFile() {
+    function getCurrentlyViewedFile() {
         return _currentlyViewedFile;
     }
     
@@ -614,6 +616,16 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             $("#not-editor").css("display", "");
             _nullifyEditor();
+        }
+    }
+    
+    function _showCustomView() {
+        var mode = LanguageManager.getLanguageForPath(_currentlyViewedFile);
+        if (mode.getId() === "image") {
+            ImageViewer.renderImageViewer(_currentlyViewedFile);
+            // if we are going to add more customviewers for othermodes they can be added here.
+        } else {
+            _showNoEditor();
         }
     }
 
@@ -637,24 +649,8 @@ define(function (require, exports, module) {
                 _showNoEditor();
             } else {
                 $("#editor-holder").append(_currentCustomView);
-                // TODO push this inot _onCurrentDocumentChange
                 _nullifyEditor();
-                var relPath = ProjectManager.makeProjectRelativeIfPossible(_currentlyViewedFile);
-                $("#img-path").text(relPath);
-                // display image in center
-                // TODO determine file type here to show image viewer or else
-                // to make this code independent of image viewer
-                $("#img-preview").on("load", function () {
-                    // add size
-                    $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
-                    // position in center
-                    var marginLeft = Math.floor($("#editor-holder").width() / 2 - this.naturalWidth / 2);
-                    var marginTop = Math.floor($("#editor-holder").height() / 2 - this.naturalHeight / 2);
-                    $("#image-holder").css("margin-left", (marginLeft > 0 ? marginLeft : 0));
-                    $("#image-holder").css("margin-top", (marginTop > 0 ? marginTop : 0));
-                    
-                    $("#image-holder").show();
-                });
+                _showCustomView();
             }
         }
 
@@ -900,6 +896,7 @@ define(function (require, exports, module) {
     exports.focusEditor                   = focusEditor;
     exports.getFocusedEditor              = getFocusedEditor;
     exports.getActiveEditor               = getActiveEditor;
+    exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
