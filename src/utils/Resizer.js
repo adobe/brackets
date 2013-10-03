@@ -139,7 +139,7 @@ define(function (require, exports, module) {
      * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
      *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
      * @param {?number} minSize Minimum size (width or height) of the element's outer dimensions, including
-     *                          border & padding. Defaults to 100.
+     *                          border & padding. Defaults to DEFAULT_MIN_SIZE.
      * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
      *                          resizer. Defaults to false.
      * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
