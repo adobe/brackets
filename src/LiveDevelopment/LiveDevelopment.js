@@ -659,10 +659,10 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
-    function _closeLiveBrowser(deferred) {
+    function _closeLiveBrowser(deferred, reason) {
         NativeApp.closeLiveBrowser()
             .done(function () {
-                _setStatus(STATUS_INACTIVE);
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
                 deferred.resolve();
             })
             .fail(function (err) {
@@ -688,7 +688,7 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _closeLiveBrowser(deferred);
+            _closeLiveBrowser(deferred, reason);
         }
 
         if (_openDeferred) {
