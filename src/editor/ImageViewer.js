@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -45,8 +45,9 @@ define(function (require, exports, module) {
         return $imageHolder;
     }
     
-    function renderImageViewer(currentlyViewedFile) {
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile);
+    function render(currentlyViewedFile) {
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile),
+            top = 0;
         $("#img-path").text(relPath);
         // display image in center
         // TODO determine file type here to show image viewer or else
@@ -54,17 +55,16 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add size
             $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
-            // position in center
-            var marginLeft = Math.floor($("#editor-holder").width() / 2 - this.naturalWidth / 2);
-            var marginTop = Math.floor($("#editor-holder").height() / 2 - this.naturalHeight / 2);
-            $("#image-holder").css("margin-left", (marginLeft > 0 ? marginLeft : 0));
-            $("#image-holder").css("margin-top", (marginTop > 0 ? marginTop : 0));
+        
+            // position in vertical center
+            top = Math.floor(50 - (100 / $("#editor-holder").height() * this.naturalHeight));
+            $("#image-holder").css("top", (top > 0 ? top : 0) + "%");
             
             $("#image-holder").show();
         });
     }
     
     exports.getImageHolder      = getImageHolder;
-    exports.renderImageViewer   = renderImageViewer;
+    exports.render   = render;
 });
     

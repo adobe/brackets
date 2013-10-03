@@ -75,8 +75,10 @@ define(function (require, exports, module) {
     var _currentEditorsDocument = null;
     /** @type {?string} full path to file */
     var _currentlyViewedFile = null;
-    /** @type {?JQuery} full path to file */
+    /** @type {?JQuery} DOM node representing UI of custom view   */
     var _currentCustomView = null;
+    /** @type {?JQuery} DOM node representing UI of previous custom view   */
+    var _previousCustomView = null;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -560,8 +562,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Make sure getFocusedEditor(), getActiveEditor() and getCurrentFullEditor()
-     * all return null. For instance when an image is displayed or the NoEditor 
+     * resets editor state to make sure getFocusedEditor(), getActiveEditor() 
+     * and getCurrentFullEditor() return null when an image or the NoEditor 
      * placeholder is displayed.
      */
     function _nullifyEditor() {
@@ -577,28 +579,36 @@ define(function (require, exports, module) {
         }
     }
     
-    //
-    // TODO: 
-    // file selection triangle in tree - done
-    // zoom factor for big images
-    // what to do about long paths
-    // file size?
-    // put raster backgroung behing image- for transparent images - see quick view
-    // Dropshadow 1px / 3px black
-    //     
+
+    /** append custom view to editor-holder
+    * @param {?JQuery} $customView  DOM node representing UI of custom view
+    * @param {?string} fullPath  path to the file displayed in the custom view
+    */
     function showCustomViewer($customView, fullPath) {
-        // remove current image, this will onyl happen if the view switches from one 
+        // remove current image, this will only happen if the view switches from one 
         // image to another
-
-        $("#editor-holder").append($customView);
-
-        // Hide the not-editor
-        $("#not-editor").css("display", "none");
-        
-        _currentlyViewedFile = fullPath;
-        _currentCustomView = $customView;
-        DocumentManager.clearCurrentDocument();
-        $(DocumentManager).triggerHandler("currentDocumentChange");
+        if ($customView && fullPath) {
+            //$("#editor-holder").append($customView);
+    
+            // Hide the not-editor
+            $("#not-editor").css("display", "none");
+            
+            _currentlyViewedFile = fullPath;
+            
+            // remember the previous custom view so  we 
+            // can remove it in the currentDocumentChange 
+            // event handler
+            _previousCustomView = _currentCustomView;
+            _currentCustomView = $customView;
+            
+            // clear the current document so that 
+            // getCurrentDocument returns null 
+            DocumentManager.clearCurrentDocument();
+            
+            // trigger a document change event so that 
+            // the event handler can show the new custom view
+            $(DocumentManager).triggerHandler("currentDocumentChange");
+        }
     }
     
     function getCurrentlyViewedFile() {
@@ -609,9 +619,11 @@ define(function (require, exports, module) {
         _currentlyViewedFile = null;
     }
 
+
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
+        _previousCustomView = _currentCustomView;
         _currentCustomView = null;
         if (_currentEditor) {
             $("#not-editor").css("display", "");
@@ -619,14 +631,37 @@ define(function (require, exports, module) {
         }
     }
     
-    function _showCustomView() {
+    /** Display a custom view in the editor container
+    * This holds the only reference to ImageViewer in EditorManager
+    * if we are going to add more customviewers for other modes they can be added 
+    * to this method
+    */
+    function _showCustomViewer() {
+        $("#editor-holder").append(_currentCustomView);
         var mode = LanguageManager.getLanguageForPath(_currentlyViewedFile);
         if (mode.getId() === "image") {
-            ImageViewer.renderImageViewer(_currentlyViewedFile);
-            // if we are going to add more customviewers for othermodes they can be added here.
+            ImageViewer.render(_currentlyViewedFile);
         } else {
             _showNoEditor();
         }
+    }
+    /** Remove existing custom view if present */
+    function _removeCustomView() {
+        var customViewId;
+        if (_previousCustomView) {
+            customViewId = _previousCustomView.attr("id");
+            if ($("#" + customViewId).size() > 0) {
+                $("#" + customViewId).remove();
+            }
+        }
+    }
+    
+    /** Handle project close, remove customView */
+    function _onBeforeProjectClose() {
+        _clearCurrentlyViewedFile();
+        _previousCustomView = _currentCustomView;
+        _currentCustomView = null;
+        _removeCustomView();
     }
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -635,22 +670,22 @@ define(function (require, exports, module) {
             container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
-        if (_currentCustomView && $("#" + _currentCustomView.attr("id")).size() > 0) {
-            $("#" + _currentCustomView.attr("id")).remove();
-        }
+        
+        // When the document or file in view changes clean up.
+        _removeCustomView();
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
             _currentlyViewedFile = doc.file.fullPath;
+            _previousCustomView = _currentCustomView;
             _currentCustomView = null;
             _showEditor(doc);
         } else {
             if (!_currentlyViewedFile) {
                 _showNoEditor();
             } else {
-                $("#editor-holder").append(_currentCustomView);
                 _nullifyEditor();
-                _showCustomView();
+                _showCustomViewer();
             }
         }
 
@@ -874,7 +909,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
-    $(ProjectManager).on("beforeProjectClose",     _clearCurrentlyViewedFile);
+    $(ProjectManager).on("beforeProjectClose",     _onBeforeProjectClose);
 
 
     // For unit tests and internal use only
