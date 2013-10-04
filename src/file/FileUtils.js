@@ -365,28 +365,28 @@ define(function (require, exports, module) {
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {string} fileExt file name with extension or just a file extension
+     * @param {string} filePath could be a path, a file name or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
-    function isStaticHtmlFileExt(fileExt) {
-        if (!fileExt) {
+    function isStaticHtmlFileExt(filePath) {
+        if (!filePath) {
             return false;
         }
 
-        return (_staticHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
     }
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {string} fileExt file name with extension or just a file extension
+     * @param {string} filePath could be a path, a file name or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
-    function isServerHtmlFileExt(fileExt) {
-        if (!fileExt) {
+    function isServerHtmlFileExt(filePath) {
+        if (!filePath) {
             return false;
         }
 
-        return (_serverHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
     }
     
     /**
