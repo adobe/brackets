@@ -597,7 +597,7 @@ define(function (require, exports, module) {
             // Is there already a popover provider and range?
             if (popoverState) {
                 if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
