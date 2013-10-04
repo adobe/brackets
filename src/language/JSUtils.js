@@ -378,7 +378,7 @@ define(function (require, exports, module) {
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return (/^\.js/i).test(FileUtils.getFilenameExtension(fileInfo.fullPath));
+                return FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
             });
         } else {
             jsFiles = fileInfos;
