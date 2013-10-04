@@ -54,23 +54,8 @@ define(function (require, exports, module) {
         $("#img-path").text(relPath);
         $("#img-preview").on("load", function () {
             // add size
-            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
-        
-            // position in vertical center
-            viewScaleV = Math.floor(100 / $("#editor-holder").height() * (this.naturalHeight + TEXT_HEIGHT));
-            if (viewScaleV <= 0 || viewScaleV > 90) {
-                viewScaleV = 90;
-            } else if (viewScaleV < 25) {
-                viewScaleV = 25;
-            }
-            viewScaleH = Math.floor(viewScaleV * this.naturalWidth / (this.naturalHeight + TEXT_HEIGHT));
-            if (viewScaleH > 90) {
-                viewScaleV = Math.floor(viewScaleV / (viewScaleH / 90));
-                viewScaleH = 90;
-            }
-            $("#image-holder").css("width", viewScaleH + "%")
-                .css("height", viewScaleV + "%")
-                .show();
+            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS); 
+            $("#image-holder").show();
             
             if ($(this).width() < this.naturalWidth) {
                 zoom = Math.floor($(this).width() / this.naturalWidth * 100);
