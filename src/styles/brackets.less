@@ -1114,3 +1114,24 @@ label input {
     background-color: @live-preview-sync-error-background;
     color: @live-preview-sync-error-color;
 }
+
+/* Live Preview */
+#img-preview {
+    background: url(images/imageview_bg.png);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+}
+
+#img-data,
+#img-path {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+#img-data::selection,
+#img-path::selection {
+    background: @selection-color-focused;
+}
+
+#img-path {
+    margin: 0 0 15px;
+}
