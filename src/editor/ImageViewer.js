@@ -49,7 +49,6 @@ define(function (require, exports, module) {
         
         if (mode.getId() === "image") {
             $imageHolder = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-            $imageHolder.css("display", "none");
         }
         return $imageHolder;
     }
