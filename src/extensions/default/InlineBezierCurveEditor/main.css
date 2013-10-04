@@ -13,18 +13,24 @@
     background-color: #DDC;
 }
 
-.bezier-curve-editor .coordinate-plane {
-	background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 25%, #fff 75%, rgba(255, 255, 255, 0) 100%);
+.bezier-curve-editor .cubic-bezier {
+    background: url(grid.png) -1px -75px repeat,
+                -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 25%, #fff 75%, rgba(255, 255, 255, 0) 100%);
     border-left: 1px solid #9c9e9e;
     border-right: 1px solid #9c9e9e;
-    position: relative;
-    left: 25px;
-    line-height: 0;
-
-    top: 1em;
-    left: 1em;
+    background-size: 15px 450px;
+    height: 330px;
     width: 149px;
-    height: 299px;
+    margin: 0 0 0 25px;
+}
+
+.bezier-curve-editor .coordinate-plane {
+    position: relative;
+    left: 0;
+    line-height: 0;
+    top: 75px;
+    width: 149px;
+    height: 149px;
     -moz-box-sizing: content-box;
     box-sizing: content-box;
 }
@@ -32,7 +38,7 @@
 .bezier-curve-editor .coordinate-plane:before,
 .bezier-curve-editor .coordinate-plane:after {
     position: absolute;
-    bottom: 25%;
+    bottom: 0%;
     left: 0;
     width: 100%;
     padding: .3em .5em;
@@ -110,17 +116,19 @@
 
 .bezier-curve-editor .P0 {
     left: 2px;
-    top: 225px;
+    top: 151px;
 }
 
 .bezier-curve-editor .P3 {
     right: -7px;
-    top: 75px;
+    top: 1px;
 }
 
 .bezier-curve-editor canvas.curve {
-    background: url(grid.png) -1px -75px repeat;
-    background-size: 15px 450px;
+    position: absolute;
+    z-index: 1;
+    top: -75px;
+    left: 0;
 
     -moz-user-select: none;
     -webkit-user-select: none;
