@@ -242,10 +242,38 @@ a, img {
         top: 0;
         left: 0;
         bottom: 0;
-        right: 0;  
+        right: 0;
+        -webkit-user-select: text;
+        background: transparent;
+        user-select: text;        
         #img-data {
             font-weight: 500;
+            white-space: nowrap;
         }
+        #img-path {
+            margin: 0 0 15px;
+        } 
+        #img-data::selection,
+        #img-path::selection {
+            background: @selection-color-focused;
+        }      
+        #img-preview {
+            background-image: url('images/preview_bg.png');
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+        }
+        #img-zoom {
+            display: none;
+            display: block;
+            position: absolute;
+            top: 60px;
+            left: 5px;
+            width: 40px;
+            text-align: center;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 4px;
+        }
+        
     }
 }
 

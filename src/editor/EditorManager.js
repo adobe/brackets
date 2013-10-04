@@ -633,8 +633,8 @@ define(function (require, exports, module) {
     
     /** Display a custom view in the editor container
     * This holds the only reference to ImageViewer in EditorManager
-    * if we are going to add more customviewers for other modes they can be added 
-    * to this method
+    * More custom viewers i.e. video viewer, audio player, ... 
+    * can be added here in the future.
     */
     function _showCustomViewer() {
         $("#editor-holder").append(_currentCustomView);
