@@ -47,7 +47,8 @@ define(function (require, exports, module) {
     
     function render(currentlyViewedFile) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile),
-            top = 0;
+            viewAreaH = 90,
+            viewAreaV = 90;
         $("#img-path").text(relPath);
         // display image in center
         // TODO determine file type here to show image viewer or else
@@ -57,8 +58,20 @@ define(function (require, exports, module) {
             $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
         
             // position in vertical center
-            top = Math.floor(50 - (100 / $("#editor-holder").height() * this.naturalHeight));
-            $("#image-holder").css("top", (top > 0 ? top : 0) + "%");
+            viewAreaV = Math.floor(100 / $("#editor-holder").height() * this.naturalHeight);
+            if (viewAreaV <= 0 || viewAreaV > 90) {
+                viewAreaV = 90;
+            } else if (viewAreaV < 25) {
+                viewAreaV = 25;
+            }
+            viewAreaH = viewAreaV * this.naturalWidth / this.naturalHeight;
+            if (viewAreaH > 90) {
+                viewAreaV = Math.floor(viewAreaV / (viewAreaH / 90));
+                viewAreaH = 90;
+            }
+            $("#image-holder").css("width", viewAreaH + "%");
+            $("#image-holder").css("height", viewAreaV + "%");
+            
             
             $("#image-holder").show();
         });

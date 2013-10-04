@@ -236,10 +236,13 @@ a, img {
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
     #image-holder {
-        display: table;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;        
+        overflow: visible;
+        margin: auto;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;  
         #img-data {
             font-weight: 500;
         }
