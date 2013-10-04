@@ -1165,7 +1165,9 @@ define(function LiveDevelopment(require, exports, module) {
         _getInitialDocFromCurrent().done(function (doc) {
             var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
 
-            DocumentManager.addToWorkingSet(doc.file);
+            if (doc && !doc._masterEditor) {
+                DocumentManager.addToWorkingSet(doc.file);
+            }
 
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise

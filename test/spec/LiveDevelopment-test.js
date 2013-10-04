@@ -1004,9 +1004,7 @@ define(function (require, exports, module) {
 
         function loadFileAndUpdateFileIndex(fileToLoadIntoEditor) {
             runs(function () {
-                // TODO: check if this is really necessary
                 FileIndexManager.markDirty();
-                waits(2000);
                 waitsForDone(SpecRunnerUtils.openProjectFiles([fileToLoadIntoEditor]), "SpecRunnerUtils.openProjectFiles " + fileToLoadIntoEditor);
             });
         }
@@ -1029,6 +1027,8 @@ define(function (require, exports, module) {
                     promise.done(function (doc) {
                         document = doc;
                     });
+
+                    waitsForDone(promise);
                 });
                 
                 runs(function () {
@@ -1199,6 +1199,8 @@ define(function (require, exports, module) {
                     promise.done(function (doc) {
                         document = doc;
                     });
+
+                    waitsForDone(promise);
                 });
                 
                 runs(function () {
@@ -1303,6 +1305,30 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-5/" + indexFile);
+                });
+            });
+
+            it("should not find any HTML page", function () {
+                var promise,
+                    document;
+                var cssFile = "top2/test.css";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-6");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:6666/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+
+                    waitsForDone(promise);
+                });
+
+                runs(function () {
+                    expect(document).toBe(null);
                 });
             });
         });
