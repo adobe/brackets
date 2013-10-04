@@ -1070,7 +1070,6 @@ define(function (require, exports, module) {
                 
                 loadFileAndUpdateFileIndex(cssFile);
 
-                brackets.app.showDeveloperTools();
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
                 
@@ -1155,6 +1154,29 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-5/" + indexFile);
+                });
+            });
+            
+            it("should not find any HTML page", function () {
+                var promise,
+                    document;
+                var cssFile = "top2/test.css";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-6");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document).toBe(null);
                 });
             });
         });

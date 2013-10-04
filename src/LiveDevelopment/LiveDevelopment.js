@@ -655,6 +655,11 @@ define(function LiveDevelopment(require, exports, module) {
             return path.substring(0, path.lastIndexOf('/', path.length - 2) + 1);
         }
 
+        function getFilenameWithoutExtension(filename) {
+            var index = filename.lastIndexOf(".");
+            return index === -1 ? filename : filename.slice(0, index);
+        }
+
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
@@ -668,10 +673,6 @@ define(function LiveDevelopment(require, exports, module) {
         var baseUrl = ProjectManager.getBaseUrl(),
             hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
-        // TODO: It would be better to reuse the list of file extensions from FileUtils
-        var staticIndexFiles = ["html", "htm"].map(function (extension) { return "index." + extension; });
-        var dynamicIndexFiles = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"].map(function (extension) { return "index." + extension; });
-
         FileIndexManager.getFileInfoList("all").done(function (allFiles) {
             if (refPath) {
                 var projectRoot = ProjectManager.getProjectRoot().fullPath,
@@ -679,23 +680,31 @@ define(function LiveDevelopment(require, exports, module) {
                     indexFileFound = false,
                     stillInProjectTree = true;
 
+                var filteredFiltered = allFiles.filter(function (item) {
+                    var parent = getParentFolder(item.fullPath);
+                    
+                    return (containingFolder.indexOf(parent) === 0);
+                });
+                
                 var filterIndexFile = function (fileInfo) {
                     if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                        if (hasOwnServerForLiveDevelopment) {
-                            if ((dynamicIndexFiles.indexOf(fileInfo.name) !== -1) ||
-                                    (staticIndexFiles.indexOf(fileInfo.name) !== -1)) {
+                        if (getFilenameWithoutExtension(fileInfo.name) === "index") {
+                            if (hasOwnServerForLiveDevelopment) {
+                                if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                        (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                                    return true;
+                                }
+                            } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
                                 return true;
                             }
-                        } else if (staticIndexFiles.indexOf(fileInfo.name) !== -1) {
-                            return true;
+                        } else {
+                            return false;
                         }
-                    } else {
-                        return false;
                     }
                 };
 
                 while (!indexFileFound && stillInProjectTree) {
-                    i = CollectionUtils.indexOf(allFiles, filterIndexFile);
+                    i = CollectionUtils.indexOf(filteredFiltered, filterIndexFile);
 
                     // We found no good match
                     if (i === -1) {
@@ -711,7 +720,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
 
                 if (i !== -1) {
-                    DocumentManager.getDocumentForPath(allFiles[i].fullPath).then(result.resolve, result.resolve);
+                    DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
                     return;
                 }
             }
