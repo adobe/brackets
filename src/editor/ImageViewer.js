@@ -52,24 +52,7 @@ define(function (require, exports, module) {
         $("#img-path").text(relPath);
         $("#img-preview").on("load", function () {
             // add size
-            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
-        
-            // position in vertical center
-            viewScaleV = Math.floor(100 / $("#editor-holder").height() * this.naturalHeight);
-            if (viewScaleV <= 0 || viewScaleV > 90) {
-                viewScaleV = 90;
-            } else if (viewScaleV < 25) {
-                viewScaleV = 25;
-            }
-            viewScaleH = viewScaleV * this.naturalWidth / this.naturalHeight;
-            if (viewScaleH > 90) {
-                viewScaleV = Math.floor(viewScaleV / (viewScaleH / 90));
-                viewScaleH = 90;
-            }
-            $("#image-holder").css("width", viewScaleH + "%");
-            $("#image-holder").css("height", viewScaleV + "%");
-            
-            
+            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);            
             $("#image-holder").show();
         });
     }
