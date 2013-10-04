@@ -47,37 +47,34 @@ define(function (require, exports, module) {
     
     function render(currentlyViewedFile) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile),
-            viewAreaH = 90,
-            viewAreaV = 90;
+            viewScaleH = 90,
+            viewScaleV = 90;
         $("#img-path").text(relPath);
-        // display image in center
-        // TODO determine file type here to show image viewer or else
-        // to make this code independent of image viewer
         $("#img-preview").on("load", function () {
             // add size
             $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
         
             // position in vertical center
-            viewAreaV = Math.floor(100 / $("#editor-holder").height() * this.naturalHeight);
-            if (viewAreaV <= 0 || viewAreaV > 90) {
-                viewAreaV = 90;
-            } else if (viewAreaV < 25) {
-                viewAreaV = 25;
+            viewScaleV = Math.floor(100 / $("#editor-holder").height() * this.naturalHeight);
+            if (viewScaleV <= 0 || viewScaleV > 90) {
+                viewScaleV = 90;
+            } else if (viewScaleV < 25) {
+                viewScaleV = 25;
             }
-            viewAreaH = viewAreaV * this.naturalWidth / this.naturalHeight;
-            if (viewAreaH > 90) {
-                viewAreaV = Math.floor(viewAreaV / (viewAreaH / 90));
-                viewAreaH = 90;
+            viewScaleH = viewScaleV * this.naturalWidth / this.naturalHeight;
+            if (viewScaleH > 90) {
+                viewScaleV = Math.floor(viewScaleV / (viewScaleH / 90));
+                viewScaleH = 90;
             }
-            $("#image-holder").css("width", viewAreaH + "%");
-            $("#image-holder").css("height", viewAreaV + "%");
+            $("#image-holder").css("width", viewScaleH + "%");
+            $("#image-holder").css("height", viewScaleV + "%");
             
             
             $("#image-holder").show();
         });
     }
     
-    exports.getImageHolder      = getImageHolder;
-    exports.render   = render;
+    exports.getImageHolder  = getImageHolder;
+    exports.render          = render;
 });
     
