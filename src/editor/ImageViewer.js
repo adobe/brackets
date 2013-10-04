@@ -33,8 +33,17 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings");
     
-    
+     /**
+     * creates a DOM node to place in the editor-holder
+     * in order to display an image.
+     * @param {?string} path to image file
+     * @return {Array.<Editor>}
+     *
+     */
     function getImageHolder(fullPath) {
+        if (!fullPath) {
+            return;
+        }
         var mode = LanguageManager.getLanguageForPath(fullPath),
             $imageHolder;
         
@@ -44,25 +53,34 @@ define(function (require, exports, module) {
         }
         return $imageHolder;
     }
-    
-    function render(currentlyViewedFile) {
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFile),
-            viewScaleH = 90,
-            viewScaleV = 90,
-            zoom = 100,
-            TEXT_HEIGHT = 170;
-        $("#img-path").text(relPath);
-        $("#img-preview").on("load", function () {
-            // add size
-            $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS); 
-            $("#image-holder").show();
-            
-            if ($(this).width() < this.naturalWidth) {
-                zoom = Math.floor($(this).width() / this.naturalWidth * 100);
-                $("#img-zoom").text(zoom + "%")
-                    .show();
-            }
-        });
+    /** performs decorations on the view that require loading the image in thebrowser,
+    * i.e. getting atural and actual width and height, placing the scale steicker
+    *   @param{?string} path to the image file
+    */
+    function render(fullPath) {
+        // null check on the require param
+        if (!fullPath) {
+            return;
+        }
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
+            scale = 100,
+            TEXT_HEIGHT = 170,
+            mode = LanguageManager.getLanguageForPath(fullPath);
+        // only do this if we actually do have an image path
+        if (mode.getId() === "image") {
+            $("#img-path").text(relPath);
+            $("#img-preview").on("load", function () {
+                // add size
+                $("#img-data").text(this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS);
+                $("#image-holder").show();
+                
+                if ($(this).width() < this.naturalWidth) {
+                    scale = Math.floor($(this).width() / this.naturalWidth * 100);
+                    $("#img-scale").text(scale + "%")
+                        .show();
+                }
+            });
+        }
     }
     
     exports.getImageHolder  = getImageHolder;
