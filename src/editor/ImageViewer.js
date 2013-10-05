@@ -110,7 +110,11 @@ define(function (require, exports, module) {
                 var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                 fileEntry.getMetadata(
                     function (metadata) {
-                        $("#img-data").text(dimensionString  + " - " + bytesToSize(metadata.size, 2));
+                        var sizeString = "";
+                        if (metadata && metadata.size) {
+                            sizeString = " - " + bytesToSize(metadata.size, 2);
+                        }
+                        $("#img-data").text(dimensionString  + sizeString);
                         $("#image-holder").show();
                         if ($(this).width() < this.naturalWidth) {
                             scale = Math.floor($(this).width() / this.naturalWidth * 100);
@@ -119,6 +123,7 @@ define(function (require, exports, module) {
                         }
                     },
                     function (error) {
+                        // TODO. even if getMetadata fails we want to show the dimensions
                     }
                 );
             });
