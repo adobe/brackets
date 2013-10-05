@@ -457,7 +457,7 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry.prototype.getMetadata = function (successCallBack, errorCallback) {
         brackets.fs.stat(this.fullPath, function (err, stat) {
             if (err === brackets.fs.NO_ERROR) {
-                var metadata = new NativeFileSystem.Metadata(stat.mtime);
+                var metadata = new NativeFileSystem.Metadata(stat.mtime, stat.size);
                 successCallBack(metadata);
             } else {
                 errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
@@ -474,9 +474,10 @@ define(function (require, exports, module) {
      * @constructor
      * @param {Date} modificationTime Time at which the file or directory was last modified
      */
-    NativeFileSystem.Metadata = function (modificationTime) {
+    NativeFileSystem.Metadata = function (modificationTime, size) {
         // modificationTime is read only
         this.modificationTime = modificationTime;
+        this.size = size;
     };
 
     /**
