@@ -393,7 +393,11 @@ define(function (require, exports, module) {
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
         e.stopPropagation();
         
-        showDropdown();
+        if ($dropdown) {
+            closeDropdown(); //close if it's already visible
+        } else {
+            showDropdown();
+        }
     }
     
     /**
