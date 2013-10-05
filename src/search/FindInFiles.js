@@ -181,7 +181,7 @@ define(function (require, exports, module) {
      * Returns the input text field of the modalbar in the dialog
      * @return jQuery Object pointing to input text field
      */
-    FindInFilesDialog.prototype.getDialogTextField = function() {
+    FindInFilesDialog.prototype.getDialogTextField = function () {
         return $("input[type='text']", this.modalBar.getRoot());
     };
 
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                         that._close(null);
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
-                        that.getDialogTextField().attr('disabled','disabled');
+                        that.getDialogTextField().attr('disabled', 'disabled');
                         _doSearch(query);
                     }
                 }
@@ -563,8 +563,8 @@ define(function (require, exports, module) {
             _hideSearchResults();
 
             if (dialog) {
-                dialog.getDialogTextField().addClass('no-results')
-                                            .removeAttr('disabled')
+                dialog.getDialogTextField().addClass("no-results")
+                                            .removeAttr("disabled")
                                             .get(0).select();
                                             
                 $(".modal-bar .message").css("display", "none");
@@ -735,7 +735,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
-     * @param {String} query String to be searched
+     * @param {string} query String to be searched
      */
     function _doSearch(query) {
         if (!query) {
@@ -801,11 +801,7 @@ define(function (require, exports, module) {
         var currentEditor = EditorManager.getActiveEditor(),
             initialString = currentEditor && currentEditor.getSelectedText();
 
-        if(dialog){
-            dialog = null;
-        }
-
-        dialog = new FindInFilesDialog();
+        dialog             = new FindInFilesDialog();
         searchResults      = {};
         currentStart       = 0;
         currentQuery       = "";
