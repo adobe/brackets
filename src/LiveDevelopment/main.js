@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -142,7 +142,7 @@ define(function main(require, exports, module) {
 
     /** Called on status change */
     function _showStatusChangeReason(reason) {
-        // Destroy the previous twipsy (options are not updated otherwise)    
+        // Destroy the previous twipsy (options are not updated otherwise)
         _$btnGoLive.twipsy("hide").removeData("twipsy");
         
         // If there was no reason or the action was an explicit request by the user, don't show a twipsy
@@ -178,7 +178,7 @@ define(function main(require, exports, module) {
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
-            // See the comments at the top of LiveDevelopment.js for details on the 
+            // See the comments at the top of LiveDevelopment.js for details on the
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
             _showStatusChangeReason(reason);
@@ -195,7 +195,7 @@ define(function main(require, exports, module) {
     function _setupGoLiveMenu() {
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // Update the checkmark next to 'Live Preview' menu item
-            // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
+            // Add checkmark when status is STATUS_ACTIVE; otherwise remove it
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
             CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevelopment.STATUS_ACTIVE);
         });
@@ -257,8 +257,6 @@ define(function main(require, exports, module) {
     
     // init prefs
     prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development");
     
     config.highlight = prefs.getValue("highlight");
    
