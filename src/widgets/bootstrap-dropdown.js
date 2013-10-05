@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ============================================================ */
+//Modified for Brackets:
+// - Changed handler to listen for mousedown instead of click event
 
 
 !function ($) {
@@ -28,8 +30,8 @@
 
   var toggle = '[data-toggle=dropdown]'
     , Dropdown = function (element) {
-        var $el = $(element).on('click.dropdown.data-api', this.toggle)
-        $('html').on('click.dropdown.data-api', function () {
+        var $el = $(element).on('mousedown.dropdown.data-api', this.toggle)
+        $('html').on('mousedown.dropdown.data-api', function () {
           $el.parent().removeClass('open')
         })
       }
@@ -156,10 +158,10 @@
    * =================================== */
 
   $(document)
-    .on('click.dropdown.data-api', clearMenus)
-    .on('click.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
-    .on('click.dropdown-menu', function (e) { e.stopPropagation() })
-    .on('click.dropdown.data-api'  , toggle, Dropdown.prototype.toggle)
+    .on('mousedown.dropdown.data-api', clearMenus)
+    .on('mousedown.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
+    .on('mousedown.dropdown-menu', function (e) { e.stopPropagation() })
+    .on('mousedown.dropdown.data-api'  , toggle, Dropdown.prototype.toggle)
     .on('keydown.dropdown.data-api', toggle + ', [role=menu]' , Dropdown.prototype.keydown)
 
 }(window.jQuery);
