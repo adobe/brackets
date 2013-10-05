@@ -56,28 +56,25 @@ define(function (require, exports, module) {
      * Read a file as text. 
      *
      * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     *
-     * @return {$.Promise} Promise that is resolved with the text and stats from the file,
-     *        or rejected if an error occurred.
+     * @param {function (number, string, object)} callback
      */
-    File.prototype.readAsText = function (encoding) {
-        var result = new $.Deferred();
-        
-        if (this._contents && this._stat) {
-            result.resolve(this._contents, this._stat);
-        } else {
-            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
-                if (err) {
-                    result.reject(err);
-                } else {
-                    this._stat = stat;
-                    this._contents = data;
-                    result.resolve(data, stat);
-                }
-            }.bind(this));
+    File.prototype.readAsText = function (encoding, callback) {
+        if (typeof (encoding) === "function") {
+            callback = encoding;
+            encoding = null;
         }
         
-        return result.promise();
+        if (this._contents && this._stat) {
+            callback(null, this._contents, this._stat);
+        } else {
+            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+                if (!err) {
+                    this._stat = stat;
+                    this._contents = data;
+                }
+                callback(err, data, stat);
+            }.bind(this));
+        }
     };
     
     /**
@@ -85,24 +82,22 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     *
-     * @return {$.Promise} Promise that is resolved with the file's new stats when the 
-     *        writing is complete, or rejected if an error occurred.
+     * @param {function (err, object)=} callback Callback that is passed the
+     *              error code and the file's new stats if the write is sucessful.
      */
-    File.prototype.write = function (data, encoding) {
-        var result = new $.Deferred();
+    File.prototype.write = function (data, encoding, callback) {
+        if (typeof (encoding) === "function") {
+            callback = encoding;
+            encoding = null;
+        }
         
         this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
-            if (err) {
-                result.reject(err);
-            } else {
+            if (!err) {
                 this._stat = stat;
                 this._contents = data;
-                result.resolve(stat);
             }
+            callback(err, stat);
         }.bind(this));
-        
-        return result.promise();
     };
     
     // Export this class

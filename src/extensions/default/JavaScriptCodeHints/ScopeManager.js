@@ -179,8 +179,8 @@ define(function (require, exports, module) {
             directory = fileSystem.getDirectoryForPath(dir),
             files = [];
 
-        fileSystem.getDirectoryContents(directory)
-            .done(function (contents) {
+        fileSystem.getDirectoryContents(directory, function (err, contents) {
+            if (!err) {
                 contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
@@ -202,13 +202,13 @@ define(function (require, exports, module) {
                     }
                 });
                 doneCallback();
-            })
-            .fail(function (err) {
+            } else {
                 if (errorCallback) {
                     errorCallback(err);
                 }
                 console.log("Unable to refresh directory: ", err);
-            });
+            }
+        });
     }
 
     /**

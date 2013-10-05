@@ -751,16 +751,16 @@ define(function (require, exports, module) {
                             result.resolve();
                         } else {
                             // Search one file
-                            file.readAsText()
-                                .done(function (contents) {
+                            file.readAsText(function (err, contents) {
+                                if (!err) {
                                     _addSearchMatches(file.fullPath, contents, currentQueryExpr);
                                     result.resolve();
-                                })
-                                .fail(function (error) {
+                                } else {
                                     // Error reading this file. This is most likely because the file isn't a text file.
                                     // Resolve here so we move on to the next file.
                                     result.resolve();
-                                });
+                                }
+                            });
                         }
                         return result.promise();
                     })

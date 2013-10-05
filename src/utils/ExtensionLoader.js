@@ -195,8 +195,8 @@ define(function (require, exports, module) {
         var fileExists = false, statComplete = false;
         var file = brackets.appFileSystem.getFileForPath(extensionPath);
         
-        file.stat()
-            .done(function (stat) {
+        file.stat(function (err, stat) {
+            if (!err) {
                 statComplete = true;
                 if (stat.isFile()) {
                     // unit test file exists
@@ -214,10 +214,10 @@ define(function (require, exports, module) {
                 } else {
                     result.reject();
                 }
-            })
-            .fail(function (err) {
+            } else {
                 result.reject();
-            });
+            }
+        });
         
         return result.promise();
     }
@@ -236,8 +236,8 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(directory))
-            .done(function (contents) {
+        brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(directory), function (err, contents) {
+            if (!err) {
                 var i,
                     extensions = [];
                 
@@ -264,11 +264,11 @@ define(function (require, exports, module) {
                     // Always resolve the promise even if some extensions had errors
                     result.resolve();
                 });
-            })
-            .fail(function (err) {
+            } else {
                 console.error("[Extension] Error -- could not read native directory: " + directory);
                 result.reject();
-            });
+            }
+        });
                
         return result.promise();
     }

@@ -104,8 +104,8 @@ define(function (require, exports, module) {
             if (doc.isUntitled()) {
                 result.resolve();
             } else {
-                doc.file.stat()
-                    .done(function (stat) {
+                doc.file.stat(function (err, stat) {
+                    if (!err) {
                         // Does file's timestamp differ from last sync time on the Document?
                         if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
                             if (doc.isDirty) {
@@ -115,8 +115,7 @@ define(function (require, exports, module) {
                             }
                         }
                         result.resolve();
-                    })
-                    .fail(function (err) {
+                    } else {
                         // File has been deleted externally
                         // TODO: FileSystem error...
                         if (err.name === NativeFileError.NOT_FOUND_ERR) {
@@ -131,7 +130,8 @@ define(function (require, exports, module) {
                             console.log("Error checking modification status of " + doc.file.fullPath, err);
                             result.reject();
                         }
-                    });
+                    }
+                });
             }
 
             return result.promise();

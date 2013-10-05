@@ -132,8 +132,8 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            fileSystem.getDirectoryContents(directory)
-                .done(function (contents) {
+            fileSystem.getDirectoryContents(directory, function (err, contents) {
+                if (!err) {
                     contents.forEach(function (entry) {
                         if (fileSystem.shouldShow(entry.fullPath)) {
                             // convert to doc relative path
@@ -170,7 +170,8 @@ define(function (require, exports, module) {
                             }
                         }
                     }
-                });
+                }
+            });
 
             return self.cachedHints.deferred;
         }

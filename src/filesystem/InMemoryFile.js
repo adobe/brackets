@@ -50,12 +50,16 @@ define(function (require, exports, module) {
     /**
      * Reject any attempts to read the file.
      *
-     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
+     * Read a file as text. 
      *
-     * @return {$.Promise} Promise that is always rejected.
+     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
+     * @param {function (number, string, object)} callback
      */
-    InMemoryFile.prototype.readAsText = function (encoding) {
-        return new $.Deferred().reject().promise(); // TODO: Error code?
+    InMemoryFile.prototype.readAsText = function (encoding, callback) {
+        if (typeof (encoding) === "function") {
+            callback = encoding;
+        }
+        callback(1); // TODO: Error code
     };
     
     /**
@@ -63,32 +67,35 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     *
-     * @return {$.Promise} Promise that is always rejected.
+     * @param {function (err, object)=} callback Callback that is passed the
+     *              error code and the file's new stats if the write is sucessful.
      */
-    InMemoryFile.prototype.write = function (data, encoding) {
-        return new $.Deferred().reject().promise();  // TODO: Error code?
+    InMemoryFile.prototype.write = function (data, encoding, callback) {
+        if (typeof (encoding) === "function") {
+            callback = encoding;
+        }
+        callback(1);    // TODO: Error code
     };
     
     // Stub out invalid calls inherited from FileSystemEntry
-    InMemoryFile.prototype.exists = function () {
-        return new $.Deferred().resolve(false).promise();
+    InMemoryFile.prototype.exists = function (callback) {
+        callback(false);
     };
     
-    InMemoryFile.prototype.stat = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+    InMemoryFile.prototype.stat = function (callback) {
+        callback(1); // TODO: Error
     };
     
-    InMemoryFile.prototype.unlink = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+    InMemoryFile.prototype.unlink = function (callback) {
+        callback(1); // TODO: Error
     };
     
-    InMemoryFile.prototype.rename = function (newName) {
-        return new $.Deferred().reject().promise(); // TODO: Error
+    InMemoryFile.prototype.rename = function (newName, callback) {
+        callback(1); // TODO: Error
     };
     
-    InMemoryFile.prototype.moveToTrash = function () {
-        return new $.Deferred().reject().promise(); // TODO: Error
+    InMemoryFile.prototype.moveToTrash = function (callback) {
+        callback(1); // TODO: Error
     };
     
     // Export this class

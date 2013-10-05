@@ -159,77 +159,59 @@ define(function (require, exports, module) {
      * Check if the specified path exists.
      *
      * @param {string} path The path to test
-     * @return {$.Promise} Promise that is resolved if the path exists, or rejected if it doesn't.
+     * @param {function (boolean)} callback
      */
-    FileSystem.prototype.pathExists = function (path) {
-        var result = new $.Deferred();
-        
+    FileSystem.prototype.pathExists = function (path, callback) {
         this._impl.exists(path, function (exists) {
-            if (exists) {
-                result.resolve(this._index.getEntry(path));
-            } else {
-                result.reject();
-            }
+            callback(exists);
         }.bind(this));
-        
-        return result.promise();
     };
     
     /**
      * Resolve a path.
      *
      * @param {string} path The path to resolve
-     * @return {$.Promise} Promise that is resolved with a File or Directory object, if it exists,
-     *     or rejected if there is an error.
+     * @param {function (err, object)} callback
      */
-    FileSystem.prototype.resolve = function (path) {
-        var result = new $.Deferred();
-        
-        this.pathExists(path)
-            .done(function () {
-                this._impl.stat(path, function (err, stat) {
-                    var item;
-                    
-                    if (err) {
-                        result.reject(err);
-                        return;
-                    }
-                    if (stat.isFile()) {
-                        item = this.getFileForPath(path);
-                    } else {
-                        item = this.getDirectoryForPath(path);
-                    }
-                    result.resolve(item);
-                }.bind(this));
-            }.bind(this))
-            .fail(function () {
-                result.reject();
-            });
-        
-        return result.promise();
+    FileSystem.prototype.resolve = function (path, callback) {
+        this._impl.stat(path, function (err, stat) {
+            var item;
+            
+            if (!err) {
+                if (stat.isFile()) {
+                    item = this.getFileForPath(path);
+                } else {
+                    item = this.getDirectoryForPath(path);
+                }
+            }
+            callback(err, item);
+        }.bind(this));
     };
     
     /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     *
-     * @return {$.Promise} Promise that is resolved with the contents of the directory.
-     *         Contents is an Array of File and Directory objects.
+     * @param {function (number, array)} callback Callback that is passed
+     *          and error code and the contents of the directory.
      */
-    FileSystem.prototype.getDirectoryContents = function (directory) {
-        var i, entryPath, entry, result = new $.Deferred();
+    FileSystem.prototype.getDirectoryContents = function (directory, callback) {
+        var i, entryPath, entry;
         
-        if (directory._contentsPromise) {
-            // Existing promise for this directory's contents. Return it.
-            return directory._contentsPromise;
+        if (directory._contentsCallbacks) {
+            // There is already a pending call for this directorie's contents.
+            // Push the new callback onto the stack and return.
+            directory._contentsCallbacks.push(callback);
+            return;
         }
         
         if (directory._contents) {
-            // Return cached directory contents
-            result.resolve(directory._contents);
-            return result.promise();
+            // Return cached contents
+            callback(null, directory._contents);
+            return;
         }
+                
+        directory._contentsCallbacks = [callback];
         
         this._impl.readdir(directory.fullPath, function (err, contents, stats) {
             directory._contents = [];
@@ -254,12 +236,13 @@ define(function (require, exports, module) {
             }
             
             directory._contentsPromise = null;
-            result.resolve(directory._contents);
+            
+            // Invoke all saved callbacks
+            directory._contentsCallbacks.forEach(function (cb) {
+                cb(err, directory._contents);
+            });
+            directory._contentsCallbacks = null;
         }.bind(this));
-        
-        directory._contentsPromise = result.promise();
-        
-        return result.promise();
     };
     
     /**
@@ -292,27 +275,16 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences
      * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
      *                          allows any extension to be selected.
-     *
-     * @return {$.Promise} Promise that will be resolved with the selected file(s)/directories, 
-     *                     or rejected if an error occurred.
+     * @param {function (number, array)} callback Callback resolved with the selected file(s)/directories.
      */
     FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
                             chooseDirectories,
                             title,
                             initialPath,
-                            fileTypes) {
+                            fileTypes,
+                            callback) {
         
-        var result = new $.Deferred();
-        
-        this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, function (err, data) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(data);
-            }
-        });
-        
-        return result.promise();
+        this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
     };
     
     /**
@@ -324,22 +296,10 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences.
      * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
      *                          on the current file name plus an additional suffix
-     *
-     * @return {$.Promise} Promise that will be resolved with the name of the file to save,
-     *                     or rejected if an error occurred.
+     * @param {function (number, string)} callback Callback that is called with the name of the file to save.
      */
-    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename) {
-        var result = new $.Deferred();
-        
-        this._impl.showSaveDialog(title, initialPath, proposedNewFilename, function (err, selection) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(selection);
-            }
-        });
-        
-        return result.promise();
+    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
+        this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
     
     /**
@@ -349,12 +309,14 @@ define(function (require, exports, module) {
     FileSystem.prototype._scanDirectory = function (directoryPath) {
         var directory = this.getDirectoryForPath(directoryPath);
         
-        this.getDirectoryContents(directory).done(function (entries) {
-            var i;
-            
-            for (i = 0; i < entries.length; i++) {
-                if (entries[i].isDirectory()) {
-                    this._scanDirectory(entries[i].fullPath);
+        this.getDirectoryContents(directory, function (err, entries) {
+            if (!err) {
+                var i;
+                
+                for (i = 0; i < entries.length; i++) {
+                    if (entries[i].isDirectory()) {
+                        this._scanDirectory(entries[i].fullPath);
+                    }
                 }
             }
         }.bind(this));
@@ -391,13 +353,13 @@ define(function (require, exports, module) {
                 entry._contents = entry._contentsPromise = undefined;
                 
                 // Read new contents
-                this.getDirectoryContents(entry)
-                    .done(function (contents) {
+                this.getDirectoryContents(entry, function (err, contents) {
+                    if (!err) {
                         var i, len, item, path;
                         
-                        function _isInPath(item) {
+                        var _isInPath = function (item) {
                             return item.fullPath.indexOf(path) === 0;
-                        }
+                        };
                         
                         // Check for deleted entries 
                         len = oldContents ? oldContents.length : 0;
@@ -435,7 +397,8 @@ define(function (require, exports, module) {
                                 }
                             }
                         }
-                    }.bind(this));
+                    }
+                }.bind(this));
             }
             
             // Trigger a change event

@@ -52,25 +52,24 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {int=} mode The mode for the directory.
-     *
-     * @return {$.Promise} Promise that is resolved with the stat from the new directory.
+     * @param {number=} mode The mode for the directory.
+     * @param {function (number, object)=} callback 
      */
-    Directory.prototype.create = function (mode) {
-        var result = new $.Deferred();
+    Directory.prototype.create = function (mode, callback) {
+        if (typeof (mode) === "function") {
+            callback = mode;
+        }
         
         // TODO: support mode
         
         this._impl.mkdir(this._path, function (err, stat) {
-            if (err) {
-                result.reject(err);
-            } else {
+            if (!err) {
                 this._stat = stat;
-                result.resolve(stat);
+            }
+            if (callback) {
+                callback(err, stat);
             }
         }.bind(this));
-        
-        return result.promise();
     };
     
     // Export this class

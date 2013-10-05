@@ -84,119 +84,75 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns true if the entry exists on disk.
+     * Check to see if the entry exists on disk.
      *
-     * @return {$.Promise} Promise that is resolved with true if the entry exists, 
-     *        or false if it doesn't.
+     * @param {function (boolean)} callback Callback with a single parameter.
      */
-    FileSystemEntry.prototype.exists = function () {
-        var result = new $.Deferred();
-        
+    FileSystemEntry.prototype.exists = function (callback) {
         // If we have _stat, the entry must exist
         if (this._stat) {
-            result.resolve(true);
+            callback(true);
         } else {
             // No _stat object yet, query the system
             this._impl.exists(this._path, function (val) {
-                result.resolve(val);
+                callback(val);
             });
         }
-        
-        return result.promise();
     };
     
     /**
      * Returns the stats for the entry.
      *
-     * @return {$.Promise} Promise that is resolved with the entries stats, or rejected
-     *        if an error occurred.
+     * @param {function (err, object)} callback Callback that is resolved with the entries 
+     * stats.
      */
-    FileSystemEntry.prototype.stat = function () {
-        var result = new $.Deferred();
-        
+    FileSystemEntry.prototype.stat = function (callback) {
         if (this._stat) {
-            result.resolve(this._stat);
+            callback(null, this._stat);
         } else {
             this._impl.stat(this._path, function (err, stat) {
-                if (err) {
-                    result.reject(err);
-                } else {
+                if (!err) {
                     this._stat = stat;
-                    result.resolve(this._stat);
                 }
+                callback(err, stat);
             }.bind(this));
         }
-        
-        return result.promise();
     };
     
     /**
      * Rename this entry.
      *
      * @param {String} newName New name for this entry.
-     *
-     * @return {$.Promise} Promise that is resolved with the entries stats, or rejected
-     *        if an error occurred.
+     * @param {function (number)} callback  
      */
-    FileSystemEntry.prototype.rename = function (newName) {
-        var result = new $.Deferred();
-        
-        this._impl.rename(this._path, newName, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise();
+    FileSystemEntry.prototype.rename = function (newName, callback) {
+        this._impl.rename(this._path, newName, callback);
     };
         
     /**
      * Unlink (delete) this entry.
      *
-     * @return {$.Promise} Promise that is resolved if the unlink succeeded, or rejected
-     *        if an error occurred.
+     * @param {function (number)} callback
      */
-    FileSystemEntry.prototype.unlink = function () {
-        var result = new $.Deferred();
-        
+    FileSystemEntry.prototype.unlink = function (callback) {
         this._stat = null;
-        this._impl.unlink(this._path, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise();
+        this._impl.unlink(this._path, callback || function () {});
     };
         
     /**
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
      *
-     * @return {$.Promise} Promise that is resolved if the moveToTrash succeeded, or rejected
-     *        if an error occurred.
+     * @param {function (number)} callback
      */
-    FileSystemEntry.prototype.moveToTrash = function () {
+    FileSystemEntry.prototype.moveToTrash = function (callback) {
         if (!this._impl.moveToTrash) {
-            return this.unlink();
+            this.unlink(callback);
+            return;
         }
         
-        var result = new $.Deferred();
-        
         this._stat = null;
-        this._impl.moveToTrash(this._path, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
-        
-        return result.promise();
+        this._impl.moveToTrash(this._path, callback || function () {});
     };
         
     // Export this class

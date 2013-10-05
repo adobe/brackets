@@ -58,14 +58,14 @@ define(function (require, exports, module) {
         });
 
         // Read file
-        file.readAsText()
-            .done(function (data, stat) {
+        file.readAsText(function (err, data, stat) {
+            if (!err) {
                 result.resolve(data, stat.mtime);
-            })
-            .fail(function (err) {
+            } else {
                 result.reject(err);
-            });
-
+            }
+        });
+        
         return result.promise();
     }
     
@@ -79,15 +79,13 @@ define(function (require, exports, module) {
     function writeText(file, text) {
         var result = new $.Deferred();
         
-        file.write(text)
-            .done(function () {
+        file.write(text, function (err) {
+            if (!err) {
                 result.resolve();
-            })
-            .fail(function (err) {
+            } else {
                 result.reject(err);
-            });
-        
-        return result.promise();
+            }
+        });
     }
 
     /** @const */

@@ -60,13 +60,12 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        brackets.appFileSystem.resolve(fullPath)
-            .done(function (item) {
-                item.unlink()
-                    .done(function () {
+        brackets.appFileSystem.resolve(fullPath, function (err, item) {
+            if (!err) {
+                item.unlink(function (err) {
+                    if (!err) {
                         result.resolve();
-                    })
-                    .fail(function (err) {
+                    } else {
                         // TODO: fix error code
                         if (err === brackets.fs.ERR_NOT_FOUND && silent) {
                             result.resolve();
@@ -74,11 +73,16 @@ define(function (require, exports, module) {
                             console.error("Unable to remove " + fullPath, err);
                             result.reject(err);
                         }
-                    });
-            })
-            .fail(function (err) {
-                result.reject(err);
-            });
+                    }
+                });
+            } else {
+                if (err === brackets.fs.ERR_NOT_FOUND && silent) {
+                    result.resolve();
+                } else {
+                    result.reject(err);
+                }
+            }
+        });
         return result.promise();
     }
     
@@ -141,7 +145,17 @@ define(function (require, exports, module) {
      *     rejected when any error occurs.
      */
     function resolveNativeFileSystemPath(path) {
-        return brackets.appFileSystem.resolve(path);
+        var result = new $.Deferred();
+        
+        brackets.appFileSystem.resolve(path, function (err, item) {
+            if (!err) {
+                result.resolve(item);
+            } else {
+                result.reject(err);
+            }
+        });
+        
+        return result.promise();
     }
     
     
@@ -214,13 +228,13 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = brackets.appFileSystem.getDirectoryForPath(getTempDirectory()).create()
-                .done(function () {
-                    deferred.resolve();
-                })
-                .fail(function () {
+            var dir = brackets.appFileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
+                if (err) {
                     deferred.reject();
-                });
+                } else {
+                    deferred.resolve();
+                }
+            });
         });
 
         waitsForDone(deferred, "Create temp directory", 500);
@@ -232,6 +246,7 @@ define(function (require, exports, module) {
     function _stat(pathname) {
         var promise = new $.Deferred();
         
+        // TODO: FileSystem
         brackets.fs.stat(pathname, function (err, _stat) {
             if (err === brackets.fs.NO_ERROR) {
                 promise.resolve(_stat);
@@ -746,13 +761,13 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             file = brackets.appFileSystem.getFileForPath(path);
         
-        file.write(text)
-            .done(function () {
+        file.write(text, function (err) {
+            if (!err) {
                 deferred.resolve(file);
-            })
-            .fail(function (err) {
+            } else {
                 deferred.reject(err);
-            });
+            }
+        });
 
         return deferred.promise();
     }
@@ -826,10 +841,10 @@ define(function (require, exports, module) {
             destDir         = brackets.appFileSystem.getDirectoryForPath(destination);
         
         // create the destination folder
-        destDir.create()
-            .done(function () {
-                brackets.appFileSystem.getDirectoryContents(source)
-                    .done(function (contents) {
+        destDir.create(function (err) {
+            if (!err) {
+                brackets.appFileSystem.getDirectoryContents(source, function (err, contents) {
+                    if (!err) {
                         // copy all children of this directory
                         var copyChildrenPromise = Async.doInParallel(
                             contents,
@@ -859,24 +874,24 @@ define(function (require, exports, module) {
                         );
                         
                         copyChildrenPromise.then(deferred.resolve, deferred.reject);
-                    })
-                    .fail(function (err) {
+                    } else {
                         deferred.reject(err);
-                    });
-            })
-            .fail(function () {
-                deferred.reject();
-            });
-
-        deferred.always(function () {
-            // remove destination path prefix
-            if (removePrefix && options.infos) {
-                var shortKey;
-                Object.keys(options.infos).forEach(function (key) {
-                    shortKey = key.substr(destination.length + 1);
-                    options.infos[shortKey] = options.infos[key];
+                    }
                 });
+            } else {
+                deferred.reject();
             }
+
+            deferred.always(function () {
+                // remove destination path prefix
+                if (removePrefix && options.infos) {
+                    var shortKey;
+                    Object.keys(options.infos).forEach(function (key) {
+                        shortKey = key.substr(destination.length + 1);
+                        options.infos[shortKey] = options.infos[key];
+                    });
+                }
+            });
         });
         
         return deferred.promise();

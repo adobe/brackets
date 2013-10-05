@@ -140,8 +140,8 @@ define(function (require, exports, module) {
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
-        brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(stringsPath))
-            .done(function (contents) {
+        brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(stringsPath), function (err, contents) {
+            if (!err) {
                 var $dialog,
                     $submit,
                     $select,
@@ -149,19 +149,19 @@ define(function (require, exports, module) {
                     curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale()),
                     languages = [];
                 
-                function setLanguage(event) {
+                var setLanguage = function (event) {
                     locale = $select.val();
                     $submit.prop("disabled", locale === (curLocale || ""));
-                }
+                };
                 
                 // returns the localized label for the given locale
                 // or the locale, if nothing found
-                function getLocalizedLabel(locale) {
+                var getLocalizedLabel = function (locale) {
                     var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
                         i18n = Strings[key];
                     
                     return i18n === undefined ? locale : i18n;
-                }
+                };
 
                 // add system default
                 languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
@@ -200,7 +200,8 @@ define(function (require, exports, module) {
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);
-            });
+            }
+        });
     }
     
     function _enableRunTestsMenuItem() {
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        file.exists().done(function (exists) {
+        file.exists(function (exists) {
             if (exists) {
                 CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             }

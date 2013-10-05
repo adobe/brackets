@@ -84,16 +84,16 @@ define(function (require, exports, module) {
                 var file = fileSystem.getFileForPath(filePath);
                 
                 runs(function () {
-                    file.stat()
-                        .done(function (_stat) {
+                    file.stat(function (err, _stat) {
+                        if (!err) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
 
                 waitsFor(function () { return complete; }, 1000);
@@ -105,15 +105,15 @@ define(function (require, exports, module) {
 
                     // delete the new file
                     complete = false;
-                    file.unlink()
-                        .done(function () {
+                    file.unlink(function (err) {
+                        if (!err) {
                             unlinkError = 0;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             unlinkError = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(
                     function () {
@@ -247,8 +247,9 @@ define(function (require, exports, module) {
                 // by explicitly deleting the test file if it exists.
                 runs(function () {
                     complete = false;
-                    newFile.unlink()
-                        .always(function () { complete = true; });
+                    newFile.unlink(function (err) {
+                        complete = true;
+                    });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
 
@@ -263,15 +264,15 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    newFile.stat()
-                        .done(function (_stat) {
+                    newFile.stat(function (err, _stat) {
+                        if (!err) {
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -297,15 +298,15 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    newFile.stat()
-                        .done(function (_stat) {
+                    newFile.stat(function (err, _stat) {
+                        if (!err) {
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
                 
@@ -333,10 +334,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    rootFolder.moveToTrash()
-                        .always(function () {
-                            complete = true;
-                        });
+                    rootFolder.moveToTrash(function (err) {
+                        complete = true;
+                    });
                 });
                 waitsFor(function () { return complete; }, "clean up leftover files timeout", 1000);
 
@@ -351,16 +351,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     var newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    newFolder.stat()
-                        .done(function (_stat) {
+                    newFolder.stat(function (err, _stat) {
+                        if (!err) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -386,16 +386,16 @@ define(function (require, exports, module) {
                     newFolderName += "/toDelete1";
                     newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    newFolder.stat()
-                        .done(function (_stat) {
+                    newFolder.stat(function (err, _stat) {
+                        if (!err) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -415,16 +415,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     var file = fileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
-                    file.stat()
-                        .done(function (_stat) {
+                    file.stat(function (err, _stat) {
+                        if (!err) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
 
@@ -446,16 +446,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    rootFolder.stat()
-                        .done(function (_stat) {
+                    rootFolder.stat(function (err, _stat) {
+                        if (!err) {
                             error = 0;
                             stat = _stat;
                             complete = true;
-                        })
-                        .fail(function (err) {
+                        } else {
                             error = err;
                             complete = true;
-                        });
+                        }
+                    });
                 });
                 waitsFor(function () { return complete; }, 1000);
                 

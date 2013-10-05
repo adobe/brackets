@@ -220,14 +220,14 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            brackets.appFileSystem.resolve(initialProjectPath + "/index.html")
-                                .done(function (file) {
+                            brackets.appFileSystem.resolve(initialProjectPath + "/index.html", function (err, file) {
+                                if (!err) {
                                     var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
-                                })
-                                .fail(function () {
+                                } else {
                                     deferred.reject();
-                                });
+                                }
+                            });
                         } else {
                             deferred.resolve();
                         }

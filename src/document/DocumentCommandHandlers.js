@@ -236,8 +236,8 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null)
-                .done(function (paths) {
+            fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
+                if (!err) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
@@ -259,7 +259,8 @@ define(function (require, exports, module) {
                         // Reject if the user canceled the dialog
                         result.reject();
                     }
-                });
+                }
+            });
         } else {
             result = doOpen(fullPath, silent);
         }
@@ -497,14 +498,14 @@ define(function (require, exports, module) {
             var file = docToSave.file;
             var writeError = false;
             
-            file.write(docToSave.getText(true))
-                .done(function () {
+            file.write(docToSave.getText(true), function (err) {
+                if (!err) {
                     docToSave.notifySaved();
                     result.resolve();
-                })
-                .fail(function (err) {
+                } else {
                     handleError(err, file);
-                });
+                }
+            });
         } else {
             result.resolve(fileEntry);
         }
@@ -648,13 +649,13 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
-            fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName)
-                .done(function (selection) {
+            fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selection) {
+                if (!err) {
                     _doSaveAfterSaveDialog(selection);
-                })
-                .fail(function (err) {
+                } else {
                     result.reject(err);
-                });
+                }
+            });
         } else {
             result.reject();
         }

@@ -753,11 +753,10 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        _fileSystem.getDirectoryContents(dirEntry)
-            .done(function (contents) {
+        _fileSystem.getDirectoryContents(dirEntry, function (err, contents) {
+            if (!err) {
                 processEntries(contents);
-            })
-            .fail(function (err) {
+            } else {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
@@ -769,7 +768,8 @@ define(function (require, exports, module) {
                 );
                 // Reject the render promise so we can move on.
                 deferred.reject();
-            });
+            }
+        });
         
         /* TODO: FileSystem - handle partial errors. See below.
         dirEntry.createReader().readEntries(
@@ -925,76 +925,75 @@ define(function (require, exports, module) {
             ensureFileSystem().done(function () {
                 // Point at a real folder structure on local disk
                 var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
-                rootEntry.exists()
-                    .done(function (exists) {
-                        if (exists) {
-                            var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                                _projectRoot.fullPath !== rootEntry.fullPath;
-                            var i;
-        
-                            // Success!
-                            var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
-                                canonPath = FileUtils.canonicalizeFolderPath(rootPath);
-        
-                            _projectRoot = rootEntry;
-                            _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
-        
-                            // If this is the current welcome project, record it. In future launches, we always 
-                            // want to substitute the welcome project for the current build instead of using an
-                            // outdated one (when loading recent projects or the last opened project).
-                            if (canonPath === _getWelcomeProjectPath()) {
-                                var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-                                if (welcomeProjects.indexOf(canonPath) === -1) {
-                                    welcomeProjects.push(canonPath);
-                                    _prefs.setValue("welcomeProjects", welcomeProjects);
-                                }
+                rootEntry.exists(function (exists) {
+                    if (exists) {
+                        var projectRootChanged = (!_projectRoot || !rootEntry) ||
+                            _projectRoot.fullPath !== rootEntry.fullPath;
+                        var i;
+    
+                        // Success!
+                        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
+                            canonPath = FileUtils.canonicalizeFolderPath(rootPath);
+    
+                        _projectRoot = rootEntry;
+                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+    
+                        // If this is the current welcome project, record it. In future launches, we always 
+                        // want to substitute the welcome project for the current build instead of using an
+                        // outdated one (when loading recent projects or the last opened project).
+                        if (canonPath === _getWelcomeProjectPath()) {
+                            var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+                            if (welcomeProjects.indexOf(canonPath) === -1) {
+                                welcomeProjects.push(canonPath);
+                                _prefs.setValue("welcomeProjects", welcomeProjects);
                             }
-        
-                            // The tree will invoke our "data provider" function to populate the top-level items, then
-                            // go idle until a node is expanded - at which time it'll call us again to fetch the node's
-                            // immediate children, and so on.
-                            resultRenderTree = _renderTree(_treeDataProvider);
-        
-                            resultRenderTree.always(function () {
-                                if (projectRootChanged) {
-                                    // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                                    var promises = [];
-                                    $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                                    $.when.apply($, promises).then(result.resolve, result.reject);
-                                } else {
-                                    result.resolve();
-                                }
-                            });
-                            resultRenderTree.fail(function () {
+                        }
+    
+                        // The tree will invoke our "data provider" function to populate the top-level items, then
+                        // go idle until a node is expanded - at which time it'll call us again to fetch the node's
+                        // immediate children, and so on.
+                        resultRenderTree = _renderTree(_treeDataProvider);
+    
+                        resultRenderTree.always(function () {
+                            if (projectRootChanged) {
+                                // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                                var promises = [];
+                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
+                                $.when.apply($, promises).then(result.resolve, result.reject);
+                            } else {
+                                result.resolve();
+                            }
+                        });
+                        resultRenderTree.fail(function () {
 //                                PerfUtils.terminateMeasurement(perfTimerName);
+                            result.reject();
+                        });
+                        resultRenderTree.always(function () {
+                            PerfUtils.addMeasurement(perfTimerName);
+                        });
+                    } else {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_LOADING_PROJECT,
+                            StringUtils.format(
+                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                                StringUtils.breakableUrl(rootPath),
+                                "" // TODO: FileSystem error -- error.name
+                            )
+                        ).done(function () {
+                            // The project folder stored in preference doesn't exist, so load the default 
+                            // project directory.
+                            // TODO (issue #267): When Brackets supports having no project directory
+                            // defined this code will need to change
+                            _loadProject(_getWelcomeProjectPath()).always(function () {
+                                // Make sure not to reject the original deferred until the fallback
+                                // project is loaded, so we don't violate expectations that there is always
+                                // a current project before continuing after _loadProject().
                                 result.reject();
                             });
-                            resultRenderTree.always(function () {
-                                PerfUtils.addMeasurement(perfTimerName);
-                            });
-                        } else {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(
-                                    Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                                    StringUtils.breakableUrl(rootPath),
-                                    "" // TODO: FileSystem error -- error.name
-                                )
-                            ).done(function () {
-                                // The project folder stored in preference doesn't exist, so load the default 
-                                // project directory.
-                                // TODO (issue #267): When Brackets supports having no project directory
-                                // defined this code will need to change
-                                _loadProject(_getWelcomeProjectPath()).always(function () {
-                                    // Make sure not to reject the original deferred until the fallback
-                                    // project is loaded, so we don't violate expectations that there is always
-                                    // a current project before continuing after _loadProject().
-                                    result.reject();
-                                });
-                            });
-                        }
-                    });
+                        });
+                    }
+                });
             });
         }
 
@@ -1129,8 +1128,8 @@ define(function (require, exports, module) {
                     _loadProject(path, false, filesystem).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null)
-                        .done(function (files) {
+                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null, function (err, files) {
+                        if (!err) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
@@ -1138,15 +1137,15 @@ define(function (require, exports, module) {
                             } else {
                                 result.reject();
                             }
-                        })
-                        .fail(function (error) {
+                        } else {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
+                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, err.name)
                             );
                             result.reject();
-                        });
+                        }
+                    });
                 }
             })
             .fail(function () {
@@ -1334,35 +1333,35 @@ define(function (require, exports, module) {
                 
                 var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
                 
-                _fileSystem.resolve(newItemPath)
-                    .done(function (item) {
+                _fileSystem.resolve(newItemPath, function (err, item) {
+                    if (!err) {
                         // Item already exists, fail with error
                         errorCallback(2);   // TODO: FileSystem error code
-                    })
-                    .fail(function () {
+                    } else {
                         if (isFolder) {
                             var directory = _fileSystem.getDirectoryForPath(newItemPath);
                             
-                            directory.create()
-                                .done(function () {
-                                    successCallback(directory);
-                                })
-                                .fail(function (err) {
+                            directory.create(function (err) {
+                                if (err) {
                                     errorCallback(err);
-                                });
+                                } else {
+                                    successCallback(directory);
+                                }
+                            });
                         } else {
                             // Create an empty file
                             var file = _fileSystem.getFileForPath(newItemPath);
                             
-                            file.write("")
-                                .done(function () {
+                            file.write("", function (err) {
+                                if (!err) {
                                     successCallback(file);
-                                })
-                                .fail(function (err) {
+                                } else {
                                     errorCallback(err);
-                                });
+                                }
+                            });
                         }
-                    });
+                    }
+                });
                 
             } else { //escapeKeyPressed
                 errorCleanup();
@@ -1426,9 +1425,21 @@ define(function (require, exports, module) {
         // TODO: This should call FileEntry.moveTo(), but that isn't implemented
         // yet. For now, call directly to the low-level fs.rename()
         // TODO: FileSystem....
+        /*
         return _fileSystem.resolve(oldName)
             .then(function (oldFSEntry) {
-                return oldFSEntry.rename(newName);
+                var result = new $.Deferred();
+                
+                // TODO: FileSystem - this is probably completely wrong...
+                oldFSEntry.rename(newName, function (err) {
+                    if (!err) {
+                        result.resolve(oldFSEntry);
+                    } else {
+                        result.reject();
+                    }
+                });
+                
+                return result.promise();
             })
             .then(function (newFSEntry) {
                 // Update all nodes in the project tree.
@@ -1472,6 +1483,7 @@ define(function (require, exports, module) {
                     )
                 );
             });
+            */
     }
     
     /**
@@ -1546,8 +1558,8 @@ define(function (require, exports, module) {
     function deleteItem(entry) {
         var result = new $.Deferred();
 
-        entry.moveToTrash()
-            .done(function () {
+        entry.moveToTrash(function (err) {
+            if (!err) {
                 _findTreeNode(entry).done(function ($node) {
                     _projectTree.one("delete_node.jstree", function () {
                         // When a node is deleted, the previous node is automatically selected.
@@ -1578,8 +1590,7 @@ define(function (require, exports, module) {
     
                 _redraw(true);
                 result.resolve();
-            })
-            .fail(function (err) {
+            } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
@@ -1592,7 +1603,8 @@ define(function (require, exports, module) {
                 );
     
                 result.reject(err);
-            });
+            }
+        });
 
         return result.promise();
     }
