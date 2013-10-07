@@ -85,8 +85,11 @@ define(function (require, exports, module) {
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @return {Array.<jQuery.Object>} - array of hints formatted as jQuery
-         *      objects
+         * @return {jQuery.Deferred|{
+         *              hints: Array.<string|jQueryObject>,
+         *              match: string,
+         *              selectInitial: boolean,
+         *              handleWideResults: boolean}}
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {

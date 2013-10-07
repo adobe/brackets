@@ -85,7 +85,7 @@ define({
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
-	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS</strong>. Les modifications apportées aux fichiers HTML et JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS ou HTML</strong>. Les modifications apportées aux fichiers JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='{0}' title='{0}'>Résolution des erreurs de connexion Live Development</a>.",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
@@ -141,7 +141,7 @@ define({
 
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} dans {2} {3}",
+	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_FILE": "fichier",
@@ -341,7 +341,7 @@ define({
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
-	"INSTALL_SUCCEEDED": "Installation réussie.",
+	"INSTALL_SUCCEEDED": "Installation réussie !",
 	"INSTALL_FAILED": "Echec de l’installation.",
 	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",

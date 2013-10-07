@@ -238,8 +238,8 @@ define({
     "ABOUT"                                : "Hakkında",
     "CLOSE"                                : "Kapat",
     "ABOUT_TEXT_LINE1"                     : "sprint 14 test sürümü",
-    "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
-    "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span> adresine bakabilirsiniz.",
+    "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
+    "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> adresine bakabilirsiniz.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} programının yeni versiyonu bulunmakta! Detaylar için tıklayın.",
     "UPDATE_AVAILABLE_TITLE"               : "Yeni versiyon hazır",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
@@ -267,6 +267,26 @@ define({
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                                 : "Almanca",
+    "LOCALE_EN"                                 : "Ingilizce",
+    "LOCALE_FR"                                 : "Fransizca",
+    "LOCALE_CS"                                 : "Çekçe",
+    "LOCALE_ES"                                 : "İspanyolca",
+    "LOCALE_IT"                                 : "İtalyanca",
+    "LOCALE_JA"                                 : "Japonca",
+    "LOCALE_NB"                                 : "Norveççe",
+    "LOCALE_PL"                                 : "Polonyaca",
+    "LOCALE_PT_BR"                              : "Portekizce, Brezilya",
+    "LOCALE_PT_PT"                              : "Portekizce",
+    "LOCALE_RU"                                 : "Rusça",
+    "LOCALE_SV"                                 : "İsveççe",
+    "LOCALE_TR"                                 : "Türkçe",
+    "LOCALE_ZH_CN"                              : "Çince, basitleştirilmiş",
+    "LOCALE_HU"                                 : "Macarca",
     
     // extensions/default/JSLint
     "CMD_JSLINT"                           : "JSLint Aç",

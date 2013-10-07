@@ -599,7 +599,7 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        CodeHintManager.handleChange(this);
+        CodeHintManager.handleChange(this, changeList);
     };
     
     /**

@@ -60,7 +60,7 @@ define({
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
     "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\| Auch dürfen keine vom System reservierten Wörter vorkommen.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{0}</span> existiert bereits.", // TODO: depends on {0} gender
+    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> existiert bereits.", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
 
@@ -85,7 +85,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS- und HTML-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a href='{0}' title='{0}'>Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
@@ -145,7 +145,7 @@ define({
 
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
     "FIND_IN_FILES_FILE"                : "Datei",
@@ -435,6 +435,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
     // Locales (used by Debug > Switch Language)
+    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_ES"                                 : "Spanisch",

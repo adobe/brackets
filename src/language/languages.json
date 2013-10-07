@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -44,6 +44,13 @@
         "name": "EJS",
         "mode": ["htmlembedded", "application/x-ejs"],
         "fileExtensions": ["ejs"],
+        "blockComment": ["<!--", "-->"]
+    },
+    
+    "dust": {
+        "name": "Dust.js",
+        "mode": ["htmlembedded", "application/x-ejs"],
+        "fileExtensions": ["dust"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -57,7 +64,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },

@@ -352,12 +352,12 @@ define(function (require, exports, module) {
             if (maxHitsFoundInFile) {
                 numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
             }
-            numMatchesStr += String(count.matches);
 
             // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE_PART3,
                 numMatchesStr,
+                String(count.matches),
                 (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 count.files,
                 (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)

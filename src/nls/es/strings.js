@@ -141,7 +141,7 @@ define({
     
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} en {2} {3}",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_FILE"                : "archivo",

@@ -285,19 +285,24 @@ define(function (require, exports, module) {
     
     /**
      * Remove temp folder used for temporary unit tests files
-     * @return {$.Promise}
      */
     function removeTempDirectory() {
-        var deferred = new $.Deferred(),
-            baseDir = getTempDirectory();
+        var deferred    = new $.Deferred(),
+            baseDir     = getTempDirectory();
         
-        _resetPermissionsOnSpecialTempFolders().done(function () {
-            deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
-        }).fail(function () {
-            deferred.reject();
+        runs(function () {
+            _resetPermissionsOnSpecialTempFolders().done(function () {
+                deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
+            }).fail(function () {
+                deferred.reject();
+            });
+
+            deferred.fail(function (err) {
+                console.log("boo");
+            });
+        
+            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
         });
-        
-        return deferred.promise();
     }
     
     function getBracketsSourceRoot() {
@@ -401,7 +406,7 @@ define(function (require, exports, module) {
     function createMockEditorForDocument(doc, visibleRange) {
         // Initialize EditorManager/PanelManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
         PanelManager._setMockDOM($(".content"), $editorHolder);
         EditorManager.setEditorHolder($editorHolder);
         
@@ -471,8 +476,7 @@ define(function (require, exports, module) {
         waitsForDone(promise, "dismiss dialog");
     }
     
-    
-    function createTestWindowAndRun(spec, callback) {
+    function createTestWindowAndRun(spec, callback, options) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
             var testWindowWid = 1000,
@@ -498,6 +502,11 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // option to launch test window with either native or HTML menus
+            if (options && options.hasOwnProperty("hasNativeMenus")) {
+                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+            }
+            
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
             _testWindow.isBracketsTestWindow = true;
@@ -509,16 +518,17 @@ define(function (require, exports, module) {
             _testWindow.closeAllFiles = function closeAllFiles() {
                 runs(function () {
                     var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "Close all open files in working set");
                     
                     _testWindow.brackets.test.Dialogs.cancelModalDialogIfOpen(
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_BTN_DONTSAVE
                     );
+
+                    waitsForDone(promise, "Close all open files in working set");
                 });
             };
         });
-
+        
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function isBracketsDoneLoading() {
@@ -789,12 +799,12 @@ define(function (require, exports, module) {
                 // create the new FileEntry
                 createTextFile(destination, text).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
-                }).fail(function () {
-                    deferred.reject();
+                }).fail(function (err) {
+                    deferred.reject(err);
                 });
             });
-        }).fail(function () {
-            deferred.reject();
+        }).fail(function (err) {
+            deferred.reject(err);
         });
         
         return deferred.promise();
@@ -914,7 +924,10 @@ define(function (require, exports, module) {
                 promise = copyFileEntry(entry, destination, options);
             }
             
-            promise.then(deferred.resolve, deferred.reject);
+            promise.then(deferred.resolve, function (err) {
+                console.error(destination);
+                deferred.reject();
+            });
         }).fail(function () {
             deferred.reject();
         });

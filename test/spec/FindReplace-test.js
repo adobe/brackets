@@ -145,6 +145,8 @@ define(function (require, exports, module) {
         }
         
         beforeFirst(function () {
+            SpecRunnerUtils.createTempDirectory();
+
             // Create a new window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -154,7 +156,6 @@ define(function (require, exports, module) {
                 twEditorManager  = testWindow.brackets.test.EditorManager;
                 tw$              = testWindow.$;
 
-                SpecRunnerUtils.createTempDirectory();
                 SpecRunnerUtils.loadProjectInTestWindow(SpecRunnerUtils.getTempDirectory());
             });
         });
@@ -165,6 +166,7 @@ define(function (require, exports, module) {
             twEditorManager  = null;
             tw$              = null;
             SpecRunnerUtils.closeTestWindow();
+            
             SpecRunnerUtils.removeTempDirectory();
         });
 
