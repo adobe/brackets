@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
+        NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils");
     
@@ -248,6 +249,32 @@ define(function (require, exports, module) {
         this.path = path;
     }
     
+    FileStorage.prototype = {
+        load: function () {
+            var result = $.Deferred();
+            var path = this.path;
+            NativeFileSystem.resolveNativeFileSystemPath(path, function (entry) {
+                FileUtils.readAsText(entry)
+                    .then(function (text) {
+                        try {
+                            result.resolve(JSON.parse(text));
+                        } catch (e) {
+                            result.reject("Invalid JSON settings at " + path + "(" + e.toString() + ")");
+                        }
+                    })
+                    .fail(function (error) {
+                        result.reject(error);
+                    });
+            }, function (error) {
+                result.reject(error);
+            });
+            return result.promise();
+        },
+        
+        save: function (newData) {
+        }
+    };
+    
     function Scope(storage) {
         this.storage = storage;
         this.data = undefined;
@@ -333,7 +360,7 @@ define(function (require, exports, module) {
         
         addToScopeOrder: function (id, addBefore) {
             if (!addBefore) {
-                this._scopeOrder.push(id);
+                this._scopeOrder.unshift(id);
             } else {
                 var addIndex = this._scopeOrder.indexOf(addBefore);
                 if (addIndex > -1) {
@@ -372,6 +399,14 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
+        removeScope: function (id) {
+            delete this._scopes[id];
+            var scopeIndex = this._scopeOrder.indexOf(id);
+            if (scopeIndex > -1) {
+                this._scopeOrder.splice(scopeIndex, 1);
+            }
+        },
+        
         addLayer: function (id, layer) {
             if (this._layers[id]) {
                 throw new Error("Attempt to redefine preferences layer: " + id);
@@ -408,4 +443,5 @@ define(function (require, exports, module) {
     exports.Scope = Scope;
     exports.MemoryStorage = MemoryStorage;
     exports.LanguageLayer = LanguageLayer;
+    exports.FileStorage = FileStorage;
 });

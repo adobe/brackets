@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast, spyOn */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn */
 /*unittests: Preferences Manager*/
 
 define(function (require, exports, module) {
@@ -114,7 +114,9 @@ define(function (require, exports, module) {
                 
                 pm.addScope("user", userScope);
                 pm.addScope("project", projectScope);
-                expect(pm.getValue("spaceUnits")).toBe(4);
+                expect(pm.getValue("spaceUnits")).toBe(2);
+                pm.removeScope("project");
+                expect(pm.getValue("spaceUnits")).toBe(8);
             });
             
             it("handles asynchronously loaded scopes", function () {
@@ -188,6 +190,18 @@ define(function (require, exports, module) {
             });
             
             it("can load preferences from disk", function () {
+                var filestorage = new PreferencesManager.FileStorage(testPath + "/brackets.settings.json");
+                var pm = new PreferencesManager.PreferencesManager();
+                var projectScope = new PreferencesManager.Scope(filestorage);
+                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    expect(pm.getValue("spaceUnits")).toBe(92);
+                    
+                    var layer = new PreferencesManager.LanguageLayer();
+                    layer.setLanguage("go");
+                    pm.addLayer("language", layer);
+                    expect(pm.getValue("spaceUnits")).toBe(27);
+                });
             });
         });
     });
