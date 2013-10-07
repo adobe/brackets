@@ -14,14 +14,29 @@
 }
 
 .bezier-curve-editor .cubic-bezier {
-    background: url(grid.png) -1px -75px repeat,
-                -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 25%, #fff 75%, rgba(255, 255, 255, 0) 100%);
-    border-left: 1px solid #9c9e9e;
-    border-right: 1px solid #9c9e9e;
+    background: url(grid.png) 0px -75px repeat;
+    border-left: 1px solid #bbb;
+    border-right: 1px solid #bbb;
     background-size: 15px 450px;
-    height: 330px;
+    height: 300px;
     width: 149px;
     margin: 0 0 0 25px;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+.bezier-curve-editor:after {
+    content: "";
+    display: block;
+    height: 300px;
+    width: 149px;
+    margin: 0 0 0 25px;
+    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
+    background-position: 2px 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
 }
 
 .bezier-curve-editor .coordinate-plane {
@@ -52,7 +67,7 @@
 }
 
 .bezier-curve-editor .coordinate-plane:before {
-    border-bottom: 1px solid transparent;    
+    border-bottom: 1px solid transparent;
     content: 'Progression';
        -moz-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
