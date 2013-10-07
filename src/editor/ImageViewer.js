@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
     
     /**
+     * TODO: Move to FileUtils
      * Convert number of bytes into human readable format
      *
      * @param integer bytes     Number of bytes to convert
@@ -115,17 +116,17 @@ define(function (require, exports, module) {
                             sizeString = " - " + bytesToSize(metadata.size, 2);
                         }
                         $("#img-data").text(dimensionString  + sizeString);
-                        $("#image-holder").show();
-                        if ($(this).width() < this.naturalWidth) {
-                            scale = Math.floor($(this).width() / this.naturalWidth * 100);
-                            $("#img-scale").text(scale + "%")
-                                .show();
-                        }
                     },
                     function (error) {
-                        // TODO. even if getMetadata fails we want to show the dimensions
+                        $("#img-data").text(dimensionString);
                     }
                 );
+                $("#image-holder").show();
+                if ($(this).width() < this.naturalWidth) {
+                    scale = Math.floor($(this).width() / this.naturalWidth * 100);
+                    $("#img-scale").text(scale + "%")
+                        .show();
+                }
             });
         }
     }
