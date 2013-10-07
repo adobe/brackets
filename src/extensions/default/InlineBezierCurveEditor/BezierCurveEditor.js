@@ -149,12 +149,12 @@ define(function (require, exports, module) {
                 setting;
 
             var defaultSettings = {
-                handleBezierCurve: "rgba(0,0,0,.6)",
+                handleBezierCurve: "#1461FC",
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierBezierCurve: "black",
-                bezierThickness: 0.02
+                bezierBezierCurve: "#1461FC",
+                bezierThickness: 0.03
             };
 
             settings = settings || {};
@@ -171,9 +171,9 @@ define(function (require, exports, module) {
 
             // Draw control handles
             ctx.beginPath();
-            ctx.fillStyle = settings.handleColor;
+            ctx.fillStyle = settings.handleBezierCurve;
             ctx.lineWidth = settings.handleThickness;
-            ctx.strokeStyle = settings.handleColor;
+            ctx.strokeStyle = settings.handleBezierCurve;
 
             ctx.moveTo(0, 0);
             ctx.lineTo(xy[0], xy[1]);
