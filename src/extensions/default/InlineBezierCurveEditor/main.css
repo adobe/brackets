@@ -1,59 +1,40 @@
 
 .bezier-curve-editor * {
-	margin: 0;
+    margin: 0;
 }
 
 .bezier-curve-editor {
-	position: relative;
-    height: 200px;
-    padding: 4em;
-	margin: 1em;
-	font-family: 'Hiragino Kaku Gothic Pro', 'Segoe UI', 'Apple Gothic', Tahoma, 'Helvetica Neue', sans-serif;
-	line-height: 1.4;
-}
-
-.cubic-bezier {
-	background: white;
-    height: 180px;
-    width: 180px;
+    position: relative;
+    height: 324px;
+    padding: 0 18px;
 }
 
 .bezier-curve-editor .cubic-bezier-highlight {
     background-color: #DDC;
 }
 
-.bezier-curve-editor button, .bezier-curve-editor .button {
-	padding: .3em .5em;
-	border: 0;
-	background: #ccc;
-	color: white;
-	font-size: 50%;
-	text-transform: uppercase;
-	vertical-align: .25em;
-	cursor: pointer;
-	border-radius: .3em;
+.bezier-curve-editor .cubic-bezier {
+    background: url(grid.png) -1px -75px repeat,
+                -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 25%, #fff 75%, rgba(255, 255, 255, 0) 100%);
+    border-left: 1px solid #9c9e9e;
+    border-right: 1px solid #9c9e9e;
+    background-size: 15px 450px;
+    height: 330px;
+    width: 149px;
+    margin: 0 0 0 25px;
 }
 
-.bezier-curve-editor button:hover, .bezier-curve-editor .button:hover {
-	background: #f08;
-}
-
-.bezier-curve-editor button:focus, .bezier-curve-editor .button:focus {
-	box-shadow: 0 0 5px 2px yellow;
-}
-
-.bezier-curve-editor .coordinate-plane { 
+.bezier-curve-editor .coordinate-plane {
     position: relative;
-	top: 1em;
-	left: 1em;
-    border-width: 1px;
-    border-color: #000;
-    border-style: dashed solid;
-    width: 151px;
-    height: 151px;
+    left: 0;
+    line-height: 0;
+    top: 75px;
+    width: 149px;
+    height: 149px;
     -moz-box-sizing: content-box;
     box-sizing: content-box;
 }
+
 .bezier-curve-editor .coordinate-plane:before,
 .bezier-curve-editor .coordinate-plane:after {
     position: absolute;
@@ -65,13 +46,13 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
-    color: rgba(0,0,0,.6);
-    text-transform: uppercase;
+    color: #454545;
     font-size: 75%;
     line-height: 1;
 }
 
 .bezier-curve-editor .coordinate-plane:before {
+    border-bottom: 1px solid transparent;    
     content: 'Progression';
        -moz-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
@@ -85,78 +66,71 @@
             transform-origin: bottom left;
     white-space: nowrap;
 }
+
 .bezier-curve-editor .coordinate-plane:after {
     content: 'Time';
     margin-bottom: -1.5em;
     white-space: nowrap;
 }
+
 .bezier-curve-editor .coordinate-plane:hover:before {
     content: 'Progression (' attr(data-progression) '%)';
 }
+
 .bezier-curve-editor .coordinate-plane:hover:after {
     content: 'Time (' attr(data-time) '%)';
 }
 
-.bezier-curve-editor .control-point { 
-	position: absolute;
-	z-index: 2;
-	height: 20px; 
-	width: 20px; 
-	border: 1px solid rgba(0,0,0,.3);
-	margin: -10px 0 0 -10px;
-	outline: none;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-	-moz-border-radius: 10px; 
-	border-radius: 10px; 
+.bezier-curve-editor .control-point {
+    background: -webkit-linear-gradient(270deg, rgb(249, 249, 249) 50%, rgb(237, 237, 237) 50%);
+    position: absolute;
+    z-index: 2;
+    height: 16px;
+    width: 16px;
+    border: 1px solid #9c9e9e;
+    margin: -8px 0 0 -8px;
+    outline: none;
+    padding: 0 !important;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.bezier-curve-editor .control-point:focus {
+    border: 1px solid #0940fd !important;
+    box-shadow: 0 0 0 2px #6fb5f1;
 }
 
 .bezier-curve-editor .P0, .bezier-curve-editor .P3 {
-	background: white;
-}
-.bezier-curve-editor .P1, .bezier-curve-editor .P2 {
-	cursor: pointer;
-}
-.bezier-curve-editor .P0 { 
-	left: 0;
-	top: 150px;
-}
-.bezier-curve-editor .P1 { 
-	background: #f08;
-}
-.bezier-curve-editor .P2 { 
-	background: #0ab;
-}
-.bezier-curve-editor .P3 {
-	left: 150px; 
-	top: 0;
+    background: #1461FC;
+    border-radius: 0;
+    border: none;
+    height: 12px;
+    width: 12px;
+    z-index: 1;
 }
 
-.bezier-curve-editor canvas.curve { 
-	position: absolute;
-	z-index: 1;
-	top: -75px;
+.bezier-curve-editor .P1, .bezier-curve-editor .P2 {
+    cursor: pointer;
+    z-index: 100;
+}
+
+.bezier-curve-editor .P0 {
+    left: 2px;
+    top: 151px;
+}
+
+.bezier-curve-editor .P3 {
+    right: -7px;
+    top: 1px;
+}
+
+.bezier-curve-editor canvas.curve {
+    position: absolute;
+    z-index: 1;
+    top: -75px;
     left: 0;
 
-	background:
-        -moz-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%, transparent) center no-repeat,
-		-moz-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
-	background:
-        -ms-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
-		-ms-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
-	background:
-        -o-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
-		-o-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
-	background:
-        -webkit-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
-		-webkit-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
-	background:
-        linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
-		repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
-	background-size: 100% 50%, 100% 50%;
-	background-position: 0, -25%;
-	
-	-moz-user-select: none;
-	-webkit-user-select: none;
-	user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
