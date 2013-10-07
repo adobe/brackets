@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, localStorage */
+/*unittests: Preferences Manager */
 
 /**
  * PreferencesManager
@@ -32,7 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
+    var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils");
@@ -133,7 +134,7 @@ define(function (require, exports, module) {
             });
         }
 
-        return new PreferenceStorage(clientID, prefs);
+        return new OldPreferenceStorage(clientID, prefs);
     }
 
     /**
@@ -221,4 +222,170 @@ define(function (require, exports, module) {
     // Unit test use only
     exports._reset                  = _reset;
     exports._getExtensionPaths      = _getExtensionPaths;
+    
+    // New implementation follows. Everything above is deprecated.
+    
+    function MemoryStorage(data) {
+        this.data = data || {};
+    }
+    
+    MemoryStorage.prototype = {
+        load: function () {
+            var result = $.Deferred();
+            result.resolve(this.data);
+            return result.promise();
+        },
+        
+        save: function (newData) {
+            var result = $.Deferred();
+            this.data = newData;
+            result.resolve();
+            return result.promise();
+        }
+    };
+    
+    function Scope(storage) {
+        this.storage = storage;
+        this.data = undefined;
+        this._dirty = false;
+    }
+    
+    Scope.prototype = {
+        load: function () {
+            var result = $.Deferred();
+            this.storage.load().then(function (data) {
+                this.data = data;
+                result.resolve();
+            }.bind(this));
+            return result.promise();
+        },
+        
+        save: function () {
+            return this.storage.save(this.data);
+        },
+        
+        setValue: function (id, value) {
+            this._dirty = true;
+            this.data[id] = value;
+        },
+        
+        getValue: function (id, layers) {
+            var layerCounter;
+            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+                var result = layers[layerCounter](this.data, id);
+                if (result !== undefined) {
+                    return result;
+                }
+            }
+            return this.data[id];
+        }
+    };
+    
+    function LanguageLayer() {
+    }
+    
+    LanguageLayer.prototype = {
+        setLanguage: function (languageID) {
+            this.language = languageID;
+        },
+        
+        getValue: function (data, id) {
+            if (data.language && data.language[this.language]) {
+                return data.language[this.language][id];
+            }
+        }
+    };
+    
+    function PreferencesManager() {
+        this._knownPrefs = {};
+        this._scopes = {
+            "default": new Scope(new MemoryStorage())
+        };
+        
+        // Memory-based scope loads synchronously
+        this._scopes["default"].load();
+        this._scopeOrder = ["default"];
+        this._pendingScopes = {};
+        
+        
+        this._layers = {};
+        this._layerGetters = [];
+    }
+    
+    PreferencesManager.prototype = {
+        definePreference: function (id, type, initial, options) {
+            options = options || {};
+            if (this._knownPrefs.hasOwnProperty(id)) {
+                throw new Error("Preference " + id + " was redefined");
+            }
+            this._knownPrefs[id] = {
+                type: type,
+                initial: initial,
+                name: options.name,
+                description: options.description
+            };
+            this.setValue("default", id, initial);
+        },
+        
+        addScope: function (id, scope, addBefore) {
+            if (this._scopes[id]) {
+                throw new Error("Attempt to redefine preferences scope: " + id);
+            }
+            
+            scope.load().then(function () {
+                this._scopes[id] = scope;
+                if (!addBefore) {
+                    this._scopeOrder.push(id);
+                } else {
+                    var addIndex = this._scopeOrder.indexOf(addBefore);
+                    if (addIndex > -1) {
+                        this._scopeOrder.splice(addIndex, 0, id);
+                    } else {
+                        var queue = this._pendingScopes[addBefore];
+                        if (!queue) {
+                            queue = [];
+                            this._pendingScopes[addBefore] = queue;
+                        }
+                        queue.unshift(id);
+                    }
+                }
+            }.bind(this));
+        },
+        
+        addLayer: function (id, layer) {
+            if (this._layers[id]) {
+                throw new Error("Attempt to redefine preferences layer: " + id);
+            }
+            this._layers[id] = layer;
+            this._layerGetters.push(layer.getValue.bind(layer));
+        },
+        
+        setValue: function (scopeName, id, value) {
+            var scope = this._scopes[scopeName];
+            if (!scope) {
+                throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
+            }
+            
+            scope.setValue(id, value);
+        },
+        
+        getValue: function (id, value) {
+            var scopeCounter,
+                scopeOrder = this._scopeOrder,
+                layerGetters = this._layerGetters;
+            
+            for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
+                var scope = this._scopes[scopeOrder[scopeCounter]];
+                var result = scope.getValue(id, layerGetters);
+                if (result !== undefined) {
+                    return result;
+                }
+            }
+        }
+    };
+    
+    exports.PreferencesManager = PreferencesManager;
+    exports.Scope = Scope;
+    exports.MemoryStorage = MemoryStorage;
+    exports.LanguageLayer = LanguageLayer;
 });

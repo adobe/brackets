@@ -22,139 +22,166 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, beforeFirst, afterLast, spyOn */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast, spyOn */
+/*unittests: Preferences Manager*/
+
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
-        PreferencesManager,
-        testWindow;
+    var PreferencesManager      = require("preferences/PreferencesManager");
 
-    var CLIENT_ID = "PreferencesManager-test";
-        
-    describe("PreferenceStorage", function () {
-        
-        it("should read initial preferences from JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar", hello: "world"});
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toBe("world");
-        });
-        
-        it("should store values as JSON", function () {
-            var json = {};
-            var store = new PreferenceStorage(CLIENT_ID, json);
-            store.setValue("foo", 42);
-            
-            expect(json.foo).toEqual(42);
-            expect(store.getValue("foo")).toBe(42);
-        });
-        
-        it("should output preferences as JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {});
-            store.setValue("foo", 42);
-            var json = store.getAllValues();
-            
-            expect(json.foo).toEqual(42);
-        });
-        
-        it("should remove values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar"});
-            expect(store.getValue("foo")).toBe("bar");
-            
-            store.remove("foo");
-            expect(store.getValue("foo")).toBe(undefined);
-        });
-        
-        it("should use setAllValues to append multiple new name/value pairs", function () {
-            var initial = {"foo": "bar"};
-            var store = new PreferenceStorage(CLIENT_ID, initial);
-            
-            // append
-            store.setAllValues({"hello": ["world", "!"], "goodbye": 42}, true);
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toEqual(["world", "!"]);
-            expect(store.getValue("goodbye")).toBe(42);
-            
-            // overwrite
-            store.setAllValues({"winning": false}, false);
-            expect(store.getValue("foo")).toBe(undefined);
-            expect(store.getValue("hello")).toBe(undefined);
-            expect(store.getValue("goodbye")).toBe(undefined);
-            expect(store.getValue("winning")).toBe(false);
-        });
-        
-        it("should throw errors for invalid values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-            var error = null;
-            
-            expect(store.getValue("foo")).toBe(42);
-            // function data is not valid JSON
-            store.setValue("foo", function () {});
-            expect(store.getValue("foo")).toBe(42);
-                        
-            // number key is not valid JSON
-            store.setValue(42, "bar");
-            expect(store.getValue(42)).toBe(undefined);
-        });
-        
-    });
-
-    describe("PreferencesManager", function () {
-        beforeFirst(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // Load module instances from brackets.test
-                PreferencesManager = testWindow.brackets.test.PreferencesManager;
-            });
-        });
-
-        afterLast(function () {
-            PreferencesManager = null;
-            SpecRunnerUtils.closeTestWindow();
-        });
-
-        beforeEach(function () {
-            // SpecRunner.js already initializes the unit test instance of
-            // PreferencesManager to use the unit test key. All we need to do
-            // here is reset to clear callbacks and in-memory preferences.
-            PreferencesManager._reset();
-        });
-
-        it("should use default preferences", function () {
-            var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
-            expect(store.getValue("foo")).toEqual("default");
-        });
-
-        describe("Create clientID for preference store", function () {
-            it("should return clientID for module that exists in extension directories", function () {
-                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
-                    return ['/local/Extension/Folder/Extensions/',
-                            '/User/test/Library/Application Support/Brackets/extensions/user/',
-                            'c:/Program Files (x86)/Brackets/wwww/extensions/default/'];
-                });
-
-                var module = {id: 'utils/Resizer', uri: '/local/Extension/Folder/Extensions/utils/Resizer.js'};
-
-                var clientID = PreferencesManager.getClientID(module);
-                expect(clientID).toBe("com.adobe.brackets.utils/Resizer.js");
-
-                clientID = PreferencesManager.getClientID({id: 'main', uri: '/User/test/Library/Application Support/Brackets/extensions/user/HelloWorld/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.HelloWorld/main.js");
+    describe("Preferences Manager", function () {
+        describe("Memory Storage", function () {
+            it("should support get and save operations", function () {
+                var sampleData = {
+                    foo: 1,
+                    bar: 2
+                };
                 
-                clientID = PreferencesManager.getClientID({id: 'main', uri: 'c:/Program Files (x86)/Brackets/wwww/extensions/default/JSLint/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.JSLint/main.js");
-            });
-
-            it("should always return a clientID for a module that doesn't exist in extension directories", function () {
-                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
-                    return []; // no extension directories
+                var storage = new PreferencesManager.MemoryStorage(sampleData);
+                
+                // This storage is synchronous
+                storage.load().then(function (data) {
+                    expect(data).toEqual(sampleData);
                 });
-
-                var clientID = PreferencesManager.getClientID({id: 'main', uri: '/path/is/not/an/Extension/directory/someExtension/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.main");
+                
+                storage.save({
+                    foo: 3
+                }).then(function () {
+                    expect(storage.data).not.toEqual(sampleData);
+                    expect(storage.data.foo).toEqual(3);
+                    expect(storage.data.bar).not.toBeDefined();
+                });
+            });
+        });
+        
+        describe("Preferences Manager", function () {
+            it("should yield an error if a preference is redefined", function () {
+                var pm = new PreferencesManager.PreferencesManager();
+                pm.definePreference("foo.bar", "string");
+                try {
+                    pm.definePreference("foo.bar", "string");
+                    expect("We should have gotten an exception").toEqual("but we didn't");
+                } catch (e) {
+                }
+            });
+            
+            it("should find the default values", function () {
+                var pm = new PreferencesManager.PreferencesManager();
+                pm.definePreference("foo.bar", "number", 0);
+                expect(pm.getValue("nonexistent")).not.toBeDefined();
+                expect(pm.getValue("foo.bar")).toBe(0);
+            });
+            
+            it("should produce an error for setValue on undefined scope", function () {
+                var pm = new PreferencesManager.PreferencesManager();
+                try {
+                    pm.setValue("nonscope", "foo", false);
+                    expect("Should have gotten an error for nonexistent scope").toBe("but didn't");
+                } catch (e) {
+                    expect(e.toString().indexOf("scope")).toBeGreaterThan(-1);
+                }
+            });
+            
+            it("supports nested scopes", function () {
+                var pm = new PreferencesManager.PreferencesManager();
+                pm.definePreference("useTabChar", "boolean", false);
+                pm.definePreference("tabSize", "number", 4);
+                pm.definePreference("spaceUnits", "number", 4);
+                var userScope = new PreferencesManager.Scope(new PreferencesManager.MemoryStorage());
+                var projectScope = new PreferencesManager.Scope(new PreferencesManager.MemoryStorage());
+                pm.addScope("user", userScope, "default");
+                pm.addScope("project", projectScope, "user");
+                
+                expect(pm.getValue("spaceUnits")).toEqual(4);
+                
+                pm.setValue("user", "useTabChar", true);
+                pm.setValue("user", "tabSize", 8);
+                pm.setValue("user", "spaceUnits", 8);
+                pm.setValue("project", "spaceUnits", 2);
+                
+                expect(pm.getValue("spaceUnits")).toBe(2);
+                expect(pm.getValue("useTabChar")).toBe(true);
+                expect(pm.getValue("tabSize")).toBe(8);
+                
+                // Test the default for the addBefore argument.
+                pm = new PreferencesManager.PreferencesManager();
+                pm.definePreference("spaceUnits", "number", 4);
+                
+                pm.addScope("user", userScope);
+                pm.addScope("project", projectScope);
+                expect(pm.getValue("spaceUnits")).toBe(4);
+            });
+            
+            it("handles asynchronously loaded scopes", function () {
+                // This test will mark storage1's prefs as higher precedence
+                // than storage2's prefs, but it will pretend to load storage1's
+                // prefs after storage2's to trigger a possible race.
+                
+                // Adding scopes is something that is not likely to happen much
+                // in extensions... the race is much more possible within
+                // Brackets itself depending on when the preferences load.
+                // Within Brackets itself, the order of scopes is very well defined.
+                var storage1 = new PreferencesManager.MemoryStorage({
+                    testKey: 1
+                });
+                
+                var deferred1 = $.Deferred();
+                storage1.load = function () {
+                    return deferred1;
+                };
+                
+                var storage2 = new PreferencesManager.MemoryStorage({
+                    testKey: 2
+                });
+                
+                var deferred2 = $.Deferred();
+                storage2.load = function () {
+                    return deferred2;
+                };
+                
+                var pm = new PreferencesManager.PreferencesManager();
+                pm.definePreference("testKey", "number", 0);
+                pm.addScope("storage1", new PreferencesManager.Scope(storage1), "storage2");
+                pm.addScope("storage2", new PreferencesManager.Scope(storage2), "default");
+                
+                expect(pm.getValue("testKey")).toBe(0);
+                
+                deferred2.resolve(storage2.data);
+                expect(pm.getValue("testKey")).toBe(2);
+                
+                deferred1.resolve(storage1.data);
+                expect(pm.getValue("testKey")).toBe(1);
+            });
+            
+            it("supports layers over the nested scopes", function () {
+                var pm = new PreferencesManager.PreferencesManager();
+                var userScope = new PreferencesManager.Scope(new PreferencesManager.MemoryStorage({
+                    "spaceUnits": 4,
+                    "language": {
+                        "html": {
+                            "spaceUnits": 2
+                        },
+                        "css": {
+                            "spaceUnits": 8
+                        }
+                    }
+                }));
+                pm.addScope("user", userScope);
+                var layer = new PreferencesManager.LanguageLayer();
+                pm.addLayer("language", layer);
+                
+                expect(pm.getValue("spaceUnits")).toBe(4);
+                
+                layer.setLanguage("html");
+                expect(pm.getValue("spaceUnits")).toBe(2);
+                
+                layer.setLanguage("css");
+                expect(pm.getValue("spaceUnits")).toBe(8);
+                
+                layer.setLanguage("python");
+                expect(pm.getValue("spaceUnits")).toBe(4);
             });
         });
     });
