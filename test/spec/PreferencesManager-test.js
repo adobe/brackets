@@ -29,7 +29,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var PreferencesManager      = require("preferences/PreferencesManager");
+    var PreferencesManager      = require("preferences/PreferencesManager"),
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+    
+    var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesManager-test-files");
 
     describe("Preferences Manager", function () {
         describe("Memory Storage", function () {
@@ -148,10 +151,10 @@ define(function (require, exports, module) {
                 
                 expect(pm.getValue("testKey")).toBe(0);
                 
-                deferred2.resolve(storage2.data);
-                expect(pm.getValue("testKey")).toBe(2);
-                
                 deferred1.resolve(storage1.data);
+                expect(pm.getValue("testKey")).toBe(0);
+                
+                deferred2.resolve(storage2.data);
                 expect(pm.getValue("testKey")).toBe(1);
             });
             
@@ -182,6 +185,9 @@ define(function (require, exports, module) {
                 
                 layer.setLanguage("python");
                 expect(pm.getValue("spaceUnits")).toBe(4);
+            });
+            
+            it("can load preferences from disk", function () {
             });
         });
     });

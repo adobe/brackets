@@ -244,6 +244,10 @@ define(function (require, exports, module) {
         }
     };
     
+    function FileStorage(path) {
+        this.path = path;
+    }
+    
     function Scope(storage) {
         this.storage = storage;
         this.data = undefined;
@@ -327,29 +331,45 @@ define(function (require, exports, module) {
             this.setValue("default", id, initial);
         },
         
+        addToScopeOrder: function (id, addBefore) {
+            if (!addBefore) {
+                this._scopeOrder.push(id);
+            } else {
+                var addIndex = this._scopeOrder.indexOf(addBefore);
+                if (addIndex > -1) {
+                    this._scopeOrder.splice(addIndex, 0, id);
+                } else {
+                    var queue = this._pendingScopes[addBefore];
+                    if (!queue) {
+                        queue = [];
+                        this._pendingScopes[addBefore] = queue;
+                    }
+                    queue.unshift(id);
+                }
+            }
+            if (this._pendingScopes[id]) {
+                var pending = this._pendingScopes[id];
+                delete this._pendingScopes[id];
+                pending.forEach(function (scopeID) {
+                    this.addToScopeOrder(scopeID, id);
+                }.bind(this));
+            }
+        },
+        
         addScope: function (id, scope, addBefore) {
             if (this._scopes[id]) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
             
+            var deferred = $.Deferred();
+            
             scope.load().then(function () {
                 this._scopes[id] = scope;
-                if (!addBefore) {
-                    this._scopeOrder.push(id);
-                } else {
-                    var addIndex = this._scopeOrder.indexOf(addBefore);
-                    if (addIndex > -1) {
-                        this._scopeOrder.splice(addIndex, 0, id);
-                    } else {
-                        var queue = this._pendingScopes[addBefore];
-                        if (!queue) {
-                            queue = [];
-                            this._pendingScopes[addBefore] = queue;
-                        }
-                        queue.unshift(id);
-                    }
-                }
+                this.addToScopeOrder(id, addBefore);
+                deferred.resolve(id, scope);
             }.bind(this));
+            
+            return deferred.promise();
         },
         
         addLayer: function (id, layer) {
