@@ -744,23 +744,35 @@ define(function (require, exports, module) {
                     }
                     StatusBar.showBusyIndicator(true);
                     var fileList = ProjectManager.getFileSystem().getFileList();
+                    var openDocs = DocumentManager.getAllOpenDocuments();
                     Async.doInParallel(fileList, function (file) {
                         var result = new $.Deferred();
                         
                         if (!_inScope(file, scope)) {
                             result.resolve();
                         } else {
-                            // Search one file
-                            file.readAsText(function (err, contents) {
-                                if (!err) {
+                            var _resolve = function (contents) {
+                                if (contents) {
                                     _addSearchMatches(file.fullPath, contents, currentQueryExpr);
-                                    result.resolve();
-                                } else {
-                                    // Error reading this file. This is most likely because the file isn't a text file.
-                                    // Resolve here so we move on to the next file.
-                                    result.resolve();
                                 }
-                            });
+                                result.resolve();
+                            };
+                            
+                            var doc = openDocs.filter(function (doc) {
+                                return (doc.file === file);
+                            })[0];
+                            
+                            if (doc) {
+                                // Doc is open for editing, use the in-memory contents
+                                _resolve(doc.getText());
+                            } else {
+                                // Search one file
+                                file.readAsText(function (err, contents) {
+                                    // Always resolve. If there is an error, this file
+                                    // is skipped and we move on to the next file.
+                                    _resolve(err ? null : contents);
+                                });
+                            }
                         }
                         return result.promise();
                     })
