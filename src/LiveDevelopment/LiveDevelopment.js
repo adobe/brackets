@@ -76,7 +76,6 @@ define(function LiveDevelopment(require, exports, module) {
 
     var Async                = require("utils/Async"),
         CollectionUtils      = require("utils/CollectionUtils"),
-        FileIndexManager     = require("project/FileIndexManager"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
@@ -671,9 +670,10 @@ define(function LiveDevelopment(require, exports, module) {
         var result = new $.Deferred();
 
         var baseUrl = ProjectManager.getBaseUrl(),
-            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
+            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length),
+            allFiles = ProjectManager.getFileSystem().getFileList();
 
-        FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+        if (allFiles) {
             if (refPath) {
                 var projectRoot = ProjectManager.getProjectRoot().fullPath,
                     containingFolder = FileUtils.getDirectoryPath(refPath),
@@ -721,12 +721,13 @@ define(function LiveDevelopment(require, exports, module) {
 
                 if (i !== -1) {
                     DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
-                    return;
+                } else {
+                    result.resolve(null);
                 }
+            } else {
+                result.resolve(null);
             }
-
-            result.resolve(null);
-        });
+        }
 
         return result.promise();
     }

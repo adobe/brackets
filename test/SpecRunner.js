@@ -147,13 +147,14 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.appFileSystem.pathExists(path, function (exists) {
+        var file = brackets.appFileSystem.getFileForPath(path);
+        
+        file.exists(function (exists) {
             if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();
             } else {
                 // file not found, write the new file with xml content
-                var file = brackets.appFileSystem.getFileForPath(path);
                 FileUtils.writeText(file, text)
                     .done(function () {
                         _writeResults.resolve();

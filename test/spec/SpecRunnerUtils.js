@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                     chmod(folder, 777).then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
-                    if (err === Error.NOT_FOUND) {
+                    if (err === brackets.fs.ERR_NOT_FOUND) { // TODO: FileSystem
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {

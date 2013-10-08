@@ -615,41 +615,35 @@ define(function (require, exports, module) {
                 return promise;
             }
             
-            fileSystem.pathExists(fullPath, function (exists) {
-                if (exists) {
-                    // log this document's Promise as pending
-                    getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
-        
-                    // create a new document
-                    var file = fileSystem.getFileForPath(fullPath),
-                        perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-        
-                    result.done(function () {
-                        PerfUtils.addMeasurement(perfTimerName);
-                    }).fail(function () {
-                        PerfUtils.finalizeMeasurement(perfTimerName);
-                    });
-        
-                    FileUtils.readAsText(file)
-                        .always(function () {
-                            // document is no longer pending
-                            delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                        })
-                        .done(function (rawText, readTimestamp) {
-                            doc = new DocumentModule.Document(file, readTimestamp, rawText);
-                                    
-                            // This is a good point to clean up any old dangling Documents
-                            _gcDocuments();
-                            
-                            result.resolve(doc);
-                        })
-                        .fail(function (fileError) {
-                            result.reject(fileError);
-                        });
-                } else {
-                    result.reject(); // TODO: FileSystem error not found
-                }
+            // log this document's Promise as pending
+            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+
+            // create a new document
+            var file = fileSystem.getFileForPath(fullPath),
+                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+
+            result.done(function () {
+                PerfUtils.addMeasurement(perfTimerName);
+            }).fail(function () {
+                PerfUtils.finalizeMeasurement(perfTimerName);
             });
+
+            FileUtils.readAsText(file)
+                .always(function () {
+                    // document is no longer pending
+                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                })
+                .done(function (rawText, readTimestamp) {
+                    doc = new DocumentModule.Document(file, readTimestamp, rawText);
+                            
+                    // This is a good point to clean up any old dangling Documents
+                    _gcDocuments();
+                    
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
             
             return promise;
         }

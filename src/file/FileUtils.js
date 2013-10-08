@@ -86,6 +86,8 @@ define(function (require, exports, module) {
                 result.reject(err);
             }
         });
+        
+        return result.promise();
     }
 
     /** @const */

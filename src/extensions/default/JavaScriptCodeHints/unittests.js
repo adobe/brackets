@@ -1542,21 +1542,25 @@ define(function (require, exports, module) {
                 preferences;
 
             function getPreferences(path) {
-                var file = brackets.appFileSystem.getFileForPath(path);
-                
                 preferences = null;
 
-                FileUtils.readAsText(file).done(function (text) {
-                    var configObj = null;
-                    try {
-                        configObj = JSON.parse(text);
-                    } catch (e) {
-                        // continue with null configObj
-                        console.log(e);
+                brackets.appFileSystem.resolve(path, function (err, file) {
+                    if (!err) {
+                        FileUtils.readAsText(file).done(function (text) {
+                            var configObj = null;
+                            try {
+                                configObj = JSON.parse(text);
+                            } catch (e) {
+                                // continue with null configObj
+                                console.log(e);
+                            }
+                            preferences = new Preferences(configObj);
+                        }).fail(function (error) {
+                            preferences = new Preferences();
+                        });
+                    } else {
+                        preferences = new Preferences();
                     }
-                    preferences = new Preferences(configObj);
-                }).fail(function (error) {
-                    preferences = new Preferences();
                 });
             }
 

@@ -78,13 +78,16 @@ define(function (require, exports, module) {
             library;
 
         files.forEach(function (i) {
-            var file = brackets.appFileSystem.getFileForPath(path + i);
-            FileUtils.readAsText(file).done(function (text) {
-                library = JSON.parse(text);
-                builtinLibraryNames.push(library["!name"]);
-                ternEnvironment.push(library);
-            }).fail(function (error) {
-                console.log("failed to read tern config file " + i);
+            brackets.appFileSystem.resolve(path + i, function (err, file) {
+                if (!err) {
+                    FileUtils.readAsText(file).done(function (text) {
+                        library = JSON.parse(text);
+                        builtinLibraryNames.push(library["!name"]);
+                        ternEnvironment.push(library);
+                    }).fail(function (error) {
+                        console.log("failed to read tern config file " + i);
+                    });
+                }
             });
         });
     }
@@ -118,26 +121,32 @@ define(function (require, exports, module) {
         }
 
         var path = projectRootPath + Preferences.FILE_NAME,
-            fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-            file = fileSystem.getFileForPath(path);
+            fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem;
 
-        FileUtils.readAsText(file).done(function (text) {
-            var configObj = null;
-            try {
-                configObj = JSON.parse(text);
-            } catch (e) {
-                // continue with null configObj which will result in
-                // default settings.
-                console.log("Error parsing preference file: " + path);
-                if (e instanceof SyntaxError) {
-                    console.log(e.message);
-                }
+        fileSystem.resolve(path, function (err, file) {
+            if (!err) {
+                FileUtils.readAsText(file).done(function (text) {
+                    var configObj = null;
+                    try {
+                        configObj = JSON.parse(text);
+                    } catch (e) {
+                        // continue with null configObj which will result in
+                        // default settings.
+                        console.log("Error parsing preference file: " + path);
+                        if (e instanceof SyntaxError) {
+                            console.log(e.message);
+                        }
+                    }
+                    preferences = new Preferences(configObj);
+                    deferredPreferences.resolve();
+                }).fail(function (error) {
+                    preferences = new Preferences();
+                    deferredPreferences.resolve();
+                });
+            } else {
+                preferences = new Preferences();
+                deferredPreferences.resolve();
             }
-            preferences = new Preferences(configObj);
-            deferredPreferences.resolve();
-        }).fail(function (error) {
-            preferences = new Preferences();
-            deferredPreferences.resolve();
         });
     }
 
@@ -176,37 +185,45 @@ define(function (require, exports, module) {
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
         var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-            directory = fileSystem.getDirectoryForPath(dir),
             files = [];
 
-        fileSystem.getDirectoryContents(directory, function (err, contents) {
-            if (!err) {
-                contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
-                    var path    = entry.fullPath,
-                        split   = HintUtils.splitPath(path),
-                        file    = split.file;
-
-                    if (fileCallback && entry.isFile()) {
-
-                        if (file.indexOf(".") > 0) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(path).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
-                                fileCallback(path);
+        fileSystem.resolve(dir, function (err, directory) {
+            if (!err && directory.isDirectory()) {
+                fileSystem.getDirectoryContents(directory, function (err, contents) {
+                    if (!err) {
+                        contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
+                            var path    = entry.fullPath,
+                                split   = HintUtils.splitPath(path),
+                                file    = split.file;
+        
+                            if (fileCallback && entry.isFile()) {
+        
+                                if (file.indexOf(".") > 0) { // ignore .dotfiles
+                                    var languageID = LanguageManager.getLanguageForPath(path).getId();
+                                    if (languageID === HintUtils.LANGUAGE_ID) {
+                                        fileCallback(path);
+                                    }
+                                }
+                            } else if (directoryCallback && entry.isDirectory()) {
+                                var dirName = HintUtils.splitPath(split.dir).file;
+                                if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
+                                    directoryCallback(entry.fullPath);
+                                }
                             }
+                        });
+                        doneCallback();
+                    } else {
+                        if (errorCallback) {
+                            errorCallback(err);
                         }
-                    } else if (directoryCallback && entry.isDirectory()) {
-                        var dirName = HintUtils.splitPath(split.dir).file;
-                        if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
-                            directoryCallback(entry.fullPath);
-                        }
+                        console.log("Unable to refresh directory: ", err);
                     }
                 });
-                doneCallback();
             } else {
                 if (errorCallback) {
                     errorCallback(err);
                 }
-                console.log("Unable to refresh directory: ", err);
+                console.log("Directory \"%s\" does not exist", dir);
             }
         });
     }
@@ -820,11 +837,27 @@ define(function (require, exports, module) {
              * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentForPath 
              */
             function getDocText(filePath) {
-                return DocumentManager.getDocumentForPath(filePath).done(function (document) {
-                    resolvedFiles[name] = filePath;
-                    numResolvedFiles++;
-                    replyWith(name, getTextFromDocument(document));
+                var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
+                    result = new $.Deferred();
+                
+                fileSystem.resolve(filePath, function (err, file) {
+                    if (!err && file.isFile()) {
+                        DocumentManager.getDocumentForPath(filePath)
+                            .done(function (document) {
+                                resolvedFiles[name] = filePath;
+                                numResolvedFiles++;
+                                replyWith(name, getTextFromDocument(document));
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                result.reject();
+                            });
+                    } else {
+                        result.reject();
+                    }
                 });
+                
+                return result.promise();
             }
             
             /**

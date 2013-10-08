@@ -973,7 +973,6 @@ define(function (require, exports, module) {
     
     describe("Default HTML Document", function () {
         var brackets,
-            FileIndexManager,
             LiveDevelopment,
             ProjectManager,
             testWindow;
@@ -985,7 +984,6 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     brackets = testWindow.brackets;
                     LiveDevelopment = brackets.test.LiveDevelopment;
-                    FileIndexManager = brackets.test.FileIndexManager;
                     ProjectManager = brackets.test.ProjectManager;
                 });
             });
@@ -993,7 +991,6 @@ define(function (require, exports, module) {
         
         afterLast(function () {
             brackets         = null;
-            FileIndexManager = null;
             LiveDevelopment  = null;
             ProjectManager   = null;
             testWindow       = null;
@@ -1003,7 +1000,6 @@ define(function (require, exports, module) {
 
         function loadFileAndUpdateFileIndex(fileToLoadIntoEditor) {
             runs(function () {
-                FileIndexManager.markDirty();
                 waitsForDone(SpecRunnerUtils.openProjectFiles([fileToLoadIntoEditor]), "SpecRunnerUtils.openProjectFiles " + fileToLoadIntoEditor);
             });
         }

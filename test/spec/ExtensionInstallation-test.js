@@ -158,8 +158,8 @@ define(function (require, exports, module) {
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
-                brackets.appFileSystem.pathExists(extensionsRoot + "/user/basic-valid-extension/main.js", function (exists) {
-                    if (exists) {
+                brackets.appFileSystem.resolve(extensionsRoot + "/user/basic-valid-extension/main.js", function (err, item) {
+                    if (!err) {
                         mainCheckComplete = true;
                     } else {
                         mainCheckComplete = true;
@@ -181,8 +181,8 @@ define(function (require, exports, module) {
                 expect(packageData.disabledReason).not.toBeNull();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
-                brackets.appFileSystem.pathExists(extensionsRoot + "/disabled/incompatible-version", function (exists) {
-                    if (exists) {
+                brackets.appFileSystem.resolve(extensionsRoot + "/disabled/incompatible-version", function (err, item) {
+                    if (!err) {
                         directoryCheckComplete = true;
                     } else {
                         directoryCheckComplete = true;
@@ -203,8 +203,8 @@ define(function (require, exports, module) {
                 handlePackage(installPath, Package.remove);
             });
             runs(function () {
-                brackets.appFileSystem.pathExists(installPath, function (exists) {
-                    if (exists) {
+                brackets.appFileSystem.resolve(installPath, function (err, item) {
+                    if (!err) {
                         checkComplete = true;
                         expect("installation path was removed").toEqual(true);
                     } else {

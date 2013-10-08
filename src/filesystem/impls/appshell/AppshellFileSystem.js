@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils           = require("file/FileUtils"),
+        Error               = require("filesystem/Error"),
         NodeConnection      = require("utils/NodeConnection");
     
     /**
@@ -51,6 +52,30 @@ define(function (require, exports, module) {
     var _changeTimeout,             // Timeout used to batch up file watcher changes
         _pendingChanges = {};       // Pending file watcher changes
 
+    function _mapError(err) {
+        if (!err) {
+            return null;
+        }
+        
+        switch (err) {
+        case appshell.fs.ERR_INVALID_PARAMS:
+            return Error.INVALID_PARAMS;
+        case appshell.fs.ERR_NOT_FOUND:
+            return Error.NOT_FOUND;
+        case appshell.fs.ERR_CANT_READ:
+            return Error.NOT_READABLE;
+        case appshell.fs.ERR_CANT_WRITE:
+            return Error.NOT_WRITABLE;
+        case appshell.fs.ERR_UNSUPPORTED_ENCODING:
+            return Error.NOT_READABLE;
+        case appshell.fs.ERR_OUT_OF_SPACE:
+            return Error.OUT_OF_SPACE;
+        case appshell.fs.ERR_FILE_EXISTS:
+            return Error.ALREADY_EXISTS;
+        }
+        return Error.UNKNOWN;
+    }
+    
     function init(callback) {
         if (!_nodeConnectionDeferred) {
             _nodeConnectionDeferred = new $.Deferred();
@@ -91,20 +116,28 @@ define(function (require, exports, module) {
         callback();
     }
     
+    function _wrap(cb) {
+        return function (err) {
+            var args = Array.prototype.slice.call(arguments);
+            args[0] = _mapError(args[0]);
+            cb.apply(null, args);
+        };
+    }
+    
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
-        appshell.fs.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
+        appshell.fs.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, _wrap(callback));
     }
     
     function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
-        appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, callback);
+        appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, _wrap(callback));
     }
     
     function stat(path, callback) {
-        appshell.fs.stat(path, callback);
+        appshell.fs.stat(path, _wrap(callback));
     }
     
     function isNetworkDrive(path, callback) {
-        appshell.fs.isNetworkDrive(path, callback);
+        appshell.fs.isNetworkDrive(path, _wrap(callback));
     }
     
     function exists(path, callback) {
@@ -124,18 +157,18 @@ define(function (require, exports, module) {
             var i, count = contents.length;
             
             if (err) {
-                callback(err);
+                callback(_mapError(err));
                 return;
             }
             
             contents.forEach(function (val, idx) {
-                stat(path + "/" + val, function (err, stat) {
+                appshell.fs.stat(path + "/" + val, function (err, stat) {
                     if (!err) {
                         stats[idx] = stat;
                     }
                     count--;
                     if (count <= 0) {
-                        callback(err, contents, stats);
+                        callback(_mapError(err), contents, stats);
                     }
                 });
             });
@@ -149,17 +182,17 @@ define(function (require, exports, module) {
         }
         appshell.fs.makedir(path, mode, function (err) {
             if (err) {
-                callback(err);
+                callback(_mapError(err));
             } else {
                 stat(path, function (err, stat) {
-                    callback(err, stat);
+                    callback(_mapError(err), stat);
                 });
             }
         });
     }
     
     function rename(oldPath, newPath, callback) {
-        appshell.fs.rename(oldPath, newPath, callback);
+        appshell.fs.rename(oldPath, newPath, _wrap(callback));
     }
     
     function readFile(path, options, callback) {
@@ -173,10 +206,10 @@ define(function (require, exports, module) {
         
         appshell.fs.readFile(path, encoding, function (err, data) {
             if (err) {
-                callback(err, null);
+                callback(_mapError(err), null);
             } else {
                 stat(path, function (err, stat) {
-                    callback(err, data, stat);
+                    callback(_mapError(err), data, stat);
                 });
             }
         });
@@ -193,25 +226,25 @@ define(function (require, exports, module) {
         
         appshell.fs.writeFile(path, data, encoding, function (err) {
             if (err) {
-                callback(err);
+                callback(_mapError(err));
             } else {
                 stat(path, function (err, stat) {
-                    callback(err, stat);
+                    callback(_mapError(err), stat);
                 });
             }
         });
     }
     
     function chmod(path, mode, callback) {
-        appshell.fs.chmod(path, mode, callback);
+        appshell.fs.chmod(path, mode, _wrap(callback));
     }
     
     function unlink(path, callback) {
-        appshell.fs.unlink(path, callback);
+        appshell.fs.unlink(path, _wrap(callback));
     }
     
     function moveToTrash(path, callback) {
-        appshell.fs.moveToTrash(path, callback);
+        appshell.fs.moveToTrash(path, _wrap(callback));
     }
     
     function _notifyChanges(callback) {

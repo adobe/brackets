@@ -156,18 +156,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Check if the specified path exists.
-     *
-     * @param {string} path The path to test
-     * @param {function (boolean)} callback
-     */
-    FileSystem.prototype.pathExists = function (path, callback) {
-        this._impl.exists(path, function (exists) {
-            callback(exists);
-        }.bind(this));
-    };
-    
-    /**
      * Resolve a path.
      *
      * @param {string} path The path to resolve
