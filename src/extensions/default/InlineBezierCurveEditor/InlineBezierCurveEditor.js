@@ -112,7 +112,7 @@ define(function (require, exports, module) {
         // regexp match to see if there's a valid match that extends past the bookmark.
         // This can happen if the user deletes the end of the existing bezierCurve and then
         // types some more.
-        // TODO: when we migrate to CodeMirror v3, we might be able to use markText()
+        // FUTURE: when we migrate to CodeMirror v3, we might be able to use markText()
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),

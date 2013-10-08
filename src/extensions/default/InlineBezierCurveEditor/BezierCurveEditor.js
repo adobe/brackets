@@ -39,8 +39,11 @@ define(function (require, exports, module) {
     var BezierCurveEditorTemplate   = require("text!BezierCurveEditorTemplate.html");
     
     /** @const @type {number} */
-    var STEP_MULTIPLIER =  5,
-        TOP_OFFSET      = 75;
+    var STEP_MULTIPLIER =   5,
+        HEIGHT_ABOVE    =  75,    // extra height above main grid
+        HEIGHT_BELOW    =  75,    // extra height below main grid
+        HEIGHT_MAIN     = 150,    // height of main grid
+        WIDTH_MAIN      = 150;    // width of main grid
 
     var dragBezierEditor = null,
         animationRequest = null;
@@ -285,7 +288,7 @@ define(function (require, exports, module) {
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
             x    = e.pageX - left,
-            y    = e.pageY - top - TOP_OFFSET,
+            y    = e.pageY - top - HEIGHT_ABOVE,
             $P1  = $(bezierEditor.P1),
             $P2  = $(bezierEditor.P2);
 
@@ -399,7 +402,7 @@ define(function (require, exports, module) {
             left   = curveBoundingBox.left,
             top    = curveBoundingBox.top,
             x = e.pageX - left,
-            y = e.pageY - top - TOP_OFFSET;
+            y = e.pageY - top - HEIGHT_ABOVE;
 
         updateTimeProgression(self, x, y, curveBoundingBox);
 
@@ -428,7 +431,7 @@ define(function (require, exports, module) {
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
             x = e.pageX - left,
-            y = e.pageY - top - TOP_OFFSET;
+            y = e.pageY - top - HEIGHT_ABOVE;
 
         updateTimeProgression(dragBezierEditor.curve, x, y, curveBoundingBox);
 
@@ -474,9 +477,6 @@ define(function (require, exports, module) {
      *
      * @param {Event} e Key down event
      */
-
-// TODO: range checking
-
     function _pointKeyDown(e) {
         var code = e.keyCode,
             self = e.target,
@@ -489,20 +489,37 @@ define(function (require, exports, module) {
             var $this = $(e.target),
                 left = parseInt($this.css("left"), 10),
                 top  = parseInt($this.css("top"), 10),
-                offset = (e.shiftKey ? 20 : 2);
+                offset = (e.shiftKey ? 20 : 2),
+                newVal;
 
             switch (code) {
             case KeyEvent.DOM_VK_LEFT:
-                $this.css({ left: left - offset + "px" });
+                newVal = Math.max(0, left - offset);
+                if (left === newVal) {
+                    return false;
+                }
+                $this.css({ left: newVal + "px" });
                 break;
             case KeyEvent.DOM_VK_UP:
-                $this.css({ top: top - offset + "px" });
+                newVal = Math.max(-HEIGHT_ABOVE, top - offset);
+                if (top === newVal) {
+                    return false;
+                }
+                $this.css({ top: newVal + "px" });
                 break;
             case KeyEvent.DOM_VK_RIGHT:
-                $this.css({ left: left + offset + "px" });
+                newVal = Math.min(WIDTH_MAIN, left + offset);
+                if (left === newVal) {
+                    return false;
+                }
+                $this.css({ left: newVal + "px" });
                 break;
             case KeyEvent.DOM_VK_DOWN:
-                $this.css({ top: top + offset + "px" });
+                newVal = Math.min(HEIGHT_MAIN + HEIGHT_BELOW, top + offset);
+                if (top === newVal) {
+                    return false;
+                }
+                $this.css({ top: newVal + "px" });
                 break;
             }
 
@@ -513,9 +530,9 @@ define(function (require, exports, module) {
 
             bezierEditor._commitBezierCurve();
             bezierEditor._updateCanvas();
-
-            return false;
         }
+
+        return false;
     }
 
 
@@ -580,6 +597,13 @@ define(function (require, exports, module) {
     /** Returns the root DOM node of the BezierCurveEditor UI */
     BezierCurveEditor.prototype.getRootElement = function () {
         return this.$element;
+    };
+
+    /**
+     * There's no focus until a handle is clicked
+     */
+    BezierCurveEditor.prototype.focus = function () {
+        return false;
     };
 
     /**
