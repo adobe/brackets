@@ -337,11 +337,6 @@ define(function (require, exports, module) {
             FileSyncManager.syncOpenDocuments(); // TODO: FileSystem - remove now that we have file watchers?
         });
         
-        $(brackets.appFileSystem).on("change", function (item) {
-            // TODO: FileSystem - only sync when window has focus?
-            FileSyncManager.syncOpenDocuments();    // TODO: Batch multiple changes into a single sync operation
-        });
-        
         // Prevent unhandled middle button clicks from triggering native behavior
         // Example: activating AutoScroll (see #510)
         $("html").on("mousedown", ".inline-widget", function (e) {

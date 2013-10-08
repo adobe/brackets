@@ -70,7 +70,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSystemManager   = require("filesystem/FileSystemManager");
+        FileSystemManager   = require("filesystem/FileSystemManager"),
+        FileSyncManager     = require("project/FileSyncManager");
     
 
     /**
@@ -1627,6 +1628,7 @@ define(function (require, exports, module) {
         if (item.isDirectory()) {
             refreshFileTree();
         }
+        FileSyncManager.syncOpenDocuments();
     };
 
     // Initialize variables and listeners that depend on the HTML DOM

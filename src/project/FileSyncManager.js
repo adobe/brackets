@@ -161,7 +161,7 @@ define(function (require, exports, module) {
                     result.resolve();
                 } else {
                     // File has been deleted externally
-                    if (error === Error.NOT_FOUND) {
+                    if (err === Error.NOT_FOUND) {
                         DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
