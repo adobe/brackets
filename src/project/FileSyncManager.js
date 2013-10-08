@@ -147,8 +147,6 @@ define(function (require, exports, module) {
      * by findExternalChanges()). If any were deleted on disk, removes them from the working set.
      */
     function syncUnopenWorkingSet() {
-        /* TODO: FileSystem --
-        
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
@@ -157,30 +155,27 @@ define(function (require, exports, module) {
         function checkWorkingSetFile(file) {
             var result = new $.Deferred();
             
-            file.getMetadata(
-                function (metadata) {
+            file.stat(function (err, stat) {
+                if (!err) {
                     // File still exists
                     result.resolve();
-                },
-                function (error) {
+                } else {
                     // File has been deleted externally
                     if (error === Error.NOT_FOUND) {
                         DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, error.name);
+                        console.log("Error checking for deletion of " + file.fullPath, err);
                         result.reject();
                     }
                 }
-            );
+            });
             return result.promise();
         }
         
         // Check all these files in parallel
         return Async.doInParallel(unopenWorkingSetFiles, checkWorkingSetFile, false);
-        */
-        return new $.Deferred().resolve().promise();
     }
     
     
@@ -199,7 +194,7 @@ define(function (require, exports, module) {
             doc.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.fullPath, error.name);
+            console.log("Error reloading contents of " + doc.file.fullPath, error);
         });
         return promise;
     }
@@ -227,7 +222,7 @@ define(function (require, exports, module) {
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
                 StringUtils.breakableUrl(doc.file.fullPath),
-                FileUtils.getFileErrorString(error.name)
+                FileUtils.getFileErrorString(error)
             )
         );
     }

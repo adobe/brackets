@@ -786,7 +786,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.READ_DIRECTORY_ENTRIES_ERROR,
                             StringUtils.breakableUrl(dirEntry.fullPath),
-                            error.name
+                            error
                         )
                     );
                     // Reject the render promise so we can move on.
@@ -978,7 +978,7 @@ define(function (require, exports, module) {
                             StringUtils.format(
                                 Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                                 StringUtils.breakableUrl(rootPath),
-                                "" // TODO: FileSystem error -- error.name
+                                Error.NOT_FOUND
                             )
                         ).done(function () {
                             // The project folder stored in preference doesn't exist, so load the default 

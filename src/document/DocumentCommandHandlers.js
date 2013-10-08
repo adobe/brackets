@@ -200,7 +200,7 @@ define(function (require, exports, module) {
                     if (silent) {
                         _cleanup();
                     } else {
-                        FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
+                        FileUtils.showFileOpenError(fileError, fullPath).done(_cleanup);
                     }
                 });
         }
@@ -488,7 +488,7 @@ define(function (require, exports, module) {
             fileEntry = docToSave.file;
         
         function handleError(error) {
-            _showSaveFileError(error.name, fileEntry.fullPath)
+            _showSaveFileError(error, fileEntry.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
@@ -531,7 +531,7 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
+                FileUtils.showFileOpenError(error, doc.file.fullPath)
                     .done(function () {
                         result.reject(error);
                     });
@@ -627,7 +627,7 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
             }).fail(function (error) {
-                _showSaveFileError(error.name, path)
+                _showSaveFileError(error, path)
                     .done(function () {
                         result.reject(error);
                     });
