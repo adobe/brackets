@@ -63,6 +63,13 @@ define(function (require, exports, module) {
         this.createIfNew = createIfNew;
     }
     
+    function ParsingError(message) {
+        this.name = "ParsingError";
+        this.message = message || "";
+    }
+    
+    ParsingError.prototype = Error.prototype;
+    
     FileStorage.prototype = {
         load: function () {
             var result = $.Deferred();
@@ -74,14 +81,14 @@ define(function (require, exports, module) {
                     if (createIfNew) {
                         result.resolve({});
                     } else {
-                        result.reject("Unable to load prefs at " + path + " " + err);
+                        result.reject(new Error("Unable to load prefs at " + path + " " + err));
                     }
                     return;
                 }
                 try {
                     result.resolve(JSON.parse(text));
                 } catch (e) {
-                    result.reject("Invalid JSON settings at " + path + "(" + e.toString() + ")");
+                    result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
                 }
             });
             
@@ -234,11 +241,19 @@ define(function (require, exports, module) {
             
             var deferred = $.Deferred();
             
-            scope.load().then(function () {
-                this._scopes[id] = scope;
-                this.addToScopeOrder(id, addBefore);
-                deferred.resolve(id, scope);
-            }.bind(this));
+            scope.load()
+                .then(function () {
+                    this._scopes[id] = scope;
+                    this.addToScopeOrder(id, addBefore);
+                    deferred.resolve(id, scope);
+                }.bind(this))
+                .fail(function (err) {
+                    // With preferences, it is valid for there to be no file.
+                    // It is not valid to have an unparseable file.
+                    if (err instanceof ParsingError) {
+                        console.error(err);
+                    }
+                });
             
             return deferred.promise();
         },

@@ -1577,7 +1577,7 @@ define(function (require, exports, module) {
         PreferencesManager.removeScope("project");
         var root = getProjectRoot();
         if (root) {
-            PreferencesManager.addScope("project", new PreferencesManager.FileStorage(root.fullPath + "/" + PreferencesManager.SETTINGS_FILENAME), "user");
+            PreferencesManager.addScope("project", new PreferencesManager.FileStorage(root.fullPath + PreferencesManager.SETTINGS_FILENAME), "user");
         }
     });
 
