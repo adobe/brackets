@@ -150,12 +150,14 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Initialization code
+     */
     function init() {
         // Load our stylesheet
         ExtensionUtils.loadStyleSheet(module, "main.css");
     
         EditorManager.registerInlineEditProvider(inlineBezierCurveEditorProvider);
-
     }
 
     init();

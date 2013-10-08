@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     // matches returned from  this function must be handled in getCubicBezierCoords()
     // return RegExp match array (or null)
     function cubicBezierMatch(str) {
+
         // First look for cubic-bezier(...)
         var match = str.match(BEZIER_CURVE_REGEX);
         if (match) {

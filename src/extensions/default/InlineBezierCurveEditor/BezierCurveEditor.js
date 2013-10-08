@@ -73,7 +73,12 @@ define(function (require, exports, module) {
         return result;
     }
 
-    // From cubic-bezier.js
+    /**
+     * CubicBezier object constructor
+     *
+     * @param {string|Array.number[4]} coordinates Four parameters passes to cubic-bezier()
+     *      either in string or array format.
+     */
     function CubicBezier(coordinates) {
         if (typeof coordinates === "string") {
             this.coordinates = coordinates.split(",");
@@ -96,6 +101,13 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * BezierCanvas object constructor
+     *
+     * @param {Element} canvas Inline editor <canvas> element
+     * @param {CubicBezier} bezier Associated CubicBezier object
+     * @param {number|Array.number} padding Element padding
+     */
     function BezierCanvas(canvas, bezier, padding) {
         this.canvas  = canvas;
         this.bezier  = bezier;
@@ -110,6 +122,12 @@ define(function (require, exports, module) {
     }
 
     BezierCanvas.prototype = {
+
+        /**
+         * Calculates CSS offsets for <canvas> element
+         *
+         * @return {left:string, top:string}
+         */
         getOffsets: function () {
             var p = this.padding,
                 w = this.canvas.width,
@@ -124,11 +142,22 @@ define(function (require, exports, module) {
             }];
         },
 
-        // round off to hundreths place, strip leading zero
+        /**
+         * Round off number to hundreths place, convert to string, and strip leading zero
+         *
+         * @param {number} v Value
+         * @return {string}
+         */
         prettify: function (v) {
             return (Math.round(v * 100) / 100).toString().replace(/^0\./, ".");
         },
 
+        /**
+         * Get CSS left, top offsets for endpoint handle
+         *
+         * @param {Element} element Endpoint handle <button> element
+         * @return {Array.string[2]}
+         */
         offsetsToCoordinates: function (element) {
             var p = this.padding,
                 w = this.canvas.width,
@@ -147,6 +176,11 @@ define(function (require, exports, module) {
             ];
         },
 
+        /**
+         * Paint canvas
+         *
+         * @param {Object} settings Paint settings
+         */
         plot: function (settings) {
             var xy = this.bezier.coordinates,
                 ctx = this.canvas.getContext("2d"),
@@ -209,6 +243,12 @@ define(function (require, exports, module) {
             ctx.closePath();
         },
 
+        /**
+         * Convert CSS padding shorthand to longhand
+         *
+         * @param {number|Array.number} padding Element padding
+         * @return {Array.number}
+         */
         getPadding: function (padding) {
             var p = (typeof padding === "number") ? [padding] : padding;
 
@@ -228,8 +268,13 @@ define(function (require, exports, module) {
 
     // Event handlers
     
-    function _curveClick(event) {
-        var self = event.target,
+    /**
+     * Handle click in <canvas> element
+     *
+     * @param {Event} e Mouse click event
+     */
+    function _curveClick(e) {
+        var self = e.target,
             bezierEditor = getBezierCurveEditorForElement(self);
 
         if (!bezierEditor) {
@@ -239,11 +284,12 @@ define(function (require, exports, module) {
         var curveBoundingBox = bezierEditor._getCurveBoundingBox(),
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
-            x    = event.pageX - left,
-            y    = event.pageY - top - TOP_OFFSET,
+            x    = e.pageX - left,
+            y    = e.pageY - top - TOP_OFFSET,
             $P1  = $(bezierEditor.P1),
             $P2  = $(bezierEditor.P2);
 
+        // Helper function to calculate distance between 2-D points
         function distance(x1, y1, x2, y2) {
             return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
         }
@@ -267,6 +313,9 @@ define(function (require, exports, module) {
         bezierEditor._updateCanvas();
     }
 
+    /**
+     * Helper function to redraw curve
+     */
     function mouseMoveRedraw() {
         if (!dragBezierEditor || !dragBezierEditor.dragElement) {
             animationRequest = null;
@@ -280,6 +329,14 @@ define(function (require, exports, module) {
         animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
     }
 
+    /**
+     * Helper function for handling point move
+     *
+     * @param {Event} e Mouse move event
+     * @param {number} x New horizontal position
+     * @param {number} y New vertical position
+     * @param {left: number, top: number, width: number, height: number} curveBoundingBox
+     */
     function handlePointMove(e, x, y, curveBoundingBox) {
         if (!dragBezierEditor || !dragBezierEditor.dragElement) {
             return;
@@ -315,6 +372,14 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Update Time (x-axis) and Progression (y-axis) data for mouse position
+     *
+     * @param {Element} canvas <canvas> element
+     * @param {number} x Horizontal position
+     * @param {number} y Vertical position
+     * @param {left: number, top: number, width: number, height: number} curveBoundingBox
+     */
     function updateTimeProgression(curve, x, y, curveBoundingBox) {
         var height = curveBoundingBox.height;
 
@@ -322,6 +387,11 @@ define(function (require, exports, module) {
         curve.parentNode.setAttribute("data-progression", Math.round(100 * (3 * height / 4 - y) / (height * 0.5) - 50));
     }
 
+    /**
+     * Handle mouse move in <canvas> element
+     *
+     * @param {Event} e Mouse move event
+     */
     function _curveMouseMove(e) {
         var self = e.target,
             bezierEditor = getBezierCurveEditorForElement(self),
@@ -342,6 +412,11 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Handle mouse move in <button> element
+     *
+     * @param {Event} e Mouse move event
+     */
     function _pointMouseMove(e) {
         var self = e.target;
 
@@ -364,7 +439,11 @@ define(function (require, exports, module) {
         handlePointMove(e, x, y, curveBoundingBox);
     }
 
-    // Make the handles draggable
+    /**
+     * Handle mouse down in <button> element
+     *
+     * @param {Event} e Mouse down event
+     */
     function _pointMouseDown(e) {
         var self = e.target;
 
@@ -372,6 +451,11 @@ define(function (require, exports, module) {
         dragBezierEditor.dragElement = self;
     }
 
+    /**
+     * Handle mouse up in <button> element
+     *
+     * @param {Event} e Mouse up event
+     */
     function _pointMouseUp(e) {
         var self = e.target;
 
@@ -385,19 +469,27 @@ define(function (require, exports, module) {
         }
     }
 
-    function _pointKeyDown(event) {
-        var code = event.keyCode,
-            self = event.target,
+    /**
+     * Handle key down in <button> element
+     *
+     * @param {Event} e Key down event
+     */
+
+// TODO: range checking
+
+    function _pointKeyDown(e) {
+        var code = e.keyCode,
+            self = e.target,
             bezierEditor = getBezierCurveEditorForElement(self);
 
         if (code >= KeyEvent.DOM_VK_LEFT && code <= KeyEvent.DOM_VK_DOWN) {
-            event.preventDefault();
+            e.preventDefault();
 
             // Arrow keys pressed
-            var $this = $(event.target),
+            var $this = $(e.target),
                 left = parseInt($this.css("left"), 10),
                 top  = parseInt($this.css("top"), 10),
-                offset = (event.shiftKey ? 20 : 2);
+                offset = (e.shiftKey ? 20 : 2);
 
             switch (code) {
             case KeyEvent.DOM_VK_LEFT:
@@ -428,7 +520,9 @@ define(function (require, exports, module) {
 
 
     /**
-     * BezierCurveEditor control; may be used standalone or within an InlineBezierCurveEditor inline widget.
+     * Constructor for BezierCurveEditor Object. This control may be used standalone
+     * or within an InlineBezierCurveEditor inline widget.
+     *
      * @param {!jQuery} $parent  DOM node into which to append the root of the bezier curve editor UI
      * @param {!string} bezierCurve  Initially selected bezierCurve
      * @param {!function(string)} callback  Called whenever selected bezierCurve changes
@@ -465,7 +559,9 @@ define(function (require, exports, module) {
         this.P2.addEventListener("keydown", _pointKeyDown, false);
     }
 
-    /** destructor */
+    /**
+     * Destructor called by InlineBezierCurveEditor.onClosed()
+     */
     BezierCurveEditor.prototype.destroy = function () {
 
         this.curve.removeEventListener("click", _curveClick, false);
@@ -485,25 +581,11 @@ define(function (require, exports, module) {
     BezierCurveEditor.prototype.getRootElement = function () {
         return this.$element;
     };
-    
-    /**
-     * Update all UI elements to reflect the selected bezierCurve. It is usually
-     * incorrect to call this directly; use _commitBezierCurve() instead.
-     */
-
-    /** Focus the main bezier curve square's thumb */
-    BezierCurveEditor.prototype.focus = function () {
-        if (this.$selectionBase && !this.$selectionBase.is(":focus")) {
-            this.$selectionBase.focus();
-            return true;
-        }
-        return false;
-    };
 
     /**
-     * Normalize the given bezierCurve string into the format used by tinybezierCurve, by adding a space 
-     * after commas.
-     * @param {string} bezierCurve The bezierCurve to be corrected if it looks like an RGB or HSL bezierCurve.
+     * Normalize the given bezierCurve string.
+     *
+     * @param {string} bezierCurve The bezierCurve to be corrected.
      * @return {string} a normalized bezierCurve string.
      */
     BezierCurveEditor.prototype._normalizeBezierCurveString = function (bezierCurve) {
@@ -511,10 +593,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets _bezierCurve (and optionally _hsv) based on a string input, and updates the UI. The string's
-     * format determines the new selected bezierCurve's format.
-     * @param {!string} bezierCurveVal
-     * @param {boolean=} resetHsv  Pass false ONLY if hsv set already been modified to match bezierCurveVal. Default: true.
+     * Sets _bezierCurve based on a string input, and updates the UI.
      */
     BezierCurveEditor.prototype._commitBezierCurve = function () {
         var bezierCurveVal = "cubic-bezier(" +
@@ -526,60 +605,13 @@ define(function (require, exports, module) {
         this._bezierCurve = bezierCurveVal;
     };
 
-    /** Converts a mouse coordinate to be relative to zeroPos, and clips to [0, maxOffset] */
-    function _getNewOffset(pos, zeroPos, maxOffset) {
-        var offset = pos - zeroPos;
-        offset = Math.min(maxOffset, Math.max(0, offset));
-        return offset;
-    }
-
-    /** 
-     * Global handler for keys in the bezierCurve editor.
+    /**
+     * Handle all matches returned from cubicBezierMatch() and
+     * return array of coords
+     *
+     * @param {RegExp.match} match Matches returned from cubicBezierMatch()
+     * @return {Array.number[4]}
      */
-    BezierCurveEditor.prototype._handleKeydown = function (event) {
-        var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
-        if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                event.keyCode === KeyEvent.DOM_VK_RIGHT ||
-                event.keyCode === KeyEvent.DOM_VK_UP ||
-                event.keyCode === KeyEvent.DOM_VK_DOWN) {
-            // Prevent arrow keys that weren't handled by a child control 
-            // from being handled by a parent, either through bubbling or 
-            // through default native behavior. There isn't a good general
-            // way to tell if the target would handle this event by default,
-            // so we look to see if the target is a text input control.
-            var preventDefault = false,
-                $target = $(event.target);
-                
-            // If the input has no "type" attribute, it defaults to text. So we
-            // have to check for both possibilities.
-            if ($target.is("input:not([type])") || $target.is("input[type=text]")) {
-                // Text input control. In WebKit, if the cursor gets to the start
-                // or end of a text field and can't move any further, the default 
-                // action doesn't take place in the text field, so the event is handled
-                // by the outer scroller. We have to prevent in that case too.
-                if ($target[0].selectionStart === $target[0].selectionEnd &&
-                        ((event.keyCode === KeyEvent.DOM_VK_LEFT && $target[0].selectionStart === 0) ||
-                         (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length))) {
-                    preventDefault = true;
-                }
-            } else {
-                // Not a text input control, so we want to prevent default.
-                preventDefault = true;
-            }
-
-            if (preventDefault) {
-                event.stopPropagation();
-                return false; // equivalent to event.preventDefault()
-            }
-        }
-    };
-
-    BezierCurveEditor.prototype._bindKeyHandler = function ($element, handler) {
-        $element.bind("keydown", handler);
-    };
-
-    // handle all matches returned from cubicBezierMatch()
-    // return array of coords
     BezierCurveEditor.prototype._getCubicBezierCoords = function (match) {
 
         if (match[0].match(/^cubic-bezier/)) {
@@ -605,6 +637,11 @@ define(function (require, exports, module) {
         return [ 0, 0, 0, 0 ];
     };
 
+    /**
+     * Get <canvas> element's bounding box
+     *
+     * @return {left: number, top: number, width: number, height: number}
+     */
     BezierCurveEditor.prototype._getCurveBoundingBox = function () {
         var $canvas = this.$element.find(".curve"),
             canvasOffset = $canvas.offset();
@@ -617,6 +654,9 @@ define(function (require, exports, module) {
         };
     };
 
+    /**
+     * Update <canvas> after a change
+     */
     BezierCurveEditor.prototype._updateCanvas = function () {
         // collect data, build model
         if (this._cubicBezierCoords) {

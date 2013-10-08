@@ -36,7 +36,8 @@ define(function (require, exports, module) {
     var lastOriginId = 1;
     
     /**
-     * Inline widget containing a BezierCurveEditor control
+     * Constructor for inline widget containing a BezierCurveEditor control
+     *
      * @param {!string} bezierCurve  Initially selected bezierCurve
      * @param {!CodeMirror.Bookmark} startBookmark
      * @param {!CodeMirror.Bookmark} endBookmark
@@ -91,6 +92,7 @@ define(function (require, exports, module) {
     /**
      * Returns the current text range of the bezierCurve we're attached to, or null if
      * we've lost sync with what's in the code.
+     *
      * @return {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     InlineBezierCurveEditor.prototype.getCurrentRange = function () {
@@ -113,7 +115,6 @@ define(function (require, exports, module) {
         // TODO: when we migrate to CodeMirror v3, we might be able to use markText()
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
-        
         var line = this.hostEditor.document.getLine(start.line),
             matches = line.substr(start.ch).match(BezierCurveUtils.BEZIER_CURVE_REGEX);
         
@@ -202,11 +203,6 @@ define(function (require, exports, module) {
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
     };
-
-    /** Comparator to sort by which bezierCurves are used the most */
-    function _bezierCurveSort(a, b) {
-        return (b.count - a.count);
-    }
 
     /**
      * When text in the code editor changes, update bezier curve editor to reflect it

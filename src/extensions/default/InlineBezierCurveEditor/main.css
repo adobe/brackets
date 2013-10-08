@@ -1,4 +1,6 @@
-
+/**
+ * All selectors descend from .bezier-curve-editor to constrain styles to this extension
+ */
 .bezier-curve-editor * {
     margin: 0;
 }
