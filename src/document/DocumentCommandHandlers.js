@@ -519,7 +519,7 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a filesystem.Error if the
      *      file cannot be read (after showing an error dialog to the user).
      */
     function doRevert(doc) {

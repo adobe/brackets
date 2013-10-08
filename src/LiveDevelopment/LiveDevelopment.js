@@ -84,7 +84,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeFileError      = require("file/NativeFileError"),
+        NativeFileError      = require("file/NativeFileError"), // TODO: FileSystem - add app error codes?
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),

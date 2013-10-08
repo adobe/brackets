@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        Error               = require("filesystem/Error"),
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -67,7 +68,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // TODO: fix error code
-                        if (err === brackets.fs.ERR_NOT_FOUND && silent) {
+                        if (err === Error.NOT_FOUND && silent) {
                             result.resolve();
                         } else {
                             console.error("Unable to remove " + fullPath, err);
@@ -76,7 +77,7 @@ define(function (require, exports, module) {
                     }
                 });
             } else {
-                if (err === brackets.fs.ERR_NOT_FOUND && silent) {
+                if (err === Error.NOT_FOUND && silent) {
                     result.resolve();
                 } else {
                     result.reject(err);
@@ -276,7 +277,7 @@ define(function (require, exports, module) {
                     chmod(folder, 777).then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
-                    if (err === brackets.fs.ERR_NOT_FOUND) {
+                    if (err === Error.NOT_FOUND) {
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {

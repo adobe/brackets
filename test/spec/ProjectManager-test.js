@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
+        Error               = require("filesystem/Error"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
 
@@ -311,7 +312,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(Error.NOT_FOUND);
 
                     // Verify that some other file is selected in the project tree.
                     var curSelectedFile = ProjectManager.getSelectedItem();
@@ -460,7 +461,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(Error.NOT_FOUND);
 
                     // Verify that some other file is selected in the project tree.
                     var curSelectedFile = ProjectManager.getSelectedItem();

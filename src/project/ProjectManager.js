@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
-        NativeFileError     = require("file/NativeFileError"),
+        Error               = require("filesystem/Error"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
@@ -1301,24 +1301,26 @@ define(function (require, exports, module) {
                 var errorCallback = function (error) {
                     var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
                         oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
-                    if (error.name === NativeFileError.PATH_EXISTS_ERR) {
+                    if (error === Error.ALREADY_EXISTS) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
                             StringUtils.format(Strings.FILE_ALREADY_EXISTS, entryType,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
-                    } else if (error.name === NativeFileError.TYPE_MISMATCH_ERR) {
+                        /* TODO: FileSystem error?
+                    } else if (error === NativeFileError.TYPE_MISMATCH_ERR) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
                             StringUtils.format(Strings.FILE_ALREADY_EXISTS, oppositeEntryType,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
+                        */
                     } else {
-                        var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
+                        var errString = error === Error.NOT_WRITABLE ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                         StringUtils.format(Strings.GENERIC_ERROR, error.name);
+                                         StringUtils.format(Strings.GENERIC_ERROR, error);
 
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,

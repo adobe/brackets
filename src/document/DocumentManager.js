@@ -592,7 +592,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} fullPath
      * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
-     *      with a NativeFileError if the file is not yet open and can't be read from disk.
+     *      with a filesystem.Error if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
         var doc             = _openDocuments[fullPath],
