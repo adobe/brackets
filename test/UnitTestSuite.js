@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     require("spec/NativeMenu-test");
     require("spec/NodeConnection-test");
     require("spec/PreferencesBase-test");
-//    require("spec/PreferencesManager-test");
+    require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
     require("spec/QuickOpen-test");
     require("spec/RemoteFunctions-test");
