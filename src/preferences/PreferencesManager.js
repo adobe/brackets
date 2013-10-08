@@ -227,18 +227,24 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
+    var SETTINGS_FILENAME = "brackets.settings.json";
+    
     var preferencesManager = new PreferencesBase.PreferencesManager();
     
-    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/brackets.settings.json";
+    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
-
+    
     // Private API for unit testing and use elsewhere
     exports._manager = preferencesManager;
 
     // Public API    
     exports.getValue = preferencesManager.getValue.bind(preferencesManager);
     exports.setValue = preferencesManager.setValue.bind(preferencesManager);
+    exports.addScope = preferencesManager.addScope.bind(preferencesManager);
+    exports.removeScope = preferencesManager.removeScope.bind(preferencesManager);
+    exports.FileStorage = PreferencesBase.FileStorage;
+    exports.SETTINGS_FILENAME = SETTINGS_FILENAME;
     exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);
 });

@@ -72,6 +72,14 @@ define(function (require, exports, module) {
                 }
             });
             
+            
+            it("will automatically wrap a Storage with a Scope", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                pm.addScope("test", new PreferencesBase.MemoryStorage());
+                pm.setValue("test", "testval", 27);
+                expect(pm.getValue("testval")).toBe(27);
+            });
+            
             it("should find the default values", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.definePreference("foo.bar", "number", 0);

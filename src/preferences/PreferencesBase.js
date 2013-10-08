@@ -227,6 +227,11 @@ define(function (require, exports, module) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
             
+            // Check to see if "scope" might be a Storage instead
+            if (!scope.getValue) {
+                scope = new Scope(scope);
+            }
+            
             var deferred = $.Deferred();
             
             scope.load().then(function () {

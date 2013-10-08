@@ -1573,6 +1573,15 @@ define(function (require, exports, module) {
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
 
+    $(exports).on("projectOpen", function () {
+        PreferencesManager.removeScope("project");
+        var root = getProjectRoot();
+        if (root) {
+            PreferencesManager.addScope("project", new PreferencesManager.FileStorage(root.fullPath + "/" + PreferencesManager.SETTINGS_FILENAME), "user");
+        }
+    });
+
+
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
