@@ -39,7 +39,8 @@ define(function (require, exports, module) {
     var BezierCurveEditorTemplate   = require("text!BezierCurveEditorTemplate.html");
     
     /** @const @type {number} */
-    var STEP_MULTIPLIER = 5;
+    var STEP_MULTIPLIER =  5,
+        TOP_OFFSET      = 75;
 
     var dragBezierEditor = null,
         animationRequest = null;
@@ -239,17 +240,9 @@ define(function (require, exports, module) {
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
             x    = event.pageX - left,
-            y    = event.pageY - top - 75,
+            y    = event.pageY - top - TOP_OFFSET,
             $P1  = $(bezierEditor.P1),
             $P2  = $(bezierEditor.P2);
-
-        // Y-value of points can be *dragged* outside of 0-1 range, or adjusted
-        // with keyboard, but disallow clicking outside 0-1 range. This is because
-        // UI gives no visual range for this, and user most likely wants to change
-        // selection in editor.
-        if (y < 0 || y > 150) {
-            return;
-        }
 
         function distance(x1, y1, x2, y2) {
             return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
@@ -287,8 +280,18 @@ define(function (require, exports, module) {
         animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
     }
 
-    function handlePointMove(x, y, curveBoundingBox) {
-        if (!dragBezierEditor) {
+    function handlePointMove(e, x, y, curveBoundingBox) {
+        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
+            return;
+        }
+
+        // This is a dragging state, but left button is no longer down, so mouse
+        // exited element, was released, and re-entered element. Treat like a drop.
+        if (e.which !== 1) {
+            dragBezierEditor.dragElement = null;
+            dragBezierEditor._commitBezierCurve();
+            dragBezierEditor._updateCanvas();
+            dragBezierEditor = null;
             return;
         }
 
@@ -326,7 +329,7 @@ define(function (require, exports, module) {
             left   = curveBoundingBox.left,
             top    = curveBoundingBox.top,
             x = e.pageX - left,
-            y = e.pageY - top - 75;
+            y = e.pageY - top - TOP_OFFSET;
 
         updateTimeProgression(self, x, y, curveBoundingBox);
 
@@ -335,7 +338,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            handlePointMove(x, y, curveBoundingBox);
+            handlePointMove(e, x, y, curveBoundingBox);
         }
     }
 
@@ -350,7 +353,7 @@ define(function (require, exports, module) {
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
             x = e.pageX - left,
-            y = e.pageY - top - 75;
+            y = e.pageY - top - TOP_OFFSET;
 
         updateTimeProgression(dragBezierEditor.curve, x, y, curveBoundingBox);
 
@@ -358,7 +361,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        handlePointMove(x, y, curveBoundingBox);
+        handlePointMove(e, x, y, curveBoundingBox);
     }
 
     // Make the handles draggable
@@ -378,8 +381,6 @@ define(function (require, exports, module) {
             dragBezierEditor.dragElement = null;
             dragBezierEditor._commitBezierCurve();
             dragBezierEditor._updateCanvas();
-
-            // TODO: also need to null this on mouseout? mousein?
             dragBezierEditor = null;
         }
     }
@@ -414,7 +415,6 @@ define(function (require, exports, module) {
             }
 
             // update coords
-            // TODO - put this code in BezierCurveEditor method?
             bezierEditor._cubicBezierCoords = bezierEditor.bezierCanvas
                 .offsetsToCoordinates(bezierEditor.P1)
                 .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
