@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
 
 /*
@@ -91,7 +91,7 @@
  * to show hints. Because implicit hints can be triggered by every
  * character insertion, hasHints may be called frequently; consequently,
  * the provider should endeavor to return a value as quickly as possible.
- *
+ * 
  * Because calls to hasHints imply that a hinting session is about to
  * begin, a provider may wish to clean up cached data from previous
  * sessions in this method. Similarly, if the provider returns true, it
@@ -102,25 +102,25 @@
  * param {Editor} editor
  * A non-null editor object for the active window.
  *
- * param {string} implicitChar
+ * param {string} implicitChar 
  * Either null, if the hinting request was explicit, or a single character
  * that represents the last insertion and that indicates an implicit
  * hinting request.
  *
- * return {boolean}
+ * return {boolean} 
  * Determines whether the current provider is able to provide hints for
  * the given editor context and, in case implicitChar is non- null,
  * whether it is appropriate to do so.
  *
  *
  * # CodeHintProvider.getHints(implicitChar)
- *
+ * 
  * The method by which a provider provides hints for the editor context
  * associated with the current session. The getHints method is called only
  * if the provider asserted its willingness to provide hints in an earlier
- * call to hasHints. The provider may return null or false, which indicates
+ * call to hasHints. The provider may return null or false, which indicates 
  * that the manager should end the current hinting session and close the hint
- * list window; or true, which indicates that the manager should end the
+ * list window; or true, which indicates that the manager should end the 
  * current hinting session but immediately attempt to begin a new hinting
  * session by querying registered providers. Otherwise, the provider should
  * return a response object that contains the following properties:
@@ -156,7 +156,7 @@
  * deferred object from the current call has resolved or been rejected. If
  * the provider rejects the deferred, the manager will end the hinting
  * session.
- *
+ * 
  * The getHints method may be called by the manager repeatedly during a
  * hinting session. Providers may wish to cache information for efficiency
  * that may be useful throughout these sessions. The same editor context
@@ -177,7 +177,7 @@
  *      match: string,
  *      selectInitial: boolean,
  *      handleWideResults: boolean}}
- *
+ * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
  * hints that consists either of strings or jQuery objects; 2. a string
@@ -191,11 +191,11 @@
  * attempt to emphasize any parts of the hints when rendering the hint
  * list; instead the provider may return strings or jQuery objects for
  * which emphasis is self-contained. For example, the strings may contain
- * substrings that wrapped in bold tags. In this way, the provider can
+ * substrings that wrapped in bold tags. In this way, the provider can 
  * choose to let the manager handle emphasis for the simple and common case
- * of prefix matching, or can provide its own emphasis if it wishes to use
+ * of prefix matching, or can provide its own emphasis if it wishes to use 
  * a more sophisticated matching algorithm.
- *
+ * 
  *
  * # CodeHintProvider.insertHint(hint)
  *
@@ -209,7 +209,7 @@
  * explicit hinting request, which may result in a new hinting session
  * being opened with some provider, but not necessarily the current one.
  *
- * param {string} hint
+ * param {string} hint 
  * The hint to be inserted into the editor context for the current session.
  *
  * return {boolean}
@@ -218,7 +218,7 @@
  *
  *
  * # CodeHintProvider.insertHintOnTab
- *
+ * 
  * type {?boolean} insertHintOnTab
  * Indicates whether the CodeHintManager should request that the provider of
  * the current session insert the currently selected hint on tab key events,
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
      * providing hints for editors in a given language.
      *
      * @param {!CodeHintProvider} provider
-     * The hint provider to be registered, described below.
+     * The hint provider to be registered, described below. 
      *
      * @param {!Array.<string>} languageIds
      * The set of language ids for which the provider is capable of
@@ -353,7 +353,7 @@ define(function (require, exports, module) {
         });
     }
 
-    /**
+    /** 
      *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
@@ -386,12 +386,12 @@ define(function (require, exports, module) {
    
     /**
      * Is there a hinting session active for a given editor?
-     *
+     * 
      * NOTE: the sessionEditor, sessionProvider and hintList objects are
      * only guaranteed to be initialized during an active session.
      *
      * @param {Editor} editor
-     * @return boolean
+     * @return boolean 
      */
     function _inSession(editor) {
         if (sessionEditor) {
@@ -560,7 +560,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Start a new implicit hinting session, or update the existing hint list.
+     * Start a new implicit hinting session, or update the existing hint list. 
      * Called by the editor after handleKeyEvent, which is responsible for setting
      * the lastChar.
      */
