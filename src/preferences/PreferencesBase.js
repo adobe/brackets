@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, localStorage */
+/*global define, $, localStorage, brackets */
 /*unittests: Preferences Base */
 
 /**
@@ -58,50 +58,50 @@ define(function (require, exports, module) {
         }
     };
     
-    function FileStorage(path) {
+    function FileStorage(path, createIfNew) {
         this.path = path;
+        this.createIfNew = createIfNew;
     }
     
     FileStorage.prototype = {
         load: function () {
             var result = $.Deferred();
             var path = this.path;
-            NativeFileSystem.resolveNativeFileSystemPath(path, function (entry) {
-                FileUtils.readAsText(entry)
-                    .then(function (text) {
-                        try {
-                            result.resolve(JSON.parse(text));
-                        } catch (e) {
-                            result.reject("Invalid JSON settings at " + path + "(" + e.toString() + ")");
-                        }
-                    })
-                    .fail(function (error) {
-                        result.reject("Unable to load prefs at " + path + " " + error);
-                    });
-            }, function (error) {
-                result.reject(error);
+            var createIfNew = this.createIfNew;
+            
+            brackets.fs.readFile(path, NativeFileSystem._FSEncodings.UTF8, function (err, text) {
+                if (err) {
+                    if (createIfNew) {
+                        result.resolve({});
+                    } else {
+                        result.reject("Unable to load prefs at " + path + " " + err);
+                    }
+                    return;
+                }
+                try {
+                    result.resolve(JSON.parse(text));
+                } catch (e) {
+                    result.reject("Invalid JSON settings at " + path + "(" + e.toString() + ")");
+                }
             });
+            
             return result.promise();
         },
         
         save: function (newData) {
             var result = $.Deferred();
             var path = this.path;
-            NativeFileSystem.resolveNativeFileSystemPath(path, function (entry) {
-                try {
-                    FileUtils.writeText(entry, JSON.stringify(newData))
-                        .then(function (text) {
-                            result.resolve();
-                        })
-                        .fail(function (error) {
-                            result.reject("Unable to save prefs at " + path + " " + error);
-                        });
-                } catch (e) {
-                    result.reject("Unable to convert prefs to JSON" + e.toString());
-                }
-            }, function (error) {
-                result.reject(error);
-            });
+            try {
+                brackets.fs.writeFile(path, JSON.stringify(newData, null, 4), NativeFileSystem._FSEncodings.UTF8, function (err) {
+                    if (err) {
+                        result.reject("Unable to save prefs at " + path + " " + err);
+                    } else {
+                        result.resolve();
+                    }
+                });
+            } catch (e) {
+                result.reject("Unable to convert prefs to JSON" + e.toString());
+            }
             return result.promise();
         }
     };
@@ -115,10 +115,14 @@ define(function (require, exports, module) {
     Scope.prototype = {
         load: function () {
             var result = $.Deferred();
-            this.storage.load().then(function (data) {
-                this.data = data;
-                result.resolve();
-            }.bind(this));
+            this.storage.load()
+                .then(function (data) {
+                    this.data = data;
+                    result.resolve();
+                }.bind(this))
+                .fail(function (error) {
+                    result.reject(error);
+                });
             return result.promise();
         },
         

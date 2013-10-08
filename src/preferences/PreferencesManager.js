@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, localStorage */
+/*global define, $, localStorage, brackets */
 /*unittests: Preferences Manager */
 
 /**
@@ -35,10 +35,9 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
-        NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils"),
-        Async             = require("utils/Async");
+        PreferencesBase   = require("preferences/PreferencesBase");
     
     /**
      * The local storage ID
@@ -224,4 +223,22 @@ define(function (require, exports, module) {
     // Unit test use only
     exports._reset                  = _reset;
     exports._getExtensionPaths      = _getExtensionPaths;
+    
+    // New code follows. The code above (with the exception of the imports) is
+    // deprecated.
+    
+    var preferencesManager = new PreferencesBase.PreferencesManager();
+    
+    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/brackets.settings.json";
+    
+    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
+    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
+
+    // Private API for unit testing and use elsewhere
+    exports._manager = preferencesManager;
+
+    // Public API    
+    exports.getValue = preferencesManager.getValue.bind(preferencesManager);
+    exports.setValue = preferencesManager.setValue.bind(preferencesManager);
+    exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);
 });

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -194,15 +194,14 @@ define(function (require, exports, module) {
         
         describe("File Storage", function () {
             var settingsFile = testPath + "/brackets.settings.json",
+                newSettingsFile = testPath + "/new.settings.json",
                 filestorage,
-                fileEntry,
                 originalText;
             
             beforeFirst(function () {
                 var deferred = $.Deferred();
                 NativeFileSystem.resolveNativeFileSystemPath(settingsFile, function (entry) {
-                    fileEntry = entry;
-                    FileUtils.readAsText(fileEntry)
+                    FileUtils.readAsText(entry)
                         .then(function (text) {
                             originalText = text;
                             deferred.resolve();
@@ -221,7 +220,22 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                waitsForDone(FileUtils.writeText(fileEntry, originalText));
+                var deferred = $.Deferred();
+                NativeFileSystem.resolveNativeFileSystemPath(settingsFile, function (entry) {
+                    FileUtils.writeText(entry, originalText)
+                        .then(function () {
+                            deferred.resolve();
+                        })
+                        .fail(function (error) {
+                            deferred.reject(error);
+                        });
+                }, function (error) {
+                    deferred.reject(error);
+                });
+                waitsForDone(deferred.promise());
+                runs(function () {
+                    brackets.fs.unlink(newSettingsFile);
+                });
             });
             
             it("can load preferences from disk", function () {
@@ -248,10 +262,39 @@ define(function (require, exports, module) {
                     var memstorage = new PreferencesBase.MemoryStorage();
                     pm.addScope("session", new PreferencesBase.Scope(memstorage));
                     pm.setValue("session", "unicorn-filled", true);
-//                    pm.setValue("project", "unicorn-filled", false);
+                    pm.setValue("project", "unicorn-filled", false);
                     pm.save();
                     expect(memstorage.data["unicorn-filled"]).toBe(true);
                 });
+            });
+            
+            it("can create a new pref file", function () {
+                var filestorage = new PreferencesBase.FileStorage(newSettingsFile, true);
+                var pm = new PreferencesBase.PreferencesManager();
+                var newScope = new PreferencesBase.Scope(filestorage);
+                waitsForDone(pm.addScope("new", newScope), "adding scope");
+                runs(function () {
+                    expect(pm._scopes["new"]).toBeDefined();
+                    expect(pm._scopeOrder.indexOf("new")).toBeGreaterThan(-1);
+                    pm.setValue("new", "unicorn-filled", true);
+                    expect(pm.getValue("unicorn-filled")).toBe(true);
+                    
+                    waitsForDone(pm.save(), "saving prefs");
+                    
+                    var deferred = $.Deferred();
+                    runs(function () {
+                        brackets.fs.stat(newSettingsFile, function (err, stats) {
+                            if (err) {
+                                deferred.reject();
+                            } else {
+                                deferred.resolve();
+                            }
+                        });
+                    });
+                    
+                    waitsForDone(deferred.promise(), "checking file");
+                });
+                
             });
         });
     });
