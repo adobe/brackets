@@ -205,15 +205,7 @@ define(function (require, exports, module) {
 
     /** Comparator to sort by which bezierCurves are used the most */
     function _bezierCurveSort(a, b) {
-        if (a.count === b.count) {
-            return 0;
-        }
-        if (a.count > b.count) {
-            return -1;
-        }
-        if (a.count < b.count) {
-            return 1;
-        }
+        return (b.count - a.count);
     }
 
     /**

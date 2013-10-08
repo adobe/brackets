@@ -24,7 +24,7 @@
  * The bezier canvas and editing code was adapted from Lea Verou's cubic-bezier project:
  * - https://github.com/LeaVerou/cubic-bezier (cubic-bezier.com)
  * 
- * The canvas exceeds the top and bottom of popover so y-value of points can be
+ * The canvas exceeds the top and bottom of main grid so y-value of points can be
  * dragged outside of the 0-1 range.
  * 
  *   . . . . . .
@@ -34,7 +34,7 @@
  *   |         |
  *   |         |
  *   |         |
- *   +---------+ <-- inner popover box has height of 150
+ *   +---------+ <-- main grid has height of 150
  *   .         .
  *   . . . . . . <-- canvas has height of 300 (extra 75 above/below)
  * 
