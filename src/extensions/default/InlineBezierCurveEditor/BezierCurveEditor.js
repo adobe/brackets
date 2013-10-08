@@ -41,6 +41,9 @@ define(function (require, exports, module) {
     /** @const @type {number} */
     var STEP_MULTIPLIER = 5;
 
+    var dragBezierEditor = null,
+        animationRequest = null;
+
     /**
      * Returns current bezier curve editor, or null
      * @return {?BezierCurveEditor}
@@ -271,95 +274,114 @@ define(function (require, exports, module) {
         bezierEditor._updateCanvas();
     }
 
-    function _curveMouseMove(event) {
-        var self = event.target,
-            bezierEditor = getBezierCurveEditorForElement(self);
-
-        if (!bezierEditor) {
+    function mouseMoveRedraw() {
+        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
+            animationRequest = null;
             return;
         }
-        
-        var curveBoundingBox = bezierEditor._getCurveBoundingBox(),
+
+        if (dragBezierEditor) {
+            dragBezierEditor._updateCanvas();
+        }
+
+        animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+    }
+
+    function handlePointMove(x, y, curveBoundingBox) {
+        if (!dragBezierEditor) {
+            return;
+        }
+
+        // Constrain time (x-axis) to 0 to 1 range. Progression (y-axis) is
+        // theoretically not constrained, although canvas to drawing curve is
+        // arbitrarily constrained to -0.5 to 1.5 range.
+        x = Math.min(Math.max(0, x), curveBoundingBox.width);
+
+        $(dragBezierEditor.dragElement).css({
+            left: x + "px",
+            top:  y + "px"
+        });
+
+        // update coords
+        dragBezierEditor._cubicBezierCoords = dragBezierEditor.bezierCanvas
+            .offsetsToCoordinates(dragBezierEditor.P1)
+            .concat(dragBezierEditor.bezierCanvas.offsetsToCoordinates(dragBezierEditor.P2));
+
+        if (!animationRequest) {
+            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+        }
+    }
+
+    function updateTimeProgression(curve, x, y, curveBoundingBox) {
+        var height = curveBoundingBox.height;
+
+        curve.parentNode.setAttribute("data-time", Math.round(100 * x / curveBoundingBox.width));
+        curve.parentNode.setAttribute("data-progression", Math.round(100 * (3 * height / 4 - y) / (height * 0.5) - 50));
+    }
+
+    function _curveMouseMove(e) {
+        var self = e.target,
+            bezierEditor = getBezierCurveEditorForElement(self),
+            curveBoundingBox = bezierEditor._getCurveBoundingBox(),
             left   = curveBoundingBox.left,
             top    = curveBoundingBox.top,
-            height = curveBoundingBox.height,
-            x = event.pageX - left,
-            y = event.pageY - top - 75;
+            x = e.pageX - left,
+            y = e.pageY - top - 75;
 
-        self.parentNode.setAttribute("data-time", Math.round(100 * x / curveBoundingBox.width));
-        self.parentNode.setAttribute("data-progression", Math.round(100 * (3 * height / 4 - y) / (height * 0.5) - 50));
+        updateTimeProgression(self, x, y, curveBoundingBox);
+
+        if (dragBezierEditor && dragBezierEditor.dragElement) {
+            if (e.pageX === 0 && e.pageY === 0) {
+                return;
+            }
+
+            handlePointMove(x, y, curveBoundingBox);
+        }
+    }
+
+    function _pointMouseMove(e) {
+        var self = e.target;
+
+        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
+            return;
+        }
+
+        var curveBoundingBox = dragBezierEditor._getCurveBoundingBox(),
+            left = curveBoundingBox.left,
+            top  = curveBoundingBox.top,
+            x = e.pageX - left,
+            y = e.pageY - top - 75;
+
+        updateTimeProgression(dragBezierEditor.curve, x, y, curveBoundingBox);
+
+        if (e.pageX === 0 && e.pageY === 0) {
+            return;
+        }
+
+        handlePointMove(x, y, curveBoundingBox);
     }
 
     // Make the handles draggable
     function _pointMouseDown(e) {
-        var self = e.target,
-            bezierEditor = getBezierCurveEditorForElement(self),
-            isMouseDown = true,
-            animationRequest = null;
+        var self = e.target;
 
-        function mouseMoveRedraw() {
-            if (!isMouseDown) {
-                animationRequest = null;
-                return;
-            }
+        dragBezierEditor = getBezierCurveEditorForElement(self);
+        dragBezierEditor.dragElement = self;
+    }
 
-            if (bezierEditor) {
-                bezierEditor._updateCanvas();
-            }
-    
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+    function _pointMouseUp(e) {
+        var self = e.target;
+
+        self.focus();
+
+        if (dragBezierEditor) {
+            dragBezierEditor.dragElement = null;
+            dragBezierEditor._commitBezierCurve();
+            dragBezierEditor._updateCanvas();
+
+            // TODO: also need to null this on mouseout? mousein?
+            dragBezierEditor = null;
         }
-
-        function pointMouseMove(e) {
-            if (!bezierEditor) {
-                return;
-            }
-
-            var x = e.pageX,
-                y = e.pageY,
-                curveBoundingBox = bezierEditor._getCurveBoundingBox(),
-                left = curveBoundingBox.left,
-                top  = curveBoundingBox.top;
-
-            if (x === 0 && y === 0) {
-                return;
-            }
-
-            // Constrain time (x-axis) to 0 to 1 range. Progression (y-axis) is
-            // theoretically not constrained, although canvas to drawing curve is
-            // arbitrarily constrained to -0.5 to 1.5 range.
-            x = Math.min(Math.max(left, x), left + curveBoundingBox.width);
-
-            $(self).css({
-                left: x - left     + "px",
-                top:  y - top - 75 + "px"
-            });
-
-            // update coords
-            bezierEditor._cubicBezierCoords = bezierEditor.bezierCanvas
-                .offsetsToCoordinates(bezierEditor.P1)
-                .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
-
-            if (!animationRequest) {
-                animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
-            }
-        }
-
-        function pointMouseUp() {
-            self.focus();
-            isMouseDown = false;
-
-            if (bezierEditor) {
-                bezierEditor._commitBezierCurve();
-                bezierEditor._updateCanvas();
-            }
-
-            self.removeEventListener("mousemove", pointMouseMove, true);
-            self.removeEventListener("mouseup",   pointMouseUp,   true);
-        }
-
-        self.addEventListener("mousemove", pointMouseMove, true);
-        self.addEventListener("mouseup",   pointMouseUp,   true);
     }
 
     function _pointKeyDown(event) {
@@ -417,6 +439,7 @@ define(function (require, exports, module) {
         $parent.append(this.$element);
         
         this._callback = callback;
+        this.dragElement = null;
 
         // current cubic-bezier() function params
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
@@ -430,23 +453,31 @@ define(function (require, exports, module) {
         // redraw canvas
         this._updateCanvas();
 
-        this.curve.addEventListener("click", _curveClick, true);
-        this.curve.addEventListener("mousemove", _curveMouseMove, true);
-        this.P1.addEventListener("mousedown", _pointMouseDown, true);
-        this.P2.addEventListener("mousedown", _pointMouseDown, true);
-        this.P1.addEventListener("keydown", _pointKeyDown, true);
-        this.P2.addEventListener("keydown", _pointKeyDown, true);
+        this.curve.addEventListener("click", _curveClick, false);
+        this.curve.addEventListener("mousemove", _curveMouseMove, false);
+        this.P1.addEventListener("mousemove", _pointMouseMove, false);
+        this.P2.addEventListener("mousemove", _pointMouseMove, false);
+        this.P1.addEventListener("mousedown", _pointMouseDown, false);
+        this.P2.addEventListener("mousedown", _pointMouseDown, false);
+        this.P1.addEventListener("mouseup", _pointMouseUp, false);
+        this.P2.addEventListener("mouseup", _pointMouseUp, false);
+        this.P1.addEventListener("keydown", _pointKeyDown, false);
+        this.P2.addEventListener("keydown", _pointKeyDown, false);
     }
 
     /** destructor */
     BezierCurveEditor.prototype.destroy = function () {
 
-        this.curve.removeEventListener("click", _curveClick, true);
-        this.curve.removeEventListener("mousemove", _curveMouseMove, true);
-        this.P1.removeEventListener("mousedown", _pointMouseDown, true);
-        this.P2.removeEventListener("mousedown", _pointMouseDown, true);
-        this.P1.removeEventListener("keydown", _pointKeyDown, true);
-        this.P2.removeEventListener("keydown", _pointKeyDown, true);
+        this.curve.removeEventListener("click", _curveClick, false);
+        this.curve.removeEventListener("mousemove", _curveMouseMove, false);
+        this.P1.removeEventListener("mousemove", _pointMouseMove, false);
+        this.P2.removeEventListener("mousemove", _pointMouseMove, false);
+        this.P1.removeEventListener("mousedown", _pointMouseDown, false);
+        this.P2.removeEventListener("mousedown", _pointMouseDown, false);
+        this.P1.removeEventListener("mouseup", _pointMouseUp, false);
+        this.P2.removeEventListener("mouseup", _pointMouseUp, false);
+        this.P1.removeEventListener("keydown", _pointKeyDown, false);
+        this.P2.removeEventListener("keydown", _pointKeyDown, false);
     };
 
 
@@ -501,24 +532,7 @@ define(function (require, exports, module) {
         offset = Math.min(maxOffset, Math.max(0, offset));
         return offset;
     }
-    
-    /**
-     * Helper for attaching drag-related mouse listeners to an element. It's up to
-     * 'handler' to actually move the element as mouse is dragged.
-     * @param {!function(jQuery.event)} handler  Called whenever drag position changes
-     */
-    BezierCurveEditor.prototype._registerDragHandler = function ($element, handler) {
-        var mouseupHandler = function (event) {
-            $(window).unbind("mousemove", handler);
-            $(window).unbind("mouseup", mouseupHandler);
-        };
-        $element.mousedown(function (event) {
-            $(window).bind("mousemove", handler);
-            $(window).bind("mouseup", mouseupHandler);
-        });
-        $element.mousedown(handler);  // run drag-update handler on initial mousedown too
-    };
-    
+
     /** 
      * Global handler for keys in the bezierCurve editor.
      */
