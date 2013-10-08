@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         FileUtils         = require("file/FileUtils"),
         NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader   = require("utils/ExtensionLoader"),
-        CollectionUtils   = require("utils/CollectionUtils");
+        CollectionUtils   = require("utils/CollectionUtils"),
+        Async             = require("utils/Async");
     
     /**
      * The local storage ID
@@ -263,7 +264,7 @@ define(function (require, exports, module) {
                         }
                     })
                     .fail(function (error) {
-                        result.reject(error);
+                        result.reject("Unable to load prefs at " + path + " " + error);
                     });
             }, function (error) {
                 result.reject(error);
@@ -272,6 +273,24 @@ define(function (require, exports, module) {
         },
         
         save: function (newData) {
+            var result = $.Deferred();
+            var path = this.path;
+            NativeFileSystem.resolveNativeFileSystemPath(path, function (entry) {
+                try {
+                    FileUtils.writeText(entry, JSON.stringify(newData))
+                        .then(function (text) {
+                            result.resolve();
+                        })
+                        .fail(function (error) {
+                            result.reject("Unable to save prefs at " + path + " " + error);
+                        });
+                } catch (e) {
+                    result.reject("Unable to convert prefs to JSON" + e.toString());
+                }
+            }, function (error) {
+                result.reject(error);
+            });
+            return result.promise();
         }
     };
     
@@ -292,7 +311,11 @@ define(function (require, exports, module) {
         },
         
         save: function () {
-            return this.storage.save(this.data);
+            if (this._dirty) {
+                return this.storage.save(this.data);
+            } else {
+                return $.Deferred().resolve().promise();
+            }
         },
         
         setValue: function (id, value) {
@@ -436,6 +459,13 @@ define(function (require, exports, module) {
                     return result;
                 }
             }
+        },
+        
+        save: function () {
+            return Async.doInParallel(this._scopeOrder, function (id) {
+                var scope = this._scopes[id];
+                return scope.save();
+            }.bind(this));
         }
     };
     

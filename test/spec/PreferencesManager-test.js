@@ -30,6 +30,8 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var PreferencesManager      = require("preferences/PreferencesManager"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesManager-test-files");
@@ -188,6 +190,39 @@ define(function (require, exports, module) {
                 layer.setLanguage("python");
                 expect(pm.getValue("spaceUnits")).toBe(4);
             });
+        });
+        
+        describe("File Storage", function () {
+            var settingsFile = testPath + "/brackets.settings.json",
+                filestorage,
+                fileEntry,
+                originalText;
+            
+            beforeFirst(function () {
+                var deferred = $.Deferred();
+                NativeFileSystem.resolveNativeFileSystemPath(settingsFile, function (entry) {
+                    fileEntry = entry;
+                    FileUtils.readAsText(fileEntry)
+                        .then(function (text) {
+                            originalText = text;
+                            deferred.resolve();
+                        })
+                        .fail(function (error) {
+                            deferred.reject(error);
+                        });
+                }, function (error) {
+                    deferred.reject(error);
+                });
+                waitsForDone(deferred.promise());
+            });
+            
+            beforeEach(function () {
+                filestorage = new PreferencesManager.FileStorage(settingsFile);
+            });
+            
+            afterEach(function () {
+                waitsForDone(FileUtils.writeText(fileEntry, originalText));
+            });
             
             it("can load preferences from disk", function () {
                 var filestorage = new PreferencesManager.FileStorage(testPath + "/brackets.settings.json");
@@ -201,6 +236,21 @@ define(function (require, exports, module) {
                     layer.setLanguage("go");
                     pm.addLayer("language", layer);
                     expect(pm.getValue("spaceUnits")).toBe(27);
+                });
+            });
+            
+            it("can save preferences", function () {
+                var filestorage = new PreferencesManager.FileStorage(testPath + "/brackets.settings.json");
+                var pm = new PreferencesManager.PreferencesManager();
+                var projectScope = new PreferencesManager.Scope(filestorage);
+                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    var memstorage = new PreferencesManager.MemoryStorage();
+                    pm.addScope("session", new PreferencesManager.Scope(memstorage));
+                    pm.setValue("session", "unicorn-filled", true);
+//                    pm.setValue("project", "unicorn-filled", false);
+                    pm.save();
+                    expect(memstorage.data["unicorn-filled"]).toBe(true);
                 });
             });
         });
