@@ -61,6 +61,74 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Language Layer", function () {
+            var data = {
+                spaceUnits: 4,
+                useTabChar: false,
+                language: {
+                    html: {
+                        spaceUnits: 2
+                    }
+                }
+            };
+            
+            it("should be able to find preferences", function () {
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                expect(layer.getValue(data, "useTabChar")).toBeUndefined();
+                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
+                layer.setLanguage("html");
+                expect(layer.getValue(data, "spaceUnits")).toBe(2);
+            });
+            
+            it("can create a list of known keys", function () {
+                var layer = new PreferencesBase.LanguageLayer();
+                expect(layer.getKeys(data, [])).toEqual([]);
+                
+                layer.setLanguage("html");
+                expect(layer.getKeys(data, [])).toEqual(["spaceUnits"]);
+                
+                expect(layer.getKeys(data, ["language"])).toEqual(["spaceUnits"]);
+            });
+        });
+        
+        describe("Scope", function () {
+            var data = {
+                spaceUnits: 4,
+                useTabChar: false,
+                language: {
+                    html: {
+                        spaceUnits: 2
+                    }
+                }
+            };
+            
+            var layer = new PreferencesBase.LanguageLayer();
+            var layerGetters = [layer.getValue.bind(layer)];
+            var layerKeys = [layer.getKeys.bind(layer)];
+            
+            var scope;
+            
+            beforeEach(function () {
+                scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                // MemoryStorage operates synchronously
+                scope.load();
+                layer.setLanguage("");
+            });
+            
+            it("should look up a value", function () {
+                expect(scope.getValue("spaceUnits", layerGetters)).toBe(4);
+                layer.setLanguage("html");
+                expect(scope.getValue("spaceUnits", layerGetters)).toBe(2);
+                expect(scope.getValue("useTabChar", layerGetters)).toBe(false);
+            });
+            
+            it("should provide lists of keys", function () {
+                expect(scope.getKeys([])).toEqual(["spaceUnits", "useTabChar", "language"]);
+                expect(scope.getKeys(layerKeys)).toEqual(["spaceUnits", "useTabChar"]);
+            });
+        });
+        
         describe("Preferences Manager", function () {
             it("should yield an error if a preference is redefined", function () {
                 var pm = new PreferencesBase.PreferencesManager();
@@ -197,6 +265,126 @@ define(function (require, exports, module) {
                 
                 layer.setLanguage("python");
                 expect(pm.getValue("spaceUnits")).toBe(4);
+            });
+            
+            it("can notify of preference changes through setValue", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                pm.definePreference("spaceUnits", "number", 4);
+                pm.addScope("user", new PreferencesBase.MemoryStorage());
+                var eventData;
+                $(pm).on("preferenceChange", function (e, data) {
+                    eventData = data;
+                });
+                
+                pm.setValue("user", "testing", true);
+                expect(eventData).toBeDefined();
+                expect(eventData.id).toBe("testing");
+                expect(eventData.newValue).toBe(true);
+                
+                eventData = undefined;
+                pm.setValue("user", "spaceUnits", 4);
+                expect(eventData).toBeUndefined();
+                
+                eventData = undefined;
+                pm.setValue("user", "testing", true);
+                expect(eventData).toBeUndefined();
+                
+                pm.addScope("session", new PreferencesBase.MemoryStorage());
+                eventData = undefined;
+                pm.setValue("session", "testing", true);
+                expect(eventData).toBeUndefined();
+                
+                eventData = undefined;
+                pm.setValue("user", "testing", false);
+                expect(eventData).toBeUndefined();
+                
+                eventData = undefined;
+                pm.setValue("session", "testing", false);
+                expect(eventData).toBeDefined();
+                
+                eventData = undefined;
+                pm.setValue("user", "spaceUnits", 2);
+                expect(eventData).toEqual({
+                    id: "spaceUnits",
+                    newValue: 2,
+                    oldValue: 4
+                });
+            });
+            
+            it("can notify of preference changes via scope changes", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                pm.definePreference("spaceUnits", "number", 4);
+                
+                var eventData = [];
+                $(pm).on("preferenceChange", function (e, data) {
+                    eventData.push(data);
+                });
+                
+                pm.addScope("user", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 4,
+                    elephants: "charging"
+                }));
+                
+                expect(eventData).toEqual([{
+                    id: "elephants",
+                    oldValue: undefined,
+                    newValue: "charging"
+                }]);
+                
+                eventData = [];
+                pm.addScope("preuser", new PreferencesBase.MemoryStorage({
+                    elephants: "docile"
+                }), "default");
+                expect(eventData).toEqual([]);
+                
+                eventData = [];
+                pm.removeScope("user");
+                expect(eventData).toEqual([{
+                    id: "elephants",
+                    oldValue: "charging",
+                    newValue: "docile"
+                }]);
+            });
+            
+            it("notifies when there are layer changes", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                
+                var data = {
+                    spaceUnits: 4,
+                    useTabChar: false,
+                    language: {
+                        html: {
+                            spaceUnits: 2
+                        },
+                        go: {
+                            spaceUnits: 3291
+                        }
+                    }
+                };
+                pm.addScope("user", new PreferencesBase.MemoryStorage(data));
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                layer.setLanguage("go");
+                
+                var eventData = [];
+                $(pm).on("preferenceChange", function (e, data) {
+                    eventData.push(data);
+                });
+                
+                pm.addLayer("language", layer);
+                expect(eventData).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 4,
+                    newValue: 3291
+                }]);
+                
+                eventData = [];
+                layer.setLanguage("html");
+                expect(eventData).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 3291,
+                    newValue: 2
+                }]);
             });
         });
         

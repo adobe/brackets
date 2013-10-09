@@ -227,7 +227,8 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-    var SETTINGS_FILENAME = "brackets.settings.json";
+    var SETTINGS_FILENAME = "brackets.settings.json",
+        STATE_FILENAME    = "state.json";
     
     var preferencesManager = new PreferencesBase.PreferencesManager();
     
@@ -235,15 +236,29 @@ define(function (require, exports, module) {
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
+    preferencesManager.addLayer("language", new PreferencesBase.LanguageLayer());
+    
+    var stateManager = new PreferencesBase.PreferencesManager();
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
+    
+    function setValueAndSave(scopeName, id, value) {
+        preferencesManager.setValue(scopeName, id, value);
+        preferencesManager.save();
+    }
     
     // Private API for unit testing and use elsewhere
     exports._manager = preferencesManager;
-
+    
     // Public API    
     exports.getValue = preferencesManager.getValue.bind(preferencesManager);
     exports.setValue = preferencesManager.setValue.bind(preferencesManager);
+    exports.save = preferencesManager.save.bind(preferencesManager);
+    exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);
     exports.removeScope = preferencesManager.removeScope.bind(preferencesManager);
+    exports.stateManager = stateManager;
     exports.FileStorage = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME = SETTINGS_FILENAME;
     exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);

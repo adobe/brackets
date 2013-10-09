@@ -37,8 +37,11 @@ define(function (require, exports, module) {
         NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils"),
+        _                 = require("lodash"),
         Async             = require("utils/Async");
-
+    
+    var PREFERENCE_CHANGE = "preferenceChange";
+    
     function MemoryStorage(data) {
         this.data = data || {};
     }
@@ -155,6 +158,16 @@ define(function (require, exports, module) {
                 }
             }
             return this.data[id];
+        },
+        
+        getKeys: function (layers) {
+            var data = this.data,
+                keys = _.keys(data);
+            
+            layers.forEach(function (layer) {
+                keys = layer(data, keys);
+            });
+            return keys;
         }
     };
     
@@ -163,13 +176,26 @@ define(function (require, exports, module) {
     
     LanguageLayer.prototype = {
         setLanguage: function (languageID) {
+            $(this).trigger("beforeLayerChange");
             this.language = languageID;
+            $(this).trigger("afterLayerChange");
         },
         
         getValue: function (data, id) {
-            if (data.language && data.language[this.language]) {
-                return data.language[this.language][id];
+            var language = this.language;
+            if (data.language && data.language[language]) {
+                return data.language[language][id];
             }
+        },
+        
+        getKeys: function (data, currentKeyList) {
+            var language = this.language;
+            currentKeyList = _.without(currentKeyList, "language");
+            if (data.language && data.language[language]) {
+                var languageKeys = _.keys(data.language[language]);
+                return _.union(currentKeyList, languageKeys);
+            }
+            return currentKeyList;
         }
     };
     
@@ -187,6 +213,10 @@ define(function (require, exports, module) {
         
         this._layers = {};
         this._layerGetters = [];
+        this._layerKeys = [];
+        
+        this._saveInProgress = false;
+        this._nextSaveDeferred = null;
     }
     
     PreferencesManager.prototype = {
@@ -243,8 +273,10 @@ define(function (require, exports, module) {
             
             scope.load()
                 .then(function () {
-                    this._scopes[id] = scope;
-                    this.addToScopeOrder(id, addBefore);
+                    this._inspectChangesAndFire(function () {
+                        this._scopes[id] = scope;
+                        this.addToScopeOrder(id, addBefore);
+                    }.bind(this));
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {
@@ -259,19 +291,102 @@ define(function (require, exports, module) {
         },
         
         removeScope: function (id) {
-            delete this._scopes[id];
-            var scopeIndex = this._scopeOrder.indexOf(id);
-            if (scopeIndex > -1) {
-                this._scopeOrder.splice(scopeIndex, 1);
+            this._inspectChangesAndFire(function () {
+                delete this._scopes[id];
+                var scopeIndex = this._scopeOrder.indexOf(id);
+                if (scopeIndex > -1) {
+                    this._scopeOrder.splice(scopeIndex, 1);
+                }
+            }.bind(this));
+        },
+        
+        _getAllKeysAndPrefs: function (extraKeys) {
+            var layerKeys = this._layerKeys;
+            
+            var keys = _.map(this._scopes, function (scope) {
+                return scope.getKeys(layerKeys);
+            });
+            
+            keys = _.union.apply(null, keys);
+            if (extraKeys) {
+                keys = _.union(keys, extraKeys);
             }
+            
+            var prefs = _.object(keys, _.map(keys, function (key) {
+                return this.getValue(key);
+            }.bind(this)));
+            
+            return {
+                keys: keys,
+                prefs: prefs
+            };
+        },
+        
+        _inspectChangesAndFire: function (operation) {
+            var before = this._getAllKeysAndPrefs();
+            
+            operation();
+            
+            var after = this._getAllKeysAndPrefs(before.keys);
+            
+            this._fireChanges(before, after);
+        },
+        
+        _fireChanges: function (before, after) {
+            var differentProps = _.map(after.keys, function (key) {
+                var beforeValue = before.prefs[key],
+                    afterValue = after.prefs[key];
+                    
+                if (afterValue !== beforeValue) {
+                    return {
+                        id: key,
+                        oldValue: beforeValue,
+                        newValue: afterValue
+                    };
+                }
+                return undefined;
+            });
+            
+            var self = $(this);
+            differentProps.forEach(function (data) {
+                if (data !== undefined) {
+                    self.trigger("preferenceChange", data);
+                }
+            });
+
         },
         
         addLayer: function (id, layer) {
             if (this._layers[id]) {
                 throw new Error("Attempt to redefine preferences layer: " + id);
             }
-            this._layers[id] = layer;
-            this._layerGetters.push(layer.getValue.bind(layer));
+            
+            this._inspectChangesAndFire(function () {
+                this._layers[id] = layer;
+                this._layerGetters.push(layer.getValue.bind(layer));
+                this._layerKeys.push(layer.getKeys.bind(layer));
+            }.bind(this));
+            
+            $(layer).on("beforeLayerChange", this._beforeLayerChange.bind(this));
+            $(layer).on("afterLayerChange", this._afterLayerChange.bind(this));
+        },
+        
+        _beforeLayerChange: function () {
+            this._preLayerChangeData = this._getAllKeysAndPrefs();
+        },
+        
+        _afterLayerChange: function () {
+            if (!this._preLayerChangeData) {
+                console.error("After layer change fired without before layer change. This should not happen.");
+                return;
+            }
+            
+            var before = this._preLayerChangeData;
+            delete this._preLayerChangeData;
+            
+            var after = this._getAllKeysAndPrefs(before.keys);
+            
+            this._fireChanges(before, after);
         },
         
         setValue: function (scopeName, id, value) {
@@ -280,10 +395,21 @@ define(function (require, exports, module) {
                 throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
             }
             
+            var oldValue = this.getValue(id);
             scope.setValue(id, value);
+            
+            var newValue = this.getValue(id);
+            
+            if (oldValue !== newValue) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    id: id,
+                    newValue: newValue,
+                    oldValue: oldValue
+                });
+            }
         },
         
-        getValue: function (id, value) {
+        getValue: function (id) {
             var scopeCounter,
                 scopeOrder = this._scopeOrder,
                 layerGetters = this._layerGetters;
@@ -298,10 +424,33 @@ define(function (require, exports, module) {
         },
         
         save: function () {
-            return Async.doInParallel(this._scopeOrder, function (id) {
+            if (this._saveInProgress) {
+                if (!this._nextSaveDeferred) {
+                    this._nextSaveDeferred = $.Deferred();
+                }
+                return this._nextSaveDeferred.promise();
+            }
+            
+            this._saveInProgress = true;
+            var deferred = this._nextSaveDeferred || $.Deferred();
+            this._nextSaveDeferred = null;
+            
+            Async.doInParallel(this._scopeOrder, function (id) {
                 var scope = this._scopes[id];
                 return scope.save();
-            }.bind(this));
+            }.bind(this))
+                .then(function () {
+                    this._saveInProgress = false;
+                    if (this._nextSaveDeferred) {
+                        this.save();
+                    }
+                    deferred.resolve();
+                }.bind(this))
+                .fail(function (err) {
+                    deferred.reject(err);
+                });
+            
+            return deferred.promise();
         }
     };
     

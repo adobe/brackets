@@ -77,34 +77,36 @@ define(function (require, exports, module) {
         Async              = require("utils/Async"),
         AnimationUtils     = require("utils/AnimationUtils");
     
-    var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
-                         showLineNumbers: true, styleActiveLine: false, wordWrap: true };
+    PreferencesManager.definePreference("useTabChar", "boolean", false);
+    PreferencesManager.definePreference("tabSize", "number", 4);
+    PreferencesManager.definePreference("spaceUnits", "number", 4);
+    PreferencesManager.definePreference("closeBrackets", "boolean", false);
+    PreferencesManager.definePreference("showLineNumbers", "boolean", true);
+    PreferencesManager.definePreference("styleActiveLine", "boolean", false);
+    PreferencesManager.definePreference("wordWrap", "boolean", true);
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor");
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = _prefs.getValue("useTabChar");
+    var _useTabChar = PreferencesManager.getValue("useTabChar");
     
     /** @type {number}  Global setting: Tab size */
-    var _tabSize = _prefs.getValue("tabSize");
+    var _tabSize = PreferencesManager.getValue("tabSize");
     
     /** @type {number}  Global setting: Space units (i.e. number of spaces when indenting) */
-    var _spaceUnits = _prefs.getValue("spaceUnits");
+    var _spaceUnits = PreferencesManager.getValue("spaceUnits");
     
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
-    var _closeBrackets = _prefs.getValue("closeBrackets");
+    var _closeBrackets = PreferencesManager.getValue("closeBrackets");
     
     /** @type {boolean}  Global setting: Show line numbers in the gutter */
-    var _showLineNumbers = _prefs.getValue("showLineNumbers");
+    var _showLineNumbers = PreferencesManager.getValue("showLineNumbers");
 
     /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
-    var _styleActiveLine = _prefs.getValue("styleActiveLine");
+    var _styleActiveLine = PreferencesManager.getValue("styleActiveLine");
 
     /** @type {boolean}  Global setting: Auto wrap lines */
-    var _wordWrap = _prefs.getValue("wordWrap");
+    var _wordWrap = PreferencesManager.getValue("wordWrap");
 
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -1521,7 +1523,7 @@ define(function (require, exports, module) {
      */
     function _setEditorOptionAndPref(value, cmOption, prefName) {
         _setEditorOption(value, cmOption);
-        _prefs.setValue(prefName, value);
+        PreferencesManager.setValueAndSave("user", prefName, value);
     }
     
     /**
