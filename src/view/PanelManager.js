@@ -150,7 +150,7 @@ define(function (require, exports, module) {
      * Represents a panel below the editor area (a child of ".content").
      * 
      * @param {!jQueryObject} $panel  The entire panel, including any chrome, already in the DOM.
-     * @param {number=} minSize  Minimum height of panel in px; default is 0
+     * @param {number=} minSize  Minimum height of panel in px.
      */
     function Panel($panel, minSize) {
         this.$panel = $panel;
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
      * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet.
-     * @param {number=} minSize  Minimum height of panel in px; default is 0
+     * @param {number=} minSize  Minimum height of panel in px.
      * @return {!Panel}
      */
     function createBottomPanel(id, $panel, minSize) {
