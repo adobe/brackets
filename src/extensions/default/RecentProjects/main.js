@@ -233,9 +233,9 @@ define(function (require, exports, module) {
             break;
         case KeyEvent.DOM_VK_BACK_SPACE:
         case KeyEvent.DOM_VK_DELETE:
-            keyHandled = true;
             if ($dropdownItem) {
                 removeSelectedItem(event);
+                keyHandled = true;
             }
             break;
         }
