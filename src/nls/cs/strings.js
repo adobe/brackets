@@ -122,6 +122,11 @@ define({
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradit",
 
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Další shoda",
+    "BUTTON_PREV_HINT"                  : "Předcházející shoda",
+
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
     "CHOOSE_FOLDER"                     : "Vybrat složku",
@@ -146,6 +151,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
 
@@ -179,6 +185,15 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
+
+    // CodeInspection: chyby/varování
+    "ERRORS_PANEL_TITLE"                    : "{0} chyb",
+    "SINGLE_ERROR"                          : "1 {0} chyba",
+    "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
+    "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
+    "LINT_DISABLED"                         : "Lint je vypnutý",
+    "NO_LINT_AVAILABLE"                     : "Lint není dostupný pro {0}",
+    "NOTHING_TO_LINT"                       : "Nic pro lintování",
 
     /**
      * Příkazy
@@ -249,6 +264,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory pro uložení",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
@@ -259,6 +275,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Přejít na první chybu/varování",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
@@ -279,11 +296,6 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
 
-
-    // Speciální příkazy spustěné pomocí shell
-    "CMD_CLOSE_WINDOW"                    : "Zavřít okno",
-    "CMD_ABORT_QUIT"                      : "Zrušit",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
@@ -316,7 +328,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL nemůže obsahovat výrazy pro hledání jako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při analýze URL",
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
@@ -456,16 +468,13 @@ define({
     "NO_ARGUMENTS"                              : "<žádné parametry>",
 
     // extensions/default/JSLint
-    "CMD_JSLINT"                           : "Povolit JSLint",
-    "CMD_JSLINT_FIRST_ERROR"               : "Přejít na první JSLint chybu",
-    "JSLINT_ERRORS"                        : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
-    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
-    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
+    "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
+
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"
