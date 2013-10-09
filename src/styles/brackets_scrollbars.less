@@ -118,13 +118,20 @@
     :active::-webkit-scrollbar-thumb {
         background: #606060;
     }
-    ::-webkit-scrollbar-track:vertical { //:corner-present
+    ::-webkit-scrollbar-track:vertical {
         margin: 0 0 15px 0;
     }
-    ::-webkit-scrollbar-track:horizontal { //:corner-present
+    ::-webkit-scrollbar-track:horizontal {
         margin: 0 15px 0 0;
     }
-    ::-webkit-scrollbar-corner {
-        background: #ffffff;
-    }
+}
+
+.scrollbar-filler {
+    background: #f0f0f0;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    z-index: 10;
+    bottom: 26px;
+    right: 0;
 }
