@@ -1572,12 +1572,20 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
-
-    $(exports).on("projectOpen", function () {
+    
+    function _reloadProjectPreferencesScope() {
         PreferencesManager.removeScope("project");
         var root = getProjectRoot();
         if (root) {
             PreferencesManager.addScope("project", new PreferencesManager.FileStorage(root.fullPath + PreferencesManager.SETTINGS_FILENAME), "user");
+        }
+    }
+    
+    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    
+    $(DocumentManager).on("documentSaved", function (e, document) {
+        if (document.file && FileUtils.getDirectoryPath(document.file.fullPath) === _projectRoot.fullPath && document.file.name === PreferencesManager.SETTINGS_FILENAME) {
+            _reloadProjectPreferencesScope();
         }
     });
 

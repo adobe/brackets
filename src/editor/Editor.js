@@ -1520,19 +1520,23 @@ define(function (require, exports, module) {
      * @param {boolean | number} value
      * @param {string} cmOption - CodeMirror option string
      * @param {string} prefName - preference name string
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    function _setEditorOptionAndPref(value, cmOption, prefName) {
+    function _setEditorOptionAndPref(value, cmOption, prefName, _editorOnly) {
         _setEditorOption(value, cmOption);
-        PreferencesManager.setValueAndSave("user", prefName, value);
+        if (!_editorOnly) {
+            PreferencesManager.setValueAndSave("user", prefName, value);
+        }
     }
     
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setUseTabChar = function (value) {
+    Editor.setUseTabChar = function (value, _editorOnly) {
         _useTabChar = value;
-        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar");
+        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar", _editorOnly);
         _setEditorOption(_useTabChar ? _tabSize : _spaceUnits, "indentUnit");
     };
     
@@ -1544,10 +1548,11 @@ define(function (require, exports, module) {
     /**
      * Sets tab character width. Affects all Editors.
      * @param {number} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setTabSize = function (value) {
+    Editor.setTabSize = function (value, _editorOnly) {
         _tabSize = value;
-        _setEditorOptionAndPref(value, "tabSize", "tabSize");
+        _setEditorOptionAndPref(value, "tabSize", "tabSize", _editorOnly);
         _setEditorOption(value, "indentUnit");
     };
     
@@ -1559,10 +1564,11 @@ define(function (require, exports, module) {
     /**
      * Sets indentation width. Affects all Editors.
      * @param {number} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setSpaceUnits = function (value) {
+    Editor.setSpaceUnits = function (value, _editorOnly) {
         _spaceUnits = value;
-        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits");
+        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits", _editorOnly);
     };
     
     /** @type {number} Get indentation width */
@@ -1573,10 +1579,11 @@ define(function (require, exports, module) {
     /**
      * Sets the auto close brackets. Affects all Editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setCloseBrackets = function (value) {
+    Editor.setCloseBrackets = function (value, _editorOnly) {
         _closeBrackets = value;
-        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets");
+        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets", _editorOnly);
     };
     
     /** @type {boolean} Gets whether all Editors use auto close brackets */
@@ -1587,10 +1594,11 @@ define(function (require, exports, module) {
     /**
      * Sets show line numbers option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowLineNumbers = function (value) {
+    Editor.setShowLineNumbers = function (value, _editorOnly) {
         _showLineNumbers = value;
-        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers");
+        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers", _editorOnly);
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for all editors */
@@ -1601,10 +1609,11 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowActiveLine = function (value) {
+    Editor.setShowActiveLine = function (value, _editorOnly) {
         _styleActiveLine = value;
-        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
+        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine", _editorOnly);
     };
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */
@@ -1615,16 +1624,24 @@ define(function (require, exports, module) {
     /**
      * Sets word wrap option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setWordWrap = function (value) {
+    Editor.setWordWrap = function (value, _editorOnly) {
         _wordWrap = value;
-        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap");
+        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap", _editorOnly);
     };
     
     /** @type {boolean} Returns true if word wrap is enabled for all editors */
     Editor.getWordWrap = function () {
         return _wordWrap;
     };
+    
+    $(PreferencesManager).on("preferenceChange", function (e, data) {
+        var setterName = "set" + data.id[0].toUpperCase() + data.id.substr(1);
+        if (Editor[setterName]) {
+            Editor[setterName](data.newValue, true);
+        }
+    });
     
     // Define public API
     exports.Editor                  = Editor;

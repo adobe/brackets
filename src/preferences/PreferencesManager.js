@@ -238,10 +238,15 @@ define(function (require, exports, module) {
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
     preferencesManager.addLayer("language", new PreferencesBase.LanguageLayer());
     
+    $(preferencesManager).on("preferenceChange", function (e, data) {
+        $(exports).trigger("preferenceChange", data);
+    });
+    
     var stateManager = new PreferencesBase.PreferencesManager();
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
+    
     
     function setValueAndSave(scopeName, id, value) {
         preferencesManager.setValue(scopeName, id, value);
