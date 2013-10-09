@@ -58,6 +58,57 @@ define(function (require, exports, module) {
                 self.file1content = "Here is file1";
             });
         });
+        
+        describe("Checking file path", function () {
+            
+            it("should return false on absolute path", function () {
+                var deferred = new $.Deferred(),
+                    isRelative = true,
+                    path;
+                
+                //Set the correct path for the platform
+                if (brackets.platform === "win") {
+                    path = "C:\\an\\absolute\\path";
+                } else if (brackets.platform === "mac" || brackets.platform === "linux") {
+                    //Mac and Linux will have the same path type
+                    path = "/an/absolute/path";
+                }
+                
+                runs(function () {
+                    isRelative = NativeFileSystem.isRelativePath(path);
+                    deferred.resolve();
+                    waitsForDone(deferred, "isRelativePath", 2000);
+                });
+                
+                runs(function () {
+                    expect(isRelative).toBe(false);
+                });
+            });
+            
+            it("should return true on relative path", function () {
+                var deferred = new $.Deferred(),
+                    isRelative = false,
+                    path;
+                
+                //Set the correct path for the platform
+                if (brackets.platform === "win") {
+                    path = "a\\relative\\path";
+                } else if (brackets.platform === "mac" || brackets.platform === "linux") {
+                    //Mac and Linux will have the same path type
+                    path = "a/relative/path";
+                }
+                
+                runs(function () {
+                    isRelative = NativeFileSystem.isRelativePath(path);
+                    deferred.resolve();
+                    waitsForDone(deferred, "isRelativePath", 2000);
+                });
+                
+                runs(function () {
+                    expect(isRelative).toBe(true);
+                });
+            });
+        });
 
         afterEach(function () {
             SpecRunnerUtils.removeTempDirectory();

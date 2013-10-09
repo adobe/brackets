@@ -364,7 +364,11 @@ define(function (require, exports, module) {
      */
     function formatError(error) {
         function localize(key) {
-            return Strings[key] || Strings.UNKNOWN_ERROR;
+            if (Strings[key]) {
+                return Strings[key];
+            }
+            console.log("Unknown installation error", key);
+            return Strings.UNKNOWN_ERROR;
         }
         
         if (Array.isArray(error)) {

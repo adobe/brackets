@@ -568,6 +568,32 @@ define(function (require, exports, module) {
         _clearCurrentDocument();
         _removeAllFromWorkingSet();
     }
+        
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
+        var fileList = [], index;
+        
+        if (!list) {
+            return;
+        }
+        
+        if (clearCurrentDocument) {
+            _clearCurrentDocument();
+        }
+        
+        list.forEach(function (file) {
+            index = findInWorkingSet(file.fullPath);
+            
+            if (index !== -1) {
+                fileList.push(_workingSet[index]);
+                
+                _workingSet.splice(index, 1);
+                _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+                _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+            }
+        });
+        
+        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
+    }
     
     
     /**
@@ -940,6 +966,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
