@@ -236,7 +236,9 @@ define(function (require, exports, module) {
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
-    preferencesManager.addLayer("language", new PreferencesBase.LanguageLayer());
+    
+    var languageLayer = new PreferencesBase.LanguageLayer();
+    preferencesManager.addLayer("language", languageLayer);
     
     $(preferencesManager).on("preferenceChange", function (e, data) {
         $(exports).trigger("preferenceChange", data);
@@ -253,8 +255,9 @@ define(function (require, exports, module) {
         preferencesManager.save();
     }
     
-    // Private API for unit testing and use elsewhere
+    // Private API for unit testing and use elsewhere in Brackets core
     exports._manager = preferencesManager;
+    exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
     
     // Public API    
     exports.getValue = preferencesManager.getValue.bind(preferencesManager);
