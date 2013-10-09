@@ -74,34 +74,34 @@ define(function (require, exports, module) {
     function openDroppedFiles(files) {
         var errorFiles = [];
         
-        return Async.doInParallel(files, function (file, idx) {
+        return Async.doInParallel(files, function (path, idx) {
             var result = new $.Deferred();
             
             // Only open files. TODO: FileSystem
-            brackets.fs.stat(file, function (err, stat) {
-                if (!err && stat.isFile()) {
+            ProjectManager.getFileSystem().resolve(path, function (err, item) {
+                if (!err && item.isFile()) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
                     if (idx < files.length - 1) {
-                        if (DocumentManager.findInWorkingSet(file) !== -1) {
+                        if (DocumentManager.findInWorkingSet(path) !== -1) {
                             result.resolve();
                             return;
                         }
                     }
                     
                     CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
-                                           {fullPath: file, silent: true})
+                                           {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();
                         })
                         .fail(function () {
-                            errorFiles.push(file);
+                            errorFiles.push(path);
                             result.reject();
                         });
-                } else if (!err && stat.isDirectory() && files.length === 1) {
+                } else if (!err && item.isDirectory() && files.length === 1) {
                     // One folder was dropped, open it.
-                    ProjectManager.openProject(file)
+                    ProjectManager.openProject(path)
                         .done(function () {
                             result.resolve();
                         })
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
                             result.reject();
                         });
                 } else {
-                    errorFiles.push(file);
+                    errorFiles.push(path);
                     result.reject();
                 }
             });
