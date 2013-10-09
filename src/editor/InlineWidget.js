@@ -44,7 +44,15 @@ define(function (require, exports, module) {
         this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
         this.$htmlContent.append("<div class='shadow top' />")
             .append("<div class='shadow bottom' />");
-        
+
+        // create the close button
+        var $closeBtn = this.$htmlContent.append("<a href='#'' class='close' id='inline-close'>&times;</a>");
+
+        $closeBtn   .on("mouseup", function(e) {
+            self.close();
+            e.stopImmediatePropagation();
+        });
+
         this.$htmlContent.on("keydown", function (e) {
             if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 self.close();

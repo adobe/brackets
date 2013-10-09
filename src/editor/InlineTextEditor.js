@@ -210,14 +210,6 @@ define(function (require, exports, module) {
         
         // header containing filename, dirty indicator, line number
         var $header = $("<div/>").addClass("inline-editor-header");
-
-        // Close button
-        var $closeBtn = $header.append("<a href='#'' class='close' id='inline-close'>&times;</a>");
-
-        $closeBtn.on("mouseup", function(e) {
-            self.close();
-            e.stopImmediatePropagation();
-        });
         
         var $filenameInfo = $("<a/>").addClass("filename");
         
