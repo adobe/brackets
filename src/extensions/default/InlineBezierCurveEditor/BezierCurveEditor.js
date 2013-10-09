@@ -45,36 +45,7 @@ define(function (require, exports, module) {
         HEIGHT_MAIN     = 150,    // height of main grid
         WIDTH_MAIN      = 150;    // width of main grid
 
-    var dragBezierEditor = null,
-        animationRequest = null;
-
-    /**
-     * Returns current bezier curve editor, or null
-     * @return {?BezierCurveEditor}
-     */
-    function getBezierCurveEditorForElement(element) {
-        var result = null,
-            $widgetRoot,
-            editor = EditorManager.getCurrentFullEditor(),
-            $ancestorBezierCurveEditor = $(element).closest(".bezier-curve-editor");
-        
-        if (editor && $ancestorBezierCurveEditor.length === 1) {
-            editor.getInlineWidgets().some(function (widget) {
-                if (widget.bezierCurveEditor) {
-                    $widgetRoot = widget.bezierCurveEditor.getRootElement();
-
-                    if ($widgetRoot.length === 1 &&
-                            $widgetRoot[0] === $ancestorBezierCurveEditor[0]) {
-                        result = widget.bezierCurveEditor;
-                        return true;
-                    }
-                }
-                return false;
-            });
-        }
-        
-        return result;
-    }
+    var animationRequest = null;
 
     /**
      * CubicBezier object constructor
@@ -278,12 +249,8 @@ define(function (require, exports, module) {
      */
     function _curveClick(e) {
         var self = e.target,
-            bezierEditor = getBezierCurveEditorForElement(self);
+            bezierEditor = self.bezierEditor;
 
-        if (!bezierEditor) {
-            return;
-        }
-        
         var curveBoundingBox = bezierEditor._getCurveBoundingBox(),
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
@@ -317,22 +284,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Helper function to redraw curve
-     */
-    function mouseMoveRedraw() {
-        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
-            animationRequest = null;
-            return;
-        }
-
-        if (dragBezierEditor) {
-            dragBezierEditor._updateCanvas();
-        }
-
-        animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
-    }
-
-    /**
      * Helper function for handling point move
      *
      * @param {Event} e Mouse move event
@@ -341,17 +292,27 @@ define(function (require, exports, module) {
      * @param {left: number, top: number, width: number, height: number} curveBoundingBox
      */
     function handlePointMove(e, x, y, curveBoundingBox) {
-        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
-            return;
+        var self = e.target,
+            bezierEditor = self.bezierEditor;
+
+        // Helper function to redraw curve
+        function mouseMoveRedraw() {
+            if (!bezierEditor.dragElement) {
+                animationRequest = null;
+                return;
+            }
+    
+            bezierEditor._updateCanvas();
+            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
         }
 
         // This is a dragging state, but left button is no longer down, so mouse
         // exited element, was released, and re-entered element. Treat like a drop.
         if (e.which !== 1) {
-            dragBezierEditor.dragElement = null;
-            dragBezierEditor._commitBezierCurve();
-            dragBezierEditor._updateCanvas();
-            dragBezierEditor = null;
+            bezierEditor.dragElement = null;
+            bezierEditor._commitBezierCurve();
+            bezierEditor._updateCanvas();
+            bezierEditor = null;
             return;
         }
 
@@ -360,15 +321,15 @@ define(function (require, exports, module) {
         // arbitrarily constrained to -0.5 to 1.5 range.
         x = Math.min(Math.max(0, x), curveBoundingBox.width);
 
-        $(dragBezierEditor.dragElement).css({
+        $(bezierEditor.dragElement).css({
             left: x + "px",
             top:  y + "px"
         });
 
         // update coords
-        dragBezierEditor._cubicBezierCoords = dragBezierEditor.bezierCanvas
-            .offsetsToCoordinates(dragBezierEditor.P1)
-            .concat(dragBezierEditor.bezierCanvas.offsetsToCoordinates(dragBezierEditor.P2));
+        bezierEditor._cubicBezierCoords = bezierEditor.bezierCanvas
+            .offsetsToCoordinates(bezierEditor.P1)
+            .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
 
         if (!animationRequest) {
             animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
@@ -397,7 +358,7 @@ define(function (require, exports, module) {
      */
     function _curveMouseMove(e) {
         var self = e.target,
-            bezierEditor = getBezierCurveEditorForElement(self),
+            bezierEditor = self.bezierEditor,
             curveBoundingBox = bezierEditor._getCurveBoundingBox(),
             left   = curveBoundingBox.left,
             top    = curveBoundingBox.top,
@@ -406,7 +367,7 @@ define(function (require, exports, module) {
 
         updateTimeProgression(self, x, y, curveBoundingBox);
 
-        if (dragBezierEditor && dragBezierEditor.dragElement) {
+        if (bezierEditor.dragElement) {
             if (e.pageX === 0 && e.pageY === 0) {
                 return;
             }
@@ -421,19 +382,15 @@ define(function (require, exports, module) {
      * @param {Event} e Mouse move event
      */
     function _pointMouseMove(e) {
-        var self = e.target;
-
-        if (!dragBezierEditor || !dragBezierEditor.dragElement) {
-            return;
-        }
-
-        var curveBoundingBox = dragBezierEditor._getCurveBoundingBox(),
+        var self = e.target,
+            bezierEditor = self.bezierEditor,
+            curveBoundingBox = bezierEditor._getCurveBoundingBox(),
             left = curveBoundingBox.left,
             top  = curveBoundingBox.top,
             x = e.pageX - left,
             y = e.pageY - top - HEIGHT_ABOVE;
 
-        updateTimeProgression(dragBezierEditor.curve, x, y, curveBoundingBox);
+        updateTimeProgression(bezierEditor.curve, x, y, curveBoundingBox);
 
         if (e.pageX === 0 && e.pageY === 0) {
             return;
@@ -450,8 +407,7 @@ define(function (require, exports, module) {
     function _pointMouseDown(e) {
         var self = e.target;
 
-        dragBezierEditor = getBezierCurveEditorForElement(self);
-        dragBezierEditor.dragElement = self;
+        self.bezierEditor.dragElement = self;
     }
 
     /**
@@ -464,11 +420,10 @@ define(function (require, exports, module) {
 
         self.focus();
 
-        if (dragBezierEditor) {
-            dragBezierEditor.dragElement = null;
-            dragBezierEditor._commitBezierCurve();
-            dragBezierEditor._updateCanvas();
-            dragBezierEditor = null;
+        if (self.bezierEditor.dragElement) {
+            self.bezierEditor.dragElement = null;
+            self.bezierEditor._commitBezierCurve();
+            self.bezierEditor._updateCanvas();
         }
     }
 
@@ -480,7 +435,7 @@ define(function (require, exports, module) {
     function _pointKeyDown(e) {
         var code = e.keyCode,
             self = e.target,
-            bezierEditor = getBezierCurveEditorForElement(self);
+            bezierEditor = self.bezierEditor;
 
         if (code >= KeyEvent.DOM_VK_LEFT && code <= KeyEvent.DOM_VK_DOWN) {
             e.preventDefault();
@@ -559,6 +514,8 @@ define(function (require, exports, module) {
         this.P2 = this.$element.find(".P2")[0];
         this.curve = this.$element.find(".curve")[0];
 
+        this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = this;
+
         this.bezierCanvas = new BezierCanvas(this.curve, null, [0, 0]);
         
         // redraw canvas
@@ -580,6 +537,8 @@ define(function (require, exports, module) {
      * Destructor called by InlineBezierCurveEditor.onClosed()
      */
     BezierCurveEditor.prototype.destroy = function () {
+
+        this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = null;
 
         this.curve.removeEventListener("click", _curveClick, false);
         this.curve.removeEventListener("mousemove", _curveMouseMove, false);
