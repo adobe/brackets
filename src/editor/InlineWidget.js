@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         // create the close button
         var $closeBtn = this.$htmlContent.append("<a href='#'' class='close' id='inline-close'>&times;</a>");
 
-        $closeBtn   .on("mouseup", function(e) {
+        $closeBtn.on("mouseup", function (e) {
             self.close();
             e.stopImmediatePropagation();
         });
