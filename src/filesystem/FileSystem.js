@@ -111,7 +111,7 @@ define(function (require, exports, module) {
         var file = this._index.getEntry(path);
         
         if (!file) {
-            file = new File(path, this._impl);
+            file = new File(path, this);
             this._index.addEntry(file);
         }
                 
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
      * @return {File} The File object.
      */
     FileSystem.prototype.getInMemoryFile = function (path) {
-        var file = new InMemoryFile(path, this._impl);
+        var file = new InMemoryFile(path, this);
         
         // TODO: Add to index?
         
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         var directory = this._index.getEntry(path);
         
         if (!directory) {
-            directory = new Directory(path, this._impl);
+            directory = new Directory(path, this);
             this._index.addEntry(directory);
         }
         
@@ -173,63 +173,6 @@ define(function (require, exports, module) {
                 }
             }
             callback(err, item);
-        }.bind(this));
-    };
-    
-    /**
-     * Read the contents of a Directory. 
-     *
-     * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (number, array)} callback Callback that is passed
-     *          and error code and the contents of the directory.
-     */
-    FileSystem.prototype.getDirectoryContents = function (directory, callback) {
-        var i, entryPath, entry;
-        
-        if (directory._contentsCallbacks) {
-            // There is already a pending call for this directorie's contents.
-            // Push the new callback onto the stack and return.
-            directory._contentsCallbacks.push(callback);
-            return;
-        }
-        
-        if (directory._contents) {
-            // Return cached contents
-            callback(null, directory._contents);
-            return;
-        }
-                
-        directory._contentsCallbacks = [callback];
-        
-        this._impl.readdir(directory.fullPath, function (err, contents, stats) {
-            directory._contents = [];
-            
-            // Instantiate content objects
-            var len = stats ? stats.length : 0;
-            
-            for (i = 0; i < len; i++) {
-                entryPath = directory.fullPath + "/" + contents[i];
-                
-                // Note: not all entries necessarily have associated stats.
-                // For now, silently ignore such entries.
-                if (stats[i] && this.shouldShow(entryPath)) {
-                    if (stats[i].isFile()) {
-                        entry = this.getFileForPath(entryPath);
-                    } else {
-                        entry = this.getDirectoryForPath(entryPath);
-                    }
-                    
-                    directory._contents.push(entry);
-                }
-            }
-            
-            directory._contentsPromise = null;
-            
-            // Invoke all saved callbacks
-            directory._contentsCallbacks.forEach(function (cb) {
-                cb(err, directory._contents);
-            });
-            directory._contentsCallbacks = null;
         }.bind(this));
     };
     
@@ -297,7 +240,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._scanDirectory = function (directoryPath) {
         var directory = this.getDirectoryForPath(directoryPath);
         
-        this.getDirectoryContents(directory, function (err, entries) {
+        directory.getContents(function (err, entries) {
             if (!err) {
                 var i;
                 
@@ -338,10 +281,10 @@ define(function (require, exports, module) {
                 var oldContents = entry._contents;  // TODO: Handle pending content promise
                 
                 // Clear out old contents
-                entry._contents = entry._contentsPromise = undefined;
+                entry._contents = undefined;
                 
                 // Read new contents
-                this.getDirectoryContents(entry, function (err, contents) {
+                entry.getContents(function (err, contents) {
                     if (!err) {
                         var i, len, item, path;
                         

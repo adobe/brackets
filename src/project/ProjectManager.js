@@ -754,7 +754,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        _fileSystem.getDirectoryContents(dirEntry, function (err, contents) {
+        dirEntry.getContents(function (err, contents) {
             if (!err) {
                 processEntries(contents);
             } else {

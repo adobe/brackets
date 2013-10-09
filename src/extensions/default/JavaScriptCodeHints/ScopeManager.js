@@ -189,7 +189,7 @@ define(function (require, exports, module) {
 
         fileSystem.resolve(dir, function (err, directory) {
             if (!err && directory.isDirectory()) {
-                fileSystem.getDirectoryContents(directory, function (err, contents) {
+                directory.getContents(function (err, contents) {
                     if (!err) {
                         contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
                             var path    = entry.fullPath,

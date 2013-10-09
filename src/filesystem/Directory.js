@@ -30,9 +30,8 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
-    function Directory(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath, impl);
-        this._impl = impl;
+    function Directory(fullPath, fileSystem) {
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     Directory.prototype = Object.create(FileSystemEntry.prototype);
@@ -47,6 +46,66 @@ define(function (require, exports, module) {
     
     Directory.prototype.isDirectory = function () {
         return true;
+    };
+    
+    /**
+     * Read the contents of a Directory. 
+     *
+     * @param {Directory} directory Directory whose contents you want to get
+     * @param {function (number, array)} callback Callback that is passed
+     *          and error code and the contents of the directory.
+     */
+    Directory.prototype.getContents = function (callback) {
+        var i, entryPath, entry;
+        
+        if (this._contentsCallbacks) {
+            // There is already a pending call for this directorie's contents.
+            // Push the new callback onto the stack and return.
+            this._contentsCallbacks.push(callback);
+            return;
+        }
+        
+        if (this._contents) {
+            // Return cached contents
+            callback(null, this._contents);
+            return;
+        }
+                
+        this._contentsCallbacks = [callback];
+        
+        this._impl.readdir(this.fullPath, function (err, contents, stats) {
+            this._contents = [];
+            
+            // Instantiate content objects
+            var len = stats ? stats.length : 0;
+            
+            for (i = 0; i < len; i++) {
+                entryPath = this.fullPath + "/" + contents[i];
+                
+                // Note: not all entries necessarily have associated stats.
+                // For now, silently ignore such entries.
+                if (stats[i] && this._fileSystem.shouldShow(entryPath)) {
+                    if (stats[i].isFile()) {
+                        entry = this._fileSystem.getFileForPath(entryPath);
+                    } else {
+                        entry = this._fileSystem.getDirectoryForPath(entryPath);
+                    }
+                    
+                    this._contents.push(entry);
+                }
+            }
+            
+            // Reset the callback list before we begin calling back so that
+            // synchronous reentrant calls are handled correctly.
+            var currentCallbacks = this._contentsCallbacks;
+            
+            this._contentsCallbacks = null;
+            
+            // Invoke all saved callbacks
+            currentCallbacks.forEach(function (cb) {
+                cb(err, this._contents);
+            }.bind(this));
+        }.bind(this));
     };
     
     /**

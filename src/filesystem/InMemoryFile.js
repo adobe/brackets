@@ -30,8 +30,8 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
-    function InMemoryFile(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath, impl);
+    function InMemoryFile(fullPath, fileSystem) {
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     InMemoryFile.prototype = Object.create(FileSystemEntry.prototype);

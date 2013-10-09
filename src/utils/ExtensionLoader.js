@@ -236,7 +236,7 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        brackets.appFileSystem.getDirectoryContents(brackets.appFileSystem.getDirectoryForPath(directory), function (err, contents) {
+        brackets.appFileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
             if (!err) {
                 var i,
                     extensions = [];

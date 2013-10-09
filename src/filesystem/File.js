@@ -30,8 +30,8 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
-    function File(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath, impl);
+    function File(fullPath, fileSystem) {
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     File.prototype = Object.create(FileSystemEntry.prototype);

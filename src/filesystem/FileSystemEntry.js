@@ -34,9 +34,10 @@ define(function (require, exports, module) {
      * Constructor
      * @param {string} path The path for this entry
      */
-    function FileSystemEntry(path, impl) {
+    function FileSystemEntry(path, fileSystem) {
         this._path = path;
-        this._impl = impl;
+        this._fileSystem = fileSystem;
+        this._impl = fileSystem._impl;
     }
         
     // Add "fullPath" and "name" getters
@@ -55,7 +56,12 @@ define(function (require, exports, module) {
      * Cached stat object for this file.
      */
     FileSystemEntry.prototype._stat = null;
-        
+
+    /**
+     * Parent file system.
+     */
+    FileSystemEntry.prototype._fileSystem = null;
+    
     /**
      * Low level file system implementation.
      */
