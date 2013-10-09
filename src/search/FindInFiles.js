@@ -773,6 +773,18 @@ define(function (require, exports, module) {
                                     _resolve(err ? null : contents);
                                 });
                             }
+                            /* TODO: FileSystem Figure out why this code is significantly slower 
+                            DocumentManager.getDocumentForPath(file.fullPath)
+                                .done(function (doc) {
+                                    _addSearchMatches(file.fullPath, doc.getText(), currentQueryExpr);
+                                    result.resolve();
+                                })
+                                .fail(function (error) {
+                                    // Always resolve. If there is an error, this file
+                                    // is skipped and we move on to the next file.
+                                    result.resolve();
+                                });
+                            */
                         }
                         return result.promise();
                     })
