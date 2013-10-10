@@ -116,17 +116,6 @@ define(function (require, exports, module) {
             mode = null;
         }
         
-        // TODO: support mode
-        
-        this._impl.mkdir(this._path, function (err, stat) {
-            if (!err) {
-                this._stat = stat;
-            }
-            if (callback) {
-                callback(err, stat);
-            }
-        }.bind(this));
-        
         var getList = function (mode) {
             if (!this._createCallbacks) {
                 this._createCallbacks = [];
@@ -136,6 +125,7 @@ define(function (require, exports, module) {
         }.bind(this);
         
         var getSyncValue = function (mode) {
+            // TODO: support mode
             return this._impl.mkdir.bind(null, this._path);
         }.bind(this);
         
