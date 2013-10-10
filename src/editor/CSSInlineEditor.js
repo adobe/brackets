@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var CSSUtils                = require("language/CSSUtils"),
         EditorManager           = require("editor/EditorManager"),
         HTMLUtils               = require("language/HTMLUtils"),
-        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor;
+        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+        Strings                 = require("strings");
 
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
@@ -79,6 +80,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Display list of stylesheets in project, then create new rule
+     */
+    function _handleNewRule() {
+        alert("New Rule button clicked");
+    }
+
+    /**
      * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
      * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
      * CSS rules and show (one/all of them) in an inline editor.
@@ -114,6 +122,15 @@ define(function (require, exports, module) {
                 if (rules && rules.length > 0) {
                     var cssInlineEditor = new MultiRangeInlineEditor(rules);
                     cssInlineEditor.load(hostEditor);
+
+                    // TODO:
+                    // - create css rule for styles
+                    // - disable when on stylesheets in project
+                    var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
+                    var $newRuleButton = $("<button class='btn btn-mini' style='margin-left:8px;'/>")
+                        .text(Strings.BUTTON_NEW_RULE)
+                        .on("click", _handleNewRule);
+                    $header.append($newRuleButton);
                     
                     result.resolve(cssInlineEditor);
                 } else {

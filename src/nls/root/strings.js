@@ -333,6 +333,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "New Rule",
+    
     // Extension Management strings
     "INSTALL"                              : "Install",
     "UPDATE"                               : "Update",
