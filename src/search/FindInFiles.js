@@ -116,6 +116,10 @@ define(function (require, exports, module) {
      * @return {RegExp}
      */
     function _getQueryRegExp(query) {
+        if (!query) {
+            return null;
+        }
+        
         // Clear any pending RegEx error message
         $(".modal-bar .message").css("display", "inline-block");
         $(".modal-bar .error").css("display", "none");
@@ -652,17 +656,13 @@ define(function (require, exports, module) {
      * @param {string} query String to be searched
      */
     function _doSearch(query) {
-        if (!query) {
-            StatusBar.hideBusyIndicator();
-            dialog._close();
-            dialog = null;
-            return;
-        }
-
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
         if (!currentQueryExpr) {
+            StatusBar.hideBusyIndicator();
+            dialog._close();
+            dialog = null;
             return;
         }
         FileIndexManager.getFileInfoList("all")
