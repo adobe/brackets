@@ -72,6 +72,42 @@ define(function (require, exports, module) {
      * @type {string}
      */
     FileSystemEntry.prototype._path = null;
+    
+    FileSystemEntry.prototype._cacheCallbacks = function (getList, getSyncValue, getAsyncValue, name) {
+        var fullPath = this.fullPath;
+        
+        return function () {
+            var params = Array.prototype.slice.call(arguments, 0),
+                callback = params.pop(),
+                currentCallbacks = getList.apply(null, params);
+            
+            if (currentCallbacks && currentCallbacks.length > 0) {
+                currentCallbacks.push(callback);
+                console.log("Concurrent filesystem I/O operation: ", name, fullPath);
+                return;
+            }
+            
+            var syncResult = getSyncValue.apply(null, params);
+            
+            if (typeof syncResult === "function") {
+                syncResult(function () {
+                    var valueArray = getAsyncValue.apply(null, arguments),
+                        savedCallbacks = currentCallbacks.slice(0);
+                    
+                    currentCallbacks.splice(0);
+                    
+                    // Invoke all saved callbacks
+                    savedCallbacks.forEach(function (cb) {
+                        cb.apply(null, valueArray);
+                    }.bind(this));
+                });
+                
+                if (callback) {
+                    currentCallbacks.push(callback);
+                }
+            }
+        };
+    };
         
     /**
      * Returns true if this entry is a file.
@@ -104,6 +140,29 @@ define(function (require, exports, module) {
                 callback(val);
             });
         }
+        
+        var getList = function () {
+            if (!this._existsCallbacks) {
+                this._existsCallbacks = [];
+            }
+            
+            return this._existsCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function () {
+            if (this._stat) {
+                callback(true);
+                return;
+            }
+            
+            return this._impl.exists.bind(null, this._path);
+        }.bind(this);
+        
+        var getAsyncValue = function (val) {
+            return [val];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "FileSystemEntry.exists").apply(null, arguments);
     };
     
     /**
@@ -113,16 +172,32 @@ define(function (require, exports, module) {
      * stats.
      */
     FileSystemEntry.prototype.stat = function (callback) {
-        if (this._stat) {
-            callback(null, this._stat);
-        } else {
-            this._impl.stat(this._path, function (err, stat) {
-                if (!err) {
-                    this._stat = stat;
-                }
-                callback(err, stat);
-            }.bind(this));
-        }
+        var getList = function () {
+            if (!this._statCallbacks) {
+                this._statCallbacks = [];
+            }
+            
+            return this._statCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function () {
+            if (this._stat) {
+                callback(null, this._stat);
+                return;
+            }
+            
+            return this._impl.stat.bind(null, this._path);
+        }.bind(this);
+        
+        var getAsyncValue = function (err, stat) {
+            if (!err) {
+                this._stat = stat;
+            }
+            
+            return [err, stat];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "FileSystemEntry.stat").apply(null, arguments);
     };
     
     /**
@@ -133,6 +208,22 @@ define(function (require, exports, module) {
      */
     FileSystemEntry.prototype.rename = function (newName, callback) {
         this._impl.rename(this._path, newName, callback);
+        
+        var getList = function () {
+            if (!this._renameCallbacks) {
+                this._renameCallbacks = [];
+            }
+            
+            return this._renameCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = this._impl.rename.bind(null, this._path, newName);
+        
+        var getAsyncValue = function (err, stat) {
+            return [err, stat];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "FileSystemEntry.rename").apply(null, arguments);
     };
         
     /**
@@ -141,8 +232,27 @@ define(function (require, exports, module) {
      * @param {function (number)} callback
      */
     FileSystemEntry.prototype.unlink = function (callback) {
-        this._stat = null;
-        this._impl.unlink(this._path, callback || function () {});
+        callback = callback || function () {};
+        
+        var getList = function () {
+            if (!this._unlinkCallbacks) {
+                this._unlinkCallbacks = [];
+            }
+            
+            return this._unlinkCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function () {
+            this._stat = null;
+            
+            return this._impl.unlink.bind(null, this._path);
+        }.bind(this);
+        
+        var getAsyncValue = function (err) {
+            return [err];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "FileSystemEntry.unlink")(callback);
     };
         
     /**
@@ -157,8 +267,27 @@ define(function (require, exports, module) {
             return;
         }
         
-        this._stat = null;
-        this._impl.moveToTrash(this._path, callback || function () {});
+        callback = callback || function () {};
+        
+        var getList = function () {
+            if (!this._moveToTrashCallbacks) {
+                this._moveToTrashCallbacks = [];
+            }
+            
+            return this._moveToTrashCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function () {
+            this._stat = null;
+            
+            return this._impl.moveToTrash.bind(null, this._path);
+        }.bind(this);
+        
+        var getAsyncValue = function (err) {
+            return [err];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "FileSystemEntry.moveToTrash")(callback);
     };
         
     // Export this class

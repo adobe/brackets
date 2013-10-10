@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     function Directory(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem);
@@ -56,24 +56,27 @@ define(function (require, exports, module) {
      *          and error code and the contents of the directory.
      */
     Directory.prototype.getContents = function (callback) {
-        var i, entryPath, entry;
+        var getList = function () {
+            if (!this._contentsCallbacks) {
+                this._contentsCallbacks = [];
+            }
+            
+            return this._contentsCallbacks;
+        }.bind(this);
         
-        if (this._contentsCallbacks) {
-            // There is already a pending call for this directorie's contents.
-            // Push the new callback onto the stack and return.
-            this._contentsCallbacks.push(callback);
-            return;
-        }
+        var getSyncValue = function () {
+            if (this._contents) {
+                // Return cached contents
+                callback(null, this._contents);
+                return;
+            }
+            
+            return this._impl.readdir.bind(null, this.fullPath);
+        }.bind(this);
         
-        if (this._contents) {
-            // Return cached contents
-            callback(null, this._contents);
-            return;
-        }
-                
-        this._contentsCallbacks = [callback];
-        
-        this._impl.readdir(this.fullPath, function (err, contents, stats) {
+        var getAsyncValue = function (err, contents, stats) {
+            var i, entryPath, entry;
+            
             this._contents = [];
             
             // Instantiate content objects
@@ -95,17 +98,10 @@ define(function (require, exports, module) {
                 }
             }
             
-            // Reset the callback list before we begin calling back so that
-            // synchronous reentrant calls are handled correctly.
-            var currentCallbacks = this._contentsCallbacks;
-            
-            this._contentsCallbacks = null;
-            
-            // Invoke all saved callbacks
-            currentCallbacks.forEach(function (cb) {
-                cb(err, this._contents);
-            }.bind(this));
-        }.bind(this));
+            return [err, this._contents];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "Directory.getContents").apply(null, arguments);
     };
     
     /**
@@ -117,6 +113,7 @@ define(function (require, exports, module) {
     Directory.prototype.create = function (mode, callback) {
         if (typeof (mode) === "function") {
             callback = mode;
+            mode = null;
         }
         
         // TODO: support mode
@@ -129,6 +126,27 @@ define(function (require, exports, module) {
                 callback(err, stat);
             }
         }.bind(this));
+        
+        var getList = function (mode) {
+            if (!this._createCallbacks) {
+                this._createCallbacks = [];
+            }
+            
+            return this._createCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function (mode) {
+            return this._impl.mkdir.bind(null, this._path);
+        }.bind(this);
+        
+        var getAsyncValue = function (err, stat) {
+            if (!err) {
+                this._stat = stat;
+            }
+            return [err, stat];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "Directory.create")(mode, callback);
     };
     
     // Export this class

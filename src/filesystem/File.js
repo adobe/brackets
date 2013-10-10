@@ -63,18 +63,38 @@ define(function (require, exports, module) {
             callback = encoding;
             encoding = null;
         }
+
+        var getList = function (encoding) {
+            if (!this._readAsTextCallbacks) {
+                this._readAsTextCallbacks = {};
+            }
+            
+            if (!this._readAsTextCallbacks[encoding]) {
+                this._readAsTextCallbacks[encoding] = [];
+            }
+            
+            return this._readAsTextCallbacks[encoding];
+        }.bind(this);
         
-        if (this._contents && this._stat) {
-            callback(null, this._contents, this._stat);
-        } else {
-            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
-                if (!err) {
-                    this._stat = stat;
-                    this._contents = data;
-                }
-                callback(err, data, stat);
-            }.bind(this));
-        }
+        var getSyncValue = function (encoding) {
+            if (this._contents && this._stat) {
+                callback(null, this._contents, this._stat);
+                return;
+            }
+
+            return this._impl.readFile.bind(null, this._path, encoding ? {encoding: encoding} : {});
+        }.bind(this);
+        
+        var getAsyncValue = function (err, data, stat) {
+            if (!err) {
+                this._stat = stat;
+                this._contents = data;
+            }
+            
+            return [err, data, stat];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "File.readAsText")(encoding, callback);
     };
     
     /**
@@ -91,13 +111,28 @@ define(function (require, exports, module) {
             encoding = null;
         }
         
-        this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
+        var getList = function (data, encoding) {
+            if (!this._writeCallbacks) {
+                this._writeCallbacks = [];
+            }
+            
+            return this._writeCallbacks;
+        }.bind(this);
+        
+        var getSyncValue = function (data, encoding) {
+            return this._impl.writeFile.bind(null, this._path, data, encoding ? {encoding: encoding} : {});
+        }.bind(this);
+        
+        var getAsyncValue = function (err, stat) {
             if (!err) {
                 this._stat = stat;
                 this._contents = data;
             }
-            callback(err, stat);
-        }.bind(this));
+            
+            return [err, stat];
+        }.bind(this);
+        
+        this._cacheCallbacks(getList, getSyncValue, getAsyncValue, "File.write")(data, encoding, callback);
     };
     
     // Export this class
