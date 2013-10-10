@@ -164,93 +164,7 @@ define(function (require, exports, module) {
             return Strings.FIND_IN_FILES_NO_SCOPE;
         }
     }
-    
-    
-    // This dialog class was mostly copied from QuickOpen. We should have a common dialog
-    // class that everyone can use.
-    
-    /**
-     * FindInFilesDialog class
-     * @constructor
-     */
-    function FindInFilesDialog() {
-        this.closed = false;
-    }
 
-    /**
-     * Returns the input text field of the modalbar in the dialog
-     * @return jQuery Object pointing to input text field
-     */
-    FindInFilesDialog.prototype.getDialogTextField = function () {
-        return $("input[type='text']", this.modalBar.getRoot());
-    };
-
-
-    /**
-     * Closes the search dialog and resolves the promise that showDialog returned
-     */
-    FindInFilesDialog.prototype._close = function (value) {
-        if (this.closed) {
-            return;
-        }
-        
-        this.closed = true;
-        this.modalBar.close();
-        EditorManager.focusEditor();
-    };
-    
-    /**
-     * Shows the search dialog
-     * @param {string=} initialString  Default text to prepopulate the search field with
-     * @param {Entry=} scope  Search scope, or null to search whole project
-     * @returns {$.Promise} that is resolved with the string to search for
-     */
-    FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
-        // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
-        var templateVars = {
-                value: initialString || "",
-                label: _labelForScope(scope)
-            },
-            dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
-            that       = this;
-        
-        this.modalBar    = new ModalBar(dialogHTML, false);
-        var $searchField = $("input#searchInput");
-        
-        $searchField.get(0).select();
-        $searchField
-            .bind("keydown", function (event) {
-                if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
-                    event.stopPropagation();
-                    event.preventDefault();
-                    
-                    var query = $searchField.val();
-                    
-                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                        that._close(null);
-                    } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                        StatusBar.showBusyIndicator(true);
-                        that.getDialogTextField().attr("disabled", "disabled");
-                        _doSearch(query);
-                    }
-                }
-            })
-            .bind("input", function (event) {
-                // Check the query expression on every input event. This way the user is alerted
-                // to any RegEx syntax errors immediately.
-                _getQueryRegExp($searchField.val());
-                that.getDialogTextField().removeClass("no-results");
-            })
-            .blur(function () {
-                if (that.getDialogTextField().attr("disabled")) {
-                    return;
-                }
-                that._close(null);
-            })
-            .focus();
-    };
-    
-    
     /**
      * @private
      * Hides the Search Results Panel
@@ -785,6 +699,91 @@ define(function (require, exports, module) {
                     });
             });
     }
+    
+    
+    // This dialog class was mostly copied from QuickOpen. We should have a common dialog
+    // class that everyone can use.
+    
+    /**
+     * FindInFilesDialog class
+     * @constructor
+     */
+    function FindInFilesDialog() {
+        this.closed = false;
+    }
+
+    /**
+     * Returns the input text field of the modalbar in the dialog
+     * @return jQuery Object pointing to input text field
+     */
+    FindInFilesDialog.prototype.getDialogTextField = function () {
+        return $("input[type='text']", this.modalBar.getRoot());
+    };
+
+
+    /**
+     * Closes the search dialog and resolves the promise that showDialog returned
+     */
+    FindInFilesDialog.prototype._close = function (value) {
+        if (this.closed) {
+            return;
+        }
+        
+        this.closed = true;
+        this.modalBar.close();
+        EditorManager.focusEditor();
+    };
+    
+    /**
+     * Shows the search dialog
+     * @param {string=} initialString  Default text to prepopulate the search field with
+     * @param {Entry=} scope  Search scope, or null to search whole project
+     * @returns {$.Promise} that is resolved with the string to search for
+     */
+    FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
+        // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
+        var templateVars = {
+                value: initialString || "",
+                label: _labelForScope(scope)
+            },
+            dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
+            that       = this;
+        
+        this.modalBar    = new ModalBar(dialogHTML, false);
+        var $searchField = $("input#searchInput");
+        
+        $searchField.get(0).select();
+        $searchField
+            .bind("keydown", function (event) {
+                if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
+                    event.stopPropagation();
+                    event.preventDefault();
+                    
+                    var query = $searchField.val();
+                    
+                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                        that._close(null);
+                    } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
+                        StatusBar.showBusyIndicator(true);
+                        that.getDialogTextField().attr("disabled", "disabled");
+                        _doSearch(query);
+                    }
+                }
+            })
+            .bind("input", function (event) {
+                // Check the query expression on every input event. This way the user is alerted
+                // to any RegEx syntax errors immediately.
+                _getQueryRegExp($searchField.val());
+                that.getDialogTextField().removeClass("no-results");
+            })
+            .blur(function () {
+                if (that.getDialogTextField().attr("disabled")) {
+                    return;
+                }
+                that._close(null);
+            })
+            .focus();
+    };
 
     /**
      * @private
