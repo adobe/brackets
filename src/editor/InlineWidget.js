@@ -46,9 +46,9 @@ define(function (require, exports, module) {
             .append("<div class='shadow bottom' />");
 
         // create the close button
-        var $closeBtn = this.$htmlContent.append("<a href='#' class='close' id='inline-close'>&times;</a>");
+        this.$closeBtn = this.$htmlContent.append("<a href='#' class='close' id='inline-close'>&times;</a>");
 
-        $closeBtn.on("mouseup", function (e) {
+        this.$closeBtn.click(function (e) {
             self.close();
             e.stopImmediatePropagation();
         });
