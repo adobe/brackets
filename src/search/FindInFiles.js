@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                         that._close(null);
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
-                        that.getDialogTextField().attr('disabled', 'disabled');
+                        that.getDialogTextField().attr("disabled", "disabled");
                         _doSearch(query);
                     }
                 }
@@ -239,10 +239,10 @@ define(function (require, exports, module) {
                 // Check the query expression on every input event. This way the user is alerted
                 // to any RegEx syntax errors immediately.
                 _getQueryRegExp($searchField.val());
-                that.getDialogTextField().removeClass('no-results');
+                that.getDialogTextField().removeClass("no-results");
             })
             .blur(function () {
-                if (that.getDialogTextField().attr('disabled')) {
+                if (that.getDialogTextField().attr("disabled")) {
                     return;
                 }
                 that._close(null);
