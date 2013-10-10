@@ -43,11 +43,11 @@ define(function (require, exports, module) {
         this.htmlContent = window.document.createElement("div");
         this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
         this.$htmlContent.append("<div class='shadow top' />")
-            .append("<div class='shadow bottom' />");
+            .append("<div class='shadow bottom' />")
+            .append("<a href='#' class='close' id='inline-close'>&times;</a>");
 
         // create the close button
-        this.$closeBtn = this.$htmlContent.append("<a href='#' class='close' id='inline-close'>&times;</a>");
-
+        this.$closeBtn = this.$htmlContent.find('#inline-close');
         this.$closeBtn.click(function (e) {
             self.close();
             e.stopImmediatePropagation();
