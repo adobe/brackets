@@ -603,7 +603,7 @@ a, img {
     position: relative;
     overflow: hidden;
 
-    background-color: @inline-background-color-1;
+    background-color: @tc-lighter-gray;
     min-width: 250px;
     cursor: default;
 
@@ -626,7 +626,7 @@ a, img {
         .filename {
             font-family: @sansFontFamily;
             font-size: 1.1em;
-            color: @inline-color-1;
+            color: @tc-light-weight-quiet-text;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -669,7 +669,7 @@ a, img {
         background-color: transparent;
 
         .CodeMirror-linenumbers {
-            background-color: @inline-background-color-1;
+            background-color: @tc-lighter-gray;
         }
     }
 
@@ -1008,7 +1008,7 @@ a, img {
     }
 
     li:nth-child(odd) {
-        background-color: #e6e9e9;
+        background-color: @tc-lighter-gray;
     }
 
     li.smart_autocomplete_highlight {
