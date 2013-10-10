@@ -44,10 +44,10 @@ define(function (require, exports, module) {
         this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
         this.$htmlContent.append("<div class='shadow top' />")
             .append("<div class='shadow bottom' />")
-            .append("<a href='#' class='close' id='inline-close'>&times;</a>");
+            .append("<a href='#' class='close'>&times;</a>");
 
         // create the close button
-        this.$closeBtn = this.$htmlContent.find('#inline-close');
+        this.$closeBtn = this.$htmlContent.find('.close');
         this.$closeBtn.click(function (e) {
             self.close();
             e.stopImmediatePropagation();
