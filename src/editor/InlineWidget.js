@@ -47,7 +47,7 @@ define(function (require, exports, module) {
             .append("<a href='#' class='close'>&times;</a>");
 
         // create the close button
-        this.$closeBtn = this.$htmlContent.find('.close');
+        this.$closeBtn = this.$htmlContent.find(".close");
         this.$closeBtn.click(function (e) {
             self.close();
             e.stopImmediatePropagation();
