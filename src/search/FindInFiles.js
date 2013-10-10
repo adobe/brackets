@@ -739,6 +739,9 @@ define(function (require, exports, module) {
      */
     function _doSearch(query) {
         if (!query) {
+            StatusBar.hideBusyIndicator();
+            dialog._close();
+            dialog = null;
             return;
         }
 
