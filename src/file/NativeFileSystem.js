@@ -243,6 +243,22 @@ define(function (require, exports, module) {
                 }
             });
         },
+        
+        /**
+         * Public static method to check if a file path is relative one
+         * @param {string} path A file path to check
+         * @return {boolean} True if the path is relative
+         */
+        isRelativePath: function (path) {
+            // If the path contains a colon on Windows it must be a full path (colons are
+            // not valid path characters on mac or in URIs)
+            if (brackets.platform === "win" && path.indexOf(":") !== -1) {
+                return false;
+            }
+            
+            // For everyone else, absolute paths start with a "/"
+            return path[0] !== "/";
+        },
 
         /**
          * Converts a brackets.fs.ERR_* error code to a NativeFileError.* error name
@@ -813,20 +829,9 @@ define(function (require, exports, module) {
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
         var directoryFullPath = path,
             filesystem = this.filesystem;
-        
-        function isRelativePath(path) {
-            // If the path contains a colons it must be a full path on Windows (colons are
-            // not valid path characters on mac or in URIs)
-            if (path.indexOf(":") !== -1) {
-                return false;
-            }
-            
-            // For everyone else, absolute paths start with a "/"
-            return path[0] !== "/";
-        }
 
         // resolve relative paths relative to the DirectoryEntry
-        if (isRelativePath(path)) {
+        if (NativeFileSystem.isRelativePath(path)) {
             directoryFullPath = this.fullPath + path;
         }
 
@@ -933,20 +938,9 @@ define(function (require, exports, module) {
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path,
             filesystem = this.filesystem;
-        
-        function isRelativePath(path) {
-            // If the path contains a colons it must be a full path on Windows (colons are
-            // not valid path characters on mac or in URIs)
-            if (path.indexOf(":") !== -1) {
-                return false;
-            }
-            
-            // For everyone else, absolute paths start with a "/"
-            return path[0] !== "/";
-        }
 
         // resolve relative paths relative to the DirectoryEntry
-        if (isRelativePath(path)) {
+        if (NativeFileSystem.isRelativePath(path)) {
             fileFullPath = this.fullPath + path;
         }
 

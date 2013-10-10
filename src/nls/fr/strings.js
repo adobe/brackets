@@ -341,7 +341,7 @@ define({
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
-	"INSTALL_SUCCEEDED": "Installation réussie.",
+	"INSTALL_SUCCEEDED": "Installation réussie !",
 	"INSTALL_FAILED": "Echec de l’installation.",
 	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",

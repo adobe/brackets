@@ -78,14 +78,16 @@ define(function (require, exports, module) {
         trackHt -= trackOffset * 2;
     }
 
-    /** Add one tickmark to the DOM */
-    function _renderMark(pos) {
-        var top = Math.round(pos.line / editor.lineCount() * trackHt) + trackOffset;
-        top--;  // subtract ~1/2 the ht of a tickmark to center it on ideal pos
-        
-        var $mark = $("<div class='tickmark' style='top:" + top + "px'></div>");
-        
-        $(".tickmark-track", editor.getRootElement()).append($mark);
+    /** Add all the given tickmarks to the DOM in a batch */
+    function _renderMarks(posArray) {
+        var html = "";
+        posArray.forEach(function (pos) {
+            var top = Math.round(pos.line / editor.lineCount() * trackHt) + trackOffset;
+            top--;  // subtract ~1/2 the ht of a tickmark to center it on ideal pos
+            
+            html += "<div class='tickmark' style='top:" + top + "px'></div>";
+        });
+        $(".tickmark-track", editor.getRootElement()).append($(html));
     }
     
     
@@ -128,9 +130,7 @@ define(function (require, exports, module) {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
-                    marks.forEach(function (pos) {
-                        _renderMark(pos);
-                    });
+                    _renderMarks(marks);
                 }
             }));
             
@@ -143,16 +143,20 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Add a tickmark to the editor's tickmark track, if it's visible */
-    function addTickmark(curEditor, pos) {
+    /**
+     * Add tickmarks to the editor's tickmark track, if it's visible
+     * @param curEditor {!Editor}
+     * @param posArray {!Array.<{line:Number, ch:Number}>}
+     */
+    function addTickmarks(curEditor, posArray) {
         console.assert(editor === curEditor);
         
-        marks.push(pos);
-        _renderMark(pos);
+        marks = marks.concat(posArray);
+        _renderMarks(posArray);
     }
     
     
     exports.clear = clear;
     exports.setVisible = setVisible;
-    exports.addTickmark = addTickmark;
+    exports.addTickmarks = addTickmarks;
 });

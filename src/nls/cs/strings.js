@@ -92,7 +92,8 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhled: Spouštění\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Zrušit živý náhled",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled: Klikněte pro odpojení (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Živý náhled (neaktualizováno kvůli chybě v syntaxi)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Živý náhled byl zrušen, protože byly otevřeny vývojářské nástroje prohlížeče",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhled byl zrušen, protože dokument byl zavřen v prohlížeči",
@@ -112,10 +113,19 @@ define({
     // Najít, Nahradit, Nahradit v souborech
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
+    "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "WITH"                              : "S",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
+    "BUTTON_REPLACE_ALL"                : "Vše\u2026",
     "BUTTON_STOP"                       : "Stop",
+    "BUTTON_REPLACE"                    : "Nahradit",
+
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Další shoda",
+    "BUTTON_PREV_HINT"                  : "Předcházející shoda",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -125,19 +135,22 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    "FIND_IN_FILES_TITLE"               : "pro \"{4}\" {5} - {0} {1} v {2} {3}",
+    "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+
+    "FIND_IN_FILES_TITLE_PART1"         : "\"",
+    "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
-    "FIND_IN_FILES_FILE"                : "soubor",
+    "FIND_IN_FILES_FILE"                : "souboru",
     "FIND_IN_FILES_FILES"               : "souborech",
     "FIND_IN_FILES_MATCH"               : "výsledek",
     "FIND_IN_FILES_MATCHES"             : "výsledků",
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Méně</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Více</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "řádek: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
@@ -168,10 +181,19 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Změnit šířku tabulátoru",
-    "STATUSBAR_SPACES"                      : "mezery",
-    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru",
+    "STATUSBAR_SPACES"                      : "Mezery:",
+    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
+
+    // CodeInspection: chyby/varování
+    "ERRORS_PANEL_TITLE"                    : "{0} chyb",
+    "SINGLE_ERROR"                          : "1 {0} chyba",
+    "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
+    "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
+    "LINT_DISABLED"                         : "Lint je vypnutý",
+    "NO_LINT_AVAILABLE"                     : "Lint není dostupný pro {0}",
+    "NOTHING_TO_LINT"                       : "Nic pro lintování",
 
     /**
      * Příkazy
@@ -242,6 +264,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory pro uložení",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
@@ -252,6 +275,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Přejít na první chybu/varování",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
@@ -272,11 +296,6 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
 
-
-    // Speciální příkazy spustěné pomocí shell
-    "CMD_CLOSE_WINDOW"                    : "Zavřít okno",
-    "CMD_ABORT_QUIT"                      : "Zrušit",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
@@ -309,7 +328,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL nemůže obsahovat výrazy pro hledání jako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při analýze URL",
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
@@ -427,6 +446,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
     "LOCALE_PT_PT"                              : "Portugalsky",
     "LOCALE_RU"                                 : "Rusky",
+    "LOCALE_SK"                                 : "Slovensky",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_FI"                                 : "Finsky",
@@ -444,18 +464,17 @@ define({
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
+    "NO_ARGUMENTS"                              : "<žádné parametry>",
 
     // extensions/default/JSLint
-    "CMD_JSLINT"                           : "Povolit JSLint",
-    "CMD_JSLINT_FIRST_ERROR"               : "Přejít na první JSLint chybu",
-    "JSLINT_ERRORS"                        : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
-    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
-    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
+    "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
+
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"

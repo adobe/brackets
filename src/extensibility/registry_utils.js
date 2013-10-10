@@ -105,14 +105,12 @@ define(function (require, exports, module) {
             ownerLink = exports.ownerLink.call(this),
             userId = exports.formatUserId.call(this);
         if (this.metadata && this.metadata.author) {
-            // author can be either a string or an object with a "name" field
-            result += htmlEscape(this.metadata.author.name || this.metadata.author);
+            result = htmlEscape(this.metadata.author.name || this.metadata.author);
+        } else if (userId) {
+            result = htmlEscape(userId);
         }
-        if (userId) {
-            if (result !== "") {
-                result += " / ";
-            }
-            result += "<a href='" + htmlEscape(ownerLink) + "' title='" + htmlEscape(ownerLink) + "'>" + htmlEscape(userId) + "</a>";
+        if (ownerLink) {
+            result = "<a href='" + htmlEscape(ownerLink) + "' title='" + htmlEscape(ownerLink) + "'>" + result + "</a>";
         }
         return result;
     };
