@@ -733,8 +733,7 @@ define(function (require, exports, module) {
                     var menu = Menus.addMenu("Custom", menuId);
 
                     var menuDivider = menu.addMenuDivider();
-                    expect(menuDivider).not.toBeNull();
-                    expect(menuDivider).toBeDefined();
+                    expect(menuDivider).toBeTruthy();
                     
                     var $listItems = menuDividerDOM(menuDivider.id);
                     expect($listItems.length).toBe(1);
