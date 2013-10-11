@@ -33,45 +33,13 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
     
     var _naturalWidth = 0;
     
-    /**
-     * TODO: Move to FileUtils
-     * Convert number of bytes into human readable format
-     *
-     * @param integer bytes     Number of bytes to convert
-     * @param integer precision Number of digits after the decimal separator
-     * @return string
-     */
-    function bytesToSize(bytes, precision) {
-        var kilobyte = 1024;
-        var megabyte = kilobyte * 1024;
-        var gigabyte = megabyte * 1024;
-        var terabyte = gigabyte * 1024;
-        
-        if ((bytes >= 0) && (bytes < kilobyte)) {
-            return bytes + ' B';
-    
-        } else if ((bytes >= kilobyte) && (bytes < megabyte)) {
-            return (bytes / kilobyte).toFixed(precision) + ' KB';
-    
-        } else if ((bytes >= megabyte) && (bytes < gigabyte)) {
-            return (bytes / megabyte).toFixed(precision) + ' MB';
-    
-        } else if ((bytes >= gigabyte) && (bytes < terabyte)) {
-            return (bytes / gigabyte).toFixed(precision) + ' GB';
-    
-        } else if (bytes >= terabyte) {
-            return (bytes / terabyte).toFixed(precision) + ' TB';
-    
-        } else {
-            return bytes + ' B';
-        }
-    }
-    
-    function _updateScale(currentWidth) {        
+
+    function _updateScale(currentWidth) {
         if (currentWidth < _naturalWidth) {
             var scale = Math.floor(currentWidth / _naturalWidth * 100);
             $("#img-scale").text(scale + "%")
@@ -134,9 +102,9 @@ define(function (require, exports, module) {
                     function (metadata) {
                         var sizeString = "";
                         if (metadata && metadata.size) {
-                            sizeString = " - " + bytesToSize(metadata.size, 2);
+                            sizeString = " &mdash; " + StringUtils.bytesToSize(metadata.size, 2);
                         }
-                        $("#img-data").text(dimensionString  + sizeString);
+                        $("#img-data").html(dimensionString  + sizeString);
                     },
                     function (error) {
                         $("#img-data").text(dimensionString);
