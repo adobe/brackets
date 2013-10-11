@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
         EditorManager           = require("editor/EditorManager"),
-        Editor                  = require("editor/Editor"),
+        Editor                  = require("editor/Editor").Editor,
         FileIndexManager        = require("project/FileIndexManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
