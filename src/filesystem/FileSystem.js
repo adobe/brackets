@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         // Create a file index
         this._index = new FileIndex();
         
-        this._watchedPaths = {};
+        this._watchedEntries = {};
     }
     
     /**
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     /**
      * The set of canonicalized paths currently being watched
      */
-    FileSystem.prototype._watchedPaths = null;
+    FileSystem.prototype._watchedEntries = null;
     
     /**
      * @param {function(?err)} callback
@@ -264,27 +264,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Recursively scan and index all entries in a directory
-     */
-    FileSystem.prototype._scanDirectory = function (directoryPath) {
-        var directory = this.getDirectoryForPath(directoryPath);
-        
-        directory.getContents(function (err, entries) {
-            if (!err) {
-                var i;
-                
-                for (i = 0; i < entries.length; i++) {
-                    if (entries[i].isDirectory()) {
-                        this._scanDirectory(entries[i].fullPath);
-                    }
-                }
-            }
-        }.bind(this));
-        this._impl.watchPath(directoryPath);
-    };
-    
-    /**
-     * @private
      * Callback for file/directory watchers. This is called by the low-level implementation
      * whenever a directory or file is changed. 
      *
@@ -296,9 +275,14 @@ define(function (require, exports, module) {
         if (!this._index) {
             return;
         }
-        
+
         var entry = this._index.getEntry(path);
         
+        var fireChangeEvent = function () {
+            // Trigger a change event
+            $(this).trigger("change", entry);
+        }.bind(this);
+
         if (entry) {
             if (entry.isFile()) {
                 // Update stat and clear contents, but only if out of date
@@ -306,165 +290,213 @@ define(function (require, exports, module) {
                     entry._stat = stat;
                     entry._contents = undefined;
                 }
+                
+                fireChangeEvent();
             } else {
-                var oldContents = entry._contents;  // TODO: Handle pending content promise
+                var oldContents = entry._contents || [];  // TODO: Handle pending content promise
                 
                 // Clear out old contents
                 entry._contents = undefined;
                 
+                var watchedEntryIndex = -1,
+                    hasWatchedParent = this._watchedEntries.some(function (watchedEntryInfo, index) {
+                        var parentPath = watchedEntryInfo.entry.fullPath;
+                        
+                        if (entry.fullPath.indexOf(parentPath) === 0) {
+                            watchedEntryIndex = index;
+                            return true;
+                        }
+                    }),
+                    watchedParentInfo = hasWatchedParent ? this._watchedEntries[watchedEntryIndex] : null;
+                
+                if (!watchedParentInfo) {
+                    console.warn("Received change notification for unwatched path: ", path);
+                    return;
+                }
+                
                 // Read new contents
                 entry.getContents(function (err, contents) {
-                    if (!err) {
-                        var i, len, item, path;
-                        
-                        var _isInPath = function (item) {
-                            return item.fullPath.indexOf(path) === 0;
-                        };
-                        
-                        // Check for deleted entries 
-                        len = oldContents ? oldContents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = oldContents[i];
-                            if (contents.indexOf(item) === -1) {
-                                if (item.isFile()) {
-                                    // File removed, just remove from index.
-                                    this._index.removeEntry(item);
-                                } else {
-                                    // Remove the directory and all entries under it
-                                    path = item.fullPath;
-                                    var j, itemsToDelete = this.getFileList(_isInPath);
-                                    
-                                    for (j = 0; j < itemsToDelete.length; j++) {
-                                        this._index.removeEntry(itemsToDelete[j]);
-                                    }
-                                    
-                                    this._index.removeEntry(item);
-                                    this._impl.unwatchPath(item.fullPath);
-                                    // TODO: Remove and unwatch other directories contained within this directory.
-                                    // getFileList() only returns files, and ignores directories.
-                                }
-                            }
-                        }
-                        
+                                        
+                    var addNewEntries = function (callback) {
                         // Check for added directories and scan to add to index
                         // Re-scan this directory to add any new contents
-                        len = contents ? contents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = contents[i];
-                            if (!oldContents || oldContents.indexOf(item) === -1) {
-                                if (item.isDirectory()) {
-                                    this._scanDirectory(item.fullPath);
-                                }
-                            }
+                        var entriesToAdd = contents.filter(function (entry) {
+                            return oldContents.indexOf(entry) === -1;
+                        });
+                        
+                        var addCounter = entriesToAdd.length;
+                        
+                        if (addCounter === 0) {
+                            callback();
+                        } else {
+                            entriesToAdd.forEach(function (entry) {
+                                this._watchEntry(entry, watchedParentInfo, function (err) {
+                                    if (--addCounter === 0) {
+                                        callback();
+                                    }
+                                });
+                            }, this);
                         }
+                    }.bind(this);
+                    
+                    var removeOldEntries = function (callback) {
+                        var entriesToRemove = oldContents.filter(function (entry) {
+                            return contents.indexOf(entry) === -1;
+                        });
+    
+                        var removeCounter = entriesToRemove.length;
+                        
+                        if (removeCounter === 0) {
+                            callback();
+                        } else {
+                            entriesToRemove.forEach(function (entry) {
+                                this._unwatchEntry(entry, watchedParentInfo, function (err) {
+                                    if (--removeCounter === 0) {
+                                        callback();
+                                    }
+                                });
+                            }, this);
+                        }
+                    }.bind(this);
+
+                    if (err) {
+                        console.warn("Unable to get contents of changed directory: ", path, err);
+                    } else {
+                        removeOldEntries(function () {
+                            addNewEntries(fireChangeEvent);
+                        });
                     }
+
                 }.bind(this));
             }
-            
-            // Trigger a change event
-            $(this).trigger("change", entry);
         }
         // console.log("File/directory change: " + path + ", stat: " + stat);
     };
     
-    /**
-     * Set the root directory for the project. This clears any existing file cache
-     * and starts indexing on a new worker.
-     *
-     * @param {string} rootPath The new project root.
-     */
-    FileSystem.prototype.setProjectRoot = function (rootPath) {
-        // Clear file index
-        this._index.clear();
+    function _traverse(entry, visit, failFast, callback) {
+        var continueTraversal = visit(entry);
         
-        // Initialize watchers
-        this._impl.unwatchAll();
-        this._impl.initWatchers(this._watcherCallback.bind(this));
-        
-        // Start indexing from the new root path
-        this._scanDirectory(rootPath);
-    };
-    
-    function traverse(initialDirectory, visit, initialCallback) {
-        function traverseHelper(directory, callback) {
-            directory.getContents(function (err, entries) {
-                if (err) {
-                    callback(err);
-                } else {
-                    var counter = entries.length;
-                    entries.forEach(function (entry, index) {
-                        visit(entry);
-                        if (entry.isFile()) {
-                            if (--counter === 0) {
-                                callback(null);
-                            }
-                        } else { // isDirectory
-                            traverseHelper(entry, function (err) {
-                                if (counter > 0) {
-                                    if (err) {
-                                        counter = 0;
-                                        callback(err);
-                                    } else {
-                                        if (--counter === 0) {
-                                            callback(null);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+        if (entry.isFile() || !continueTraversal) {
+            callback(null);
+            return;
         }
-        
-        visit(initialDirectory);
-        traverseHelper(initialDirectory, initialCallback);
+            
+        entry.getContents(function (err, entries) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            var counter = entries.length;
+            
+            entries.forEach(function (entry) {
+                _traverse(entry, visit, function (err) {
+                    if (err && failFast) {
+                        counter = 0;
+                        callback(err);
+                        return;
+                    }
+                    
+                    if (--counter <= 0) {
+                        callback(err);
+                    }
+                });
+            });
+
+        });
     }
     
-    FileSystem.prototype.watch = function (path, exclusionRE, handleChange, callback) {
-        var directory = this.getDirectoryForPath(path);
+    FileSystem.prototype._watchEntry = function (entry, watchedParentInfo, callback) {
+        _traverse(entry,
+            function (child) {
+                if (child.isDirectory() || child === watchedParentInfo.entry) {
+                    this._impl.watchPath(child.fullPath);
+                }
+                
+                return watchedParentInfo.filter(child);
+            }.bind(this),
+            true, // fail fast
+            callback);
+    };
+    
+    FileSystem.prototype._unwatchEntry = function (entry, watchedParentInfo, callback) {
+        _traverse(entry,
+            function (child) {
+                if (child.isDirectory() || child === watchedParentInfo.entry) {
+                    this._impl.unwatchPath(child.fullPath);
+                }
+                this._index.removeEntry(child);
+                
+                return watchedParentInfo.filter(child);
+            }.bind(this),
+            false); // do not fail fast   
+    };
+    
+    FileSystem.prototype.watch = function (entry, filter, handleChange, callback) {
+        var fullPath = entry.fullPath,
+            watchedEntry = {
+                entry: entry,
+                filter: filter,
+                handleChange: handleChange
+            };
         
-        if (this._watchedPaths[directory.fullPath]) {
-            callback("Cannot watch already watched path.");
-        } else {
-            traverse(directory,
-                function (entry) {
-                    if (entry.isDirectory()) {
-                        this._impl.watchPath(entry.fullPath);
-                    }
-                }.bind(this),
-                function (err) {
-                    if (err) {
-                        callback(err);
-                    } else {
-                        this._watchedPaths[directory.fullPath] = handleChange;
-                        callback(null);
-                    }
-                }.bind(this));
+        var watchingParent = Object.keys(this._watchedEntries).some(function (path) {
+            var watchedEntry = this._watchedEntries[path],
+                watchedPath = watchedEntry.entry.fullPath;
+            
+            return fullPath.indexOf(watchedPath) === 0;
+        }, this);
+        
+        if (watchingParent) {
+            callback("A parent of this entry is already watched");
+            return;
         }
+
+        var watchingChild = Object.keys(this._watchedEntries).some(function (path) {
+            var watchedEntry = this._watchedEntries[path],
+                watchedPath = watchedEntry.entry.fullPath;
+            
+            return watchedPath.indexOf(fullPath) === 0;
+        }, this);
+        
+        if (watchingChild) {
+            callback("A child of this entry is already watched");
+            return;
+        }
+        
+        this._watchEntry(entry, watchedEntry, function (err) {
+            if (err) {
+                // Try to clean up after failing to watch
+                this._unwatchEntry(watchedEntry, function () {
+                    callback(err);
+                });
+                return;
+            }
+        
+            this._watchedEntries[fullPath] = watchedEntry;
+            callback(null);
+        }.bind(this));
     };
 
-    FileSystem.prototype.unwatch = function (path, callback) {
-        var directory = this.getDirectoryForPath(path);
+    FileSystem.prototype.unwatch = function (entry, callback) {
+        var fullPath = entry.fullPath,
+            watchedEntry = this._watchedEntries[fullPath];
         
-        if (!this._watchedPaths[directory.fullPath]) {
-            callback("Cannot unwatch an unwatched path.");
-        } else {
-            traverse(directory,
-                function (entry) {
-                    if (entry.isDirectory()) {
-                        this._impl.unwatchPath(entry.fullPath);
-                    }
-                }.bind(this),
-                function (err) {
-                    if (err) {
-                        callback(err);
-                    } else {
-                        delete this._watchedPaths[directory.fullPath];
-                        callback(null);
-                    }
-                }.bind(this));
+        if (!watchedEntry) {
+            callback("Entry is not watched.");
+            return;
         }
+        
+        this._unwatchEntry(entry, watchedEntry, function (err) {
+            delete this._watchedEntries[fullPath];
+
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            callback(null);
+        }.bind(this));
     };
 
     
