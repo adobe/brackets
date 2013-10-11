@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
-        InMemoryFile        = require("filesystem/InMemoryFile"),
+        InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
@@ -683,7 +683,7 @@ define(function (require, exports, module) {
         var filename = Strings.UNTITLED + "-" + counter + fileExt,
             fullPath = _untitledDocumentPath + "/" + filename,
             now = new Date(),
-            file = ProjectManager.getFileSystem().getInMemoryFile(fullPath);
+            file = new InMemoryFile(fullPath, ProjectManager.getFileSystem());
         
         return new DocumentModule.Document(file, now, "");
     }

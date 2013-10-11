@@ -25,27 +25,33 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
+/**
+ * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE
+ * other than DocumentManager should create insteances of InMemoryFile. It is valid to test for one (`instanceof
+ * InMemoryFile`), but it's better to check `doc.isUntitled` where possible.
+ * 
+ * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath
+ * is just a placeholder, and should not be displayed anywhere in the UI.
+ * 
+ * An InMemoryFile is not added to the filesystem index, so if you ask the the filesystem anything about this
+ * object, it won't know what you're talking about (`filesystem.getFileForPath(someInMemFile.fullPath)` will not
+ * return someInMemFile).
+ */
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var File = require("filesystem/File");
     
     function InMemoryFile(fullPath, fileSystem) {
-        FileSystemEntry.call(this, fullPath, fileSystem);
+        File.call(this, fullPath, fileSystem);
     }
     
-    InMemoryFile.prototype = Object.create(FileSystemEntry.prototype);
+    InMemoryFile.prototype = Object.create(File.prototype);
     InMemoryFile.prototype.constructor = InMemoryFile;
-    InMemoryFile.prototype.parentClass = FileSystemEntry.prototype;
+    InMemoryFile.prototype.parentClass = File.prototype;
     
-    /**
-     * Override to return true.
-     *
-     * @return {boolean} True -- this is a file
-     */
-    InMemoryFile.prototype.isFile = function () {
-        return true;
-    };
+    
+    // Stub out invalid calls inherited from File
     
     /**
      * Reject any attempts to read the file.
@@ -67,7 +73,7 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     * @param {function (err, object)=} callback Callback that is passed the
+     * @param {!function (err, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
     InMemoryFile.prototype.write = function (data, encoding, callback) {
@@ -77,7 +83,9 @@ define(function (require, exports, module) {
         callback(1);    // TODO: Error code
     };
     
+    
     // Stub out invalid calls inherited from FileSystemEntry
+    
     InMemoryFile.prototype.exists = function (callback) {
         callback(false);
     };

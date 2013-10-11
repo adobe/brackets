@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
-        InMemoryFile        = require("filesystem/InMemoryFile"),
+        InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),

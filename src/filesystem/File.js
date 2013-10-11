@@ -82,7 +82,7 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     * @param {function (err, object)=} callback Callback that is passed the
+     * @param {!function (err, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
     File.prototype.write = function (data, encoding, callback) {
