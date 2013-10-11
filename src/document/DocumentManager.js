@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
-        InMemoryFile        = require("filesystem/InMemoryFile"),
+        InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
     var _documentNavPending = false;
     
     /**
-     * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
+     * All documents with refCount > 0. Maps Document.file.id -> Document.
      * @private
      * @type {Object.<string, Document>}
      */
@@ -216,10 +216,10 @@ define(function (require, exports, module) {
      */
     function getAllOpenDocuments() {
         var result = [];
-        var path;
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                result.push(_openDocuments[path]);
+        var id;
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                result.push(_openDocuments[id]);
             }
         }
         return result;
@@ -580,6 +580,29 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the existing open Document for the given file, or null if the file is not open ('open'
+     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
+     * it; see {@link getDocumentForPath()} for details.
+     * @param {!string} fullPath
+     * @return {?Document}
+     */
+    function getOpenDocumentForPath(fullPath) {
+        var id;
+        
+        // Need to walk all open documents and check for matching path. We can't
+        // use getFileForPath(fullPath).id since that won't match untitled 
+        // documents...
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                if (_openDocuments[id].file.fullPath === fullPath) {
+                    return _openDocuments[id];
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
      * get Documents; do not call the Document constructor directly. This method is safe to call
@@ -595,8 +618,9 @@ define(function (require, exports, module) {
      *      with a filesystem.Error if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var doc             = _openDocuments[fullPath],
-            pendingPromise  = getDocumentForPath._pendingDocumentPromises[fullPath];
+        var file            = ProjectManager.getFileSystem().getFileForPath(fullPath),
+            doc             = getOpenDocumentForPath(fullPath),
+            pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
 
         if (doc) {
             // use existing document
@@ -616,11 +640,10 @@ define(function (require, exports, module) {
             }
             
             // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+            getDocumentForPath._pendingDocumentPromises[file.id] = promise;
 
             // create a new document
-            var file = fileSystem.getFileForPath(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
@@ -631,7 +654,7 @@ define(function (require, exports, module) {
             FileUtils.readAsText(file)
                 .always(function () {
                     // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    delete getDocumentForPath._pendingDocumentPromises[file.id];
                 })
                 .done(function (rawText, readTimestamp) {
                     doc = new DocumentModule.Document(file, readTimestamp, rawText);
@@ -642,6 +665,7 @@ define(function (require, exports, module) {
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
+                    // TODO: FileSystem - release File object? 
                     result.reject(fileError);
                 });
             
@@ -661,17 +685,6 @@ define(function (require, exports, module) {
     getDocumentForPath._pendingDocumentPromises = {};
     
     /**
-     * Returns the existing open Document for the given file, or null if the file is not open ('open'
-     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
-     * it; see {@link getDocumentForPath()} for details.
-     * @param {!string} fullPath
-     * @return {?Document}
-     */
-    function getOpenDocumentForPath(fullPath) {
-        return _openDocuments[fullPath];
-    }
-    
-    /**
      * Creates an untitled document. The associated FileEntry has a fullPath
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
@@ -683,7 +696,7 @@ define(function (require, exports, module) {
         var filename = Strings.UNTITLED + "-" + counter + fileExt,
             fullPath = _untitledDocumentPath + "/" + filename,
             now = new Date(),
-            file = ProjectManager.getFileSystem().getInMemoryFile(fullPath);
+            file = new InMemoryFile(fullPath, ProjectManager.getFileSystem());
         
         return new DocumentModule.Document(file, now, "");
     }
@@ -812,31 +825,12 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        // Update open documents. This will update _currentDocument too, since 
-        // the current document is always open.
-        var keysToDelete = [];
-        CollectionUtils.forEach(_openDocuments, function (doc, path) {
-            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                // Copy value to new key
-                var newKey = path.replace(oldName, newName);
-                _openDocuments[newKey] = doc;
-                
-                keysToDelete.push(path);
-                
-                // Update document file
-                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
-                doc._notifyFilePathChanged();
-            }
-        });
-        
-        // Delete the old keys
-        keysToDelete.forEach(function (fullPath) {
-            delete _openDocuments[fullPath];
-        });
-        
-        // Update working set
-        _workingSet.forEach(function (fileEntry) {
-            FileUtils.updateFileEntryPath(fileEntry, oldName, newName, isFolder);
+        // Notify all open documents 
+        CollectionUtils.forEach(_openDocuments, function (doc, id) {
+            // TODO: Only notify affected documents? For now _notifyFilePathChange 
+            // just updates the language if the extension changed, so it's fine
+            // to call for all open docs.
+            doc._notifyFilePathChanged();
         });
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
@@ -890,22 +884,22 @@ define(function (require, exports, module) {
     // For compatibility
     $(DocumentModule)
         .on("_afterDocumentCreate", function (event, doc) {
-            if (_openDocuments[doc.file.fullPath]) {
+            if (_openDocuments[doc.file.id]) {
                 console.error("Document for this path already in _openDocuments!");
                 return true;
             }
 
-            _openDocuments[doc.file.fullPath] = doc;
+            _openDocuments[doc.file.id] = doc;
             $(exports).triggerHandler("afterDocumentCreate", doc);
         })
         .on("_beforeDocumentDelete", function (event, doc) {
-            if (!_openDocuments[doc.file.fullPath]) {
+            if (!_openDocuments[doc.file.id]) {
                 console.error("Document with references was not in _openDocuments!");
                 return true;
             }
 
             $(exports).triggerHandler("beforeDocumentDelete", doc);
-            delete _openDocuments[doc.file.fullPath];
+            delete _openDocuments[doc.file.id];
         })
         .on("_documentRefreshed", function (event, doc) {
             $(exports).triggerHandler("documentRefreshed", doc);

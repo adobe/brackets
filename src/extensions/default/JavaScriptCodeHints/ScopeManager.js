@@ -186,7 +186,7 @@ define(function (require, exports, module) {
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
         var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
             files = [];
-
+        
         fileSystem.resolve(dir, function (err, directory) {
             if (!err && directory.isDirectory()) {
                 directory.getContents(function (err, contents) {

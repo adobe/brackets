@@ -30,8 +30,7 @@ define(function (require, exports, module) {
     
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
-        FileIndex       = require("filesystem/FileIndex"),
-        InMemoryFile    = require("filesystem/InMemoryFile");
+        FileIndex       = require("filesystem/FileIndex");
     
     
     /**
@@ -115,6 +114,11 @@ define(function (require, exports, module) {
      * @return {!string}
      */
     function _normalizePath(path, isDirectory) {
+        var segments = path.split("/");
+        if (segments.indexOf(".") !== -1 || segments.indexOf("..") !== -1) {
+            console.error("Warning: non-normalized path " + path);
+        }
+        
         if (isDirectory) {
             // Make sure path DOES include trailing slash
             if (path[path.length - 1] !== "/") {
@@ -148,20 +152,6 @@ define(function (require, exports, module) {
         return file;
     };
      
-    /**
-     * Return an File object that does *not* exist on disk. Any attempts to write to this
-     * file will result in a Save As dialog. Any attempt to read will fail.
-     *
-     * @return {File} The File object.
-     */
-    FileSystem.prototype.getInMemoryFile = function (path) {
-        var file = new InMemoryFile(path, this);
-        
-        // TODO: Add to index?
-        
-        return file;
-    };
-    
     /**
      * Return a Directory object for the specified path.
      *
@@ -225,6 +215,21 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Notify the system when an entry name has changed.
+     *
+     * @param {string} oldName 
+     * @param {string} newName
+     * @param {boolean} isDirectory
+     */
+    FileSystem.prototype._entryRenamed = function (oldName, newName, isDirectory) {
+        // Update all affected entries in the index
+        this._index.entryRenamed(oldName, newName, isDirectory);
+        $(this).trigger("rename", [oldName, newName]);
+        console.log("rename: ", oldName, newName);
+    };
+    
+    /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
      *
      * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
@@ -281,6 +286,7 @@ define(function (require, exports, module) {
         var fireChangeEvent = function () {
             // Trigger a change event
             $(this).trigger("change", entry);
+            console.log("change: ", entry);
         }.bind(this);
 
         if (entry) {
