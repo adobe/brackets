@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
-        InMemoryFile        = require("filesystem/InMemoryFile"),
+        InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager");
     
