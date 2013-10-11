@@ -1181,12 +1181,52 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Adds a new rule to the end of the given document, and returns the range of the added rule
+     * and the position of the cursor on the indented blank line within it. Note that the range will
+     * not include all the inserted text (we insert extra newlines before and after the rule).
+     * @param {Document} doc The document to insert the rule into.
+     * @param {string} selector The selector to use for the given rule.
+     * @param {boolean} useTabChar Whether to indent with a tab.
+     * @param {number} indentUnit If useTabChar is false, how many spaces to indent with.
+     * @return {{range: {from: {line: number, ch: number}, to: {line: number, ch: number}}, pos: {line: number, ch: number}}}
+     *     The range of the inserted rule and the location where the cursor should be placed.
+     */
+    function addRuleToDocument(doc, selector, useTabChar, indentUnit) {
+        var newRule = "\n" + selector + " {\n",
+            blankLineOffset;
+        if (useTabChar) {
+            newRule += "\t";
+            blankLineOffset = 1;
+        } else {
+            var i;
+            for (i = 0; i < indentUnit; i++) {
+                newRule += " ";
+            }
+            blankLineOffset = indentUnit;
+        }
+        newRule += "\n}\n";
+        
+        var docLines = doc.getText().split("\n"),
+            lastDocLine = docLines.length - 1,
+            lastDocChar = docLines[docLines.length - 1].length;
+        doc.replaceRange(newRule, {line: lastDocLine, ch: lastDocChar});
+        return {
+            range: {
+                from: {line: lastDocLine + 1, ch: 0},
+                to: {line: lastDocLine + 3, ch: 1}
+            },
+            pos: {line: lastDocLine + 2, ch: blankLineOffset}
+        };
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
     exports.extractAllNamedFlows = extractAllNamedFlows;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
     exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
+    exports.addRuleToDocument = addRuleToDocument;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
