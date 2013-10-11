@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
         EditorManager           = require("editor/EditorManager"),
+        Editor                  = require("editor/Editor"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         Strings                 = require("strings");
@@ -80,10 +81,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Display list of stylesheets in project, then create new rule
+     * @private
+     * Display list of stylesheets in project, then create a new rule in the given stylesheet and
+     * add it to the given inline editor.
+     * @param {string} selectorName The selector to create a rule for.
+     * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
      */
-    function _handleNewRule() {
+    function _handleNewRule(selectorName, inlineEditor) {
         alert("New Rule button clicked");
+    }
+    
+    /**
+     * @private
+     * Add a new rule for the given selector to the given document, then add the rule to the
+     * given inline editor.
+     * @param {string} selectorName The selector to create a rule for.
+     * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
+     * @param {Document} styleDoc The document the rule should be inserted in.
+     */
+    function _addRule(selectorName, inlineEditor, styleDoc) {
+        var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
+        inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
+        inlineEditor.editors[0].setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
     }
 
     /**
@@ -129,7 +148,9 @@ define(function (require, exports, module) {
                     var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                     var $newRuleButton = $("<button class='btn btn-mini' style='margin-left:8px;'/>")
                         .text(Strings.BUTTON_NEW_RULE)
-                        .on("click", _handleNewRule);
+                        .on("click", function () {
+                            _handleNewRule(selectorName, cssInlineEditor);
+                        });
                     $header.append($newRuleButton);
                     
                     result.resolve(cssInlineEditor);
