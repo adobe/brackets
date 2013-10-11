@@ -1444,6 +1444,12 @@ define(function (require, exports, module) {
     function handleProjectOpen(projectRootPath) {
         initPreferences(projectRootPath);
     }
+    
+    
+    /** Used to avoid timing bugs in unit tests */
+    function _readyPromise() {
+        return deferredPreferences;
+    }
 
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
@@ -1456,5 +1462,6 @@ define(function (require, exports, module) {
     exports.requestParameterHint = requestParameterHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
+    exports._readyPromise = _readyPromise;
 
 });

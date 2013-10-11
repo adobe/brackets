@@ -51,7 +51,15 @@ define(function (require, exports, module) {
             set: function (val) { throw new Error("Cannot set fullPath"); }
         },
         "name": {
-            get: function () { return this._path.split("/").pop(); },
+            get: function () {
+                // TODO: cache this result in a member?
+                var parts = this._path.split("/");
+                if (this.isDirectory()) {
+                    return parts[parts.length - 2];
+                } else {
+                    return parts[parts.length - 1];
+                }
+            },
             set: function (val) { throw new Error("Cannot set name"); }
         },
         "id": {

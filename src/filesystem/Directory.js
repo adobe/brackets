@@ -80,7 +80,7 @@ define(function (require, exports, module) {
             var len = stats ? stats.length : 0;
             
             for (i = 0; i < len; i++) {
-                entryPath = this.fullPath + "/" + contents[i];
+                entryPath = this.fullPath + contents[i];
                 
                 // Note: not all entries necessarily have associated stats.
                 // For now, silently ignore such entries.

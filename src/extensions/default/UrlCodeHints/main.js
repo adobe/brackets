@@ -141,7 +141,7 @@ define(function (require, exports, module) {
 
                             // code hints show the same strings that are inserted into text,
                             // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr + (entry.isDirectory() ? "/" : "")));
+                            unfiltered.push(encodeURI(entryStr));
                         }
                     });
 
