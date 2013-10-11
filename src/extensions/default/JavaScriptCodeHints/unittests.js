@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waits, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -424,7 +424,8 @@ define(function (require, exports, module) {
             }
         }
 
-        function setupTest(path, primePump) {
+        var firstTest = true;
+        function setupTest(path, primePump) { // FIXME: primePump argument ignored even though used below
             DocumentManager.getDocumentForPath(path).done(function (doc) {
                 testDoc = doc;
             });
@@ -437,6 +438,11 @@ define(function (require, exports, module) {
             runs(function () {
                 testEditor = createMockEditor(testDoc);
                 preTestText = testDoc.getText();
+                
+                if (firstTest) {
+                    waits(1000);  // give time to load preferences file; code hints NPE otherwise
+                    firstTest = false;
+                }
             });
         }
 
@@ -740,11 +746,15 @@ define(function (require, exports, module) {
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 },
                     endplus = { line: 6, ch: 12 };
-
-                testDoc.replaceRange("A1.prop", start, start);
-                testEditor.setCursorPos(middle);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
+                
+                waits(1000);    // TODO filesystem: why does this test need a delay to pass most of the time?
+                
+                runs(function () {
+                    testDoc.replaceRange("A1.prop", start, start);
+                    testEditor.setCursorPos(middle);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
+                });
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
@@ -1407,9 +1417,7 @@ define(function (require, exports, module) {
             
         });
 
-        // TODO: FileSystem - there is something wrong with the tern paths,
-        // causing an infinite recursion in directory scanning. 
-        xdescribe("JavaScript Code Hinting without modules", function () {
+        describe("JavaScript Code Hinting without modules", function () {
             var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
             ScopeManager.handleProjectOpen(extensionPath + "/unittest-files/non-module-test-files/");
 
@@ -1433,9 +1441,7 @@ define(function (require, exports, module) {
             });
         });
 
-        // TODO: FileSystem - there is something wrong with the tern paths,
-        // causing an infinite recursion in directory scanning. 
-        xdescribe("JavaScript Code Hinting with modules", function () {
+        describe("JavaScript Code Hinting with modules", function () {
             var testPath = extensionPath + "/unittest-files/module-test-files/module_tests.js";
 
             beforeEach(function () {

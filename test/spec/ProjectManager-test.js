@@ -125,7 +125,6 @@ define(function (require, exports, module) {
                 );
             });
 
-            // TODO: FileSystem - figure out why this doesn't pass
             it("should fail when a file already exists", function () {
                 var didCreate = false, gotError = false;
 
@@ -370,7 +369,7 @@ define(function (require, exports, module) {
                     expect(stat.isDirectory()).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
-                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete");
+                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
                 });
 
                 // Create a sub folder
@@ -384,7 +383,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var newFolder;
                     
-                    newFolderName += "/toDelete1";
+                    newFolderName += "toDelete1/";
                     newFolder = fileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
@@ -537,7 +536,7 @@ define(function (require, exports, module) {
             it("should reselect previously selected file when made visible again", function () {
                 var promise,
                     initialFile  = testPath + "/file.js",
-                    folder       = testPath + "/directory",
+                    folder       = testPath + "/directory/",
                     fileInFolder = testPath + "/directory/file.js";
                 
                 runs(function () {
@@ -569,7 +568,7 @@ define(function (require, exports, module) {
             it("should deselect after opening file hidden in tree, but select when made visible again", function () {
                 var promise,
                     initialFile  = testPath + "/file.js",
-                    folder       = testPath + "/directory",
+                    folder       = testPath + "/directory/",
                     fileInFolder = testPath + "/directory/file.js";
                 
                 runs(function () {

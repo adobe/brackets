@@ -331,7 +331,7 @@ define(function (require, exports, module) {
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
-            return absPath.slice(_projectRoot.fullPath.length + 1);
+            return absPath.slice(_projectRoot.fullPath.length);
         }
         return absPath;
     }
@@ -375,8 +375,9 @@ define(function (require, exports, module) {
             if (entry.fullPath) {
                 fullPath = entry.fullPath;
 
-                // Truncate project path prefix and trailing slash
-                shortPath = fullPath.slice(projectPathLength + 1);
+                // Truncate project path prefix (inlcuding its last slash) AND remove trailing slash suffix
+                // So "/foo/bar/projroot/abc/xyz/" -> "abc/xyz"
+                shortPath = fullPath.slice(projectPathLength, -1);
 
                 // Determine depth of the node by counting path separators.
                 // Children at the root have depth of zero
@@ -997,7 +998,6 @@ define(function (require, exports, module) {
                 });
             });
         }
-
         return result.promise();
     }
     
@@ -1334,7 +1334,7 @@ define(function (require, exports, module) {
                     errorCleanup();
                 };
                 
-                var newItemPath = selectionEntry.fullPath + "/" + data.rslt.name;
+                var newItemPath = selectionEntry.fullPath + data.rslt.name;
                 
                 _fileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {

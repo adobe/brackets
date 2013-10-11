@@ -582,7 +582,7 @@ define(function (require, exports, module) {
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
             
             // wait for file system to finish loading
-            waitsForDone(result, "ProjectManager.openProject()");
+            waitsForDone(result, "ProjectManager.openProject()", 10000);
         });
     }
     
@@ -651,7 +651,7 @@ define(function (require, exports, module) {
                 return path;
             }
             
-            return fullPath + "/" + path;
+            return fullPath + path;
         }
         
         if (Array.isArray(paths)) {
@@ -843,56 +843,57 @@ define(function (require, exports, module) {
         
         // create the destination folder
         destDir.create(function (err) {
-            if (!err) {
-                source.getContents(function (err, contents) {
-                    if (!err) {
-                        // copy all children of this directory
-                        var copyChildrenPromise = Async.doInParallel(
-                            contents,
-                            function copyChild(child) {
-                                var childDestination = destination + "/" + child.name,
-                                    promise;
-                                
-                                if (child.isDirectory()) {
-                                    promise = copyDirectoryEntry(child, childDestination, options);
-                                } else {
-                                    promise = copyFileEntry(child, childDestination, options);
-                                    
-                                    if (parseOffsets) {
-                                        // save offset data for each file path
-                                        promise.done(function (destinationEntry, offsets, text) {
-                                            options.infos[childDestination] = {
-                                                offsets     : offsets,
-                                                fileEntry   : destinationEntry,
-                                                text        : text
-                                            };
-                                        });
-                                    }
-                                }
-                                
-                                return promise;
-                            }
-                        );
-                        
-                        copyChildrenPromise.then(deferred.resolve, deferred.reject);
-                    } else {
-                        deferred.reject(err);
-                    }
-                });
-            } else {
+            if (err && err !== Error.ALREADY_EXISTS) {
                 deferred.reject();
+                return;
             }
-
-            deferred.always(function () {
-                // remove destination path prefix
-                if (removePrefix && options.infos) {
-                    var shortKey;
-                    Object.keys(options.infos).forEach(function (key) {
-                        shortKey = key.substr(destination.length + 1);
-                        options.infos[shortKey] = options.infos[key];
-                    });
+            
+            source.getContents(function (err, contents) {
+                if (!err) {
+                    // copy all children of this directory
+                    var copyChildrenPromise = Async.doInParallel(
+                        contents,
+                        function copyChild(child) {
+                            var childDestination = destination + "/" + child.name,
+                                promise;
+                            
+                            if (child.isDirectory()) {
+                                promise = copyDirectoryEntry(child, childDestination, options);
+                            } else {
+                                promise = copyFileEntry(child, childDestination, options);
+                                
+                                if (parseOffsets) {
+                                    // save offset data for each file path
+                                    promise.done(function (destinationEntry, offsets, text) {
+                                        options.infos[childDestination] = {
+                                            offsets     : offsets,
+                                            fileEntry   : destinationEntry,
+                                            text        : text
+                                        };
+                                    });
+                                }
+                            }
+                            
+                            return promise;
+                        }
+                    );
+                    
+                    copyChildrenPromise.then(deferred.resolve, deferred.reject);
+                } else {
+                    deferred.reject(err);
                 }
             });
+        });
+        
+        deferred.always(function () {
+            // remove destination path prefix
+            if (removePrefix && options.infos) {
+                var shortKey;
+                Object.keys(options.infos).forEach(function (key) {
+                    shortKey = key.substr(destination.length + 1);
+                    options.infos[shortKey] = options.infos[key];
+                });
+            }
         });
         
         return deferred.promise();
