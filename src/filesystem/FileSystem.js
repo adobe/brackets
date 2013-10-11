@@ -108,6 +108,28 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns a canonical version of the path, with no duplicated /es and with
+     * directories guaranteed to end in a trailing /.
+     * @param {!string} path
+     * @param {boolean=} isDirectory
+     * @return {!string}
+     */
+    function _normalizePath(path, isDirectory) {
+        if (isDirectory) {
+            // Make sure path DOES include trailing slash
+            if (path[path.length - 1] !== "/") {
+                path += "/";
+            }
+        }
+        
+        // Remove duplicated "/"es
+        path = path.replace(/\/{2,}/, "/");
+        
+        // TODO: normalize out ".."s ?
+        return path;
+    }
+    
+    /**
      * Return a File object for the specified path.
      *
      * @param {string} path Path of file. 
@@ -115,6 +137,7 @@ define(function (require, exports, module) {
      * @return {File} The File object. This file may not yet exist on disk.
      */
     FileSystem.prototype.getFileForPath = function (path) {
+        path = _normalizePath(path, false);
         var file = this._index.getEntry(path);
         
         if (!file) {
@@ -147,11 +170,7 @@ define(function (require, exports, module) {
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
     FileSystem.prototype.getDirectoryForPath = function (path) {
-        // Make sure path doesn't include trailing slash
-        if (path[path.length - 1] === "/") {
-            path = path.substr(0, path.length - 1);
-        }
-        
+        path = _normalizePath(path, true);
         var directory = this._index.getEntry(path);
         
         if (!directory) {
@@ -169,6 +188,9 @@ define(function (require, exports, module) {
      * @param {function (err, object)} callback
      */
     FileSystem.prototype.resolve = function (path, callback) {
+        // No need to normalize path here: assume underlying stat() does it internally,
+        // and it will be normalized anyway when ingested by get*ForPath() afterward
+        
         this._impl.stat(path, function (err, stat) {
             var item;
             
@@ -352,14 +374,6 @@ define(function (require, exports, module) {
      * @param {string} rootPath The new project root.
      */
     FileSystem.prototype.setProjectRoot = function (rootPath) {
-        
-        // Remove trailing "/" from path
-        if (rootPath && rootPath.length > 1) {
-            if (rootPath[rootPath.length - 1] === "/") {
-                rootPath = rootPath.substr(0, rootPath.length - 1);
-            }
-        }
-        
         // Clear file index
         this._index.clear();
         
