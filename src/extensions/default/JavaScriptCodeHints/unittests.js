@@ -424,7 +424,6 @@ define(function (require, exports, module) {
             }
         }
 
-        var firstTest = true;
         function setupTest(path, primePump) { // FIXME: primePump argument ignored even though used below
             DocumentManager.getDocumentForPath(path).done(function (doc) {
                 testDoc = doc;
@@ -439,10 +438,7 @@ define(function (require, exports, module) {
                 testEditor = createMockEditor(testDoc);
                 preTestText = testDoc.getText();
                 
-                if (firstTest) {
-                    waits(1000);  // give time to load preferences file; code hints NPE otherwise
-                    firstTest = false;
-                }
+                waitsForDone(ScopeManager._readyPromise());
             });
         }
 
@@ -746,8 +742,6 @@ define(function (require, exports, module) {
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 },
                     endplus = { line: 6, ch: 12 };
-                
-                waits(1000);    // TODO filesystem: why does this test need a delay to pass most of the time?
                 
                 runs(function () {
                     testDoc.replaceRange("A1.prop", start, start);
