@@ -175,6 +175,19 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Close the file system and remove listeners.
+     */
+    function _closeFileSystem() {
+        if (_fileSystem) {
+            _fileSystem.close();
+            $(_fileSystem).off("change", _fileSystemChange);
+            $(_fileSystem).off("rename", _fileSystemRename);
+            _fileSystem = null;
+        }
+    }
+    
+    /**
+     * @private
      */
     function _hasFileSelectionFocus() {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
@@ -881,17 +894,11 @@ define(function (require, exports, module) {
                 // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
-    
+            
             // close all the old files
             DocumentManager.closeAll();
-            
-            // Close the old file system
-            if (_fileSystem) {
-                _fileSystem.close();
-                $(_fileSystem).off("change", _fileSystemChange);
-                $(_fileSystem).off("rename", _fileSystemRename);
-                _fileSystem = null;
-            }
+    
+            _closeFileSystem();
         }
         
         function ensureFileSystem() {
@@ -1667,7 +1674,8 @@ define(function (require, exports, module) {
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
-
+    $(exports).on("beforeAppClose", _closeFileSystem);
+    
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);

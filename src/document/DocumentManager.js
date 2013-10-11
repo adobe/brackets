@@ -596,7 +596,7 @@ define(function (require, exports, module) {
      */
     function getDocumentForPath(fullPath) {
         var file            = ProjectManager.getFileSystem().getFileForPath(fullPath),
-            doc             = _openDocuments[file.id],
+            doc             = getOpenDocumentForPath(fullPath),
             pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
 
         if (doc) {
@@ -669,8 +669,19 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getOpenDocumentForPath(fullPath) {
-        var file = ProjectManager.getFileSystem().getFileForPath(fullPath);
-        return _openDocuments[file.id];
+        var id;
+        
+        // Need to walk all open documents and check for matching path. We can't
+        // use getFileForPath(fullPath).id since that won't match untitled 
+        // documents...
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                if (_openDocuments[id].file.fullPath === fullPath) {
+                    return _openDocuments[id];
+                }
+            }
+        }
+        return null;
     }
     
     /**

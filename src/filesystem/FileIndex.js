@@ -99,18 +99,12 @@ define(function (require, exports, module) {
         // Find all entries affected by the rename and put into a separate map.
         for (path in this._index) {
             if (this._index.hasOwnProperty(path)) {
-                // Quick check to see if the first parts match
-                if (path.indexOf(oldName) === 0) {
-                    // Need a better match here, otherwise 
-                    // '/foo/bar' will match '/foo/barbell'
-                    var splitPath = path.split("/");
-                    
-                    // TODO: This code needs to be updated once we add a trailing "/"
-                    // to all directory names!
-                    if (splitPath[finalPart] === splitName[finalPart]) {
-                        // Now we've got a match! Add it to the rename map.
-                        renameMap[path] = newName + path.substr(oldName.length);
-                    }
+                // See if we have a match. For directories, see if the path
+                // starts with the old name. This is safe since paths always end
+                // with '/'. For files, see if there is an exact match between
+                // the path and the old name.
+                if (isDirectory ? path.indexOf(oldName) === 0 : path === oldName) {
+                    renameMap[path] = newName + path.substr(oldName.length);
                 }
             }
         }
