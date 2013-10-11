@@ -179,10 +179,18 @@ define(function (require, exports, module) {
      */
     function _closeFileSystem() {
         if (_fileSystem) {
-            _fileSystem.close();
+            // _fileSystem.close();
+            console.log("Unwatching project root: ", _projectRoot.fullPath);
+            _fileSystem.unwatch(_projectRoot, function (err) {
+                if (err) {
+                    console.log("Error unwatching project root: ", err);
+                } else {
+                    console.log("Finished unwatching project root.");
+                }
+            });
             $(_fileSystem).off("change", _fileSystemChange);
             $(_fileSystem).off("rename", _fileSystemRename);
-            _fileSystem = null;
+            // _fileSystem = null;
         }
     }
     
@@ -909,12 +917,31 @@ define(function (require, exports, module) {
                 FileSystemManager.createFileSystem(filesystem, function (err, fs) {
                     // TODO: check err?
                     _fileSystem = fs;
-                    _fileSystem.setProjectRoot(rootPath);
-                    $(_fileSystem).on("change", _fileSystemChange);
-                    $(_fileSystem).on("rename", _fileSystemRename);
+                    //_fileSystem.setProjectRoot(rootPath);
                     fsResult.resolve();
                 });
             }
+
+            fsResult.done(function () {
+                $(_fileSystem).on("change", _fileSystemChange);
+                $(_fileSystem).on("rename", _fileSystemRename);
+
+                console.log("Watching project root: ", rootPath);
+
+                _fileSystem.watch(_fileSystem.getDirectoryForPath(rootPath), function (entry) {
+                    return _fileSystem.shouldShow(entry.fullPath);
+                }, function (entry) {
+                    console.log("Entry changed!", entry);
+                }, function (err) {
+                    if (err) {
+                        console.log("Error watching project root: ", err);
+                    } else {
+                        console.log("Finished watching project root.");
+                    }
+                });
+
+            });
+
             return fsResult.promise();
         }
         

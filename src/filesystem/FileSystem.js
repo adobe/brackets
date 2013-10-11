@@ -396,14 +396,14 @@ define(function (require, exports, module) {
             var counter = entries.length;
             
             entries.forEach(function (entry) {
-                _traverse(entry, visit, function (err) {
+                _traverse(entry, visit, failFast, function (err) {
                     if (err && failFast) {
                         counter = 0;
                         callback(err);
                         return;
                     }
                     
-                    if (--counter <= 0) {
+                    if (--counter === 0) {
                         callback(err);
                     }
                 });
@@ -435,7 +435,8 @@ define(function (require, exports, module) {
                 
                 return watchedParentInfo.filter(child);
             }.bind(this),
-            false); // do not fail fast   
+            false, // do not fail fast
+            callback);
     };
     
     FileSystem.prototype.watch = function (entry, filter, handleChange, callback) {
@@ -472,8 +473,10 @@ define(function (require, exports, module) {
         
         this._watchEntry(entry, watchedEntry, function (err) {
             if (err) {
+                console.warn("Failed to watch entry: ", entry.fullPath);
                 // Try to clean up after failing to watch
-                this._unwatchEntry(watchedEntry, function () {
+                this._unwatchEntry(entry, watchedEntry, function () {
+                    console.log("Finished cleaning up after failed watch.");
                     callback(err);
                 });
                 return;
