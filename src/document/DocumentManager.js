@@ -580,6 +580,29 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the existing open Document for the given file, or null if the file is not open ('open'
+     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
+     * it; see {@link getDocumentForPath()} for details.
+     * @param {!string} fullPath
+     * @return {?Document}
+     */
+    function getOpenDocumentForPath(fullPath) {
+        var id;
+        
+        // Need to walk all open documents and check for matching path. We can't
+        // use getFileForPath(fullPath).id since that won't match untitled 
+        // documents...
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                if (_openDocuments[id].file.fullPath === fullPath) {
+                    return _openDocuments[id];
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
      * get Documents; do not call the Document constructor directly. This method is safe to call
@@ -660,29 +683,6 @@ define(function (require, exports, module) {
      * @type {Object.<string, $.Promise>}
      */
     getDocumentForPath._pendingDocumentPromises = {};
-    
-    /**
-     * Returns the existing open Document for the given file, or null if the file is not open ('open'
-     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
-     * it; see {@link getDocumentForPath()} for details.
-     * @param {!string} fullPath
-     * @return {?Document}
-     */
-    function getOpenDocumentForPath(fullPath) {
-        var id;
-        
-        // Need to walk all open documents and check for matching path. We can't
-        // use getFileForPath(fullPath).id since that won't match untitled 
-        // documents...
-        for (id in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(id)) {
-                if (_openDocuments[id].file.fullPath === fullPath) {
-                    return _openDocuments[id];
-                }
-            }
-        }
-        return null;
-    }
     
     /**
      * Creates an untitled document. The associated FileEntry has a fullPath
