@@ -233,10 +233,10 @@ define(function (require, exports, module) {
             
             it("should find the first instance of the h2 selector", function () {
                 var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "h2");
-                expect(selectors).not.toBe(null);
+                expect(selectors).toBeTruthy();
                 expect(selectors.length).toBeGreaterThan(0);
                 
-                expect(selectors[0]).not.toBe(null);
+                expect(selectors[0]).toBeTruthy();
                 expect(selectors[0].selectorStartLine).toBe(292);
                 expect(selectors[0].declListEndLine).toBe(301);
             });

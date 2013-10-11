@@ -132,7 +132,7 @@ define(function (require, exports, module) {
             it("should map identifiers to languages", function () {
                 var html = LanguageManager.getLanguage("html");
                 
-                expect(html).not.toBe(null);
+                expect(html).toBeTruthy();
                 expect(LanguageManager.getLanguage("DoesNotExist")).toBe(undefined);
             });
             

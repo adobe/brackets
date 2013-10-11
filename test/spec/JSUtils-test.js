@@ -411,10 +411,10 @@ define(function (require, exports, module) {
 
             it("should find the first instance of the pushStack function", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
-                expect(funcNames).not.toBe(null);
+                expect(funcNames).toBeTruthy();
                 expect(funcNames.length).toBeGreaterThan(0);
                 
-                expect(funcNames[0]).not.toBe(null);
+                expect(funcNames[0]).toBeTruthy();
                 expect(funcNames[0].lineStart).toBe(243);
                 expect(funcNames[0].lineEnd).toBe(267);
             });
