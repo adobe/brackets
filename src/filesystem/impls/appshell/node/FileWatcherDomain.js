@@ -36,7 +36,7 @@ var _domainManager,
  * @param {string} path File or directory to watch.
  */
 function watchPath(path) {
-    _watcherMap[path] = fs.watch(path, function (event, filename) {
+    _watcherMap[path] = fs.watch(path, {persistent: false}, function (event, filename) {
         // File/directory changes are emitted as "change" events on the fileWatcher domain.
         _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
     });
