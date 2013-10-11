@@ -150,6 +150,8 @@ define(function (require, exports, module) {
             console.warn("Overwriting existing inspection/linting provider for language " + languageId);
         }
         _providers[languageId] = provider;
+        
+        run();  // in case a file of this type is open currently
     }
 
     /**
