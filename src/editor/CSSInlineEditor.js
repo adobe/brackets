@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var CSSUtils                = require("language/CSSUtils"),
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor"),
+        FileIndexManager        = require("project/FileIndexManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         Strings                 = require("strings");
@@ -134,7 +135,9 @@ define(function (require, exports, module) {
             return null;
         }
 
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            cssFileInfos = [],
+            $newRuleButton;
 
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
@@ -144,12 +147,14 @@ define(function (require, exports, module) {
 
                     // TODO:
                     // - create css rule for styles
-                    // - disable when on stylesheets in project
+                    // - disable when no stylesheets in project
                     var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                    var $newRuleButton = $("<button class='btn btn-mini' style='margin-left:8px;'/>")
+                    $newRuleButton = $("<button class='btn btn-mini disabled' style='margin-left:8px;'/>")
                         .text(Strings.BUTTON_NEW_RULE)
                         .on("click", function () {
-                            _handleNewRule(selectorName, cssInlineEditor);
+                            if (!$newRuleButton.hasClass("disabled")) {
+                                _handleNewRule(selectorName, cssInlineEditor);
+                            }
                         });
                     $header.append($newRuleButton);
                     
@@ -158,6 +163,18 @@ define(function (require, exports, module) {
                     // No matching rules were found.
                     result.reject();
                 }
+
+                // Now that dialog has been built, collect list of stylesheets
+                FileIndexManager.getFileInfoList("css")
+                    .done(function (fileInfos) {
+                        cssFileInfos = fileInfos;
+                        
+                        // "New Rule" button is disabled by default and gets enabled
+                        // here if there are any stylesheets in project
+                        if (cssFileInfos.length > 0) {
+                            $newRuleButton.removeClass("disabled");
+                        }
+                    });
             })
             .fail(function () {
                 console.log("Error in findMatchingRules()");
