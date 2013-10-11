@@ -46,6 +46,8 @@ define(function (require, exports, module) {
         
         // Create a file index
         this._index = new FileIndex();
+        
+        this._watchedPaths = {};
     }
     
     /**
@@ -64,6 +66,11 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
+
+    /**
+     * The set of canonicalized paths currently being watched
+     */
+    FileSystem.prototype._watchedPaths = null;
     
     /**
      * @param {function(?err)} callback
@@ -363,6 +370,89 @@ define(function (require, exports, module) {
         // Start indexing from the new root path
         this._scanDirectory(rootPath);
     };
+    
+    function traverse(initialDirectory, visit, initialCallback) {
+        function traverseHelper(directory, callback) {
+            directory.getContents(function (err, entries) {
+                if (err) {
+                    callback(err);
+                } else {
+                    var counter = entries.length;
+                    entries.forEach(function (entry, index) {
+                        visit(entry);
+                        if (entry.isFile()) {
+                            if (--counter === 0) {
+                                callback(null);
+                            }
+                        } else { // isDirectory
+                            traverseHelper(entry, function (err) {
+                                if (counter > 0) {
+                                    if (err) {
+                                        counter = 0;
+                                        callback(err);
+                                    } else {
+                                        if (--counter === 0) {
+                                            callback(null);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        
+        visit(initialDirectory);
+        traverseHelper(initialDirectory, initialCallback);
+    }
+    
+    FileSystem.prototype.watch = function (path, exclusionRE, handleChange, callback) {
+        var directory = this.getDirectoryForPath(path);
+        
+        if (this._watchedPaths[directory.fullPath]) {
+            callback("Cannot watch already watched path.");
+        } else {
+            traverse(directory,
+                function (entry) {
+                    if (entry.isDirectory()) {
+                        this._impl.watchPath(entry.fullPath);
+                    }
+                }.bind(this),
+                function (err) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        this._watchedPaths[directory.fullPath] = handleChange;
+                        callback(null);
+                    }
+                }.bind(this));
+        }
+    };
+
+    FileSystem.prototype.unwatch = function (path, callback) {
+        var directory = this.getDirectoryForPath(path);
+        
+        if (!this._watchedPaths[directory.fullPath]) {
+            callback("Cannot unwatch an unwatched path.");
+        } else {
+            traverse(directory,
+                function (entry) {
+                    if (entry.isDirectory()) {
+                        this._impl.unwatchPath(entry.fullPath);
+                    }
+                }.bind(this),
+                function (err) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        delete this._watchedPaths[directory.fullPath];
+                        callback(null);
+                    }
+                }.bind(this));
+        }
+    };
+
     
     // Export the FileSystem class
     module.exports = FileSystem;
