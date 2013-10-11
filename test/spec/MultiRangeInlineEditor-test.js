@@ -233,6 +233,128 @@ define(function (require, exports, module) {
                 inlineEditor._selectNextRange();
                 expectResultItemToEqual(inlineEditor._getSelectedRange(), mockRanges[1]);
             });
+            
+            it("should add a new range after other ranges from the same doc, then select it", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+                    mockRanges = [
+                        {
+                            document: doc1,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: doc2,
+                            name: "#bar",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                inlineEditor.addAndSelectRange(".foo", doc1, 1, 1);
+                
+                var newRanges = inlineEditor._getRanges();
+                expect(newRanges.length).toBe(3);
+                expect(inlineEditor._getSelectedRange()).toBe(newRanges[1]);
+                expectResultItemToEqual(newRanges[0], mockRanges[0]);
+                expectResultItemToEqual(newRanges[1], {
+                    document: doc1,
+                    name: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                });
+                expectResultItemToEqual(newRanges[2], mockRanges[1]);
+                
+                expect(inlineEditor.editors[0].document).toBe(doc1);
+                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(1);
+                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
+            });
+
+            it("should add a new range at the end if there are no other ranges from the same doc", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+                    mockRanges = [
+                        {
+                            document: doc1,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: doc1,
+                            name: ".foo",
+                            lineStart: 1,
+                            lineEnd: 1
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                inlineEditor.addAndSelectRange("#bar", doc2, 0, 0);
+                
+                var newRanges = inlineEditor._getRanges();
+                expect(newRanges.length).toBe(3);
+                expect(inlineEditor._getSelectedRange()).toBe(newRanges[2]);
+                expectResultItemToEqual(newRanges[0], mockRanges[0]);
+                expectResultItemToEqual(newRanges[1], mockRanges[1]);
+                expectResultItemToEqual(newRanges[2], {
+                    document: doc2,
+                    name: "#bar",
+                    lineStart: 0,
+                    lineEnd: 0
+                });
+                
+                expect(inlineEditor.editors[0].document).toBe(doc2);
+                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(0);
+                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(0);
+            });
+            
+            it("should properly refresh the editor if the range is inserted at the currently selected index", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+                    mockRanges = [
+                        {
+                            document: doc1,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: doc2,
+                            name: "#bar",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                inlineEditor.setSelectedIndex(1);
+                inlineEditor.addAndSelectRange(".foo", doc1, 1, 1);
+                
+                var newRanges = inlineEditor._getRanges();
+                expect(newRanges.length).toBe(3);
+                expect(inlineEditor._getSelectedRange()).toBe(newRanges[1]);
+                expectResultItemToEqual(newRanges[0], mockRanges[0]);
+                expectResultItemToEqual(newRanges[1], {
+                    document: doc1,
+                    name: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                });
+                expectResultItemToEqual(newRanges[2], mockRanges[1]);
+                
+                expect(inlineEditor.editors[0].document).toBe(doc1);
+                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(1);
+                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
+            });
+
         });
         
         describe("integration", function () {

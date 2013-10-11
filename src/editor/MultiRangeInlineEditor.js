@@ -104,10 +104,38 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
     MultiRangeInlineEditor.prototype.$related = null;
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
+    MultiRangeInlineEditor.prototype.$rangeList = null;
     
     /** @type {Array.<SearchResultItem>} */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
+    
+    /**
+     * @private
+     * Add a new range to the range list UI.
+     * @param {SearchResultItem} range The range to add.
+     */
+    MultiRangeInlineEditor.prototype._createListItem = function (range) {
+        var self = this,
+            $rangeItem = $(window.document.createElement("li")).appendTo(this.$rangeList);
+        
+        _updateRangeLabel($rangeItem, range);
+        $rangeItem.mousedown(function () {
+            self.setSelectedIndex(self._ranges.indexOf(range));
+        });
+
+        range.$listItem = $rangeItem;
+        
+        // Update list item as TextRange changes
+        $(range.textRange).on("change", function () {
+            _updateRangeLabel($rangeItem, range);
+        });
+        
+        // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
+        $(range.textRange).on("lostSync", function () {
+            self._removeRange(range);
+        });
+    };
 
     /** 
      * @override
@@ -138,29 +166,12 @@ define(function (require, exports, module) {
         this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Range list
-        var $rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
+        this.$rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
         this._ranges.forEach(function (range) {
-            // Create list item UI
-            var $rangeItem = $(window.document.createElement("li")).appendTo($rangeList);
-            _updateRangeLabel($rangeItem, range);
-            $rangeItem.mousedown(function () {
-                self.setSelectedIndex(self._ranges.indexOf(range));
-            });
-
-            range.$listItem = $rangeItem;
-            
-            // Update list item as TextRange changes
-            $(range.textRange).on("change", function () {
-                _updateRangeLabel($rangeItem, range);
-            });
-            
-            // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
-            $(range.textRange).on("lostSync", function () {
-                self._removeRange(range);
-            });
+            self._createListItem(range);
         });
         
         // select the first range
@@ -206,12 +217,14 @@ define(function (require, exports, module) {
      * Specify the range that is shown in the editor.
      *
      * @param {!number} index The index of the range to select.
+     * @param {boolean} force Whether to re-select the item even if we think it's already selected
+     *     (used if the range list has changed).
      */
-    MultiRangeInlineEditor.prototype.setSelectedIndex = function (index) {
+    MultiRangeInlineEditor.prototype.setSelectedIndex = function (index, force) {
         var newIndex = Math.min(Math.max(0, index), this._ranges.length - 1),
             self = this;
         
-        if (newIndex === this._selectedRangeIndex) {
+        if (!force && newIndex === this._selectedRangeIndex) {
             return;
         }
 
@@ -308,6 +321,49 @@ define(function (require, exports, module) {
             this._selectedRangeIndex--;
             this._updateSelectedMarker();
         }
+    };
+    
+    /**
+     * Adds a new range to the inline editor and selects it. The range will be inserted
+     * immediately below the last range for the same document, or at the end of the list
+     * if there are no other ranges for that document.
+     * @param {string} name The label for the new range.
+     * @param {Document} doc The document the range is in.
+     * @param {number} lineStart The starting line of the range, 0-based, inclusive.
+     * @param {number} lineEnd The ending line of the range, 0-based, inclusive.
+     */
+    MultiRangeInlineEditor.prototype.addAndSelectRange = function (name, doc, lineStart, lineEnd) {
+        var newRange = new SearchResultItem({
+                name: name,
+                document: doc,
+                lineStart: lineStart,
+                lineEnd: lineEnd
+            }),
+            i;
+        
+        // Insert the new range after the last range from the same doc, or at the
+        // end of the list.
+        for (i = this._ranges.length - 1; i--; i >= 0) {
+            if (this._ranges[i].textRange.document === doc) {
+                break;
+            }
+        }
+        if (i === -1) {
+            i = this._ranges.length;
+        } else {
+            i++;
+        }
+        this._ranges.splice(i, 0, newRange);
+        
+        // Ensure that the rule list becomes visible if it wasn't already.
+        if (!this.$relatedContainer.parent().length) {
+            this.$htmlContent.append(this.$relatedContainer);
+        }
+        
+        // Add the new range to the UI and select it. This should load the associated range
+        // into the editor.
+        this._createListItem(newRange);
+        this.setSelectedIndex(i, true);
     };
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
