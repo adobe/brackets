@@ -275,10 +275,11 @@ define(function (require, exports, module) {
                             var recentProjects = getRecentProjects(),
                                 index = getIndex(recentProjects, path);
                             if (index !== -1) {
-                                ProjectManager.getFileSystem().resolve(path)
-                                    .fail(function () {
+                                ProjectManager.getFileSystem().resolve(path, function (err, item) {
+                                    if (err) {
                                         recentProjects.splice(index, 1);
-                                    });
+                                    }
+                                });
                             }
                         });
                     closeDropdown();

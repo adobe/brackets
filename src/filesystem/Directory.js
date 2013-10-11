@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         var i, entryPath, entry;
         
         if (this._contentsCallbacks) {
-            // There is already a pending call for this directorie's contents.
+            // There is already a pending call for this directory's contents.
             // Push the new callback onto the stack and return.
             this._contentsCallbacks.push(callback);
             return;

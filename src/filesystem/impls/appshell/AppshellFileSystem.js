@@ -258,31 +258,34 @@ define(function (require, exports, module) {
         }
     }
     
+    function _fileWatcherChange(evt, path, event, filename) {
+        var change;
+        
+        if (event === "change") {
+            // Only register change events if filename is passed
+            if (filename) {
+                change = path + "/" + filename;
+            }
+        } else if (event === "rename") {
+            change = path;
+        }
+        if (change && !_pendingChanges.hasOwnProperty(change)) {
+            if (!_changeTimeout) {
+                _changeTimeout = window.setTimeout(function () {
+                    _changeTimeout = null;
+                    _notifyChanges(_fileWatcherChange.callback);
+                }, FILE_WATCHER_BATCH_TIMEOUT);
+            }
+            
+            _pendingChanges[change] = true;
+        }
+    }
+    
     function initWatchers(callback) {
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
-                $(nodeConnection).on("fileWatcher.change", function (evt, path, event, filename) {
-                    var change;
-                    
-                    if (event === "change") {
-                        // Only register change events if filename is passed
-                        if (filename) {
-                            change = path + "/" + filename;
-                        }
-                    } else if (event === "rename") {
-                        change = path;
-                    }
-                    if (change && !_pendingChanges.hasOwnProperty(change)) {
-                        if (!_changeTimeout) {
-                            _changeTimeout = window.setTimeout(function () {
-                                _changeTimeout = null;
-                                _notifyChanges(callback);
-                            }, FILE_WATCHER_BATCH_TIMEOUT);
-                        }
-                        
-                        _pendingChanges[change] = true;
-                    }
-                });
+                _fileWatcherChange.callback = callback;
+                $(nodeConnection).on("fileWatcher.change", _fileWatcherChange);
             }
         });
     }

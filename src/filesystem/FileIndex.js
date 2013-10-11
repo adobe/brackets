@@ -83,6 +83,54 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Notify the index that an entry has been renamed. This updates
+     * all affected entries in the index.
+     *
+     * @param {string} oldName
+     * @param {string} newName
+     * @param {boolean} isDirectory
+     */
+    FileIndex.prototype.entryRenamed = function (oldName, newName, isDirectory) {
+        var path,
+            splitName = oldName.split("/"),
+            finalPart = splitName.length - 1,
+            renameMap = {};
+        
+        // Find all entries affected by the rename and put into a separate map.
+        for (path in this._index) {
+            if (this._index.hasOwnProperty(path)) {
+                // Quick check to see if the first parts match
+                if (path.indexOf(oldName) === 0) {
+                    // Need a better match here, otherwise 
+                    // '/foo/bar' will match '/foo/barbell'
+                    var splitPath = path.split("/");
+                    
+                    // TODO: This code needs to be updated once we add a trailing "/"
+                    // to all directory names!
+                    if (splitPath[finalPart] === splitName[finalPart]) {
+                        // Now we've got a match! Add it to the rename map.
+                        renameMap[path] = newName + path.substr(oldName.length);
+                    }
+                }
+            }
+        }
+        
+        // Do the rename. 
+        for (path in renameMap) {
+            if (renameMap.hasOwnProperty(path)) {
+                var item = this._index[path];
+                
+                // Sanity check to make sure the item and path still match
+                console.assert(item.fullPath === path);
+                
+                delete this._index[path];
+                this._index[renameMap[path]] = item;
+                item._path = renameMap[path];
+            }
+        }
+    };
+    
+    /**
      * Returns the cached entry for the specified path, or undefined
      * if the path has not been cached.
      * 

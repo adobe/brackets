@@ -30,6 +30,9 @@
 define(function (require, exports, module) {
     "use strict";
     
+    /* Counter to give every entry a unique id */
+    var nextId = 0;
+    
     /**
      * Constructor
      * @param {string} path The path for this entry
@@ -38,9 +41,10 @@ define(function (require, exports, module) {
         this._path = path;
         this._fileSystem = fileSystem;
         this._impl = fileSystem._impl;
+        this._id = nextId++;
     }
         
-    // Add "fullPath" and "name" getters
+    // Add "fullPath", "name", and "id" getters
     Object.defineProperties(FileSystemEntry.prototype, {
         "fullPath": {
             get: function () { return this._path; },
@@ -49,6 +53,10 @@ define(function (require, exports, module) {
         "name": {
             get: function () { return this._path.split("/").pop(); },
             set: function (val) { throw new Error("Cannot set name"); }
+        },
+        "id": {
+            get: function () { return this._id; },
+            set: function (val) { throw new Error("Cannot set id"); }
         }
     });
     
@@ -132,7 +140,13 @@ define(function (require, exports, module) {
      * @param {function (number)} callback  
      */
     FileSystemEntry.prototype.rename = function (newName, callback) {
-        this._impl.rename(this._path, newName, callback);
+        this._impl.rename(this._path, newName, function (err) {
+            if (!err) {
+                // Notify the file system of the name change
+                this._fileSystem._entryRenamed(this._path, newName, this.isDirectory());
+            }
+            callback(err);
+        }.bind(this));
     };
         
     /**

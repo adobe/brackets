@@ -36,7 +36,7 @@
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than 
  *                            a project being opened (e.g. from the Refresh command)
  *    - projectFilesChange -- sent if one of the project files has changed--
- *                            added, removed, renamed, etc.
+ *                            added, removed, renamed, etc. TODO: FileSystem - get rid of this event. It is only used by FileIndexManager
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -82,9 +82,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Forward declaration for the _fileSystemChange function to make JSLint happy.
+     * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
      */
-    var _fileSystemChange;
+    var _fileSystemChange,
+        _fileSystemRename;
     
     /**
      * @private
@@ -647,7 +648,6 @@ define(function (require, exports, module) {
      * @param {string} fileName
      * @return {boolean}
      */
-    // TODO: Move to FileSystem
     function isBinaryFile(fileName) {
         return fileName.match(_binaryExclusionListRegEx);
     }
@@ -764,7 +764,7 @@ define(function (require, exports, module) {
                     StringUtils.format(
                         Strings.READ_DIRECTORY_ENTRIES_ERROR,
                         StringUtils.breakableUrl(dirEntry.fullPath),
-                        err // TODO: FileSystem errors
+                        err
                     )
                 );
                 // Reject the render promise so we can move on.
@@ -888,6 +888,7 @@ define(function (require, exports, module) {
             if (_fileSystem) {
                 _fileSystem.close();
                 $(_fileSystem).off("change", _fileSystemChange);
+                $(_fileSystem).off("rename", _fileSystemRename);
                 _fileSystem = null;
             }
         }
@@ -902,6 +903,7 @@ define(function (require, exports, module) {
                     _fileSystem = fs;
                     _fileSystem.setProjectRoot(rootPath);
                     $(_fileSystem).on("change", _fileSystemChange);
+                    $(_fileSystem).on("rename", _fileSystemRename);
                     fsResult.resolve();
                 });
             }
@@ -1339,7 +1341,7 @@ define(function (require, exports, module) {
                 _fileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {
                         // Item already exists, fail with error
-                        errorCallback(2);   // TODO: FileSystem error code
+                        errorCallback(Error.ALREADY_EXISTS);
                     } else {
                         if (isFolder) {
                             var directory = _fileSystem.getDirectoryForPath(newItemPath);
@@ -1421,46 +1423,36 @@ define(function (require, exports, module) {
      *   the rename is finished.
      */
     function renameItem(oldName, newName, isFolder) {
+        var result = new $.Deferred();
+        
         if (oldName === newName) {
-            return $.Deferred().resolve().promise();
+            result.resolve();
+            return result.promise();
         }
         
-        // TODO: This should call FileEntry.moveTo(), but that isn't implemented
-        // yet. For now, call directly to the low-level fs.rename()
-        // TODO: FileSystem....
-        /*
-        return _fileSystem.resolve(oldName)
+        _fileSystem.resolve(oldName, function (err, item) {
+            if (!err) {
+                result.resolve(item);
+            } else {
+                result.reject(err);
+            }
+        });
+        
+        result.promise()
             .then(function (oldFSEntry) {
                 var result = new $.Deferred();
                 
-                // TODO: FileSystem - this is probably completely wrong...
                 oldFSEntry.rename(newName, function (err) {
                     if (!err) {
                         result.resolve(oldFSEntry);
                     } else {
-                        result.reject();
+                        result.reject(err);
                     }
                 });
                 
                 return result.promise();
             })
             .then(function (newFSEntry) {
-                // Update all nodes in the project tree.
-                // All other updating is done by DocumentManager.notifyPathNameChanged() below
-                var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
-                    i;
-                
-                for (i = 0; i < nodes.length; i++) {
-                    var node = $(nodes[i]);
-                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName, isFolder);
-                }
-                
-                // Notify that one of the project files has changed
-                $(exports).triggerHandler("projectFilesChange");
-                
-                // Tell the document manager about the name change. This will update
-                // all of the model information and send notification to all views
-                DocumentManager.notifyPathNameChanged(oldName, newName, isFolder);
                 
                 // Finally, re-open the selected document
                 if (DocumentManager.getCurrentDocument()) {
@@ -1479,14 +1471,14 @@ define(function (require, exports, module) {
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
                         StringUtils.breakableUrl(newName),
-                        // TODO: FileSystem error code
-                        err === brackets.fs.ERR_FILE_EXISTS ?
+                        err === Error.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
                                 FileUtils.getFileErrorString(err)
                     )
                 );
             });
-            */
+        
+        return result.promise();
     }
     
     /**
@@ -1522,6 +1514,7 @@ define(function (require, exports, module) {
                     
                     var oldName = selected.data("entry").fullPath;
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
+                    
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
                     var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
                     var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
@@ -1631,6 +1624,19 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments();
     };
 
+    /**
+     * @private
+     * Respond to a FileSystem rename event.
+     */
+    _fileSystemRename = function (event, oldName, newName) {
+        // Notify that one of the project files has changed
+        $(exports).triggerHandler("projectFilesChange");
+        
+        // Tell the document manager about the name change. This will update
+        // all of the model information and send notification to all views
+        DocumentManager.notifyPathNameChanged(oldName, newName);
+    };
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1673,7 +1679,7 @@ define(function (require, exports, module) {
     exports.setBaseUrl               = setBaseUrl;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
-    exports.isBinaryFile             = isBinaryFile;    // TODO: Move to FileSystem
+    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;

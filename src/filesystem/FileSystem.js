@@ -196,6 +196,21 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Notify the system when an entry name has changed.
+     *
+     * @param {string} oldName 
+     * @param {string} newName
+     * @param {boolean} isDirectory
+     */
+    FileSystem.prototype._entryRenamed = function (oldName, newName, isDirectory) {
+        // Update all affected entries in the index
+        this._index.entryRenamed(oldName, newName, isDirectory);
+        $(this).trigger("rename", [oldName, newName]);
+        console.log("rename: ", oldName, newName);
+    };
+    
+    /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
      *
      * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
@@ -277,6 +292,10 @@ define(function (require, exports, module) {
                     entry._stat = stat;
                     entry._contents = undefined;
                 }
+                
+                // Trigger a change event
+                $(this).trigger("change", entry);
+                console.log("change: ", entry);
             } else {
                 var oldContents = entry._contents;  // TODO: Handle pending content promise
                 
@@ -328,12 +347,13 @@ define(function (require, exports, module) {
                                 }
                             }
                         }
+                        
+                        // Trigger a change event
+                        $(this).trigger("change", entry);
+                        console.log("change: ", entry);
                     }
                 }.bind(this));
             }
-            
-            // Trigger a change event
-            $(this).trigger("change", entry);
         }
         // console.log("File/directory change: " + path + ", stat: " + stat);
     };
