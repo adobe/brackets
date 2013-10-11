@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         function expectHints(provider, implicitChar) {
             expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
             var hintsObj = provider.getHints();
-            expect(hintsObj).not.toBeNull();
+            expect(hintsObj).toBeTruthy();
             return hintsObj.hints; // return just the array of hints
         }
         

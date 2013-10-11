@@ -98,10 +98,10 @@ define(function (require, exports, module) {
                     coffee = LanguageManager.getLanguage("coffeescript");
                 
                 // check basic language support
-                expect(html).not.toBeNull();
-                expect(LanguageManager.getLanguage("css")).not.toBeNull();
-                expect(LanguageManager.getLanguage("javascript")).not.toBeNull();
-                expect(LanguageManager.getLanguage("json")).not.toBeNull();
+                expect(html).toBeTruthy();
+                expect(LanguageManager.getLanguage("css")).toBeTruthy();
+                expect(LanguageManager.getLanguage("javascript")).toBeTruthy();
+                expect(LanguageManager.getLanguage("json")).toBeTruthy();
                 
                 // check html mode
                 var def = {

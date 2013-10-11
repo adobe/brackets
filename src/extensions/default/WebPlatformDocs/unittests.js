@@ -77,7 +77,7 @@ define(function (require, exports, module) {
             runs(function () {
                 if (promise) {
                     if (expectInline) {
-                        expect(widget).not.toBeNull();
+                        expect(widget).toBeTruthy();
                         expect(widget.$htmlContent.find(".css-prop-summary h1").text()).toBe(expectedProperty);
                     } else {
                         expect(widget).toBeNull();
