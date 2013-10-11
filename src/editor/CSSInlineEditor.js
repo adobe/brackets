@@ -138,26 +138,21 @@ define(function (require, exports, module) {
 
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                if (rules && rules.length > 0) {
-                    var cssInlineEditor = new MultiRangeInlineEditor(rules);
-                    cssInlineEditor.load(hostEditor);
+                var cssInlineEditor = new MultiRangeInlineEditor(rules || []);
+                cssInlineEditor.load(hostEditor);
 
-                    // TODO:
-                    // - create css rule for styles
-                    // - disable when on stylesheets in project
-                    var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                    var $newRuleButton = $("<button class='btn btn-mini' style='margin-left:8px;'/>")
-                        .text(Strings.BUTTON_NEW_RULE)
-                        .on("click", function () {
-                            _handleNewRule(selectorName, cssInlineEditor);
-                        });
-                    $header.append($newRuleButton);
-                    
-                    result.resolve(cssInlineEditor);
-                } else {
-                    // No matching rules were found.
-                    result.reject();
-                }
+                // TODO:
+                // - create css rule for styles
+                // - disable when on stylesheets in project
+                var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
+                var $newRuleButton = $("<button class='btn btn-mini' style='margin-left:8px;'/>")
+                    .text(Strings.BUTTON_NEW_RULE)
+                    .on("click", function () {
+                        _handleNewRule(selectorName, cssInlineEditor);
+                    });
+                $header.append($newRuleButton);
+                
+                result.resolve(cssInlineEditor);
             })
             .fail(function () {
                 console.log("Error in findMatchingRules()");
