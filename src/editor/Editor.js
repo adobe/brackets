@@ -534,7 +534,7 @@ define(function (require, exports, module) {
                 return;
             }
         }
-        
+
         // Apply text changes to CodeMirror editor
         var cm = this._codeMirror;
         cm.operation(function () {
@@ -597,7 +597,7 @@ define(function (require, exports, module) {
         
         // The "editorChange" event is mostly for the use of the CodeHintManager.
         // It differs from the normal "change" event, that it's actually publicly usable,
-        // whereas the "change" event should be listend to on the document. Also the
+        // whereas the "change" event should be listened to on the document. Also the
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
         $(this).triggerHandler("editorChange", [this, changeList]);
@@ -606,7 +606,7 @@ define(function (require, exports, module) {
     /**
      * Responds to changes in the Document's text, syncing the changes into our CodeMirror instance.
      * There are several cases where we want to ignore a Document change:
-     *  - if we're the master editor, Document changes should be ignored becuase we already have the right
+     *  - if we're the master editor, Document changes should be ignored because we already have the right
      *    text (either the change originated with us, or it has already been set into us by Document)
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us

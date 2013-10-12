@@ -525,6 +525,7 @@ define(function (require, exports, module) {
      * key events. Then, the purposes of handleKeyEvent and handleChange could be
      * combined. Doing this well requires changing CodeMirror.
      *
+     * @param {Event} jqEvent
      * @param {Editor} editor
      * @param {KeyboardEvent} event
      */
@@ -563,6 +564,10 @@ define(function (require, exports, module) {
      * Start a new implicit hinting session, or update the existing hint list. 
      * Called by the editor after handleKeyEvent, which is responsible for setting
      * the lastChar.
+     *
+     * @param {Event} event
+     * @param {Editor} editor
+     * @param {{from: Pos, to: Pos, text: Array, origin: String}} changeList
      */
     function _handleChange(event, editor, changeList) {
         if (lastChar && editor === keyDownEditor) {
@@ -619,12 +624,16 @@ define(function (require, exports, module) {
     }
 
     function activeEditorChangeHandler(event, current, previous) {
-        $(current).on("editorChange", _handleChange);
-        $(current).on("keyEvent", _handleKeyEvent);
+        if (current) {
+            $(current).on("editorChange", _handleChange);
+            $(current).on("keyEvent", _handleKeyEvent);
+        }
         
-        //Removing all old Handlers
-        $(previous).off("editorChange", _handleChange);
-        $(previous).off("keyEvent", _handleKeyEvent);
+        if (previous) {
+            //Removing all old Handlers
+            $(previous).off("editorChange", _handleChange);
+            $(previous).off("keyEvent", _handleKeyEvent);
+        }
     }
     
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
