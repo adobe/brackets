@@ -23,19 +23,24 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, CodeMirror, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
+        DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
         FileIndexManager        = require("project/FileIndexManager"),
         HTMLUtils               = require("language/HTMLUtils"),
+        Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+        PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings");
+
+    var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
 
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
@@ -83,15 +88,17 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Display list of stylesheets in project, then create a new rule in the given stylesheet and
-     * add it to the given inline editor.
-     * @param {string} selectorName The selector to create a rule for.
-     * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
+     * Create the list of stylesheets in the dropdown menu.
+     * @return {string} The html content
      */
-    function _handleNewRule(selectorName, inlineEditor) {
-        alert("New Rule button clicked");
+    function _renderList(cssFileInfos) {
+        var templateVars   = {
+                styleSheetList : cssFileInfos
+            };
+
+        return Mustache.render(StylesheetsMenuTemplate, templateVars);
     }
-    
+
     /**
      * @private
      * Add a new rule for the given selector to the given document, then add the rule to the
@@ -117,6 +124,7 @@ define(function (require, exports, module) {
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
+
         // Only provide a CSS editor when cursor is in HTML content
         if (hostEditor.getLanguageForSelection().getId() !== "html") {
             return null;
@@ -136,25 +144,123 @@ define(function (require, exports, module) {
         }
 
         var result = new $.Deferred(),
+            cssInlineEditor,
             cssFileInfos = [],
-            $newRuleButton;
+            $newRuleButton,
+            $dropdown,
+            $dropdownItem;
+
+        /**
+         * @private
+         * Close the dropdown.
+         */
+        function _closeDropdown() {
+            // Since we passed "true" for autoRemove to addPopUp(), this will
+            // automatically remove the dropdown from the DOM. Also, PopUpManager
+            // will call _cleanupDropdown().
+            if ($dropdown) {
+                PopUpManager.removePopUp($dropdown);
+            }
+        }
+        
+        /**
+         * @private
+         * Remove the various event handlers that close the dropdown. This is called by the
+         * PopUpManager when the dropdown is closed.
+         */
+        function _cleanupDropdown() {
+            $("html").off("click", _closeDropdown);
+            $dropdown = null;
+    
+            EditorManager.focusEditor();
+        }
+
+        /**
+         * Adds the click and mouse enter/leave events to the dropdown
+         */
+        function _handleListEvents() {
+            $dropdown
+                .on("click", "a", function () {
+                    var $link = $(this),
+                        path  = $link.data("path");
+
+                    if (path) {
+                        DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
+                            _addRule(selectorName, cssInlineEditor, styleDoc);
+                        });
+                        _closeDropdown();
+                    }
+                })
+                .on("mouseenter", "a", function () {
+                    if ($dropdownItem) {
+                        $dropdownItem.removeClass("selected");
+                    }
+                    $dropdownItem = $(this).addClass("selected");
+                })
+                .on("mouseleave", "a", function () {
+                    var $link = $(this).removeClass("selected");
+                    
+                    if ($link.get(0) === $dropdownItem.get(0)) {
+                        $dropdownItem = null;
+                    }
+                });
+        }
+
+        /**
+         * @private
+         * Show or hide the stylesheets dropdown.
+         */
+        function _showDropdown() {
+            // If the dropdown is already visible, just return (so the root click handler on html
+            // will close it).
+            if ($dropdown) {
+                return;
+            }
+            
+            Menus.closeAll();
+            
+            $dropdown = $(_renderList(cssFileInfos));
+            
+            var toggleOffset = $newRuleButton.offset();
+            $dropdown
+                .css({
+                    left: toggleOffset.left,
+                    top: toggleOffset.top + $newRuleButton.outerHeight()
+                })
+                .appendTo($("body"));
+            
+            PopUpManager.addPopUp($dropdown, _cleanupDropdown, true);
+            
+            $("html").on("click", _closeDropdown);
+    
+            _handleListEvents();
+        }
+    
+        /**
+         * @private
+         * Display list of stylesheets in project, then create a new rule in the given stylesheet and
+         * add it to the given inline editor.
+         * @param {string} selectorName The selector to create a rule for.
+         * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
+         */
+        function _handleNewRule(selectorName, inlineEditor) {
+            _showDropdown();
+        }
 
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
-                    var cssInlineEditor = new MultiRangeInlineEditor(rules);
+                    cssInlineEditor = new MultiRangeInlineEditor(rules);
                     cssInlineEditor.load(hostEditor);
 
-                    // TODO:
-                    // - create css rule for styles
-                    // - disable when no stylesheets in project
                     var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                    $newRuleButton = $("<button class='btn btn-mini disabled' style='margin-left:8px;'/>")
+                    $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
                         .text(Strings.BUTTON_NEW_RULE)
-                        .on("click", function () {
+                        .on("click", function (e) {
                             if (!$newRuleButton.hasClass("disabled")) {
                                 _handleNewRule(selectorName, cssInlineEditor);
                             }
+                            e.stopPropagation();
                         });
                     $header.append($newRuleButton);
                     

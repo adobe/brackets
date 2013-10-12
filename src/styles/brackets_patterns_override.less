@@ -394,6 +394,50 @@ a:focus {
     margin: 0;
 }
 
+/* Stylesheet button & dropdown styles */
+
+.stylesheet-button {
+    margin-left: 8px;
+}
+
+.stylesheet-dropdown {
+    &.dropdown-menu:focus {
+        outline: none;
+    }
+    
+    &.dropdown-menu {
+        position: absolute;
+        display: block;
+        max-width: none;
+        z-index: 100;   // TODO: define in @var
+    }
+    
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    &.dropdown-menu li a {
+        padding: 5px 15px;
+    }
+    
+    &.dropdown-menu .stylesheet-link {
+        display: block;
+        padding: 5px 26px 5px 26px;
+    }
+    
+    .stylesheet-name {
+        color: #454545;
+    }
+    
+    &.dropdown-menu a.selected {
+         background: #E0F0FA;
+    }
+    &.dropdown-menu a:not(.selected):hover {
+         background: none;
+    }
+}
+
+
 /* Dialog-related styles */
 
 .modal-wrapper {
