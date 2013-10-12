@@ -92,6 +92,37 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Path Layer", function () {
+            var data = {
+                spaceUnits: 4,
+                useTabChar: false,
+                path: {
+                    "*.html": {
+                        spaceUnits: 2
+                    }
+                }
+            };
+            
+            it("should be able to find preferences", function () {
+                var layer = new PreferencesBase.PathLayer();
+                
+                expect(layer.getValue(data, "useTabChar")).toBeUndefined();
+                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
+                layer.setFilename("index.html");
+                expect(layer.getValue(data, "spaceUnits")).toBe(2);
+            });
+            
+            it("can create a list of known keys", function () {
+                var layer = new PreferencesBase.PathLayer();
+                expect(layer.getKeys(data, [])).toEqual([]);
+                
+                layer.setFilename("index.html");
+                expect(layer.getKeys(data, [])).toEqual(["spaceUnits"]);
+                
+                expect(layer.getKeys(data, ["path"])).toEqual(["spaceUnits"]);
+            });
+        });
+        
         describe("Scope", function () {
             var data = {
                 spaceUnits: 4,

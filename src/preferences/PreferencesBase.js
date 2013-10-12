@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils"),
         _                 = require("lodash"),
-        Async             = require("utils/Async");
+        Async             = require("utils/Async"),
+        splearch          = require("thirdparty/splearch");
     
     var PREFERENCE_CHANGE = "preferenceChange";
     
@@ -192,8 +193,61 @@ define(function (require, exports, module) {
             var language = this.language;
             currentKeyList = _.without(currentKeyList, "language");
             if (data.language && data.language[language]) {
-                var languageKeys = _.keys(data.language[language]);
+                var languageKeys = Object.keys(data.language[language]);
                 return _.union(currentKeyList, languageKeys);
+            }
+            return currentKeyList;
+        }
+    };
+    
+    function PathLayer() {
+    }
+    
+    PathLayer.prototype = {
+        setFilename: function (filename) {
+            $(this).trigger("beforeLayerChange");
+            this.filename = filename;
+            $(this).trigger("afterLayerChange");
+        },
+        
+        _findMatchingGlob: function (path) {
+            var globs = Object.keys(path),
+                filename = this.filename,
+                globCounter;
+            for (globCounter = 0; globCounter < globs.length; globCounter++) {
+                var glob = globs[globCounter],
+                    re = splearch(glob);
+                
+                if (re.test(filename)) {
+                    return glob;
+                }
+            }
+        },
+        
+        getValue: function (data, id) {
+            var path = data.path;
+            if (path) {
+                var glob = this._findMatchingGlob(path);
+                if (glob) {
+                    if (path[glob][id]) {
+                        return path[glob][id];
+                    } else {
+                        return undefined;
+                    }
+                }
+            }
+            return undefined;
+        },
+        
+        getKeys: function (data, currentKeyList) {
+            var path = data.path;
+            currentKeyList = _.without(currentKeyList, "path");
+            if (path) {
+                var glob = this._findMatchingGlob(data.path);
+                if (glob) {
+                    var pathKeys = Object.keys(data.path[glob]);
+                    return _.union(currentKeyList, pathKeys);
+                }
             }
             return currentKeyList;
         }
@@ -458,5 +512,6 @@ define(function (require, exports, module) {
     exports.Scope = Scope;
     exports.MemoryStorage = MemoryStorage;
     exports.LanguageLayer = LanguageLayer;
+    exports.PathLayer = PathLayer;
     exports.FileStorage = FileStorage;
 });
