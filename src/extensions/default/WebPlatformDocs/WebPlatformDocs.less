@@ -55,11 +55,12 @@
 
 /* Left-hand column */
 .css-prop-summary {
+    box-sizing: border-box;
     float: left;
-    width: 30%;
+    padding-left: 20px;
+    width: 35%;
     
     p {
-        margin-right: 18px;
         line-height: 18px;
     }
 }
@@ -69,8 +70,9 @@
 
 /* Right-hand column */
 .css-prop-values {
+    box-sizing: border-box; //for exact dimension        
     float: right;
-    width: 70%;
+    width: 60%;
     
     .scroller {
         max-height: 300px;
@@ -82,12 +84,10 @@
             outline: none;
         }
     }
-    
-    // Spacing between columns
-    box-sizing: border-box;
-    padding-left: 20px;
-    
+        
     dl {
+        margin-top: 0px;
+        
         dt {
             color: @emphasized-text-color;
             font-size: 13px;
@@ -113,9 +113,9 @@
 }
 
 .divider-holder {
-    // This nesting lets us effectively have 'left: (30% + 12px)'
+    // This nesting lets us effectively have 'left: (37% + 12px)'
     position: absolute;
-    left: 30%;
+    left: 37%;
     top: 0;
     height: 100%;
     .divider {

@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
      * Retreive the preferences data for the given clientID.
      * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
      * @param {string} defaults - Default preferences stored as JSON
-     * @return {PreferenceStorage} 
+     * @return {PreferenceStorage}
      */
     function getPreferenceStorage(clientID, defaults) {
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
@@ -172,29 +172,6 @@ define(function (require, exports, module) {
             _reset();
         }
     }
-    
-    /**
-     * This method handles the copy of all old prefs to the new prefs
-     * TODO: remove All calls to this function and the function itself
-     * 
-     * @param {!PreferenceStorage} newPrefs The new PreferenceStorage
-     * @param {!string} oldID The id of the old PreferenceStorage
-     */
-    function handleClientIdChange(newPrefs, oldID) {
-        if (prefStorage[oldID]) {
-            var oldPrefs = getPreferenceStorage(oldID);
-            
-            if (!newPrefs.getValue("newClientID")) {
-                var data = oldPrefs.getAllValues();
-                
-                if (!$.isEmptyObject(data)) {
-                    newPrefs.setAllValues(data, true);
-                }
-                newPrefs.setValue("newClientID", true);
-            }
-            delete prefStorage[oldID];
-        }
-    }
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
@@ -215,7 +192,6 @@ define(function (require, exports, module) {
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
-    exports.handleClientIdChange    = handleClientIdChange;
     exports.getClientID             = getClientID;
 
     // Unit test use only

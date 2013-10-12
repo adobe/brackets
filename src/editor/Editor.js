@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -81,8 +81,6 @@ define(function (require, exports, module) {
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor");
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
@@ -120,9 +118,9 @@ define(function (require, exports, module) {
     function _handleTabKey(instance) {
         // Tab key handling is done as follows:
         // 1. If the selection is before any text and the indentation is to the left of
-        //    the proper indentation then indent it to the proper place. Otherwise, 
+        //    the proper indentation then indent it to the proper place. Otherwise,
         //    add another tab. In either case, move the insertion point to the
-        //    beginning of the text. 
+        //    beginning of the text.
         // 2. If the selection is multi-line, indent all the lines.
         // 3. If the selection is after the first non-space character, and is an
         //    insertion point, insert a tab character or the appropriate number
@@ -170,7 +168,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
-     * @param {!CodeMirror} instance CodeMirror instance 
+     * @param {!CodeMirror} instance CodeMirror instance
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {function} functionName name of the CodeMirror function to call
      * @return {boolean} true if key was handled
@@ -200,7 +198,7 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                // If we are on the tab boundary, jump by the full amount, 
+                // If we are on the tab boundary, jump by the full amount,
                 // but not beyond the start of the line.
                 if (jump === 0) {
                     jump = indentUnit;
@@ -291,7 +289,7 @@ define(function (require, exports, module) {
     var _instances = [];
     
     
-    /** 
+    /**
      * @constructor
      *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
@@ -651,7 +649,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Install event handlers on the CodeMirror instance, translating them into 
+     * Install event handlers on the CodeMirror instance, translating them into
      * jQuery events on the Editor instance.
      */
     Editor.prototype._installEditorListeners = function () {
@@ -660,7 +658,7 @@ define(function (require, exports, module) {
         // onKeyEvent is an option in CodeMirror rather than an event--it's a
         // low-level hook for all keyboard events rather than a specific event. For
         // our purposes, though, it's convenient to treat it as an event internally,
-        // so we bridge it to jQuery events the same way we do ordinary CodeMirror 
+        // so we bridge it to jQuery events the same way we do ordinary CodeMirror
         // events.
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
@@ -813,7 +811,7 @@ define(function (require, exports, module) {
         var $scrollerElement = $(this.getScrollerElement());
         var editorHeight = $scrollerElement.height();
         
-        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top. 
+        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top.
         var statusBarHeight = $scrollerElement.outerHeight() - editorHeight;
         var menuBarHeight = $scrollerElement.offset().top;
         
