@@ -76,6 +76,9 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype.init = function (callback) {
         this._impl.init(callback);
+
+        // Initialize watchers
+        this._impl.initWatchers(this._watcherCallback.bind(this));
     };
 
     /**
@@ -304,16 +307,15 @@ define(function (require, exports, module) {
                 // Clear out old contents
                 entry._contents = undefined;
                 
-                var watchedEntryIndex = -1,
-                    hasWatchedParent = this._watchedEntries.some(function (watchedEntryInfo, index) {
-                        var parentPath = watchedEntryInfo.entry.fullPath;
-                        
+                var watchedParentPath = null,
+                    watchedPaths = Object.keys(this._watchedEntries),
+                    hasWatchedParent = watchedPaths.some(function (parentPath) {
                         if (entry.fullPath.indexOf(parentPath) === 0) {
-                            watchedEntryIndex = index;
+                            watchedParentPath = parentPath;
                             return true;
                         }
                     }),
-                    watchedParentInfo = hasWatchedParent ? this._watchedEntries[watchedEntryIndex] : null;
+                    watchedParentInfo = hasWatchedParent ? this._watchedEntries[watchedParentPath] : null;
                 
                 if (!watchedParentInfo) {
                     console.warn("Received change notification for unwatched path: ", path);
@@ -376,7 +378,6 @@ define(function (require, exports, module) {
                 }.bind(this));
             }
         }
-        // console.log("File/directory change: " + path + ", stat: " + stat);
     };
     
     function _traverse(entry, visit, failFast, callback) {
@@ -388,12 +389,13 @@ define(function (require, exports, module) {
         }
             
         entry.getContents(function (err, entries) {
-            if (err) {
+            var counter = entries ? entries.length : 0;
+
+            if (err || counter === 0) {
+                console.warn("Failed to traverse: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
-            
-            var counter = entries.length;
             
             entries.forEach(function (entry) {
                 _traverse(entry, visit, failFast, function (err) {
@@ -404,11 +406,10 @@ define(function (require, exports, module) {
                     }
                     
                     if (--counter === 0) {
-                        callback(err);
+                        callback(failFast ? err : null);
                     }
                 });
             });
-
         });
     }
     
@@ -421,7 +422,7 @@ define(function (require, exports, module) {
                 
                 return watchedParentInfo.filter(child);
             }.bind(this),
-            true, // fail fast
+            false, // do not fail fast
             callback);
     };
     
@@ -473,7 +474,7 @@ define(function (require, exports, module) {
         
         this._watchEntry(entry, watchedEntry, function (err) {
             if (err) {
-                console.warn("Failed to watch entry: ", entry.fullPath);
+                console.warn("Failed to watch entry: ", entry.fullPath, err);
                 // Try to clean up after failing to watch
                 this._unwatchEntry(entry, watchedEntry, function () {
                     console.log("Finished cleaning up after failed watch.");
@@ -500,6 +501,7 @@ define(function (require, exports, module) {
             delete this._watchedEntries[fullPath];
 
             if (err) {
+                console.warn("Failed to unwatch entry: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
