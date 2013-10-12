@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         appshell.fs.readdir(path, function (err, contents) {
             var i, count = contents.length;
             
-            if (err) {
+            if (err || !count) {
                 callback(_mapError(err));
                 return;
             }
