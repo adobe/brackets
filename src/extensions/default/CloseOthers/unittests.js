@@ -136,6 +136,10 @@ define(function (require, exports, module) {
                 promise = CommandManager.execute(cmdToRun);
                 waitsForDone(promise, cmdToRun);
             }
+            
+            runs(function () {
+                expect(DocumentManager.getCurrentDocument()).not.toBe(null);
+			});
         }
 
         it("Close others", function () {
