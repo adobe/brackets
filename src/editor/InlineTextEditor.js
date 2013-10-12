@@ -210,6 +210,7 @@ define(function (require, exports, module) {
         
         // header containing filename, dirty indicator, line number
         var $header = $("<div/>").addClass("inline-editor-header");
+        
         var $filenameInfo = $("<a/>").addClass("filename");
         
         // dirty indicator, with file path stored on it
