@@ -150,12 +150,16 @@ define(function (require, exports, module) {
         var self = this;
 
         // Create DOM to hold editors and related list
-        this.$editorsDiv = $(window.document.createElement("div")).addClass("inlineEditorHolder");
+        this.$editorsDiv = $("<div/>").addClass("inlineEditorHolder");
         
         // Create the message area
-        this.$messageDiv = $(window.document.createElement("div"))
+        this.$messageDiv = $("<div/>");
+        $("<div/>").addClass("inline-editor-header")
+            .appendTo(this.$messageDiv);
+        $("<div/>")
             .addClass("inline-editor-message")
-            .html(Strings.CSS_QUICK_EDIT_NO_MATCHES);
+            .html(Strings.CSS_QUICK_EDIT_NO_MATCHES)
+            .appendTo(this.$messageDiv);
         
         // Prevent touch scroll events from bubbling up to the parent editor.
         this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
@@ -163,16 +167,16 @@ define(function (require, exports, module) {
         });
 
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
+        this.$relatedContainer = $("<div/>").addClass("related-container");
         
         // List "selection" highlight
-        this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
+        this.$selectedMarker = $("<div/>").appendTo(this.$relatedContainer).addClass("selection");
 
         // Inner container
-        this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        this.$related = $("<div/>").appendTo(this.$relatedContainer).addClass("related");
         
         // Range list
-        this.$rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
+        this.$rangeList = $("<ul/>").appendTo(this.$related);
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
@@ -369,7 +373,7 @@ define(function (require, exports, module) {
         
         // Insert the new range after the last range from the same doc, or at the
         // end of the list.
-        for (i = this._ranges.length - 1; i--; i >= 0) {
+        for (i = this._ranges.length - 1; i >= 0; i--) {
             if (this._ranges[i].textRange.document === doc) {
                 break;
             }
@@ -386,8 +390,9 @@ define(function (require, exports, module) {
         this._createListItem(newRange);
         this.setSelectedIndex(i, true);
 
-        // Ensure that the rule list becomes visible if it wasn't already.
-        if (!this.$relatedContainer.parent().length) {
+        // Ensure that the rule list becomes visible if it wasn't already and we have
+        // more than one rule.
+        if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
             this.$editorsDiv.before(this.$relatedContainer);
         }
     };

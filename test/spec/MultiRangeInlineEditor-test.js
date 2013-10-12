@@ -83,6 +83,13 @@ define(function (require, exports, module) {
                 
                 expect(inlineEditor.editors.length).toBe(1);
                 expect(inlineEditor.editors[0].document).toBe(inlineDoc);
+
+                // Messages div should be visible, editors div should be hidden.
+                expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(0);
+                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(1);
+                
+                // Rule list should be hidden with only one rule.
+                expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
             });
     
             it("should contain a rule list widget displaying info for each rule", function () {
@@ -110,6 +117,13 @@ define(function (require, exports, module) {
                 var $ruleListItems = $(inlineEditor.htmlContent).find("li");
                 expect($($ruleListItems.get(0)).text()).toBe("div — " + inlineDocName + " : 1");
                 expect($($ruleListItems.get(1)).text()).toBe(".foo — " + inlineDocName + " : 2");
+
+                // Messages div should be visible, editors div should be hidden.
+                expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(0);
+                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(1);
+                
+                // Rule list should be visible.
+                expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(1);
             });
     
             it("should change selection to the next rule", function () {
@@ -355,13 +369,40 @@ define(function (require, exports, module) {
                 expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(1);
                 expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
             });
+            
+            it("should show the rule list if a range is added when only one range existed before", function () {
+                var doc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
+                    mockRanges = [
+                        {
+                            document: doc,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
+                
+                inlineEditor.addAndSelectRange(".foo", doc, 1, 1);
+                expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(1);
+            });
 
             it("should be empty if no ranges are specified", function () {
                 inlineEditor = new MultiRangeInlineEditor([]);
                 inlineEditor.load(hostEditor);
                 
+                // There are no ranges to select.
                 expect(inlineEditor._selectedRangeIndex).toBe(-1);
                 expect(inlineEditor.editors.length).toBe(0);
+                
+                // Messages div should be visible, editors div should be invisible.
+                expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(1);
+                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(0);
+                
+                // Rule list should be invisible.
+                expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
             });
         });
         
