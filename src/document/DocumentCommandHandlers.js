@@ -1002,7 +1002,7 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(list, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(list, clearCurrentDoc);
             }
         });
         
@@ -1018,11 +1018,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
+        return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly), true);
     }
     
     function handleFileCloseList(commandData) {
-        return _doCloseDocumentList((commandData && commandData.documentList), false);
+        return _doCloseDocumentList((commandData && commandData.documentList), false, false);
     }
     
     /**
