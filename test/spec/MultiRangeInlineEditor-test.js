@@ -39,7 +39,6 @@ define(function (require, exports, module) {
     describe("MultiRangeInlineEditor", function () {
         
         var inlineEditor,
-            $editorHolder,
             hostEditor,
             doc;
         
@@ -54,6 +53,8 @@ define(function (require, exports, module) {
             
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(doc);
+                doc = null;
+                inlineEditor = null;
                 hostEditor = null;
             });
     
@@ -355,6 +356,13 @@ define(function (require, exports, module) {
                 expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
             });
 
+            it("should be empty if no ranges are specified", function () {
+                inlineEditor = new MultiRangeInlineEditor([]);
+                inlineEditor.load(hostEditor);
+                
+                expect(inlineEditor._selectedRangeIndex).toBe(-1);
+                expect(inlineEditor.editors.length).toBe(0);
+            });
         });
         
         describe("integration", function () {
@@ -408,6 +416,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
+                    inlineEditor = null;
                     hostEditor = null;
                 });
             });
@@ -452,6 +461,24 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should be able to add an inline editor with no ranges", function () {
+                runs(function () {
+                    inlineEditor = new TWMultiRangeInlineEditor([]);
+                    inlineEditor.load(hostEditor);
+                    waitsForDone(hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor), "adding empty inline editor");
+                });
+                
+                runs(function () {
+                    // verify it was added
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    waitsForDone(inlineEditor.close(), "closing empty inline editor");
+                });
+                
+                runs(function () {
+                    // verify no editors
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+            });
         });
         
     });

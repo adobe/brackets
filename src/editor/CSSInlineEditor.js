@@ -249,26 +249,21 @@ define(function (require, exports, module) {
 
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                if (rules && rules.length > 0) {
-                    cssInlineEditor = new MultiRangeInlineEditor(rules);
-                    cssInlineEditor.load(hostEditor);
+                cssInlineEditor = new MultiRangeInlineEditor(rules || []);
+                cssInlineEditor.load(hostEditor);
 
-                    var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                    $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
-                        .text(Strings.BUTTON_NEW_RULE)
-                        .on("click", function (e) {
-                            if (!$newRuleButton.hasClass("disabled")) {
-                                _handleNewRule(selectorName, cssInlineEditor);
-                            }
-                            e.stopPropagation();
-                        });
-                    $header.append($newRuleButton);
-                    
-                    result.resolve(cssInlineEditor);
-                } else {
-                    // No matching rules were found.
-                    result.reject();
-                }
+                var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
+                $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
+                    .text(Strings.BUTTON_NEW_RULE)
+                    .on("click", function (e) {
+                        if (!$newRuleButton.hasClass("disabled")) {
+                            _handleNewRule(selectorName, cssInlineEditor);
+                        }
+                        e.stopPropagation();
+                    });
+                $header.append($newRuleButton);
+                
+                result.resolve(cssInlineEditor);
 
                 // Now that dialog has been built, collect list of stylesheets
                 FileIndexManager.getFileInfoList("css")

@@ -169,13 +169,17 @@ define(function (require, exports, module) {
             // re-added the widget to the DOM. This is filed as https://github.com/marijnh/CodeMirror/issues/1226.
             // For now, we can work around it by doing the refresh on a setTimeout().
             window.setTimeout(function () {
-                self.editors[0].refresh();
+                if (self.editors.length) {
+                    self.editors[0].refresh();
+                }
             }, 0);
         });
         
         _syncGutterWidths(this.hostEditor);
         
-        this.editors[0].focus();
+        if (this.editors.length) {
+            this.editors[0].focus();
+        }
     };
     
     /**
