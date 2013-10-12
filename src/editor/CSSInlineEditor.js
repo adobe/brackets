@@ -243,7 +243,7 @@ define(function (require, exports, module) {
          * @param {string} selectorName The selector to create a rule for.
          * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
          */
-        function _handleNewRule(selectorName, inlineEditor) {
+        function _handleNewRule() {
             _showDropdown();
         }
 
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
                     .text(Strings.BUTTON_NEW_RULE)
                     .on("click", function (e) {
                         if (!$newRuleButton.hasClass("disabled")) {
-                            _handleNewRule(selectorName, cssInlineEditor);
+                            _handleNewRule();
                         }
                         e.stopPropagation();
                     });
