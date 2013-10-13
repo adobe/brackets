@@ -121,6 +121,46 @@ define(function (require, exports, module) {
                 
                 expect(layer.getKeys(data, ["path"])).toEqual(["spaceUnits"]);
             });
+            
+            it("handles a variety of glob patterns", function () {
+                var data = {
+                    spaceUnits: 1,
+                    path: {
+                        "**.html": {
+                            spaceUnits: 2
+                        },
+                        "lib/*.js": {
+                            spaceUnits: 3
+                        },
+                        "lib/**.css": {
+                            spaceUnits: 4
+                        },
+                        "*.{md,txt}": {
+                            spaceUnits: 5
+                        }
+                    }
+                };
+                
+                var layer = new PreferencesBase.PathLayer();
+                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
+                
+                layer.setFilename("public/index.html");
+                expect(layer.getValue(data, "spaceUnits")).toBe(2);
+                
+                layer.setFilename("lib/script.js");
+                expect(layer.getValue(data, "spaceUnits")).toBe(3);
+                
+                layer.setFilename("lib/foo/script.js");
+                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
+                
+                layer.setFilename("lib/foo/styles.css");
+                expect(layer.getValue(data, "spaceUnits")).toBe(4);
+                
+                layer.setFilename("README.md");
+                expect(layer.getValue(data, "spaceUnits")).toBe(5);
+                layer.setFilename("LICENSE.txt");
+                expect(layer.getValue(data, "spaceUnits")).toBe(5);
+            });
         });
         
         describe("Scope", function () {

@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         CollectionUtils   = require("utils/CollectionUtils"),
         _                 = require("lodash"),
         Async             = require("utils/Async"),
-        splearch          = require("thirdparty/splearch");
+        globmatch         = require("thirdparty/globmatch");
     
     var PREFERENCE_CHANGE = "preferenceChange";
     
@@ -214,11 +214,15 @@ define(function (require, exports, module) {
             var globs = Object.keys(path),
                 filename = this.filename,
                 globCounter;
+            
+            if (!filename) {
+                return undefined;
+            }
+            
             for (globCounter = 0; globCounter < globs.length; globCounter++) {
-                var glob = globs[globCounter],
-                    re = splearch(glob);
+                var glob = globs[globCounter];
                 
-                if (re.test(filename)) {
+                if (globmatch(filename, glob)) {
                     return glob;
                 }
             }
