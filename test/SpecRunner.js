@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),
+        CodeHintManager         = require("editor/CodeHintManager"),
         Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
@@ -167,7 +168,7 @@ define(function (require, exports, module) {
     /**
      * Listener for UnitTestReporter "runnerEnd" event. Attached only if
      * "resultsPath" URL parameter exists. Does not overwrite existing file.
-     * 
+     *
      * @param {!$.Event} event
      * @param {!UnitTestReporter} reporter
      */
@@ -263,7 +264,7 @@ define(function (require, exports, module) {
     
     function init() {
         // Start up the node connection, which is held in the
-        // _nodeConnectionDeferred module variable. (Use 
+        // _nodeConnectionDeferred module variable. (Use
         // _nodeConnectionDeferred.done() to access it.
         
         // This is in SpecRunner rather than SpecRunnerUtils because the hope
