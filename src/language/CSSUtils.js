@@ -921,10 +921,11 @@ define(function (require, exports, module) {
     
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
-        var result          = new $.Deferred(),
-            cssFiles        = ProjectManager.getFileSystem().getFileList(function (entry) {
-                return PathUtils.filenameExtension(entry.fullPath) === ".css";
-            });
+        var result          = new $.Deferred();
+        
+        function _cssFilter(entry) {
+            return PathUtils.filenameExtension(entry.fullPath).toLowerCase() === ".css";
+        }
         
         // Load one CSS file and search its contents
         function _loadFileAndScan(fullPath, selector) {
@@ -946,11 +947,14 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
         
-        // Load index of all CSS files; then process each CSS file in turn (see above)
-        Async.doInParallel(cssFiles, function (fileInfo, number) {
-            return _loadFileAndScan(fileInfo.fullPath, selector);
-        })
-            .then(result.resolve, result.reject);
+        ProjectManager.getAllFiles(_cssFilter)
+            .done(function (cssFiles) {
+                // Load index of all CSS files; then process each CSS file in turn (see above)
+                Async.doInParallel(cssFiles, function (fileInfo, number) {
+                    return _loadFileAndScan(fileInfo.fullPath, selector);
+                })
+                    .then(result.resolve, result.reject);
+            });
         
         return result.promise();
     }

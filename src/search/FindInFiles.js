@@ -734,17 +734,16 @@ define(function (require, exports, module) {
         currentScope       = scope;
         maxHitsFoundInFile = false;
                             
-        dialog.showDialog(initialString, scope)
-            .done(function (query) {
-                if (query) {
-                    currentQuery     = query;
-                    currentQueryExpr = _getQueryRegExp(query);
-                    
-                    if (!currentQueryExpr) {
-                        return;
-                    }
-                    StatusBar.showBusyIndicator(true);
-                    var fileList = ProjectManager.getFileSystem().getFileList();
+        dialog.showDialog(initialString, scope).done(function (query) {
+            if (query) {
+                currentQuery     = query;
+                currentQueryExpr = _getQueryRegExp(query);
+                
+                if (!currentQueryExpr) {
+                    return;
+                }
+                StatusBar.showBusyIndicator(true);
+                ProjectManager.getAllFiles(true).done(function (fileList) {
                     var openDocs = DocumentManager.getAllOpenDocuments();
                     Async.doInParallel(fileList, function (file) {
                         var result = new $.Deferred();
@@ -799,8 +798,9 @@ define(function (require, exports, module) {
                             console.log("find in files failed.");
                             StatusBar.hideBusyIndicator();
                         });
-                }
-            });
+                });
+            }
+        });
     }
     
     /**

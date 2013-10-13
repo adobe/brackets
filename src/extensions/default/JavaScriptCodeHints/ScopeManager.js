@@ -868,29 +868,30 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = HintUtils.splitPath(name).file,
-                    fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-                    files = fileSystem.getFileList(function (file) {
-                        return file.name === fileName;
-                    });
+                var fileName = HintUtils.splitPath(name).file;
                 
-                var file;
-                files = files.filter(function (file) {
-                    var pos = file.fullPath.length - name.length;
-                    return pos === file.fullPath.lastIndexOf(name);
-                });
-                
-                if (files.length === 1) {
-                    file = files[0];
+                function _fileFilter(entry) {
+                    return entry.name === fileName;
                 }
-                if (file) {
-                    getDocText(file.fullPath).fail(function () {
+                
+                ProjectManager.getAllFiles(_fileFilter).done(function (files) {
+                    var file;
+                    files = files.filter(function (file) {
+                        var pos = file.fullPath.length - name.length;
+                        return pos === file.fullPath.lastIndexOf(name);
+                    });
+                    
+                    if (files.length === 1) {
+                        file = files[0];
+                    }
+                    if (file) {
+                        getDocText(file.fullPath).fail(function () {
+                            replyWith(name, "");
+                        });
+                    } else {
                         replyWith(name, "");
-                    });
-                } else {
-                    replyWith(name, "");
-                }
-                        
+                    }
+                });
             }
     
             getDocText(name).fail(function () {
