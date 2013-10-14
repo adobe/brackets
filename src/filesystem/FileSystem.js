@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
@@ -48,6 +48,9 @@ define(function (require, exports, module) {
         
         // Initialize the set of watched roots
         this._watchedRoots = {};
+
+        // Initialize the watch/unwatch request queue
+        this._watchRequests = [];
     }
     
     /**
@@ -66,6 +69,50 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
+
+    /**
+     * The queue of pending watch/unwatch requests.
+     * @type {Array.<{fn: function(), cb: function()}>}
+     */
+    FileSystem.prototype._watchRequests = null;
+
+    /**
+     * Dequeue and process all pending watch/unwatch requests
+     */
+    FileSystem.prototype._dequeueWatchRequest = function () {
+        if (this._watchRequests.length > 0) {
+            var request = this._watchRequests[0];
+            
+            request.fn.call(null, function () {
+                // Apply the given callback
+                var callbackArgs = arguments;
+                setTimeout(function () {
+                    request.cb.apply(null, callbackArgs);
+                }, 0);
+                
+                // Process the remaining watch/unwatch requests
+                this._watchRequests.shift();
+                this._dequeueWatchRequest();
+            }.bind(this));
+        }
+    };
+    
+    /**
+     * Enqueue a new watch/unwatch request.
+     *
+     * @param {function()} fn - The watch/unwatch request function.
+     * @param {callback()} cb - The callback for the provided watch/unwatch
+     *      request function.
+     */
+    FileSystem.prototype._enqueueWatchRequest = function (fn, cb) {
+        // Enqueue the given watch/unwatch request
+        this._watchRequests.push({fn: fn, cb: cb});
+
+        // Begin processing the queue if it is not already being processed
+        if (this._watchRequests.length === 1) {
+            this._dequeueWatchRequest();
+        }
+    };
 
     /**
      * The set of watched roots, encoded as a mapping from full paths to objects
@@ -87,13 +134,15 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
-        entry.visit(function (child) {
+        var watchFn = entry.visit.bind(entry, function (child) {
             if (child.isDirectory() || child === watchedRoot.entry) {
                 this._impl.watchPath(child.fullPath);
             }
             
             return watchedRoot.filter(child);
-        }.bind(this), callback);
+        }.bind(this));
+        
+        this._enqueueWatchRequest(watchFn, callback);
     };
 
     /**
@@ -106,14 +155,16 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        entry.visit(function (child) {
+        var watchFn = entry.visit.bind(entry, function (child) {
             if (child.isDirectory() || child === watchedRoot.entry) {
                 this._impl.unwatchPath(child.fullPath);
             }
             this._index.removeEntry(child);
             
             return watchedRoot.filter(child);
-        }.bind(this), callback);
+        }.bind(this));
+        
+        this._enqueueWatchRequest(watchFn, callback);
     };
     
     /**
@@ -451,6 +502,8 @@ define(function (require, exports, module) {
             return;
         }
         
+        this._watchedRoots[fullPath] = watchedRoot;
+        
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
@@ -461,8 +514,6 @@ define(function (require, exports, module) {
                 });
                 return;
             }
-        
-            this._watchedRoots[fullPath] = watchedRoot;
             callback(null);
         }.bind(this));
     };
@@ -484,10 +535,10 @@ define(function (require, exports, module) {
             callback("Root is not watched.");
             return;
         }
+
+        delete this._watchedRoots[fullPath];
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
-            delete this._watchedRoots[fullPath];
-
             if (err) {
                 console.warn("Failed to unwatch root: ", entry.fullPath, err);
                 callback(err);
