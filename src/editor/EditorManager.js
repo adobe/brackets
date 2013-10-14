@@ -659,6 +659,11 @@ define(function (require, exports, module) {
             if ($("#" + customViewId).size() > 0) {
                 $("#" + customViewId).remove();
             }
+        } else if (_currentCustomViewer) {
+            customViewId = _currentCustomViewer.attr("id");
+            if ($("#" + customViewId).size() > 0) {
+                $("#" + customViewId).remove();
+            }
         }
     }
     
