@@ -487,12 +487,13 @@ define(function (require, exports, module) {
          */
         function indexAndFind(invokeFind) {
             runs(function () {
-                var result = new $.Deferred(),
-                    files = ProjectManager.getFileSystem().getFileList();
+                var result = new $.Deferred();
                 
-                invokeFind(files)
-                    .done(function (functionsResult) { functions = functionsResult; })
-                    .then(result.resolve, result.reject);
+                ProjectManager.getAllFiles().done(function (files) {
+                    invokeFind(files)
+                        .done(function (functionsResult) { functions = functionsResult; })
+                        .then(result.resolve, result.reject);
+                });
                 
                 waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");
             });

@@ -1643,7 +1643,80 @@ define(function (require, exports, module) {
      * Returns the FileSystem instance used for this project
      */
     function getFileSystem() {
-        return _fileSystem;
+        return _fileSystem || brackets.appFileSystem;
+    }
+    
+    /**
+     * Returns an Array of all files for this project, optionally including
+     * files in the working set that are *not* under the project root.
+     *
+     * @param {function (File, number):boolean=} filter Optional filter function.
+     *          See Array.filter() for details.
+     * @param {boolean=} includeWorkingSet If true, include files in the working set
+     *          that are not under the project root.
+     *
+     * @return {$.Promise} Promise that is resolved with an Array of File objects.
+     */
+    function getAllFiles(filter, includeWorkingSet) {
+        var deferred = new $.Deferred(),
+            result = [];
+        
+        // The filter and includeWorking set params are both optional.
+        // Handle the case where filter is omitted but includeWorkingSet is
+        // specified.
+        if (typeof (filter) === "boolean") {
+            includeWorkingSet = filter;
+            filter = null;
+        }
+        
+        function _traverse(entry, callback) {
+            if (entry.isFile()) {
+                result.push(entry);
+                callback(null);
+                return;
+            }
+            
+            entry.getContents(function (err, entries) {
+                var counter = entries.length;
+
+                if (err || !counter) {
+                    callback(err);
+                    return;
+                }
+                
+                entries.forEach(function (entry) {
+                    _traverse(entry, function (err) {
+                        // Ignore errors and continue
+                        if (--counter === 0) {
+                            callback(null);
+                        }
+                    });
+                });
+            });
+        }
+        
+        _traverse(getProjectRoot(), function (err) {
+            // Add working set entries, if requested
+            if (includeWorkingSet) {
+                var workingSet = DocumentManager.getWorkingSet();
+                
+                workingSet.forEach(function (file) {
+                    if (result.indexOf(file) === -1) {
+                        result.push(file);
+                    }
+                });
+            }
+            
+            // Apply filter
+            if (filter) {
+                result = result.filter(filter);
+            }
+            
+            // Done!
+            deferred.resolve(result);
+        });
+        
+        return deferred.promise();
     }
     
     /**
@@ -1727,4 +1800,5 @@ define(function (require, exports, module) {
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;
     exports.getFileSystem            = getFileSystem;
+    exports.getAllFiles              = getAllFiles;
 });

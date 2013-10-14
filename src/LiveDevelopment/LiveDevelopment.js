@@ -670,10 +670,9 @@ define(function LiveDevelopment(require, exports, module) {
         var result = new $.Deferred();
 
         var baseUrl = ProjectManager.getBaseUrl(),
-            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length),
-            allFiles = ProjectManager.getFileSystem().getFileList();
+            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
-        if (allFiles) {
+        ProjectManager.getAllFiles().done(function (allFiles) {
             if (refPath) {
                 var projectRoot = ProjectManager.getProjectRoot().fullPath,
                     containingFolder = FileUtils.getDirectoryPath(refPath),
@@ -727,7 +726,7 @@ define(function LiveDevelopment(require, exports, module) {
             } else {
                 result.resolve(null);
             }
-        }
+        });
 
         return result.promise();
     }

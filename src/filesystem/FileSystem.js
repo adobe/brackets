@@ -199,25 +199,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Return all indexed files, with optional filtering
-     *
-     * @param {=function (entry):boolean} filterFunc Optional filter function. If supplied,
-     *         this function is called for all entries. Return true to keep this entry,
-     *         or false to omit it.
-     *
-     * @return {Array<File>} Array containing all indexed files.
-     */
-    FileSystem.prototype.getFileList = function (filterFunc) {
-        var result = this._index.getAllFiles();
-        
-        if (filterFunc) {
-            return result.filter(filterFunc);
-        }
-        
-        return result;
-    };
-    
-    /**
      * @private
      * Notify the system when an entry name has changed.
      *

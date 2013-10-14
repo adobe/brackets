@@ -33,25 +33,18 @@ define(function (require, exports, module) {
      */
     function FileIndex() {
         this._index = {};
-        this._allFiles = [];
     }
     
     /**
      * Master index
      */
     FileIndex.prototype._index = {};
-        
-    /**
-     * Array of all files in the index
-     */
-    FileIndex.prototype._allFiles = [];
     
     /**
      * Clear the file index cache.
      */
     FileIndex.prototype.clear = function () {
         this._index = {};
-        this._allFiles = [];
     };
     
     /**
@@ -61,10 +54,6 @@ define(function (require, exports, module) {
      */
     FileIndex.prototype.addEntry = function (entry) {
         this._index[entry.fullPath] = entry;
-        
-        if (entry.isFile()) {
-            this._allFiles.push(entry);
-        }
     };
     
     /**
@@ -76,10 +65,6 @@ define(function (require, exports, module) {
         var path = entry.fullPath;
         
         delete this._index[path];
-        
-        if (entry.isFile()) {
-            this._allFiles.splice(this._allFiles.indexOf(path), 1);
-        }
     };
     
     /**
@@ -134,15 +119,6 @@ define(function (require, exports, module) {
      */
     FileIndex.prototype.getEntry = function (path) {
         return this._index[path];
-    };
-    
-    /**
-     * Returns all files in the index.
-     *
-     * @return {Array.<File>} Array of files.
-     */
-    FileIndex.prototype.getAllFiles = function () {
-        return this._allFiles.slice(0);
     };
     
     // Export public API
