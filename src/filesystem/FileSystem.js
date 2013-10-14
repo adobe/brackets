@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         // Create a file index
         this._index = new FileIndex();
         
-        this._watchedEntries = {};
+        // Initialize the set of watched roots
+        this._watchedRoots = {};
     }
     
     /**
@@ -67,9 +68,10 @@ define(function (require, exports, module) {
     FileSystem.prototype._index = null;
 
     /**
-     * The set of canonicalized paths currently being watched
+     * The set of watched roots, encoded as a mapping from full paths to objects
+     * which contain a file entry, filter function, and change handler function.
      */
-    FileSystem.prototype._watchedEntries = null;
+    FileSystem.prototype._watchedRoots = null;
     
     /**
      * @param {function(?err)} callback
@@ -288,22 +290,22 @@ define(function (require, exports, module) {
                 // Clear out old contents
                 entry._contents = undefined;
                 
-                var watchedParentPath = null,
-                    watchedPaths = Object.keys(this._watchedEntries),
-                    hasWatchedParent = watchedPaths.some(function (parentPath) {
-                        if (entry.fullPath.indexOf(parentPath) === 0) {
-                            watchedParentPath = parentPath;
+                var watchedRootPath = null,
+                    allWatchedRootPaths = Object.keys(this._watchedRoots),
+                    isRootWatched = allWatchedRootPaths.some(function (rootPath) {
+                        if (entry.fullPath.indexOf(rootPath) === 0) {
+                            watchedRootPath = rootPath;
                             return true;
                         }
                     }),
-                    watchedParentInfo = hasWatchedParent ? this._watchedEntries[watchedParentPath] : null;
+                    watchedRoot = isRootWatched ? this._watchedRoots[watchedRootPath] : null;
                 
-                if (!watchedParentInfo) {
+                if (!watchedRoot) {
                     console.warn("Received change notification for unwatched path: ", path);
                     return;
                 }
                 
-                // Read new contents
+                // Update changed entries
                 entry.getContents(function (err, contents) {
                                         
                     var addNewEntries = function (callback) {
@@ -319,7 +321,7 @@ define(function (require, exports, module) {
                             callback();
                         } else {
                             entriesToAdd.forEach(function (entry) {
-                                this._watchEntry(entry, watchedParentInfo, function (err) {
+                                this._watchEntry(entry, watchedRoot, function (err) {
                                     if (--addCounter === 0) {
                                         callback();
                                     }
@@ -339,7 +341,7 @@ define(function (require, exports, module) {
                             callback();
                         } else {
                             entriesToRemove.forEach(function (entry) {
-                                this._unwatchEntry(entry, watchedParentInfo, function (err) {
+                                this._unwatchEntry(entry, watchedRoot, function (err) {
                                     if (--removeCounter === 0) {
                                         callback();
                                     }
@@ -361,128 +363,111 @@ define(function (require, exports, module) {
         }
     };
     
-    function _traverse(entry, visit, failFast, callback) {
-        var continueTraversal = visit(entry);
-        
-        if (entry.isFile() || !continueTraversal) {
-            callback(null);
-            return;
-        }
-            
-        entry.getContents(function (err, entries) {
-            var counter = entries ? entries.length : 0;
-
-            if (err || counter === 0) {
-                console.warn("Failed to traverse: ", entry.fullPath, err);
-                callback(err);
-                return;
+    FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.watchPath(child.fullPath);
             }
             
-            entries.forEach(function (entry) {
-                _traverse(entry, visit, failFast, function (err) {
-                    if (err && failFast) {
-                        counter = 0;
-                        callback(err);
-                        return;
-                    }
-                    
-                    if (--counter === 0) {
-                        callback(failFast ? err : null);
-                    }
-                });
-            });
-        });
-    }
-    
-    FileSystem.prototype._watchEntry = function (entry, watchedParentInfo, callback) {
-        _traverse(entry,
-            function (child) {
-                if (child.isDirectory() || child === watchedParentInfo.entry) {
-                    this._impl.watchPath(child.fullPath);
-                }
-                
-                return watchedParentInfo.filter(child);
-            }.bind(this),
-            false, // do not fail fast
-            callback);
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
     };
     
-    FileSystem.prototype._unwatchEntry = function (entry, watchedParentInfo, callback) {
-        _traverse(entry,
-            function (child) {
-                if (child.isDirectory() || child === watchedParentInfo.entry) {
-                    this._impl.unwatchPath(child.fullPath);
-                }
-                this._index.removeEntry(child);
-                
-                return watchedParentInfo.filter(child);
-            }.bind(this),
-            false, // do not fail fast
-            callback);
+    FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.unwatchPath(child.fullPath);
+            }
+            this._index.removeEntry(child);
+            
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
     };
     
+    /**
+     * Start watching a filesystem root entry.
+     * 
+     * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
+     *      all subdirectories that aren't explicitly filtered will also be watched.
+     * @param {function(FileSystemEntry): boolean} filter - A function to determine whether
+     *      a particular FileSystemEntry should be watched or ignored. 
+     * @param {function(FileSystemEntry)} handleChange - A function that is called whenever
+     *      a particular FileSystemEntry is changed.
+     * @param {function(?string)} callback - A function that is called when the watch has
+     *      completed. If the watch fails, the function will have a non-null parameter
+     *      that describes the error.
+     */
     FileSystem.prototype.watch = function (entry, filter, handleChange, callback) {
         var fullPath = entry.fullPath,
-            watchedEntry = {
+            watchedRoot = {
                 entry: entry,
                 filter: filter,
                 handleChange: handleChange
             };
         
-        var watchingParent = Object.keys(this._watchedEntries).some(function (path) {
-            var watchedEntry = this._watchedEntries[path],
-                watchedPath = watchedEntry.entry.fullPath;
+        var watchingParentRoot = Object.keys(this._watchedRoots).some(function (path) {
+            var watchedRoot = this._watchedRoots[path],
+                watchedPath = watchedRoot.entry.fullPath;
             
             return fullPath.indexOf(watchedPath) === 0;
         }, this);
         
-        if (watchingParent) {
-            callback("A parent of this entry is already watched");
+        if (watchingParentRoot) {
+            callback("A parent of this root is already watched");
             return;
         }
 
-        var watchingChild = Object.keys(this._watchedEntries).some(function (path) {
-            var watchedEntry = this._watchedEntries[path],
-                watchedPath = watchedEntry.entry.fullPath;
+        var watchingChildRoot = Object.keys(this._watchedRoots).some(function (path) {
+            var watchedRoot = this._watchedRoots[path],
+                watchedPath = watchedRoot.entry.fullPath;
             
             return watchedPath.indexOf(fullPath) === 0;
         }, this);
         
-        if (watchingChild) {
-            callback("A child of this entry is already watched");
+        if (watchingChildRoot) {
+            callback("A child of this root is already watched");
             return;
         }
         
-        this._watchEntry(entry, watchedEntry, function (err) {
+        this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
-                console.warn("Failed to watch entry: ", entry.fullPath, err);
+                console.warn("Failed to watch root: ", entry.fullPath, err);
                 // Try to clean up after failing to watch
-                this._unwatchEntry(entry, watchedEntry, function () {
+                this._unwatchEntry(entry, watchedRoot, function () {
                     console.log("Finished cleaning up after failed watch.");
                     callback(err);
                 });
                 return;
             }
         
-            this._watchedEntries[fullPath] = watchedEntry;
+            this._watchedRoots[fullPath] = watchedRoot;
             callback(null);
         }.bind(this));
     };
 
+    /**
+     * Stop watching a filesystem root entry.
+     * 
+     * @param {FileSystemEntry} entry - The root entry to stop watching. The unwatch will
+     *      if the entry is not currently being watched.
+     * @param {function(?string)} callback - A function that is called when the unwatch has
+     *      completed. If the unwatch fails, the function will have a non-null parameter
+     *      that describes the error.
+     */
     FileSystem.prototype.unwatch = function (entry, callback) {
         var fullPath = entry.fullPath,
-            watchedEntry = this._watchedEntries[fullPath];
+            watchedRoot = this._watchedRoots[fullPath];
         
-        if (!watchedEntry) {
-            callback("Entry is not watched.");
+        if (!watchedRoot) {
+            callback("Root is not watched.");
             return;
         }
         
-        this._unwatchEntry(entry, watchedEntry, function (err) {
-            delete this._watchedEntries[fullPath];
+        this._unwatchEntry(entry, watchedRoot, function (err) {
+            delete this._watchedRoots[fullPath];
 
             if (err) {
-                console.warn("Failed to unwatch entry: ", entry.fullPath, err);
+                console.warn("Failed to unwatch root: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
@@ -490,7 +475,6 @@ define(function (require, exports, module) {
             callback(null);
         }.bind(this));
     };
-
     
     // Export the FileSystem class
     module.exports = FileSystem;

@@ -182,7 +182,54 @@ define(function (require, exports, module) {
         this._stat = null;
         this._impl.moveToTrash(this._path, callback || function () {});
     };
+    
+    /**
+     * Visit this entry and its descendents with the supplied visitor function.
+     *
+     * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
+     *      applied to descendent FileSystemEntry objects. If the function returns false for
+     *      a particular Directory entry, that directory's descendents will not be visited.
+     * @param {{failFast: boolean=, maxDepth: number=}=} options - An optional set of options.
+     * @param {function(string)} callback
+     */
+    FileSystemEntry.prototype.visit = function (visitor, options, callback) {
+        if (typeof options === "function") {
+            callback = options;
+            options = {};
+        }
+
+        var continueTraversal = visitor(this);
         
+        if (this.isFile() || !continueTraversal) {
+            callback(null);
+            return;
+        }
+        
+        this.getContents(function (err, entries) {
+            var counter = entries ? entries.length : 0;
+
+            if (err || counter === 0) {
+                console.warn("Failed to traverse: ", this.fullPath, err);
+                callback(err);
+                return;
+            }
+            
+            entries.forEach(function (entry) {
+                entry.visit(visitor, options, function (err) {
+                    if (err && options.failFast) {
+                        counter = 0;
+                        callback(err);
+                        return;
+                    }
+                    
+                    if (--counter === 0) {
+                        callback(options.failFast ? err : null);
+                    }
+                });
+            });
+        }.bind(this));
+    };
+    
     // Export this class
     module.exports = FileSystemEntry;
 });

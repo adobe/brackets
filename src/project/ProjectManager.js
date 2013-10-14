@@ -1695,7 +1695,15 @@ define(function (require, exports, module) {
             });
         }
         
-        _traverse(getProjectRoot(), function (err) {
+        function visitor(entry) {
+            if (entry.isFile()) {
+                result.push(entry);
+            }
+            
+            return !filter || filter(entry);
+        }
+        
+        getProjectRoot().visit(visitor, function (err) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
                 var workingSet = DocumentManager.getWorkingSet();
