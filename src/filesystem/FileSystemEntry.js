@@ -216,7 +216,6 @@ define(function (require, exports, module) {
                 };
 
             if (err || counter === 0) {
-                console.warn("Failed to traverse: ", this.fullPath, err);
                 callback(err);
                 return;
             }
