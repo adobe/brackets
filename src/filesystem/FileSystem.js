@@ -70,8 +70,51 @@ define(function (require, exports, module) {
     /**
      * The set of watched roots, encoded as a mapping from full paths to objects
      * which contain a file entry, filter function, and change handler function.
+     * 
+     * @type{Object.<string, Object.<entry: FileSystemEntry,
+     *      filter: function(entry): boolean,
+     *      handleChange: function(entry)>>}
      */
     FileSystem.prototype._watchedRoots = null;
+    
+    /**
+     * Watch a filesystem entry beneath a given watchedRoot.
+     * 
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     */
+    FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.watchPath(child.fullPath);
+            }
+            
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
+    };
+
+    /**
+     * Unwatch a filesystem entry beneath a given watchedRoot.
+     * 
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     */
+    FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.unwatchPath(child.fullPath);
+            }
+            this._index.removeEntry(child);
+            
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
+    };
     
     /**
      * @param {function(?err)} callback
@@ -307,7 +350,7 @@ define(function (require, exports, module) {
                 
                 // Update changed entries
                 entry.getContents(function (err, contents) {
-                                        
+                    
                     var addNewEntries = function (callback) {
                         // Check for added directories and scan to add to index
                         // Re-scan this directory to add any new contents
@@ -361,27 +404,6 @@ define(function (require, exports, module) {
                 }.bind(this));
             }
         }
-    };
-    
-    FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
-        entry.visit(function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.watchPath(child.fullPath);
-            }
-            
-            return watchedRoot.filter(child);
-        }.bind(this), callback);
-    };
-    
-    FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        entry.visit(function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.unwatchPath(child.fullPath);
-            }
-            this._index.removeEntry(child);
-            
-            return watchedRoot.filter(child);
-        }.bind(this), callback);
     };
     
     /**
