@@ -170,6 +170,7 @@ define(function (require, exports, module) {
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
+            $dropdown.off("click mouseenter mouseleave");
             $dropdown = null;
     
             EditorManager.focusEditor();
