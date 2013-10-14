@@ -622,7 +622,7 @@ define(function (require, exports, module) {
         return _currentlyViewedFile;
     }
     
-    function _clearCurrentlyViewedFile() {
+    function clearCurrentlyViewedFile() {
         _currentlyViewedFile = null;
     }
 
@@ -669,7 +669,7 @@ define(function (require, exports, module) {
     
     /** Handle project close, remove customView */
     function _onBeforeProjectClose() {
-        _clearCurrentlyViewedFile();
+        clearCurrentlyViewedFile();
         _previousCustomViewer = _currentCustomViewer;
         _currentCustomViewer = null;
         _removeCustomViewer();
@@ -943,6 +943,7 @@ define(function (require, exports, module) {
     exports.getFocusedEditor              = getFocusedEditor;
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
+    exports.clearCurrentlyViewedFile      = clearCurrentlyViewedFile;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
