@@ -193,12 +193,15 @@ define(function (require, exports, module) {
      * @param {function(string)} callback
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
+        var DEFAULT_MAX_DEPTH = 100;
+        
         if (typeof options === "function") {
             callback = options;
             options = {};
         }
 
-        var continueTraversal = visitor(this);
+        var maxDepth = typeof options.maxDepth === "number" ? options.maxDepth : DEFAULT_MAX_DEPTH,
+            continueTraversal = visitor(this) && maxDepth-- > 0;
         
         if (this.isFile() || !continueTraversal) {
             callback(null);
@@ -206,7 +209,11 @@ define(function (require, exports, module) {
         }
         
         this.getContents(function (err, entries) {
-            var counter = entries ? entries.length : 0;
+            var counter = entries ? entries.length : 0,
+                newOptions = {
+                    maxDepth: maxDepth,
+                    failFast: options.maxDepth
+                };
 
             if (err || counter === 0) {
                 console.warn("Failed to traverse: ", this.fullPath, err);
