@@ -175,19 +175,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Close the file system and remove listeners.
-     */
-    function _closeFileSystem() {
-        if (_fileSystem) {
-            _fileSystem.close();
-            $(_fileSystem).off("change", _fileSystemChange);
-            $(_fileSystem).off("rename", _fileSystemRename);
-            _fileSystem = null;
-        }
-    }
-    
-    /**
-     * @private
      */
     function _hasFileSelectionFocus() {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
@@ -870,6 +857,43 @@ define(function (require, exports, module) {
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
+    function _watchProjectRoot(rootPath) {
+        $(_fileSystem).on("change", _fileSystemChange);
+        $(_fileSystem).on("rename", _fileSystemRename);
+
+        _fileSystem.watch(_fileSystem.getDirectoryForPath(rootPath), function (entry) {
+            return _fileSystem.shouldShow(entry.fullPath);
+        }, function (entry) {
+            console.log("Entry changed!", entry);
+        }, function (err) {
+            if (err) {
+                console.log("Error watching project root: ", rootPath, err);
+            } else {
+                console.log("Finished watching project root:", rootPath);
+            }
+        });
+    }
+
+        
+    /**
+     * @private
+     * Close the file system and remove listeners.
+     */
+    function _unwatchProjectRoot() {
+        if (_fileSystem) {
+            $(_fileSystem).off("change", _fileSystemChange);
+            $(_fileSystem).off("rename", _fileSystemRename);
+
+            _fileSystem.unwatch(_projectRoot, function (err) {
+                if (err) {
+                    console.log("Error unwatching project root: ", _projectRoot.fullPath, err);
+                } else {
+                    console.log("Finished unwatching project root: ", _projectRoot.fullPath);
+                }
+            });
+        }
+    }
+    
     /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
@@ -898,7 +922,7 @@ define(function (require, exports, module) {
             // close all the old files
             DocumentManager.closeAll();
     
-            _closeFileSystem();
+            _unwatchProjectRoot();
         }
         
         function ensureFileSystem() {
@@ -909,15 +933,13 @@ define(function (require, exports, module) {
                 FileSystemManager.createFileSystem(filesystem, function (err, fs) {
                     // TODO: check err?
                     _fileSystem = fs;
-                    _fileSystem.setProjectRoot(rootPath);
-                    $(_fileSystem).on("change", _fileSystemChange);
-                    $(_fileSystem).on("rename", _fileSystemRename);
                     fsResult.resolve();
                 });
             }
+
             return fsResult.promise();
         }
-        
+                
         // Clear project path map
         _projectInitialLoad = {
             previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
@@ -934,6 +956,9 @@ define(function (require, exports, module) {
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
             ensureFileSystem().done(function () {
+                if (!isUpdating) {
+                    _watchProjectRoot(rootPath);
+                }
                 // Point at a real folder structure on local disk
                 var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (exists) {
@@ -1668,7 +1693,15 @@ define(function (require, exports, module) {
             });
         }
         
-        _traverse(getProjectRoot(), function (err) {
+        function visitor(entry) {
+            if (entry.isFile()) {
+                result.push(entry);
+            }
+            
+            return !filter || filter(entry);
+        }
+        
+        getProjectRoot().visit(visitor, function (err) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
                 var workingSet = DocumentManager.getWorkingSet();
@@ -1747,7 +1780,7 @@ define(function (require, exports, module) {
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
-    $(exports).on("beforeAppClose", _closeFileSystem);
+    $(exports).on("beforeAppClose", _unwatchProjectRoot);
     
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);

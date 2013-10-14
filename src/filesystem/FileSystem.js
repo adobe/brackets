@@ -45,6 +45,9 @@ define(function (require, exports, module) {
         
         // Create a file index
         this._index = new FileIndex();
+        
+        // Initialize the set of watched roots
+        this._watchedRoots = {};
     }
     
     /**
@@ -63,12 +66,64 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
+
+    /**
+     * The set of watched roots, encoded as a mapping from full paths to objects
+     * which contain a file entry, filter function, and change handler function.
+     * 
+     * @type{Object.<string, Object.<entry: FileSystemEntry,
+     *      filter: function(entry): boolean,
+     *      handleChange: function(entry)>>}
+     */
+    FileSystem.prototype._watchedRoots = null;
+    
+    /**
+     * Watch a filesystem entry beneath a given watchedRoot.
+     * 
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     */
+    FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.watchPath(child.fullPath);
+            }
+            
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
+    };
+
+    /**
+     * Unwatch a filesystem entry beneath a given watchedRoot.
+     * 
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     */
+    FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
+        entry.visit(function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                this._impl.unwatchPath(child.fullPath);
+            }
+            this._index.removeEntry(child);
+            
+            return watchedRoot.filter(child);
+        }.bind(this), callback);
+    };
     
     /**
      * @param {function(?err)} callback
      */
     FileSystem.prototype.init = function (callback) {
         this._impl.init(callback);
+
+        // Initialize watchers
+        this._impl.initWatchers(this._watcherCallback.bind(this));
     };
 
     /**
@@ -243,27 +298,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Recursively scan and index all entries in a directory
-     */
-    FileSystem.prototype._scanDirectory = function (directoryPath) {
-        var directory = this.getDirectoryForPath(directoryPath);
-        
-        directory.getContents(function (err, entries) {
-            if (!err) {
-                var i;
-                
-                for (i = 0; i < entries.length; i++) {
-                    if (entries[i].isDirectory()) {
-                        this._scanDirectory(entries[i].fullPath);
-                    }
-                }
-            }
-        }.bind(this));
-        this._impl.watchPath(directoryPath);
-    };
-    
-    /**
-     * @private
      * Callback for file/directory watchers. This is called by the low-level implementation
      * whenever a directory or file is changed. 
      *
@@ -275,9 +309,15 @@ define(function (require, exports, module) {
         if (!this._index) {
             return;
         }
-        
+
         var entry = this._index.getEntry(path);
         
+        var fireChangeEvent = function () {
+            // Trigger a change event
+            $(this).trigger("change", entry);
+            console.log("change: ", entry);
+        }.bind(this);
+
         if (entry) {
             if (entry.isFile()) {
                 // Update stat and clear contents, but only if out of date
@@ -286,87 +326,176 @@ define(function (require, exports, module) {
                     entry._contents = undefined;
                 }
                 
-                // Trigger a change event
-                $(this).trigger("change", entry);
-                console.log("change: ", entry);
+                fireChangeEvent();
             } else {
-                var oldContents = entry._contents;  // TODO: Handle pending content promise
+                var oldContents = entry._contents || [];  // TODO: Handle pending content promise
                 
                 // Clear out old contents
                 entry._contents = undefined;
                 
-                // Read new contents
-                entry.getContents(function (err, contents) {
-                    if (!err) {
-                        var i, len, item, path;
-                        
-                        var _isInPath = function (item) {
-                            return item.fullPath.indexOf(path) === 0;
-                        };
-                        
-                        // Check for deleted entries 
-                        len = oldContents ? oldContents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = oldContents[i];
-                            if (contents.indexOf(item) === -1) {
-                                if (item.isFile()) {
-                                    // File removed, just remove from index.
-                                    this._index.removeEntry(item);
-                                } else {
-                                    // Remove the directory and all entries under it
-                                    path = item.fullPath;
-                                    var j, itemsToDelete = this.getFileList(_isInPath);
-                                    
-                                    for (j = 0; j < itemsToDelete.length; j++) {
-                                        this._index.removeEntry(itemsToDelete[j]);
-                                    }
-                                    
-                                    this._index.removeEntry(item);
-                                    this._impl.unwatchPath(item.fullPath);
-                                    // TODO: Remove and unwatch other directories contained within this directory.
-                                    // getFileList() only returns files, and ignores directories.
-                                }
-                            }
+                var watchedRootPath = null,
+                    allWatchedRootPaths = Object.keys(this._watchedRoots),
+                    isRootWatched = allWatchedRootPaths.some(function (rootPath) {
+                        if (entry.fullPath.indexOf(rootPath) === 0) {
+                            watchedRootPath = rootPath;
+                            return true;
                         }
-                        
+                    }),
+                    watchedRoot = isRootWatched ? this._watchedRoots[watchedRootPath] : null;
+                
+                if (!watchedRoot) {
+                    console.warn("Received change notification for unwatched path: ", path);
+                    return;
+                }
+                
+                // Update changed entries
+                entry.getContents(function (err, contents) {
+                    
+                    var addNewEntries = function (callback) {
                         // Check for added directories and scan to add to index
                         // Re-scan this directory to add any new contents
-                        len = contents ? contents.length : 0;
-                        for (i = 0; i < len; i++) {
-                            item = contents[i];
-                            if (!oldContents || oldContents.indexOf(item) === -1) {
-                                if (item.isDirectory()) {
-                                    this._scanDirectory(item.fullPath);
-                                }
-                            }
-                        }
+                        var entriesToAdd = contents.filter(function (entry) {
+                            return oldContents.indexOf(entry) === -1;
+                        });
                         
-                        // Trigger a change event
-                        $(this).trigger("change", entry);
-                        console.log("change: ", entry);
+                        var addCounter = entriesToAdd.length;
+                        
+                        if (addCounter === 0) {
+                            callback();
+                        } else {
+                            entriesToAdd.forEach(function (entry) {
+                                this._watchEntry(entry, watchedRoot, function (err) {
+                                    if (--addCounter === 0) {
+                                        callback();
+                                    }
+                                });
+                            }, this);
+                        }
+                    }.bind(this);
+                    
+                    var removeOldEntries = function (callback) {
+                        var entriesToRemove = oldContents.filter(function (entry) {
+                            return contents.indexOf(entry) === -1;
+                        });
+    
+                        var removeCounter = entriesToRemove.length;
+                        
+                        if (removeCounter === 0) {
+                            callback();
+                        } else {
+                            entriesToRemove.forEach(function (entry) {
+                                this._unwatchEntry(entry, watchedRoot, function (err) {
+                                    if (--removeCounter === 0) {
+                                        callback();
+                                    }
+                                });
+                            }, this);
+                        }
+                    }.bind(this);
+
+                    if (err) {
+                        console.warn("Unable to get contents of changed directory: ", path, err);
+                    } else {
+                        removeOldEntries(function () {
+                            addNewEntries(fireChangeEvent);
+                        });
                     }
+
                 }.bind(this));
             }
         }
-        // console.log("File/directory change: " + path + ", stat: " + stat);
     };
     
     /**
-     * Set the root directory for the project. This clears any existing file cache
-     * and starts indexing on a new worker.
-     *
-     * @param {string} rootPath The new project root.
+     * Start watching a filesystem root entry.
+     * 
+     * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
+     *      all subdirectories that aren't explicitly filtered will also be watched.
+     * @param {function(FileSystemEntry): boolean} filter - A function to determine whether
+     *      a particular FileSystemEntry should be watched or ignored. 
+     * @param {function(FileSystemEntry)} handleChange - A function that is called whenever
+     *      a particular FileSystemEntry is changed.
+     * @param {function(?string)} callback - A function that is called when the watch has
+     *      completed. If the watch fails, the function will have a non-null parameter
+     *      that describes the error.
      */
-    FileSystem.prototype.setProjectRoot = function (rootPath) {
-        // Clear file index
-        this._index.clear();
+    FileSystem.prototype.watch = function (entry, filter, handleChange, callback) {
+        var fullPath = entry.fullPath,
+            watchedRoot = {
+                entry: entry,
+                filter: filter,
+                handleChange: handleChange
+            };
         
-        // Initialize watchers
-        this._impl.unwatchAll();
-        this._impl.initWatchers(this._watcherCallback.bind(this));
+        var watchingParentRoot = Object.keys(this._watchedRoots).some(function (path) {
+            var watchedRoot = this._watchedRoots[path],
+                watchedPath = watchedRoot.entry.fullPath;
+            
+            return fullPath.indexOf(watchedPath) === 0;
+        }, this);
         
-        // Start indexing from the new root path
-        this._scanDirectory(rootPath);
+        if (watchingParentRoot) {
+            callback("A parent of this root is already watched");
+            return;
+        }
+
+        var watchingChildRoot = Object.keys(this._watchedRoots).some(function (path) {
+            var watchedRoot = this._watchedRoots[path],
+                watchedPath = watchedRoot.entry.fullPath;
+            
+            return watchedPath.indexOf(fullPath) === 0;
+        }, this);
+        
+        if (watchingChildRoot) {
+            callback("A child of this root is already watched");
+            return;
+        }
+        
+        this._watchEntry(entry, watchedRoot, function (err) {
+            if (err) {
+                console.warn("Failed to watch root: ", entry.fullPath, err);
+                // Try to clean up after failing to watch
+                this._unwatchEntry(entry, watchedRoot, function () {
+                    console.log("Finished cleaning up after failed watch.");
+                    callback(err);
+                });
+                return;
+            }
+        
+            this._watchedRoots[fullPath] = watchedRoot;
+            callback(null);
+        }.bind(this));
+    };
+
+    /**
+     * Stop watching a filesystem root entry.
+     * 
+     * @param {FileSystemEntry} entry - The root entry to stop watching. The unwatch will
+     *      if the entry is not currently being watched.
+     * @param {function(?string)} callback - A function that is called when the unwatch has
+     *      completed. If the unwatch fails, the function will have a non-null parameter
+     *      that describes the error.
+     */
+    FileSystem.prototype.unwatch = function (entry, callback) {
+        var fullPath = entry.fullPath,
+            watchedRoot = this._watchedRoots[fullPath];
+        
+        if (!watchedRoot) {
+            callback("Root is not watched.");
+            return;
+        }
+        
+        this._unwatchEntry(entry, watchedRoot, function (err) {
+            delete this._watchedRoots[fullPath];
+
+            if (err) {
+                console.warn("Failed to unwatch root: ", entry.fullPath, err);
+                callback(err);
+                return;
+            }
+            
+            callback(null);
+        }.bind(this));
     };
     
     // Export the FileSystem class
