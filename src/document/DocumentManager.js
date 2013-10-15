@@ -499,9 +499,6 @@ define(function (require, exports, module) {
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
     function clearCurrentDocument() {
-        if (EditorManager.getCurrentlyViewedFile) {
-            EditorManager.clearCurrentlyViewedFile();
-        }
         
         // If editor already blank, do nothing
         if (!_currentDocument) {
