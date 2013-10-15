@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                     function (metadata) {
                         var sizeString = "";
                         if (metadata && metadata.size) {
-                            sizeString = " &mdash; " + StringUtils.bytesToSize(metadata.size, 2);
+                            sizeString = " &mdash; " + StringUtils.bytesToSizeString(metadata.size, 2);
                         }
                         $("#img-data").html(dimensionString  + sizeString);
                     },
