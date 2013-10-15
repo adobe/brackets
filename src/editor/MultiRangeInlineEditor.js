@@ -100,7 +100,6 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
     MultiRangeInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     
-    MultiRangeInlineEditor.prototype.$editorsDiv = null;
     MultiRangeInlineEditor.prototype.$messageDiv = null;
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
     MultiRangeInlineEditor.prototype.$related = null;
@@ -149,20 +148,13 @@ define(function (require, exports, module) {
         // Container to hold all editors
         var self = this;
 
-        // Create DOM to hold editors and related list
-        this.$editorsDiv = $("<div/>").addClass("inlineEditorHolder");
-        
         // Create the message area
-        this.$messageDiv = $("<div/>");
-        $("<div/>").addClass("inline-editor-header")
-            .appendTo(this.$messageDiv);
-        $("<div/>")
+        this.$messageDiv = $("<div/>")
             .addClass("inline-editor-message")
-            .html(Strings.CSS_QUICK_EDIT_NO_MATCHES)
-            .appendTo(this.$messageDiv);
+            .text(Strings.CSS_QUICK_EDIT_NO_MATCHES);
         
         // Prevent touch scroll events from bubbling up to the parent editor.
-        this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
+        this.$editorHolder.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
 
@@ -185,7 +177,7 @@ define(function (require, exports, module) {
         });
         
         if (this._ranges.length > 1) {      // attach to main container
-            this.$htmlContent.append(this.$relatedContainer);
+            this.$wrapper.before(this.$relatedContainer);
         }
                 
         if (this._ranges.length) {
@@ -251,25 +243,20 @@ define(function (require, exports, module) {
             $previousItem.removeClass("selected");
         }
         
-        // Remove previous editors
-        this.editors.forEach(function (editor) {
-            $(editor).off(".MultiRangeInlineEditor");
-            editor.destroy(); //release ref on Document
-        });
-        
-        this.editors = [];
-        this.$editorsDiv.children().remove();
+        // Clear our listeners on the previous editor since it'll be destroyed in setInlineContent().
+        if (this.editor) {
+            $(this.editor).off(".MultiRangeInlineEditor");
+        }
 
         this._selectedRangeIndex = newIndex;
         
         if (newIndex === -1) {
             // show the message div
-            this.$editorsDiv.remove();
+            this.setInlineContent(null);
             this.$htmlContent.append(this.$messageDiv);
             this.sizeInlineWidgetToContents(true, false);
         } else {
             this.$messageDiv.remove();
-            this.$htmlContent.append(this.$editorsDiv);
             
             var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
             
@@ -277,14 +264,14 @@ define(function (require, exports, module) {
     
             // Add new editor
             var range = this._getSelectedRange();
-            this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
-            this.editors[0].focus();
+            this.setInlineContent(range.textRange.document, range.textRange.startLine, range.textRange.endLine);
+            this.editor.focus();
     
             this._updateEditorMinHeight();
-            this.editors[0].refresh();
+            this.editor.refresh();
             
             // Ensure the cursor position is visible in the host editor as the user is arrowing around.
-            $(this.editors[0]).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
+            $(this.editor).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
     
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
             this.sizeInlineWidgetToContents(true, false);
@@ -299,7 +286,7 @@ define(function (require, exports, module) {
      * widget.
      */
     MultiRangeInlineEditor.prototype._updateEditorMinHeight = function () {
-        if (!this.editors.length) {
+        if (!this.editor) {
             return;
         }
         
@@ -317,7 +304,7 @@ define(function (require, exports, module) {
         // * we want the wrapper's actual height to remain "auto"
         // * if we set a min-height on the wrapper, the scroller's height: 100% doesn't
         //   respect it (height: 100% doesn't seem to work properly with min-height on the parent)
-        $(this.editors[0].getScrollerElement())
+        $(this.editor.getScrollerElement())
             .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
     };
 
@@ -393,7 +380,7 @@ define(function (require, exports, module) {
         // Ensure that the rule list becomes visible if it wasn't already and we have
         // more than one rule.
         if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
-            this.$editorsDiv.before(this.$relatedContainer);
+            this.$wrapper.before(this.$relatedContainer);
         }
     };
 
@@ -451,7 +438,7 @@ define(function (require, exports, module) {
 
         // Remove event handlers
         this.$htmlContent.off(".MultiRangeInlineEditor");
-        this.$editorsDiv.off(".MultiRangeInlineEditor");
+        this.$editorHolder.off(".MultiRangeInlineEditor");
     };
     
     /**
@@ -460,11 +447,11 @@ define(function (require, exports, module) {
      * restoring focus and the insertion point.
      */
     MultiRangeInlineEditor.prototype._onClick = function (event) {
-        if (!this.editors.length) {
+        if (!this.editor) {
             return;
         }
         
-        var childEditor = this.editors[0],
+        var childEditor = this.editor,
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
         
@@ -473,7 +460,7 @@ define(function (require, exports, module) {
         }
         
         // Ignore clicks in editor and clicks on filename link
-        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorsDiv))) {
+        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorHolder))) {
             childEditor.focus();
             // Only set the cursor if the click isn't in the range list.
             if (!containsClick(this.$relatedContainer)) {
@@ -492,13 +479,13 @@ define(function (require, exports, module) {
      * vertical scroll position of the host editor to ensure that the cursor is visible.
      */
     MultiRangeInlineEditor.prototype._ensureCursorVisible = function () {
-        if (!this.editors.length) {
+        if (!this.editor) {
             return;
         }
         
-        if ($.contains(this.editors[0].getRootElement(), window.document.activeElement)) {
+        if ($.contains(this.editor.getRootElement(), window.document.activeElement)) {
             var hostScrollPos = this.hostEditor.getScrollPos(),
-                cursorCoords = this.editors[0]._codeMirror.cursorCoords();
+                cursorCoords = this.editor._codeMirror.cursorCoords();
             
             // Vertically, we want to set the scroll position relative to the overall host editor, not
             // the lineSpace of the widget itself. We don't want to modify the horizontal scroll position.
@@ -567,7 +554,9 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
         
         // Size the widget height to the max between the editor/message content and the related ranges list
-        var widgetHeight = Math.max(this.$related.height(), (this._selectedRangeIndex === -1 ? this.$messageDiv.outerHeight() : this.$editorsDiv.height()));
+        var widgetHeight = Math.max(this.$related.height(),
+                                    this.$header.outerHeight() +
+                                        (this._selectedRangeIndex === -1 ? this.$messageDiv.outerHeight() : this.$editorHolder.height()));
 
         if (widgetHeight) {
             this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
@@ -581,9 +570,9 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.refresh = function () {
         MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
         this.sizeInlineWidgetToContents(true);
-        this.editors.forEach(function (editor) {
-            editor.refresh();
-        });
+        if (this.editor) {
+            this.editor.refresh();
+        }
     };
 
     /**

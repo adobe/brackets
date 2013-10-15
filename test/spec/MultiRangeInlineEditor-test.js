@@ -63,7 +63,7 @@ define(function (require, exports, module) {
                 
                 expect(inlineEditor instanceof InlineTextEditor).toBe(true);
                 expect(inlineEditor instanceof InlineWidget).toBe(true);
-                expect(inlineEditor.editors.length).toBe(0);
+                expect(inlineEditor.editor).toBeNull();
                 expect(inlineEditor.htmlContent instanceof HTMLElement).toBe(true);
                 expect(inlineEditor.height).toBe(0);
                 expect(inlineEditor.id).toBeNull();
@@ -81,12 +81,12 @@ define(function (require, exports, module) {
                 inlineEditor = new MultiRangeInlineEditor([mockRange]);
                 inlineEditor.load(hostEditor);
                 
-                expect(inlineEditor.editors.length).toBe(1);
-                expect(inlineEditor.editors[0].document).toBe(inlineDoc);
+                expect(inlineEditor.editor).toBeTruthy();
+                expect(inlineEditor.editor.document).toBe(inlineDoc);
 
-                // Messages div should be visible, editors div should be hidden.
+                // Messages div should be hidden, editor holder should have a child editor.
                 expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(0);
-                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(1);
+                expect(inlineEditor.$htmlContent.find(".inline-editor-holder").children().length).toBe(1);
                 
                 // Rule list should be hidden with only one rule.
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
@@ -118,9 +118,9 @@ define(function (require, exports, module) {
                 expect($($ruleListItems.get(0)).text()).toBe("div — " + inlineDocName + " : 1");
                 expect($($ruleListItems.get(1)).text()).toBe(".foo — " + inlineDocName + " : 2");
 
-                // Messages div should be visible, editors div should be hidden.
+                // Messages div should be hidden, editor holder should have a child editor.
                 expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(0);
-                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(1);
+                expect(inlineEditor.$htmlContent.find(".inline-editor-holder").children().length).toBe(1);
                 
                 // Rule list should be visible.
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(1);
@@ -284,9 +284,9 @@ define(function (require, exports, module) {
                 });
                 expectResultItemToEqual(newRanges[2], mockRanges[1]);
                 
-                expect(inlineEditor.editors[0].document).toBe(doc1);
-                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(1);
-                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
+                expect(inlineEditor.editor.document).toBe(doc1);
+                expect(inlineEditor.editor.getFirstVisibleLine()).toBe(1);
+                expect(inlineEditor.editor.getLastVisibleLine()).toBe(1);
             });
 
             it("should add a new range at the end if there are no other ranges from the same doc", function () {
@@ -324,9 +324,9 @@ define(function (require, exports, module) {
                     lineEnd: 0
                 });
                 
-                expect(inlineEditor.editors[0].document).toBe(doc2);
-                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(0);
-                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(0);
+                expect(inlineEditor.editor.document).toBe(doc2);
+                expect(inlineEditor.editor.getFirstVisibleLine()).toBe(0);
+                expect(inlineEditor.editor.getLastVisibleLine()).toBe(0);
             });
             
             it("should properly refresh the editor if the range is inserted at the currently selected index", function () {
@@ -365,9 +365,9 @@ define(function (require, exports, module) {
                 });
                 expectResultItemToEqual(newRanges[2], mockRanges[1]);
                 
-                expect(inlineEditor.editors[0].document).toBe(doc1);
-                expect(inlineEditor.editors[0].getFirstVisibleLine()).toBe(1);
-                expect(inlineEditor.editors[0].getLastVisibleLine()).toBe(1);
+                expect(inlineEditor.editor.document).toBe(doc1);
+                expect(inlineEditor.editor.getFirstVisibleLine()).toBe(1);
+                expect(inlineEditor.editor.getLastVisibleLine()).toBe(1);
             });
             
             it("should show the rule list if a range is added when only one range existed before", function () {
@@ -395,11 +395,11 @@ define(function (require, exports, module) {
                 
                 // There are no ranges to select.
                 expect(inlineEditor._selectedRangeIndex).toBe(-1);
-                expect(inlineEditor.editors.length).toBe(0);
+                expect(inlineEditor.editor).toBeNull();
                 
-                // Messages div should be visible, editors div should be invisible.
+                // Messages div should be visible, editors div should have no child editor.
                 expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(1);
-                expect(inlineEditor.$htmlContent.find(".inlineEditorHolder").length).toBe(0);
+                expect(inlineEditor.$htmlContent.find(".inline-editor-holder").children().length).toBe(0);
                 
                 // Rule list should be invisible.
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
