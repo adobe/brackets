@@ -192,6 +192,7 @@ define(function (require, exports, module) {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
                     .done(function (doc) {
+                        EditorManager.setCurrentlyViewedFile(doc.file.fullPath);
                         DocumentManager.setCurrentDocument(doc);
                         result.resolve(doc);
                     })

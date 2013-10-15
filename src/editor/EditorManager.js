@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
+        FileViewController  = require("project/FileViewController"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
@@ -586,48 +587,6 @@ define(function (require, exports, module) {
         }
     }
     
-
-    /** append custom view to editor-holder
-    * @param {?JQuery} $customView  DOM node representing UI of custom view
-    * @param {?string} fullPath  path to the file displayed in the custom view
-    */
-    function showCustomViewer($customView, fullPath) {
-        // remove current image, this will only happen if the view switches from one 
-        // image to another
-        if ($customView && fullPath) {
-            //$("#editor-holder").append($customView);
-    
-            // Hide the not-editor
-            $("#not-editor").css("display", "none");
-            
-            _currentlyViewedFile = fullPath;
-            
-            // remember the previous custom view so  we 
-            // can remove it in the currentDocumentChange 
-            // event handler
-            _previousCustomViewer = _currentCustomViewer;
-            _currentCustomViewer = $customView;
-            
-            // clear the current document so that 
-            // getCurrentDocument returns null 
-            DocumentManager.clearCurrentDocument();
-            
-            // trigger a document change event so that 
-            // the event handler can show the new custom view
-            $(DocumentManager).triggerHandler("currentDocumentChange");
-        }
-    }
-    
-    function getCurrentlyViewedFile() {
-        return _currentlyViewedFile;
-    }
-    
-    function clearCurrentlyViewedFile() {
-        _currentlyViewedFile = null;
-    }
-
-
-    
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         _previousCustomViewer = _currentCustomViewer;
@@ -637,7 +596,7 @@ define(function (require, exports, module) {
             _nullifyEditor();
         }
     }
-    
+
     /** Display a custom view in the editor container
     * More custom viewers i.e. video viewer, audio player, ... 
     * can be added here in the future.
@@ -651,6 +610,7 @@ define(function (require, exports, module) {
             _showNoEditor();
         }
     }
+    
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
         var customViewId;
@@ -665,6 +625,49 @@ define(function (require, exports, module) {
                 $("#" + customViewId).remove();
             }
         }
+    }
+
+    /** append custom view to editor-holder
+    * @param {?JQuery} $customView  DOM node representing UI of custom view
+    * @param {?string} fullPath  path to the file displayed in the custom view
+    */
+    function showCustomViewer($customView, fullPath) {
+        // remove current image, this will only happen if the view switches from one 
+        // image to another
+        if ($customView && fullPath) {
+            // clear the current document so that 
+            // getCurrentDocument returns null 
+            DocumentManager.clearCurrentDocument();
+            
+            // Hide the not-editor
+            $("#not-editor").css("display", "none");
+            
+            _removeCustomViewer();
+            
+            _currentlyViewedFile = fullPath;
+            
+            // remember the previous custom view so  we 
+            // can remove it in the currentDocumentChange 
+            // event handler
+            _previousCustomViewer = _currentCustomViewer;
+            _currentCustomViewer = $customView;
+
+            _nullifyEditor();
+            _showCustomViewer();
+            $(FileViewController).triggerHandler("documentSelectionFocusChange");
+        }
+    }
+    
+    function getCurrentlyViewedFile() {
+        return _currentlyViewedFile;
+    }
+    
+    function clearCurrentlyViewedFile() {
+        _currentlyViewedFile = null;
+    }
+    
+    function setCurrentlyViewedFile(fullPath) {
+        _currentlyViewedFile = fullPath;
     }
     
     /** Handle project close, remove customView */
@@ -692,12 +695,7 @@ define(function (require, exports, module) {
             _currentCustomViewer = null;
             _showEditor(doc);
         } else {
-            if (!_currentlyViewedFile) {
-                _showNoEditor();
-            } else {
-                _nullifyEditor();
-                _showCustomViewer();
-            }
+            _showNoEditor();
         }
 
         PerfUtils.addMeasurement(perfTimerName);
@@ -944,6 +942,7 @@ define(function (require, exports, module) {
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
     exports.clearCurrentlyViewedFile      = clearCurrentlyViewedFile;
+    exports.setCurrentlyViewedFile        = setCurrentlyViewedFile;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
