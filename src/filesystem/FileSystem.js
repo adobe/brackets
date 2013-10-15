@@ -206,16 +206,33 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a canonical version of the path, with no duplicated /es and with
-     * directories guaranteed to end in a trailing /.
-     * @param {!string} path
+     * Returns a canonical version of the path: no duplicated "/"es, no ".."s,
+     * and directories guaranteed to end in a trailing "/"
+     * @param {!string} path  Absolute path, using "/" as path separator
      * @param {boolean=} isDirectory
      * @return {!string}
      */
     function _normalizePath(path, isDirectory) {
-        var segments = path.split("/");
-        if (segments.indexOf(".") !== -1 || segments.indexOf("..") !== -1) {
-            console.error("Warning: non-normalized path " + path);
+        
+        console.assert(path[0] === "/" || path[1] === ":");  // expect only absolute paths
+
+        // Remove duplicated "/"es
+        path = path.replace(/\/{2,}/g, "/");
+        
+        // Remove ".." segments
+        if (path.indexOf("..") !== -1) {
+            var segments = path.split("/"),
+                i;
+            for (i = 1; i < segments.length; i++) {
+                if (segments[i] === "..") {
+                    if (i < 2) {
+                        throw new Error("Invalid absolute path: '" + path + "'");
+                    }
+                    segments.splice(i - 1, 2);
+                    i -= 2; // compensate so we start on the right index next iteration
+                }
+            }
+            path = segments.join("/");
         }
         
         if (isDirectory) {
@@ -225,10 +242,6 @@ define(function (require, exports, module) {
             }
         }
         
-        // Remove duplicated "/"es
-        path = path.replace(/\/{2,}/, "/");
-        
-        // TODO: normalize out ".."s ?
         return path;
     }
     

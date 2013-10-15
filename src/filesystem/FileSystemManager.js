@@ -61,10 +61,10 @@ define(function (require, exports, module) {
      * the global brackets.fileSystem) or the ProjectManager (to create the file system for a
      * project).
      *
-     * @param {string=} system The name of the low-level file system implementation. If omitted,
+     * @param {?string} system The name of the low-level file system implementation. If omitted,
      *                      the default system is used.
-     * @param {callback(?err, ?FileSystem)} Passed either an error or a fully-initialized FileSystem
-     *                      once it's ready
+     * @param {!function(?err, ?FileSystem)} callback Passed either an error or a fully-initialized
+     *                      FileSystem once it's ready
      */
     function createFileSystem(system, callback) {
         var impl = _impls[system || _defaultFileSystem];
