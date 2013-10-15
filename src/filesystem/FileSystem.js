@@ -507,11 +507,6 @@ define(function (require, exports, module) {
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
-                // Try to clean up after failing to watch
-                this._unwatchEntry(entry, watchedRoot, function () {
-                    console.log("Finished cleaning up after failed watch.");
-                    callback(err);
-                });
                 return;
             }
             callback(null);
