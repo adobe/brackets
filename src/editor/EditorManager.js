@@ -298,8 +298,8 @@ define(function (require, exports, module) {
         
         if (hostEditor) {
             hostEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    inlineEditors = inlineEditors.concat(widget.editors);
+                if (widget instanceof InlineTextEditor && widget.editor) {
+                    inlineEditors.push(widget.editor);
                 }
             });
         }

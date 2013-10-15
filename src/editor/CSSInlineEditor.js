@@ -111,7 +111,7 @@ define(function (require, exports, module) {
     function _addRule(selectorName, inlineEditor, styleDoc) {
         var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
         inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
-        inlineEditor.editors[0].setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
+        inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
     }
 
     /**
