@@ -434,12 +434,14 @@ define(function (require, exports, module) {
     function whenIdle(idleDelay, callback) {
         var timer;
         return function () {
+            var args = arguments,
+                context = this;
             if (timer) {
                 window.clearTimeout(timer);
             }
             timer = window.setTimeout(function () {
                 timer = null;
-                callback();
+                callback.apply(context, args);
             }, idleDelay);
         };
     }
