@@ -794,6 +794,7 @@ define(function (require, exports, module) {
     
     
     /** Returns the full path to the welcome project, which we open on first launch.
+     * Warning: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @private
      * @return {!string} fullPath reference
      */
@@ -811,19 +812,36 @@ define(function (require, exports, module) {
     
     /**
      * Returns true if the given path is the same as one of the welcome projects we've previously opened,
-     * or the one for the current build.
+     * or the one for the current build. A trailing "/" on the input path is optional.
      */
     function isWelcomeProjectPath(path) {
-        var canonPath = FileUtils.canonicalizeFolderPath(path);
-        if (canonPath === _getWelcomeProjectPath()) {
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);
+        if (pathNoSlash === _getWelcomeProjectPath()) {
             return true;
         }
         var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-        return welcomeProjects.indexOf(canonPath) !== -1;
+        return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
     /**
-     * If the provided path is to an old welcome project, updates to the current one.
+     * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
+     * A trailing "/" on the input path is optional.
+     */
+    function addWelcomeProjectPath(path) {
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);
+        
+        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        if (welcomeProjects.indexOf(pathNoSlash) === -1) {
+            welcomeProjects.push(pathNoSlash);
+            _prefs.setValue("welcomeProjects", welcomeProjects);
+        }
+    }
+    
+    /**
+     * If the provided path is to an old welcome project, returns the current one instead.
+     * A trailing "/" on the input path is optional.
+     * Warning: unlike most paths in Brackets, this may return a path EXCLUDING the trailing "/"
+     * (even if the path passed in had one).
      */
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
@@ -836,6 +854,7 @@ define(function (require, exports, module) {
     /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
      * first launch.
+     * Warning: unlike most paths in Brackets, this may return a path EXCLUDING the trailing "/".
      */
     function getInitialProjectPath() {
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
@@ -845,8 +864,8 @@ define(function (require, exports, module) {
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
-     * @param {string} rootPath  Absolute path to the root folder of the project.
-     *  If rootPath is undefined or null, the last open project will be restored.
+     * @param {!string} rootPath  Absolute path to the root folder of the project.
+     *  A trailing "/" on the path is optional (unlike many Brackets APIs that assume a trailing "/").
      * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
      *  if false, a different project is being loaded.
      * @return {$.Promise} A promise object that will be resolved when the
@@ -856,8 +875,13 @@ define(function (require, exports, module) {
     function _loadProject(rootPath, isUpdating) {
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
+        // Some legacy code calls this API with a non-canonical path
+        if (rootPath[rootPath.length - 1] !== "/") {
+            rootPath += "/";
+        }
+        
         if (!isUpdating) {
-            if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
+            if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
             if (_projectRoot) {
@@ -893,21 +917,17 @@ define(function (require, exports, module) {
                     var i;
 
                     // Success!
-                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
-                        canonPath = FileUtils.canonicalizeFolderPath(rootPath);
+                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                     _projectRoot = rootEntry;
                     _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
 
-                    // If this is the current welcome project, record it. In future launches, we always
-                    // want to substitute the welcome project for the current build instead of using an
+                    // If this is the most current welcome project, record it. In future launches, we want
+                    // to substitute the latest welcome project from the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
-                    if (canonPath === _getWelcomeProjectPath()) {
-                        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-                        if (welcomeProjects.indexOf(canonPath) === -1) {
-                            welcomeProjects.push(canonPath);
-                            _prefs.setValue("welcomeProjects", welcomeProjects);
-                        }
+                    // TODO: Remove this once installs upgrade in place
+                    if (rootPath === _getWelcomeProjectPath() + "/") {
+                        addWelcomeProjectPath(rootPath);
                     }
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
@@ -1068,7 +1088,7 @@ define(function (require, exports, module) {
      * this method handles both closing the current project and opening a new project.
      *
      * @param {string=} path Optional absolute path to the root folder of the project.
-     *  If path is undefined or null, displays a  dialog where the user can choose a
+     *  If path is undefined or null, displays a dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
@@ -1080,7 +1100,7 @@ define(function (require, exports, module) {
 
         // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
         // actually close any documents even on success; we'll do that manually after the user also oks
-        //the folder-browse dialog.
+        // the folder-browse dialog.
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 if (path) {

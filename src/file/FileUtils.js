@@ -226,16 +226,32 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Canonicalizes a folder path to not include a trailing slash.
+     * Removes the trailing slash from a path, if it has one.
+     * Warning: this differs from the format of most paths used in Brackets! Use paths ending in "/"
+     * normally, as this is the format used by DirectoryEntry.fullPath.
+     * 
      * @param {string} path
      * @return {string}
      */
-    function canonicalizeFolderPath(path) {
-        if (path.length > 0 && path[path.length - 1] === "/") {
+    function stripTrailingSlash(path) {
+        if (path[path.length - 1] === "/") {
             return path.slice(0, -1);
         } else {
             return path;
         }
+    }
+    
+    /**
+     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
+     * used by DirectoryEntry.fullPath actually DOES include the trailing "/"
+     * @deprecated
+     * 
+     * @param {string} path
+     * @return {string}
+     */
+    function canonicalizeFolderPath(path) {
+        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like DirectoryEntry.fullPath");
+        return stripTrailingSlash(path);
     }
     
     /**
@@ -245,14 +261,20 @@ define(function (require, exports, module) {
      * directory
      */
     function getBaseName(fullPath) {
-        fullPath = canonicalizeFolderPath(fullPath);
-        return fullPath.substr(fullPath.lastIndexOf("/") + 1);
+        var lastSlash = fullPath.lastIndexOf("/");
+        if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
+            return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
+        } else {
+            return fullPath.slice(lastSlash + 1);
+        }
     }
     
     /**
      * Returns a native absolute path to the 'brackets' source directory.
      * Note that this only works when run in brackets/src/index.html, so it does
      * not work for unit tests (which is run from brackets/test/SpecRunner.html)
+     * 
+     * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
@@ -265,6 +287,8 @@ define(function (require, exports, module) {
      * Given the module object passed to JS module define function,
      * convert the path to a native absolute path.
      * Returns a native absolute path to the module folder.
+     * 
+     * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
     function getNativeModuleDirectoryPath(module) {
@@ -449,6 +473,7 @@ define(function (require, exports, module) {
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
+    exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isAffectedWhenRenaming         = isAffectedWhenRenaming;
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
