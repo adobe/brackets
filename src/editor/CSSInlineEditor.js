@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
         DocumentManager         = require("document/DocumentManager"),
+        DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
         FileIndexManager        = require("project/FileIndexManager"),
@@ -148,7 +149,8 @@ define(function (require, exports, module) {
             cssFileInfos = [],
             $newRuleButton,
             $dropdown,
-            $dropdownItem;
+            $dropdownItem,
+            dropdownEventHandler;
 
         /**
          * @private
@@ -170,43 +172,22 @@ define(function (require, exports, module) {
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
-            $dropdown.off("click mouseenter mouseleave");
+            dropdownEventHandler = null;
             $dropdown = null;
     
             EditorManager.focusEditor();
         }
 
-        /**
-         * Adds the click and mouse enter/leave events to the dropdown
-         */
-        function _handleListEvents() {
-            $dropdown
-                .on("click", "a", function () {
-                    var $link = $(this),
-                        path  = $link.data("path");
+        function _onSelect($link) {
+            var path  = $link.data("path");
 
-                    if (path) {
-                        DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
-                            _addRule(selectorName, cssInlineEditor, styleDoc);
-                        });
-                        _closeDropdown();
-                    }
-                })
-                .on("mouseenter", "a", function () {
-                    if ($dropdownItem) {
-                        $dropdownItem.removeClass("selected");
-                    }
-                    $dropdownItem = $(this).addClass("selected");
-                })
-                .on("mouseleave", "a", function () {
-                    var $link = $(this).removeClass("selected");
-                    
-                    if ($link.get(0) === $dropdownItem.get(0)) {
-                        $dropdownItem = null;
-                    }
+            if (path) {
+                DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
+                    _addRule(selectorName, cssInlineEditor, styleDoc);
                 });
+            }
         }
-
+        
         /**
          * @private
          * Show or hide the stylesheets dropdown.
@@ -230,13 +211,14 @@ define(function (require, exports, module) {
                 })
                 .appendTo($("body"));
             
-            PopUpManager.addPopUp($dropdown, _cleanupDropdown, true);
-            
             $("html").on("click", _closeDropdown);
-    
-            _handleListEvents();
+            
+            dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
+            dropdownEventHandler.open();
+            
+            $dropdown.focus();
         }
-    
+        
         /**
          * @private
          * Display list of stylesheets in project, then create a new rule in the given stylesheet and
