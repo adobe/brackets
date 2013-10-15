@@ -408,8 +408,11 @@ a:focus {
     &.dropdown-menu {
         position: absolute;
         display: block;
+        box-shadow: @tc-dropdown-shadow;
+        max-height: 160px;
+        overflow-y: auto;
         max-width: none;
-        z-index: 100;   // TODO: define in @var
+        z-index: @z-index-brackets-stylesheet-menu;
     }
     
     .stylesheet-link, .stylesheet-name {

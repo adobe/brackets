@@ -83,9 +83,11 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
+     * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
+     *      when no matches are available.
      * @extends {InlineTextEditor}
      */
-    function MultiRangeInlineEditor(ranges) {
+    function MultiRangeInlineEditor(ranges, messageCB) {
         InlineTextEditor.call(this);
         
         // Store the results to show in the range list. This creates TextRanges bound to the Document,
@@ -93,6 +95,7 @@ define(function (require, exports, module) {
         this._ranges = ranges.map(function (rangeResult) {
             return new SearchResultItem(rangeResult);
         });
+        this._messageCB = messageCB;
         
         this._selectedRangeIndex = -1;
     }
@@ -109,6 +112,7 @@ define(function (require, exports, module) {
     /** @type {Array.<SearchResultItem>} */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
+    MultiRangeInlineEditor.prototype._messageCB = null;
     
     /**
      * @private
@@ -150,8 +154,7 @@ define(function (require, exports, module) {
 
         // Create the message area
         this.$messageDiv = $("<div/>")
-            .addClass("inline-editor-message")
-            .text(Strings.CSS_QUICK_EDIT_NO_MATCHES);
+            .addClass("inline-editor-message");
         
         // Prevent touch scroll events from bubbling up to the parent editor.
         this.$editorHolder.on("mousewheel.MultiRangeInlineEditor", function (e) {
@@ -253,6 +256,13 @@ define(function (require, exports, module) {
         if (newIndex === -1) {
             // show the message div
             this.setInlineContent(null);
+            if (this._messageCB) {
+                this._messageCB().done(function (msg) {
+                    self.$messageDiv.text(msg);
+                });
+            } else {
+                this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
+            }
             this.$htmlContent.append(this.$messageDiv);
             this.sizeInlineWidgetToContents(true, false);
         } else {
