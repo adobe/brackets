@@ -413,7 +413,9 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
+    "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection. Click \"New Rule\" to create one.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project. Create one to add CSS rules.",
     
     /**
      * Unit names

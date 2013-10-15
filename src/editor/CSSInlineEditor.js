@@ -229,10 +229,24 @@ define(function (require, exports, module) {
         function _handleNewRule() {
             _showDropdown();
         }
+        
+        /**
+         * @private
+         * Checks to see if there are any stylesheets in the project, and returns the appropriate
+         * "no rules"/"no stylesheets" message accordingly.
+         * @return {$.Promise} a promise that is resolved with the message to show. Never rejected.
+         */
+        function _getNoRulesMsg() {
+            var result = new $.Deferred();
+            FileIndexManager.getFileInfoList("css").done(function (fileInfos) {
+                result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
+            });
+            return result;
+        }
 
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                cssInlineEditor = new MultiRangeInlineEditor(rules || []);
+                cssInlineEditor = new MultiRangeInlineEditor(rules || [], _getNoRulesMsg);
                 cssInlineEditor.load(hostEditor);
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
