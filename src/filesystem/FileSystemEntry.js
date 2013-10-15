@@ -221,7 +221,7 @@ define(function (require, exports, module) {
             }
             
             entries.forEach(function (entry) {
-                entry.visit(visitor, options, function (err) {
+                entry.visit(visitor, newOptions, function (err) {
                     if (err && options.failFast) {
                         counter = 0;
                         callback(err);
