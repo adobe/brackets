@@ -258,7 +258,7 @@ define(function (require, exports, module) {
             this.setInlineContent(null);
             if (this._messageCB) {
                 this._messageCB().done(function (msg) {
-                    self.$messageDiv.text(msg);
+                    self.$messageDiv.html(msg);
                 });
             } else {
                 this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
