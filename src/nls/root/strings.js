@@ -420,8 +420,7 @@ define({
      */
 
     "UNIT_PIXELS"                          : "pixels",
-    
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",

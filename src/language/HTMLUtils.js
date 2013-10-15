@@ -262,7 +262,9 @@ define(function (require, exports, module) {
             // So just return an empty tag info.
             if (isPriorAttr &&
                     (!ctx.token.type ||
-                    (ctx.token.type !== "attribute" && ctx.token.string.indexOf("<") !== -1))) {
+                    (ctx.token.type && ctx.token.type !== "attribute" &&
+                        ctx.token.type.indexOf("error") === -1 &&
+                        ctx.token.string.indexOf("<") !== -1))) {
                 return createTagInfo();
             }
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
@@ -328,7 +330,8 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                if (ctx.token.type === "tag" || ctx.token.type === "error") {
+                if (ctx.token.type === "tag" ||
+                        (ctx.token.type && ctx.token.type.indexOf("error") !== -1)) {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -394,7 +397,8 @@ define(function (require, exports, module) {
             }
         }
         
-        if (ctx.token.type === "tag" || ctx.token.type === "error") {
+        if (ctx.token.type === "tag" ||
+                (ctx.token.type && ctx.token.type.indexOf("error") !== -1)) {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
             if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
                 return createTagInfo();
