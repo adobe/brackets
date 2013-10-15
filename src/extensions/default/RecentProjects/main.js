@@ -71,7 +71,8 @@ define(function (require, exports, module) {
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
-            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
+            // We have to canonicalize & then de-canonicalize the path here, since our pref format uses no trailing "/"
+            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
         }
         return recentProjects;
     }

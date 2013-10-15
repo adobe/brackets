@@ -794,7 +794,6 @@ define(function (require, exports, module) {
     
     
     /** Returns the full path to the welcome project, which we open on first launch.
-     * Warning: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @private
      * @return {!string} fullPath reference
      */
@@ -807,28 +806,27 @@ define(function (require, exports, module) {
             initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
         }
 
-        return initialPath;
+        return initialPath + "/"; // paths above weren't canonical
     }
     
     /**
      * Returns true if the given path is the same as one of the welcome projects we've previously opened,
-     * or the one for the current build. A trailing "/" on the input path is optional.
+     * or the one for the current build.
      */
     function isWelcomeProjectPath(path) {
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);
-        if (pathNoSlash === _getWelcomeProjectPath()) {
+        if (path === _getWelcomeProjectPath()) {
             return true;
         }
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
     /**
      * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
-     * A trailing "/" on the input path is optional.
      */
     function addWelcomeProjectPath(path) {
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         
         var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
         if (welcomeProjects.indexOf(pathNoSlash) === -1) {
@@ -839,9 +837,6 @@ define(function (require, exports, module) {
     
     /**
      * If the provided path is to an old welcome project, returns the current one instead.
-     * A trailing "/" on the input path is optional.
-     * Warning: unlike most paths in Brackets, this may return a path EXCLUDING the trailing "/"
-     * (even if the path passed in had one).
      */
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
@@ -854,7 +849,6 @@ define(function (require, exports, module) {
     /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
      * first launch.
-     * Warning: unlike most paths in Brackets, this may return a path EXCLUDING the trailing "/".
      */
     function getInitialProjectPath() {
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
@@ -925,8 +919,7 @@ define(function (require, exports, module) {
                     // If this is the most current welcome project, record it. In future launches, we want
                     // to substitute the latest welcome project from the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
-                    // TODO: Remove this once installs upgrade in place
-                    if (rootPath === _getWelcomeProjectPath() + "/") {
+                    if (rootPath === _getWelcomeProjectPath()) {
                         addWelcomeProjectPath(rootPath);
                     }
 
