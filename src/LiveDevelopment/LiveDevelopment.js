@@ -569,6 +569,7 @@ define(function LiveDevelopment(require, exports, module) {
             // to the base URL is completed, and (3) the agents finish loading
             // gather related documents and finally set status to STATUS_ACTIVE.
             var doc = _getCurrentDocument();  // TODO: probably wrong...
+            console.log(doc);
 
             if (doc) {
                 var status = STATUS_ACTIVE,
@@ -674,57 +675,61 @@ define(function LiveDevelopment(require, exports, module) {
             hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
         FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+            var projectRoot = ProjectManager.getProjectRoot().fullPath,
+                containingFolder,
+                indexFileFound = false,
+                stillInProjectTree = true;
+            
             if (refPath) {
-                var projectRoot = ProjectManager.getProjectRoot().fullPath,
-                    containingFolder = FileUtils.getDirectoryPath(refPath),
-                    indexFileFound = false,
-                    stillInProjectTree = true;
-
-                var filteredFiltered = allFiles.filter(function (item) {
-                    var parent = getParentFolder(item.fullPath);
-                    
-                    return (containingFolder.indexOf(parent) === 0);
-                });
+                containingFolder = FileUtils.getDirectoryPath(refPath);
+            } else {
+                containingFolder = projectRoot;
+            }
+            
+            var filteredFiltered = allFiles.filter(function (item) {
+                var parent = getParentFolder(item.fullPath);
                 
-                var filterIndexFile = function (fileInfo) {
-                    if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                        if (getFilenameWithoutExtension(fileInfo.name) === "index") {
-                            if (hasOwnServerForLiveDevelopment) {
-                                if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
-                                        (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
-                                    return true;
-                                }
-                            } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                return (containingFolder.indexOf(parent) === 0);
+            });
+            
+            var filterIndexFile = function (fileInfo) {
+                if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
+                    if (getFilenameWithoutExtension(fileInfo.name) === "index") {
+                        if (hasOwnServerForLiveDevelopment) {
+                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
                                 return true;
                             }
-                        } else {
-                            return false;
-                        }
-                    }
-                };
-
-                while (!indexFileFound && stillInProjectTree) {
-                    i = CollectionUtils.indexOf(filteredFiltered, filterIndexFile);
-
-                    // We found no good match
-                    if (i === -1) {
-                        // traverse the directory tree up one level
-                        containingFolder = getParentFolder(containingFolder);
-                        // Are we still inside the project?
-                        if (containingFolder.indexOf(projectRoot) === -1) {
-                            stillInProjectTree = false;
+                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                            return true;
                         }
                     } else {
-                        indexFileFound = true;
+                        return false;
                     }
                 }
+            };
 
-                if (i !== -1) {
-                    DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
-                    return;
+            while (!indexFileFound && stillInProjectTree) {
+                i = CollectionUtils.indexOf(filteredFiltered, filterIndexFile);
+
+                // We found no good match
+                if (i === -1) {
+                    // traverse the directory tree up one level
+                    containingFolder = getParentFolder(containingFolder);
+                    // Are we still inside the project?
+                    if (containingFolder.indexOf(projectRoot) === -1) {
+                        stillInProjectTree = false;
+                    }
+                } else {
+                    indexFileFound = true;
                 }
             }
 
+            if (i !== -1) {
+                DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
+                return;
+            }
+            
             result.resolve(null);
         });
 
