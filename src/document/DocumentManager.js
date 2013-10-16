@@ -499,6 +499,11 @@ define(function (require, exports, module) {
     
 
     function nullifyCurrentDocument() {
+        // make sure code catching currentDocumentChange do not use the file cleared
+        if (EditorManager.getCurrentlyViewedFile) {
+            EditorManager.clearCurrentlyViewedFile();
+        }
+        
         // If editor already blank, do nothing
         if (!_currentDocument) {
             return;
@@ -577,14 +582,14 @@ define(function (require, exports, module) {
         _removeAllFromWorkingSet();
     }
         
-    function removeListFromWorkingSet(list, clearCurrentDocument) {
+    function removeListFromWorkingSet(list, clearCurrentDoc) {
         var fileList = [], index;
         
         if (!list) {
             return;
         }
         
-        if (clearCurrentDocument) {
+        if (clearCurrentDoc) {
             clearCurrentDocument();
         }
         
