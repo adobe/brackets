@@ -154,14 +154,12 @@ define(function (require, exports, module) {
 
         /**
          * @private
-         * Close the dropdown.
+         * Close the dropdown externally to dropdown, which ultimately calls the
+         * _cleanupDropdown callback.
          */
         function _closeDropdown() {
-            // Since we passed "true" for autoRemove to addPopUp(), this will
-            // automatically remove the dropdown from the DOM. Also, PopUpManager
-            // will call _cleanupDropdown().
-            if ($dropdown) {
-                PopUpManager.removePopUp($dropdown);
+            if (dropdownEventHandler) {
+                dropdownEventHandler.close();
             }
         }
         
@@ -178,6 +176,11 @@ define(function (require, exports, module) {
             EditorManager.focusEditor();
         }
 
+        /**
+         * @private
+         * Callback when item from dropdown list is selected
+         * @param {jQueryObject} $link  The `a` element selected with mouse or keyboard
+         */
         function _onSelect($link) {
             var path  = $link.data("path");
 

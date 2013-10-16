@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * open
+     * Public open method
      */
     DropdownEventHandler.prototype.open = function () {
         var self = this;
@@ -76,7 +76,8 @@ define(function (require, exports, module) {
         /**
          * Convert keydown events into hint list navigation actions.
          *
-         * @param {KeyBoardEvent} keyEvent
+         * @param {KeyBoardEvent} event
+         * @return {boolean} true if key was handled, otherwise false.
          */
         function _keydownHook(event) {
             var keyCode;
@@ -162,24 +163,37 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Cleanup
+         * PopUpManager callback
          */
-        function close() {
+        function closeCallback() {
             KeyBindingManager.removeGlobalKeydownHook(_keydownHook);
-            
-            if (self.$list) {
-                self.$list.off("click mouseover");
-            }
-            if (self.closeCallback) {
-                self.closeCallback();
-            }
+            self._cleanup();
         }
         
         KeyBindingManager.addGlobalKeydownHook(_keydownHook);
         
         if (this.$list) {
             this._registerMouseEvents();
-            PopUpManager.addPopUp(this.$list, close, true);
+            PopUpManager.addPopUp(this.$list, closeCallback, true);
+        }
+    };
+
+    /**
+     * Public close method
+     */
+    DropdownEventHandler.prototype.close = function () {
+        PopUpManager.removePopUp(this.$list);
+    };
+
+    /**
+     * Cleanup
+     */
+    DropdownEventHandler.prototype._cleanup = function () {
+        if (this.$list) {
+            this.$list.off("click mouseover");
+        }
+        if (this.closeCallback) {
+            this.closeCallback();
         }
     };
 
