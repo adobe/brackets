@@ -273,6 +273,7 @@ define(function (require, exports, module) {
             left: x + "px",
             top:  y + "px"
         });
+        $P.get(0).focus();
 
         // update coords
         bezierEditor._cubicBezierCoords = bezierEditor.bezierCanvas
@@ -499,7 +500,7 @@ define(function (require, exports, module) {
      * or within an InlineBezierCurveEditor inline widget.
      *
      * @param {!jQuery} $parent  DOM node into which to append the root of the bezier curve editor UI
-     * @param {!string} bezierCurve  Initially selected bezierCurve
+     * @param {!RegExpMatch} bezierCurve  RegExp match object of initially selected bezierCurve
      * @param {!function(string)} callback  Called whenever selected bezierCurve changes
      */
     function BezierCurveEditor($parent, bezierCurve, callback) {
@@ -593,7 +594,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Handle all matches returned from cubicBezierMatch() and
+     * Handle all matches returned from BezierCurveUtils.cubicBezierMatch() and
      * return array of coords
      *
      * @param {RegExp.match} match Matches returned from cubicBezierMatch()
@@ -664,6 +665,16 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Handle external update
+     *
+     * @param {!RegExpMatch} bezierCurve  RegExp match object of updated bezierCurve
+     */
+    BezierCurveEditor.prototype.handleExternalUpdate = function (bezierCurve) {
+        this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
+        this._updateCanvas();
+    };
+
     
     exports.BezierCurveEditor = BezierCurveEditor;
 });

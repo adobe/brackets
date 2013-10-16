@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     /**
      * Constructor for inline widget containing a BezierCurveEditor control
      *
-     * @param {!string} bezierCurve  Initially selected bezierCurve
+     * @param {!RegExpMatch} bezierCurve  RegExp match object of initially selected bezierCurve
      * @param {!CodeMirror.Bookmark} startBookmark
      * @param {!CodeMirror.Bookmark} endBookmark
      */
@@ -93,7 +93,11 @@ define(function (require, exports, module) {
      * Returns the current text range of the bezierCurve we're attached to, or null if
      * we've lost sync with what's in the code.
      *
-     * @return {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * @return {?{
+     *              start: {line:number, ch:number},
+     *              end:   {line:number, ch:number},
+     *              match: {RegExpMatch}
+     *          }}
      */
     InlineBezierCurveEditor.prototype.getCurrentRange = function () {
         var start, end;
@@ -117,10 +121,15 @@ define(function (require, exports, module) {
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
             matches = line.substr(start.ch).match(BezierCurveUtils.BEZIER_CURVE_REGEX);
+
+        // No longer have a match
+        if (!matches) {
+            return null;
+        }
         
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
-        if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
+        if (end.ch === undefined || (end.ch - start.ch) !== matches[0].length) {
             end.ch = start.ch + matches[0].length;
             this._endBookmark.clear();
             this._endBookmark = this.hostEditor._codeMirror.setBookmark(end);
@@ -130,7 +139,11 @@ define(function (require, exports, module) {
             // We were unable to resync the end bookmark.
             return null;
         } else {
-            return {start: start, end: end};
+            return {
+                start: start,
+                end:   end,
+                match: matches
+            };
         }
     };
         
@@ -169,7 +182,6 @@ define(function (require, exports, module) {
         InlineBezierCurveEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Create bezier curve editor control
-        var allBezierCurvesInDoc = this.hostEditor.document.getText().match(BezierCurveUtils.BEZIER_CURVE_REGEX);
         var swatchInfo = null;
         this.bezierCurveEditor = new BezierCurveEditor(this.$htmlContent, this._bezierCurve, this._handleBezierCurveChange, swatchInfo);
     };
@@ -226,6 +238,7 @@ define(function (require, exports, module) {
             if (newBezierCurve !== this._bezierCurve) {
                 this._isHostChange = true;
                 this._isHostChange = false;
+                this.bezierCurveEditor.handleExternalUpdate(range.match);
             }
         } else {
             // The edit caused our range to become invalid. Close the editor.

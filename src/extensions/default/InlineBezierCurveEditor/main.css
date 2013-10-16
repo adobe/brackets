@@ -11,6 +11,10 @@
     margin: 0 25px;
 }
 
+.bezier-curve-editor:focus {
+    outline: none;
+}
+
 .bezier-curve-editor .cubic-bezier-highlight {
     background-color: #DDC;
 }

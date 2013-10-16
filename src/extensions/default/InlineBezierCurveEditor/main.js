@@ -53,9 +53,6 @@ define(function (require, exports, module) {
         InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
         BezierCurveUtils        = require("BezierCurveUtils");
 
-    var currentMatch,               // current RegExp results
-        previewMark;                // CodeMirror marker highlighting the preview text
-
     
     // Functions
 
@@ -69,7 +66,7 @@ define(function (require, exports, module) {
      * @return {?{color:String, start:TextMarker, end:TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
-        var cursorLine, sel, startPos, endPos, startBookmark, endBookmark,
+        var cursorLine, sel, startPos, endPos, startBookmark, endBookmark, currentMatch,
             cm = hostEditor._codeMirror;
 
         sel = hostEditor.getSelection();
