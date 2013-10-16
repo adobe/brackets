@@ -301,7 +301,10 @@ define(function (require, exports, module) {
                 animationRequest = null;
                 return;
             }
-    
+
+            // Update code
+            bezierEditor._commitBezierCurve();
+
             bezierEditor._updateCanvas();
             animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
         }
@@ -576,7 +579,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets _bezierCurve based on a string input, and updates the UI.
+     * Sets _bezierCurve based on a string input, and updates the doc
      */
     BezierCurveEditor.prototype._commitBezierCurve = function () {
         var bezierCurveVal = "cubic-bezier(" +
