@@ -1666,39 +1666,14 @@ define(function (require, exports, module) {
             includeWorkingSet = filter;
             filter = null;
         }
-        
-        function _traverse(entry, callback) {
-            if (entry.isFile()) {
-                result.push(entry);
-                callback(null);
-                return;
-            }
-            
-            entry.getContents(function (err, entries) {
-                var counter = entries.length;
 
-                if (err || !counter) {
-                    callback(err);
-                    return;
-                }
-                
-                entries.forEach(function (entry) {
-                    _traverse(entry, function (err) {
-                        // Ignore errors and continue
-                        if (--counter === 0) {
-                            callback(null);
-                        }
-                    });
-                });
-            });
-        }
         
         function visitor(entry) {
             if (entry.isFile()) {
                 result.push(entry);
             }
             
-            return !filter || filter(entry);
+            return true;
         }
         
         getProjectRoot().visit(visitor, function (err) {
