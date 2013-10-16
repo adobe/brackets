@@ -312,7 +312,7 @@ define(function (require, exports, module) {
 
         // This is a dragging state, but left button is no longer down, so mouse
         // exited element, was released, and re-entered element. Treat like a drop.
-        if (e.which !== 1) {
+        if (bezierEditor.dragElement && (e.which !== 1)) {
             bezierEditor.dragElement = null;
             bezierEditor._commitBezierCurve();
             bezierEditor._updateCanvas();
@@ -325,10 +325,12 @@ define(function (require, exports, module) {
         // arbitrarily constrained to -0.5 to 1.5 range.
         x = Math.min(Math.max(0, x), curveBoundingBox.width);
 
-        $(bezierEditor.dragElement).css({
-            left: x + "px",
-            top:  y + "px"
-        });
+        if (bezierEditor.dragElement) {
+            $(bezierEditor.dragElement).css({
+                left: x + "px",
+                top:  y + "px"
+            });
+        }
 
         // update coords
         bezierEditor._cubicBezierCoords = bezierEditor.bezierCanvas
