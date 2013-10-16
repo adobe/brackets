@@ -8,7 +8,7 @@
 .bezier-curve-editor {
     position: relative;
     height: 300px;
-    padding: 0 18px;
+    margin: 0 25px;
 }
 
 .bezier-curve-editor .cubic-bezier-highlight {

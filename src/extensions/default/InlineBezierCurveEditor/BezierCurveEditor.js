@@ -562,10 +562,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * There's no focus until a handle is clicked
+     * Default focus needs to go somewhere, so give it to P1
      */
     BezierCurveEditor.prototype.focus = function () {
-        return false;
+        this.P1.focus();
+        return true;
     };
 
     /**

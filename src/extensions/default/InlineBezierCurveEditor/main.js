@@ -49,7 +49,6 @@ define(function (require, exports, module) {
     // Brackets modules
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        KeyEvent            = brackets.getModule("utils/KeyEvent"),
 
         InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
         BezierCurveUtils        = require("BezierCurveUtils");

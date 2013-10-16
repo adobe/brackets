@@ -199,6 +199,13 @@ define(function (require, exports, module) {
 
         this.bezierCurveEditor.destroy();
 
+        if (this._startBookmark) {
+            this._startBookmark.clear();
+        }
+        if (this._endBookmark) {
+            this._endBookmark.clear();
+        }
+
         var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
