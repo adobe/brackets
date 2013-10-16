@@ -117,7 +117,6 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // File has been deleted externally
-                        // TODO: FileSystem error...
                         if (err === Error.NOT_FOUND) {
                             if (doc.isDirty) {
                                 deleteConflicts.push(doc);

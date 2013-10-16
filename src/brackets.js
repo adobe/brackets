@@ -334,7 +334,9 @@ define(function (require, exports, module) {
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
-            FileSyncManager.syncOpenDocuments(); // TODO: FileSystem - remove now that we have file watchers?
+            // This call to syncOpenDocuments() *should* be a no-op now that we have
+            // file watchers, but is still here as a safety net.
+            FileSyncManager.syncOpenDocuments();
         });
         
         // Prevent unhandled middle button clicks from triggering native behavior

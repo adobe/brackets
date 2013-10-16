@@ -392,7 +392,7 @@ define(function (require, exports, module) {
                 
                 fireChangeEvent();
             } else {
-                var oldContents = entry._contents || [];  // TODO: Handle pending content promise
+                var oldContents = entry._contents || [];
                 
                 // Clear out old contents
                 entry._contents = undefined;

@@ -52,7 +52,6 @@ define(function (require, exports, module) {
         },
         "name": {
             get: function () {
-                // TODO: cache this result in a member?
                 var parts = this._path.split("/");
                 if (this.isDirectory()) {
                     return parts[parts.length - 2];

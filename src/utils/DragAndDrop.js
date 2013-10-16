@@ -77,7 +77,7 @@ define(function (require, exports, module) {
         return Async.doInParallel(files, function (path, idx) {
             var result = new $.Deferred();
             
-            // Only open files. TODO: FileSystem
+            // Only open files.
             ProjectManager.getFileSystem().resolve(path, function (err, item) {
                 if (!err && item.isFile()) {
                     // If the file is already open, and this isn't the last

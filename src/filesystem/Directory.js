@@ -111,16 +111,9 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {number=} mode The mode for the directory.
      * @param {function (number, object)=} callback 
      */
-    Directory.prototype.create = function (mode, callback) {
-        if (typeof (mode) === "function") {
-            callback = mode;
-        }
-        
-        // TODO: support mode
-        
+    Directory.prototype.create = function (callback) {
         this._impl.mkdir(this._path, function (err, stat) {
             if (!err) {
                 this._stat = stat;

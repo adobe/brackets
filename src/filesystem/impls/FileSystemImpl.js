@@ -1,7 +1,5 @@
 // Methods that must be implemented by a FileSystemImpl
 //
-// TODO: ERROR CODES!!!!!!!
-//
 // stat {
 //   isFile(): boolean,
 //   isDirectory(): boolean,

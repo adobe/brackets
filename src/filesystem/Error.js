@@ -36,6 +36,6 @@ define(function (require, exports, module) {
         NOT_WRITABLE        : "NotWritable",
         OUT_OF_SPACE        : "OutOfSpace",
         ALREADY_EXISTS      : "AlreadyExists"
-        // TODO: Add remote connection errors: timeout, not logged in, connection err, etc.
+        // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
 });

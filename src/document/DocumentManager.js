@@ -665,7 +665,6 @@ define(function (require, exports, module) {
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
-                    // TODO: FileSystem - release File object? 
                     result.reject(fileError);
                 });
             

@@ -756,7 +756,7 @@ define(function (require, exports, module) {
         
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents) {
-            if (!err) {
+            if (contents) {
                 processEntries(contents);
             } else {
                 Dialogs.showModalDialog(
@@ -772,32 +772,6 @@ define(function (require, exports, module) {
                 deferred.reject();
             }
         });
-        
-        /* TODO: FileSystem - handle partial errors. See below.
-        dirEntry.createReader().readEntries(
-            processEntries,
-            function (error, entries) {
-                if (entries) {
-                    // some but not all entries failed to load, so render what we can
-                    console.warn("Error reading a subset of folder " + dirEntry);
-                    processEntries(entries);
-                } else {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_ERROR,
-                        Strings.ERROR_LOADING_PROJECT,
-                        StringUtils.format(
-                            Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                            StringUtils.breakableUrl(dirEntry.fullPath),
-                            error
-                        )
-                    );
-                    // Reject the render promise so we can move on.
-                    deferred.reject();
-                }
-            }
-        );
-        */
-
     }
     
     /**
