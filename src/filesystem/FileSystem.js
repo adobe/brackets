@@ -374,6 +374,7 @@ define(function (require, exports, module) {
             return;
         }
 
+        path = _normalizePath(path, false);
         var entry = this._index.getEntry(path);
         
         var fireChangeEvent = function () {
