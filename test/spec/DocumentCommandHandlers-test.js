@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -48,6 +48,7 @@ define(function (require, exports, module) {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow,
+            _$,
             promise;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
@@ -57,6 +58,7 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
+                _$ = testWindow.$;
 
                 // Load module instances from brackets.test
                 CommandManager          = testWindow.brackets.test.CommandManager;
@@ -1062,6 +1064,7 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
+
         describe("Opens image file and validates EditorManager APIs", function () {
             it("should return null after opening an image", function () {
                 var path = testPath + "/couz.png";
@@ -1071,6 +1074,108 @@ define(function (require, exports, module) {
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
                     var d = DocumentManager.getCurrentDocument();
                     expect(d).toEqual(null);
+                });
+            });
+        });
+        
+        describe("Open image file while a text file is open", function () {
+            it("should fire currentDocumentChange and activeEditorChange events", function () {
+
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(activeEditorChangeListener.callCount).toBe(1);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(2);
+                    expect(activeEditorChangeListener.callCount).toBe(2);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+            });
+        });
+        
+        describe("Open image file while neither text editor nor image file is open", function () {
+            it("should NOT fire currentDocumentChange and activeEditorChange events", function () {
+
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz2.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+    
+            });
+        });
+        
+        describe("Open a text file while a text file is open", function () {
+            it("should fire currentDocumentChange and activeEditorChange events", function () {
+
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(activeEditorChangeListener.callCount).toBe(1);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test2.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(2);
+                    expect(activeEditorChangeListener.callCount).toBe(2);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
                 });
             });
         });

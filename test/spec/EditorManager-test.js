@@ -206,6 +206,27 @@ define(function (require, exports, module) {
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
         });
+        
+        describe("getCurrentlyViewedFile and setCurrentlyViewedFile ", function () {
+            it("should set and return _currentlyViewedFile", function () {
+                var PATH = "/a/b/c";
+
+                EditorManager.setCurrentlyViewedFile(PATH);
+                expect(EditorManager.getCurrentlyViewedFile()).toBe(PATH);
+            });
+        });
+        
+        describe("clearCurrentlyViewedFile ", function () {
+            it("should clear _currentlyViewedFile", function () {
+                var PATH = "/a/b/c";
+
+                EditorManager.setCurrentlyViewedFile(PATH);
+                expect(EditorManager.getCurrentlyViewedFile()).toBe(PATH);
+                EditorManager.clearCurrentlyViewedFile();
+                expect(EditorManager.getCurrentlyViewedFile()).toBe(null);
+                
+            });
+        });
 
     });
 });
