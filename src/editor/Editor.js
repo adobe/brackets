@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -38,7 +38,7 @@
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
  * but this is considered deprecated and may go away.
- *  
+ *
  * The Editor object dispatches the following events:
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
@@ -64,8 +64,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeHintManager    = require("editor/CodeHintManager"),
-        Commands           = require("command/Commands"),
+    var Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
@@ -82,8 +81,6 @@ define(function (require, exports, module) {
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor");
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
@@ -120,13 +117,13 @@ define(function (require, exports, module) {
      */
     function _handleTabKey(instance) {
         // Tab key handling is done as follows:
-        // 1. If the selection is before any text and the indentation is to the left of 
+        // 1. If the selection is before any text and the indentation is to the left of
         //    the proper indentation then indent it to the proper place. Otherwise,
-        //    add another tab. In either case, move the insertion point to the 
+        //    add another tab. In either case, move the insertion point to the
         //    beginning of the text.
         // 2. If the selection is multi-line, indent all the lines.
-        // 3. If the selection is after the first non-space character, and is an 
-        //    insertion point, insert a tab character or the appropriate number 
+        // 3. If the selection is after the first non-space character, and is an
+        //    insertion point, insert a tab character or the appropriate number
         //    of spaces to pad to the nearest tab boundary.
         var from = instance.getCursor(true),
             to = instance.getCursor(false),
@@ -171,7 +168,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
-     * @param {!CodeMirror} instance CodeMirror instance 
+     * @param {!CodeMirror} instance CodeMirror instance
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {function} functionName name of the CodeMirror function to call
      * @return {boolean} true if key was handled
@@ -201,7 +198,7 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                // If we are on the tab boundary, jump by the full amount, 
+                // If we are on the tab boundary, jump by the full amount,
                 // but not beyond the start of the line.
                 if (jump === 0) {
                     jump = indentUnit;
@@ -271,9 +268,6 @@ define(function (require, exports, module) {
     
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
-
-        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
-        CodeHintManager.handleKeyEvent(editor, event);
     }
 
     /**
@@ -305,7 +299,7 @@ define(function (require, exports, module) {
      *
      * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
      *
-     * @param {!Document} document  
+     * @param {!Document} document
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
      *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
      *          secondary editor.
@@ -492,7 +486,7 @@ define(function (require, exports, module) {
     };
     
         
-    /** 
+    /**
      * Selects all text and maintains the current scroll position.
      */
     Editor.prototype.selectAllNoScroll = function () {
@@ -538,7 +532,7 @@ define(function (require, exports, module) {
                 return;
             }
         }
-        
+
         // Apply text changes to CodeMirror editor
         var cm = this._codeMirror;
         cm.operation(function () {
@@ -599,13 +593,18 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        CodeHintManager.handleChange(this, changeList);
+        // The "editorChange" event is mostly for the use of the CodeHintManager.
+        // It differs from the normal "change" event, that it's actually publicly usable,
+        // whereas the "change" event should be listened to on the document. Also the
+        // Editor dispatches a change event before this event is dispatched, because
+        // CodeHintManager needs to hook in here when other things are already done.
+        $(this).triggerHandler("editorChange", [this, changeList]);
     };
     
     /**
      * Responds to changes in the Document's text, syncing the changes into our CodeMirror instance.
      * There are several cases where we want to ignore a Document change:
-     *  - if we're the master editor, Document changes should be ignored becuase we already have the right
+     *  - if we're the master editor, Document changes should be ignored because we already have the right
      *    text (either the change originated with us, or it has already been set into us by Document)
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us
@@ -650,7 +649,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Install event handlers on the CodeMirror instance, translating them into 
+     * Install event handlers on the CodeMirror instance, translating them into
      * jQuery events on the Editor instance.
      */
     Editor.prototype._installEditorListeners = function () {
@@ -659,7 +658,7 @@ define(function (require, exports, module) {
         // onKeyEvent is an option in CodeMirror rather than an event--it's a
         // low-level hook for all keyboard events rather than a specific event. For
         // our purposes, though, it's convenient to treat it as an event internally,
-        // so we bridge it to jQuery events the same way we do ordinary CodeMirror 
+        // so we bridge it to jQuery events the same way we do ordinary CodeMirror
         // events.
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
@@ -812,7 +811,7 @@ define(function (require, exports, module) {
         var $scrollerElement = $(this.getScrollerElement());
         var editorHeight = $scrollerElement.height();
         
-        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top. 
+        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top.
         var statusBarHeight = $scrollerElement.outerHeight() - editorHeight;
         var menuBarHeight = $scrollerElement.offset().top;
         
@@ -1242,7 +1241,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets the height of an inline widget in this editor. 
+     * Sets the height of an inline widget in this editor.
      * @param {!InlineWidget} inlineWidget The widget whose height should be set.
      * @param {!number} height The height of the widget.
      * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
@@ -1304,7 +1303,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Get the starting line number for an inline widget.
-     * @param {!InlineWidget} inlineWidget 
+     * @param {!InlineWidget} inlineWidget
      * @return {number} The line number of the widget or -1 if not found.
      */
     Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
@@ -1341,7 +1340,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.refresh = function (handleResize) {
         // If focus is currently in a child of the CodeMirror editor (e.g. in an inline widget), but not in
-        // the CodeMirror input field itself, remember the focused item so we can restore focus after the 
+        // the CodeMirror input field itself, remember the focused item so we can restore focus after the
         // refresh (which might cause the widget to be removed from the display list temporarily).
         var focusedItem = window.document.activeElement,
             restoreFocus = $.contains(this._codeMirror.getScrollerElement(), focusedItem);
@@ -1407,7 +1406,7 @@ define(function (require, exports, module) {
      * A-B-A would return A as the mode, not null).
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
-     *     naming the mode along with configuration options required by the mode. 
+     *     naming the mode along with configuration options required by the mode.
      *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {

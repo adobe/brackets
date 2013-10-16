@@ -396,9 +396,27 @@ a:focus {
 
 /* Dialog-related styles */
 
+.modal-wrapper {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: auto;
+    display: table;
+}
+
+.modal-inner-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
+
 .modal {
     background-color: @tc-gray-panel;
-    width: auto;
+    min-width: 200px;
+    position: relative;
+    top: 0;
+    margin: auto;
 }
 
 .modal .close {
@@ -412,11 +430,15 @@ a:focus {
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
-.modal-body, .modal-header {
+.modal-body {
+    background-color: @tc-gray-panel;
+}
+
+.modal-body, .modal-header, .modal-footer {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
        to allow the overall modal to take the width of the footer */
-    width: 580px;
+    width: auto;
 }
 
 .modal-footer {
@@ -565,9 +587,6 @@ a[href^="http"] {
     width: 400px;
 }
 
-.install-extension-dialog {
-    margin-top: -125px;
-}
 .install-extension-dialog .modal-body input.url {
     margin: 10px 0;
     width: 550px;
@@ -575,17 +594,13 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    top: 50%;
-    left: 50%;
-    margin-top: -275px;
-    margin-left: -350px;
     background-color: #d4d7d7;
-
+    width: 760px;
+    
     .modal-header {
         border-bottom: none;
         padding: 0;
-        width: auto;
-
+        
         .nav-tabs {
             margin: 0;
             border-color: #c3c6c5;
@@ -670,12 +685,11 @@ a[href^="http"] {
         }
     }
     .modal-body {
-        width: 730px;
         height: 400px;
         overflow-y: scroll;
-        padding: 0;
         background-color: @tc-gray-panel;
-
+        padding: 0;
+        
         .empty-message {
             position: absolute;
             top: 50%;
@@ -902,7 +916,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
+    cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
@@ -993,7 +1007,7 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: #e6e9e9; // TopCoat palette
+        background-color: @tc-lighter-gray; // TopCoat palette
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {

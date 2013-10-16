@@ -603,7 +603,7 @@ a, img {
     position: relative;
     overflow: hidden;
 
-    background-color: @inline-background-color-1;
+    background-color: @tc-lighter-gray;
     min-width: 250px;
     cursor: default;
 
@@ -621,12 +621,12 @@ a, img {
     }
 
     .inline-editor-header {
-        padding: 10px 10px 0px 10px;
+        padding: 10px 10px 0px 40px;
 
         .filename {
             font-family: @sansFontFamily;
             font-size: 1.1em;
-            color: @inline-color-1;
+            color: @tc-light-weight-quiet-text;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -669,9 +669,17 @@ a, img {
         background-color: transparent;
 
         .CodeMirror-linenumbers {
-            background-color: @inline-background-color-1;
+            background-color: @tc-lighter-gray;
         }
     }
+
+    .close {
+        position: absolute;
+        left: 15px;
+        top: 10px;
+        margin-right: 30px;
+    }
+
 }
 
 /* CSSInlineEditor rule list */
@@ -905,10 +913,10 @@ a, img {
         }
     }
 
-    .navigator {    
-        display: none;        
-        button {    
-            margin: 2px 1px 3px;   
+    .navigator {
+        display: none;
+        button {
+            margin: 2px 1px 3px;
         }
     }
 }
@@ -999,7 +1007,7 @@ a, img {
     }
 
     li:nth-child(odd) {
-        background-color: #e6e9e9;
+        background-color: @tc-lighter-gray;
     }
 
     li.smart_autocomplete_highlight {

@@ -594,10 +594,16 @@ define(function (require, exports, module) {
             }
             lastPos = pos;
             
+            // No preview if mouse is past last char on line
+            if (pos.ch >= editor.document.getLine(pos.line).length) {
+                hidePreview();
+                return;
+            }
+            
             // Is there already a popover provider and range?
             if (popoverState) {
                 if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
@@ -605,12 +611,6 @@ define(function (require, exports, module) {
                     showImmediately = popoverState.visible;
                     hidePreview();
                 }
-            }
-            
-            // No preview if mouse is past last char on line
-            if (pos.ch >= editor.document.getLine(pos.line).length) {
-                hidePreview();
-                return;
             }
             
             // Initialize popoverState

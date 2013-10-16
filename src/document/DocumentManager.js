@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -28,7 +28,7 @@
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
  * the working set, and the notion of which Document is currently shown in the main editor UI area.
- * 
+ *
  * Document is the model for a file's contents; it dispatches events whenever those contents change.
  * To transiently inspect a file's content, simply get a Document and call getText() on it. However,
  * to be notified of Document changes or to modify a Document, you MUST call addRef() to ensure the
@@ -36,7 +36,7 @@
  * Documents are all Documents that are 'kept alive', i.e. have ref count > 0).
  *
  * To get a Document, call getDocumentForPath(); never new up a Document yourself.
- * 
+ *
  * Secretly, a Document may use an Editor instance to act as the model for its internal state. (This
  * is unavoidable because CodeMirror does not separate its model from its UI). Documents are not
  * modifiable until they have a backing 'master Editor'. Creation of the backing Editor is owned by
@@ -54,7 +54,7 @@
  *
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
  *      Document whose flag changed.
- *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
+ *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the
  *      Document that has been saved.
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
@@ -72,7 +72,7 @@
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
  *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
  *      Listener receives no arguments.
- * 
+ *
  *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
  *      by manual dragging and dropping. Listener receives no arguments.
  *
@@ -82,7 +82,7 @@
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
- * 
+ *
  * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
         return _workingSet.slice(0);
     }
 
-    /** 
+    /**
      * Returns the index of the file matching fullPath in the working set.
      * Returns -1 if not found.
      * @param {!string} fullPath
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         });
     }
     
-    /** 
+    /**
      * Returns the index of the file matching fullPath in _workingSetAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
@@ -465,7 +465,7 @@ define(function (require, exports, module) {
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
      * causes this Document's main editor UI to be shown in the editor pane, updates the selection
      * in the file tree / working set UI, etc. This call may also add the item to the working set.
-     * 
+     *
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
      */
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
                     .fail(function () {
                         // File chosen to be switched to could not be opened, and the original file
                         // is still in editor. Close it again so code will try to open the next file,
-                        // or empty the editor if there are no other files. 
+                        // or empty the editor if there are no other files.
                         closeFullEditor(file);
                     });
             } else {
@@ -567,6 +567,32 @@ define(function (require, exports, module) {
     function closeAll() {
         _clearCurrentDocument();
         _removeAllFromWorkingSet();
+    }
+        
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
+        var fileList = [], index;
+        
+        if (!list) {
+            return;
+        }
+        
+        if (clearCurrentDocument) {
+            _clearCurrentDocument();
+        }
+        
+        list.forEach(function (file) {
+            index = findInWorkingSet(file.fullPath);
+            
+            if (index !== -1) {
+                fileList.push(_workingSet[index]);
+                
+                _workingSet.splice(index, 1);
+                _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+                _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+            }
+        });
+        
+        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
     }
     
     
@@ -817,7 +843,7 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        // Update open documents. This will update _currentDocument too, since 
+        // Update open documents. This will update _currentDocument too, since
         // the current document is always open.
         var keysToDelete = [];
         CollectionUtils.forEach(_openDocuments, function (doc, path) {
@@ -849,7 +875,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Called after a file or folder has been deleted. This function is responsible 
+     * Called after a file or folder has been deleted. This function is responsible
      * for updating underlying model data and notifying all views of the change.
      *
      * @param {string} path The path of the file/folder that has been deleted
@@ -940,6 +966,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
@@ -953,8 +980,6 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(module);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
