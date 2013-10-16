@@ -585,7 +585,7 @@ define(function (require, exports, module) {
         }
         
         if (clearCurrentDocument) {
-            _clearCurrentDocument();
+            clearCurrentDocument();
         }
         
         list.forEach(function (file) {
