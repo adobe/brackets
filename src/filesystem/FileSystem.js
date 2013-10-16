@@ -71,10 +71,44 @@ define(function (require, exports, module) {
     FileSystem.prototype._index = null;
 
     /**
+     * Refcount of any pending write operations. Used to guarantee file-watcher callbacks don't
+     * run until after operation-specific callbacks & index fixups complete (this is important for
+     * distinguishing rename from an unrelated delete-add pair).
+     * @type {number}
+     */
+    FileSystem.prototype._writeCount = 0;
+    
+    /**
      * The queue of pending watch/unwatch requests.
      * @type {Array.<{fn: function(), cb: function()}>}
      */
     FileSystem.prototype._watchRequests = null;
+    
+    /**
+     * Queue of arguments to invoke _handleWatchResult() with; triggered once _writeCount drops to zero
+     * @type {!Array.<{path:string, stat:Object}>}
+     */
+    FileSystem.prototype._watchResults = [];
+    
+    /** Process all queued watcher results, by calling _handleWatchResult() on each */
+    FileSystem.prototype._triggerWatchCallbacksNow = function () {
+        this._watchResults.forEach(function (info) {
+            this._handleWatchResult(info.path, info.stat);
+        }.bind(this));
+        this._watchResults.length = 0;
+    };
+    
+    /**
+     * Receives a result from the impl's watcher callback, and either processes it immediately (if
+     * _writeCount is 0) or stores it for later processing (if _writeCount > 0).
+     */
+    FileSystem.prototype._enqueueWatchResult = function (path, stat) {
+        this._watchResults.push({path: path, stat: stat});
+        if (!this._writeCount) {
+            this._triggerWatchCallbacksNow();
+        }
+    };
+    
 
     /**
      * Dequeue and process all pending watch/unwatch requests
@@ -174,7 +208,7 @@ define(function (require, exports, module) {
         this._impl.init(callback);
 
         // Initialize watchers
-        this._impl.initWatchers(this._watcherCallback.bind(this));
+        this._impl.initWatchers(this._enqueueWatchResult.bind(this));
     };
 
     /**
@@ -203,6 +237,24 @@ define(function (require, exports, module) {
         var name = path.substr(path.lastIndexOf("/") + 1);
         
         return !name.match(_exclusionListRegEx);
+    };
+    
+    FileSystem.prototype._beginWrite = function () {
+        this._writeCount++;
+        //console.log("> beginWrite  -> " + this._writeCount);
+    };
+    
+    FileSystem.prototype._endWrite = function () {
+        this._writeCount--;
+        //console.log("< endWrite    -> " + this._writeCount);
+        
+        if (this._writeCount < 0) {
+            console.error("FileSystem _writeCount has fallen below zero!");
+        }
+        
+        if (!this._writeCount) {
+            this._triggerWatchCallbacksNow();
+        }
     };
     
     /**
@@ -362,14 +414,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Callback for file/directory watchers. This is called by the low-level implementation
+     * Processes a result from the file/directory watchers. Watch results are sent from the low-level implementation
      * whenever a directory or file is changed. 
      *
      * @param {string} path The path that changed. This could be a file or a directory.
      * @param {stat=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
-    FileSystem.prototype._watcherCallback = function (path, stat) {
+    FileSystem.prototype._handleWatchResult = function (path, stat) {
         if (!this._index) {
             return;
         }
