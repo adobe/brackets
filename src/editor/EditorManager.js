@@ -623,9 +623,18 @@ define(function (require, exports, module) {
         // remove current image, this will only happen if the view switches from one 
         // image to another
         if (mode.getId() === "image" && $customView && fullPath) {
-            // clear the current document so that 
-            // getCurrentDocument returns null 
-            DocumentManager.nullifyCurrentDocument();
+            
+            var previousDoc = DocumentManager.getCurrentDocument();
+            if (previousDoc) {
+                // clear the current document
+                // and do fire CurrentDocumentChange
+                DocumentManager.clearCurrentDocument();
+            } else {
+                // clear the current document
+                // but do not fire CurrentDocumentChange
+                DocumentManager.nullifyCurrentDocument();
+            }
+
             
             // Hide the not-editor
             $("#not-editor").css("display", "none");
