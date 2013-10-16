@@ -188,6 +188,7 @@ define(function (require, exports, module) {
             if (mode.getId() === "image") {
                 var $imageHolder = ImageViewer.getImageHolder(fullPath);
                 EditorManager.showCustomViewer($imageHolder, fullPath);
+                result.resolve();
             } else {
             // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)

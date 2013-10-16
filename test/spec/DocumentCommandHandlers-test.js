@@ -111,7 +111,6 @@ define(function (require, exports, module) {
             });
         }
         
-        
         describe("New Untitled File", function () {
             var filePath,
                 newFilename,
@@ -1063,7 +1062,6 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
-        
         describe("Opens image file and validates EditorManager APIs", function () {
             it("should return null after opening an image", function () {
                 var path = testPath + "/couz.png";
@@ -1071,6 +1069,8 @@ define(function (require, exports, module) {
                     expect(EditorManager.getActiveEditor()).toEqual(null);
                     expect(EditorManager.getCurrentFullEditor()).toEqual(null);
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
+                    var d = DocumentManager.getCurrentDocument();
+                    expect(d).toEqual(null);
                 });
             });
         });
@@ -1091,5 +1091,7 @@ define(function (require, exports, module) {
                 });
             });
         });
+                
+
     });
 });
