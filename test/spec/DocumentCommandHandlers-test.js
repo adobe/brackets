@@ -35,10 +35,13 @@ define(function (require, exports, module) {
         DocumentManager,         // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
+        EditorManager,           // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils                = require("file/FileUtils"),
-        StringUtils              = require("utils/StringUtils");
+        StringUtils              = require("utils/StringUtils"),
+        Editor                   = require("editor/Editor");
+                    
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
@@ -62,6 +65,7 @@ define(function (require, exports, module) {
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
                 FileViewController      = testWindow.brackets.test.FileViewController;
+                EditorManager           = testWindow.brackets.test.EditorManager;
             });
         });
         
@@ -1057,6 +1061,34 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path)).toEqual({path: path, line: null, column: null});
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123")).toEqual({path: path, line: 123, column: null});
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
+            });
+        });
+        
+        describe("Opens image file and validates EditorManager APIs", function () {
+            it("should return null after opening an image", function () {
+                var path = testPath + "/couz.png";
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
+                    expect(EditorManager.getActiveEditor()).toEqual(null);
+                    expect(EditorManager.getCurrentFullEditor()).toEqual(null);
+                    expect(EditorManager.getFocusedEditor()).toEqual(null);
+                });
+            });
+        });
+        
+        describe("Opens text file and validates EditorManager APIs", function () {
+            it("should return an editor after opening a text file", function () {
+                var path = testPath + "/test.js";
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
+                    var e = EditorManager.getActiveEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                    
+                    e = EditorManager.getCurrentFullEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+     
+                    e = EditorManager.getFocusedEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                
+                });
             });
         });
     });
