@@ -49,9 +49,11 @@ define(function (require, exports, module) {
     // Brackets modules
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        Strings             = brackets.getModule("strings"),
 
         InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
-        BezierCurveUtils        = require("BezierCurveUtils");
+        BezierCurveUtils        = require("BezierCurveUtils"),
+        EmbeddedStyles          = require("text!EmbeddedStyles.css");
 
     
     // Functions
@@ -152,6 +154,7 @@ define(function (require, exports, module) {
     function init() {
         // Load our stylesheet
         ExtensionUtils.loadStyleSheet(module, "main.css");
+        ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(EmbeddedStyles, Strings));
     
         EditorManager.registerInlineEditProvider(inlineBezierCurveEditorProvider);
     }

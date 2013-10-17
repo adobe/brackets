@@ -74,7 +74,6 @@
 
 .bezier-curve-editor .coordinate-plane:before {
     border-bottom: 1px solid transparent;
-    content: 'Progression';
        -moz-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
          -o-transform: rotate(-90deg);
@@ -89,17 +88,8 @@
 }
 
 .bezier-curve-editor .coordinate-plane:after {
-    content: 'Time';
     margin-bottom: -1.5em;
     white-space: nowrap;
-}
-
-.bezier-curve-editor .coordinate-plane:hover:before {
-    content: 'Progression (' attr(data-progression) '%)';
-}
-
-.bezier-curve-editor .coordinate-plane:hover:after {
-    content: 'Time (' attr(data-time) '%)';
 }
 
 .bezier-curve-editor .control-point {
