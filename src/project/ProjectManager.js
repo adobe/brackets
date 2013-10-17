@@ -83,6 +83,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * File and folder names which are not displayed or searched
+     * TODO: We should add the rest of the file names that TAR excludes:
+     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * @type {RegExp}
+     */
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
+    
+    /**
+     * @private
      * File names which are not showed in quick open dialog
      * @type {RegExp}
      */
@@ -639,6 +648,18 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns false for files and directories that are not commonly useful to display.
+     *
+     * @param {string} path File or directory to filter
+     * @return boolean true if the file should be displayed
+     */
+    function shouldShow(path) {
+        var name = path.substr(path.lastIndexOf("/") + 1);
+        
+        return !name.match(_exclusionListRegEx);
+    }
+    
+    /**
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
      * @return {boolean}
@@ -668,7 +689,7 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (FileSystem.shouldShow(entry.fullPath)) {
+            if (shouldShow(entry.fullPath)) {
                 jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
@@ -829,15 +850,11 @@ define(function (require, exports, module) {
         $(FileSystem).on("change", _fileSystemChange);
         $(FileSystem).on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), function (entry) {
-            return FileSystem.shouldShow(entry.fullPath);
-        }, function (entry) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), shouldShow, function (entry) {
             console.log("Entry changed!", entry);
         }, function (err) {
             if (err) {
                 console.log("Error watching project root: ", rootPath, err);
-            } else {
-                console.log("Finished watching project root:", rootPath);
             }
         });
     }
@@ -855,8 +872,6 @@ define(function (require, exports, module) {
             FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
                     console.log("Error unwatching project root: ", _projectRoot.fullPath, err);
-                } else {
-                    console.log("Finished unwatching project root: ", _projectRoot.fullPath);
                 }
             });
         }
@@ -1730,6 +1745,7 @@ define(function (require, exports, module) {
     exports.setBaseUrl               = setBaseUrl;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
+    exports.shouldShow               = shouldShow;
     exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;

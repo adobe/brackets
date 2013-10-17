@@ -62,9 +62,10 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry The entry to remove.
      */
     FileIndex.prototype.removeEntry = function (entry) {
-        var path = entry.fullPath;
+        // TODO: Safely remove entries from the index
+        // var path = entry.fullPath;
         
-        delete this._index[path];
+        // delete this._index[path];
     };
     
     /**

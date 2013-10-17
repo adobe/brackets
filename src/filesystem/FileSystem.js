@@ -59,10 +59,44 @@ define(function (require, exports, module) {
     FileSystem.prototype._index = null;
 
     /**
+     * Refcount of any pending write operations. Used to guarantee file-watcher callbacks don't
+     * run until after operation-specific callbacks & index fixups complete (this is important for
+     * distinguishing rename from an unrelated delete-add pair).
+     * @type {number}
+     */
+    FileSystem.prototype._writeCount = 0;
+    
+    /**
      * The queue of pending watch/unwatch requests.
      * @type {Array.<{fn: function(), cb: function()}>}
      */
     FileSystem.prototype._watchRequests = null;
+    
+    /**
+     * Queue of arguments to invoke _handleWatchResult() with; triggered once _writeCount drops to zero
+     * @type {!Array.<{path:string, stat:Object}>}
+     */
+    FileSystem.prototype._watchResults = [];
+    
+    /** Process all queued watcher results, by calling _handleWatchResult() on each */
+    FileSystem.prototype._triggerWatchCallbacksNow = function () {
+        this._watchResults.forEach(function (info) {
+            this._handleWatchResult(info.path, info.stat);
+        }.bind(this));
+        this._watchResults.length = 0;
+    };
+    
+    /**
+     * Receives a result from the impl's watcher callback, and either processes it immediately (if
+     * _writeCount is 0) or stores it for later processing (if _writeCount > 0).
+     */
+    FileSystem.prototype._enqueueWatchResult = function (path, stat) {
+        this._watchResults.push({path: path, stat: stat});
+        if (!this._writeCount) {
+            this._triggerWatchCallbacksNow();
+        }
+    };
+    
 
     /**
      * Dequeue and process all pending watch/unwatch requests
@@ -106,15 +140,72 @@ define(function (require, exports, module) {
      * The set of watched roots, encoded as a mapping from full paths to objects
      * which contain a file entry, filter function, and change handler function.
      * 
-     * @type{Object.<string, Object.<entry: FileSystemEntry,
-     *      filter: function(entry): boolean,
-     *      handleChange: function(entry)>>}
+     * @type{Object.<string, {entry: FileSystemEntry,
+     *                        filter: function(string): boolean,
+     *                        handleChange: function(FileSystemEntry)} >}
      */
     FileSystem.prototype._watchedRoots = null;
     
     /**
+     * Helper function to watch or unwatch a filesystem entry beneath a given
+     * watchedRoot.
+     * 
+     * @private
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     * @param {boolean} shouldWatch - Whether the entry should be watched (true)
+     *      or unwatched (false).
+     */
+    FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
+        var paths = [];
+        var visitor = function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                paths.push(child.fullPath);
+            }
+            
+            return watchedRoot.filter(child.fullPath);
+        }.bind(this);
+        
+        entry.visit(visitor, function (err) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            // sort paths by max depth for a breadth-first traversal
+            var dirCount = {};
+            paths.forEach(function (path) {
+                dirCount[path] = path.split("/").length;
+            });
+            
+            paths.sort(function (path1, path2) {
+                var dirCount1 = dirCount[path1],
+                    dirCount2 = dirCount[path2];
+                
+                return dirCount1 - dirCount2;
+            });
+            
+            this._enqueueWatchRequest(function (callback) {
+                paths.forEach(function (path, index) {
+                    if (shouldWatch) {
+                        this._impl.watchPath(path);
+                    } else {
+                        this._impl.unwatchPath(path);
+                    }
+                }, this);
+                
+                callback(null);
+            }.bind(this), callback);
+        }.bind(this));
+    };
+    
+    /**
      * Watch a filesystem entry beneath a given watchedRoot.
      * 
+     * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
      * @param {Object} watchedRoot - See FileSystem._watchedRoots.
@@ -122,20 +213,13 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
-        var watchFn = entry.visit.bind(entry, function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.watchPath(child.fullPath);
-            }
-            
-            return watchedRoot.filter(child);
-        }.bind(this));
-        
-        this._enqueueWatchRequest(watchFn, callback);
+        this._watchOrUnwatchEntry(entry, watchedRoot, callback, true);
     };
 
     /**
      * Unwatch a filesystem entry beneath a given watchedRoot.
      * 
+     * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
      * @param {Object} watchedRoot - See FileSystem._watchedRoots.
@@ -143,16 +227,7 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        var watchFn = entry.visit.bind(entry, function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.unwatchPath(child.fullPath);
-            }
-            this._index.removeEntry(child);
-            
-            return watchedRoot.filter(child);
-        }.bind(this));
-        
-        this._enqueueWatchRequest(watchFn, callback);
+        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
     };
     
     /**
@@ -165,7 +240,7 @@ define(function (require, exports, module) {
         this._impl.init(callback);
 
         // Initialize watchers
-        this._impl.initWatchers(this._watcherCallback.bind(this));
+        this._impl.initWatchers(this._enqueueWatchResult.bind(this));
     };
     
     /**
@@ -177,16 +252,49 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns false for files and directories that are not commonly useful to display.
-     *
-     * @param {string} path File or directory to filter
-     * @return boolean true if the file should be displayed
+     * Returns true if the given path should be automatically added to the index & watch list when one of its ancestors
+     * is a watch-root. (Files are added automatically when the watch-root is first established, or later when a new
+     * directory is created and its children enumerated).
+     * 
+     * Entries explicitly created via FileSystem.getFile/DirectoryForPath() are *always* added to the index regardless
+     * of this filtering - but they will not be watched if the watch-root's filter excludes them.
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
-    FileSystem.prototype.shouldShow = function (path) {
-        var name = path.substr(path.lastIndexOf("/") + 1);
+    FileSystem.prototype._indexFilter = function (path) {
+        var parentRoot;
         
-        return !name.match(_exclusionListRegEx);
+        Object.keys(this._watchedRoots).some(function (watchedPath) {
+            if (path.indexOf(watchedPath) === 0) {
+                parentRoot = this._watchedRoots[watchedPath];
+                return true;
+            }
+        }, this);
+        
+        if (parentRoot) {
+            return parentRoot.filter(path);
+        }
+        
+        // It might seem more sensible to return false (exclude) for files outside the watch roots, but
+        // that would break usage of appFileSystem for 'system'-level things like enumerating extensions.
+        // (Or in general, Directory.getContents() for any Directory outside the watch roots).
+        return true;
+    };
+    
+    FileSystem.prototype._beginWrite = function () {
+        this._writeCount++;
+        //console.log("> beginWrite  -> " + this._writeCount);
+    };
+    
+    FileSystem.prototype._endWrite = function () {
+        this._writeCount--;
+        //console.log("< endWrite    -> " + this._writeCount);
+        
+        if (this._writeCount < 0) {
+            console.error("FileSystem _writeCount has fallen below zero!");
+        }
+        
+        if (!this._writeCount) {
+            this._triggerWatchCallbacksNow();
+        }
     };
     
     /**
@@ -346,14 +454,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Callback for file/directory watchers. This is called by the low-level implementation
+     * Processes a result from the file/directory watchers. Watch results are sent from the low-level implementation
      * whenever a directory or file is changed. 
      *
      * @param {string} path The path that changed. This could be a file or a directory.
      * @param {stat=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
-    FileSystem.prototype._watcherCallback = function (path, stat) {
+    FileSystem.prototype._handleWatchResult = function (path, stat) {
         if (!this._index) {
             return;
         }
@@ -460,8 +568,9 @@ define(function (require, exports, module) {
      * 
      * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
      *      all subdirectories that aren't explicitly filtered will also be watched.
-     * @param {function(FileSystemEntry): boolean} filter - A function to determine whether
-     *      a particular FileSystemEntry should be watched or ignored. 
+     * @param {function(string): boolean} filter - A function to determine whether
+     *      a particular path should be watched or ignored. Paths that are ignored are also
+     *      filtered from Directory.getContents() results within this subtree.
      * @param {function(FileSystemEntry)} handleChange - A function that is called whenever
      *      a particular FileSystemEntry is changed.
      * @param {function(?string)} callback - A function that is called when the watch has

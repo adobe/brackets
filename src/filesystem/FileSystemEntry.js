@@ -109,6 +109,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Helpful toString for debugging purposes
+     */
+    FileSystemEntry.prototype.toString = function () {
+        return "[" + (this.isDirectory() ? "Directory " : "File ") + this._path + "]";
+    };
+    
+    /**
      * Check to see if the entry exists on disk.
      *
      * @param {function (boolean)} callback Callback with a single parameter.
@@ -128,7 +135,7 @@ define(function (require, exports, module) {
     /**
      * Returns the stats for the entry.
      *
-     * @param {function (err, object)} callback Callback that is resolved with the entries 
+     * @param {function (err, object)} callback Callback that is resolved with the entry's
      * stats.
      */
     FileSystemEntry.prototype.stat = function (callback) {
@@ -147,16 +154,21 @@ define(function (require, exports, module) {
     /**
      * Rename this entry.
      *
-     * @param {String} newName New name for this entry.
+     * @param {string} newFullPath New path & name for this entry.
      * @param {function (number)} callback  
      */
-    FileSystemEntry.prototype.rename = function (newName, callback) {
-        this._impl.rename(this._path, newName, function (err) {
-            if (!err) {
-                // Notify the file system of the name change
-                this._fileSystem._entryRenamed(this._path, newName, this.isDirectory());
+    FileSystemEntry.prototype.rename = function (newFullPath, callback) {
+        this._fileSystem._beginWrite();
+        this._impl.rename(this._path, newFullPath, function (err) {
+            try {
+                if (!err) {
+                    // Notify the file system of the name change
+                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory());
+                }
+                callback(err);  // notify caller
+            } finally {
+                this._fileSystem._endWrite();  // unblock generic change events
             }
-            callback(err);
         }.bind(this));
     };
         

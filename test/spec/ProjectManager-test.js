@@ -599,7 +599,7 @@ define(function (require, exports, module) {
         
         describe("File Display", function () {
             it("should not show useless directory entries", function () {
-                var shouldShow = FileSystem.shouldShow;
+                var shouldShow = ProjectManager.shouldShow;
                 
                 expect(shouldShow(".git")).toBe(false);
                 expect(shouldShow(".svn")).toBe(false);
