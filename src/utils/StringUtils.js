@@ -170,9 +170,9 @@ define(function (require, exports, module) {
     /**
      * Convert number of bytes into human readable format
      *
-     * @param number bytes     Number of bytes to convert
-     * @param number precision Number of digits after the decimal separator
-     * @return string
+     * @param {!number} bytes     - Number of bytes to convert
+     * @param {?number} precision - Number of digits after the decimal separator
+     * @return {string}
      */
     function prettyPrintBytes(bytes, precision) {
         var kilobyte = 1024,
@@ -185,19 +185,15 @@ define(function (require, exports, module) {
         }
         if ((bytes >= kilobyte) && (bytes < megabyte)) {
             return (bytes / kilobyte).toFixed(precision) + ' KB';
-    
         }
         if ((bytes >= megabyte) && (bytes < gigabyte)) {
             return (bytes / megabyte).toFixed(precision) + ' MB';
-    
         }
         if ((bytes >= gigabyte) && (bytes < terabyte)) {
             return (bytes / gigabyte).toFixed(precision) + ' GB';
-    
         }
         if (bytes >= terabyte) {
             return (bytes / terabyte).toFixed(precision) + ' TB';
-    
         } else {
             return bytes + ' B';
         }

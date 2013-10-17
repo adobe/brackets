@@ -612,13 +612,13 @@ define(function (require, exports, module) {
             }
         }
         _previousCustomViewer = _currentCustomViewer;
-        _currentCustomViewer = null;        
+        _currentCustomViewer = null;
     }
 
     /** append custom view to editor-holder
-    * @param {?JQuery} $customView  DOM node representing UI of custom view
-    * @param {?string} fullPath  path to the file displayed in the custom view
-    */
+     *  @param {!JQuery} $customView  DOM node representing UI of custom view
+     *  @param {!string} fullPath  path to the file displayed in the custom view
+     */
     function showCustomViewer($customView, fullPath) {
         
         var mode = LanguageManager.getLanguageForPath(fullPath);

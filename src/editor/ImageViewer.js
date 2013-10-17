@@ -38,7 +38,9 @@ define(function (require, exports, module) {
     
     var _naturalWidth = 0;
     
-    /** Update the scale element, i.e. on resize */
+    /** Update the scale element, i.e. on resize 
+     *  @param {!string} currentWidth actual width of image in view
+     */
     function _updateScale(currentWidth) {
         if (currentWidth < _naturalWidth) {
             var scale = Math.floor(currentWidth / _naturalWidth * 100);
@@ -55,12 +57,12 @@ define(function (require, exports, module) {
     }
         
     /**
-    * creates a DOM node to place in the editor-holder
-    * in order to display an image.
-    * @param {!string} fullPath  path to image file
-    * @return {JQuery}
-    *
-    */
+     * creates a DOM node to place in the editor-holder
+     * in order to display an image.
+     * @param {!string} fullPath  path to image file
+     * @return {JQuery}
+     *
+     */
     function getImageHolder(fullPath) {
         if (!fullPath) {
             return;
@@ -75,9 +77,9 @@ define(function (require, exports, module) {
     }
     
     /** Perform decorations on the view that require loading the image in the browser,
-    * i.e. getting actual and natural width and height andplacing the scale sticker
-    *   @param {?string} path to the image file
-    */
+     *  i.e. getting actual and natural width and height andplacing the scale sticker
+     *   @param {!string} fullPath path to the image file
+     */
     function render(fullPath) {
         // null check on the require param
         if (!fullPath) {
