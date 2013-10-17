@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 
 samp
 {
-    /* hide <samp> from the browser so we can show cool features when the user opens the .html in Brackets */
+    /* hide tutorial instructions so they don't show in the browser */
     display: none;
 }
 
