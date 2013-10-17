@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
-        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils"),
+        TextRange                  = require("document/TextRange").TextRange;
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
@@ -646,6 +647,7 @@ define(function (require, exports, module) {
             it("should match a lone type selector given a type", function () {
                 var result = match("div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ tag: "span" });
                 expect(result.length).toBe(0);
@@ -660,6 +662,7 @@ define(function (require, exports, module) {
             it("should match a lone class selector given a class", function () {
                 var result = match(".foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
@@ -677,6 +680,7 @@ define(function (require, exports, module) {
             it("should match a lone id selector given an id", function () {
                 var result = match("#foo { color:red }", { id: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
@@ -698,6 +702,7 @@ define(function (require, exports, module) {
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "bar" });
@@ -707,6 +712,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
                 
@@ -716,6 +722,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
             });
             
             it("should be case-sensitive for all but types", function () {
@@ -1173,6 +1180,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match("p h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
@@ -1180,6 +1188,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1188,8 +1197,10 @@ define(function (require, exports, module) {
                 
                 result = match("div div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = match(".foo .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
             });
@@ -1199,6 +1210,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo > h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1280,42 +1292,63 @@ define(function (require, exports, module) {
                 // Comma- and space- separated
                 var result = match("h4, .foo, #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Comma only
                 result = match("h4,.foo,#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 
                 // Newline-separated
                 result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Space-separated with a space combinator
                 result = match("h4, .foo #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 
                 // Test items of each type in all positions (first, last, middle)
                 result = match("h4, h4, h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(3);
+                var i;
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("h4, h4, h4");
+                }
                 result = match(".foo, .foo, .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe(".foo, .foo, .foo");
+                }
                 result = match("#bar, #bar, #bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("#bar, #bar, #bar");
+                }
             });
         }); // describe("Selector groups")        
 
@@ -1560,6 +1593,80 @@ define(function (require, exports, module) {
                     pos: { line: 2, ch: 4 }
                 }
             });
+        });
+        
+        it("should consolidate consecutive rules that refer to the same item", function () {
+            var doc1 = SpecRunnerUtils.createMockDocument(""),
+                doc2 = SpecRunnerUtils.createMockDocument(""),
+                rules = [
+                    {
+                        name: ".foo",
+                        doc: doc1,
+                        lineStart: 5,
+                        lineEnd: 7
+                    },
+                    {
+                        name: ".eek",
+                        doc: doc1,
+                        lineStart: 10,
+                        lineEnd: 12
+                    },
+                    {
+                        name: ".bar",
+                        doc: doc2,
+                        lineStart: 3,
+                        lineEnd: 5
+                    },
+                    {
+                        name: "#baz",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: "h2",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: ".argle",
+                        doc: doc2,
+                        lineStart: 15,
+                        lineEnd: 20
+                    }
+                ],
+                result = CSSUtils.consolidateRules(rules);
+            
+            expect(result).toEqual([
+                rules[0],
+                rules[1],
+                rules[2],
+                {
+                    name: "#baz, h2",
+                    doc: doc2,
+                    lineStart: 8,
+                    lineEnd: 12,
+                    selectorGroup: "#baz, h2"
+                },
+                rules[5]
+            ]);
+        });
+        
+        it("should extract selectors at the beginning of a text range", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+        
+        it("should extract selectors spanning multiple lines at the beginning of a text range, with newlines replaced", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
         });
     });
 
