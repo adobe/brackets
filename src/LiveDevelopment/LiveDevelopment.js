@@ -569,7 +569,6 @@ define(function LiveDevelopment(require, exports, module) {
             // to the base URL is completed, and (3) the agents finish loading
             // gather related documents and finally set status to STATUS_ACTIVE.
             var doc = _getCurrentDocument();  // TODO: probably wrong...
-            console.log(doc);
 
             if (doc) {
                 var status = STATUS_ACTIVE,
