@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     
     var _naturalWidth = 0;
     
-    /** Update the scale element, i.e. on reize */
+    /** Update the scale element, i.e. on resize */
     function _updateScale(currentWidth) {
         if (currentWidth < _naturalWidth) {
             var scale = Math.floor(currentWidth / _naturalWidth * 100);

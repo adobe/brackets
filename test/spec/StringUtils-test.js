@@ -24,7 +24,6 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, require: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, jasmine: false */
-/*unittests: StringMatch */
 
 define(function (require, exports, module) {
     'use strict';
@@ -39,7 +38,7 @@ define(function (require, exports, module) {
 
         
         describe("prettyPrintBytes", function () {
-            it("should convert a number  of bytes into a human readable string", function () {
+            it("should convert a number of bytes into a human readable string", function () {
                 
                 var prettyBytes = StringUtils.prettyPrintBytes(1);
                 expect(prettyBytes).toBe("1 B");
