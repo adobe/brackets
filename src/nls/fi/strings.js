@@ -402,9 +402,9 @@ define({
     "CMD_SWITCH_LANGUAGE"                  : "Vaihda kieltä",
     "CMD_RUN_UNIT_TESTS"                   : "Suorita testejä",
     "CMD_SHOW_PERF_DATA"                   : "Näytä suorituskyvyn tiedot",
-    "CMD_ENABLE_NODE_DEBUGGER"             : "Ota solmujen virheenjäljitin käyttöön",
-    "CMD_LOG_NODE_STATE"                   : "Kirjaa solmun tila konsoliin",
-    "CMD_RESTART_NODE"                     : "Käynnistä solmu uudelleen",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Ota Noden virheenjäljitin käyttöön",
+    "CMD_LOG_NODE_STATE"                   : "Kirjaa Noden tila konsoliin",
+    "CMD_RESTART_NODE"                     : "Käynnistä Node uudelleen",
     
     "LANGUAGE_TITLE"                       : "Vaihda kieltä",
     "LANGUAGE_MESSAGE"                     : "Kieli:",
