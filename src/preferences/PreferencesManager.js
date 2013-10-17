@@ -32,10 +32,11 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
-        ExtensionLoader   = require("utils/ExtensionLoader"),
-        CollectionUtils   = require("utils/CollectionUtils");
+        ExtensionLoader   = require("utils/ExtensionLoader");
     
     /**
      * The local storage ID
@@ -126,7 +127,7 @@ define(function (require, exports, module) {
             prefStorage[clientID] = prefs;
         } else if (defaults) {
             // add new defaults
-            CollectionUtils.forEach(defaults, function (value, key) {
+            _.forEach(defaults, function (value, key) {
                 if (prefs[key] === undefined) {
                     prefs[key] = value;
                 }

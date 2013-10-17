@@ -67,7 +67,6 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
@@ -990,7 +989,7 @@ define(function (require, exports, module) {
         
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
-            var match = CollectionUtils.indexOf($nodes, function (node, i) {
+            var match = _.findIndex($nodes, function (node, i) {
                 var nodeName = $(node).data("entry").name;
                 return nodeName === seg;
             });
