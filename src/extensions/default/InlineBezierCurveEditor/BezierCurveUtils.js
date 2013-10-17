@@ -36,36 +36,64 @@ define(function (require, exports, module) {
      */
     var BEZIER_CURVE_REGEX = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/;
 
-    // matches returned from  this function must be handled in getCubicBezierCoords()
-    // return RegExp match array (or null)
-    function cubicBezierMatch(str) {
+    /**
+     * Match a bezier curve value from a CSS Declaration or Value.
+     *
+     * Matches returned from this function must be handled in
+     * BezierCurveEditor._getCubicBezierCoords().
+     *
+     * @param {string} str  Input string.
+     * @param {!boolean} lax  Parsing mode where:
+     *          lax=false Input is a Full or partial line containing CSS Declaration.
+     *                    This is the more strict search used for initial detection.
+     *          lax=true  Input is a previously parsed value. This is the less strict search
+     *                    used to convert previouslt parsed values to RegExp match format.
+     * @return {!RegExpMatch}
+     */
+    function cubicBezierMatch(str, lax) {
 
-        // First look for cubic-bezier(...)
+        // First look for cubic-bezier(...).
         var match = str.match(BEZIER_CURVE_REGEX);
         if (match) {
             return match;
         }
 
         // Next look for the ease functions (which are special cases of cubic-bezier())
-        // Start with a syntax verifying search
-        match = str.match(/[: ,]ease(-in-out|-in|-out|)[ ,;]/);
-        if (match) {
-            // return exact match to keyword that we need for later replacement
-            return str.match(/ease(-in-out|-in|-out)?/);
+        if (lax) {
+            // For lax parsing, just look for the keywords
+            match = str.match(/ease(-in)?(-out)?/);
+            if (match) {
+                return match;
+            }
+        } else {
+            // For strict parsing, start with a syntax verifying search
+            match = str.match(/[: ,]ease(-in)?(-out)?[ ,;]/);
+            if (match) {
+                // return exact match to keyword that we need for later replacement
+                return str.match(/ease(-in)?(-out)?/);
+            }
         }
 
-        // Final case is linear. The linear keyword can occur in other values,
-        // so we only detect when it's on same line as "transition"
-        match = str.match(/transition.*?[: ,]linear[ ,;]/);
-        if (match) {
-            // return exact match to keyword that we need for later replacement
-            return str.match(/linear/);
+        // Final case is linear.
+        if (lax) {
+            // For lax parsing, just look for the keyword
+            match = str.match(/linear/);
+            if (match) {
+                return match;
+            }
+        } else {
+            // The linear keyword can occur in other values, so for strict parsing we
+            // only detect when it's on same line as "transition"
+            match = str.match(/transition.*?[: ,]linear[ ,;]/);
+            if (match) {
+                // return exact match to keyword that we need for later replacement
+                return str.match(/linear/);
+            }
         }
 
         return null;
     }
 
     // Define public API
-    exports.BEZIER_CURVE_REGEX  = BEZIER_CURVE_REGEX;
     exports.cubicBezierMatch    = cubicBezierMatch;
 });

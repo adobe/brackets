@@ -120,7 +120,7 @@ define(function (require, exports, module) {
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
-            matches = line.substr(start.ch).match(BezierCurveUtils.BEZIER_CURVE_REGEX);
+            matches = BezierCurveUtils.cubicBezierMatch(line.substr(start.ch), true);
 
         // No longer have a match
         if (!matches) {
@@ -152,7 +152,8 @@ define(function (require, exports, module) {
      * @param {!string} bezierCurveString
      */
     InlineBezierCurveEditor.prototype._handleBezierCurveChange = function (bezierCurveString) {
-        if (bezierCurveString !== this._bezierCurve) {
+        var bezierCurveMatch = BezierCurveUtils.cubicBezierMatch(bezierCurveString, true);
+        if (bezierCurveMatch !== this._bezierCurve) {
             var range = this.getCurrentRange();
             if (!range) {
                 return;
@@ -170,7 +171,7 @@ define(function (require, exports, module) {
                 });
             }
             
-            this._bezierCurve = bezierCurveString;
+            this._bezierCurve = bezierCurveMatch;
         }
     };
     
@@ -234,10 +235,10 @@ define(function (require, exports, module) {
         
         var range = this.getCurrentRange();
         if (range) {
-            var newBezierCurve = this.hostEditor.document.getRange(range.start, range.end);
-            if (newBezierCurve !== this._bezierCurve) {
+            if (range.match !== this._bezierCurve) {
                 this._isHostChange = true;
                 this._isHostChange = false;
+                this._bezierCurve = range.match;
                 this.bezierCurveEditor.handleExternalUpdate(range.match);
             }
         } else {

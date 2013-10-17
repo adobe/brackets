@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        currentMatch = BezierCurveUtils.cubicBezierMatch(cursorLine);
+        currentMatch = BezierCurveUtils.cubicBezierMatch(cursorLine, false);
         if (!currentMatch) {
             return null;
         }
@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         var lineOffset = 0;
         while (pos.ch > (currentMatch.index + currentMatch[0].length + lineOffset)) {
             var restOfLine = cursorLine.substring(currentMatch.index + currentMatch[0].length + lineOffset),
-                newMatch = BezierCurveUtils.cubicBezierMatch(restOfLine);
+                newMatch = BezierCurveUtils.cubicBezierMatch(restOfLine, false);
 
             if (newMatch) {
                 lineOffset += (currentMatch.index + currentMatch[0].length);
