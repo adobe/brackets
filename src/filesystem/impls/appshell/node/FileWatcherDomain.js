@@ -37,7 +37,6 @@ var _domainManager,
  */
 function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
-        console.warn("Watcher already registered for path: " + path);
         return;
     }
     
