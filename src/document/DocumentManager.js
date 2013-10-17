@@ -680,7 +680,7 @@ define(function (require, exports, module) {
               
                     FileUtils.readAsText(fileEntry)
                         .always(function () {
-                          // document is no longer pending
+                            // document is no longer pending
                             delete getDocumentForPath._pendingDocumentPromises[fullPath];
                         })
                         .done(function (rawText, readTimestamp) {

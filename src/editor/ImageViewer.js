@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     
     var _naturalWidth = 0;
     
-
+    /** Update the scale element, i.e. on reize */
     function _updateScale(currentWidth) {
         if (currentWidth < _naturalWidth) {
             var scale = Math.floor(currentWidth / _naturalWidth * 100);
@@ -49,20 +49,18 @@ define(function (require, exports, module) {
         }
     }
     
-    /**
-     * Update the scale element on reisze
-     */
+    /** handle editor resize event, i.e. update scale sticker */
     function onEditorAreaResize() {
         _updateScale($("#img-preview").width());
     }
         
-     /**
-     * creates a DOM node to place in the editor-holder
-     * in order to display an image.
-     * @param {?string} path to image file
-     * @return {Array.<Editor>}
-     *
-     */
+    /**
+    * creates a DOM node to place in the editor-holder
+    * in order to display an image.
+    * @param {!string} fullPath  path to image file
+    * @return {JQuery}
+    *
+    */
     function getImageHolder(fullPath) {
         if (!fullPath) {
             return;
@@ -75,9 +73,10 @@ define(function (require, exports, module) {
         }
         return $imageHolder;
     }
-    /** performs decorations on the view that require loading the image in thebrowser,
-    * i.e. getting atural and actual width and height, placing the scale steicker
-    *   @param{?string} path to the image file
+    
+    /** Perform decorations on the view that require loading the image in the browser,
+    * i.e. getting actual and natural width and height andplacing the scale sticker
+    *   @param {?string} path to the image file
     */
     function render(fullPath) {
         // null check on the require param
@@ -85,8 +84,6 @@ define(function (require, exports, module) {
             return;
         }
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
-            scale = 100,
-            TEXT_HEIGHT = 170,
             mode = LanguageManager.getLanguageForPath(fullPath);
         
         // only do this if we actually do have an image path
@@ -120,4 +117,3 @@ define(function (require, exports, module) {
     exports.onEditorAreaResize  = onEditorAreaResize;
     exports.render              = render;
 });
-    

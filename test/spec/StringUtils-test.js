@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -29,7 +29,11 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var StringUtils = require("utils/StringUtils");
+    var StringUtils = require("utils/StringUtils"),
+        kilobyte = 1024,
+        megabyte = kilobyte * 1024,
+        gigabyte = megabyte * 1024,
+        terabyte = gigabyte * 1024;
     
     describe("StringUtils", function () {
 
@@ -40,17 +44,17 @@ define(function (require, exports, module) {
                 var prettyBytes = StringUtils.prettyPrintBytes(1);
                 expect(prettyBytes).toBe("1 B");
                 
-                prettyBytes = StringUtils.prettyPrintBytes(1024);
+                prettyBytes = StringUtils.prettyPrintBytes(kilobyte);
                 expect(prettyBytes).toBe("1 KB");
                 
-                prettyBytes = StringUtils.prettyPrintBytes(1024 * 1024);
+                prettyBytes = StringUtils.prettyPrintBytes(megabyte);
                 expect(prettyBytes).toBe("1 MB");
                 
-                prettyBytes = StringUtils.prettyPrintBytes(1024 * 1024 * 1024);
+                prettyBytes = StringUtils.prettyPrintBytes(gigabyte);
                 expect(prettyBytes).toBe("1 GB");
                 
-                prettyBytes = StringUtils.prettyPrintBytes(1024 * 1024 * 1024 * 1024);
-                expect(prettyBytes).toBe("1 TB");                 
+                prettyBytes = StringUtils.prettyPrintBytes(terabyte);
+                expect(prettyBytes).toBe("1 TB");
             });
         });
         

@@ -611,6 +611,8 @@ define(function (require, exports, module) {
                 $("#" + customViewId).remove();
             }
         }
+        _previousCustomViewer = _currentCustomViewer;
+        _currentCustomViewer = null;        
     }
 
     /** append custom view to editor-holder
@@ -676,8 +678,6 @@ define(function (require, exports, module) {
     /** Handle project close, remove customView */
     function _onBeforeProjectClose() {
         clearCurrentlyViewedFile();
-        _previousCustomViewer = _currentCustomViewer;
-        _currentCustomViewer = null;
         _removeCustomViewer();
     }
 
@@ -694,8 +694,6 @@ define(function (require, exports, module) {
         // longer needed.
         if (doc) {
             _currentlyViewedFile = doc.file.fullPath;
-            _previousCustomViewer = _currentCustomViewer;
-            _currentCustomViewer = null;
             _showEditor(doc);
         } else {
             _showNoEditor();
