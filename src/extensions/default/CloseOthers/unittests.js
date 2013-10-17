@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, runs, brackets, waitsForDone, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, brackets, waitsForDone, spyOn, jQuery */
 
 define(function (require, exports, module) {
     "use strict";
@@ -133,7 +133,8 @@ define(function (require, exports, module) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
                     DocumentManager.setCurrentDocument(doc);
                     
-                    e.pageX = 20; e.pageY = 20;
+                    e.pageX = 20;
+                    e.pageY = 20;
                     $("#open-files-container").trigger(e);
                 });
 
