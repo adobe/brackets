@@ -504,6 +504,8 @@ define(function (require, exports, module) {
                                    starts that this selector (e.g. .baz) is part of. Particularly relevant for
                                    groups that are on multiple lines.
          selectorGroupStartChar:   column in line where the selector group starts.
+         selectorGroup:            the entire selector group containing this selector, or undefined if there 
+                                   is only one selector in the rule.
          declListStartLine:        line where the declaration list for the rule starts
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
@@ -690,6 +692,25 @@ define(function (require, exports, module) {
             var j;
             declListStartLine = line;
             declListStartChar = stream.start;
+            
+            // Extract the entire selector group we just saw.
+            var selectorGroup, sgLine;
+            if (selectorGroupStartLine !== -1) {
+                selectorGroup = "";
+                for (sgLine = selectorGroupStartLine; sgLine <= declListStartLine; sgLine++) {
+                    var startChar = 0, endChar = lines[sgLine].length;
+                    if (sgLine === selectorGroupStartLine) {
+                        startChar = selectorGroupStartChar;
+                    } else {
+                        selectorGroup += " "; // replace the newline with a single space
+                    }
+                    if (sgLine === declListStartLine) {
+                        endChar = declListStartChar;
+                    }
+                    selectorGroup += lines[sgLine].substring(startChar, endChar);
+                }
+                selectorGroup = selectorGroup.trim();
+            }
 
             // Since we're now in a declaration list, that means we also finished
             // parsing the whole selector group. Therefore, reset selectorGroupStartLine
@@ -706,7 +727,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            // assign this declaration list position to every selector on the stack
+            // assign this declaration list position and selector group to every selector on the stack
             // that doesn't have a declaration list start and end line
             for (j = selectors.length - 1; j >= 0; j--) {
                 if (selectors[j].declListEndLine !== -1) {
@@ -716,6 +737,9 @@ define(function (require, exports, module) {
                     selectors[j].declListStartChar = declListStartChar;
                     selectors[j].declListEndLine = line;
                     selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
+                    if (selectorGroup) {
+                        selectors[j].selectorGroup = selectorGroup;
+                    }
                 }
             }
         }
@@ -915,7 +939,8 @@ define(function (require, exports, module) {
                 name: selectorInfo.selector,
                 document: sourceDoc,
                 lineStart: selectorInfo.ruleStartLine + lineOffset,
-                lineEnd: selectorInfo.declListEndLine + lineOffset
+                lineEnd: selectorInfo.declListEndLine + lineOffset,
+                selectorGroup: selectorInfo.selectorGroup
             });
         });
     }
@@ -1220,6 +1245,29 @@ define(function (require, exports, module) {
         };
     }
     
+    /**
+     * 
+     * In the given rule array (as returned by `findMatchingRules()`), if multiple rules in a row 
+     * refer to the same rule (because there were multiple matching selectors), eliminate the redundant 
+     * rules and use the selectorGroup as the name instead of the original selector.
+     */
+    function consolidateRules(rules) {
+        var newRules = [], lastRule;
+        rules.forEach(function (rule) {
+            if (lastRule &&
+                    rule.document === lastRule.document &&
+                    rule.lineStart === lastRule.lineStart &&
+                    rule.lineEnd === lastRule.lineEnd &&
+                    rule.selectorGroup === lastRule.selectorGroup) {
+                lastRule.name = lastRule.selectorGroup;
+            } else {
+                newRules.push(rule);
+            }
+            lastRule = rule;
+        });
+        return newRules;
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
@@ -1227,6 +1275,7 @@ define(function (require, exports, module) {
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
     exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
     exports.addRuleToDocument = addRuleToDocument;
+    exports.consolidateRules = consolidateRules;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;

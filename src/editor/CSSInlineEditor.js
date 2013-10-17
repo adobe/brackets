@@ -243,10 +243,10 @@ define(function (require, exports, module) {
             });
             return result;
         }
-
+        
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                cssInlineEditor = new MultiRangeInlineEditor(rules || [], _getNoRulesMsg);
+                cssInlineEditor = new MultiRangeInlineEditor(CSSUtils.consolidateRules(rules) || [], _getNoRulesMsg);
                 cssInlineEditor.load(hostEditor);
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
