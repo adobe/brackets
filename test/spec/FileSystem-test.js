@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem          = require("filesystem/FileSystem"),
-        FileSystemManager   = require("filesystem/FileSystemManager");
+    var FileSystem          = require("filesystem/FileSystem");
     
     describe("FileSystem", function () {
         
@@ -36,11 +35,7 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // Create an FS instance for testing
-            FileSystemManager.createFileSystem(null, function (err, fs) {
-                fileSystem = fs;
-                expect(err).toBeFalsy();
-            });
-            waitsFor(function () { return fileSystem; });
+            fileSystem = new FileSystem._FileSystem();
         });
         
         

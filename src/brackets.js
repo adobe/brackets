@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        FileSystemManager       = require("filesystem/FileSystemManager"),
+        FileSystem              = require("filesystem/FileSystem"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
@@ -114,6 +114,9 @@ define(function (require, exports, module) {
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
+    // Initialize the file system
+    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    
     // Local variables
     var params = new UrlParams();
     
@@ -139,6 +142,7 @@ define(function (require, exports, module) {
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
+            FileSystem              : FileSystem,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
@@ -220,7 +224,7 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            brackets.appFileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
+                            FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
                                     var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);

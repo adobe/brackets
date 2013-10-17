@@ -32,17 +32,11 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex");
     
-    
     /**
      * Constructor. FileSystem objects should not be constructed directly.
-     * Use FileSystemManager.createFileSystem() instead.
      * The FileSystem is not usable until init() signals its callback.
-     * @param {!FileSystemImpl} impl Low-level file system implementation to use.
      */
-    function FileSystem(impl, system) {
-        this._impl = impl;
-        this._system = system;
-        
+    function FileSystem() {
         // Create a file index
         this._index = new FileIndex();
         
@@ -58,12 +52,6 @@ define(function (require, exports, module) {
      * This is set in the constructor and cannot be changed.
      */
     FileSystem.prototype._impl = null;
-    
-    /**
-     * The name of the low-level file system implementation used by this object.
-     * This is set in the constructor and cannot be changed.
-     */
-    FileSystem.prototype._system = null;
     
     /**
      * The FileIndex used by this object. This is initialized in the constructor.
@@ -170,18 +158,14 @@ define(function (require, exports, module) {
     /**
      * @param {function(?err)} callback
      */
-    FileSystem.prototype.init = function (callback) {
+    FileSystem.prototype.init = function (impl, callback) {
+        console.assert(!this._impl, "This FileSystem has already been initialized!");
+        
+        this._impl = impl;
         this._impl.init(callback);
 
         // Initialize watchers
         this._impl.initWatchers(this._watcherCallback.bind(this));
-    };
-
-    /**
-     * The name of the low-level file system implementation used by this object.
-     */
-    FileSystem.prototype.getSystemName = function () {
-        return this._system;
     };
     
     /**
@@ -558,6 +542,30 @@ define(function (require, exports, module) {
         }.bind(this));
     };
     
-    // Export the FileSystem class
-    module.exports = FileSystem;
+    // The singleton instance
+    var _instance;
+
+    function _wrap(func) {
+        return function () {
+            return func.apply(_instance, arguments);
+        };
+    }
+    
+    // Export public methods as proxies to the singleton instance
+    exports.init = _wrap(FileSystem.prototype.init);
+    exports.close = _wrap(FileSystem.prototype.close);
+    exports.shouldShow = _wrap(FileSystem.prototype.shouldShow);
+    exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
+    exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
+    exports.resolve = _wrap(FileSystem.prototype.resolve);
+    exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
+    exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
+    exports.watch = _wrap(FileSystem.prototype.watch);
+    exports.unwatch = _wrap(FileSystem.prototype.unwatch);
+    
+    // Export the FileSystem class as "private" for unit testing only.
+    exports._FileSystem = FileSystem;
+    
+    // Create the singleton instance
+    _instance = new FileSystem();
 });

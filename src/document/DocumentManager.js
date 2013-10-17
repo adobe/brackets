@@ -92,6 +92,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
+        FileSystem          = require("filesystem/FileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
@@ -618,7 +619,7 @@ define(function (require, exports, module) {
      *      with a filesystem.Error if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var file            = ProjectManager.getFileSystem().getFileForPath(fullPath),
+        var file            = FileSystem.getFileForPath(fullPath),
             doc             = getOpenDocumentForPath(fullPath),
             pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
 
@@ -630,8 +631,7 @@ define(function (require, exports, module) {
             return pendingPromise;
         } else {
             var result = new $.Deferred(),
-                promise = result.promise(),
-                fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem;
+                promise = result.promise();
             
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
@@ -695,7 +695,7 @@ define(function (require, exports, module) {
         var filename = Strings.UNTITLED + "-" + counter + fileExt,
             fullPath = _untitledDocumentPath + "/" + filename,
             now = new Date(),
-            file = new InMemoryFile(fullPath, ProjectManager.getFileSystem());
+            file = new InMemoryFile(fullPath, FileSystem);
         
         return new DocumentModule.Document(file, now, "");
     }
@@ -790,7 +790,7 @@ define(function (require, exports, module) {
         // Add all files to the working set without verifying that
         // they still exist on disk (for faster project switching)
         files.forEach(function (value, index) {
-            filesToOpen.push(ProjectManager.getFileSystem().getFileForPath(value.file));
+            filesToOpen.push(FileSystem.getFileForPath(value.file));
             if (value.active) {
                 activeFile = value.file;
             }

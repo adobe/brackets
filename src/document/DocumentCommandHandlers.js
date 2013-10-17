@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         InMemoryFile        = require("document/InMemoryFile"),
@@ -192,7 +193,7 @@ define(function (require, exports, module) {
                 .fail(function (fileError) {
                     function _cleanup() {
                         // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(ProjectManager.getFileSystem().getFileForPath(fullPath));
+                        DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullPath));
                         EditorManager.focusEditor();
                         result.reject();
                     }
@@ -226,8 +227,6 @@ define(function (require, exports, module) {
     function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
         if (!fullPath) {
-            var fileSystem = ProjectManager.getFileSystem();
-            
             // Create placeholder deferred
             result = new $.Deferred();
             
@@ -236,14 +235,14 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            fileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
+            FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
                 if (!err) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [];
                         paths.forEach(function (file) {
-                            filesToOpen.push(fileSystem.getFileForPath(file));
+                            filesToOpen.push(FileSystem.getFileForPath(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
@@ -353,7 +352,6 @@ define(function (require, exports, module) {
      */
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
-        var fileSystem = ProjectManager.getFileSystem();
         var suggestedName = baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt;
 
         result.progress(function attemptNewName(suggestedName) {
@@ -364,7 +362,7 @@ define(function (require, exports, module) {
             }
             
             var path = dir + "/" + suggestedName;
-            var entry = isFolder ? fileSystem.getDirectoryForPath(path) : fileSystem.getFileForPath(path);
+            var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
             
             entry.exists(function (exists) {
                 if (exists) {
@@ -557,11 +555,10 @@ define(function (require, exports, module) {
         var origPath,
             saveAsDefaultPath,
             defaultName,
-            fileSystem = ProjectManager.getFileSystem(),
             result = new $.Deferred();
         
         function _doSaveAfterSaveDialog(path) {
-            var newFile = fileSystem.getFileForPath(path);
+            var newFile = FileSystem.getFileForPath(path);
             
             // Reconstruct old doc's editor's view state, & finally resolve overall promise
             function _configureEditorAndResolve() {
@@ -649,7 +646,7 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
-            fileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selection) {
+            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selection) {
                 if (!err) {
                     _doSaveAfterSaveDialog(selection);
                 } else {

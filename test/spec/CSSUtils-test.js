@@ -28,20 +28,21 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async                      = require("utils/Async"),
+        FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
         SpecRunnerUtils            = require("spec/SpecRunnerUtils");
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry         = brackets.appFileSystem.getFileForPath(testPath + "/simple.css"),
-        universalCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/universal.css"),
-        groupsFileEntry            = brackets.appFileSystem.getFileForPath(testPath + "/groups.css"),
-        offsetsCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/offsets.css"),
-        bootstrapCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/bootstrap.css"),
-        escapesCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
-        embeddedHtmlFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/embedded.html"),
-        cssRegionsFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/regions.css");
+        simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
+        universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
+        offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = FileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
+        embeddedHtmlFileEntry      = FileSystem.getFileForPath(testPath + "/embedded.html"),
+        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css");
         
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
         describe("with sprint 4 exemptions", function () {
         
             beforeEach(function () {
-                var sprint4exemptions = brackets.appFileSystem.getFileForPath(testPath + "/sprint4.css");
+                var sprint4exemptions = FileSystem.getFileForPath(testPath + "/sprint4.css");
                 init(this, sprint4exemptions);
             });
             

@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Global              = require("utils/Global"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils");
             
     var _bracketsSHA;
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
         } else {
             // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
             // to a file in /refs which in turn contains the SHA
-            var file = brackets.appFileSystem.getFileForPath(path);
+            var file = FileSystem.getFileForPath(path);
             FileUtils.readAsText(file).done(function (text) {
                 if (text.indexOf("ref: ") === 0) {
                     // e.g. "ref: refs/heads/branchname"

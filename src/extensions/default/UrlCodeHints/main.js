@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
@@ -120,8 +121,7 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-                directory = fileSystem.getDirectoryForPath(targetDir),
+            var directory = FileSystem.getDirectoryForPath(targetDir),
                 self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
             directory.getContents(function (err, contents) {
                 if (!err) {
                     contents.forEach(function (entry) {
-                        if (fileSystem.shouldShow(entry.fullPath)) {
+                        if (FileSystem.shouldShow(entry.fullPath)) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
 

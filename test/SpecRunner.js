@@ -45,8 +45,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        FileSystemManager       = require("filesystem/FileSystemManager"),
         Menus                   = require("command/Menus"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
@@ -86,6 +86,9 @@ define(function (require, exports, module) {
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
+    // Initialize the file system
+    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    
     // parse URL parameters
     params.parse();
     resultsPath = params.get("resultsPath");
@@ -147,7 +150,7 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        var file = brackets.appFileSystem.getFileForPath(path);
+        var file = FileSystem.getFileForPath(path);
         
         file.exists(function (exists) {
             if (exists) {

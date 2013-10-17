@@ -61,6 +61,7 @@ define(function (require, exports, module) {
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
@@ -70,15 +71,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSystemManager   = require("filesystem/FileSystemManager"),
         FileSyncManager     = require("project/FileSyncManager");
     
-
-    /**
-     * @private
-     * Reference to the FileSystem used by the current project
-     */
-    var _fileSystem;
     
     /**
      * @private
@@ -674,7 +668,7 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (_fileSystem.shouldShow(entry.fullPath)) {
+            if (FileSystem.shouldShow(entry.fullPath)) {
                 jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
@@ -832,11 +826,11 @@ define(function (require, exports, module) {
     }
     
     function _watchProjectRoot(rootPath) {
-        $(_fileSystem).on("change", _fileSystemChange);
-        $(_fileSystem).on("rename", _fileSystemRename);
+        $(FileSystem).on("change", _fileSystemChange);
+        $(FileSystem).on("rename", _fileSystemRename);
 
-        _fileSystem.watch(_fileSystem.getDirectoryForPath(rootPath), function (entry) {
-            return _fileSystem.shouldShow(entry.fullPath);
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), function (entry) {
+            return FileSystem.shouldShow(entry.fullPath);
         }, function (entry) {
             console.log("Entry changed!", entry);
         }, function (err) {
@@ -854,11 +848,11 @@ define(function (require, exports, module) {
      * Close the file system and remove listeners.
      */
     function _unwatchProjectRoot() {
-        if (_fileSystem) {
-            $(_fileSystem).off("change", _fileSystemChange);
-            $(_fileSystem).off("rename", _fileSystemRename);
+        if (_projectRoot) {
+            $(FileSystem).off("change", _fileSystemChange);
+            $(FileSystem).off("rename", _fileSystemRename);
 
-            _fileSystem.unwatch(_projectRoot, function (err) {
+            FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
                     console.log("Error unwatching project root: ", _projectRoot.fullPath, err);
                 } else {
@@ -901,15 +895,16 @@ define(function (require, exports, module) {
         
         function ensureFileSystem() {
             var fsResult = new $.Deferred();
-            if (_fileSystem) {
+            if (FileSystem) {
                 fsResult.resolve();
-            } else {
+            } /* else {
+                TODO: remove me
                 FileSystemManager.createFileSystem(filesystem, function (err, fs) {
                     // TODO: check err?
                     _fileSystem = fs;
                     fsResult.resolve();
                 });
-            }
+            } */
 
             return fsResult.promise();
         }
@@ -934,7 +929,7 @@ define(function (require, exports, module) {
                     _watchProjectRoot(rootPath);
                 }
                 // Point at a real folder structure on local disk
-                var rootEntry = _fileSystem.getDirectoryForPath(rootPath);
+                var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (exists) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
@@ -1137,7 +1132,7 @@ define(function (require, exports, module) {
                     _loadProject(path, false, filesystem).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    _fileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null, function (err, files) {
+                    FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null, function (err, files) {
                         if (!err) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -1344,13 +1339,13 @@ define(function (require, exports, module) {
                 
                 var newItemPath = selectionEntry.fullPath + data.rslt.name;
                 
-                _fileSystem.resolve(newItemPath, function (err, item) {
+                FileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {
                         // Item already exists, fail with error
                         errorCallback(Error.ALREADY_EXISTS);
                     } else {
                         if (isFolder) {
-                            var directory = _fileSystem.getDirectoryForPath(newItemPath);
+                            var directory = FileSystem.getDirectoryForPath(newItemPath);
                             
                             directory.create(function (err) {
                                 if (err) {
@@ -1361,7 +1356,7 @@ define(function (require, exports, module) {
                             });
                         } else {
                             // Create an empty file
-                            var file = _fileSystem.getFileForPath(newItemPath);
+                            var file = FileSystem.getFileForPath(newItemPath);
                             
                             file.write("", function (err) {
                                 if (!err) {
@@ -1436,7 +1431,7 @@ define(function (require, exports, module) {
             return result.promise();
         }
         
-        _fileSystem.resolve(oldName, function (err, item) {
+        FileSystem.resolve(oldName, function (err, item) {
             if (!err) {
                 result.resolve(item);
             } else {
@@ -1610,13 +1605,6 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-     
-    /**
-     * Returns the FileSystem instance used for this project
-     */
-    function getFileSystem() {
-        return _fileSystem || brackets.appFileSystem;
-    }
     
     /**
      * Returns an Array of all files for this project, optionally including
@@ -1754,6 +1742,5 @@ define(function (require, exports, module) {
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;
-    exports.getFileSystem            = getFileSystem;
     exports.getAllFiles              = getAllFiles;
 });

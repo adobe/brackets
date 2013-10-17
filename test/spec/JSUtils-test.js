@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         ProjectManager,         // loaded from brackets.test
 
         JSUtils             = require("language/JSUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
@@ -47,13 +48,13 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/simple.js");
-    var trickyJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/tricky.js");
-    var invalidJsFileEntry  = brackets.appFileSystem.getFileForPath(testPath + "/invalid.js");
-    var jQueryJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/jquery-1.7.js");
-    var braceEndJsFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/braceEnd.js");
-    var eofJsFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/eof.js");
-    var eof2JsFileEntry     = brackets.appFileSystem.getFileForPath(testPath + "/eof2.js");
+    var simpleJsFileEntry   = FileSystem.getFileForPath(testPath + "/simple.js");
+    var trickyJsFileEntry   = FileSystem.getFileForPath(testPath + "/tricky.js");
+    var invalidJsFileEntry  = FileSystem.getFileForPath(testPath + "/invalid.js");
+    var jQueryJsFileEntry   = FileSystem.getFileForPath(testPath + "/jquery-1.7.js");
+    var braceEndJsFileEntry = FileSystem.getFileForPath(testPath + "/braceEnd.js");
+    var eofJsFileEntry      = FileSystem.getFileForPath(testPath + "/eof.js");
+    var eof2JsFileEntry     = FileSystem.getFileForPath(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
         if (fileEntry) {

@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         Editor               = brackets.getModule("editor/Editor").Editor,
         EditorManager        = brackets.getModule("editor/EditorManager"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
@@ -1544,7 +1545,7 @@ define(function (require, exports, module) {
             function getPreferences(path) {
                 preferences = null;
 
-                brackets.appFileSystem.resolve(path, function (err, file) {
+                FileSystem.resolve(path, function (err, file) {
                     if (!err) {
                         FileUtils.readAsText(file).done(function (text) {
                             var configObj = null;

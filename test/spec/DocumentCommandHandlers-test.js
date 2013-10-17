@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,         // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
+        FileSystem,              // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
         ProjectManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
@@ -61,6 +62,7 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
+                FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
                 ProjectManager          = testWindow.brackets.test.ProjectManager;
             });
@@ -659,7 +661,7 @@ define(function (require, exports, module) {
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(filePath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {
                             expect(actualText).toBe(TEST_JS_NEW_CONTENT);
                         });
@@ -668,7 +670,7 @@ define(function (require, exports, module) {
 
                 // reset file contents
                 runs(function () {
-                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(filePath), TEST_JS_CONTENT);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(filePath), TEST_JS_CONTENT);
                     waitsForDone(promise, "Revert test file");
                 });
             });
@@ -683,11 +685,11 @@ define(function (require, exports, module) {
                 
                 // create test files (Git rewrites line endings, so these can't be kept in src control)
                 runs(function () {
-                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(crlfPath), crlfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(crlfPath), crlfText);
                     waitsForDone(promise, "Create CRLF test file");
                 });
                 runs(function () {
-                    promise = FileUtils.writeText(ProjectManager.getFileSystem().getFileForPath(lfPath), lfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(lfPath), lfText);
                     waitsForDone(promise, "Create LF test file");
                 });
                 
@@ -717,7 +719,7 @@ define(function (require, exports, module) {
                 
                 // verify file contents
                 runs(function () {
-                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(crlfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
                         });
@@ -725,7 +727,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    promise = FileUtils.readAsText(ProjectManager.getFileSystem().getFileForPath(lfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(lfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
                         });

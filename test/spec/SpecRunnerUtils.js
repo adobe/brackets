@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
         Error               = require("filesystem/Error"),
+        FileSystem          = require("filesystem/FileSystem"),
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -61,7 +62,7 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        brackets.appFileSystem.resolve(fullPath, function (err, item) {
+        FileSystem.resolve(fullPath, function (err, item) {
             if (!err) {
                 item.unlink(function (err) {
                     if (!err) {
@@ -148,7 +149,7 @@ define(function (require, exports, module) {
     function resolveNativeFileSystemPath(path) {
         var result = new $.Deferred();
         
-        brackets.appFileSystem.resolve(path, function (err, item) {
+        FileSystem.resolve(path, function (err, item) {
             if (!err) {
                 result.resolve(item);
             } else {
@@ -229,7 +230,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = brackets.appFileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
+            var dir = FileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err) {
                     deferred.reject();
                 } else {
@@ -337,7 +338,7 @@ define(function (require, exports, module) {
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = brackets.appFileSystem.getFileForPath(filename);
+        var dummyFile = FileSystem.getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
@@ -760,7 +761,7 @@ define(function (require, exports, module) {
      */
     function createTextFile(path, text) {
         var deferred = new $.Deferred(),
-            file = brackets.appFileSystem.getFileForPath(path);
+            file = FileSystem.getFileForPath(path);
         
         file.write(text, function (err) {
             if (!err) {
@@ -839,7 +840,7 @@ define(function (require, exports, module) {
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
             deferred        = new $.Deferred(),
-            destDir         = brackets.appFileSystem.getDirectoryForPath(destination);
+            destDir         = FileSystem.getDirectoryForPath(destination);
         
         // create the destination folder
         destDir.create(function (err) {

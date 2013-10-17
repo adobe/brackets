@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
         DefaultDialogs          = require("widgets/DefaultDialogs"),
         FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
@@ -366,7 +367,7 @@ define(function (require, exports, module) {
                 instrumentedHtml = "",
                 elementIds = {},
                 testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-                WellFormedFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/wellformed.html");
+                WellFormedFileEntry = FileSystem.getFileForPath(testPath + "/wellformed.html");
           
             function init(fileEntry) {
                 if (fileEntry) {

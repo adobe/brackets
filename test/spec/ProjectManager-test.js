@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     var ProjectManager,     // Load from brackets.test
         CommandManager,     // Load from brackets.test
+        FileSystem,         // Load from brackets.test
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
@@ -53,6 +54,7 @@ define(function (require, exports, module) {
                 brackets       = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 CommandManager = testWindow.brackets.test.CommandManager;
+                FileSystem     = testWindow.brackets.test.FileSystem;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -80,9 +82,8 @@ define(function (require, exports, module) {
                 waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 var error, stat, complete = false;
-                var fileSystem = ProjectManager.getFileSystem();
                 var filePath = testPath + "/Untitled.js";
-                var file = fileSystem.getFileForPath(filePath);
+                var file = FileSystem.getFileForPath(filePath);
                 
                 runs(function () {
                     file.stat(function (err, _stat) {
@@ -238,7 +239,7 @@ define(function (require, exports, module) {
         describe("deleteItem", function () {
             it("should delete the selected file in the project tree", function () {
                 var complete    = false,
-                    newFile     = ProjectManager.getFileSystem().getFileForPath(testPath + "/delete_me.js"),
+                    newFile     = FileSystem.getFileForPath(testPath + "/delete_me.js"),
                     selectedFile,
                     error,
                     stat;
@@ -322,7 +323,6 @@ define(function (require, exports, module) {
             // TODO: FileSystem - fix this test
             xit("should delete the selected folder and all items in it.", function () {
                 var complete       = false,
-                    fileSystem     = ProjectManager.getFileSystem(),
                     newFolderName  = testPath + "/toDelete",
                     rootFolderName = newFolderName,
                     rootFolderEntry,
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
                 // Make sure we don't have any test files/folders left from previous failure 
                 // by explicitly deleting the root test folder if it exists.
                 runs(function () {
-                    var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
+                    var rootFolder = FileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
                     rootFolder.moveToTrash(function (err) {
                         complete = true;
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
-                    var newFolder = fileSystem.getDirectoryForPath(newFolderName);
+                    var newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
                         if (!err) {
@@ -384,7 +384,7 @@ define(function (require, exports, module) {
                     var newFolder;
                     
                     newFolderName += "toDelete1/";
-                    newFolder = fileSystem.getDirectoryForPath(newFolderName);
+                    newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
                         if (!err) {
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
-                    var file = fileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
+                    var file = FileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
                     file.stat(function (err, _stat) {
                         if (!err) {
@@ -444,7 +444,7 @@ define(function (require, exports, module) {
 
                 // Verify that the root folder no longer exists.
                 runs(function () {
-                    var rootFolder = fileSystem.getDirectoryForPath(rootFolderName);
+                    var rootFolder = FileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
                     rootFolder.stat(function (err, _stat) {
                         if (!err) {
@@ -599,7 +599,7 @@ define(function (require, exports, module) {
         
         describe("File Display", function () {
             it("should not show useless directory entries", function () {
-                var shouldShow = ProjectManager.getFileSystem().shouldShow;
+                var shouldShow = FileSystem.shouldShow;
                 
                 expect(shouldShow(".git")).toBe(false);
                 expect(shouldShow(".svn")).toBe(false);

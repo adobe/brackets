@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
@@ -78,7 +79,7 @@ define(function (require, exports, module) {
             library;
 
         files.forEach(function (i) {
-            brackets.appFileSystem.resolve(path + i, function (err, file) {
+            FileSystem.resolve(path + i, function (err, file) {
                 if (!err) {
                     FileUtils.readAsText(file).done(function (text) {
                         library = JSON.parse(text);
@@ -120,10 +121,9 @@ define(function (require, exports, module) {
             console.log("initPreferences: projectRootPath has no value");
         }
 
-        var path = projectRootPath + Preferences.FILE_NAME,
-            fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem;
+        var path = projectRootPath + Preferences.FILE_NAME;
 
-        fileSystem.resolve(path, function (err, file) {
+        FileSystem.resolve(path, function (err, file) {
             if (!err) {
                 FileUtils.readAsText(file).done(function (text) {
                     var configObj = null;
@@ -184,10 +184,9 @@ define(function (require, exports, module) {
      * @param {!function(string)=} errorCallback - Callback for errors (optional).
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-            files = [];
+        var files = [];
         
-        fileSystem.resolve(dir, function (err, directory) {
+        FileSystem.resolve(dir, function (err, directory) {
             if (!err && directory.isDirectory()) {
                 directory.getContents(function (err, contents) {
                     if (!err) {
@@ -837,10 +836,9 @@ define(function (require, exports, module) {
              * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentForPath 
              */
             function getDocText(filePath) {
-                var fileSystem = ProjectManager.getFileSystem() || brackets.appFileSystem,
-                    result = new $.Deferred();
+                var result = new $.Deferred();
                 
-                fileSystem.resolve(filePath, function (err, file) {
+                FileSystem.resolve(filePath, function (err, file) {
                     if (!err && file.isFile()) {
                         DocumentManager.getDocumentForPath(filePath)
                             .done(function (document) {

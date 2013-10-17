@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        FileSystem       = require("filesystem/FileSystem"),
         Package          = require("extensibility/Package"),
         NodeConnection   = require("utils/NodeConnection");
     
@@ -158,7 +159,7 @@ define(function (require, exports, module) {
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
-                brackets.appFileSystem.resolve(extensionsRoot + "/user/basic-valid-extension/main.js", function (err, item) {
+                FileSystem.resolve(extensionsRoot + "/user/basic-valid-extension/main.js", function (err, item) {
                     if (!err) {
                         mainCheckComplete = true;
                     } else {
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
                 expect(packageData.disabledReason).not.toBeNull();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
-                brackets.appFileSystem.resolve(extensionsRoot + "/disabled/incompatible-version", function (err, item) {
+                FileSystem.resolve(extensionsRoot + "/disabled/incompatible-version", function (err, item) {
                     if (!err) {
                         directoryCheckComplete = true;
                     } else {
@@ -203,7 +204,7 @@ define(function (require, exports, module) {
                 handlePackage(installPath, Package.remove);
             });
             runs(function () {
-                brackets.appFileSystem.resolve(installPath, function (err, item) {
+                FileSystem.resolve(installPath, function (err, item) {
                     if (!err) {
                         checkComplete = true;
                         expect("installation path was removed").toEqual(true);

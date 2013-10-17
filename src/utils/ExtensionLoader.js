@@ -39,7 +39,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var FileUtils           = require("file/FileUtils"),
+    var FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async");
 
     // default async initExtension timeout
@@ -193,7 +194,7 @@ define(function (require, exports, module) {
             extensionPath = config.baseUrl + "/" + entryPoint + ".js";
 
         var fileExists = false, statComplete = false;
-        var file = brackets.appFileSystem.getFileForPath(extensionPath);
+        var file = FileSystem.getFileForPath(extensionPath);
         
         file.stat(function (err, stat) {
             if (!err) {
@@ -236,7 +237,7 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        brackets.appFileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
+        FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
             if (!err) {
                 var i,
                     extensions = [];
@@ -334,11 +335,11 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-        brackets.appFileSystem.getDirectoryForPath(extensionPath).create();
+        FileSystem.getDirectoryForPath(extensionPath).create();
         
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-        brackets.appFileSystem.getDirectoryForPath(disabledExtensionPath).create();
+        FileSystem.getDirectoryForPath(disabledExtensionPath).create();
         
         var promise = Async.doInParallel(paths.split(","), function (item) {
             var extensionPath = item;

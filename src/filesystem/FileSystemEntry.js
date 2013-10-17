@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     function FileSystemEntry(path, fileSystem) {
         this._path = path;
         this._fileSystem = fileSystem;
-        this._impl = fileSystem._impl;
+//        this._impl = fileSystem._impl;
         this._id = nextId++;
     }
         
@@ -64,6 +64,10 @@ define(function (require, exports, module) {
         "id": {
             get: function () { return this._id; },
             set: function (val) { throw new Error("Cannot set id"); }
+        },
+        "_impl": {
+            get: function () { return this._fileSystem._impl; },
+            set: function (val) { console.log("trying to set _impl"); }
         }
     });
     

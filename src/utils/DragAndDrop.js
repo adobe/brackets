@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
+        FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -78,7 +79,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // Only open files.
-            ProjectManager.getFileSystem().resolve(path, function (err, item) {
+            FileSystem.resolve(path, function (err, item) {
                 if (!err && item.isFile()) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,

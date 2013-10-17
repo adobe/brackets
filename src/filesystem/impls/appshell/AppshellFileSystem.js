@@ -113,7 +113,9 @@ define(function (require, exports, module) {
         
         // Don't want to block on _nodeConnectionDeferred because we're needed as the 'root' fs
         // at startup -- and the Node-side stuff isn't needed for most functionality anyway.
-        callback();
+        if (callback) {
+            callback();
+        }
     }
     
     function _wrap(cb) {

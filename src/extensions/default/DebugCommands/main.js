@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
         Menus                  = brackets.getModule("command/Menus"),
         Editor                 = brackets.getModule("editor/Editor").Editor,
+        FileSystem             = brackets.getModule("filesystem/FileSystem"),
         FileUtils              = brackets.getModule("file/FileUtils"),
         ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
@@ -140,7 +141,7 @@ define(function (require, exports, module) {
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
-        brackets.appFileSystem.getDirectoryForPath(stringsPath).getContents(function (err, contents) {
+        FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, contents) {
             if (!err) {
                 var $dialog,
                     $submit,
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
         }
 
         // Check for the SpecRunner.html file
-        var file = brackets.appFileSystem.getFileForPath(
+        var file = FileSystem.getFileForPath(
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
