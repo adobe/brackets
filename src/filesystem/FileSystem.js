@@ -159,8 +159,65 @@ define(function (require, exports, module) {
     FileSystem.prototype._watchedRoots = null;
     
     /**
+     * Helper function to watch or unwatch a filesystem entry beneath a given
+     * watchedRoot.
+     * 
+     * @private
+     * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
+     *      non-strict descendent of watchedRoot.entry.
+     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {function(?string)} callback - A function that is called once the
+     *      watch is complete.
+     * @param {boolean} shouldWatch - Whether the entry should be watched (true)
+     *      or unwatched (false).
+     */
+    FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
+        var paths = [];
+        var visitor = function (child) {
+            if (child.isDirectory() || child === watchedRoot.entry) {
+                paths.push(child.fullPath);
+            }
+            
+            return watchedRoot.filter(child);
+        }.bind(this);
+        
+        entry.visit(visitor, function (err) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            // sort paths by max depth for a breadth-first traversal
+            var dirCount = {};
+            paths.forEach(function (path) {
+                dirCount[path] = path.split("/").length;
+            });
+            
+            paths.sort(function (path1, path2) {
+                var dirCount1 = dirCount[path1],
+                    dirCount2 = dirCount[path2];
+                
+                return dirCount1 - dirCount2;
+            });
+            
+            this._enqueueWatchRequest(function (callback) {
+                paths.forEach(function (path, index) {
+                    if (shouldWatch) {
+                        this._impl.watchPath(path);
+                    } else {
+                        this._impl.unwatchPath(path);
+                    }
+                }, this);
+                
+                callback(null);
+            }.bind(this), callback);
+        }.bind(this));
+    };
+    
+    /**
      * Watch a filesystem entry beneath a given watchedRoot.
      * 
+     * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
      * @param {Object} watchedRoot - See FileSystem._watchedRoots.
@@ -168,20 +225,13 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
-        var watchFn = entry.visit.bind(entry, function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.watchPath(child.fullPath);
-            }
-            
-            return watchedRoot.filter(child);
-        }.bind(this));
-        
-        this._enqueueWatchRequest(watchFn, callback);
+        this._watchOrUnwatchEntry(entry, watchedRoot, callback, true);
     };
 
     /**
      * Unwatch a filesystem entry beneath a given watchedRoot.
      * 
+     * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
      * @param {Object} watchedRoot - See FileSystem._watchedRoots.
@@ -189,16 +239,7 @@ define(function (require, exports, module) {
      *      watch is complete.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        var watchFn = entry.visit.bind(entry, function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
-                this._impl.unwatchPath(child.fullPath);
-            }
-            this._index.removeEntry(child);
-            
-            return watchedRoot.filter(child);
-        }.bind(this));
-        
-        this._enqueueWatchRequest(watchFn, callback);
+        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
     };
     
     /**
