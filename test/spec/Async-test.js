@@ -458,6 +458,13 @@ define(function (require, exports, module) {
                 });
             }
             
+            function MyCallback() {
+                this.localProp = "local prop";
+                this.testLocalProp = Async.whenIdle(40, function () {
+                    expect(this.localProp).toBe("local prop");
+                });
+            }
+            
             it("should execute at end of tight sequence", function () {
                 ping(0);
                 waits(10);
@@ -493,6 +500,25 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(spy.callCount).toBe(2);
                 });
+            });
+            
+            it("should setup context for callback", function () {
+                var cb = new MyCallback();
+                
+                cb.testLocalProp();
+                waits(100);
+                // Expected behavior is checked in testLocalProp();
+            });
+            
+            it("should pass parameters to the callback", function () {
+                var testParams = Async.whenIdle(40, function (a, b, c) {
+                    expect(a).toBe("hello");
+                    expect(b).toBe(42);
+                    expect(c).toBe([1, 2, 3]);
+                });
+                
+                testParams("hello", 42, [1, 2, 3]);
+                waits(100);
             });
         });
         
