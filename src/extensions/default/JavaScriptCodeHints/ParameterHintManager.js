@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
         HintsUtils2     = require("HintUtils2"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");

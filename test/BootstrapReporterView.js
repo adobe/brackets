@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     var _ = require("lodash");
     
     var UrlParams       = require("utils/UrlParams").UrlParams,
-        StringUtils     = require("utils/StringUtils"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
     var BootstrapReporterView = function (doc, reporter) {

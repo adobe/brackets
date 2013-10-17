@@ -48,8 +48,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils"),
-        StringUtils         = require("utils/StringUtils");
+        PerfUtils           = require("utils/PerfUtils");
 
     /**
      * Remove trailing "px" from a style size value.
