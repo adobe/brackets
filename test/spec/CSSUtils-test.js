@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         cssRegionsFileEntry        = new NativeFileSystem.FileEntry(testPath + "/regions.css");
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
-        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
+        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -1500,6 +1501,67 @@ define(function (require, exports, module) {
         });
         
     }); //describe("CSS Parsing")
+    
+    describe("CSSUtils - Other", function () {
+        function doAddRuleTest(options) {
+            var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
+                doc = mock.doc,
+                result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
+            expect(doc.getText()).toEqual(options.resultText);
+            expect(result).toEqual(options.result);
+            SpecRunnerUtils.destroyMockEditor(doc);
+        }
+        
+        it("should add a new rule with the given selector to the given document using tab indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: true,
+                resultText: simpleTestCss + "\n#myID {\n\t\n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 1 }
+                }
+            });
+        });
+        
+        it("should add a new rule with the given selector to the given document using space indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: simpleTestCss + "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 4 }
+                }
+            });
+        });
+        
+        it("should add a new rule to an empty document", function () {
+            doAddRuleTest({
+                initialText: "",
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 1, ch: 0 },
+                        to: { line: 3, ch: 1 }
+                    },
+                    pos: { line: 2, ch: 4 }
+                }
+            });
+        });
+    });
 
     // Unit Tests: "HTMLUtils (css)"
     describe("HTMLUtils InlineEditorProviders", function () {

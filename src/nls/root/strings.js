@@ -333,6 +333,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "New Rule",
+    
     // Extension Management strings
     "INSTALL"                              : "Install",
     "UPDATE"                               : "Update",
@@ -409,6 +412,10 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    
+    "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
     
     /**
      * Unit names
