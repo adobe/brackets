@@ -1656,15 +1656,15 @@ define(function (require, exports, module) {
         });
         
         it("should extract selectors at the beginning of a text range", function () {
-            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {}\nh2 {}\n"),
-                range = new TextRange(doc, 1, 1);
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
             expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
             range.dispose();
         });
         
         it("should extract selectors spanning multiple lines at the beginning of a text range, with newlines replaced", function () {
-            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {}\nh2 {}\n"),
-                range = new TextRange(doc, 1, 2);
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
             expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
             range.dispose();
         });
