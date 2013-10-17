@@ -26,7 +26,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-
+    
+    var _ = brackets.getModule("lodash");
+    
     var Commands        = brackets.getModule("command/Commands"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
@@ -148,17 +150,17 @@ define(function (require, exports, module) {
         function appendParameter(param, index) {
             if (hints.currentIndex === index) {
                 $hintContent.append($("<span>")
-                    .append(StringUtils.htmlEscape(param))
+                    .append(_.escape(param))
                     .addClass("current-parameter"));
             } else {
-                $hintContent.append(StringUtils.htmlEscape(param));
+                $hintContent.append(_.escape(param));
             }
         }
 
         if (hints.parameters.length > 0) {
             HintsUtils2.formatParameterHint(hints.parameters, appendSeparators, appendParameter);
         } else {
-            $hintContent.append(StringUtils.htmlEscape(Strings.NO_ARGUMENTS));
+            $hintContent.append(_.escape(Strings.NO_ARGUMENTS));
         }
     }
 

@@ -26,6 +26,8 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var _ = require("lodash");
+    
     var UrlParams       = require("utils/UrlParams").UrlParams,
         StringUtils     = require("utils/StringUtils"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils");
@@ -299,7 +301,7 @@ define(function (require, exports, module) {
         while ((match = _codeRefRegExp.exec(text)) !== null) {
             // Add any plain text before the link
             plainText = text.substring(indexAfterLastMatch, match.index);
-            html += StringUtils.htmlEscape(plainText);
+            html += _.escape(plainText);
             
             // Create a clickable link for the file
             var line = match[1], ch = match[2];
@@ -308,14 +310,14 @@ define(function (require, exports, module) {
                 cssClasses += " testframework-link";
             }
             var linkPrefix = "<a href='#' class='" + cssClasses + "' data-line='" + line + "' data-ch='" + ch + "'>";
-            html += linkPrefix + StringUtils.htmlEscape(match[0]) + "</a>";
+            html += linkPrefix + _.escape(match[0]) + "</a>";
             
             indexAfterLastMatch = match.index + match[0].length;
         }
         
         // Add any trailing plain text after last link
         plainText = text.substring(indexAfterLastMatch);
-        html += StringUtils.htmlEscape(plainText);
+        html += _.escape(plainText);
         
         return html;
     };

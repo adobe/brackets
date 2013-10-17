@@ -49,6 +49,8 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
+    var _ = require("lodash");
+
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
@@ -1534,7 +1536,7 @@ define(function (require, exports, module) {
                 Strings.ERROR_DELETING_FILE_TITLE,
                 StringUtils.format(
                     Strings.ERROR_DELETING_FILE,
-                    StringUtils.htmlEscape(entry.fullPath),
+                    _.escape(entry.fullPath),
                     FileUtils.getFileErrorString(err)
                 )
             );

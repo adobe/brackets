@@ -39,6 +39,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     // Load dependent modules
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -75,7 +77,7 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.$listItem = null;
     
     function _updateRangeLabel(listItem, range) {
-        var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+        var text = _.escape(range.name) + " <span class='related-file'>— " + _.escape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }

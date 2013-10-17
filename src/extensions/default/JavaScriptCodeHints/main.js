@@ -26,6 +26,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = brackets.getModule("lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
@@ -131,10 +133,10 @@ define(function (require, exports, module) {
                     token.stringRanges.forEach(function (item) {
                         if (item.matched) {
                             $hintObj.append($("<span>")
-                                .append(StringUtils.htmlEscape(item.text))
+                                .append(_.escape(item.text))
                                 .addClass("matched-hint"));
                         } else {
-                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                            $hintObj.append(_.escape(item.text));
                         }
                     });
                 } else {
