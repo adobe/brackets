@@ -61,10 +61,11 @@ define(function (require, exports, module) {
         this.closeCallback = closeCallback;
         
         /**
+         * @private
          * The selected position in the list; otherwise -1.
          * @type {number}
          */
-        this.selectedIndex = -1;
+        this._selectedIndex = -1;
     }
 
     /**
@@ -76,74 +77,25 @@ define(function (require, exports, module) {
         /**
          * Convert keydown events into hint list navigation actions.
          *
-         * @param {KeyBoardEvent} event
+         * @param {KeyboardEvent} event
          * @return {boolean} true if key was handled, otherwise false.
          */
         function _keydownHook(event) {
             var keyCode;
-    
-            // positive distance rotates down; negative distance rotates up
-            function _rotateSelection(distance) {
-                var len = self.$items.length,
-                    pos;
-    
-                if (self.selectedIndex < 0) {
-                    // set the initial selection
-                    pos = (distance > 0) ? distance - 1 : len - 1;
-    
-                } else {
-                    // adjust current selection
-                    pos = self.selectedIndex;
-    
-                    // Don't "rotate" until all items have been shown
-                    if (distance > 0) {
-                        if (pos === (len - 1)) {
-                            pos = 0;  // wrap
-                        } else {
-                            pos = Math.min(pos + distance, len - 1);
-                        }
-                    } else {
-                        if (pos === 0) {
-                            pos = (len - 1);  // wrap
-                        } else {
-                            pos = Math.max(pos + distance, 0);
-                        }
-                    }
-                }
-    
-                self._setSelectedIndex(pos);
-            }
-    
-            // Calculate the number of items per scroll page.
-            function _itemsPerPage() {
-                var itemsPerPage = 1,
-                    itemHeight;
-        
-                if (self.$items.length !== 0) {
-                    itemHeight = $(self.$items[0]).height();
-                    if (itemHeight) {
-                        // round down to integer value
-                        itemsPerPage = Math.floor(self.$list.height() / itemHeight);
-                        itemsPerPage = Math.max(1, Math.min(itemsPerPage, self.$items.length));
-                    }
-                }
-    
-                return itemsPerPage;
-            }
     
             // (page) up, (page) down, enter and tab key are handled by the list
             if (event.type === "keydown") {
                 keyCode = event.keyCode;
     
                 if (keyCode === KeyEvent.DOM_VK_UP) {
-                    _rotateSelection.call(self, -1);
+                    self._rotateSelection(-1);
                 } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
-                    _rotateSelection.call(self, 1);
+                    self._rotateSelection(1);
                 } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
-                    _rotateSelection.call(self, -_itemsPerPage());
+                    self._rotateSelection(-self._itemsPerPage());
                 } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
-                    _rotateSelection.call(self, _itemsPerPage());
-                } else if (self.selectedIndex !== -1 &&
+                    self._rotateSelection(self._itemsPerPage());
+                } else if (self._selectedIndex !== -1 &&
                         (keyCode === KeyEvent.DOM_VK_RETURN)) {
     
                     // Trigger a click handler to commmit the selected item
@@ -198,15 +150,72 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Change selection by specified amount. After selection reaches the last item
+     * in the rotation direction, then it wraps around to the start.
+     *
+     * @param {number} distance  Number of items to move change selection where
+     *      positive distance rotates down and negative distance rotates up
+     */
+    DropdownEventHandler.prototype._rotateSelection = function (distance) {
+        var len = this.$items.length,
+            pos;
+
+        if (this._selectedIndex < 0) {
+            // set the initial selection
+            pos = (distance > 0) ? distance - 1 : len - 1;
+
+        } else {
+            // adjust current selection
+            pos = this._selectedIndex;
+
+            // Don't "rotate" until all items have been shown
+            if (distance > 0) {
+                if (pos === (len - 1)) {
+                    pos = 0;  // wrap
+                } else {
+                    pos = Math.min(pos + distance, len - 1);
+                }
+            } else {
+                if (pos === 0) {
+                    pos = (len - 1);  // wrap
+                } else {
+                    pos = Math.max(pos + distance, 0);
+                }
+            }
+        }
+
+        this._setSelectedIndex(pos);
+    };
+
+    /**
+     * @return {number} The number of items per scroll page.
+     */
+    DropdownEventHandler.prototype._itemsPerPage = function () {
+        var itemsPerPage = 1,
+            itemHeight;
+
+        if (this.$items.length !== 0) {
+            itemHeight = $(this.$items[0]).height();
+            if (itemHeight) {
+                // round down to integer value
+                itemsPerPage = Math.floor(this.$list.height() / itemHeight);
+                itemsPerPage = Math.max(1, Math.min(itemsPerPage, this.$items.length));
+            }
+        }
+
+        return itemsPerPage;
+    };
+    
+    /**
      * Call selectionCallback with selected index
      */
     DropdownEventHandler.prototype._selectionHandler = function () {
 
-        if (this.selectedIndex === -1) {
+        if (this._selectedIndex === -1) {
             return;
         }
         
-        var $link = this.$items.eq(this.selectedIndex).find("a");
+        var $link = this.$items.eq(this._selectedIndex).find("a");
         this._clickHandler($link);
     };
     
@@ -238,15 +247,15 @@ define(function (require, exports, module) {
         index = Math.max(-1, Math.min(index, this.$items.length - 1));
         
         // Clear old highlight
-        if (this.selectedIndex !== -1) {
-            this.$items.eq(this.selectedIndex).find("a").removeClass("selected");
+        if (this._selectedIndex !== -1) {
+            this.$items.eq(this._selectedIndex).find("a").removeClass("selected");
         }
 
-        this.selectedIndex = index;
+        this._selectedIndex = index;
 
         // Highlight the new selected item, if necessary
-        if (this.selectedIndex !== -1) {
-            var $item = this.$items.eq(this.selectedIndex);
+        if (this._selectedIndex !== -1) {
+            var $item = this.$items.eq(this._selectedIndex);
 
             ViewUtils.scrollElementIntoView(this.$list, $item, false);
             $item.find("a").addClass("selected");
@@ -265,15 +274,9 @@ define(function (require, exports, module) {
                 self._clickHandler($(this));
             })
             .on("mouseover", "a", function (e) {
-                if (self.selectedIndex >= 0) {
-                    self.$items.eq(self.selectedIndex).find("a").removeClass("selected");
-                }
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li");
-                self.selectedIndex = self.$items.index($item);
-                if (self.selectedIndex >= 0) {
-                    $link.addClass("selected");
-                }
+                self._setSelectedIndex(self.$items.index($item));
             });
     };
 
