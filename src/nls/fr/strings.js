@@ -81,7 +81,7 @@ define({
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
-	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+	"LIVE_DEV_NEED_HTML_MESSAGE": "[6307162] !é=Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.=!",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
@@ -209,6 +209,10 @@ define({
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
+	"CMD_FILE_CLOSE_LIST": "[7306453] !é=Close List=!",
+	"CMD_FILE_CLOSE_OTHERS": "[7306454] !é=Close Others=!",
+	"CMD_FILE_CLOSE_ABOVE": "[7306451] !é=Close Others Above=!",
+	"CMD_FILE_CLOSE_BELOW": "[7306452] !é=Close Others Below=!",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
@@ -411,8 +415,7 @@ define({
      */
 
 	"UNIT_PIXELS": "pixels",
-    
-    
+
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
