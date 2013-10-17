@@ -74,7 +74,10 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
     
-    function _updateRangeLabel(listItem, range) {
+    function _updateRangeLabel(listItem, range, labelCB) {
+        if (labelCB) {
+            range.name = labelCB(range.textRange);
+        }
         var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
@@ -85,9 +88,11 @@ define(function (require, exports, module) {
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
      * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
      *      when no matches are available.
+     * @param {function(range): string} labelCB An optional callback that returns an updated label string for the given range. Called
+     *      when we detect that the content of one of the ranges has changed.
      * @extends {InlineTextEditor}
      */
-    function MultiRangeInlineEditor(ranges, messageCB) {
+    function MultiRangeInlineEditor(ranges, messageCB, labelCB) {
         InlineTextEditor.call(this);
         
         // Store the results to show in the range list. This creates TextRanges bound to the Document,
@@ -96,6 +101,7 @@ define(function (require, exports, module) {
             return new SearchResultItem(rangeResult);
         });
         this._messageCB = messageCB;
+        this._labelCB = labelCB;
         
         this._selectedRangeIndex = -1;
     }
@@ -113,6 +119,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
     MultiRangeInlineEditor.prototype._messageCB = null;
+    MultiRangeInlineEditor.prototype._labelCB = null;
     
     /**
      * @private
@@ -133,6 +140,8 @@ define(function (require, exports, module) {
         // Update list item as TextRange changes
         $(range.textRange).on("change", function () {
             _updateRangeLabel($rangeItem, range);
+        }).on("contentChange", function () {
+            _updateRangeLabel($rangeItem, range, self._labelCB);
         });
         
         // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)

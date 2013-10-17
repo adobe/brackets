@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
-        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils"),
+        TextRange                  = require("document/TextRange").TextRange;
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
@@ -1652,6 +1653,20 @@ define(function (require, exports, module) {
                 },
                 rules[5]
             ]);
+        });
+        
+        it("should extract selectors at the beginning of a text range", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 1);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+        
+        it("should extract selectors spanning multiple lines at the beginning of a text range, with newlines replaced", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 2);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
         });
     });
 

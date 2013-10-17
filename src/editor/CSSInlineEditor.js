@@ -246,7 +246,7 @@ define(function (require, exports, module) {
         
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                cssInlineEditor = new MultiRangeInlineEditor(CSSUtils.consolidateRules(rules) || [], _getNoRulesMsg);
+                cssInlineEditor = new MultiRangeInlineEditor(CSSUtils.consolidateRules(rules) || [], _getNoRulesMsg, CSSUtils.getRangeSelectors);
                 cssInlineEditor.load(hostEditor);
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);

@@ -1268,6 +1268,23 @@ define(function (require, exports, module) {
         return newRules;
     }
     
+    /**
+     * Given a TextRange, extracts the selector(s) at the beginning of the range and returns it.
+     * @param {TextRange} range The range to extract the selector(s) from.
+     * @return {string} The selector(s) at the beginning of the range.
+     */
+    function getRangeSelectors(range) {
+        // There's currently no immediate way to access a given line in a Document, because it's just
+        // stored as a string. Eventually, we should have Documents cache the lines in the document
+        // as well, or make them use CodeMirror documents which do the same thing.
+        var i, startIndex = 0, text = range.document.getText();
+        for (i = 0; i < range.startLine; i++) {
+            startIndex = text.indexOf("\n", startIndex) + 1;
+        }
+        var nextBrace = text.indexOf("{", startIndex);
+        return text.substring(startIndex, nextBrace).trim().replace("\n", " ");
+    }
+        
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
@@ -1276,6 +1293,7 @@ define(function (require, exports, module) {
     exports.reduceStyleSheetForRegExParsing = reduceStyleSheetForRegExParsing;
     exports.addRuleToDocument = addRuleToDocument;
     exports.consolidateRules = consolidateRules;
+    exports.getRangeSelectors = getRangeSelectors;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
