@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        absPathPrefix           = (brackets.platform === "win" ? "c:/" : "/"),
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
@@ -333,7 +334,7 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
+            filename    = options.filename || (absPathPrefix + "_unitTestDummyPath_/_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
