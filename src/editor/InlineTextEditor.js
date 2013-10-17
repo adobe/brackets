@@ -246,14 +246,7 @@ define(function (require, exports, module) {
                 });
         });
 
-        // Hide the container for the editor before creating it so that CodeMirror doesn't do extra work
-        // when initializing the document. When we construct the editor, we have to set its text and then
-        // set the (small) visible range that we show in the editor. If the editor is visible, CM has to
-        // render a large portion of the document before setting the visible range. By hiding the editor
-        // first and showing it after the visible range is set, we avoid that initial render.
-        this.$editorHolder.hide();
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, this.$editorHolder.get(0));
-        this.$editorHolder.show();
         this.editor = inlineInfo.editor;
         
         // Init line number display
