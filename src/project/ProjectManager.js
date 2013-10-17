@@ -842,8 +842,6 @@ define(function (require, exports, module) {
         }, function (err) {
             if (err) {
                 console.log("Error watching project root: ", rootPath, err);
-            } else {
-                console.log("Finished watching project root:", rootPath);
             }
         });
     }
@@ -861,8 +859,6 @@ define(function (require, exports, module) {
             _fileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
                     console.log("Error unwatching project root: ", _projectRoot.fullPath, err);
-                } else {
-                    console.log("Finished unwatching project root: ", _projectRoot.fullPath);
                 }
             });
         }
