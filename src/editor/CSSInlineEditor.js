@@ -154,14 +154,12 @@ define(function (require, exports, module) {
 
         /**
          * @private
-         * Close the dropdown.
+         * Close the dropdown externally to dropdown, which ultimately calls the
+         * _cleanupDropdown callback.
          */
         function _closeDropdown() {
-            // Since we passed "true" for autoRemove to addPopUp(), this will
-            // automatically remove the dropdown from the DOM. Also, PopUpManager
-            // will call _cleanupDropdown().
-            if ($dropdown) {
-                PopUpManager.removePopUp($dropdown);
+            if (dropdownEventHandler) {
+                dropdownEventHandler.close();
             }
         }
         
@@ -178,6 +176,11 @@ define(function (require, exports, module) {
             EditorManager.focusEditor();
         }
 
+        /**
+         * @private
+         * Callback when item from dropdown list is selected
+         * @param {jQueryObject} $link  The `a` element selected with mouse or keyboard
+         */
         function _onSelect($link) {
             var path  = $link.data("path");
 
@@ -193,12 +196,6 @@ define(function (require, exports, module) {
          * Show or hide the stylesheets dropdown.
          */
         function _showDropdown() {
-            // If the dropdown is already visible, just return (so the root click handler on html
-            // will close it).
-            if ($dropdown) {
-                return;
-            }
-            
             Menus.closeAll();
             
             $dropdown = $(_renderList(cssFileInfos));
@@ -217,17 +214,6 @@ define(function (require, exports, module) {
             dropdownEventHandler.open();
             
             $dropdown.focus();
-        }
-        
-        /**
-         * @private
-         * Display list of stylesheets in project, then create a new rule in the given stylesheet and
-         * add it to the given inline editor.
-         * @param {string} selectorName The selector to create a rule for.
-         * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
-         */
-        function _handleNewRule() {
-            _showDropdown();
         }
         
         /**
@@ -254,7 +240,12 @@ define(function (require, exports, module) {
                     .text(Strings.BUTTON_NEW_RULE)
                     .on("click", function (e) {
                         if (!$newRuleButton.hasClass("disabled")) {
-                            _handleNewRule();
+                            // toggle dropdown
+                            if ($dropdown) {
+                                _closeDropdown();
+                            } else {
+                                _showDropdown();
+                            }
                         }
                         e.stopPropagation();
                     });
