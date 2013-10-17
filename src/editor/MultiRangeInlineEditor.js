@@ -121,7 +121,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype._createListItem = function (range) {
         var self = this,
-            $rangeItem = $(window.document.createElement("li")).appendTo(this.$rangeList);
+            $rangeItem = $("<li/>").appendTo(this.$rangeList);
         
         _updateRangeLabel($rangeItem, range);
         $rangeItem.mousedown(function () {
@@ -149,9 +149,6 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
         MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
         
-        // Container to hold all editors
-        var self = this;
-
         // Create the message area
         this.$messageDiv = $("<div/>")
             .addClass("inline-editor-message");
@@ -175,9 +172,7 @@ define(function (require, exports, module) {
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
-        this._ranges.forEach(function (range) {
-            self._createListItem(range);
-        });
+        this._ranges.forEach(this._createListItem, this);
         
         if (this._ranges.length > 1) {      // attach to main container
             this.$wrapper.before(this.$relatedContainer);
@@ -185,10 +180,10 @@ define(function (require, exports, module) {
                 
         if (this._ranges.length) {
             // select the first range
-            self.setSelectedIndex(0);
+            this.setSelectedIndex(0);
         } else {
             // force the message div to show
-            self.setSelectedIndex(-1);
+            this.setSelectedIndex(-1);
         }
         
         // Listen for clicks directly on us, so we can set focus back to the editor
@@ -268,12 +263,10 @@ define(function (require, exports, module) {
         } else {
             this.$messageDiv.remove();
             
-            var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
-            
-            this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
+            var range = this._getSelectedRange();
+            range.$listItem.addClass("selected");
     
             // Add new editor
-            var range = this._getSelectedRange();
             this.setInlineContent(range.textRange.document, range.textRange.startLine, range.textRange.endLine);
             this.editor.focus();
     
