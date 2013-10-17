@@ -126,11 +126,15 @@ define(function (require, exports, module) {
 
         function runCloseOthers() {
             var ws = DocumentManager.getWorkingSet(),
+                e = new jQuery.Event("contextmenu"),
                 promise;
 
             if (ws.length > docSelectIndex) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
                     DocumentManager.setCurrentDocument(doc);
+                    
+                    e.pageX = 20; e.pageY = 20;
+                    $("#open-files-container").trigger(e);
                 });
 
                 promise = CommandManager.execute(cmdToRun);
