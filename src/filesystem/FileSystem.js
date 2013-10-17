@@ -152,9 +152,9 @@ define(function (require, exports, module) {
      * The set of watched roots, encoded as a mapping from full paths to objects
      * which contain a file entry, filter function, and change handler function.
      * 
-     * @type{Object.<string, Object.<entry: FileSystemEntry,
-     *      filter: function(entry): boolean,
-     *      handleChange: function(entry)>>}
+     * @type{Object.<string, {entry: FileSystemEntry,
+     *                        filter: function(string): boolean,
+     *                        handleChange: function(FileSystemEntry)} >}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                 paths.push(child.fullPath);
             }
             
-            return watchedRoot.filter(child);
+            return watchedRoot.filter(child.fullPath);
         }.bind(this);
         
         entry.visit(visitor, function (err) {
@@ -268,16 +268,31 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns false for files and directories that are not commonly useful to display.
-     *
-     * @param {string} path File or directory to filter
-     * @return boolean true if the file should be displayed
+     * Returns true if the given path should be automatically added to the index & watch list when one of its ancestors
+     * is a watch-root. (Files are added automatically when the watch-root is first established, or later when a new
+     * directory is created and its children enumerated).
+     * 
+     * Entries explicitly created via FileSystem.getFile/DirectoryForPath() are *always* added to the index regardless
+     * of this filtering - but they will not be watched if the watch-root's filter excludes them.
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
-    FileSystem.prototype.shouldShow = function (path) {
-        var name = path.substr(path.lastIndexOf("/") + 1);
+    FileSystem.prototype._indexFilter = function (path) {
+        var parentRoot;
         
-        return !name.match(_exclusionListRegEx);
+        Object.keys(this._watchedRoots).some(function (watchedPath) {
+            if (path.indexOf(watchedPath) === 0) {
+                parentRoot = this._watchedRoots[watchedPath];
+                return true;
+            }
+        }, this);
+        
+        if (parentRoot) {
+            return parentRoot.filter(path);
+        }
+        
+        // It might seem more sensible to return false (exclude) for files outside the watch roots, but
+        // that would break usage of appFileSystem for 'system'-level things like enumerating extensions.
+        // (Or in general, Directory.getContents() for any Directory outside the watch roots).
+        return true;
     };
     
     FileSystem.prototype._beginWrite = function () {
@@ -569,8 +584,9 @@ define(function (require, exports, module) {
      * 
      * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
      *      all subdirectories that aren't explicitly filtered will also be watched.
-     * @param {function(FileSystemEntry): boolean} filter - A function to determine whether
-     *      a particular FileSystemEntry should be watched or ignored. 
+     * @param {function(string): boolean} filter - A function to determine whether
+     *      a particular path should be watched or ignored. Paths that are ignored are also
+     *      filtered from Directory.getContents() results within this subtree.
      * @param {function(FileSystemEntry)} handleChange - A function that is called whenever
      *      a particular FileSystemEntry is changed.
      * @param {function(?string)} callback - A function that is called when the watch has

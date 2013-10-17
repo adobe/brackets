@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 
                 // Note: not all entries necessarily have associated stats.
                 // For now, silently ignore such entries.
-                if (stats[i] && this._fileSystem.shouldShow(entryPath)) {
+                if (stats[i] && this._fileSystem._indexFilter(entryPath)) {
                     if (stats[i].isFile()) {
                         entry = this._fileSystem.getFileForPath(entryPath);
                     } else {

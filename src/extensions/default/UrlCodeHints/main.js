@@ -135,7 +135,7 @@ define(function (require, exports, module) {
             directory.getContents(function (err, contents) {
                 if (!err) {
                     contents.forEach(function (entry) {
-                        if (fileSystem.shouldShow(entry.fullPath)) {
+                        if (ProjectManager.shouldShow(entry.fullPath)) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
 
