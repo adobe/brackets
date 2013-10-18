@@ -26,27 +26,97 @@
 
 "use strict";
 
-var fs = require("fs");
+var fs = require("fs"),
+    child_process = require("child_process");
+
+var MAX_PATHS_PER_CHILD = 256;
 
 var _domainManager,
-    _watcherMap = {};
+    _childMap = {}, // maps pids to {child, paths} pairs
+    _pathMap = {};  // maps paths to pids
+
+function emitChangeEvent(path, event, filename) {
+    // File/directory changes are emitted as "change" events on the fileWatcher domain.
+    _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
+}
+
+function handleMessage(pid, msg) {
+    switch (msg.type) {
+    case "change":
+        emitChangeEvent(msg.path, msg.event, msg.filename);
+        break;
+    case "log":
+        console[msg.level]("Child " + pid + ": " + msg.message);
+        break;
+    default:
+        console.warn("Received unknown message from child: ", msg);
+    }
+}
+
+function getChildForPath(path) {
+    var child;
+    
+    if (!_pathMap.hasOwnProperty(path)) {
+        // try to find an available child
+        var foundChild = Object.keys(_childMap).some(function (pid) {
+            var childObj = _childMap[pid];
+            
+            if (Object.keys(childObj.paths).length < MAX_PATHS_PER_CHILD) {
+                childObj.paths.push(path);
+                _pathMap[path] = pid;
+                child = childObj.child;
+                return true;
+            }
+            return false;
+        });
+        
+        // no child was available; create a new one
+        if (!foundChild) {
+            child = child_process.fork(__dirname + "/ChildWatcher.js", [], {silent: true});
+            console.log("Forked child process: " + child.pid);
+            
+            child.on("message", function (msg) {
+                handleMessage(child.pid, msg);
+            });
+            
+            child.on("error", function (msg) {
+                console.log("Child " + child.pid + " error: ", msg);
+            });
+            
+            child.on("disconnect", function () {
+                console.log("Child " + child.pid + " disconnect");
+            });
+            
+            child.on("exit", function (code, signal) {
+                console.log("Child " + child.pid + " exited: ", code, signal);
+            });
+            
+            _childMap[child.pid] = {
+                child: child,
+                paths: [path]
+            };
+            
+            _pathMap[path] = child.pid;
+        }
+    } else {
+        child = _childMap[_pathMap[path]].child;
+    }
+    
+    return child;
+}
 
 /**
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
  */
 function unwatchPath(path) {
-    var watcher = _watcherMap[path];
+    var child = getChildForPath(path);
     
-    if (watcher) {
-        try {
-            watcher.close();
-        } catch (err) {
-            console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
-        } finally {
-            delete _watcherMap[path];
-        }
-    }
+    child.send({
+        command: "unwatchPath",
+        path: path
+    });
+    
 }
 
 /**
@@ -54,38 +124,25 @@ function unwatchPath(path) {
  * @param {string} path File or directory to watch.
  */
 function watchPath(path) {
-    if (_watcherMap.hasOwnProperty(path)) {
-        return;
-    }
+    var child = getChildForPath(path);
     
-    try {
-        var watcher = fs.watch(path, {persistent: false}, function (event, filename) {
-            // File/directory changes are emitted as "change" events on the fileWatcher domain.
-            _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
-        });
-
-        _watcherMap[path] = watcher;
-        
-        watcher.on("error", function (err) {
-            console.error("Error watching file " + path + ": " + (err && err.message));
-            unwatchPath(path);
-        });
-    } catch (err) {
-        console.warn("Failed to watch file " + path + ": " + (err && err.message));
-    }
+    child.send({
+        command: "watchPath",
+        path: path
+    });
 }
 
 /**
  * Un-watch all files and directories.
  */
 function unwatchAll() {
-    var path;
-    
-    for (path in _watcherMap) {
-        if (_watcherMap.hasOwnProperty(path)) {
-            unwatchPath(path);
-        }
-    }
+    Object.keys(_childMap).forEach(function (pid) {
+        _childMap[pid].child.send({
+            command: "unwatchAll"
+        });
+        
+        _childMap[pid].paths = [];
+    });
 }
 
 /**
@@ -140,6 +197,12 @@ function init(domainManager) {
     
     _domainManager = domainManager;
 }
+
+process.on("exit", function () {
+    Object.keys(_childMap).forEach(function (pid) {
+        _childMap[pid].child.kill();
+    });
+});
 
 exports.init = init;
 
