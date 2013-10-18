@@ -69,7 +69,6 @@ define(function (require, exports, module) {
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
         $dlg.modal("hide");
-        $(".modal-wrapper:last").remove();
     }
 
     /**
@@ -179,6 +178,10 @@ define(function (require, exports, module) {
     function Dialog($dlg, promise) {
         this._$dlg    = $dlg;
         this._promise = promise;
+        
+        this._$dlg.one("hidden", function () {
+            $(".modal-wrapper:last").remove();
+        });
     }
     
     /** @type {$.Element} The dialog jQuery element */
