@@ -793,6 +793,19 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Although Brackets is generally standardized on folder paths with a trailing "/", some APIs here
+     * receive project paths without "/" due to legacy preference storage formats, etc.
+     * @param {!string} fullPath  Path that may or may not end in "/"
+     * @return {!string} Path that ends in "/"
+     */
+    function _ensureTrailingSlash(fullPath) {
+        if (fullPath[fullPath.length - 1] !== "/") {
+            return fullPath + "/";
+        }
+        return fullPath;
+    }
+    
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
      * @return {!string} fullPath reference
@@ -806,7 +819,7 @@ define(function (require, exports, module) {
             initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
         }
 
-        return initialPath + "/"; // paths above weren't canonical
+        return _ensureTrailingSlash(initialPath); // paths above weren't canonical
     }
     
     /**
@@ -870,9 +883,7 @@ define(function (require, exports, module) {
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
         // Some legacy code calls this API with a non-canonical path
-        if (rootPath[rootPath.length - 1] !== "/") {
-            rootPath += "/";
-        }
+        rootPath = _ensureTrailingSlash(rootPath);
         
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {

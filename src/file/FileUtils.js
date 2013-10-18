@@ -234,7 +234,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function stripTrailingSlash(path) {
-        if (path[path.length - 1] === "/") {
+        if (path && path[path.length - 1] === "/") {
             return path.slice(0, -1);
         } else {
             return path;
