@@ -41,7 +41,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -49,9 +49,11 @@ define(function (require, exports, module) {
     // Brackets modules
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        Strings             = brackets.getModule("strings"),
 
         InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
-        BezierCurveUtils        = require("BezierCurveUtils");
+        BezierCurveUtils        = require("BezierCurveUtils"),
+        Localized               = require("text!Localized.css");
 
     
     // Functions
@@ -152,6 +154,7 @@ define(function (require, exports, module) {
     function init() {
         // Load our stylesheet
         ExtensionUtils.loadStyleSheet(module, "main.css");
+        ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
     
         EditorManager.registerInlineEditProvider(inlineBezierCurveEditorProvider);
     }
