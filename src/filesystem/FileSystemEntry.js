@@ -40,7 +40,6 @@ define(function (require, exports, module) {
     function FileSystemEntry(path, fileSystem) {
         this._path = path;
         this._fileSystem = fileSystem;
-//        this._impl = fileSystem._impl;
         this._id = nextId++;
     }
         
@@ -67,7 +66,7 @@ define(function (require, exports, module) {
         },
         "_impl": {
             get: function () { return this._fileSystem._impl; },
-            set: function (val) { console.log("trying to set _impl"); }
+            set: function (val) { throw new Error("Cannot set _impl"); }
         }
     });
     
@@ -80,11 +79,6 @@ define(function (require, exports, module) {
      * Parent file system.
      */
     FileSystemEntry.prototype._fileSystem = null;
-    
-    /**
-     * Low level file system implementation.
-     */
-    FileSystemEntry.prototype._impl = null;
 
     /**
      * The path of this entry.

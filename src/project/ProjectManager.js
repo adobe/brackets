@@ -907,22 +907,6 @@ define(function (require, exports, module) {
     
             _unwatchProjectRoot();
         }
-        
-        function ensureFileSystem() {
-            var fsResult = new $.Deferred();
-            if (FileSystem) {
-                fsResult.resolve();
-            } /* else {
-                TODO: remove me
-                FileSystemManager.createFileSystem(filesystem, function (err, fs) {
-                    // TODO: check err?
-                    _fileSystem = fs;
-                    fsResult.resolve();
-                });
-            } */
-
-            return fsResult.promise();
-        }
                 
         // Clear project path map
         _projectInitialLoad = {
@@ -939,81 +923,79 @@ define(function (require, exports, module) {
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
-            ensureFileSystem().done(function () {
-                if (!isUpdating) {
-                    _watchProjectRoot(rootPath);
-                }
-                // Point at a real folder structure on local disk
-                var rootEntry = FileSystem.getDirectoryForPath(rootPath);
-                rootEntry.exists(function (exists) {
-                    if (exists) {
-                        var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                            _projectRoot.fullPath !== rootEntry.fullPath;
-                        var i;
-    
-                        // Success!
-                        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
-                            canonPath = FileUtils.canonicalizeFolderPath(rootPath);
-    
-                        _projectRoot = rootEntry;
-                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
-    
-                        // If this is the current welcome project, record it. In future launches, we always 
-                        // want to substitute the welcome project for the current build instead of using an
-                        // outdated one (when loading recent projects or the last opened project).
-                        if (canonPath === _getWelcomeProjectPath()) {
-                            var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-                            if (welcomeProjects.indexOf(canonPath) === -1) {
-                                welcomeProjects.push(canonPath);
-                                _prefs.setValue("welcomeProjects", welcomeProjects);
-                            }
+            if (!isUpdating) {
+                _watchProjectRoot(rootPath);
+            }
+            // Point at a real folder structure on local disk
+            var rootEntry = FileSystem.getDirectoryForPath(rootPath);
+            rootEntry.exists(function (exists) {
+                if (exists) {
+                    var projectRootChanged = (!_projectRoot || !rootEntry) ||
+                        _projectRoot.fullPath !== rootEntry.fullPath;
+                    var i;
+
+                    // Success!
+                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
+                        canonPath = FileUtils.canonicalizeFolderPath(rootPath);
+
+                    _projectRoot = rootEntry;
+                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+
+                    // If this is the current welcome project, record it. In future launches, we always 
+                    // want to substitute the welcome project for the current build instead of using an
+                    // outdated one (when loading recent projects or the last opened project).
+                    if (canonPath === _getWelcomeProjectPath()) {
+                        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+                        if (welcomeProjects.indexOf(canonPath) === -1) {
+                            welcomeProjects.push(canonPath);
+                            _prefs.setValue("welcomeProjects", welcomeProjects);
                         }
-    
-                        // The tree will invoke our "data provider" function to populate the top-level items, then
-                        // go idle until a node is expanded - at which time it'll call us again to fetch the node's
-                        // immediate children, and so on.
-                        resultRenderTree = _renderTree(_treeDataProvider);
-    
-                        resultRenderTree.always(function () {
-                            if (projectRootChanged) {
-                                // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                                var promises = [];
-                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                                $.when.apply($, promises).then(result.resolve, result.reject);
-                            } else {
-                                result.resolve();
-                            }
-                        });
-                        resultRenderTree.fail(function () {
+                    }
+
+                    // The tree will invoke our "data provider" function to populate the top-level items, then
+                    // go idle until a node is expanded - at which time it'll call us again to fetch the node's
+                    // immediate children, and so on.
+                    resultRenderTree = _renderTree(_treeDataProvider);
+
+                    resultRenderTree.always(function () {
+                        if (projectRootChanged) {
+                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                            var promises = [];
+                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
+                            $.when.apply($, promises).then(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
+                        }
+                    });
+                    resultRenderTree.fail(function () {
 //                                PerfUtils.terminateMeasurement(perfTimerName);
+                        result.reject();
+                    });
+                    resultRenderTree.always(function () {
+                        PerfUtils.addMeasurement(perfTimerName);
+                    });
+                } else {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_LOADING_PROJECT,
+                        StringUtils.format(
+                            Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                            StringUtils.breakableUrl(rootPath),
+                            Error.NOT_FOUND
+                        )
+                    ).done(function () {
+                        // The project folder stored in preference doesn't exist, so load the default 
+                        // project directory.
+                        // TODO (issue #267): When Brackets supports having no project directory
+                        // defined this code will need to change
+                        _loadProject(_getWelcomeProjectPath()).always(function () {
+                            // Make sure not to reject the original deferred until the fallback
+                            // project is loaded, so we don't violate expectations that there is always
+                            // a current project before continuing after _loadProject().
                             result.reject();
                         });
-                        resultRenderTree.always(function () {
-                            PerfUtils.addMeasurement(perfTimerName);
-                        });
-                    } else {
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_LOADING_PROJECT,
-                            StringUtils.format(
-                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                                StringUtils.breakableUrl(rootPath),
-                                Error.NOT_FOUND
-                            )
-                        ).done(function () {
-                            // The project folder stored in preference doesn't exist, so load the default 
-                            // project directory.
-                            // TODO (issue #267): When Brackets supports having no project directory
-                            // defined this code will need to change
-                            _loadProject(_getWelcomeProjectPath()).always(function () {
-                                // Make sure not to reject the original deferred until the fallback
-                                // project is loaded, so we don't violate expectations that there is always
-                                // a current project before continuing after _loadProject().
-                                result.reject();
-                            });
-                        });
-                    }
-                });
+                    });
+                }
             });
         }
         return result.promise();

@@ -90,6 +90,8 @@ define(function (require, exports, module) {
                     } else {
                         entry = this._fileSystem.getDirectoryForPath(entryPath);
                     }
+                    entry._stat = stats[i];
+                    entry._contents = undefined;
                     
                     this._contents.push(entry);
                 }

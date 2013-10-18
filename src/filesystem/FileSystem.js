@@ -410,7 +410,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._entryRenamed = function (oldName, newName, isDirectory) {
         // Update all affected entries in the index
         this._index.entryRenamed(oldName, newName, isDirectory);
-        $(this).trigger("rename", [oldName, newName]);
+        $(exports).trigger("rename", [oldName, newName]);
         console.log("rename: ", oldName, newName);
     };
     
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
         
         var fireChangeEvent = function () {
             // Trigger a change event
-            $(this).trigger("change", entry);
+            $(exports).trigger("change", entry);
             console.log("change: ", entry);
         }.bind(this);
 
