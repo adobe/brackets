@@ -336,7 +336,7 @@ define(function (require, exports, module) {
                  */
                 function hintsPresentExact(hintObj, expectedHints) {
                     _waitForHints(hintObj, function (hintList) {
-                        expect(hintList).not.toBeNull();
+                        expect(hintList).toBeTruthy();
                         expect(hintList.length).toBe(expectedHints.length);
                         expectedHints.forEach(function (expectedHint, index) {
                             expect(hintList[index].data("token").value).toBe(expectedHint);
