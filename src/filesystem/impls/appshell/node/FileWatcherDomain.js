@@ -32,6 +32,24 @@ var _domainManager,
     _watcherMap = {};
 
 /**
+ * Un-watch a file or directory.
+ * @param {string} path File or directory to unwatch.
+ */
+function unwatchPath(path) {
+    var watcher = _watcherMap[path];
+    
+    if (watcher) {
+        try {
+            watcher.close();
+        } catch (err) {
+            console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
+        } finally {
+            delete _watcherMap[path];
+        }
+    }
+}
+
+/**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
  */
@@ -40,22 +58,20 @@ function watchPath(path) {
         return;
     }
     
-    _watcherMap[path] = fs.watch(path, {persistent: false}, function (event, filename) {
-        // File/directory changes are emitted as "change" events on the fileWatcher domain.
-        _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
-    });
-}
+    try {
+        var watcher = fs.watch(path, {persistent: false}, function (event, filename) {
+            // File/directory changes are emitted as "change" events on the fileWatcher domain.
+            _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
+        });
 
-/**
- * Un-watch a file or directory.
- * @param {string} path File or directory to unwatch.
- */
-function unwatchPath(path) {
-    var watcher = _watcherMap[path];
-    
-    if (watcher) {
-        watcher.close();
-        delete _watcherMap[path];
+        _watcherMap[path] = watcher;
+        
+        watcher.on("error", function (err) {
+            console.error("Error watching file " + path + ": " + (err && err.message));
+            unwatchPath(path);
+        });
+    } catch (err) {
+        console.warn("Failed to watch file " + path + ": " + (err && err.message));
     }
 }
 
@@ -80,6 +96,7 @@ function init(domainManager) {
     if (!domainManager.hasDomain("fileWatcher")) {
         domainManager.registerDomain("fileWatcher", {major: 0, minor: 1});
     }
+    
     domainManager.registerCommand(
         "fileWatcher",
         "watchPath",
