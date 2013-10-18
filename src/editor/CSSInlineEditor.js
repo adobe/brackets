@@ -282,7 +282,7 @@ define(function (require, exports, module) {
         
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules) || [],
+                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
                                                                                     _getNoRulesMsg, CSSUtils.getRangeSelectors);
                 cssInlineEditor.load(hostEditor);
                 cssInlineEditor.$htmlContent
@@ -307,6 +307,10 @@ define(function (require, exports, module) {
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
                             $newRuleButton.removeClass("disabled");
+                            if (!rules.length) {
+                                // Force focus to the button so the user can create a new rule from the keyboard.
+                                $newRuleButton.focus();
+                            }
                         }
                         if (cssFileInfos.length > 1) {
                             $newRuleButton.addClass("btn-dropdown");
