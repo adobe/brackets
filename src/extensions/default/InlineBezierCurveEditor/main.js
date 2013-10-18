@@ -53,7 +53,7 @@ define(function (require, exports, module) {
 
         InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
         BezierCurveUtils        = require("BezierCurveUtils"),
-        EmbeddedStyles          = require("text!EmbeddedStyles.css");
+        Localized               = require("text!Localized.css");
 
     
     // Functions
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
     function init() {
         // Load our stylesheet
         ExtensionUtils.loadStyleSheet(module, "main.css");
-        ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(EmbeddedStyles, Strings));
+        ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
     
         EditorManager.registerInlineEditProvider(inlineBezierCurveEditorProvider);
     }
