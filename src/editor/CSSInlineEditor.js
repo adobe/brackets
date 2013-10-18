@@ -102,16 +102,18 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Add a new rule for the given selector to the given document, then add the rule to the
+     * Add a new rule for the given selector to the given stylesheet, then add the rule to the
      * given inline editor.
      * @param {string} selectorName The selector to create a rule for.
      * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
-     * @param {Document} styleDoc The document the rule should be inserted in.
+     * @param {string} path The path to the stylesheet file.
      */
-    function _addRule(selectorName, inlineEditor, styleDoc) {
-        var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
-        inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
-        inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
+    function _addRule(selectorName, inlineEditor, path) {
+        DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
+            var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
+            inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
+            inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
+        });
     }
 
     /**
@@ -185,9 +187,7 @@ define(function (require, exports, module) {
             var path  = $link.data("path");
 
             if (path) {
-                DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
-                    _addRule(selectorName, cssInlineEditor, styleDoc);
-                });
+                _addRule(selectorName, cssInlineEditor, path);
             }
         }
         
@@ -240,8 +240,10 @@ define(function (require, exports, module) {
                     .text(Strings.BUTTON_NEW_RULE)
                     .on("click", function (e) {
                         if (!$newRuleButton.hasClass("disabled")) {
-                            // toggle dropdown
-                            if ($dropdown) {
+                            if (cssFileInfos.length === 1) {
+                                // Just go ahead and create the rule.
+                                _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
+                            } else if ($dropdown) {
                                 _closeDropdown();
                             } else {
                                 _showDropdown();
@@ -262,6 +264,9 @@ define(function (require, exports, module) {
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
                             $newRuleButton.removeClass("disabled");
+                        }
+                        if (cssFileInfos.length > 1) {
+                            $newRuleButton.addClass("btn-dropdown");
                         }
                     });
             })
