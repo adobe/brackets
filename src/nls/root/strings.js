@@ -284,6 +284,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
