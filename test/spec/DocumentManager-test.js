@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument()).not.toBe(null);
-                    DocumentManager.nullifyCurrentDocument();
+                    DocumentManager.clearCurrentDocument();
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });
 
