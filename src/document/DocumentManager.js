@@ -496,29 +496,19 @@ define(function (require, exports, module) {
 
         PerfUtils.addMeasurement(perfTimerName);
     }
-    
 
-    function nullifyCurrentDocument() {
-        // make sure code catching currentDocumentChange do not use the file cleared
-        if (EditorManager.getCurrentlyViewedFile) {
-            EditorManager.clearCurrentlyViewedFile();
-        }
-        
+    
+    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
+    function _clearCurrentDocument() {
         // If editor already blank, do nothing
         if (!_currentDocument) {
             return;
+        } else {
+            // Change model & dispatch event
+            _currentDocument = null;
+            // (this event triggers EditorManager to actually clear the editor UI)
+            $(exports).triggerHandler("currentDocumentChange");
         }
-        
-        // Change model & dispatch event
-        _currentDocument = null;
-    }
-    
-    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
-    function clearCurrentDocument() {
-        
-        nullifyCurrentDocument();
-        $(exports).triggerHandler("currentDocumentChange");
-        // (this event triggers EditorManager to actually clear the editor UI)
     }
     
 
@@ -560,7 +550,7 @@ define(function (require, exports, module) {
                         closeFullEditor(file);
                     });
             } else {
-                clearCurrentDocument();
+                _clearCurrentDocument();
             }
         }
         
@@ -578,7 +568,7 @@ define(function (require, exports, module) {
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        clearCurrentDocument();
+        _clearCurrentDocument();
         _removeAllFromWorkingSet();
     }
         
@@ -590,7 +580,7 @@ define(function (require, exports, module) {
         }
         
         if (clearCurrentDoc) {
-            clearCurrentDocument();
+            _clearCurrentDocument();
         }
         
         list.forEach(function (file) {
@@ -974,8 +964,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
-    exports.clearCurrentDocument        = clearCurrentDocument;
-    exports.nullifyCurrentDocument      = nullifyCurrentDocument;
+    exports._clearCurrentDocument        = _clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.createUntitledDocument      = createUntitledDocument;

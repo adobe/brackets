@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     /** 
       * Update the file selection focus when ever the current document changes
       */
-    $(DocumentManager).on("currentDocumentChange", function (event) {
+    $(EditorManager).on("currentlyViewedFileChange", function (event) {
         var perfTimerName;
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {

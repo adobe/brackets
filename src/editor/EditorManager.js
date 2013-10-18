@@ -61,7 +61,6 @@ define(function (require, exports, module) {
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
-        ProjectManager      = require("project/ProjectManager"),
         LanguageManager     = require("language/LanguageManager");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
@@ -75,11 +74,9 @@ define(function (require, exports, module) {
     /** @type {?Document} */
     var _currentEditorsDocument = null;
     /** @type {?string} full path to file */
-    var _currentlyViewedFile = null;
+    var _currentlyViewedPath = null;
     /** @type {?JQuery} DOM node representing UI of custom view   */
-    var _currentCustomViewer = null;
-    /** @type {?JQuery} DOM node representing UI of previous custom view   */
-    var _previousCustomViewer = null;
+    var _$currentCustomViewer = null;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -475,13 +472,6 @@ define(function (require, exports, module) {
             if (refreshFlag === REFRESH_FORCE) {
                 _currentEditor.refreshAll(true);
             }
-        } else {
-            if (_currentCustomViewer) {
-                var mode = LanguageManager.getLanguageForPath(_currentlyViewedFile);
-                if (mode.getId() === "image") {
-                    ImageViewer.onEditorAreaResize();
-                }
-            }
         }
     }
     
@@ -595,30 +585,36 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        _previousCustomViewer = _currentCustomViewer;
-        _currentCustomViewer = null;
+        _$currentCustomViewer = null;
         if (_currentEditor) {
             $("#not-editor").css("display", "");
             _nullifyEditor();
         }
     }
     
+    function getCurrentlyViewedPath() {
+        return _currentlyViewedPath;
+    }
+    
+    function _clearCurrentlyViewedPath() {
+        _currentlyViewedPath = null;
+        $(exports).triggerHandler("currentlyViewedFileChange");
+    }
+    
+    function _setCurrentlyViewedPath(fullPath) {
+        _currentlyViewedPath = fullPath;
+        $(exports).triggerHandler("currentlyViewedFileChange");
+    }
+    
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
-        var customViewId;
-        if (_previousCustomViewer) {
-            customViewId = _previousCustomViewer.attr("id");
-            if ($("#" + customViewId).size() > 0) {
-                $("#" + customViewId).remove();
-            }
-        } else if (_currentCustomViewer) {
-            customViewId = _currentCustomViewer.attr("id");
-            if ($("#" + customViewId).size() > 0) {
-                $("#" + customViewId).remove();
+        $(exports).triggerHandler("removeCustomViewer");
+        if (_$currentCustomViewer) {
+            if (_$currentCustomViewer.size() > 0) {
+                _$currentCustomViewer.remove();
             }
         }
-        _previousCustomViewer = _currentCustomViewer;
-        _currentCustomViewer = null;
+        _$currentCustomViewer = null;
     }
 
     /** append custom view to editor-holder
@@ -626,65 +622,26 @@ define(function (require, exports, module) {
      *  @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer($customView, fullPath) {
+        DocumentManager._clearCurrentDocument();
+    
+        // Hide the not-editor
+        $("#not-editor").css("display", "none");
         
-        var mode = LanguageManager.getLanguageForPath(fullPath);
-        // remove current image, this will only happen if the view switches from one 
-        // image to another
-        if (mode.getId() === "image" && $customView && fullPath) {
-            
-            var previousDoc = DocumentManager.getCurrentDocument();
-            if (previousDoc) {
-                // clear the current document
-                // and do fire CurrentDocumentChange
-                DocumentManager.clearCurrentDocument();
-            } else {
-                // clear the current document
-                // but do not fire CurrentDocumentChange
-                DocumentManager.nullifyCurrentDocument();
-            }
-
-            
-            // Hide the not-editor
-            $("#not-editor").css("display", "none");
-            
-            _removeCustomViewer();
-            
-            _currentlyViewedFile = fullPath;
-            
-            // remember the previous custom view so  we 
-            // can remove it in the currentDocumentChange 
-            // event handler
-            _previousCustomViewer = _currentCustomViewer;
-            _currentCustomViewer = $customView;
-
-            _nullifyEditor();
-            
-            // place in window
-            $("#editor-holder").append(_currentCustomViewer);
-
-            // add path, dimensions and file size to the view after loading image
-            ImageViewer.render(_currentlyViewedFile);
-
-            $(FileViewController).triggerHandler("documentSelectionFocusChange");
-        }
-    }
-    
-    function getCurrentlyViewedFile() {
-        return _currentlyViewedFile;
-    }
-    
-    function clearCurrentlyViewedFile() {
-        _currentlyViewedFile = null;
-    }
-    
-    function setCurrentlyViewedFile(fullPath) {
-        _currentlyViewedFile = fullPath;
-    }
-    
-    /** Handle project close, remove customView */
-    function _onBeforeProjectClose() {
-        clearCurrentlyViewedFile();
         _removeCustomViewer();
+        
+        _nullifyEditor();
+        _$currentCustomViewer = $customView;
+        // place in window
+        $("#editor-holder").append(_$currentCustomViewer);
+    
+        // TODO: To avoid hardcoded references to ImageViewer here too, 
+        // perhaps it could be passed into showCustomViewer() as a "provider" object.
+        // Then we can call both getImageHolder() and render() from here... maybe even collapse them into one API?        
+        
+        // add path, dimensions and file size to the view after loading image
+        ImageViewer.render(fullPath);
+        
+        _setCurrentlyViewedPath(fullPath);
     }
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -699,9 +656,14 @@ define(function (require, exports, module) {
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
-            _currentlyViewedFile = doc.file.fullPath;
+            // TODO: need to do this? 
+            // YES - other folks that change the document will update EM this way
+            // FileViewController will trail EM, i.e. openinga file via 
+            // FILE_OPEN command.
+            _setCurrentlyViewedPath(doc.file.fullPath);
             _showEditor(doc);
         } else {
+            _clearCurrentlyViewedPath();
             _showNoEditor();
         }
 
@@ -925,7 +887,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
-    $(ProjectManager).on("beforeProjectClose",     _onBeforeProjectClose);
 
 
     // For unit tests and internal use only
@@ -947,9 +908,7 @@ define(function (require, exports, module) {
     exports.focusEditor                   = focusEditor;
     exports.getFocusedEditor              = getFocusedEditor;
     exports.getActiveEditor               = getActiveEditor;
-    exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
-    exports.clearCurrentlyViewedFile      = clearCurrentlyViewedFile;
-    exports.setCurrentlyViewedFile        = setCurrentlyViewedFile;
+    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;

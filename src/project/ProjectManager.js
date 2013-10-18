@@ -236,7 +236,7 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedFile();
+        var curFile = EditorManager.getCurrentlyViewedPath();
         if (curFile && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),

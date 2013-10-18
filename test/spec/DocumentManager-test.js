@@ -83,61 +83,6 @@ define(function (require, exports, module) {
                 testWindow.brackets.test.DocumentManager.closeAll();
             });
         });
-
-        describe("nullifyCurrentDocument ", function () {
-            it("should NOT fire currentDocumentChange", function () {
-                var docChangeListener = jasmine.createSpy();
-
-
-                runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    expect(docChangeListener.callCount).toBe(0);
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    expect(docChangeListener.callCount).toBe(1);
-                    DocumentManager.nullifyCurrentDocument();
-                    expect(docChangeListener.callCount).toBe(1);
-                    
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    
-                });
-
-            });
-        });
-        
-        describe("nullifyCurrentDocument ", function () {
-            it("should call clearCurrentlyViewedFile", function () {
-
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    spyOn(EditorManager, "clearCurrentlyViewedFile");
-                    DocumentManager.nullifyCurrentDocument();
-                    expect(EditorManager.clearCurrentlyViewedFile).toHaveBeenCalled();
-                });
-
-            });
-        });
-        
-        describe("After nullifyCurrentDocument ", function () {
-            it("getCurrentDocument should return null ", function () {
-
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument()).not.toBe(null);
-                    DocumentManager.nullifyCurrentDocument();
-                    expect(DocumentManager.getCurrentDocument()).toBe(null);
-                });
-
-            });
-        });
         
         describe("clearCurrentDocument ", function () {
             it("should fire currentDocumentChange", function () {
@@ -161,22 +106,7 @@ define(function (require, exports, module) {
 
             });
         });
-        
-        describe("clearCurrentDocument ", function () {
-            it("should call clearCurrentlyViewedFile", function () {
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    spyOn(EditorManager, "clearCurrentlyViewedFile");
-                    DocumentManager.clearCurrentDocument();
-                    expect(EditorManager.clearCurrentlyViewedFile).toHaveBeenCalled();
-                    
-                });
 
-            });
-        });
         
         describe("After clearCurrentDocument ", function () {
             it("getCurrentDocument should return null ", function () {

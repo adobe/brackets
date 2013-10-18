@@ -24,11 +24,10 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
     
-    var LanguageManager     = require("language/LanguageManager"),
+    var EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
     }
     
     /** handle editor resize event, i.e. update scale sticker */
-    function onEditorAreaResize() {
+    function _onEditorAreaResize() {
         _updateScale($("#img-preview").width());
     }
         
@@ -64,16 +63,14 @@ define(function (require, exports, module) {
      *
      */
     function getImageHolder(fullPath) {
-        if (!fullPath) {
-            return;
-        }
-        var mode = LanguageManager.getLanguageForPath(fullPath),
-            $imageHolder;
-        
-        if (mode.getId() === "image") {
-            $imageHolder = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-        }
-        return $imageHolder;
+        return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
+    }
+    
+    /** 
+     *    
+     */
+    function _removeListener() {
+        $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
     }
     
     /** Perform decorations on the view that require loading the image in the browser,
@@ -81,41 +78,35 @@ define(function (require, exports, module) {
      *   @param {!string} fullPath path to the image file
      */
     function render(fullPath) {
-        // null check on the require param
-        if (!fullPath) {
-            return;
-        }
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
-            mode = LanguageManager.getLanguageForPath(fullPath);
-        
-        // only do this if we actually do have an image path
-        if (mode.getId() === "image") {
-            $("#img-path").text(relPath);
-            $("#img-preview").on("load", function () {
-                // add dimensions and size
-                _naturalWidth = this.naturalWidth;
-                var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
-                // get image size
-                var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        var sizeString = "";
-                        if (metadata && metadata.size) {
-                            sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
-                        }
-                        $("#img-data").html(dimensionString  + sizeString);
-                    },
-                    function (error) {
-                        $("#img-data").text(dimensionString);
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+
+        $("#img-path").text(relPath);
+        $("#img-preview").on("load", function () {
+            // add dimensions and size
+            _naturalWidth = this.naturalWidth;
+            var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            // get image size
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            fileEntry.getMetadata(
+                function (metadata) {
+                    var sizeString = "";
+                    if (metadata && metadata.size) {
+                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
                     }
-                );
-                $("#image-holder").show();
-                _updateScale($(this).width());
-            });
-        }
+                    $("#img-data").html(dimensionString + sizeString);
+                },
+                function (error) {
+                    $("#img-data").text(dimensionString);
+                }
+            );
+            $("#image-holder").show();
+            // listen to resize to  update the scale sticker
+            $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
+            // listen to removal to stop listening to resize events
+            $(EditorManager).on("removeCustomViewer", _removeListener);
+            _updateScale($(this).width());
+        });
     }
-    
     exports.getImageHolder      = getImageHolder;
-    exports.onEditorAreaResize  = onEditorAreaResize;
     exports.render              = render;
 });

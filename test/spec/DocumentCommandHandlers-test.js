@@ -1072,6 +1072,7 @@ define(function (require, exports, module) {
                     expect(EditorManager.getActiveEditor()).toEqual(null);
                     expect(EditorManager.getCurrentFullEditor()).toEqual(null);
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
+                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
                     var d = DocumentManager.getCurrentDocument();
                     expect(d).toEqual(null);
                 });
@@ -1192,7 +1193,8 @@ define(function (require, exports, module) {
      
                     e = EditorManager.getFocusedEditor();
                     expect(e.document.file.fullPath).toBe(path);
-                
+                    
+                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
                 });
             });
         });

@@ -473,6 +473,7 @@ define(function (require, exports, module) {
      * Supplies information about the state of a file or directory
      * @constructor
      * @param {Date} modificationTime Time at which the file or directory was last modified
+     * @param {Number} size the size in bytes of the file
      */
     NativeFileSystem.Metadata = function (modificationTime, size) {
         // modificationTime is read only

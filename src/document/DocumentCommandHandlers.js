@@ -170,8 +170,10 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a
-     *  document for the specified file path, or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise that will either
+     * - be resolved with a document for the specified file path or
+     * - be resolved without document, i.e. when an image is displayed or
+     * - be rejected if the file can not be read.
      */
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
@@ -196,7 +198,6 @@ define(function (require, exports, module) {
                         // prepare ProjectManager to catch documentSelectionFocusChange 
                         // and mark the correct file.
                         // triggered by currentDocumentChange triggered by setCurrentDocument
-                        EditorManager.setCurrentlyViewedFile(doc.file.fullPath);
                         DocumentManager.setCurrentDocument(doc);
                         result.resolve(doc);
                     })
@@ -233,7 +234,8 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a new
-     *  document for the specified file path, or rejected if the file can not be read.
+     * document for the specified file path or be resolved without document, i.e. when an image is displayed, 
+     * or rejected if the file can not be read.
      */
     function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
@@ -259,6 +261,9 @@ define(function (require, exports, module) {
                         
                         doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
+                                //  doc may be null, i.e. if an image has been opened.
+                                // Then we neither want to add to working set, nor save the 
+                                // path as default open dialog path.
                                 if (doc) {
                                     _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
                                     
