@@ -333,6 +333,9 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "Nouvelle règle",
+    
     // Extension Management strings
 	"INSTALL": "Installer",
 	"UPDATE": "Mettre à jour",
@@ -409,6 +412,10 @@ define({
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
+    
+	"INLINE_EDITOR_NO_MATCHES": "[7308180] !é=No matches available.=!",
+	"CSS_QUICK_EDIT_NO_MATCHES": "[7308178] !é=There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.=!",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "[7308179] !é=There are no stylesheets in your project.<br>Create one to add CSS rules.=!",
     
     /**
      * Unit names
