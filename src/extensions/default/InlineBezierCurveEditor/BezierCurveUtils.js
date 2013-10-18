@@ -61,16 +61,16 @@ define(function (require, exports, module) {
         // Next look for the ease functions (which are special cases of cubic-bezier())
         if (lax) {
             // For lax parsing, just look for the keywords
-            match = str.match(/ease(-in)?(-out)?/);
+            match = str.match(/ease(?:-in)?(?:-out)?/);
             if (match) {
                 return match;
             }
         } else {
             // For strict parsing, start with a syntax verifying search
-            match = str.match(/[: ,]ease(-in)?(-out)?[ ,;]/);
+            match = str.match(/[: ,]ease(?:-in)?(?:-out)?[ ,;]/);
             if (match) {
                 // return exact match to keyword that we need for later replacement
-                return str.match(/ease(-in)?(-out)?/);
+                return str.match(/ease(?:-in)?(?:-out)?/);
             }
         }
 
