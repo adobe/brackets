@@ -119,7 +119,7 @@ define(function (require, exports, module) {
             }
             
             it("should open the dialog", function () {
-                expect(fields.$dlg[0]).not.toBeNull();
+                expect(fields.$dlg[0]).toBeTruthy();
             });
             
             it("should have the install button disabled when dialog is first open due to empty url field", function () {

@@ -333,6 +333,9 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "新規ルール",
+    
     // Extension Management strings
 	"INSTALL": "インストール",
 	"UPDATE": "更新",
@@ -409,6 +412,10 @@ define({
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
+    
+	"INLINE_EDITOR_NO_MATCHES": "!能=[7308180] No matches available._=!",
+	"CSS_QUICK_EDIT_NO_MATCHES": "!能=[7308178] There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one._=!",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "!能=[7308179] There are no stylesheets in your project.<br>Create one to add CSS rules._=!",
     
     /**
      * Unit names

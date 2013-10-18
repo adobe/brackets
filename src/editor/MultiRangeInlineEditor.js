@@ -39,6 +39,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     // Load dependent modules
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -46,8 +48,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils"),
-        StringUtils         = require("utils/StringUtils");
+        PerfUtils           = require("utils/PerfUtils");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -78,7 +79,7 @@ define(function (require, exports, module) {
         if (labelCB) {
             range.name = labelCB(range.textRange);
         }
-        var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+        var text = _.escape(range.name) + " <span class='related-file'>— " + _.escape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }

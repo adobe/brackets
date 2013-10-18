@@ -398,12 +398,15 @@ a:focus {
 
 .stylesheet-button.btn-mini {
     margin-left: 8px;
-    padding-right: 24px;
     position: relative;
     top: -1px;
 }
 
-.stylesheet-button::after {
+.stylesheet-button.btn-mini.btn-dropdown {
+    padding-right: 24px;
+}
+
+.stylesheet-button.btn-dropdown::after {
     content: "";
     display: block;
     height: 0px;

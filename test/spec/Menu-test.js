@@ -256,7 +256,7 @@ define(function (require, exports, module) {
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom1", "menu-unittest1");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
                     $listItems = getTopMenus(); // refresh
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom2", "menu-unittest2", Menus.FIRST);
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
                     $listItems = getTopMenus();
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("CustomFirst", "menu-unittest3-first", Menus.FIRST);
                     menu = Menus.addMenu("CustomAfter", "menu-unittest3-after", Menus.AFTER, "menu-unittest3-first");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
                     $listItems = getTopMenus();
@@ -307,7 +307,7 @@ define(function (require, exports, module) {
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("CustomLast", "menu-unittest3-last", Menus.LAST);
                     menu = Menus.addMenu("CustomBefore", "menu-unittest3-before", Menus.BEFORE, "menu-unittest3-last");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
                     $listItems = getTopMenus();
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom3", "menu-unittest4", Menus.AFTER, "NONEXISTANT");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
                     $listItems = getTopMenus();
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
 
                     var menuCountOriginal = $listItems.length;
                     var menu1 = Menus.addMenu("Custom5", "menu-unittest5");
-                    expect(menu1).not.toBeNull();
+                    expect(menu1).toBeTruthy();
 
                     var menu2 = null;
 
@@ -368,7 +368,7 @@ define(function (require, exports, module) {
                     // add new menu item to empty menu
                     CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command00", function () {});
                     var menuItem = menu.addMenuItem("Menu-test.command00");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                     // add new menu item in first position of menu
                     CommandManager.register("Brackets Test Command Custom 1", "Menu-test.command01", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command01", "Ctrl-Alt-1", Menus.FIRST);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -394,7 +394,7 @@ define(function (require, exports, module) {
                     // add new menu item in last position of menu
                     CommandManager.register("Brackets Test Command Custom 2", "Menu-test.command02", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command02", Menus.LAST);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -405,7 +405,7 @@ define(function (require, exports, module) {
                     // add new menu item in position after reference command
                     CommandManager.register("Brackets Test Command Custom 3", "Menu-test.command03", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command03", "Ctrl-Alt-3", Menus.AFTER, "Menu-test.command01");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -416,7 +416,7 @@ define(function (require, exports, module) {
                     // add new menu item in position before reference command
                     CommandManager.register("Brackets Test Command Custom 4", "Menu-test.command04", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command04", "Ctrl-Alt-4", Menus.BEFORE, "Menu-test.command01");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -499,7 +499,7 @@ define(function (require, exports, module) {
                     // reference command doesn't exist
                     CommandManager.register("Brackets Test Command Custom 21", "Menu-test.command21", function () {});
                     var menuItem = menu.addMenuItem("Menu-test.command21", "Ctrl-Alt-2", Menus.BEFORE, "NONEXISTANT");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     var $listItems = testWindow.$(listSelector).children();
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
 
                     CommandManager.register("Brackets Test Command Custom 23", "Menu-test.command23", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command23", "Ctrl-Alt-3", Menus.BEFORE, "Menu-test.command22");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 25", "Menu-test.command25", function () {});
 
                     menuItem = menu.addMenuItem("Menu-test.command24", "Ctrl-Alt-1", Menus.BEFORE, "Menu-test.command25");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
 
                     // Re-use commands that are already registered
                     var menuItem = menu.addMenuItem(commandId);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     expect(typeof (commandId)).toBe("string");
@@ -609,7 +609,7 @@ define(function (require, exports, module) {
 
                     // Re-use commands that are already registered
                     var menuItem = menu.addMenuItem(commandId);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = menuDOMChildren(menuItemId);
@@ -693,7 +693,7 @@ define(function (require, exports, module) {
 
                     // checked state
                     var cmd = CommandManager.register("Brackets Test Command Custom 40", "Menu-test.command40", function () {});
-                    expect(cmd).not.toBeNull();
+                    expect(cmd).toBeTruthy();
                     expect(cmd).toBeDefined();
 
                     var menu = Menus.addMenu("Synchronizing Menu", "menuitem-unittest4");

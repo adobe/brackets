@@ -28,14 +28,13 @@
 
 define(function (require, exports, module) {
     "use strict";
-
+    
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        InlineWidget        = require("editor/InlineWidget").InlineWidget,
-        CollectionUtils     = require("utils/CollectionUtils");
+        InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
      * Returns editor holder width (not CodeMirror's width).
