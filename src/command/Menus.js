@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     // Load dependent modules
     var Global              = require("utils/Global"),
         Commands            = require("command/Commands"),
@@ -808,7 +810,7 @@ define(function (require, exports, module) {
      * @return {?Menu} the newly created Menu
      */
     function addMenu(name, id, position, relativeID) {
-        name = StringUtils.htmlEscape(name);
+        name = _.escape(name);
         var $menubar = $("#titlebar .nav"),
             menu;
 

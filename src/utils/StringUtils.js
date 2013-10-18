@@ -30,6 +30,8 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("lodash");
 
     /**
      * Format a string by replacing placeholder symbols with passed in arguments.
@@ -49,13 +51,12 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * @deprecated
+     */
     function htmlEscape(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+        console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
+        return _.escape(str);
     }
 
     function regexEscape(str) {
@@ -158,7 +159,7 @@ define(function (require, exports, module) {
      */
     function breakableUrl(url) {
         // This is for displaying in UI, so always want it escaped
-        var escUrl = htmlEscape(url);
+        var escUrl = _.escape(url);
 
         // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
         return escUrl.replace(

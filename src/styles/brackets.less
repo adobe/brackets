@@ -693,7 +693,7 @@ a, img {
         .filename {
             font-family: @sansFontFamily;
             font-size: 1.1em;
-            color: @tc-light-weight-quiet-text;
+            color: @bc-black;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -824,6 +824,15 @@ a, img {
             transition: color 0.1s ease-out .15s;
         }
     }
+}
+
+.inline-editor-message {
+    color: @tc-input-placeholder-text;
+    font-family: @sansFontFamily;
+    font-size: 12px;
+    line-height: 17px;
+    height: 20px;
+    padding: 10px 0 40px 50px;
 }
 
 /* This text is used to force the code editor's font to be loaded early on if it's a

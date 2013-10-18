@@ -34,11 +34,12 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var _ = brackets.getModule("lodash");
+    
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
-        CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         FileIndexManager    = brackets.getModule("project/FileIndexManager"),
@@ -306,14 +307,14 @@ define(function (require, exports, module) {
         var requests,
             key = file + "@" + offset.line + "@" + offset.ch,
             $deferredRequest;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+        if (_.has(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
         } else {
             requests = {};
             pendingTernRequests[key] = requests;
         }
 
-        if (CollectionUtils.hasProperty(requests, type)) {
+        if (_.has(requests, type)) {
             $deferredRequest = requests[type];
         } else {
             requests[type] = $deferredRequest = $.Deferred();
@@ -330,7 +331,7 @@ define(function (require, exports, module) {
      */
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset.line + "@" + offset.ch;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+        if (_.has(pendingTernRequests, key)) {
             var requests = pendingTernRequests[key],
                 requestType = requests[type];
 

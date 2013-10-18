@@ -81,7 +81,7 @@ define({
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
 	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブ開発ページを読み込めません。",
-	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開いてください。",
+	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開くか、index.html ファイルがプロジェクトに含まれていることを確認してください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
@@ -209,6 +209,10 @@ define({
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
+	"CMD_FILE_CLOSE_LIST": "リストを閉じる",
+	"CMD_FILE_CLOSE_OTHERS": "他をすべて閉じる",
+	"CMD_FILE_CLOSE_ABOVE": "上をすべて閉じる",
+	"CMD_FILE_CLOSE_BELOW": "下をすべて閉じる",
 	"CMD_FILE_SAVE": "保存",
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
@@ -411,8 +415,7 @@ define({
      */
 
 	"UNIT_PIXELS": "ピクセル",
-    
-    
+
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",

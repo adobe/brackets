@@ -42,6 +42,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var Async                 = require("utils/Async"),
         Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
@@ -59,7 +61,6 @@ define(function (require, exports, module) {
         FileUtils             = require("file/FileUtils"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
-        CollectionUtils       = require("utils/CollectionUtils"),
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
      */
     function _countFilesMatches() {
         var numFiles = 0, numMatches = 0;
-        CollectionUtils.forEach(searchResults, function (item) {
+        _.forEach(searchResults, function (item) {
             numFiles++;
             numMatches += item.matches.length;
         });
@@ -314,7 +315,7 @@ define(function (require, exports, module) {
                 matchesCounter = 0,
                 showMatches    = false;
             
-            CollectionUtils.some(searchResults, function (item, fullPath) {
+            _.some(searchResults, function (item, fullPath) {
                 showMatches = true;
                 
                 // Since the amount of matches on this item plus the amount of matches we skipped until
@@ -836,7 +837,7 @@ define(function (require, exports, module) {
         
         if (searchResultsPanel.isVisible()) {
             // Update the search results
-            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+            _.forEach(searchResults, function (item, fullPath) {
                 if (fullPath.match(oldName)) {
                     searchResults[fullPath.replace(oldName, newName)] = item;
                     delete searchResults[fullPath];
@@ -862,7 +863,7 @@ define(function (require, exports, module) {
         
         if (searchResultsPanel.isVisible()) {
             // Update the search results
-            CollectionUtils.forEach(searchResults, function (item, fullPath) {
+            _.forEach(searchResults, function (item, fullPath) {
                 if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
                     delete searchResults[fullPath];
                     resultsChanged = true;
