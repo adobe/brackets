@@ -119,9 +119,10 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     var _keydownHook = function (e, autoDismiss) {
-        var $primaryBtn = this.find(".primary"),
-            buttonId    = null,
-            which       = String.fromCharCode(e.which);
+        var $primaryBtn     = this.find(".primary"),
+            buttonId        = null,
+            which           = String.fromCharCode(e.which),
+            $focusedElement = this.find(".dialog-button:focus, a:focus");
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inTextArea    = (e.target.tagName === "TEXTAREA"),
@@ -132,11 +133,17 @@ define(function (require, exports, module) {
         } else if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
         } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
-            // Click primary button
-            $primaryBtn.click();
+            // Click focused button or primary if no focus
+            if($focusedButton.length !== 0) {
+                $focusedButton.click()
+            } else {
+                $primaryBtn.click();
+            }
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button or link
-            this.find(".dialog-button:focus, a:focus").click();
+            if($focusedButton.length !== 0) {
+                $focusedButton.click()
+            }
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
             if (e.metaKey && (which === "D")) {
