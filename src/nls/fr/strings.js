@@ -461,6 +461,10 @@ define({
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
     
+    // extensions/default/InlineBezierCurveEditor
+	"INLINE_BEZIER_EDITOR_TIME": "Heure",
+	"INLINE_BEZIER_EDITOR_PROGRESSION": "[7314129] !é=Progression=!",
+    
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
 	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "Couleur d’origine",
