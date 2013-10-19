@@ -185,10 +185,6 @@ define(function (require, exports, module) {
     function Dialog($dlg, promise) {
         this._$dlg    = $dlg;
         this._promise = promise;
-        
-        this._$dlg.one("hidden", function () {
-            $(".modal-wrapper:last").remove();
-        });
     }
     
     /** @type {$.Element} The dialog jQuery element */
@@ -269,6 +265,9 @@ define(function (require, exports, module) {
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+            
+            //Remove wrapper
+            $(".modal-wrapper:last").remove();
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
