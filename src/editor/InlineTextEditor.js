@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
         // the width of the div.
         $indicatorDiv.css("width", isDirty ? 16 : 0);
     }
-    
+
     /**
      * Respond to dirty flag change event. If the dirty flag is associated with an inline editor,
      * show (or hide) the dirty indicator.
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     function _dirtyFlagChangeHandler(event, doc) {
         var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
-        
+
         $dirtyIndicators.each(function (index, indicator) {
             $indicator = $(this);
             if ($indicator.data("fullPath") === doc.file.fullPath) {
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     /**
      * @constructor
      * @extends {InlineWidget}
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype = Object.create(InlineWidget.prototype);
     InlineTextEditor.prototype.constructor = InlineTextEditor;
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
-    
+
     InlineTextEditor.prototype.editors = null;
 
    /**
@@ -95,10 +95,10 @@ define(function (require, exports, module) {
      */
     function _syncGutterWidths(hostEditor) {
         var allHostedEditors = EditorManager.getInlineEditors(hostEditor);
-        
+
         // add the host itself to the list too
         allHostedEditors.push(hostEditor);
-        
+
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
             var $gutter = $(editor._codeMirror.getGutterElement()).find(".CodeMirror-linenumbers");
@@ -108,17 +108,17 @@ define(function (require, exports, module) {
                 maxWidth = curWidth;
             }
         });
-        
+
         if (allHostedEditors.length === 1) {
             //There's only the host, just refresh the gutter
             allHostedEditors[0]._codeMirror.setOption("gutters", allHostedEditors[0]._codeMirror.getOption("gutters"));
             return;
         }
-        
+
         maxWidth = maxWidth + "px";
         allHostedEditors.forEach(function (editor) {
             $(editor._codeMirror.getGutterElement()).find(".CodeMirror-linenumbers").css("min-width", maxWidth);
-            
+
             // Force CodeMirror to refresh the gutter
             editor._codeMirror.setOption("gutters", editor._codeMirror.getOption("gutters"));
         });
@@ -129,15 +129,15 @@ define(function (require, exports, module) {
      */
     InlineTextEditor.prototype.onClosed = function () {
         InlineTextEditor.prototype.parentClass.onClosed.apply(this, arguments);
-            
+
         _syncGutterWidths(this.hostEditor);
-        
+
         this.editors.forEach(function (editor) {
             $(editor).off(".InlineTextEditor");
             editor.destroy(); //release ref on Document
         });
     };
-    
+
     /**
      * Update the inline editor's height when the number of lines change. The
      * base implementation of this method does nothing.
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
         var self = this;
 
         InlineTextEditor.prototype.parentClass.onAdded.apply(this, arguments);
-        
+
         this.editors.forEach(function (editor) {
             editor.refresh();
         });
@@ -172,12 +172,12 @@ define(function (require, exports, module) {
                 self.editors[0].refresh();
             }, 0);
         });
-        
+
         _syncGutterWidths(this.hostEditor);
-        
+
         this.editors[0].focus();
     };
-    
+
     /**
      * @return {?Editor} If an Editor within this inline editor has focus, returns it. Otherwise returns null.
      */
@@ -198,27 +198,27 @@ define(function (require, exports, module) {
      */
     InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
         var self = this;
-        
+
         var range = {
             startLine: startLine,
             endLine: endLine
         };
-        
+
         // root container holding header & editor
         var $wrapperDiv = $("<div/>");
         var wrapperDiv = $wrapperDiv[0];
-        
+
         // header containing filename, dirty indicator, line number
         var $header = $("<div/>").addClass("inline-editor-header");
-        
+
         var $filenameInfo = $("<a/>").addClass("filename");
-        
+
         // dirty indicator, with file path stored on it
         var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
-        
+
         this.$lineNumber = $("<span class='line-number'/>");
 
         // wrap filename & line number in clickable link with tooltip
@@ -226,7 +226,7 @@ define(function (require, exports, module) {
             .append(doc.file.name + " : ")
             .append(this.$lineNumber)
             .attr("title", doc.file.fullPath);
-        
+
         // clicking filename jumps to full editor view
         $filenameInfo.click(function () {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
 
         $header.append($filenameInfo);
         $wrapperDiv.append($header);
-        
+
         // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv);
         this.editors.push(inlineInfo.editor);
@@ -262,12 +262,12 @@ define(function (require, exports, module) {
                 self._updateLineRange(editor);
             }
         });
-        
+
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
         $(inlineInfo.editor).on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
         });
-        
+
         // set dirty indicator state
         _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
@@ -285,9 +285,7 @@ define(function (require, exports, module) {
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;
 
-        if (oldStartLine !== this._startLine) {
-            this.$lineNumber.text(this._startLine + 1);
-        }
+        this.$lineNumber.text(this._startLine + 1);
     };
 
     /**
@@ -318,7 +316,7 @@ define(function (require, exports, module) {
         // We need to call this explicitly whenever the host editor is reshown
         this.sizeInlineWidgetToContents(true);
     };
-        
+
     /**
      * If Document's file is deleted, or Editor loses sync with Document, just close
      */
@@ -327,7 +325,7 @@ define(function (require, exports, module) {
         // better than leaving it open but suddenly removing one rule from the result list.
         this.close();
     };
-    
+
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
 
