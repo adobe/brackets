@@ -461,6 +461,10 @@ define({
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
     
+    // extensions/default/InlineBezierCurveEditor
+	"INLINE_BEZIER_EDITOR_TIME": "時刻",
+	"INLINE_BEZIER_EDITOR_PROGRESSION": "!能=[7314129] Progression_=!",
+    
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
 	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "元の色",
