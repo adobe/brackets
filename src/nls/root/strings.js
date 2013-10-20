@@ -206,6 +206,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
