@@ -125,7 +125,7 @@ define({
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Další shoda",
-    "BUTTON_PREV_HINT"                  : "Předcházející shoda",
+    "BUTTON_PREV_HINT"                  : "Předchozí shoda",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -151,7 +151,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
 
@@ -191,9 +190,10 @@ define({
     "SINGLE_ERROR"                          : "1 {0} chyba",
     "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
     "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
-    "LINT_DISABLED"                         : "Lint je vypnutý",
-    "NO_LINT_AVAILABLE"                     : "Lint není dostupný pro {0}",
-    "NOTHING_TO_LINT"                       : "Nic pro lintování",
+    "LINT_DISABLED"                         : "Lintování je vypnuto",
+    "NO_LINT_AVAILABLE"                     : "Žádný linter není dostupný pro {0}",
+    "NOTHING_TO_LINT"                       : "Nic k lintování",
+
 
     /**
      * Příkazy
@@ -264,7 +264,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory pro uložení",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
@@ -295,7 +295,6 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
-
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
@@ -328,7 +327,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL nemůže obsahovat výrazy pro hledání jako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při analýze URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
@@ -463,7 +462,7 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
 
     // extensions/default/JavaScriptCodeHints
-    "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
+    "CMD_JUMPTO_DEFINITION"                     : "Přejít na definici",
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
 
@@ -471,7 +470,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Rychlý náhled",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",

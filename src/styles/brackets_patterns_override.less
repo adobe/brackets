@@ -394,6 +394,74 @@ a:focus {
     margin: 0;
 }
 
+/* Stylesheet button & dropdown styles */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    position: relative;
+    top: -1px;
+}
+
+.stylesheet-button.btn-mini.btn-dropdown {
+    padding-right: 24px;
+}
+
+.stylesheet-button.btn-dropdown::after {
+    content: "";
+    display: block;
+    height: 0px;
+    width: 0px;
+    position: absolute;
+    right: 6px;
+    top: 7px;
+
+    /* dropdown triangle */
+    border-top: 4px solid @tc-gray-component-triangle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+}
+
+.stylesheet-dropdown {
+    &.dropdown-menu:focus {
+        outline: none;
+    }
+    
+    &.dropdown-menu {
+        border: none;
+        border-radius: @tc-control-border-radius;
+        padding: 0;
+        position: absolute;
+        display: block;
+        box-shadow: @tc-dropdown-shadow;
+        max-height: 160px;
+        overflow-y: auto;
+        max-width: none;
+        z-index: @z-index-brackets-stylesheet-menu;
+    }
+    
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    &.dropdown-menu li a {
+        padding: 1px 15px 1px 15px;
+    }
+    
+    &.dropdown-menu .stylesheet-link {
+        display: block;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    &.dropdown-menu a.selected {
+        background: @tc-highlight;
+        color: @bc-black !important;
+    }
+}
+
+
 /* Dialog-related styles */
 
 .modal-wrapper {
@@ -438,7 +506,7 @@ a:focus {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
        to allow the overall modal to take the width of the footer */
-    width: 560px;
+    width: auto;
 }
 
 .modal-footer {
@@ -599,7 +667,6 @@ a[href^="http"] {
     
     .modal-header {
         border-bottom: none;
-        width: 760px;
         padding: 0;
         
         .nav-tabs {
@@ -690,7 +757,6 @@ a[href^="http"] {
         overflow-y: scroll;
         background-color: @tc-gray-panel;
         padding: 0;
-        width: 760px;
         
         .empty-message {
             position: absolute;
@@ -763,10 +829,6 @@ a[href^="http"] {
                 margin-top: 240px;
             }
         }
-    }
-    
-    .modal-footer {
-        width: 730px;
     }
 }
 
@@ -1013,7 +1075,7 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: #e6e9e9; // TopCoat palette
+        background-color: @tc-lighter-gray; // TopCoat palette
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {

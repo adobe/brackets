@@ -241,7 +241,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[0]);
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[1]);
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[2]);
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
                  */
                 function hintsPresentExact(hintObj, expectedHints) {
                     _waitForHints(hintObj, function (hintList) {
-                        expect(hintList).not.toBeNull();
+                        expect(hintList).toBeTruthy();
                         expect(hintList.length).toBe(expectedHints.length);
                         expectedHints.forEach(function (expectedHint, index) {
                             expect(hintList[index].data("token").value).toBe(expectedHint);

@@ -99,7 +99,8 @@ define(function (require, exports, module) {
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        _                       = require("lodash");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -202,7 +203,8 @@ define(function (require, exports, module) {
         LanguageManager.ready.always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
-            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            var extensionPathOverride = params.get("extensions");  // used by unit tests
+            var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {

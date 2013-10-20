@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var ExtensionManager = require("extensibility/ExtensionManager"),
         Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils"),
@@ -134,7 +136,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype._setInitialFilter = function () {
         // Initial filtered list is the same as the sorted list.
-        this.filterSet = this.sortedFullSet.slice(0);
+        this.filterSet = _.clone(this.sortedFullSet);
         $(this).triggerHandler("filter");
     };
     

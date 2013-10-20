@@ -173,7 +173,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(entries).not.toBe(null);
+                    expect(entries).toBeTruthy();
                 });
             });
             
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(entries).not.toBe(null);
+                    expect(entries).toBeTruthy();
                 });
             });
             
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
 
                 // fileEntry is non-null on success
                 runs(function () {
-                    expect(fileEntry).not.toBe(null);
+                    expect(fileEntry).toBeTruthy();
                 });
 
                 var actualContents = null;
