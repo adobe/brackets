@@ -930,7 +930,7 @@ define(function (require, exports, module) {
      */
     function removeMenu(id) {
         var menu,
-            commandID       = "";
+            commandID = "";
         
         if (!id) {
             console.error("removeMenu(): missing required parameter: id");
