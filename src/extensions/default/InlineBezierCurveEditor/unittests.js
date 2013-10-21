@@ -28,7 +28,6 @@
 /*******************************
 
 Tests
-- BezierCurveUtils
 - select correct range from IP
 - editor updates when doc updated
 - doc updates when edit made
@@ -116,7 +115,7 @@ define(function (require, exports, module) {
             var match;
             
             // Valid cubic-bezier function cases
-            it("should parse bezier curve function in strict mode", function () {
+            it("should match bezier curve function in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(.1, .2, .3, .4)", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -126,7 +125,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual(".3");
                 expect(match[4]).toEqual(".4");
             });
-            it("should parse bezier curve function in lax mode", function () {
+            it("should match bezier curve function in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(.1, .2, .3, .4)", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -136,7 +135,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual(".3");
                 expect(match[4]).toEqual(".4");
             });
-            it("should parse bezier curve function with negative value", function () {
+            it("should match bezier curve function with negative value", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(0, -.2, 1, 1.2)", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -146,7 +145,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual("1");
                 expect(match[4]).toEqual("1.2");
             });
-            it("should parse bezier curve function in full line of longhand css", function () {
+            it("should match bezier curve function in full line of longhand css", function () {
                 match = BezierCurveUtils.cubicBezierMatch("    transition-timing-function: cubic-bezier(.37, .28, .83, .94);", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -156,7 +155,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual(".83");
                 expect(match[4]).toEqual(".94");
             });
-            it("should parse bezier curve function in full line of shorthand css", function () {
+            it("should match bezier curve function in full line of shorthand css", function () {
                 match = BezierCurveUtils.cubicBezierMatch("    transition: top 100ms cubic-bezier(.37, .28, .83, .94) 0;", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -166,7 +165,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual(".83");
                 expect(match[4]).toEqual(".94");
             });
-            it("should parse bezier curve function with leading zeros", function () {
+            it("should match bezier curve function with leading zeros", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(0.1, 0.2, 0.3, 0.4)", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -176,7 +175,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual("0.3");
                 expect(match[4]).toEqual("0.4");
             });
-            it("should parse bezier curve function with no optional whitespace", function () {
+            it("should match bezier curve function with no optional whitespace", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(.1,.2,.3,.4)", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -186,7 +185,7 @@ define(function (require, exports, module) {
                 expect(match[3]).toEqual(".3");
                 expect(match[4]).toEqual(".4");
             });
-            it("should parse bezier curve function with extra optional whitespace", function () {
+            it("should match bezier curve function with extra optional whitespace", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier( .1 , .2 , .3 , .4 )", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(5);
@@ -198,61 +197,61 @@ define(function (require, exports, module) {
             });
             
             // Valid other functions
-            it("should parse linear function in declaration in strict mode", function () {
+            it("should match linear function in declaration in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("transition-timing-function: linear;", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
             });
-            it("should parse linear function value in lax mode", function () {
+            it("should match linear function value in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("linear", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
             });
-            it("should parse ease function in declaration in strict mode", function () {
+            it("should match ease function in declaration in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("transition-timing-function: ease;", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
             });
-            it("should parse ease function value in lax mode", function () {
+            it("should match ease function value in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("ease", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
             });
-            it("should parse ease-in function in declaration in strict mode", function () {
+            it("should match ease-in function in declaration in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("transition-timing-function: ease-in;", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
             });
-            it("should parse ease-in function value in lax mode", function () {
+            it("should match ease-in function value in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("ease-in", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
             });
-            it("should parse ease-out function in declaration in strict mode", function () {
+            it("should match ease-out function in declaration in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("transition-timing-function: ease-out;", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
             });
-            it("should parse ease-out function value in lax mode", function () {
+            it("should match ease-out function value in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("ease-out", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
             });
-            it("should parse ease-in-out function in declaration in strict mode", function () {
+            it("should match ease-in-out function in declaration in strict mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("transition-timing-function: ease-in-out;", false);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in-out");
             });
-            it("should parse ease-in-out function value in lax mode", function () {
+            it("should match ease-in-out function value in lax mode", function () {
                 match = BezierCurveUtils.cubicBezierMatch("ease-in-out", true);
                 expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
@@ -260,50 +259,46 @@ define(function (require, exports, module) {
             });
             
             // Invalid cases
-            it("should not parse cubic-bezier function with out-of-range X parameters", function () {
+            it("should not match cubic-bezier function with out-of-range X parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(-.2, 0, 1.2, 1)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with Infinity parameters", function () {
+            it("should not match cubic-bezier function with Infinity parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(0, Infinity, 1, -Infinity)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with non-numeric parameters", function () {
+            it("should not match cubic-bezier function with non-numeric parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(x1, y1, x2, y2)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with no parameters", function () {
+            it("should not match cubic-bezier function with no parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier()", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with 3 parameters", function () {
+            it("should not match cubic-bezier function with 3 parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(0, 0, 1)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with 5 parameters", function () {
+            it("should not match cubic-bezier function with 5 parameters", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier(0, 0, 1, 1, 1)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with invalid whitespace", function () {
+            it("should not match cubic-bezier function with invalid whitespace", function () {
                 match = BezierCurveUtils.cubicBezierMatch("cubic-bezier (0, 0, 1, 1)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse cubic-bezier function with UPPER-CASE", function () {
+            it("should not match cubic-bezier function with UPPER-CASE", function () {
                 match = BezierCurveUtils.cubicBezierMatch("CUBIC-BEZIER(0, 0, 1, 1)", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse unknown timing function", function () {
+            it("should not match unknown timing function", function () {
                 match = BezierCurveUtils.cubicBezierMatch("ease-out-in", false);
                 expect(match).toBeFalsy();
             });
-            it("should not parse linear whne nto a timing function", function () {
+            it("should not match linear whne nto a timing function", function () {
                 match = BezierCurveUtils.cubicBezierMatch("background: linear-gradient(to bottom, blue, white);", false);
                 expect(match).toBeFalsy();
             });
-            
-            // test
-            // - offsets
-            // - multiple on one line???
         });
         
         describe("Open", function () {
