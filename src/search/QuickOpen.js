@@ -264,7 +264,7 @@ define(function (require, exports, module) {
                 (regInfo[1] && isNaN(regInfo[1])) ||
                 (regInfo[3] && isNaN(regInfo[3]))) {
             
-            return;
+            return null;
         }
             
         result = {
