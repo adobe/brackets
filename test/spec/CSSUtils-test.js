@@ -1600,7 +1600,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should consolidate consecutive rules that refer to the same item", function () {
+        it("should consolidate consecutive rules that refer to the same item and replace names with selector groups", function () {
             var doc1 = SpecRunnerUtils.createMockDocument(""),
                 doc2 = SpecRunnerUtils.createMockDocument(""),
                 rules = [
@@ -1614,7 +1614,8 @@ define(function (require, exports, module) {
                         name: ".eek",
                         doc: doc1,
                         lineStart: 10,
-                        lineEnd: 12
+                        lineEnd: 12,
+                        selectorGroup: "#blah, .eek, .glah"
                     },
                     {
                         name: ".bar",
@@ -1647,7 +1648,13 @@ define(function (require, exports, module) {
             
             expect(result).toEqual([
                 rules[0],
-                rules[1],
+                {
+                    name: "#blah, .eek, .glah",
+                    doc: doc1,
+                    lineStart: 10,
+                    lineEnd: 12,
+                    selectorGroup: "#blah, .eek, .glah"
+                },
                 rules[2],
                 {
                     name: "#baz, h2",
