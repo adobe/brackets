@@ -64,17 +64,13 @@ define(function (require, exports, module) {
             encoding = null;
         }
         
-        if (this._contents && this._stat) {
-            callback(null, this._contents, this._stat);
-        } else {
-            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
-                if (!err) {
-                    this._stat = stat;
-                    this._contents = data;
-                }
-                callback(err, data, stat);
-            }.bind(this));
-        }
+        this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+            if (!err) {
+                this._stat = stat;
+                // this._contents = data;
+            }
+            callback(err, data, stat);
+        }.bind(this));
     };
     
     /**
@@ -97,7 +93,7 @@ define(function (require, exports, module) {
             try {
                 if (!err) {
                     this._stat = stat;
-                    this._contents = data;
+                    // this._contents = data;
                 }
                 callback(err, stat);
             } finally {

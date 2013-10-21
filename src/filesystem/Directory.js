@@ -64,12 +64,6 @@ define(function (require, exports, module) {
             this._contentsCallbacks.push(callback);
             return;
         }
-        
-        if (this._contents) {
-            // Return cached contents
-            callback(null, this._contents);
-            return;
-        }
                 
         this._contentsCallbacks = [callback];
         

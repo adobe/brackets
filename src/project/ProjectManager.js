@@ -1665,7 +1665,7 @@ define(function (require, exports, module) {
      */
     _fileSystemChange = function (event, item) {
         // TODO: Batch multiple changes into a single refresh
-        if (item.isDirectory()) {
+        if (!item || item.isDirectory()) {
             refreshFileTree();
         }
         FileSyncManager.syncOpenDocuments();
