@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         FileUtils           = require("file/FileUtils"),
-        Error               = require("filesystem/Error"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
@@ -982,7 +982,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.breakableUrl(rootPath),
-                            Error.NOT_FOUND
+                            FileSystemError.NOT_FOUND
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default
@@ -1303,7 +1303,7 @@ define(function (require, exports, module) {
                 var errorCallback = function (error) {
                     var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
                         oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
-                    if (error === Error.ALREADY_EXISTS) {
+                    if (error === FileSystemError.ALREADY_EXISTS) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
@@ -1320,7 +1320,7 @@ define(function (require, exports, module) {
                         );
                         */
                     } else {
-                        var errString = error === Error.NOT_WRITABLE ?
+                        var errString = error === FileSystemError.NOT_WRITABLE ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error);
 
@@ -1340,7 +1340,7 @@ define(function (require, exports, module) {
                 FileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {
                         // Item already exists, fail with error
-                        errorCallback(Error.ALREADY_EXISTS);
+                        errorCallback(FileSystemError.ALREADY_EXISTS);
                     } else {
                         if (isFolder) {
                             var directory = FileSystem.getDirectoryForPath(newItemPath);
@@ -1470,7 +1470,7 @@ define(function (require, exports, module) {
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
                         StringUtils.breakableUrl(newName),
-                        err === Error.ALREADY_EXISTS ?
+                        err === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
                                 FileUtils.getFileErrorString(err)
                     )

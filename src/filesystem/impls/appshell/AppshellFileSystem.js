@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils           = require("file/FileUtils"),
-        Error               = require("filesystem/Error"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         NodeConnection      = require("utils/NodeConnection");
     
     /**
@@ -59,21 +59,21 @@ define(function (require, exports, module) {
         
         switch (err) {
         case appshell.fs.ERR_INVALID_PARAMS:
-            return Error.INVALID_PARAMS;
+            return FileSystemError.INVALID_PARAMS;
         case appshell.fs.ERR_NOT_FOUND:
-            return Error.NOT_FOUND;
+            return FileSystemError.NOT_FOUND;
         case appshell.fs.ERR_CANT_READ:
-            return Error.NOT_READABLE;
+            return FileSystemError.NOT_READABLE;
         case appshell.fs.ERR_CANT_WRITE:
-            return Error.NOT_WRITABLE;
+            return FileSystemError.NOT_WRITABLE;
         case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return Error.NOT_READABLE;
+            return FileSystemError.NOT_READABLE;
         case appshell.fs.ERR_OUT_OF_SPACE:
-            return Error.OUT_OF_SPACE;
+            return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:
-            return Error.ALREADY_EXISTS;
+            return FileSystemError.ALREADY_EXISTS;
         }
-        return Error.UNKNOWN;
+        return FileSystemError.UNKNOWN;
     }
     
     function init(callback) {

@@ -33,7 +33,7 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var Error               = require("filesystem/Error"),
+    var FileSystemError     = require("filesystem/FileSystemError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
      * @param {!File} file File to write
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a filesystem.Error.
+     * file writing completes, or rejected with a filesystem.FileSystemError.
      */
     function writeText(file, text) {
         var result = new $.Deferred();
@@ -143,11 +143,11 @@ define(function (require, exports, module) {
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (name === Error.NOT_FOUND) {
+        if (name === FileSystemError.NOT_FOUND) {
             result = Strings.NOT_FOUND_ERR;
-        } else if (name === Error.NOT_READABLE) {
+        } else if (name === FileSystemError.NOT_READABLE) {
             result = Strings.NOT_READABLE_ERR;
-        } else if (name === Error.NOT_WRITABLE) {
+        } else if (name === FileSystemError.NOT_WRITABLE) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);

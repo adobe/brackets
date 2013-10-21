@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
-        Error               = require("filesystem/Error"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         FileSystem          = require("filesystem/FileSystem"),
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // TODO: fix error code
-                        if (err === Error.NOT_FOUND && silent) {
+                        if (err === FileSystemError.NOT_FOUND && silent) {
                             result.resolve();
                         } else {
                             console.error("Unable to remove " + fullPath, err);
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
                     }
                 });
             } else {
-                if (err === Error.NOT_FOUND && silent) {
+                if (err === FileSystemError.NOT_FOUND && silent) {
                     result.resolve();
                 } else {
                     result.reject(err);
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                     chmod(folder, 777).then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
-                    if (err === Error.NOT_FOUND) { // TODO: FileSystem
+                    if (err === FileSystemError.NOT_FOUND) { // TODO: FileSystem
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {
@@ -852,7 +852,7 @@ define(function (require, exports, module) {
         
         // create the destination folder
         destDir.create(function (err) {
-            if (err && err !== Error.ALREADY_EXISTS) {
+            if (err && err !== FileSystemError.ALREADY_EXISTS) {
                 deferred.reject();
                 return;
             }

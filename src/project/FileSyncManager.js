@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils"),
-        Error               = require("filesystem/Error");
+        FileSystemError     = require("filesystem/FileSystemError");
 
     
     /**
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // File has been deleted externally
-                        if (err === Error.NOT_FOUND) {
+                        if (err === FileSystemError.NOT_FOUND) {
                             if (doc.isDirty) {
                                 deleteConflicts.push(doc);
                             } else {
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                     result.resolve();
                 } else {
                     // File has been deleted externally
-                    if (err === Error.NOT_FOUND) {
+                    if (err === FileSystemError.NOT_FOUND) {
                         DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
