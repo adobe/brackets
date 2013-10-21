@@ -21,7 +21,7 @@
  */
 
 /*
- * The bezier canvas and editing code was adapted from Lea Verou's cubic-bezier project:
+ * The timing function canvas and editing code was adapted from Lea Verou's cubic-bezier project:
  * - https://github.com/LeaVerou/cubic-bezier (cubic-bezier.com)
  * 
  * The canvas exceeds the top and bottom of main grid so y-value of points can be
@@ -51,8 +51,8 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Strings             = brackets.getModule("strings"),
 
-        InlineBezierCurveEditor = require("InlineBezierCurveEditor").InlineBezierCurveEditor,
-        BezierCurveUtils        = require("BezierCurveUtils"),
+        InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
+        TimingFunctionUtils        = require("TimingFunctionUtils"),
         Localized               = require("text!Localized.css");
 
     
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Prepare hostEditor for an InlineBezierCurveEditor at pos if possible.
+     * Prepare hostEditor for an InlineTimingFunctionEditor at pos if possible.
      * Return editor context if so; otherwise null.
      *
      * @param {Editor} hostEditor
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        currentMatch = BezierCurveUtils.cubicBezierMatch(cursorLine, false);
+        currentMatch = TimingFunctionUtils.bezierCurveMatch(cursorLine, false);
         if (!currentMatch) {
             return null;
         }
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         var lineOffset = 0;
         while (pos.ch > (currentMatch.index + currentMatch[0].length + lineOffset)) {
             var restOfLine = cursorLine.substring(currentMatch.index + currentMatch[0].length + lineOffset),
-                newMatch = BezierCurveUtils.cubicBezierMatch(restOfLine, false);
+                newMatch = TimingFunctionUtils.bezierCurveMatch(restOfLine, false);
 
             if (newMatch) {
                 lineOffset += (currentMatch.index + currentMatch[0].length);
@@ -112,38 +112,38 @@ define(function (require, exports, module) {
         endBookmark   = cm.setBookmark(endPos);
         
         // Adjust selection to the match so that the inline editor won't
-        // get dismissed while we're updating the bezier curve.
+        // get dismissed while we're updating the timing function.
         hostEditor.setSelection(startPos, endPos);
         
         return {
-            bezierCurve: currentMatch,
+            timingFunction: currentMatch,
             start: startBookmark,
             end: endBookmark
         };
     }
     
     /**
-     * Registered as an inline editor provider: creates an InlineBezierCurveEditor
-     * when the cursor is on a bezier curve value.
+     * Registered as an inline editor provider: creates an InlineTimingFunctionEditor
+     * when the cursor is on a timing function value.
      *
      * @param {!Editor} hostEditor
      * @param {!{line:Number, ch:Number}} pos
      * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
      *      no color at pos.
      */
-    function inlineBezierCurveEditorProvider(hostEditor, pos) {
+    function inlineTimingFunctionEditorProvider(hostEditor, pos) {
         var context = prepareEditorForProvider(hostEditor, pos),
-            inlineBezierCurveEditor,
+            inlineTimingFunctionEditor,
             result;
         
         if (!context) {
             return null;
         } else {
-            inlineBezierCurveEditor = new InlineBezierCurveEditor(context.bezierCurve, context.start, context.end);
-            inlineBezierCurveEditor.load(hostEditor);
+            inlineTimingFunctionEditor = new InlineTimingFunctionEditor(context.timingFunction, context.start, context.end);
+            inlineTimingFunctionEditor.load(hostEditor);
     
             result = new $.Deferred();
-            result.resolve(inlineBezierCurveEditor);
+            result.resolve(inlineTimingFunctionEditor);
             return result.promise();
         }
     }
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "main.css");
         ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
     
-        EditorManager.registerInlineEditProvider(inlineBezierCurveEditorProvider);
+        EditorManager.registerInlineEditProvider(inlineTimingFunctionEditorProvider);
     }
 
     init();
@@ -165,5 +165,5 @@ define(function (require, exports, module) {
     exports.prepareEditorForProvider = prepareEditorForProvider;
     
     // for unit tests only
-    exports.inlineBezierCurveEditorProvider = inlineBezierCurveEditorProvider;
+    exports.inlineTimingFunctionEditorProvider = inlineTimingFunctionEditorProvider;
 });

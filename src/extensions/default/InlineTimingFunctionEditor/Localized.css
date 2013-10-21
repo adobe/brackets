@@ -1,15 +1,15 @@
-.bezier-curve-editor .coordinate-plane:after {
+.timing-function-editor .coordinate-plane:after {
     content: '{{INLINE_BEZIER_EDITOR_TIME}}';
 }
 
-.bezier-curve-editor .coordinate-plane:hover:before {
+.timing-function-editor .coordinate-plane:hover:before {
     content: '{{INLINE_BEZIER_EDITOR_PROGRESSION}} (' attr(data-progression) '%)';
 }
 
-.bezier-curve-editor .coordinate-plane:before {
+.timing-function-editor .coordinate-plane:before {
     content: '{{INLINE_BEZIER_EDITOR_PROGRESSION}}';
 }
 
-.bezier-curve-editor .coordinate-plane:hover:after {
+.timing-function-editor .coordinate-plane:hover:after {
     content: '{{INLINE_BEZIER_EDITOR_TIME}} (' attr(data-time) '%)';
 }
