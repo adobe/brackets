@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     });
 
     /** 
-      * Update the file selection focus when ever the current document changes
+      * Update the file selection focus whenever the contents of the editor area change
       */
     $(EditorManager).on("currentlyViewedFileChange", function (event) {
         var perfTimerName;

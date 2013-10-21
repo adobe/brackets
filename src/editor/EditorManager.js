@@ -57,7 +57,6 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
-        FileViewController  = require("project/FileViewController"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
@@ -585,7 +584,6 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        _$currentCustomViewer = null;
         if (_currentEditor) {
             $("#not-editor").css("display", "");
             _nullifyEditor();
@@ -610,9 +608,7 @@ define(function (require, exports, module) {
     function _removeCustomViewer() {
         $(exports).triggerHandler("removeCustomViewer");
         if (_$currentCustomViewer) {
-            if (_$currentCustomViewer.size() > 0) {
-                _$currentCustomViewer.remove();
-            }
+            _$currentCustomViewer.remove();
         }
         _$currentCustomViewer = null;
     }
@@ -633,10 +629,6 @@ define(function (require, exports, module) {
         _$currentCustomViewer = $customView;
         // place in window
         $("#editor-holder").append(_$currentCustomViewer);
-    
-        // TODO: To avoid hardcoded references to ImageViewer here too, 
-        // perhaps it could be passed into showCustomViewer() as a "provider" object.
-        // Then we can call both getImageHolder() and render() from here... maybe even collapse them into one API?        
         
         // add path, dimensions and file size to the view after loading image
         ImageViewer.render(fullPath);
@@ -656,12 +648,8 @@ define(function (require, exports, module) {
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
-            // TODO: need to do this? 
-            // YES - other folks that change the document will update EM this way
-            // FileViewController will trail EM, i.e. openinga file via 
-            // FILE_OPEN command.
-            _setCurrentlyViewedPath(doc.file.fullPath);
             _showEditor(doc);
+            _setCurrentlyViewedPath(doc.file.fullPath);
         } else {
             _clearCurrentlyViewedPath();
             _showNoEditor();

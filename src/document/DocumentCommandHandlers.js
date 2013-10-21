@@ -192,12 +192,9 @@ define(function (require, exports, module) {
                 EditorManager.showCustomViewer($imageHolder, fullPath);
                 result.resolve();
             } else {
-            // Load the file if it was never open before, and then switch to it in the UI
+                // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
                     .done(function (doc) {
-                        // prepare ProjectManager to catch documentSelectionFocusChange 
-                        // and mark the correct file.
-                        // triggered by currentDocumentChange triggered by setCurrentDocument
                         DocumentManager.setCurrentDocument(doc);
                         result.resolve(doc);
                     })

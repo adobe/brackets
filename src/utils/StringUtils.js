@@ -169,35 +169,33 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Convert number of bytes into human readable format
+     * Convert number of bytes into human readable format. 
+     * If param bytes is negative it returns the number without any changes.
      *
-     * @param {!number} bytes     - Number of bytes to convert
-     * @param {?number} precision - Number of digits after the decimal separator
-     * @return {string}
+     * @param number bytes     Number of bytes to convert
+     * @param number precision Number of digits after the decimal separator
+     * @return string
      */
     function prettyPrintBytes(bytes, precision) {
         var kilobyte = 1024,
             megabyte = kilobyte * 1024,
             gigabyte = megabyte * 1024,
-            terabyte = gigabyte * 1024;
+            terabyte = gigabyte * 1024,
+            returnVal = bytes;
         
         if ((bytes >= 0) && (bytes < kilobyte)) {
-            return bytes + ' B';
-        }
-        if ((bytes >= kilobyte) && (bytes < megabyte)) {
-            return (bytes / kilobyte).toFixed(precision) + ' KB';
-        }
-        if ((bytes >= megabyte) && (bytes < gigabyte)) {
-            return (bytes / megabyte).toFixed(precision) + ' MB';
-        }
-        if ((bytes >= gigabyte) && (bytes < terabyte)) {
-            return (bytes / gigabyte).toFixed(precision) + ' GB';
-        }
-        if (bytes >= terabyte) {
+            returnVal = bytes + ' B';
+        } else if (bytes < megabyte) {
+            returnVal = (bytes / kilobyte).toFixed(precision) + ' KB';
+        }else if (bytes < gigabyte) {
+            returnVal = (bytes / megabyte).toFixed(precision) + ' MB';
+        }else if (bytes < terabyte) {
+            returnVal = (bytes / gigabyte).toFixed(precision) + ' GB';
+        } else if (bytes >= terabyte) {
             return (bytes / terabyte).toFixed(precision) + ' TB';
-        } else {
-            return bytes + ' B';
         }
+        
+        return returnVal;
     }
         
 

@@ -572,14 +572,14 @@ define(function (require, exports, module) {
         _removeAllFromWorkingSet();
     }
         
-    function removeListFromWorkingSet(list, clearCurrentDoc) {
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
         var fileList = [], index;
         
         if (!list) {
             return;
         }
         
-        if (clearCurrentDoc) {
+        if (clearCurrentDocument) {
             _clearCurrentDocument();
         }
         
