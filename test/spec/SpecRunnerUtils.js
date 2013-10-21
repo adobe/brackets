@@ -98,14 +98,21 @@ define(function (require, exports, module) {
      */
     function chmod(path, mode) {
         var deferred = new $.Deferred();
-
-        // TODO: FileSystem
-        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
+        
+        FileSystem.resolve(path, function (err, entry) {
             if (err) {
                 deferred.reject(err);
-            } else {
-                deferred.resolve();
+                return;
             }
+            
+            entry.chmod(parseInt(mode, 8), function (err) {
+                if (err) {
+                    deferred.reject(err);
+                    return;
+                }
+                
+                deferred.resolve();
+            });
         });
 
         return deferred.promise();
@@ -247,18 +254,18 @@ define(function (require, exports, module) {
      * @private
      */
     function _stat(pathname) {
-        var promise = new $.Deferred();
+        var deferred = new $.Deferred();
         
-        // TODO: FileSystem
-        brackets.fs.stat(pathname, function (err, _stat) {
-            if (err === brackets.fs.NO_ERROR) {
-                promise.resolve(_stat);
-            } else {
-                promise.reject(err);
+        FileSystem.resolve(pathname, function (err, stats) {
+            if (err) {
+                deferred.reject(err);
+                return;
             }
+            
+            deferred.resolve(stats);
         });
-        
-        return promise;
+                
+        return deferred;
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
@@ -279,7 +286,7 @@ define(function (require, exports, module) {
                     chmod(folder, 777).then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
-                    if (err === brackets.fs.ERR_NOT_FOUND) { // TODO: FileSystem
+                    if (err === Error.NOT_FOUND) { // TODO: FileSystem
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {
