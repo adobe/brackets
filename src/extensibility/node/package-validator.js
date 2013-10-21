@@ -196,6 +196,12 @@ function validatePackageJSON(path, packageJSON, options, callback) {
             
             var metadata;
             
+            // JSON.parse doesn't like the byte order mark.
+            // Remove it if it's present.
+            if (data[0] === "\uFEFF") {
+                data = data.substring(1);
+            }
+
             try {
                 metadata = JSON.parse(data);
             } catch (e) {
