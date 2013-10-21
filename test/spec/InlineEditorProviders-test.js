@@ -262,7 +262,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
@@ -290,7 +290,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
@@ -304,7 +304,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
@@ -318,7 +318,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.html"].offsets[11]);
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
-                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    var inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[2]);
@@ -350,7 +350,7 @@ define(function (require, exports, module) {
                     hostEditor =  EditorManager.getCurrentFullEditor();
                     savedPos = hostEditor.getCursorPos();
                     inlineWidget = hostEditor.getInlineWidgets()[0];
-                    inlinePos = inlineWidget.editors[0].getCursorPos();
+                    inlinePos = inlineWidget.editor.getCursorPos();
                     
                     // verify cursor position & focus in inline editor
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var hostEditor = EditorManager.getCurrentFullEditor(),
                         inlineWidget = hostEditor.getInlineWidgets()[0],
-                        inlinePos = inlineWidget.editors[0].getCursorPos();
+                        inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -425,7 +425,7 @@ define(function (require, exports, module) {
                 var inlineEditor, widgetHeight;
                 
                 runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
@@ -455,7 +455,7 @@ define(function (require, exports, module) {
                 var inlineEditor, widgetHeight;
                 
                 runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
@@ -496,7 +496,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     hostEditor = EditorManager.getCurrentFullEditor();
-                    inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                    inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                     
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
@@ -561,7 +561,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     hostEditor = EditorManager.getCurrentFullEditor();
-                    inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                    inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                     
                     // insert text at the host editor's cursor position
                     hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
@@ -684,7 +684,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
-                        inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                        inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // verify inline is open
                         expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -740,7 +740,7 @@ define(function (require, exports, module) {
                     var inlineEditor, widgetHeight;
                     
                     runs(function () {
-                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
                         widgetHeight = inlineEditor.totalHeight();
                         
                         // change inline editor content
@@ -771,7 +771,7 @@ define(function (require, exports, module) {
                         var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
                         
                         // edit the inline editor
-                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
                         inlineEditor._codeMirror.replaceRange(
                             newInlineText,
                             inlineEditor.getCursorPos()
@@ -826,7 +826,7 @@ define(function (require, exports, module) {
                         var cssPath = infos["test1.css"].fileEntry.fullPath;
                         var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
                         hostEditor = EditorManager.getCurrentFullEditor();
-                        inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                        inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
                         DocumentManager.setCurrentDocument(cssDoc);
@@ -1164,7 +1164,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
-                        inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                        inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                     });
                 });
             
@@ -1193,7 +1193,7 @@ define(function (require, exports, module) {
                     
                     // Not sure why we have to wait in between these for the bug to occur, but we do.
                     runs(function () {
-                        secondInlineEditor = hostEditor.getInlineWidgets()[1].editors[0];
+                        secondInlineEditor = hostEditor.getInlineWidgets()[1].editor;
                         secondInlineEditor._codeMirror.replaceRange("\n\n\n\n\n", { line: 0, ch: 0 });
                     });
                     waits(500);
@@ -1223,7 +1223,7 @@ define(function (require, exports, module) {
                         var cssPath = infos["testOneRuleFile.css"].fileEntry.fullPath;
                         var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
                         hostEditor = EditorManager.getCurrentFullEditor();
-                        inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                        inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
                         DocumentManager.setCurrentDocument(cssDoc);

@@ -179,7 +179,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
-                expect(packageData.disabledReason).not.toBeNull();
+                expect(packageData.disabledReason).toBeTruthy();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
                 FileSystem.resolve(extensionsRoot + "/disabled/incompatible-version", function (err, item) {

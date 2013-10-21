@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -33,7 +33,7 @@
  *    - beforeProjectClose -- before _projectRoot changes
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
- *    - projectRefresh     -- when project tree is re-rendered for a reason other than 
+ *    - projectRefresh     -- when project tree is re-rendered for a reason other than
  *                            a project being opened (e.g. from the Refresh command)
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc. TODO: FileSystem - get rid of this event. It is only used by FileIndexManager
@@ -48,6 +48,8 @@ define(function (require, exports, module) {
     
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
+
+    var _ = require("lodash");
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -65,7 +67,6 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
         Error               = require("filesystem/Error"),
         Urls                = require("i18n!nls/urls"),
@@ -170,7 +171,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
-     * This is done to prevent cross-platform issues.  
+     * This is done to prevent cross-platform issues.
      */
     var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
     
@@ -485,8 +486,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         // For #1542, make sure the tree is scrolled to the top before refreshing.
-        // If we try to do this later (e.g. after the tree has been refreshed), it 
-        // doesn't seem to work properly. 
+        // If we try to do this later (e.g. after the tree has been refreshed), it
+        // doesn't seem to work properly.
         $projectTreeContainer.scrollTop(0);
         
         // Instantiate tree widget
@@ -750,7 +751,7 @@ define(function (require, exports, module) {
                     .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
-                // depends on the open_node.jstree event being triggered, which doesn't happen on 
+                // depends on the open_node.jstree event being triggered, which doesn't happen on
                 // empty folders
                 if (!wasNodeOpen) {
                     treeNode.trigger("open_node.jstree");
@@ -840,7 +841,7 @@ define(function (require, exports, module) {
 
     /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
-     * first launch. 
+     * first launch.
      */
     function getInitialProjectPath() {
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
@@ -881,7 +882,7 @@ define(function (require, exports, module) {
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
-     * @param {string} rootPath  Absolute path to the root folder of the project. 
+     * @param {string} rootPath  Absolute path to the root folder of the project.
      *  If rootPath is undefined or null, the last open project will be restored.
      * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
      *  if false, a different project is being loaded.
@@ -941,7 +942,7 @@ define(function (require, exports, module) {
                     _projectRoot = rootEntry;
                     _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
 
-                    // If this is the current welcome project, record it. In future launches, we always 
+                    // If this is the current welcome project, record it. In future launches, we always
                     // want to substitute the welcome project for the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
                     if (canonPath === _getWelcomeProjectPath()) {
@@ -984,7 +985,7 @@ define(function (require, exports, module) {
                             Error.NOT_FOUND
                         )
                     ).done(function () {
-                        // The project folder stored in preference doesn't exist, so load the default 
+                        // The project folder stored in preference doesn't exist, so load the default
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
@@ -1004,7 +1005,7 @@ define(function (require, exports, module) {
     /**
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
      * outside the project, or if it doesn't exist).
-     * 
+     *
      * @param {!Entry} entry FileEntry or DirectoryEntry to find
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
@@ -1027,7 +1028,7 @@ define(function (require, exports, module) {
         
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
-            var match = CollectionUtils.indexOf($nodes, function (node, i) {
+            var match = _.findIndex($nodes, function (node, i) {
                 var nodeName = $(node).data("entry").name;
                 return nodeName === seg;
             });
@@ -1089,7 +1090,7 @@ define(function (require, exports, module) {
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
      * path lies outside the project, or if it doesn't exist.
-     * 
+     *
      * @param {!Entry} entry FileEntry or DirectoryEntry to show
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
@@ -1106,7 +1107,7 @@ define(function (require, exports, module) {
      * Open a new project. Currently, Brackets must always have a project open, so
      * this method handles both closing the current project and opening a new project.
      *
-     * @param {string=} path Optional absolute path to the root folder of the project. 
+     * @param {string=} path Optional absolute path to the root folder of the project.
      *  If path is undefined or null, displays a  dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
      * @param {string=} filesystem Optional name of the file system to use. Defaults to
@@ -1591,7 +1592,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_DELETING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_DELETING_FILE,
-                        StringUtils.htmlEscape(entry.fullPath),
+                        _.escape(entry.fullPath),
                         FileUtils.getFileErrorString(err)
                     )
                 );
@@ -1708,8 +1709,6 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

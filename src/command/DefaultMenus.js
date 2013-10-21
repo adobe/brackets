@@ -137,6 +137,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
+        menu.addMenuItem(Commands.CSS_QUICK_EDIT_NEW_RULE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
 

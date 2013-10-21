@@ -185,7 +185,7 @@ define(function (require, exports, module) {
          */
         function hintsAbsent(hintObj, absentHints) {
             _waitForHints(hintObj, function (hintList) {
-                expect(hintList).not.toBeNull();
+                expect(hintList).toBeTruthy();
                 absentHints.forEach(function (absentHint) {
                     expect(_indexOf(hintList, absentHint)).toBe(-1);
                 });
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
          */
         function hintsPresent(hintObj, expectedHints) {
             _waitForHints(hintObj, function (hintList) {
-                expect(hintList).not.toBeNull();
+                expect(hintList).toBeTruthy();
                 expectedHints.forEach(function (expectedHint) {
                     expect(_indexOf(hintList, expectedHint)).not.toBe(-1);
                 });
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
                 currIndex;
             
             _waitForHints(hintObj, function (hintList) {
-                expect(hintList).not.toBeNull();
+                expect(hintList).toBeTruthy();
                 expectedHints.forEach(function (expectedHint) {
                     currIndex = _indexOf(hintList, expectedHint);
                     expect(currIndex).toBeGreaterThan(prevIndex);
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
          */
         function hintsPresentExact(hintObj, expectedHints) {
             _waitForHints(hintObj, function (hintList) {
-                expect(hintList).not.toBeNull();
+                expect(hintList).toBeTruthy();
                 expect(hintList.length).toBe(expectedHints.length);
                 expectedHints.forEach(function (expectedHint, index) {
                     expect(hintList[index].data("token").value).toBe(expectedHint);
@@ -282,9 +282,9 @@ define(function (require, exports, module) {
         function selectHint(provider, hintObj, hintSelection) {
             var hintList = expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
-                expect(hintList).not.toBeNull();
+                expect(hintList).toBeTruthy();
                 var index = findHint(hintList, hintSelection);
-                expect(hintList[index].data("token")).not.toBeNull();
+                expect(hintList[index].data("token")).toBeTruthy();
                 expect(provider.insertHint(hintList[index])).toBe(false);
             });
         }

@@ -309,9 +309,9 @@ define(function (require, exports, module) {
     /**
      * Load extensions.
      *
-     * @param {?string} A list containing references to extension source
-     *      location. A source location may be either (a) a folder path
-     *      relative to src/extensions or (b) an absolute path.
+     * @param {?Array.<string>} A list containing references to extension source
+     *      location. A source location may be either (a) a folder name inside
+     *      src/extensions or (b) an absolute path.
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
         }
         
         if (!paths) {
-            paths = "default,dev," + getUserExtensionPath();
+            paths = ["default", "dev", getUserExtensionPath()];
         }
 
         // Load extensions before restoring the project
@@ -341,7 +341,7 @@ define(function (require, exports, module) {
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
         FileSystem.getDirectoryForPath(disabledExtensionPath).create();
         
-        var promise = Async.doInParallel(paths.split(","), function (item) {
+        var promise = Async.doSequentially(paths, function (item) {
             var extensionPath = item;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
             }
             
             return loadAllExtensionsInNativeDirectory(extensionPath);
-        });
+        }, false);
         
         promise.always(function () {
             _init = true;

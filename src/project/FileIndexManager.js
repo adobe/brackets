@@ -39,12 +39,13 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
         FileUtils           = require("file/FileUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
-        CollectionUtils     = require("utils/CollectionUtils"),
         Strings             = require("strings");
 
     /**
@@ -157,7 +158,7 @@ define(function (require, exports, module) {
         
         //console.log(entry.name);
   
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
+        _.forEach(_indexList, function (index, indexName) {
             if (index.filterFunction(entry)) {
                 index.fileInfos.push(fileInfo);
             }
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _clearIndexes() {
-        CollectionUtils.forEach(_indexList, function (index, indexName) {
+        _.forEach(_indexList, function (index, indexName) {
             index.fileInfos = [];
         });
     }
