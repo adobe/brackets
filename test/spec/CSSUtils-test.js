@@ -1540,7 +1540,12 @@ define(function (require, exports, module) {
             var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
                 doc = mock.doc,
                 result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
-            expect(doc.getText()).toEqual(options.resultText);
+
+            // Normalize line endings so tests pass on all Operating Systems
+            var normalizedDocText = FileUtils.translateLineEndings(doc.getText(), FileUtils.LINE_ENDINGS_LF),
+                normalizedResText = FileUtils.translateLineEndings(options.resultText, FileUtils.LINE_ENDINGS_LF);
+
+            expect(normalizedDocText).toEqual(normalizedResText);
             expect(result).toEqual(options.result);
             SpecRunnerUtils.destroyMockEditor(doc);
         }
