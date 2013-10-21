@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
 
     /**
      * Helper function that determines the possible value hints for a given html tag/attribute name pair
-     * 
+     *
      * @param {{queryStr: string}} query
      * The current query
      *
@@ -320,45 +320,44 @@ define(function (require, exports, module) {
             tokenType;
 
         this.editor = editor;
-        if (implicitChar === null) {
-            tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
-            query = null;
-            tokenType = tagInfo.position.tokenType;
-             
-            if (tokenType === HTMLUtils.ATTR_VALUE) {
+        
+        tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
+        query = null;
+        tokenType = tagInfo.position.tokenType;
+        
+        if (tokenType === HTMLUtils.ATTR_VALUE) {
                 
-                // Verify that attribute name has hintable values
-                if (htmlAttrs[tagInfo.attr.name]) {
+            // Verify that attribute name has hintable values
+            if (htmlAttrs[tagInfo.attr.name]) {
                 
-                    if (tagInfo.position.offset >= 0) {
-                        query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                    } else {
-                        // We get negative offset for a quoted attribute value with some leading whitespaces 
-                        // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                        // So just set the queryStr to an empty string. 
-                        query = "";
+                if (tagInfo.position.offset >= 0) {
+                    query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                } else {
+                    // We get negative offset for a quoted attribute value with some leading whitespaces
+                    // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                    // So just set the queryStr to an empty string.
+                    query = "";
+                }
+                
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
+                var hints = hintsAndSortFunc.hints;
+                if (hints instanceof Array) {
+                    // If we got synchronous hints, check if we have something we'll actually use
+                    var i, foundPrefix = false;
+                    for (i = 0; i < hints.length; i++) {
+                        if (hints[i].indexOf(query) === 0) {
+                            foundPrefix = true;
+                            break;
+                        }
                     }
-                
-                    var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                    var hints = hintsAndSortFunc.hints;
-                    if (hints instanceof Array) {
-                        // If we got synchronous hints, check if we have something we'll actually use
-                        var i, foundPrefix = false;
-                        for (i = 0; i < hints.length; i++) {
-                            if (hints[i].indexOf(query) === 0) {
-                                foundPrefix = true;
-                                break;
-                            }
-                        }
-                        if (!foundPrefix) {
-                            query = null;
-                        }
+                    if (!foundPrefix) {
+                        query = null;
                     }
                 }
             }
-
-            return (query !== null);
         }
+
+        return (query !== null);
     };
 
     /**
@@ -371,11 +370,11 @@ define(function (require, exports, module) {
      *              selectInitial: boolean,
      *              handleWideResults: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 
+     * response object that provides
      * 1. a sorted array hints that consists of strings
-     * 2. a string match that is used by the manager to emphasize matching 
-     *    substrings when rendering the hint list 
-     * 3. a boolean that indicates whether the first result, if one exists, should be 
+     * 2. a string match that is used by the manager to emphasize matching
+     *    substrings when rendering the hint list
+     * 3. a boolean that indicates whether the first result, if one exists, should be
      *    selected by default in the hint list window.
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
@@ -516,9 +515,9 @@ define(function (require, exports, module) {
 
     /**
      * Get distance between 2 positions.
-     * 
+     *
      * Assumption: pos2 >= pos1
-     * 
+     *
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *
@@ -555,7 +554,7 @@ define(function (require, exports, module) {
 
     /**
      * Finds next position in array of specified char.
-     * 
+     *
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *

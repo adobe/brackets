@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                 tryConnect();
             });
             
-            waitsFor(function () { return connected || failed; }, 10000);
+            waitsFor(function () { return connected || failed; }, "LiveDevelopmentModule.launcherUrl", 10000);
             
             runs(function () {
                 expect(failed).toBe(false);
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                 waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
             });
             
-            waitsFor(function () { return !InspectorModule.connected(); }, 10000);
+            waitsFor(function () { return !InspectorModule.connected(); }, "!InspectorModule.connected()", 10000);
         });
     });
 
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
                             });
                     });
                     
-                    waitsFor(function () { return (fileContent !== null); }, 1000);
+                    waitsFor(function () { return (fileContent !== null); }, "Load fileContent", 1000);
                 }
             }
         
@@ -969,6 +969,368 @@ define(function (require, exports, module) {
                 expect(server.urlToPath(file2FileUrl)).toBe(file2Path);
             });
 
+        });
+    });
+    
+    describe("Default HTML Document", function () {
+        var brackets,
+            FileIndexManager,
+            LiveDevelopment,
+            ProjectManager,
+            testWindow;
+
+        beforeFirst(function () {
+            runs(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+                    // Load module instances from brackets.test
+                    brackets = testWindow.brackets;
+                    LiveDevelopment = brackets.test.LiveDevelopment;
+                    FileIndexManager = brackets.test.FileIndexManager;
+                    ProjectManager = brackets.test.ProjectManager;
+                });
+            });
+        });
+        
+        afterLast(function () {
+            brackets         = null;
+            FileIndexManager = null;
+            LiveDevelopment  = null;
+            ProjectManager   = null;
+            testWindow       = null;
+
+            SpecRunnerUtils.closeTestWindow();
+        });
+
+        function loadFileAndUpdateFileIndex(fileToLoadIntoEditor) {
+            runs(function () {
+                FileIndexManager.markDirty();
+                waitsForDone(SpecRunnerUtils.openProjectFiles([fileToLoadIntoEditor]), "SpecRunnerUtils.openProjectFiles " + fileToLoadIntoEditor);
+            });
+        }
+
+        describe("Find static page for Live Development", function () {
+            it("should return the same HTML document like the currently open document", function () {
+                var promise,
+                    document,
+                    indexFile = "sub/sub2/index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-1");
+                
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([indexFile]), "SpecRunnerUtils.openProjectFiles " + indexFile);
+                });
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-1/" + indexFile);
+                });
+            });
+
+            it("should find the HTML page in the same directory like the current document", function () {
+                var promise,
+                    document,
+                    cssFile = "sub/sub2/test.css",
+                    indexFile = "sub/sub2/index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-1");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-1/" + indexFile);
+                });
+            });
+
+            it("should find the HTML page one directory level up", function () {
+                var promise,
+                    document;
+                var cssFile = "sub/sub2/test.css",
+                    indexFile = "sub/index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-2");
+                
+                loadFileAndUpdateFileIndex(cssFile);
+
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-2/" + indexFile);
+                });
+            });
+
+            it("should find the HTML page in the project root directory for the current document", function () {
+                var promise,
+                    document;
+                var cssFile = "sub/sub2/test.css",
+                    indexFile = "index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-3");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-3/" + indexFile);
+                });
+            });
+
+            it("should find the closest HTML page in the project tree", function () {
+                var promise,
+                    document;
+                var cssFile = "sub/sub2/test.css",
+                    indexFile = "sub/sub2/index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-4");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-4/" + indexFile);
+                });
+            });
+
+            it("should find the HTML page in the same directory", function () {
+                var promise,
+                    document;
+                var cssFile = "sub/test.css",
+                    indexFile = "sub/index.html";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-5");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/static-project-5/" + indexFile);
+                });
+            });
+            
+            it("should not find any HTML page", function () {
+                var promise,
+                    document;
+                var cssFile = "top2/test.css";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-6");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document).toBe(null);
+                });
+            });
+        });
+
+        describe("Find dynamic page for Live Development", function () {
+            it("should return the same index.php document like the currently opened document", function () {
+                var promise,
+                    document,
+                    indexFile = "sub/sub2/index.php";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-1");
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([indexFile]), "SpecRunnerUtils.openProjectFiles " + indexFile);
+                });
+                
+                runs(function () {
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/dynamic-project-1/" + indexFile);
+                });
+            });
+
+            it("should find the index.php page in the same directory like the current document", function () {
+                var promise,
+                    document,
+                    cssFile = "sub/sub2/test.css",
+                    indexFile = "sub/sub2/index.php";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-1");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:1111/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/dynamic-project-1/" + indexFile);
+                });
+            });
+
+            it("should find the index.php page one directory level up", function () {
+                var promise,
+                    document,
+                    cssFile = "sub/sub2/test.css",
+                    indexFile = "sub/index.php";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-2");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:2222/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/dynamic-project-2/" + indexFile);
+                });
+            });
+
+            it("should find the index.php page in the project root", function () {
+                var promise,
+                    document,
+                    cssFile = "sub/sub2/test.css",
+                    indexFile = "index.php";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-3");
+                loadFileAndUpdateFileIndex(cssFile);
+
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:3333/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/dynamic-project-3/" + indexFile);
+                });
+            });
+            
+            it("should find the HTML page in the same directory", function () {
+                var promise,
+                    document;
+                var cssFile = "sub/test.css",
+                    indexFile = "sub/index.php";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-5");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:5555/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+                
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+                    
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    expect(document.file.fullPath).toBe(testPath + "/dynamic-project-5/" + indexFile);
+                });
+            });
+
+            it("should not find any HTML page", function () {
+                var promise,
+                    document;
+                var cssFile = "top2/test.css";
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-6");
+                loadFileAndUpdateFileIndex(cssFile);
+                
+                runs(function () {
+                    ProjectManager.setBaseUrl("http://localhost:6666/");
+                    promise = LiveDevelopment._getInitialDocFromCurrent();
+
+                    promise.done(function (doc) {
+                        document = doc;
+                    });
+
+                    waitsForDone(promise);
+                });
+
+                runs(function () {
+                    expect(document).toBe(null);
+                });
+            });
         });
     });
 });

@@ -28,7 +28,8 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "i18n"      : "thirdparty/i18n/i18n",
+        "lodash"    : "thirdparty/lodash.custom.min"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -98,7 +99,8 @@ define(function (require, exports, module) {
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        _                       = require("lodash");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -201,7 +203,8 @@ define(function (require, exports, module) {
         LanguageManager.ready.always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
-            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            var extensionPathOverride = params.get("extensions");  // used by unit tests
+            var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
@@ -216,8 +219,6 @@ define(function (require, exports, module) {
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
-                    //TODO: Remove preferences migration code
-                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
                     
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
@@ -312,7 +313,9 @@ define(function (require, exports, module) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                    if ($(".modal.instance").length === 0 &&
+                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
                         dropEffect = "copy";
                     }
                     event.originalEvent.dataTransfer.dropEffect = dropEffect;
