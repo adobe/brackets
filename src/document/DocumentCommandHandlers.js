@@ -695,7 +695,9 @@ define(function (require, exports, module) {
     function _saveFileList(fileList) {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
-        var userCanceled = false;
+        var userCanceled = false,
+            savedFiles = [];
+            
         return Async.doSequentially(
             fileList,
             function (file) {
@@ -709,8 +711,7 @@ define(function (require, exports, module) {
                     var savePromise = handleFileSave({doc: doc});
                     savePromise
                         .done(function (newFile) {
-                            file.fullPath = newFile.fullPath;
-                            file.name = newFile.name;
+                            savedFiles.push(newFile);
                         })
                         .fail(function (error) {
                             if (error === USER_CANCELED) {
@@ -724,7 +725,9 @@ define(function (require, exports, module) {
                 }
             },
             false
-        );
+        ).then(function () {
+            return savedFiles;
+        });
     }
     
     /**
@@ -962,8 +965,8 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
-                        _saveFileList(list).done(function () {
-                            result.resolve();
+                        _saveFileList(list).done(function (savedFiles) {
+                            result.resolve(savedFiles);
                         }).fail(function () {
                             result.reject();
                         });
@@ -977,9 +980,10 @@ define(function (require, exports, module) {
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
-        result.done(function () {
+        result.done(function (savedFiles) {
+            savedFiles = savedFiles || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(list, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(savedFiles, (clearCurrentDoc || true));
             }
         });
         

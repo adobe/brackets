@@ -77,6 +77,7 @@ define(function (require, exports, module) {
     }
     
     function init(callback) {
+        /* Temporarily disable file watchers
         if (!_nodeConnectionDeferred) {
             _nodeConnectionDeferred = new $.Deferred();
             
@@ -110,6 +111,7 @@ define(function (require, exports, module) {
                     );
             });
         }
+        */
         
         // Don't want to block on _nodeConnectionDeferred because we're needed as the 'root' fs
         // at startup -- and the Node-side stuff isn't needed for most functionality anyway.
@@ -249,6 +251,7 @@ define(function (require, exports, module) {
         appshell.fs.moveToTrash(path, _wrap(callback));
     }
     
+    /* File watchers are temporarily disabled
     function _notifyChanges(callback) {
         var change;
         
@@ -282,38 +285,53 @@ define(function (require, exports, module) {
             _pendingChanges[change] = true;
         }
     }
+    */
     
     function initWatchers(callback) {
+        /* File watchers are temporarily disabled. For now, send
+           a "wholesale" change when the window is focused. */
+        $(window).on("focus", function () {
+            callback(null);
+        });
+        
+        /*
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 _fileWatcherChange.callback = callback;
                 $(nodeConnection).on("fileWatcher.change", _fileWatcherChange);
             }
         });
+        */
     }
     
     function watchPath(path) {
+        /*
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.watchPath(path);
             }
         });
+        */
     }
     
     function unwatchPath(path) {
+        /*
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.unwatchPath(path);
             }
         });
+        */
     }
     
     function unwatchAll() {
+        /*
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.unwatchAll();
             }
         });
+        */
     }
     
     // Export public API

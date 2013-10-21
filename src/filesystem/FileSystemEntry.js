@@ -115,15 +115,7 @@ define(function (require, exports, module) {
      * @param {function (boolean)} callback Callback with a single parameter.
      */
     FileSystemEntry.prototype.exists = function (callback) {
-        // If we have _stat, the entry must exist
-        if (this._stat) {
-            callback(true);
-        } else {
-            // No _stat object yet, query the system
-            this._impl.exists(this._path, function (val) {
-                callback(val);
-            });
-        }
+        this._impl.exists(this._path, callback);
     };
     
     /**
@@ -133,16 +125,12 @@ define(function (require, exports, module) {
      * stats.
      */
     FileSystemEntry.prototype.stat = function (callback) {
-        if (this._stat) {
-            callback(null, this._stat);
-        } else {
-            this._impl.stat(this._path, function (err, stat) {
-                if (!err) {
-                    this._stat = stat;
-                }
-                callback(err, stat);
-            }.bind(this));
-        }
+        this._impl.stat(this._path, function (err, stat) {
+            if (!err) {
+                this._stat = stat;
+            }
+            callback(err, stat);
+        }.bind(this));
     };
 
     /**

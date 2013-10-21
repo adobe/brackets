@@ -462,28 +462,35 @@ define(function (require, exports, module) {
      *         passed. 
      */
     FileSystem.prototype._handleWatchResult = function (path, stat) {
-        if (!this._index) {
-            return;
-        }
-
-        path = _normalizePath(path, false);
-        var entry = this._index.getEntry(path);
         
-        var fireChangeEvent = function () {
+        var fireChangeEvent = function (entry) {
             // Trigger a change event
             $(exports).trigger("change", entry);
             console.log("change: ", entry);
         }.bind(this);
 
+        if (!this._index) {
+            return;
+        }
+
+        if (!path) {
+            // This is a "wholesale" change event
+            fireChangeEvent(null);
+            return;
+        }
+        
+        path = _normalizePath(path, false);
+        var entry = this._index.getEntry(path);
+        
         if (entry) {
             if (entry.isFile()) {
                 // Update stat and clear contents, but only if out of date
-                if (!stat || !entry._stat || (stat.mtime !== entry._stat.mtime)) {
+                if (!stat || !entry._stat || (stat.mtime.getTime() !== entry._stat.mtime.getTime())) {
                     entry._stat = stat;
                     entry._contents = undefined;
                 }
                 
-                fireChangeEvent();
+                fireChangeEvent(entry);
             } else {
                 var oldContents = entry._contents || [];
                 
@@ -554,7 +561,9 @@ define(function (require, exports, module) {
                         console.warn("Unable to get contents of changed directory: ", path, err);
                     } else {
                         removeOldEntries(function () {
-                            addNewEntries(fireChangeEvent);
+                            addNewEntries(function () {
+                                fireChangeEvent(entry);
+                            });
                         });
                     }
 
