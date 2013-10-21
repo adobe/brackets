@@ -284,6 +284,7 @@ define({
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE": "新規ルール",
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
@@ -413,9 +414,9 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
-	"INLINE_EDITOR_NO_MATCHES": "!能=[7308180] No matches available._=!",
-	"CSS_QUICK_EDIT_NO_MATCHES": "!能=[7308178] There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one._=!",
-	"CSS_QUICK_EDIT_NO_STYLESHEETS": "!能=[7308179] There are no stylesheets in your project.<br>Create one to add CSS rules._=!",
+	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
+	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
     
     /**
      * Unit names
@@ -460,6 +461,10 @@ define({
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
+    
+    // extensions/default/InlineBezierCurveEditor
+	"INLINE_BEZIER_EDITOR_TIME": "時刻",
+	"INLINE_BEZIER_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
