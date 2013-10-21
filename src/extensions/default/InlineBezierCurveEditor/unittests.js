@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                 match = BezierCurveUtils.cubicBezierMatch("ease-out-in", false);
                 expect(match).toBeFalsy();
             });
-            it("should not match linear whne nto a timing function", function () {
+            it("should not match linear when not a timing function", function () {
                 match = BezierCurveUtils.cubicBezierMatch("background: linear-gradient(to bottom, blue, white);", false);
                 expect(match).toBeFalsy();
             });
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
                 inline = null;
             });
          
-            it("should show the correct bezierCurve when opened on an #rrggbb bezierCurve", function () {
+            it("should highlight the timing function in doc when opened in inline editor", function () {
                 testOpenBezierCurve({line: 1, ch: 18}, "#abcdef");
             });
 */
