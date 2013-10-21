@@ -134,14 +134,14 @@ define(function (require, exports, module) {
             buttonId = DIALOG_BTN_CANCEL;
         } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click focused button or primary if no focus
-            if($focusedElement.length !== 0) {
+            if ($focusedElement.length !== 0) {
                 $focusedElement.click();
             } else {
                 $primaryBtn.click();
             }
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button or link
-            if($focusedElement.length !== 0) {
+            if ($focusedElement.length !== 0) {
                 $focusedElement.click();
             }
         } else if (brackets.platform === "mac") {
