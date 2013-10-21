@@ -144,6 +144,17 @@ define(function (require, exports, module) {
             }.bind(this));
         }
     };
+
+    /**
+     * Changes the mode of the entry. 
+     *
+     * @param {number} mode The desired mode of the entry as a number (e.g., 0777)
+     * @param {function (err)} callback Callback that is resolved with the entry's
+     * stats.
+     */
+    FileSystemEntry.prototype.chmod = function (mode, callback) {
+        this._impl.chmod(this._path, mode, callback || function () {});
+    };
     
     /**
      * Rename this entry.
