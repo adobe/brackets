@@ -30,6 +30,8 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
+        CommandManager          = require("command/CommandManager"),
+        Commands                = require("command/Commands"),
         DocumentManager         = require("document/DocumentManager"),
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
@@ -37,11 +39,15 @@ define(function (require, exports, module) {
         FileIndexManager        = require("project/FileIndexManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
-        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         PopUpManager            = require("widgets/PopUpManager"),
-        Strings                 = require("strings");
+        Strings                 = require("strings"),
+        _                       = require("lodash");
 
     var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
+    
+    var _newRuleCmd,
+        _newRuleHandlers = [];
 
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
@@ -115,7 +121,23 @@ define(function (require, exports, module) {
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
         });
     }
-
+    
+    /**
+     * @private
+     * Handle the "new rule" menu item by dispatching it to the handler for the focused inline editor.
+     */
+    function _handleNewRule() {
+        var inlineEditor = MultiRangeInlineEditor.getFocusedMultiRangeInlineEditor();
+        if (inlineEditor) {
+            var handlerInfo = _.find(_newRuleHandlers, function (entry) {
+                return entry.inlineEditor === inlineEditor;
+            });
+            if (handlerInfo) {
+                handlerInfo.handler();
+            }
+        }
+    }
+    
     /**
      * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
      * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -230,28 +252,49 @@ define(function (require, exports, module) {
             return result;
         }
         
+        /**
+         * @private
+         * Update the enablement of associated menu commands.
+         */
+        function _updateCommands() {
+            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !$newRuleButton.hasClass("disabled"));
+        }
+        
+        /**
+         * @private
+         * Create a new rule on click.
+         */
+        function _handleNewRuleClick(e) {
+            if (!$newRuleButton.hasClass("disabled")) {
+                if (cssFileInfos.length === 1) {
+                    // Just go ahead and create the rule.
+                    _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
+                } else if ($dropdown) {
+                    _closeDropdown();
+                } else {
+                    _showDropdown();
+                }
+            }
+            if (e) {
+                e.stopPropagation();
+            }
+        }
+        
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
-                cssInlineEditor = new MultiRangeInlineEditor(CSSUtils.consolidateRules(rules) || [], _getNoRulesMsg, CSSUtils.getRangeSelectors);
+                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
+                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors);
                 cssInlineEditor.load(hostEditor);
+                cssInlineEditor.$htmlContent
+                    .on("focusin", _updateCommands)
+                    .on("focusout", _updateCommands);
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                 $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
                     .text(Strings.BUTTON_NEW_RULE)
-                    .on("click", function (e) {
-                        if (!$newRuleButton.hasClass("disabled")) {
-                            if (cssFileInfos.length === 1) {
-                                // Just go ahead and create the rule.
-                                _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
-                            } else if ($dropdown) {
-                                _closeDropdown();
-                            } else {
-                                _showDropdown();
-                            }
-                        }
-                        e.stopPropagation();
-                    });
+                    .on("click", _handleNewRuleClick);
                 $header.append($newRuleButton);
+                _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
                 result.resolve(cssInlineEditor);
 
@@ -264,10 +307,16 @@ define(function (require, exports, module) {
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
                             $newRuleButton.removeClass("disabled");
+                            if (!rules.length) {
+                                // Force focus to the button so the user can create a new rule from the keyboard.
+                                $newRuleButton.focus();
+                            }
                         }
                         if (cssFileInfos.length > 1) {
                             $newRuleButton.addClass("btn-dropdown");
                         }
+                        
+                        _updateCommands();
                     });
             })
             .fail(function () {
@@ -279,5 +328,7 @@ define(function (require, exports, module) {
     }
 
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
-
+    
+    _newRuleCmd = CommandManager.register(Strings.CMD_CSS_QUICK_EDIT_NEW_RULE, Commands.CSS_QUICK_EDIT_NEW_RULE, _handleNewRule);
+    _newRuleCmd.setEnabled(false);
 });

@@ -49,6 +49,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils");
+    
+    var _prevMatchCmd, _nextMatchCmd;
 
     /**
      * Remove trailing "px" from a style size value.
@@ -201,6 +203,21 @@ define(function (require, exports, module) {
         this.$htmlContent.on("click.MultiRangeInlineEditor", clickHandler);
         // Also handle mouseup in case the user drags a little bit
         this.$htmlContent.on("mouseup.MultiRangeInlineEditor", clickHandler);
+        
+        // Update the rule list navigation menu items when we gain/lose focus.
+        this.$htmlContent
+            .on("focusin.MultiRangeInlineEditor", this._updateCommands.bind(this))
+            .on("focusout.MultiRangeInlineEditor", this._updateCommands.bind(this));
+    };
+    
+    /**
+     * @private
+     * Updates the enablement for the rule list navigation commands.
+     */
+    MultiRangeInlineEditor.prototype._updateCommands = function () {
+        var enabled = (this.hasFocus() && this._ranges.length > 1);
+        _prevMatchCmd.setEnabled(enabled && this._selectedRangeIndex > 0);
+        _nextMatchCmd.setEnabled(enabled && this._selectedRangeIndex !== -1 && this._selectedRangeIndex < this._ranges.length - 1);
     };
     
     /**
@@ -228,6 +245,8 @@ define(function (require, exports, module) {
         
         // Set the initial inline widget height
         this.sizeInlineWidgetToContents(true, false);
+        
+        this._updateCommands();
     };
 
     /**
@@ -285,12 +304,14 @@ define(function (require, exports, module) {
             
             // Ensure the cursor position is visible in the host editor as the user is arrowing around.
             $(this.editor).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
-    
+            
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
             this.sizeInlineWidgetToContents(true, false);
     
             this._updateSelectedMarker();
         }
+        
+        this._updateCommands();
     };
     
     /**
@@ -351,6 +372,8 @@ define(function (require, exports, module) {
             this._selectedRangeIndex--;
             this._updateSelectedMarker();
         }
+        
+        this._updateCommands();
     };
     
     /**
@@ -395,6 +418,8 @@ define(function (require, exports, module) {
         if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
             this.$wrapper.before(this.$relatedContainer);
         }
+
+        this._updateCommands();
     };
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
@@ -592,7 +617,7 @@ define(function (require, exports, module) {
      * Returns the currently focused MultiRangeInlineEditor.
      * @returns {MultiRangeInlineEditor}
      */
-    function _getFocusedMultiRangeInlineEditor() {
+    function getFocusedMultiRangeInlineEditor() {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
         if (focusedWidget instanceof MultiRangeInlineEditor) {
             return focusedWidget;
@@ -605,7 +630,7 @@ define(function (require, exports, module) {
      * Previous Range command handler
      */
     function _previousRange() {
-        var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
+        var focusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
             focusedMultiRangeInlineEditor._selectPreviousRange();
         }
@@ -615,14 +640,17 @@ define(function (require, exports, module) {
      * Next Range command handler
      */
     function _nextRange() {
-        var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
+        var focusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
             focusedMultiRangeInlineEditor._selectNextRange();
         }
     }
     
-    CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH,      Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
-    CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH,      Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
+    _prevMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH, Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
+    _prevMatchCmd.setEnabled(false);
+    _nextMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH, Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
+    _nextMatchCmd.setEnabled(false);
 
     exports.MultiRangeInlineEditor = MultiRangeInlineEditor;
+    exports.getFocusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor;
 });
