@@ -43,18 +43,18 @@ define(function (require, exports, module) {
      * @return { isNumber: boolean, value: number } 
      */
     function _convertToNumber(str) {
-        if (typeof(str) !== "string") {
+        if (typeof (str) !== "string") {
             return { isNumber: false };
         }
 
         var val = parseFloat(str, 10),
-            isNum = (typeof(val) === "number") && !isNaN(val) &&
+            isNum = (typeof (val) === "number") && !isNaN(val) &&
                     (val !== Infinity) && (val !== -Infinity);
 
         return {
             isNumber: isNum,
             value:    val
-        }
+        };
     }
 
     /**
