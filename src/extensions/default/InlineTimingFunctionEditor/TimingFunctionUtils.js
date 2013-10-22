@@ -37,6 +37,53 @@ define(function (require, exports, module) {
     var BEZIER_CURVE_REGEX = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/;
 
     /**
+     * If string is a number, then convert it.
+     *
+     * @param {string} str  value parsed from page.
+     * @return { isNumber: boolean, value: number } 
+     */
+    function _convertToNumber(str) {
+        if (typeof (str) !== "string") {
+            return { isNumber: false };
+        }
+
+        var val = parseFloat(str, 10),
+            isNum = (typeof (val) === "number") && !isNaN(val) &&
+                    (val !== Infinity) && (val !== -Infinity);
+
+        return {
+            isNumber: isNum,
+            value:    val
+        };
+    }
+
+    /**
+     * Validate cubic-bezier function parameters
+     *
+     * @param {RegExp.match} match  RegExp Match object with cubic-bezier function parameters
+     *                              in array positions 1-4.
+     * @return {boolean} true if all parameters are valid, otherwise, false
+     */
+    function _validateParams(match) {
+        var x1 = _convertToNumber(match[1]),
+            y1 = _convertToNumber(match[2]),
+            x2 = _convertToNumber(match[3]),
+            y2 = _convertToNumber(match[4]);
+
+        // Verify all params are numbers
+        if (!x1.isNumber || !y1.isNumber || !x2.isNumber || !y2.isNumber) {
+            return false;
+        }
+
+        // Verify x params are in 0-1 range
+        if (x1.value < 0 || x1.value > 1 || x2.value < 0 || x2.value > 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Match a timing function value from a CSS Declaration or Value.
      *
      * Matches returned from this function must be handled in
@@ -55,22 +102,22 @@ define(function (require, exports, module) {
         // First look for cubic-bezier(...).
         var match = str.match(BEZIER_CURVE_REGEX);
         if (match) {
-            return match;
+            return _validateParams(match) ? match : null;
         }
 
         // Next look for the ease functions (which are special cases of cubic-bezier())
         if (lax) {
             // For lax parsing, just look for the keywords
-            match = str.match(/ease(-in)?(-out)?/);
+            match = str.match(/ease(?:-in)?(?:-out)?/);
             if (match) {
                 return match;
             }
         } else {
             // For strict parsing, start with a syntax verifying search
-            match = str.match(/[: ,]ease(-in)?(-out)?[ ,;]/);
+            match = str.match(/[: ,]ease(?:-in)?(?:-out)?[ ,;]/);
             if (match) {
                 // return exact match to keyword that we need for later replacement
-                return str.match(/ease(-in)?(-out)?/);
+                return str.match(/ease(?:-in)?(?:-out)?/);
             }
         }
 
