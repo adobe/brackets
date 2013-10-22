@@ -141,8 +141,7 @@ define(function (require, exports, module) {
      * which contain a file entry, filter function, and change handler function.
      * 
      * @type{Object.<string, {entry: FileSystemEntry,
-     *                        filter: function(string): boolean,
-     *                        handleChange: function(FileSystemEntry)} >}
+     *                        filter: function(string): boolean} >}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -410,7 +409,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._entryRenamed = function (oldName, newName, isDirectory) {
         // Update all affected entries in the index
         this._index.entryRenamed(oldName, newName, isDirectory);
-        $(exports).trigger("rename", [oldName, newName]);
+        $(this).trigger("rename", [oldName, newName]);
         console.log("rename: ", oldName, newName);
     };
     
@@ -465,7 +464,7 @@ define(function (require, exports, module) {
         
         var fireChangeEvent = function (entry) {
             // Trigger a change event
-            $(exports).trigger("change", entry);
+            $(this).trigger("change", entry);
             console.log("change: ", entry);
         }.bind(this);
 
@@ -580,18 +579,15 @@ define(function (require, exports, module) {
      * @param {function(string): boolean} filter - A function to determine whether
      *      a particular path should be watched or ignored. Paths that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
-     * @param {function(FileSystemEntry)} handleChange - A function that is called whenever
-     *      a particular FileSystemEntry is changed.
      * @param {function(?string)} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null parameter
      *      that describes the error.
      */
-    FileSystem.prototype.watch = function (entry, filter, handleChange, callback) {
+    FileSystem.prototype.watch = function (entry, filter, callback) {
         var fullPath = entry.fullPath,
             watchedRoot = {
                 entry: entry,
-                filter: filter,
-                handleChange: handleChange
+                filter: filter
             };
         
         var watchingParentRoot = Object.keys(this._watchedRoots).some(function (path) {
@@ -680,6 +676,14 @@ define(function (require, exports, module) {
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
+    
+    // Export "on" and "off" methods
+    exports.on = function (event, handler) {
+        $(_instance).on(event, handler);
+    };
+    exports.off = function (event, handler) {
+        $(_instance).off(event, handler);
+    };
     
     // Export the FileSystem class as "private" for unit testing only.
     exports._FileSystem = FileSystem;

@@ -846,12 +846,10 @@ define(function (require, exports, module) {
     }
     
     function _watchProjectRoot(rootPath) {
-        $(FileSystem).on("change", _fileSystemChange);
-        $(FileSystem).on("rename", _fileSystemRename);
+        FileSystem.on("change", _fileSystemChange);
+        FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), shouldShow, function (entry) {
-            console.log("Entry changed!", entry);
-        }, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), shouldShow, function (err) {
             if (err) {
                 console.log("Error watching project root: ", rootPath, err);
             }
@@ -865,8 +863,8 @@ define(function (require, exports, module) {
      */
     function _unwatchProjectRoot() {
         if (_projectRoot) {
-            $(FileSystem).off("change", _fileSystemChange);
-            $(FileSystem).off("rename", _fileSystemRename);
+            FileSystem.off("change", _fileSystemChange);
+            FileSystem.off("rename", _fileSystemRename);
 
             FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
