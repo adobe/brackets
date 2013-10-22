@@ -240,9 +240,14 @@ define(function (require, exports, module) {
             if (useOriginalLineEndings) {
                 return this._text;
             } else {
-                return this._text.replace(/\r\n/g, "\n");
+                return Document.normalizeText(this._text);
             }
         }
+    };
+    
+    /** Normalizes line endings the same way CodeMirror would */
+    Document.normalizeText = function (text) {
+        return text.replace(/\r\n/g, "\n");
     };
     
     /**

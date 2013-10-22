@@ -669,21 +669,20 @@ define(function (require, exports, module) {
         }
         ProjectManager.getAllFiles(true)
             .done(function (fileListResult) {
-                Async.doInParallel(fileListResult, function (fileInfo) {
+                Async.doInParallel(fileListResult, function (file) {
                     var result = new $.Deferred();
                     
-                    if (!_inScope(fileInfo, currentScope)) {
+                    if (!_inScope(file, currentScope)) {
                         result.resolve();
                     } else {
-                        // Search one file
-                        DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                            .done(function (doc) {
-                                _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
+                        DocumentManager.getDocumentText(file)
+                            .done(function (text) {
+                                _addSearchMatches(file.fullPath, text, currentQueryExpr);
                                 result.resolve();
                             })
                             .fail(function (error) {
-                                // Error reading this file. This is most likely because the file isn't a text file.
-                                // Resolve here so we move on to the next file.
+                                // Always resolve. If there is an error, this file
+                                // is skipped and we move on to the next file.
                                 result.resolve();
                             });
                     }
