@@ -468,7 +468,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/, replaceFunction);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, replaceFunction);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -558,7 +558,7 @@ define(function (require, exports, module) {
                 };
                 var doReplace = function (match) {
                     cursor.replace(typeof query === "string" ? text :
-                                        text.replace(/\$(\d)/, function (w, i) { return match[i]; }));
+                                        text.replace(/\$(\d)/g, function (w, i) { return match[i]; }));
                     advance();
                 };
                 advance();
