@@ -78,10 +78,10 @@ define(function (require, exports, module) {
     $(workingSetCmenu).on("beforeContextMenuOpen", function () {
         var targetIndex = dm.findInWorkingSet(dm.getCurrentDocument().file.fullPath),
             closeOthers = (dm.getWorkingSet().length > 1),
-            closeOtherAbove = (targetIndex > 0),
+            closeOthersAbove = (targetIndex > 0),
             closeOthersBelow = (targetIndex < dm.getWorkingSet().length - 1);
         
-        if (closeOtherAbove && closeOthersBelow) {
+        if (closeOthersAbove && closeOthersBelow) {
             if (!isMenuThere(close_above)) {
                 
                 CommandManager.register(strings.CMD_FILE_CLOSE_ABOVE, close_above, function () {
