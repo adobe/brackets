@@ -220,15 +220,30 @@ define(function (require, exports, module) {
         function _showDropdown() {
             Menus.closeAll();
             
-            $dropdown = $(_renderList(cssFileInfos));
-            
-            var toggleOffset = $newRuleButton.offset();
-            $dropdown
-                .css({
-                    left: toggleOffset.left,
-                    top: toggleOffset.top + $newRuleButton.outerHeight()
-                })
+            $dropdown = $(_renderList(cssFileInfos))
                 .appendTo($("body"));
+            
+            var toggleOffset   = $newRuleButton.offset(),
+                $window        = $(window),
+                posLeft        = toggleOffset.left,
+                posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
+                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
+                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
+            
+            if (bottomOverhang > 0) {
+                // Bottom is clipped, so move entire menu above button
+                posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
+            }
+            
+            if (rightOverhang > 0) {
+                // Right is clipped, so adjust left to fit menu in editor
+                posLeft = Math.max(0, posLeft - rightOverhang);
+            }
+            
+            $dropdown.css({
+                left: posLeft,
+                top: posTop
+            });
             
             $("html").on("click", _closeDropdown);
             
