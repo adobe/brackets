@@ -140,10 +140,18 @@ define(function (require, exports, module) {
         if (indentAuto) {
             var currentLength = line.length;
             CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
+            
+            // If the amount of whitespace and the cursor position didn't change, we must have
+            // already been at the correct indentation level as far as CM is concerned, so insert 
+            // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                insertTab = true;
-                to.ch = 0;
+                var newFrom = instance.getCursor(true),
+                    newTo = instance.getCursor(false);
+                if (newFrom.line === from.line && newFrom.ch === from.ch &&
+                        newTo.line === to.line && newTo.ch === to.ch) {
+                    insertTab = true;
+                    to.ch = 0;
+                }
             }
         } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
