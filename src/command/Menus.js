@@ -469,7 +469,7 @@ define(function (require, exports, module) {
     Menu.prototype.removeMenuDivider = function (menuItemID) {
         var menuItem,
             $HTMLMenuItem,
-            commandID;
+            dividerID;
         
         if (!menuItemID) {
             console.error("removeMenuDivider(): missing required parameters: menuItemID");
@@ -498,8 +498,8 @@ define(function (require, exports, module) {
                 return;
             }
         } else {
-            commandID = menuItemID.substring(menuItemID.indexOf("brackets"));
-            brackets.app.removeMenuItem(commandID, function (err) {
+            dividerID = menuItemID.substring(menuItemID.indexOf("brackets"));
+            brackets.app.removeMenuItem(dividerID, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
                 }
