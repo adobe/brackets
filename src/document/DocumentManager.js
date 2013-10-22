@@ -496,19 +496,22 @@ define(function (require, exports, module) {
 
         PerfUtils.addMeasurement(perfTimerName);
     }
+
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
     function _clearCurrentDocument() {
         // If editor already blank, do nothing
         if (!_currentDocument) {
             return;
+        } else {
+            // Change model & dispatch event
+            _currentDocument = null;
+            // (this event triggers EditorManager to actually clear the editor UI)
+            $(exports).triggerHandler("currentDocumentChange");
         }
-        
-        // Change model & dispatch event
-        _currentDocument = null;
-        $(exports).triggerHandler("currentDocumentChange");
-        // (this event triggers EditorManager to actually clear the editor UI)
     }
+    
+
     
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
@@ -659,23 +662,29 @@ define(function (require, exports, module) {
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
                 fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                FileUtils.readAsText(fileEntry)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-            }
+                var mode = LanguageManager.getLanguageForPath(fullPath);
+                if (mode.getId() === "image") {
+                    var fileError = {name: "Cannot get document for image."};
+                    result.reject(fileError);
+                } else {
+              
+                    FileUtils.readAsText(fileEntry)
+                        .always(function () {
+                            // document is no longer pending
+                            delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                        })
+                        .done(function (rawText, readTimestamp) {
+                            doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                            result.resolve(doc);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+                }
             
+            }
             // This is a good point to clean up any old dangling Documents
             result.done(_gcDocuments);
-            
             return promise;
         }
     }
@@ -955,6 +964,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
+    exports._clearCurrentDocument        = _clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.createUntitledDocument      = createUntitledDocument;

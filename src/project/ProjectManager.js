@@ -71,7 +71,8 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        EditorManager       = require("editor/EditorManager");
     
     
     /**
@@ -235,12 +236,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && _hasFileSelectionFocus()) {
+        var curFile = EditorManager.getCurrentlyViewedPath();
+        if (curFile && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curDoc.file.fullPath) {
+                if (entry && entry.fullPath === curFile) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
