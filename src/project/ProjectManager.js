@@ -35,8 +35,6 @@
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
  *                            a project being opened (e.g. from the Refresh command)
- *    - projectFilesChange -- sent if one of the project files has changed--
- *                            added, removed, renamed, etc. TODO: FileSystem - get rid of this event. It is only used by FileIndexManager
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -1293,9 +1291,6 @@ define(function (require, exports, module) {
                     if (!isFolder) {
                         _projectTree.jstree("set_text", data.rslt.obj, ViewUtils.getFileEntryDisplay(entry));
                     }
-                   
-                    // Notify listeners that the project model has changed
-                    $(exports).triggerHandler("projectFilesChange");
                     
                     result.resolve(entry);
                 };
@@ -1557,9 +1552,6 @@ define(function (require, exports, module) {
                     suppressToggleOpen = oldSuppressToggleOpen;
                 });
                 
-                // Notify that one of the project files has changed
-                $(exports).triggerHandler("projectFilesChange");
-                
                 DocumentManager.notifyPathDeleted(entry.fullPath);
     
                 _redraw(true);
@@ -1656,9 +1648,6 @@ define(function (require, exports, module) {
      * Respond to a FileSystem rename event.
      */
     _fileSystemRename = function (event, oldName, newName) {
-        // Notify that one of the project files has changed
-        $(exports).triggerHandler("projectFilesChange");
-        
         // Tell the document manager about the name change. This will update
         // all of the model information and send notification to all views
         DocumentManager.notifyPathNameChanged(oldName, newName);
