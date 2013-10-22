@@ -339,6 +339,15 @@ define(function (require, exports, module) {
                 CONNECTION_TIMEOUT,
                 "additional test commands should be defined in all connections"
             );
+            
+            var reconnectResolved = false, closeHandlerCalled = false;
+            $(connectionOne).on("close", function (e, reconnectPromise) {
+                closeHandlerCalled = true;
+                reconnectPromise.then(function () {
+                    reconnectResolved = true;
+                });
+            });
+            
             waitThenRunRestartServer(connectionOne);
             waitsFor(
                 function () {
@@ -365,6 +374,8 @@ define(function (require, exports, module) {
                 "test.reverse command should be re-registered"
             );
             runs(function () {
+                expect(closeHandlerCalled).toBe(true);
+                expect(reconnectResolved).toBe(true);
                 expect(connectionOne.domains.test.reverseAsync).toBeFalsy();
             });
 
