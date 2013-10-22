@@ -68,21 +68,23 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
         this.editor = editor;
         this._instrumentationEnabled = false;
-
-        this.onCursorActivity = this.onCursorActivity.bind(this);
         
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
+        // Performance optimization to use closures instead of Function.bind()
+        // to improve responsiveness during cursor movement and keyboard events
+        $(this.editor).on("cursorActivity.HTMLDocument", function (event, editor) {
+            self._onCursorActivity(event, editor);
+        });
+
+        $(this.editor).on("change.HTMLDocument", function (event, editor, change) {
+            self._onChange(event, editor, change);
+        });
         
         // Experimental code
         if (LiveDevelopment.config.experimental) {
-            // Used by highlight agent to highlight editor text as selected in browser
-            this.onHighlight = this.onHighlight.bind(this);
-            $(HighlightAgent).on("highlight", this.onHighlight);
+            $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
+                self._onHighlight(event, node);
+            });
         }
-
-        $(this.editor).on("change", function (event, editor, change) {
-            self.onChange(event, editor, change);
-        });
     };
     
     /**
@@ -127,15 +129,13 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
 
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
+        $(this.editor).off(".HTMLDocument");
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
-            $(HighlightAgent).off("highlight", this.onHighlight);
-            this.onHighlight();
+            // Force highlight teardown
+            this._onHighlight();
         }
-
-        $(this.editor).off("change", this.onChange);
     };
     
     /** Update the highlight */
@@ -158,7 +158,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Event Handlers *******************************************************/
 
     /** Triggered on cursor activity by the editor */
-    HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+    HTMLDocument.prototype._onCursorActivity = function (event, editor) {
         if (!this.editor) {
             return;
         }
@@ -211,7 +211,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
 
     /** Triggered on change by the editor */
-    HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+    HTMLDocument.prototype._onChange = function (event, editor, change) {
         // Make sure LiveHTML is turned on
         if (!brackets.livehtml || !this._instrumentationEnabled) {
             return;
@@ -287,7 +287,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    HTMLDocument.prototype.onHighlight = function onHighlight(event, node) {
+    HTMLDocument.prototype._onHighlight = function (event, node) {
         if (!node || !node.location || !this.editor) {
             if (this._highlight) {
                 this._highlight.clear();
