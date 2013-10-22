@@ -715,20 +715,12 @@ define(function (require, exports, module) {
         return $.Deferred().reject().promise();
     }
     
-    /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
-     *
-     * @return {$.Promise}
-     */
-    function saveAll() {
+    function _saveFileList(fileList) {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
         var userCanceled = false;
         return Async.doSequentially(
-            DocumentManager.getWorkingSet(),
+            fileList,
             function (file) {
                 // Abort remaining saves if user canceled any Save dialog
                 if (userCanceled) {
@@ -738,11 +730,16 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     var savePromise = handleFileSave({doc: doc});
-                    savePromise.fail(function (error) {
-                        if (error === USER_CANCELED) {
-                            userCanceled = true;
-                        }
-                    });
+                    savePromise
+                        .done(function (newFile) {
+                            file.fullPath = newFile.fullPath;
+                            file.name = newFile.name;
+                        })
+                        .fail(function (error) {
+                            if (error === USER_CANCELED) {
+                                userCanceled = true;
+                            }
+                        });
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
@@ -751,6 +748,18 @@ define(function (require, exports, module) {
             },
             false
         );
+    }
+    
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
+     *
+     * @return {$.Promise}
+     */
+    function saveAll() {
+        return _saveFileList(DocumentManager.getWorkingSet());
     }
     
     /**
@@ -908,21 +917,12 @@ define(function (require, exports, module) {
         }
         return promise;
     }
-    
-    /**
-     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
-     * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
-     *          actually close any documents. This is useful when chaining close-all together with
-     *          other user prompts that may be cancelable.
-     * @return {$.Promise} a promise that is resolved when all files are closed
-     */
-    function handleFileCloseAll(commandData) {
-        var result = new $.Deferred(),
-            promptOnly = commandData && commandData.promptOnly;
         
-        var unsavedDocs = [];
-        DocumentManager.getWorkingSet().forEach(function (file) {
+    function _doCloseDocumentList(list, promptOnly, clearCurrentDoc) {
+        var result      = new $.Deferred(),
+            unsavedDocs = [];
+        
+        list.forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
-                        saveAll().done(function () {
+                        _saveFileList(list).done(function () {
                             result.resolve();
                         }).fail(function () {
                             result.reject();
@@ -1002,11 +1002,27 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.closeAll();
+                DocumentManager.removeListFromWorkingSet(list, (clearCurrentDoc || true));
             }
         });
         
         return result.promise();
+    }
+    
+    /**
+     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Promise} a promise that is resolved when all files are closed
+     */
+    function handleFileCloseAll(commandData) {
+        return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
+    }
+    
+    function handleFileCloseList(commandData) {
+        return _doCloseDocumentList((commandData && commandData.documentList), false);
     }
     
     /**
@@ -1233,6 +1249,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);

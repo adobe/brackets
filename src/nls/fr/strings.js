@@ -81,7 +81,7 @@ define({
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
-	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML ou vérifiez qu’il y a un fichier index.html dans votre projet pour pouvoir lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
@@ -209,6 +209,10 @@ define({
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
+	"CMD_FILE_CLOSE_LIST": "Fermer la liste",
+	"CMD_FILE_CLOSE_OTHERS": "Fermer tous les autres",
+	"CMD_FILE_CLOSE_ABOVE": "Fermer les autres au-dessus",
+	"CMD_FILE_CLOSE_BELOW": "Fermer les autres en dessous",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
@@ -280,6 +284,7 @@ define({
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE": "Nouvelle règle",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
@@ -329,6 +334,9 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "Nouvelle règle",
+    
     // Extension Management strings
 	"INSTALL": "Installer",
 	"UPDATE": "Mettre à jour",
@@ -341,7 +349,7 @@ define({
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
-	"INSTALL_SUCCEEDED": "Installation réussie.",
+	"INSTALL_SUCCEEDED": "Installation réussie !",
 	"INSTALL_FAILED": "Echec de l’installation.",
 	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
@@ -406,13 +414,16 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
+	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
+	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
+    
     /**
      * Unit names
      */
 
 	"UNIT_PIXELS": "pixels",
-    
-    
+
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
@@ -450,6 +461,10 @@ define({
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
+    
+    // extensions/default/InlineBezierCurveEditor
+	"INLINE_BEZIER_EDITOR_TIME": "Heure",
+	"INLINE_BEZIER_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

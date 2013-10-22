@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = brackets.getModule("lodash");
+    
     var Commands               = brackets.getModule("command/Commands"),
         CommandManager         = brackets.getModule("command/CommandManager"),
         KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
@@ -38,7 +40,6 @@ define(function (require, exports, module) {
         ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         NativeApp              = brackets.getModule("utils/NativeApp"),
-        CollectionUtils        = brackets.getModule("utils/CollectionUtils"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
         };
         
         var perfData = PerfUtils.getData();
-        CollectionUtils.forEach(perfData, function (value, testName) {
+        _.forEach(perfData, function (value, testName) {
             templateVars.perfData.push({
                 testName: StringUtils.breakableUrl(testName),
                 value:    getValue(value)
@@ -151,7 +152,7 @@ define(function (require, exports, module) {
                 
                 function setLanguage(event) {
                     locale = $select.val();
-                    $submit.prop("disabled", false);
+                    $submit.prop("disabled", locale === (curLocale || ""));
                 }
                 
                 // returns the localized label for the given locale

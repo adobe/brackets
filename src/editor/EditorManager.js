@@ -298,8 +298,8 @@ define(function (require, exports, module) {
         
         if (hostEditor) {
             hostEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    inlineEditors = inlineEditors.concat(widget.editors);
+                if (widget instanceof InlineTextEditor && widget.editor) {
+                    inlineEditors.push(widget.editor);
                 }
             });
         }
@@ -343,8 +343,14 @@ define(function (require, exports, module) {
      * @return {{content:DOMElement, editor:Editor}}
      */
     function createInlineEditorForDocument(doc, range, inlineContent) {
-        // Create the Editor
+        // Hide the container for the editor before creating it so that CodeMirror doesn't do extra work
+        // when initializing the document. When we construct the editor, we have to set its text and then
+        // set the (small) visible range that we show in the editor. If the editor is visible, CM has to
+        // render a large portion of the document before setting the visible range. By hiding the editor
+        // first and showing it after the visible range is set, we avoid that initial render.
+        $(inlineContent).hide();
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
+        $(inlineContent).show();
         
         return { content: inlineContent, editor: inlineEditor };
     }

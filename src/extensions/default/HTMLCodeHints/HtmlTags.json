@@ -29,6 +29,7 @@
     "del":        { "attributes": ["cite", "datetime"] },
     "details":    { "attributes": ["open"] },
     "dfn":        { "attributes": [] },
+    "dialog":     { "attributes": ["open"] },
     "div":        { "attributes": [] },
     "dl":         { "attributes": [] },
     "dt":         { "attributes": [] },

@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
         $dlg.modal("hide");
+        $(".modal-wrapper:last").remove();
     }
 
     /**
@@ -223,11 +224,13 @@ define(function (require, exports, module) {
             autoDismiss = true;
         }
         
+        $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
+        
         var result  = $.Deferred(),
             promise = result.promise(),
             $dlg    = $(template)
                 .addClass("instance")
-                .appendTo(window.document.body);
+                .appendTo(".modal-inner-wrapper:last");
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
@@ -282,6 +285,7 @@ define(function (require, exports, module) {
             .modal({
                 backdrop: "static",
                 show:     true,
+                selector: ".modal-inner-wrapper:last",
                 keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
             })
             // Updates the z-index of the modal dialog and the backdrop
@@ -321,7 +325,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
+     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      * @param {string} dlgClass The class name identifier for the dialog.
      * @param {string=} buttonId The button id to use when closing the dialog. Defaults to DIALOG_CANCELED

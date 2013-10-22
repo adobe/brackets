@@ -525,10 +525,11 @@ define(function (require, exports, module) {
      * key events. Then, the purposes of handleKeyEvent and handleChange could be
      * combined. Doing this well requires changing CodeMirror.
      *
+     * @param {Event} jqEvent
      * @param {Editor} editor
      * @param {KeyboardEvent} event
      */
-    function handleKeyEvent(editor, event) {
+    function _handleKeyEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
             if (!(event.ctrlKey || event.altKey || event.metaKey) &&
@@ -563,8 +564,12 @@ define(function (require, exports, module) {
      * Start a new implicit hinting session, or update the existing hint list.
      * Called by the editor after handleKeyEvent, which is responsible for setting
      * the lastChar.
+     *
+     * @param {Event} event
+     * @param {Editor} editor
+     * @param {{from: Pos, to: Pos, text: Array, origin: string}} changeList
      */
-    function handleChange(editor, changeList) {
+    function _handleChange(event, editor, changeList) {
         if (lastChar && editor === keyDownEditor) {
             keyDownEditor = null;
             if (_inSession(editor)) {
@@ -617,27 +622,24 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
-    
+
     function activeEditorChangeHandler(event, current, previous) {
-        var changeHandler = function (event, editor, changeList) {
-                handleChange(editor, changeList);
-            },
-            keyEventHandler = function (jqEvent, editor, event) {
-                handleKeyEvent(editor, event);
-            };
+        if (current) {
+            $(current).on("editorChange", _handleChange);
+            $(current).on("keyEvent", _handleKeyEvent);
+        }
         
-        $(current).on("change", changeHandler);
-        $(current).on("keyEvent", keyEventHandler);
-            
-        //Removing all old Handlers
-        $(previous).off("change", changeHandler);
-        $(previous).off("keyEvent", keyEventHandler);
+        if (previous) {
+            //Removing all old Handlers
+            $(previous).off("editorChange", _handleChange);
+            $(previous).off("keyEvent", _handleKeyEvent);
+        }
     }
     
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
     
     $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
-
+    
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is

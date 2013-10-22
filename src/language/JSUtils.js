@@ -30,13 +30,14 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     // Load brackets modules
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         FileUtils               = require("file/FileUtils"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
@@ -266,7 +267,7 @@ define(function (require, exports, module) {
             // Need to call CollectionUtils.hasProperty here since docEntry.functions could
             // have an entry for "hasOwnProperty", which results in an error if trying to
             // invoke docEntry.functions.hasOwnProperty().
-            if (CollectionUtils.hasProperty(docEntry.functions, functionName)) {
+            if (_.has(docEntry.functions, functionName)) {
                 var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
@@ -410,7 +411,7 @@ define(function (require, exports, module) {
         var result = [];
         var lines = text.split("\n");
         
-        CollectionUtils.forEach(allFunctions, function (functions, functionName) {
+        _.forEach(allFunctions, function (functions, functionName) {
             if (functionName === searchName || searchName === "*") {
                 functions.forEach(function (funcEntry) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
