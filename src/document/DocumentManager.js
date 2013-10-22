@@ -960,7 +960,9 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
-
+    // For unit tests and internal use only
+    exports._clearCurrentDocument       = _clearCurrentDocument;
+    
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
