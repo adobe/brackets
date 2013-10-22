@@ -331,7 +331,7 @@ define(function (require, exports, module) {
         
         params.parse();
         
-        if (params.get("reloadWithoutUserExts")) {
+        if (params.get("reloadWithoutUserExts") === "true") {
             paths = ["default", "dev"];
         }
 

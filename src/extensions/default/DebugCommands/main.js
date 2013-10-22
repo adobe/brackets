@@ -167,11 +167,19 @@ define(function (require, exports, module) {
     }
     
     function _handleReloadWithoutUserExts() {
+        var href = window.location.href;
+        
+        // Remove all menus to assure extension menus and menu items are removed
         _.forEach(Menus.getAllMenus(), function (value, key) {
             Menus.removeMenu(key);
         });
         
-        _browserReload(window.location.href + "?reloadWithoutUserExts=true");
+        // Strip off any parameters
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        _browserReload(href + "?reloadWithoutUserExts=true");
     }
     
     function _handleShowPerfData() {
@@ -357,7 +365,7 @@ define(function (require, exports, module) {
         
         params.parse();
         
-        if (params.get("reloadWithoutUserExts")) {
+        if (params.get("reloadWithoutUserExts") === "true") {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
         } else {
