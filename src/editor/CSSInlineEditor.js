@@ -282,12 +282,16 @@ define(function (require, exports, module) {
         
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
+                var inlineEditorDeferred = new $.Deferred();
                 cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
                                                                                     _getNoRulesMsg, CSSUtils.getRangeSelectors);
                 cssInlineEditor.load(hostEditor);
                 cssInlineEditor.$htmlContent
                     .on("focusin", _updateCommands)
                     .on("focusout", _updateCommands);
+                $(cssInlineEditor).on("add", function () {
+                    inlineEditorDeferred.resolve();
+                });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                 $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
@@ -299,7 +303,14 @@ define(function (require, exports, module) {
                 result.resolve(cssInlineEditor);
 
                 // Now that dialog has been built, collect list of stylesheets
-                FileIndexManager.getFileInfoList("css")
+                var stylesheetsPromise = FileIndexManager.getFileInfoList("css");
+                
+                // After both the stylesheets are loaded and the inline editor has been added to the DOM,
+                // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)
+                // Note that the stylesheetsPromise needs to be passed first in order for the fileInfos to be
+                // properly passed to the handler, since $.when() passes the results in order of the argument
+                // list.
+                $.when(stylesheetsPromise, inlineEditorDeferred.promise())
                     .done(function (fileInfos) {
                         cssFileInfos = fileInfos;
                         

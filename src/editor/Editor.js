@@ -410,18 +410,7 @@ define(function (require, exports, module) {
         this._duringSync = false;
         
         if (range) {
-            // Hide all lines other than those we want to show. We do this rather than trimming the
-            // text itself so that the editor still shows accurate line numbers.
-            this._codeMirror.operation(function () {
-                if (range.startLine > 0) {
-                    self._hideLines(0, range.startLine);
-                }
-                
-                var end = range.endLine + 1;
-                if (end < self.lineCount()) {
-                    self._hideLines(end, self.lineCount());
-                }
-            });
+            this._updateHiddenLines();
             this.setCursorPos(range.startLine, 0);
         }
 
@@ -515,10 +504,14 @@ define(function (require, exports, module) {
             var cm = this._codeMirror,
                 self = this;
             cm.operation(function () {
-                // TODO: could make this more efficient by only iterating across the min-max line
-                // range of the union of all changes
-                self._hideLines(0, self._visibleRange.startLine);
-                self._hideLines(self._visibleRange.endLine + 1, self.lineCount());
+                self._hideMarks.forEach(function (mark) {
+                    if (mark) {
+                        mark.clear();
+                    }
+                });
+                self._hideMarks = [];
+                self._hideMarks.push(self._hideLines(0, self._visibleRange.startLine));
+                self._hideMarks.push(self._hideLines(self._visibleRange.endLine + 1, self.lineCount()));
             });
         }
     };
@@ -978,16 +971,28 @@ define(function (require, exports, module) {
     /* Hides the specified line number in the editor
      * @param {!from} line to start hiding from (inclusive)
      * @param {!to} line to end hiding at (exclusive)
+     * @return {TextMarker} The CodeMirror mark object that's hiding the lines
      */
     Editor.prototype._hideLines = function (from, to) {
         if (to <= from) {
             return;
         }
         
+        // Handle hiding a single blank line at the end specially by moving the "from" backwards
+        // to include the last newline. Otherwise CodeMirror doesn't hide anything in this case.
+        var hideFrom, inclusiveLeft = true;
+        if (from === to - 1 && from === this._codeMirror.lineCount() - 1 && this._codeMirror.getLine(from).length === 0) {
+            hideFrom = {line: from - 1, ch: this._codeMirror.getLine(from - 1).length};
+            // Allow the cursor to be set immediately before the hidden newline.
+            inclusiveLeft = false;
+        } else {
+            hideFrom = {line: from, ch: 0};
+        }
+        
         var value = this._codeMirror.markText(
-            {line: from, ch: 0},
+            hideFrom,
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
+            {collapsed: true, inclusiveLeft: inclusiveLeft, inclusiveRight: true}
         );
         
         return value;
@@ -1486,6 +1491,13 @@ define(function (require, exports, module) {
      * Promise queues for inline widgets being added to a given line.
      */
     Editor.prototype._inlineWidgetQueues = {};
+    
+    /**
+     * @private
+     * @type {Array}
+     * A list of objects corresponding to the markers that are hiding lines in the current editor.
+     */
+    Editor.prototype._hideMarks = [];
     
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
