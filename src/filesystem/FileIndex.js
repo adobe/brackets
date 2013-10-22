@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, forin: true */
 /*global define */
 
 define(function (require, exports, module) {
@@ -62,10 +62,25 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry The entry to remove.
      */
     FileIndex.prototype.removeEntry = function (entry) {
-        // TODO: Safely remove entries from the index
-        // var path = entry.fullPath;
+        var path = entry.fullPath,
+            property,
+            member;
         
-        // delete this._index[path];
+        function replaceMember(property) {
+            var member = entry[property];
+            if (typeof member === "function") {
+                entry[property] = function () {
+                    console.warn("FileSystemEntry used after being removed index: ", path, new Error().stack);
+                    return member.apply(entry, arguments);
+                };
+            }
+        }
+        
+        delete this._index[path];
+        
+        for (property in entry) {
+            replaceMember(property);
+        }
     };
     
     /**

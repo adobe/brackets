@@ -172,7 +172,15 @@ define(function (require, exports, module) {
      */
     FileSystemEntry.prototype.unlink = function (callback) {
         this._stat = null;
-        this._impl.unlink(this._path, callback || function () {});
+        this._impl.unlink(this._path, function (err) {
+            if (!err) {
+                this._fileSystem._index.removeEntry(this);
+            }
+            
+            if (callback) {
+                callback.apply(undefined, arguments);
+            }
+        }.bind(this));
     };
         
     /**
@@ -188,7 +196,15 @@ define(function (require, exports, module) {
         }
         
         this._stat = null;
-        this._impl.moveToTrash(this._path, callback || function () {});
+        this._impl.moveToTrash(this._path, function (err) {
+            if (!err) {
+                this._fileSystem._index.removeEntry(this);
+            }
+            
+            if (callback) {
+                callback.apply(undefined, arguments);
+            }
+        }.bind(this));
     };
     
     /**

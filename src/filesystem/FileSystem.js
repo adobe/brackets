@@ -159,10 +159,20 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var paths = [];
+        var watchPaths = [],
+            allChildren;
+        
+        if (!shouldWatch) {
+            allChildren = [];
+        }
+        
         var visitor = function (child) {
             if (child.isDirectory() || child === watchedRoot.entry) {
-                paths.push(child.fullPath);
+                watchPaths.push(child.fullPath);
+            }
+            
+            if (!shouldWatch) {
+                allChildren.push(child);
             }
             
             return watchedRoot.filter(child.fullPath);
@@ -176,11 +186,11 @@ define(function (require, exports, module) {
             
             // sort paths by max depth for a breadth-first traversal
             var dirCount = {};
-            paths.forEach(function (path) {
+            watchPaths.forEach(function (path) {
                 dirCount[path] = path.split("/").length;
             });
             
-            paths.sort(function (path1, path2) {
+            watchPaths.sort(function (path1, path2) {
                 var dirCount1 = dirCount[path1],
                     dirCount2 = dirCount[path2];
                 
@@ -188,13 +198,18 @@ define(function (require, exports, module) {
             });
             
             this._enqueueWatchRequest(function (callback) {
-                paths.forEach(function (path, index) {
-                    if (shouldWatch) {
+                if (shouldWatch) {
+                    watchPaths.forEach(function (path, index) {
                         this._impl.watchPath(path);
-                    } else {
+                    }, this);
+                } else {
+                    watchPaths.forEach(function (path, index) {
                         this._impl.unwatchPath(path);
-                    }
-                }, this);
+                    }, this);
+                    allChildren.forEach(function (child) {
+                        this._index.removeEntry(child);
+                    }, this);
+                }
                 
                 callback(null);
             }.bind(this), callback);

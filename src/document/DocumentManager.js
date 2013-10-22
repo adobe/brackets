@@ -710,6 +710,40 @@ define(function (require, exports, module) {
     getDocumentForPath._pendingDocumentPromises = {};
     
     /**
+     * Gets the text of a Document (including any unsaved changes), or would-be Document if the
+     * file is not actually open. More efficient than getDocumentForPath(). Use when you're reading
+     * document(s) but don't need to hang onto a Document object.
+     * 
+     * If the file is open this is equivalent to calling getOpenDocumentForPath().getText(). If the
+     * file is NOT open, this is like calling getDocumentForPath()...getText() but more efficient.
+     * Differs from plain FileUtils.readAsText() in two ways: (a) line endings are still normalized
+     * as in Document.getText(); (b) unsaved changes are returned if there are any.
+     * 
+     * @param {!File} file
+     * @return {!string}
+     */
+    function getDocumentText(file) {
+        var result = new $.Deferred(),
+            doc = getOpenDocumentForPath(file.fullPath);
+        if (doc) {
+            result.resolve(doc.getText());
+        } else {
+            file.readAsText(function (err, contents) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    // Normalize line endings the same way Document would, but don't actually
+                    // new up a Document (which entails a bunch of object churn).
+                    contents = DocumentModule.Document.normalizeText(contents);
+                    result.resolve(contents);
+                }
+            });
+        }
+        return result.promise();
+    }
+    
+    
+    /**
      * Creates an untitled document. The associated FileEntry has a fullPath
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
@@ -945,6 +979,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
