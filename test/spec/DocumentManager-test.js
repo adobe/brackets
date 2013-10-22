@@ -84,7 +84,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("clearCurrentDocument ", function () {
+        describe("_clearCurrentDocument ", function () {
             it("should fire currentDocumentChange", function () {
                 var docChangeListener = jasmine.createSpy();
 
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(1);
-                    DocumentManager.clearCurrentDocument();
+                    DocumentManager._clearCurrentDocument();
                     expect(docChangeListener.callCount).toBe(2);
                     
                     _$(DocumentManager).off("currentDocumentChange", docChangeListener);
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
         });
 
         
-        describe("After clearCurrentDocument ", function () {
+        describe("After _clearCurrentDocument ", function () {
             it("getCurrentDocument should return null ", function () {
 
                 runs(function () {
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument()).not.toBe(null);
-                    DocumentManager.clearCurrentDocument();
+                    DocumentManager._clearCurrentDocument();
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });
 
