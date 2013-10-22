@@ -293,8 +293,10 @@ define(function (require, exports, module) {
 
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
-            // If doc is already in working set, don't add it again
-            if (findInWorkingSet(file.fullPath) === -1) {
+            // If doc has a custom viewer, then don't add it to the working set.
+            // Or if doc is already in working set, don't add it again.
+            if (!EditorManager.getCustomViewerForPath(file.fullPath) &&
+                    findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
@@ -662,26 +664,19 @@ define(function (require, exports, module) {
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
                 fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                var mode = LanguageManager.getLanguageForPath(fullPath);
-                if (mode.getId() === "image") {
-                    var fileError = {name: "Cannot get document for image."};
-                    result.reject(fileError);
-                } else {
-              
-                    FileUtils.readAsText(fileEntry)
-                        .always(function () {
-                            // document is no longer pending
-                            delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                        })
-                        .done(function (rawText, readTimestamp) {
-                            doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                            result.resolve(doc);
-                        })
-                        .fail(function (fileError) {
-                            result.reject(fileError);
-                        });
-                }
-            
+                
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
             }
             // This is a good point to clean up any old dangling Documents
             result.done(_gcDocuments);

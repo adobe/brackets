@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
+        EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -72,9 +73,23 @@ define(function (require, exports, module) {
      *     if there was an error. 
      */
     function openDroppedFiles(files) {
-        var errorFiles = [];
+        var errorFiles = [],
+            filteredFiles = [];
         
-        return Async.doInParallel(files, function (file, idx) {
+        // Filter out all files that have their own custom viewers
+        // since we don't keep them in the working set.
+        filteredFiles = files.filter(function (file) {
+            return !EditorManager.getCustomViewerForPath(file);
+        });
+        
+        // If all files have custom viewers, then add back the last file
+        // so that we open it in its custom viewer.
+        if (filteredFiles.length === 0) {
+            filteredFiles.push(files[files.length - 1]);
+        }
+        
+        
+        return Async.doInParallel(filteredFiles, function (file, idx) {
             var result = new $.Deferred();
             
             // Only open files
@@ -83,7 +98,7 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < files.length - 1) {
+                    if (idx < filteredFiles.length - 1) {
                         if (DocumentManager.findInWorkingSet(file) !== -1) {
                             result.resolve();
                             return;
@@ -99,7 +114,7 @@ define(function (require, exports, module) {
                             errorFiles.push(file);
                             result.reject();
                         });
-                } else if (!err && stat.isDirectory() && files.length === 1) {
+                } else if (!err && stat.isDirectory() && filteredFiles.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(file)
                         .done(function () {

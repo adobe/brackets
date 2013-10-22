@@ -186,8 +186,8 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            var mode = LanguageManager.getLanguageForPath(fullPath);
-            if (mode.getId() === "image") {
+
+            if (EditorManager.getCustomViewerForPath(fullPath)) {
                 var $imageHolder = ImageViewer.getImageHolder(fullPath);
                 EditorManager.showCustomViewer($imageHolder, fullPath);
                 result.resolve();
@@ -250,13 +250,27 @@ define(function (require, exports, module) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
-                        var filesToOpen = [];
-                        paths.forEach(function (file) {
+                        var filesToOpen = [],
+                            filteredPaths = [];
+
+                        // Filter out all files that have their own custom viewers
+                        // since we don't keep them in the working set.
+                        filteredPaths = paths.filter(function (file) {
+                            return !EditorManager.getCustomViewerForPath(file);
+                        });
+                        
+                        // If all files have custom viewers, then add back the last file
+                        // so that we open it in its custom viewer.
+                        if (filteredPaths.length === 0) {
+                            filteredPaths.push(paths[paths.length - 1]);
+                        }
+                        
+                        filteredPaths.forEach(function (file) {
                             filesToOpen.push(new NativeFileSystem.FileEntry(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
-                        doOpen(paths[paths.length - 1], silent)
+                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
                             .done(function (doc) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the working set.
