@@ -184,15 +184,15 @@ define(function (require, exports, module) {
             returnVal = bytes;
         
         if ((bytes >= 0) && (bytes < kilobyte)) {
-            returnVal = bytes + ' B';
+            returnVal = bytes + " B";
         } else if (bytes < megabyte) {
-            returnVal = (bytes / kilobyte).toFixed(precision) + ' KB';
-        }else if (bytes < gigabyte) {
-            returnVal = (bytes / megabyte).toFixed(precision) + ' MB';
-        }else if (bytes < terabyte) {
-            returnVal = (bytes / gigabyte).toFixed(precision) + ' GB';
+            returnVal = (bytes / kilobyte).toFixed(precision) + " KB";
+        } else if (bytes < gigabyte) {
+            returnVal = (bytes / megabyte).toFixed(precision) + " MB";
+        } else if (bytes < terabyte) {
+            returnVal = (bytes / gigabyte).toFixed(precision) + " GB";
         } else if (bytes >= terabyte) {
-            return (bytes / terabyte).toFixed(precision) + ' TB';
+            return (bytes / terabyte).toFixed(precision) + " TB";
         }
         
         return returnVal;

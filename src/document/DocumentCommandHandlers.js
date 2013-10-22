@@ -259,13 +259,11 @@ define(function (require, exports, module) {
                         doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
                                 //  doc may be null, i.e. if an image has been opened.
-                                // Then we neither want to add to working set, nor save the 
-                                // path as default open dialog path.
+                                // Then we do not add the opened file to the working set.
                                 if (doc) {
-                                    _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
-                                    
                                     DocumentManager.addToWorkingSet(doc.file);
                                 }
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath);
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
