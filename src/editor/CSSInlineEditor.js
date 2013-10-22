@@ -189,12 +189,22 @@ define(function (require, exports, module) {
         
         /**
          * @private
+         * When editor scrolls, close dropdown
+         */
+        function _onScroll() {
+            if (dropdownEventHandler) {
+                dropdownEventHandler.close();
+            }
+        }
+        
+        /**
+         * @private
          * Remove the various event handlers that close the dropdown. This is called by the
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
-            hostEditor._codeMirror.off("scroll");
+            $(hostEditor).off("scroll", _onScroll);
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -253,10 +263,7 @@ define(function (require, exports, module) {
             
             $dropdown.focus();
             
-            hostEditor._codeMirror.on("scroll", function (instance) {
-                // If host editor scrolls, close dropdown.
-                dropdownEventHandler.close();
-            });
+            $(hostEditor).on("scroll", _onScroll);
         }
         
         /**
