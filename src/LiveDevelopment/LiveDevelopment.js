@@ -81,9 +81,9 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeFileError      = require("file/NativeFileError"), // TODO: FileSystem - add app error codes?
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -1064,7 +1064,7 @@ define(function LiveDevelopment(require, exports, module) {
                         var message;
 
                         _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
+                        if (err === FileSystemError.NOT_FOUND) {
                             message = Strings.ERROR_CANT_FIND_CHROME;
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
