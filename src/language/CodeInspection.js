@@ -150,7 +150,7 @@ define(function (require, exports, module) {
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
-     * @param {!FileEntry} fileEntry File that will be inspected for errors.
+     * @param {!File} fileEntry File that will be inspected for errors.
      * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
      * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array, aborted:boolean}
      */
@@ -163,16 +163,7 @@ define(function (require, exports, module) {
             return response.promise();
         }
 
-        var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath),
-            fileTextPromise;
-
-        if (doc) {
-            fileTextPromise = new $.Deferred().resolve(doc.getText());
-        } else {
-            fileTextPromise = FileUtils.readAsText(fileEntry);
-        }
-
-        fileTextPromise
+        DocumentManager.getDocumentText(fileEntry)
             .done(function (fileText) {
                 var result,
                     perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
