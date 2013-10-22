@@ -49,6 +49,8 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
+    var _ = require("lodash");
+
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
@@ -65,7 +67,6 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
@@ -988,7 +989,7 @@ define(function (require, exports, module) {
         
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
-            var match = CollectionUtils.indexOf($nodes, function (node, i) {
+            var match = _.findIndex($nodes, function (node, i) {
                 var nodeName = $(node).data("entry").name;
                 return nodeName === seg;
             });
@@ -1534,7 +1535,7 @@ define(function (require, exports, module) {
                 Strings.ERROR_DELETING_FILE_TITLE,
                 StringUtils.format(
                     Strings.ERROR_DELETING_FILE,
-                    StringUtils.htmlEscape(entry.fullPath),
+                    _.escape(entry.fullPath),
                     FileUtils.getFileErrorString(err)
                 )
             );

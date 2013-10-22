@@ -394,6 +394,74 @@ a:focus {
     margin: 0;
 }
 
+/* Stylesheet button & dropdown styles */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    position: relative;
+    top: -1px;
+}
+
+.stylesheet-button.btn-mini.btn-dropdown {
+    padding-right: 24px;
+}
+
+.stylesheet-button.btn-dropdown::after {
+    content: "";
+    display: block;
+    height: 0px;
+    width: 0px;
+    position: absolute;
+    right: 6px;
+    top: 7px;
+
+    /* dropdown triangle */
+    border-top: 4px solid @tc-gray-component-triangle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+}
+
+.stylesheet-dropdown {
+    &.dropdown-menu:focus {
+        outline: none;
+    }
+    
+    &.dropdown-menu {
+        border: none;
+        border-radius: @tc-control-border-radius;
+        padding: 0;
+        position: absolute;
+        display: block;
+        box-shadow: @tc-dropdown-shadow;
+        max-height: 160px;
+        overflow-y: auto;
+        max-width: none;
+        z-index: @z-index-brackets-stylesheet-menu;
+    }
+    
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    &.dropdown-menu li a {
+        padding: 1px 15px 1px 15px;
+    }
+    
+    &.dropdown-menu .stylesheet-link {
+        display: block;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    &.dropdown-menu a.selected {
+        background: @tc-highlight;
+        color: @bc-black !important;
+    }
+}
+
+
 /* Dialog-related styles */
 
 .modal-wrapper {
@@ -933,7 +1001,7 @@ input[type="color"],
     // Focus state for keyboard and accessibility
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        box-shadow: @tc-button-highlight, @tc-input-glow;
         color: @tc-text;
         outline: none;
     }
@@ -988,6 +1056,11 @@ input[type="color"],
     font-size: 11px;
     font-weight: normal;
     line-height: 14px;
+    &:focus {
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: @tc-button-highlight, @tc-input-small-glow;
+        outline: none;
+    }
 }
 
 /* Tables */

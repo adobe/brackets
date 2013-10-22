@@ -135,24 +135,6 @@ define(function (require, exports, module) {
     
     
     /**
-     * The provider is passed the text of the file and its fullPath. Providers should not assume
-     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
-     * that the file on disk matches the text given (file may have unsaved changes).
-     *
-     * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
-     * If type is unspecified, Type.WARNING is assumed.
-     */
-    function register(languageId, provider) {
-        if (_providers[languageId]) {
-            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
-        }
-        _providers[languageId] = provider;
-    }
-
-    /**
      * Returns a provider for given file path, if one is available.
      * Decision is made depending on the file extension.
      *
@@ -301,6 +283,26 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * The provider is passed the text of the file and its fullPath. Providers should not assume
+     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
+     * that the file on disk matches the text given (file may have unsaved changes).
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     *
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
+     */
+    function register(languageId, provider) {
+        if (_providers[languageId]) {
+            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
+        }
+        _providers[languageId] = provider;
+        
+        run();  // in case a file of this type is open currently
+    }
+
     /**
      * Update DocumentManager listeners.
      */

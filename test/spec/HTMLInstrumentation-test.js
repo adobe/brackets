@@ -403,7 +403,7 @@ define(function (require, exports, module) {
         },
         querySelectorAll: function (query) {
             var match = bracketsIdQuery.exec(query);
-            expect(match).not.toBeNull();
+            expect(match).toBeTruthy();
             if (!match) {
                 return [];
             }

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         function expectHints(provider) {
             expect(provider.hasHints(testEditorAndDoc.editor, null)).toBe(true);
             var hintsObj = provider.getHints(null);
-            expect(hintsObj).not.toBeNull();
+            expect(hintsObj).toBeTruthy();
             return hintsObj.hints; // return just the array of hints
         }
         

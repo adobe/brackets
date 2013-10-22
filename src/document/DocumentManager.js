@@ -88,6 +88,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var DocumentModule      = require("document/Document"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
@@ -97,8 +99,6 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
-        CollectionUtils     = require("utils/CollectionUtils"),
-        NumberUtils         = require("utils/NumberUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
      * @private
      * Random path prefix for untitled documents
      */
-    var _untitledDocumentPath = "/_brackets_" + NumberUtils.getRandomInt(10000000, 99999999);
+    var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
     /**
      * @private
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
      * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
-        return _workingSet.slice(0);
+        return _.clone(_workingSet);
     }
 
     /**
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
         
-        return CollectionUtils.indexOf(list, function (file, i) {
+        return _.findIndex(list, function (file, i) {
             return file.fullPath === fullPath;
         });
     }
@@ -846,7 +846,7 @@ define(function (require, exports, module) {
         // Update open documents. This will update _currentDocument too, since
         // the current document is always open.
         var keysToDelete = [];
-        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+        _.forEach(_openDocuments, function (doc, path) {
             if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
                 // Copy value to new key
                 var newKey = path.replace(oldName, newName);
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
      * Update document
      */
     function _handleLanguageAdded(event, language) {
-        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+        _.forEach(_openDocuments, function (doc, key) {
             // No need to look at the new language if this document has one already
             if (doc.getLanguage().isFallbackLanguage()) {
                 doc._updateLanguage();
@@ -907,7 +907,7 @@ define(function (require, exports, module) {
      * Update document
      */
     function _handleLanguageModified(event, language) {
-        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+        _.forEach(_openDocuments, function (doc, key) {
             var docLanguage = doc.getLanguage();
             // A modified language can affect a document
             // - if its language was modified

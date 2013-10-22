@@ -85,14 +85,14 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS- und HTML-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser und aktualisiert die Vorschau, sobald Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur mit <strong>Google Chrome</strong> und aktualisiert sich live, wenn Sie <strong>CSS- oder HTML-Dateien</strong> bearbeiten. Änderungen an JavaScript-Dateien werden beim Speichern automatisch neu geladen.<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a href='{0}' title='{0}'>Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau (Speichern zum Aktualisieren)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau (Datei speichern zum Aktualisieren)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live-Vorschau (Es wird aufgrund eines Syntax-Fehlers nicht aktualisiert)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Die Live-Vorschau wurde abgebrochen, weil die Entwickler-Tools des Browsers geöffnet wurden",
@@ -333,6 +333,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
 
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Neue Regel",
+
     // Extension Management strings
     "INSTALL"                              : "Installieren",
     "UPDATE"                               : "Updaten",
@@ -410,6 +413,10 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
 
+    "INLINE_EDITOR_NO_MATCHES"             : "Keine Ergebnisse verfügbar.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
+
     /**
      * Unit names
      */
@@ -453,6 +460,10 @@ define({
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
+
+    // extensions/default/InlineBezierCurveEditor
+    "INLINE_BEZIER_EDITOR_TIME"                 : "Zeit",
+    "INLINE_BEZIER_EDITOR_PROGRESSION"          : "Verlauf",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
