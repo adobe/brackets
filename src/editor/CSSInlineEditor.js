@@ -194,6 +194,7 @@ define(function (require, exports, module) {
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
+            hostEditor._codeMirror.off("scroll");
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -251,6 +252,11 @@ define(function (require, exports, module) {
             dropdownEventHandler.open();
             
             $dropdown.focus();
+            
+            hostEditor._codeMirror.on("scroll", function (instance) {
+                // If host editor scrolls, close dropdown.
+                dropdownEventHandler.close();
+            });
         }
         
         /**
