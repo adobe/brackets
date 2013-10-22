@@ -63,14 +63,16 @@ define(function (require, exports, module) {
     
     
     /**
-     * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
+     * Get the stored list of recent projects, fixing up paths as appropriate.
+     * Warning: unlike most paths in Brackets, these lack a trailing "/"
      */
     function getRecentProjects() {
         var recentProjects = prefs.getValue("recentProjects") || [],
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
-            recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
+            // We have to canonicalize & then de-canonicalize the path here, since our pref format uses no trailing "/"
+            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
         }
         return recentProjects;
     }
@@ -79,7 +81,7 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+        var root = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         
@@ -355,7 +357,7 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+            currentProject = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings
