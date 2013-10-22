@@ -284,6 +284,7 @@ define({
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE": "新規ルール",
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
@@ -332,6 +333,9 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+    
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "新規ルール",
     
     // Extension Management strings
 	"INSTALL": "インストール",
@@ -410,6 +414,10 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
+	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
+	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
+    
     /**
      * Unit names
      */
@@ -453,6 +461,10 @@ define({
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
+    
+    // extensions/default/InlineBezierCurveEditor
+	"INLINE_BEZIER_EDITOR_TIME": "時刻",
+	"INLINE_BEZIER_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

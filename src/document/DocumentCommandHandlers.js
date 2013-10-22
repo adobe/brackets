@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        ImageViewer         = require("editor/ImageViewer"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
@@ -46,7 +47,8 @@ define(function (require, exports, module) {
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -168,8 +170,10 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a
-     *  document for the specified file path, or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise that will either
+     * - be resolved with a document for the specified file path or
+     * - be resolved without document, i.e. when an image is displayed or
+     * - be rejected if the file can not be read.
      */
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
@@ -182,27 +186,33 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            
-            // Load the file if it was never open before, and then switch to it in the UI
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    DocumentManager.setCurrentDocument(doc);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    function _cleanup() {
-                        // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                        EditorManager.focusEditor();
-                        result.reject();
-                    }
-                    
-                    if (silent) {
-                        _cleanup();
-                    } else {
-                        FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
-                    }
-                });
+            var mode = LanguageManager.getLanguageForPath(fullPath);
+            if (mode.getId() === "image") {
+                var $imageHolder = ImageViewer.getImageHolder(fullPath);
+                EditorManager.showCustomViewer($imageHolder, fullPath);
+                result.resolve();
+            } else {
+                // Load the file if it was never open before, and then switch to it in the UI
+                DocumentManager.getDocumentForPath(fullPath)
+                    .done(function (doc) {
+                        DocumentManager.setCurrentDocument(doc);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        function _cleanup() {
+                            // For performance, we do lazy checking of file existence, so it may be in working set
+                            DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                            EditorManager.focusEditor();
+                            result.reject();
+                        }
+                        
+                        if (silent) {
+                            _cleanup();
+                        } else {
+                            FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
+                        }
+                    });
+            }
         }
 
         return result.promise();
@@ -221,7 +231,8 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a new
-     *  document for the specified file path, or rejected if the file can not be read.
+     * document for the specified file path or be resolved without document, i.e. when an image is displayed, 
+     * or rejected if the file can not be read.
      */
     function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
@@ -247,9 +258,12 @@ define(function (require, exports, module) {
                         
                         doOpen(paths[paths.length - 1], silent)
                             .done(function (doc) {
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
-                                
-                                DocumentManager.addToWorkingSet(doc.file);
+                                //  doc may be null, i.e. if an image has been opened.
+                                // Then we do not add the opened file to the working set.
+                                if (doc) {
+                                    DocumentManager.addToWorkingSet(doc.file);
+                                }
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath);
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);

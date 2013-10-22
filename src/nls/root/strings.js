@@ -206,6 +206,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
@@ -284,6 +285,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
@@ -460,6 +462,10 @@ define({
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
+    
+    // extensions/default/InlineBezierCurveEditor
+    "INLINE_BEZIER_EDITOR_TIME"                 : "Time",
+    "INLINE_BEZIER_EDITOR_PROGRESSION"          : "Progression",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

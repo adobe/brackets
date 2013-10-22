@@ -84,10 +84,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Match a bezier curve value from a CSS Declaration or Value.
+     * Match a timing function value from a CSS Declaration or Value.
      *
      * Matches returned from this function must be handled in
-     * BezierCurveEditor._getCubicBezierCoords().
+     * TimingFunctionEditor._getCubicBezierCoords().
      *
      * @param {string} str  Input string.
      * @param {!boolean} lax  Parsing mode where:
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
      *                    used to convert previouslt parsed values to RegExp match format.
      * @return {!RegExpMatch}
      */
-    function cubicBezierMatch(str, lax) {
+    function bezierCurveMatch(str, lax) {
 
         // First look for cubic-bezier(...).
         var match = str.match(BEZIER_CURVE_REGEX);
@@ -142,5 +142,5 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.cubicBezierMatch    = cubicBezierMatch;
+    exports.bezierCurveMatch    = bezierCurveMatch;
 });

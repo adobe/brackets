@@ -1540,7 +1540,12 @@ define(function (require, exports, module) {
             var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
                 doc = mock.doc,
                 result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
-            expect(doc.getText()).toEqual(options.resultText);
+
+            // Normalize line endings so tests pass on all Operating Systems
+            var normalizedDocText = FileUtils.translateLineEndings(doc.getText(), FileUtils.LINE_ENDINGS_LF),
+                normalizedResText = FileUtils.translateLineEndings(options.resultText, FileUtils.LINE_ENDINGS_LF);
+
+            expect(normalizedDocText).toEqual(normalizedResText);
             expect(result).toEqual(options.result);
             SpecRunnerUtils.destroyMockEditor(doc);
         }
@@ -1595,7 +1600,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should consolidate consecutive rules that refer to the same item", function () {
+        it("should consolidate consecutive rules that refer to the same item and replace names with selector groups", function () {
             var doc1 = SpecRunnerUtils.createMockDocument(""),
                 doc2 = SpecRunnerUtils.createMockDocument(""),
                 rules = [
@@ -1609,7 +1614,8 @@ define(function (require, exports, module) {
                         name: ".eek",
                         doc: doc1,
                         lineStart: 10,
-                        lineEnd: 12
+                        lineEnd: 12,
+                        selectorGroup: "#blah, .eek, .glah"
                     },
                     {
                         name: ".bar",
@@ -1642,7 +1648,13 @@ define(function (require, exports, module) {
             
             expect(result).toEqual([
                 rules[0],
-                rules[1],
+                {
+                    name: "#blah, .eek, .glah",
+                    doc: doc1,
+                    lineStart: 10,
+                    lineEnd: 12,
+                    selectorGroup: "#blah, .eek, .glah"
+                },
                 rules[2],
                 {
                     name: "#baz, h2",

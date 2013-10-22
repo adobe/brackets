@@ -218,5 +218,11 @@
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh"],
         "lineComment": ["#"]
+    },
+  
+    "image": {
+        "name": "Image",
+        "mode": ["null", "text/plain"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"]
     }
 }

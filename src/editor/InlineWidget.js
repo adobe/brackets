@@ -101,7 +101,7 @@ define(function (require, exports, module) {
      * to set the initial height of the widget and animate it open.
      */
     InlineWidget.prototype.onAdded = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("add");
     };
 
     /**
