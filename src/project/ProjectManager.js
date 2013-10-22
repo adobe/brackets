@@ -1429,31 +1429,9 @@ define(function (require, exports, module) {
             return result.promise();
         }
         
-        FileSystem.resolve(oldName, function (err, item) {
+        var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
+        entry.rename(newName, function (err) {
             if (!err) {
-                result.resolve(item);
-            } else {
-                result.reject(err);
-            }
-        });
-        
-        result.promise()
-            .then(function (oldFSEntry) {
-                var result = new $.Deferred();
-                
-                oldFSEntry.rename(newName, function (err) {
-                    if (!err) {
-                        result.resolve(oldFSEntry);
-                    } else {
-                        result.reject(err);
-                    }
-                });
-                
-                return result.promise();
-            })
-            .then(function (newFSEntry) {
-                
-                // Finally, re-open the selected document
                 if (DocumentManager.getCurrentDocument()) {
                     FileViewController.openAndSelectDocument(
                         DocumentManager.getCurrentDocument().file.fullPath,
@@ -1462,7 +1440,7 @@ define(function (require, exports, module) {
                 }
                 
                 _redraw(true);
-            }, function (err) {
+            } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
@@ -1475,7 +1453,8 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
-            });
+            }
+        });
         
         return result.promise();
     }
