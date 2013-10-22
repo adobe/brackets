@@ -295,6 +295,67 @@ define(function (require, exports, module) {
             }
         }
         
+        /**
+         * @private
+         * Sort fileInfo objects by name then sub-directory
+         */
+        function _sortFileInfos(a, b) {
+            var nameComparison = a.name.localeCompare(b.name);
+            if (nameComparison !== 0) {
+                return nameComparison;
+            }
+            return a.subDirStr.localeCompare(b.subDirStr);
+        }
+        
+        /**
+         * @private
+         * Helper function to add a sub-directory to string displayed in list
+         */
+        function _addSubDir(fileInfo) {
+            var dirSplit = fileInfo.fullPath.split("/"),
+                index = dirSplit.length - fileInfo.subDirCount - 2;
+            
+            fileInfo.subDirStr = dirSplit[index] + "/" + fileInfo.subDirStr;
+            fileInfo.subDirCount++;
+        }
+        
+        /**
+         * @private
+         * Prepare file list for display
+         */
+        function _prepFileList(fileInfos) {
+            var i,
+                done = false;
+            
+            // Add subdir field to each entry
+            fileInfos.forEach(function (fileInfo) {
+                fileInfo.subDirStr = "";
+                fileInfo.subDirCount = 0;
+            });
+
+            // Each pass through loop re-sorts and then adds a subdir to
+            // duplicates to try to differentiate. Loop until no dupes remain.
+            while (!done) {
+                // Done unless a dupe is found
+                done = true;
+                
+                // Sort by name
+                fileInfos.sort(_sortFileInfos);
+                
+                // For identical names, add a subdir
+                for (i = 1; i < fileInfos.length; i++) {
+                    if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                        // Duplicate found. Add a subdir to both.
+                        done = false;
+                        _addSubDir(fileInfos[i - 1]);
+                        _addSubDir(fileInfos[i]);
+                    }
+                }
+            }
+            
+            return fileInfos;
+        }
+        
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
@@ -316,7 +377,7 @@ define(function (require, exports, module) {
                 // Now that dialog has been built, collect list of stylesheets
                 FileIndexManager.getFileInfoList("css")
                     .done(function (fileInfos) {
-                        cssFileInfos = fileInfos;
+                        cssFileInfos = _prepFileList(fileInfos);
                         
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project
