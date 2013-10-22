@@ -289,9 +289,7 @@ define(function (require, exports, module) {
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;
 
-        if (oldStartLine !== this._startLine) {
-            this.$lineNumber.text(this._startLine + 1);
-        }
+        this.$lineNumber.text(this._startLine + 1);
     };
 
     /**
