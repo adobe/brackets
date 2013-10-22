@@ -725,6 +725,37 @@ define(function (require, exports, module) {
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
+
+            it("should find and replace a regexp with $n substitutions", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$2:$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
         });
     });
     
