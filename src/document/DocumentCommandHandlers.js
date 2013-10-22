@@ -313,20 +313,28 @@ define(function (require, exports, module) {
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = commandData ? commandData.silent : false;
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
-            .always(function () {
-                // If a line and column number were given, position the editor accordingly.
-                if (fileInfo.line !== null) {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
-                    }
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
-                }
-                
-                // Give the editor focus
-                EditorManager.focusEditor();
-            });
+        NativeFileSystem.resolveNativeFileSystemPath(fileInfo.path, function (entry) {
+            if (entry.isDirectory) {
+                ProjectManager.openProject(entry.fullPath);
+            } else {
+                return _doOpenWithOptionalPath(fileInfo.path, silent)
+                    .always(function () {
+                        // If a line and column number were given, position the editor accordingly.
+                        if (fileInfo.line !== null) {
+                            if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                                fileInfo.column = 1;
+                            }
+                            // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                            EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                        }
+                        
+                        // Give the editor focus
+                        EditorManager.focusEditor();
+                    });
+            }
+        }, function (fileError) {
+            FileUtils.showFileOpenError(fileError.name, fileInfo.path);
+        });
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
         //
