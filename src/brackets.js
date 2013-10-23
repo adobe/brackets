@@ -164,6 +164,7 @@ define(function (require, exports, module) {
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            LanguageManager         : LanguageManager,
             doneLoading             : false
         };
 
