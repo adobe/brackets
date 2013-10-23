@@ -123,7 +123,6 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
 
-
         function runCloseOthers() {
             var ws = DocumentManager.getWorkingSet(),
                 e = new $.Event("contextmenu"),
@@ -144,7 +143,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 expect(DocumentManager.getCurrentDocument()).not.toBe(null);
-			});
+            });
         }
 
         it("Close others", function () {
@@ -152,10 +151,10 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_others";
 
             runs(runCloseOthers);
-			
-			runs(function () {
-				expect(DocumentManager.getWorkingSet().length).toEqual(1);
-			});
+            
+            runs(function () {
+                expect(DocumentManager.getWorkingSet().length).toEqual(1);
+            });
         });
 
         it("Close others above", function () {
@@ -163,7 +162,7 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_above";
 
             runs(runCloseOthers);
-
+            
             runs(function () {
                 expect(DocumentManager.getWorkingSet().length).toEqual(3);
             });
