@@ -193,10 +193,15 @@ define(function (require, exports, module) {
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.hasVersionInfo = !!info.versions;
                 
-        var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
-        context.isCompatible = compatInfo.isCompatible;
-        context.requiresNewer = compatInfo.requiresNewer;
-        context.isCompatibleLatest = compatInfo.isLatestVersion;
+        if (entry.registryInfo) {
+            var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
+            context.isCompatible = latestVerCompatInfo.isCompatible;
+            context.requiresNewer = latestVerCompatInfo.requiresNewer;
+            context.isCompatibleLatest = latestVerCompatInfo.isLatestVersion;
+        } else {
+            context.isCompatible = context.isCompatibleLatest = true;
+        }
+        
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         
@@ -205,8 +210,7 @@ define(function (require, exports, module) {
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
-        context.allowUpdate = context.isCompatible && context.isInstalled &&
-            !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.isCompatibleLatest;
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;

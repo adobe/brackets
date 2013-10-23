@@ -387,7 +387,6 @@ define({
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "This is an older version of the extension. The latest version requires a newer version of {APP_NAME}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "This is an older version of the extension. The latest version only works with older versions of {APP_NAME}.",
-    "EXTENSION_UPDATE_INCOMPATIBLE"        : "Updated versions of this extension require a newer version of {APP_NAME}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
     "EXTENSION_MORE_INFO"                  : "More info...",
     "EXTENSION_ERROR"                      : "Extension error",

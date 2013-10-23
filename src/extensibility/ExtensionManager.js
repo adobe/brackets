@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         
         entry.installInfo.owner = entry.registryInfo.owner;
         if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+            // Note: available update may still be incompatible; we check for this when rendering the Update button in ExtensionManagerView._renderItem()
             entry.registryInfo.updateAvailable = true;
             entry.installInfo.updateAvailable = true;
         } else {
