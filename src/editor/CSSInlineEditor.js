@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
-        FileIndexManager        = require("project/FileIndexManager"),
+        ProjectManager          = require("project/ProjectManager"),
+        LanguageManager         = require("language/LanguageManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
@@ -49,6 +50,19 @@ define(function (require, exports, module) {
     var _newRuleCmd,
         _newRuleHandlers = [];
 
+    function _getCSSFilesInProject() {
+        function cssFilter(entry) {
+            if (entry.isFile()) {
+                var language = LanguageManager.getLanguageForPath(entry.fullPath);
+                if (language.getId() === "CSS") {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return ProjectManager.getAllFiles(cssFilter);
+    }
+    
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
@@ -246,7 +260,7 @@ define(function (require, exports, module) {
          */
         function _getNoRulesMsg() {
             var result = new $.Deferred();
-            FileIndexManager.getFileInfoList("css").done(function (fileInfos) {
+            _getCSSFilesInProject().done(function (fileInfos) {
                 result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
             });
             return result;
@@ -299,7 +313,7 @@ define(function (require, exports, module) {
                 result.resolve(cssInlineEditor);
 
                 // Now that dialog has been built, collect list of stylesheets
-                FileIndexManager.getFileInfoList("css")
+                _getCSSFilesInProject()
                     .done(function (fileInfos) {
                         cssFileInfos = fileInfos;
                         
