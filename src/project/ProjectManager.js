@@ -966,7 +966,7 @@ define(function (require, exports, module) {
                         }
                     });
                     resultRenderTree.fail(function () {
-//                                PerfUtils.terminateMeasurement(perfTimerName);
+                        PerfUtils.finalizeMeasurement(perfTimerName);
                         result.reject();
                     });
                     resultRenderTree.always(function () {
@@ -1294,25 +1294,18 @@ define(function (require, exports, module) {
                     result.resolve(entry);
                 };
                 
-                var errorCallback = function (error) {
+                var errorCallback = function (error, entry) {
                     var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
                         oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
                     if (error === FileSystemError.ALREADY_EXISTS) {
+                        var useOppositeType = (isFolder === entry.isFile());
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, entryType,
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
+                                useOppositeType ? oppositeEntryType : entryType,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
-                        /* TODO: FileSystem error?
-                    } else if (error === NativeFileError.TYPE_MISMATCH_ERR) {
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS, oppositeEntryType,
-                                StringUtils.breakableUrl(data.rslt.name))
-                        );
-                        */
                     } else {
                         var errString = error === FileSystemError.NOT_WRITABLE ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
@@ -1334,7 +1327,7 @@ define(function (require, exports, module) {
                 FileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {
                         // Item already exists, fail with error
-                        errorCallback(FileSystemError.ALREADY_EXISTS);
+                        errorCallback(FileSystemError.ALREADY_EXISTS, item);
                     } else {
                         if (isFolder) {
                             var directory = FileSystem.getDirectoryForPath(newItemPath);
@@ -1434,6 +1427,7 @@ define(function (require, exports, module) {
                 }
                 
                 _redraw(true);
+                result.resolve();
             } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
@@ -1447,6 +1441,7 @@ define(function (require, exports, module) {
                                 FileUtils.getFileErrorString(err)
                     )
                 );
+                result.reject(err);
             }
         });
         
