@@ -328,7 +328,7 @@ define(function (require, exports, module) {
             var dirSplit = fileInfo.fullPath.split("/"),
                 index = dirSplit.length - fileInfo.subDirCount - 2;
             
-            fileInfo.subDirStr = dirSplit[index] + "/" + fileInfo.subDirStr;
+            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
             fileInfo.subDirCount++;
         }
         
