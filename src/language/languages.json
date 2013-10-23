@@ -69,6 +69,13 @@
         "lineComment": ["'", "REM"]
     },
 
+    "vb": {
+        "name": "VB",
+        "mode": ["vb", "text/x-vb"],
+        "fileExtensions": ["vb"],
+        "lineComment": ["'"]
+    },
+
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
