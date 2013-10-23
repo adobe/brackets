@@ -410,9 +410,9 @@ define({
     "CMD_SWITCH_LANGUAGE"                       : "Byt språk",
     "CMD_RUN_UNIT_TESTS"                        : "Kör tester",
     "CMD_SHOW_PERF_DATA"                        : "Visa prestandadata",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "Aktivera noddebugger",
-    "CMD_LOG_NODE_STATE"                        : "Skriv ut nodstatus till konsollen",
-    "CMD_RESTART_NODE"                          : "Starta om nod",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Aktivera Node debugger",
+    "CMD_LOG_NODE_STATE"                        : "Skriv ut Node status till konsollen",
+    "CMD_RESTART_NODE"                          : "Omstarta Node",
     
     "LANGUAGE_TITLE"                            : "Byt språk",
     "LANGUAGE_MESSAGE"                          : "Välj önskat språk i listan nedan:",
