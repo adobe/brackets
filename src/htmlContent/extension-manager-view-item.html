@@ -16,6 +16,14 @@
                 {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
             </div>
         {{/isCompatible}}
+        {{#isCompatible}}
+            {{^isCompatibleLatest}}
+                <div class="alert warning">
+                    {{#requiresNewer}}{{Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                    {{^requiresNewer}}{{Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+                </div>
+            {{/isCompatibleLatest}}
+        {{/isCompatible}}
         {{metadata.description}}
         {{^metadata.description}}
             <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
