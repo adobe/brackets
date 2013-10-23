@@ -442,6 +442,7 @@ a:focus {
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
+        min-width: 200px;
         z-index: @z-index-brackets-stylesheet-menu;
     }
     
@@ -461,9 +462,17 @@ a:focus {
         color: @tc-text;
     }
     
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+    
     &.dropdown-menu a.selected {
         background: @tc-highlight;
         color: @bc-black !important;
+    }
+
+    &.dropdown-menu a:not(.selected):hover {
+         background: none;
     }
 }
 
