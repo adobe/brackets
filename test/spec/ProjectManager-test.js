@@ -320,8 +320,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            // TODO: FileSystem - fix this test
-            xit("should delete the selected folder and all items in it.", function () {
+            it("should delete the selected folder and all items in it.", function () {
                 var complete       = false,
                     newFolderName  = testPath + "/toDelete",
                     rootFolderName = newFolderName,
@@ -383,7 +382,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var newFolder;
                     
-                    newFolderName += "toDelete1/";
+                    newFolderName += "/toDelete1/";
                     newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
