@@ -463,9 +463,9 @@ define({
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
     
-    // extensions/default/InlineBezierCurveEditor
-    "INLINE_BEZIER_EDITOR_TIME"                 : "Time",
-    "INLINE_BEZIER_EDITOR_PROGRESSION"          : "Progression",
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Time",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
