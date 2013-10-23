@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        ImageViewer         = require("editor/ImageViewer"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
@@ -187,9 +186,9 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(perfTimerName);
             });
 
-            if (EditorManager.getCustomViewerForPath(fullPath)) {
-                var $imageHolder = ImageViewer.getImageHolder(fullPath);
-                EditorManager.showCustomViewer($imageHolder, fullPath);
+            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
+            if (viewProvider) {
+                EditorManager.showCustomViewer(viewProvider, fullPath);
                 result.resolve();
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI

@@ -615,10 +615,12 @@ define(function (require, exports, module) {
 
     /** 
      * Append custom view to editor-holder
-     * @param {!JQuery} $customView  DOM node representing UI of custom view
+     * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
-    function showCustomViewer($customView, fullPath) {
+    function showCustomViewer(provider, fullPath) {
+        var $customView = provider.getCustomViewHolder(fullPath);
+
         DocumentManager._clearCurrentDocument();
     
         // Hide the not-editor
@@ -632,7 +634,7 @@ define(function (require, exports, module) {
         $("#editor-holder").append(_$currentCustomViewer);
         
         // add path, dimensions and file size to the view after loading image
-        ImageViewer.render(fullPath);
+        provider.render(fullPath);
         
         _setCurrentlyViewedPath(fullPath);
     }

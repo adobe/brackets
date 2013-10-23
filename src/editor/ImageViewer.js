@@ -62,7 +62,7 @@ define(function (require, exports, module) {
      * @return {JQuery}
      *
      */
-    function getImageHolder(fullPath) {
+    function getCustomViewHolder(fullPath) {
         return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
     }
     
@@ -107,6 +107,6 @@ define(function (require, exports, module) {
             _updateScale($(this).width());
         });
     }
-    exports.getImageHolder      = getImageHolder;
+    exports.getCustomViewHolder = getCustomViewHolder;
     exports.render              = render;
 });
