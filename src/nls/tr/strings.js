@@ -37,7 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için izniniz yok.",
     "FILE_EXISTS_ERR"                   : "Dosya bulunmaktadır.",
     "FILE"                              : "Dosya",
-    "DIRECTORY"                         : "Kalsör",
+    "DIRECTORY"                         : "Klasör",
 
 
     // Project error strings
