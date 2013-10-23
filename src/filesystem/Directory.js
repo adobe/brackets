@@ -30,6 +30,18 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
+    /*
+     * @constructor
+     * Model for a file system Directory.
+     *
+     * This class should *not* be instantiated directly. Use FileSystem.getDirectoryForPath,
+     * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+     *
+     * See the FileSystem class for more details.
+     *
+     * @param {!string} fullPath The full path for this Directory.
+     * @param {!FileSystem} fileSystem The file system associated with this Directory.
+     */
     function Directory(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem);
     }
@@ -44,6 +56,11 @@ define(function (require, exports, module) {
      */
     Directory.prototype._contents = null;
     
+    /**
+     * Override to return true.
+     *
+     * @return {boolean} True -- this is a Directory.
+     */
     Directory.prototype.isDirectory = function () {
         return true;
     };
@@ -52,7 +69,7 @@ define(function (require, exports, module) {
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (number, array)} callback Callback that is passed
+     * @param {function (string, array)} callback Callback that is passed
      *          and error code and the contents of the directory.
      */
     Directory.prototype.getContents = function (callback) {
@@ -107,7 +124,7 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {function (number, object)=} callback 
+     * @param {function (string, object)=} callback 
      */
     Directory.prototype.create = function (callback) {
         this._impl.mkdir(this._path, function (err, stat) {

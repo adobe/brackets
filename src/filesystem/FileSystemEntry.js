@@ -25,8 +25,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
-/* TODO: Document this class/module. */
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -34,8 +32,14 @@ define(function (require, exports, module) {
     var nextId = 0;
     
     /**
-     * Constructor
-     * @param {string} path The path for this entry
+     * @constructor
+     * Model for a file system entry. This is the base class for File and Directory,
+     * and is never used directly.
+     *
+     * See the File, Directory, and FileSystem classes for more details.
+     *
+     * @param {string} path The path for this entry.
+     * @param {FileSystem} fileSystem The file system associated with this entry.
      */
     function FileSystemEntry(path, fileSystem) {
         this._path = path;
@@ -121,8 +125,8 @@ define(function (require, exports, module) {
     /**
      * Returns the stats for the entry.
      *
-     * @param {function (err, object)} callback Callback that is resolved with the entry's
-     * stats.
+     * @param {function (string, object)} callback Callback with "error" and "stat" 
+     *     parameters.
      */
     FileSystemEntry.prototype.stat = function (callback) {
         this._impl.stat(this._path, function (err, stat) {
@@ -137,8 +141,7 @@ define(function (require, exports, module) {
      * Changes the mode of the entry. 
      *
      * @param {number} mode The desired mode of the entry as a number (e.g., 0777)
-     * @param {function (err)} callback Callback that is resolved with the entry's
-     * stats.
+     * @param {function (number)} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.chmod = function (mode, callback) {
         this._impl.chmod(this._path, mode, callback || function () {});
@@ -148,7 +151,7 @@ define(function (require, exports, module) {
      * Rename this entry.
      *
      * @param {string} newFullPath New path & name for this entry.
-     * @param {function (number)} callback  
+     * @param {function (string)} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.rename = function (newFullPath, callback) {
         this._fileSystem._beginWrite();
@@ -168,7 +171,7 @@ define(function (require, exports, module) {
     /**
      * Unlink (delete) this entry.
      *
-     * @param {function (number)} callback
+     * @param {function (string)} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.unlink = function (callback) {
         this._stat = null;
@@ -187,7 +190,7 @@ define(function (require, exports, module) {
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
      *
-     * @param {function (number)} callback
+     * @param {function (string)} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.moveToTrash = function (callback) {
         if (!this._impl.moveToTrash) {
@@ -214,7 +217,7 @@ define(function (require, exports, module) {
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
      * @param {{failFast: boolean=, maxDepth: number=}=} options - An optional set of options.
-     * @param {function(string)} callback
+     * @param {function(string)} callback Callback with single "error" parameter.
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
         var DEFAULT_MAX_DEPTH = 100;

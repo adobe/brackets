@@ -21,10 +21,41 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, setTimeout */
 
+/**
+ * FileSystem is a model object representing a complete file system. This object creates
+ * and manages File and Directory instances, dispatches events when the file system changes,
+ * and provides methods for showing 'open' and 'save' dialogs.
+ *
+ * The FileSystem must be initialized very early during application startup. 
+ *
+ * There are three ways to get File or Directory instances:
+ *    * Use FileSystem.resolve() to convert a path to a File/Directory object. This will only
+ *      succeed if the file/directory already exists.
+ *    * Use FileSystem.getFileForPath()/FileSystem.getDirectoryForPath() if you know the
+ *      file/directory already exists, or if you want to create a new entry.
+ *    * Use Directory.getContents() to return all entries for the specified Directory.
+ *
+ * FileSystem dispatches the following events:
+ *    change - Sent whenever there is a change in the file system. The handler
+ *          is passed one argument -- entry. The entry can be a File, Directory, or null.
+ *          *  When entry is a File, the contents of the file have changed, and should
+ *             be reloaded.
+ *          *  When entry is a Directory, the contents of the directory have changed. This
+ *             could be from items being added, removed, or renamed. 
+ *          *  When entry is null, a 'wholesale' change happened, and you should assume
+ *             that everything may have changed.
+ *    rename - Sent whenever a File or Directory is renamed. All affected File and Directory
+ *          objects have been updated by the time this event is dispatched. This event 
+ *          should be used to trigger an UI updates that may need to occur when a path
+ *          has changed.
+ *
+ * The FileSystem doesn't directly read or write contents--this work is done by a low-level
+ * implementation object. This allows client code to use the FileSystem API without having to
+ * worry about the underlying storage, which could be a local filesystem or a remote server.
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -33,7 +64,7 @@ define(function (require, exports, module) {
         FileIndex       = require("filesystem/FileIndex");
     
     /**
-     * Constructor. FileSystem objects should not be constructed directly.
+     * @constructor
      * The FileSystem is not usable until init() signals its callback.
      */
     function FileSystem() {
@@ -693,9 +724,23 @@ define(function (require, exports, module) {
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
     
     // Export "on" and "off" methods
+    
+    /**
+     * Add an event listener for a FileSystem event.
+     *
+     * @param {string} event The name of the event
+     * @param {function} handler The handler for the event
+     */
     exports.on = function (event, handler) {
         $(_instance).on(event, handler);
     };
+    
+    /**
+     * Remove an event listener for a FileSystem event.
+     *
+     * @param {string} event The name of the event
+     * @param {function} handler The handler for the event
+     */
     exports.off = function (event, handler) {
         $(_instance).off(event, handler);
     };

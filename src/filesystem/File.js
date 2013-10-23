@@ -30,6 +30,19 @@ define(function (require, exports, module) {
     
     var FileSystemEntry     = require("filesystem/FileSystemEntry");
     
+    
+    /*
+     * @constructor
+     * Model for a File.
+     *
+     * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
+     * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+     *
+     * See the FileSystem class for more details.
+     *
+     * @param {!string} fullPath The full path for this File.
+     * @param {!FileSystem} fileSystem The file system associated with this File.
+     */
     function File(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem);
     }
@@ -56,7 +69,8 @@ define(function (require, exports, module) {
      * Read a file as text. 
      *
      * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     * @param {function (number, string, object)} callback
+     * @param {function (string, string, object)} callback Callback that is passed the
+     *              error code, the file's contents, and the file's new stats.
      */
     File.prototype.readAsText = function (encoding, callback) {
         if (typeof (encoding) === "function") {
@@ -78,7 +92,7 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     * @param {!function (err, object)} callback Callback that is passed the
+     * @param {!function (string, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
     File.prototype.write = function (data, encoding, callback) {

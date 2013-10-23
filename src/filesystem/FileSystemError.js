@@ -25,6 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
 
+/**
+ * FileSystemError describes the errors that can occur when using the FileSystem, File,
+ * and Directory modules.
+ *
+ * Error values are strings. Any "falsy" value: null, undefined or "" means "no error".
+ */
 define(function (require, exports, module) {
     "use strict";
 
