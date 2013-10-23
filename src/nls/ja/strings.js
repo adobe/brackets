@@ -206,6 +206,7 @@ define({
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_OPEN_DROPPED_FILES": "!能=[7317594] Open Dropped Files_=!",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
