@@ -128,10 +128,18 @@ define(function (require, exports, module) {
      * @private
      * Add a new range to the range list UI.
      * @param {SearchResultItem} range The range to add.
+     * @param {number=} index Where to add the range in the list. Defaults to the end.
      */
-    MultiRangeInlineEditor.prototype._createListItem = function (range) {
+    MultiRangeInlineEditor.prototype._createListItem = function (range, index) {
         var self = this,
-            $rangeItem = $("<li/>").appendTo(this.$rangeList);
+            $rangeItem = $("<li/>"),
+            $rangeListChildren = this.$rangeList.children();
+        
+        if (index === undefined || index === $rangeListChildren.length) {
+            $rangeItem.appendTo(this.$rangeList);
+        } else {
+            $rangeItem.insertBefore($rangeListChildren.get(index));
+        }
         
         _updateRangeLabel($rangeItem, range);
         $rangeItem.mousedown(function () {
@@ -410,7 +418,7 @@ define(function (require, exports, module) {
         
         // Add the new range to the UI and select it. This should load the associated range
         // into the editor.
-        this._createListItem(newRange);
+        this._createListItem(newRange, i);
         this.setSelectedIndex(i, true);
 
         // Ensure that the rule list becomes visible if it wasn't already and we have
